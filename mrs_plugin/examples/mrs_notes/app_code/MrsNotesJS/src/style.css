@@ -72,6 +72,10 @@ html * {
     padding: 0;
 }
 
+html {
+    height: 100%;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
     background-color: var(--main-background-color);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -30,7 +30,7 @@ export class ShellTaskTreeItem extends TreeItem {
     public contextValue = "shellTask";
 
     public constructor(public task: ShellTask, command?: Command) {
-        super(`${task.caption} (${task.status})`, TreeItemCollapsibleState.None);
+        super(`${task.caption} (${task.status}${ShellTaskTreeItem.percentage(task)})`, TreeItemCollapsibleState.None);
 
         let taskIcon;
         switch (task.status) {
@@ -56,5 +56,10 @@ export class ShellTaskTreeItem extends TreeItem {
             dark: path.join(__dirname, "..", "..", "..", "..", "..", "images", "dark", taskIcon),
         };
         this.command = command;
+    }
+
+    private static percentage(task: ShellTask): string {
+        return (task.percentageDone && task.status === "running")
+            ? ` ${String(task.percentageDone)}%` : "";
     }
 }

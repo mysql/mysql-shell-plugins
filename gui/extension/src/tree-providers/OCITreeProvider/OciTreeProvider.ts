@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -171,10 +171,10 @@ export class OciTreeDataProvider implements TreeDataProvider<TreeItem> {
         try {
             const systems = await this.shellSession.mds.getMdsMySQLDbSystems(profile.profile, compartment.id);
             systems.forEach((dbSystem) => {
-                if (!dbSystem.heatWaveCluster) {
-                    items.push(new OciDbSystemStandaloneTreeItem(profile, compartment, dbSystem));
-                } else {
+                if (dbSystem.isSupportedForHwCluster || dbSystem.isSupportedForAnalyticsCluster) {
                     items.push(new OciDbSystemHWTreeItem(profile, compartment, dbSystem));
+                } else {
+                    items.push(new OciDbSystemStandaloneTreeItem(profile, compartment, dbSystem));
                 }
             });
         } catch (reason) {

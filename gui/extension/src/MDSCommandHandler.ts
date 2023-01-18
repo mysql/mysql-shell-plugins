@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -208,7 +208,7 @@ export class MDSCommandHandler {
                         "--raise_exceptions=true",
                     ];
 
-                    await host.addNewShellTask("Start DB System", shellArgs);
+                    await host.addNewShellTask("Start DB System", shellArgs, undefined, false);
                     await commands.executeCommand("msg.mds.refreshOciProfiles");
                 }
             }));
@@ -227,7 +227,7 @@ export class MDSCommandHandler {
                         "--raise_exceptions=true",
                     ];
 
-                    await host.addNewShellTask("Stop DB System", shellArgs);
+                    await host.addNewShellTask("Stop DB System", shellArgs, undefined, false);
                     await commands.executeCommand("msg.mds.refreshOciProfiles");
                 }
             }));
@@ -246,7 +246,7 @@ export class MDSCommandHandler {
                         "--raise_exceptions=true",
                     ];
 
-                    await host.addNewShellTask("Restart DB System", shellArgs);
+                    await host.addNewShellTask("Restart DB System", shellArgs, undefined, false);
                     await commands.executeCommand("msg.mds.refreshOciProfiles");
                 }
             }));
@@ -272,7 +272,7 @@ export class MDSCommandHandler {
                         "--raise_exceptions=true",
                     ];
 
-                    await host.addNewShellTask("Delete DB System", shellArgs);
+                    await host.addNewShellTask("Delete DB System", shellArgs, undefined, false);
                     await commands.executeCommand("msg.mds.refreshOciProfiles");
                 }
             }));
@@ -291,7 +291,7 @@ export class MDSCommandHandler {
                         "--raise_exceptions=true",
                     ];
 
-                    await host.addNewShellTask("Start HeatWave Cluster", shellArgs);
+                    await host.addNewShellTask("Start HeatWave Cluster", shellArgs, undefined, false);
                     await commands.executeCommand("msg.mds.refreshOciProfiles");
                 }
             }));
@@ -310,7 +310,7 @@ export class MDSCommandHandler {
                         "--raise_exceptions=true",
                     ];
 
-                    await host.addNewShellTask("Stop HeatWave Cluster", shellArgs);
+                    await host.addNewShellTask("Stop HeatWave Cluster", shellArgs, undefined, false);
                     await commands.executeCommand("msg.mds.refreshOciProfiles");
                 }
             }));
@@ -329,7 +329,7 @@ export class MDSCommandHandler {
                         "--raise_exceptions=true",
                     ];
 
-                    await host.addNewShellTask("Restart HeatWave Cluster", shellArgs);
+                    await host.addNewShellTask("Restart HeatWave Cluster", shellArgs, undefined, false);
                     await commands.executeCommand("msg.mds.refreshOciProfiles");
                 }
             }));
@@ -355,7 +355,7 @@ export class MDSCommandHandler {
                         "--raise_exceptions=true",
                     ];
 
-                    await host.addNewShellTask("Delete HeatWave Cluster", shellArgs);
+                    await host.addNewShellTask("Delete HeatWave Cluster", shellArgs, undefined, false);
                     await commands.executeCommand("msg.mds.refreshOciProfiles");
                 }
             }));
@@ -629,7 +629,7 @@ export class MDSCommandHandler {
                         "--raise_exceptions=true",
                     ];
 
-                    await host.addNewShellTask("Create HeatWave Cluster", shellArgs);
+                    await host.addNewShellTask("Create HeatWave Cluster", shellArgs, undefined, false);
                     await commands.executeCommand("msg.mds.refreshOciProfiles");
                 } else {
                     if (dbSystem.heatWaveCluster && clusterSize === dbSystem.heatWaveCluster.clusterSize
@@ -649,7 +649,7 @@ export class MDSCommandHandler {
                             "--raise_exceptions=true",
                         ];
 
-                        await host.addNewShellTask("Rescale HeatWave Cluster", shellArgs);
+                        await host.addNewShellTask("Rescale HeatWave Cluster", shellArgs, undefined, false);
                         await commands.executeCommand("msg.mds.refreshOciProfiles");
                     }
                 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -42,6 +42,9 @@ export type IBastionSummary = bastionModels.BastionSummary & {
 };
 
 export type IBastion = bastionModels.Bastion;
-export type IMySQLDbSystem = mySQLModels.DbSystem;
+export type IMySQLDbSystem = mySQLModels.DbSystem & {
+    isSupportedForHwCluster?: boolean;
+    isSupportedForAnalyticsCluster?: boolean;
+};
 export type IMySQLDbSystemShapeSummary = mySQLModels.ShapeSummary;
 export type ILoadBalancer = loadBalancerModels.LoadBalancer;

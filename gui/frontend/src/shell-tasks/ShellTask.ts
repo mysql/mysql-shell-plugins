@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -38,6 +38,7 @@ export class ShellTask {
 
     private currentStatus: ShellTaskStatusType;
     private statusCallback?: StatusCallback;
+    private currentProgress?: number;
 
     public constructor(
         public readonly caption: string,
@@ -48,6 +49,10 @@ export class ShellTask {
 
     public get status(): ShellTaskStatusType {
         return this.currentStatus;
+    }
+
+    public get percentageDone(): number | undefined {
+        return this.currentProgress;
     }
 
     public static getCurrentTimeStamp(): string {
@@ -81,6 +86,17 @@ export class ShellTask {
                     }
                 });
             } else if (this.isShellSimpleResult(data)) {
+                // Extract the "{percentage}% completed" to indicate the progress
+                if (data.info && this.statusCallback !== undefined) {
+                    const group = Array.from(data.info.matchAll(/(\d+)%\scompleted/gm), (m) => {return m[1]; });
+                    if (group.length > 0) {
+                        const percentage = parseInt(group[0], 10);
+                        if (!isNaN(percentage) && this.currentProgress !== percentage) {
+                            this.currentProgress = percentage;
+                            this.statusCallback(this.currentStatus);
+                        }
+                    }
+                }
                 this.sendMessage(data.info ?? data.status);
             }
 

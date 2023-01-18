@@ -100,9 +100,6 @@
         this.addingNoteTextBuffer = null;
 
         this.refreshNotes();
-
-        this.checkPendingInvitationTimer = null;
-        this.checkPendingInvitation();
       }
 
       componentWillUnmount = () => {
@@ -115,11 +112,6 @@
         if (this.noteContentChangeTimer) {
           clearTimeout(this.noteContentChangeTimer);
           this.noteContentChangeTimer = null;
-        }
-
-        if (this.checkPendingInvitationTimer) {
-          clearTimeout(this.checkPendingInvitationTimer);
-          this.checkPendingInvitationTimer = null;
         }
       }
 
@@ -293,13 +285,13 @@
                 if (setFocus) {
                   this.setTextAreaFocus();
                 }
-    
+
                 // If there was text entered while the activeNote was being set, update the textArea with 
                 // that text
                 if (this.addingNoteTextBuffer !== null) {
                   this.noteInputRef.current.value = this.addingNoteTextBuffer;
                   this.addingNoteTextBuffer = null;
-    
+
                   // ToDo: Trigger refresh timer
                 }
               });
@@ -403,38 +395,13 @@
         }
       }
 
-      checkPendingInvitation = async () => {
-        const { doFetch, showError } = this.props;
-
-        try {
-          // cSpell:ignore notnull
-          const pendingNotes = await (await doFetch({
-            input: `/mrsNotes/userHasNote?q={"invitationKey":{"$notnull":null},` +
-              `"invitationAccepted":{"$eq": 0}}`,
-            errorMsg: "Failed to  query invitations.",
-          })).json();
-
-          this.setState({ pendingInvitation: pendingNotes?.items?.length > 0 });
-        } catch (e) {
-          showError(e);
-        }
-
-        // Start a 5s timer to check if new invitations have been created
-        this.checkPendingInvitationTimer = setTimeout(async () => {
-          this.checkPendingInvitation();
-        }, 5000);
-      }
-
       render = ({ doFetch, showError, showPage }, { notes, activeNote, noteSearchText, pendingInvitation }) => {
         // Only display the deleteIcon if there is an activeNote
         const deleteIcon = activeNote ? html`
             <${Icon} name="deleteIcon" onClick=${() => this.deleteActiveNote()} />` : "";
-        const acceptShareIcon = pendingInvitation ? html`
-          <${Icon} name="pendingInvitationIcon" onClick=${() => showPage("notesAcceptShare")} />` : "";
         const page = window.location.hash;
 
         return html`
-        <${Route} condition=${page === "#notes"}>
           <div class="notes">
             <${NoteList} notes=${notes} activeNote=${activeNote} 
               noteSearchText=${noteSearchText} searchNotes=${this.searchNotes} 
@@ -444,8 +411,6 @@
               <div class="toolbar">
                 ${deleteIcon}
                 <div class="spacer"></div>
-                ${acceptShareIcon}
-                <${Icon} name="shareIcon" onClick=${() => showPage("notesShare")} />
                 <${Icon} name="addIcon" onClick=${() => this.addNote()} />
               </div>
               <div class="noteContent">
@@ -456,16 +421,7 @@
                   onInput=${(e) => this.onActiveNoteContentInput(e)}/>
               </div>
             </div>
-          </div>
-        </Route>
-        <${Route} condition=${page === "#notesShare"}>
-          <${Share} doFetch=${doFetch} showError=${showError} activeNote=${activeNote}
-          showPage=${(page) => { this.refreshNotes(); showPage(page); }} />
-        </Route>
-        <${Route} condition=${page === "#notesAcceptShare"}>
-          <${AcceptShare} doFetch=${doFetch} showError=${showError} 
-            showPage=${(page) => { this.refreshNotes(); showPage(page); }}/>
-        </Route>`;
+          </div>`;
       }
     }
 
@@ -507,164 +463,6 @@
         </div>`;
       };
     };
-
-    /**
-     * The Share page Component that allows to share a note with others
-     */
-    class Share extends Component {
-
-      constructor(props) {
-        super(props);
-
-        this.state = {
-          success: false,
-          error: null,
-          email: props.user?.email,
-          viewOnly: false,
-          canShare: false,
-          invitationKey: null,
-        }
-      }
-
-      shareNote = async () => {
-        const { doFetch, showError, activeNote } = this.props;
-        const { email, viewOnly, canShare } = this.state;
-
-        try {
-          // Share the note with the given user
-          if (email) {
-            const response = await (await doFetch({
-              input: `/mrsNotes/noteShare`, errorMsg: "Failed to share the note.",
-              method: "PUT",
-              body: {
-                noteId: activeNote?.id,
-                email,
-                viewOnly: viewOnly ? 1 : 0,
-                canShare: canShare ? 1 : 0,
-              }
-            })).json();
-
-            if (response.items?.length > 0) {
-              // Check if there was an error
-              if (response.items[0].message) {
-                this.setState({
-                  success: false, invitationKey: null, error: response.items[0].message
-                });
-              } else {
-                // Indicate that the note has been shared
-                this.setState({
-                  success: true, invitationKey: response.items[0].invitationKey, error: null
-                });
-              }
-            }
-          }
-        } catch (e) {
-          showError(e);
-        }
-      }
-
-      render = ({ showPage }, { success, error, email, viewOnly, canShare, invitationKey }) => {
-        const appUrl = window.location.href.replace(window.location.hash, "")
-          .replace(window.location.search, "");
-        const invitationLink = `mailto:${email}?subject=` +
-          encodeURI("Invitation to Work on Shared Note") + "&body=" +
-          encodeURI("Dear User,\n\nYou have been invited to work on a shared note.\n\n" +
-            `Please go to:\n    ${appUrl}?invitationKey=${invitationKey}#notes\n` +
-            `to accept the invitation.\n\nYour invitation key is:\n    ${invitationKey}\n\nThanks.`);
-        const successContent = html`
-          The user has been invited to share the key successfully.<br /><br />
-            Please share the following invitation key with the user:<br />
-            ${invitationKey}<br />
-            <a href="${invitationLink}">Send Email</a>`;
-
-        return html`
-        <${InputForm} headerIcon="shareIcon" headerTitle="Share Note" 
-          headerSubtitle="Please enter the email of the user you want to share the note with."
-          successContent=${successContent} back=${() => showPage("notes")} submit=${this.shareNote}
-          success=${success} error=${error}
-        >
-          <div class="formField">
-            <p>Email</p>
-            <input id="email" type="text" value=${email} autofocus
-              onInput=${(e) => this.setState({ email: e.target.value })} />
-          </div>
-          <div class="formField">
-            <div class="formCheckbox">
-              <input id="viewOnly" type="checkbox" value="1" ${viewOnly ? "checked" : ""}
-                onInput=${(e) => this.setState({ viewOnly: e.target.value === "1" })} />
-              <label for="viewOnly">Prevent the user from editing the note</label>
-            </div>
-            <div class="formCheckbox">
-              <input id="canShare" type="checkbox" value="1" ${canShare ? "checked" : ""} 
-                onInput=${(e) => this.setState({ canShare: e.target.value === "1" })} />
-              <label for="canShare">Allow the user to share the note with other users</label>
-            </div>
-          </div>
-        </InputForm>`;
-      };
-    }
-
-    /**
-     * The AcceptShare page Component that allows to accept a shared note
-     */
-    class AcceptShare extends Component {
-
-      constructor(props) {
-        super(props);
-
-        this.state = {
-          success: false,
-          error: null,
-          invitationKey: null,
-        }
-      }
-
-      acceptSharedNote = async () => {
-        const { doFetch, showError } = this.props;
-        const { invitationKey } = this.state;
-
-        try {
-          // Share the note with the given user
-          if (invitationKey) {
-            const response = await (await doFetch({
-              input: `/mrsNotes/noteAcceptShare`, errorMsg: "Failed to accept the shared note.",
-              method: "PUT",
-              body: {
-                invitationKey
-              }
-            })).json();
-
-            if (response.items?.length > 0) {
-              // Check if there was an error
-              if (response.items[0].message) {
-                this.setState({ success: false, error: response.items[0].message });
-              } else {
-                // Indicate that the note has been shared
-                this.setState({ success: true, error: null });
-              }
-            }
-          }
-        } catch (e) {
-          showError(e);
-        }
-      }
-
-      render = ({ showPage }, { invitationKey, success, error }) => {
-        return html`
-        <${InputForm} headerIcon="pendingInvitationIcon" headerTitle="Accept Shared Note" 
-          headerSubtitle="Please enter the invitation key."
-          successContent="The note has been accepted." 
-          back=${() => showPage("notes")} submit=${this.acceptSharedNote}
-          success=${success} error=${error}
-        >
-          <div class="formField">
-            <p>Invitation Key</p>
-            <input id="invitationKey" type="text" value=${invitationKey} autofocus 
-              onInput=${(e) => this.setState({ invitationKey: e.target.value })} />
-          </div>
-        </InputForm>`;
-      }
-    }
 
     /**
      * The User page Component that allows for the editing of the user information
@@ -753,15 +551,6 @@
             </div>
           </div>
         </div>` : "";
-      };
-    }
-
-    /**
-     * A simple Route Component that renders it's children based on a condition
-     */
-    class Route extends Component {
-      render = ({ condition, children }) => {
-        return condition ? html`${children}` : html``;
       };
     }
 
@@ -1083,17 +872,18 @@
               <p>Loading ...</p>
             </div>
           </div>`;
-        } else if (page === "#user" || page.startsWith("#notes")) {
+        } else if (page === "#user") {
           return html`${errorHtml}
           <div class="page">
             <${Header} userNick=${user?.nickname} showPage=${this.showPage} logout=${this.logout} />
-            <${Route} condition=${page === "#user"}>
-              <${User} doFetch=${this.doFetch} showError=${this.showError} showPage=${this.showPage} 
+            <${User} doFetch=${this.doFetch} showError=${this.showError} showPage=${this.showPage} 
                 user=${user} updateUser=${this.updateUser} />
-            </Route>
-            <${Route} condition=${page.startsWith("#notes")}>
-              <${Notes} doFetch=${this.doFetch} showError=${this.showError} showPage=${this.showPage} />
-            </Route>
+            </div>`;
+        } else if (page.startsWith("#notes")) {
+          return html`${errorHtml}
+          <div class="page">
+            <${Header} userNick=${user?.nickname} showPage=${this.showPage} logout=${this.logout} />
+            <${Notes} doFetch=${this.doFetch} showError=${this.showError} showPage=${this.showPage} />
           </div>`;
         } else {
           return html`${errorHtml}
