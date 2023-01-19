@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -179,11 +179,11 @@ class FrameSender(Frame):
                 frame_data += self.message.encode()
 
             buffer.send(frame_data)
-        except Exception:  # pragma: no cover
+        except Exception as err:  # pragma: no cover
             if self.opcode == Operation.Close:
                 return
             else:
-                raise Error("WebSocket failed to send a frame.")
+                raise Error(f"WebSocket failed to send a frame: {err}.")
 
 
 class Packet:
