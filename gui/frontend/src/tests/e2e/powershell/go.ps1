@@ -1,5 +1,5 @@
 <#
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -65,16 +65,27 @@ try {
     writeMsg "BASE PATH: $basePath"
 
     writeMsg "Setup nodejs registry..." "-NoNewLine"
-    Start-Process "npm" -ArgumentList "set", "registry", "https://artifacthub-tip.oraclecorp.com/api/npm/npmjs-remote" -Wait -RedirectStandardOutput "$env:WORKSPACE\nodeFE.log" -RedirectStandardError "$env:WORKSPACE\nodeFEErr.log"
-    writeMsg "DONE"
-
-    writeMsg "Installing node modules..." "-NoNewLine"
-    if ( !(Test-Path -Path "$basePath\node_modules") ){
-        Start-Process "npm" -ArgumentList "install", "--force" -Wait -RedirectStandardOutput "$env:WORKSPACE\nodeFE.log" -RedirectStandardError "$env:WORKSPACE\nodeFEErr.log"
-        writeMsg "DONE"
+    $prc = Start-Process "npm" -ArgumentList "set", "registry", "https://artifacthub-phx.oci.oraclecorp.com/api/npm/npmjs-remote/" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\nodeFE.log" -RedirectStandardError "$env:WORKSPACE\nodeFEErr.log"
+    if ($prc.ExitCode -ne 0){
+        Throw "Error setting nodejs registry"
     }
     else{
-        writeMsg "SKIPPED"
+        writeMsg "DONE"
+    }
+
+    if (Test-Path -Path "$basePath\package-lock.json"){
+        writeMsg "Removing package-lock.json..." "-NoNewLine"
+        Remove-Item -Path "$basePath\package-lock.json" -Force
+        writeMsg "DONE"
+    }
+
+    writeMsg "Installing node modules..." "-NoNewLine"
+    $prc = Start-Process "npm" -ArgumentList "install" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\nodeFE.log" -RedirectStandardError "$env:WORKSPACE\nodeFEErr.log"
+    if ($prc.ExitCode -ne 0){
+        Throw "Error installing node modules"
+    }
+    else{
+        writeMsg "DONE"
     }
     
     $env:PROXY = 'http://www-proxy.us.oracle.com:80'

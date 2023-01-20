@@ -204,13 +204,45 @@ export class Misc {
 
         const button = await section?.getAction(buttonName);
 
+        const tryClick = async (): Promise<void> => {
+            try {
+                await button?.click();
+            } catch (e) {
+                if (!(e instanceof error.ElementNotInteractableError)) {
+                    throw e;
+                } else {
+                    const sectionRect = await section.getRect();
+                    await driver.actions().move(
+                        {
+                            x: sectionRect.x+50,
+                            y: sectionRect.y+50,
+                        },
+                    ).perform();
+                    await button?.click();
+                }
+            }
+        };
+
+        await tryClick();
+
         await driver.wait(async () => {
-            await section.click();
+            if (buttonName !== "Collapse All" &&
+                buttonName !== "Configure the OCI Profile list" &&
+                !buttonName.includes("Reload")) {
+                try {
+                    await driver.wait(until.elementsLocated(By.xpath("//div[contains(@id, 'webview-')]")),
+                        3000, "No frames were found");
 
-            return button?.isDisplayed();
-        }, explicitWait, `'${buttonName}' button was not visible`);
+                    return true;
+                } catch (e) {
+                    await tryClick();
 
-        await button?.click();
+                    return false;
+                }
+            }
+
+            return true;
+        }, explicitWait, `Clicking on '${buttonName}' did not opened the corresponding tab`);
     };
 
     public static selectMoreActionsItem = async (

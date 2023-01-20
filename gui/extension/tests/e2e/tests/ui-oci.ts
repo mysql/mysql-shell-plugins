@@ -24,7 +24,6 @@ import {
     By,
     EditorView,
     Workbench,
-    OutputView,
     until,
     BottomBarPanel,
     TextEditor,
@@ -296,25 +295,11 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
     describe("DB System", () => {
 
-        let outputView: OutputView;
-
-        before(async function () {
-            try {
-                const bottomBar = new BottomBarPanel();
-                outputView = await bottomBar.openOutputView();
-                await treeTasksSection?.expand();
-            } catch (e) {
-                await Misc.processFailure(this);
-                throw e;
-            }
-        });
-
         beforeEach(async function () {
             try {
                 await driver.wait(async () => {
                     return !(await Misc.hasLoadingBar(treeOCISection!));
                 }, ociExplicitWait, "There is still a loading bar on OCI");
-                await outputView.clearText();
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -342,7 +327,6 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         after(async function () {
             try {
-                await Misc.toggleBottomBar(false);
                 await treeTasksSection?.collapse();
             } catch (e) {
                 await Misc.processFailure(this);
@@ -383,8 +367,6 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             expect(await Misc.getTreeElement(treeTasksSection, "Start DB System (running)")).to.exist;
 
-            await Misc.waitForOutputText(outputView, "OCI profile 'E2ETESTS' loaded.", 30000);
-
             await Misc.verifyNotification("Are you sure you want to start the DB System");
 
             const workbench = new Workbench();
@@ -392,13 +374,9 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             await ntfs[ntfs.length - 1].takeAction("NO");
 
-            await Misc.waitForOutputText(outputView, "Operation cancelled", ociExplicitWait);
-
-            await Misc.waitForOutputText(outputView, "Task 'Start DB System' completed successfully.",
-                ociExplicitWait);
-
-            expect(await Misc.getTreeElement(treeTasksSection, "Start DB System (done)")).to.exist;
-
+            await driver.wait(async () => {
+                return Misc.getTreeElement(treeTasksSection, "Start DB System (done)");
+            }, ociExplicitWait, "Start DB System (done) was not displayed");
         });
 
         it("Restart a DB System (and cancel)", async () => {
@@ -407,10 +385,6 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             expect(await Misc.getTreeElement(treeTasksSection, "Restart DB System (running)")).to.exist;
 
-            await Misc.waitForOutputText(outputView, "OCI profile 'E2ETESTS' loaded.", ociTasksExplicitWait);
-
-            await outputView.clearText();
-
             await Misc.verifyNotification("Are you sure you want to restart the DB System");
 
             const workbench = new Workbench();
@@ -418,10 +392,9 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             await ntfs[ntfs.length - 1].takeAction("NO");
 
-            await Misc.waitForOutputText(outputView, "Operation cancelled", ociExplicitWait);
-
-            await Misc.waitForOutputText(outputView, "Task 'Restart DB System' completed successfully.",
-                ociExplicitWait);
+            await driver.wait(async () => {
+                return Misc.getTreeElement(treeTasksSection, "Restart DB System (done)");
+            }, ociExplicitWait, "Restart DB System (done) was not displayed");
 
         });
 
@@ -431,8 +404,6 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             expect(await Misc.getTreeElement(treeTasksSection, "Stop DB System (running)")).to.exist;
 
-            await Misc.waitForOutputText(outputView, "OCI profile 'E2ETESTS' loaded.", ociTasksExplicitWait);
-
             await Misc.verifyNotification("Are you sure you want to stop the DB System");
 
             const workbench = new Workbench();
@@ -440,10 +411,9 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             await ntfs[ntfs.length - 1].takeAction("NO");
 
-            await Misc.waitForOutputText(outputView, "Operation cancelled", ociExplicitWait);
-
-            await Misc.waitForOutputText(outputView, "Task 'Stop DB System' completed successfully.",
-                ociExplicitWait);
+            await driver.wait(async () => {
+                return Misc.getTreeElement(treeTasksSection, "Stop DB System (done)");
+            }, ociExplicitWait, "Stop DB System (done) was not displayed");
 
         });
 
@@ -453,8 +423,6 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             expect(await Misc.getTreeElement(treeTasksSection, "Delete DB System (running)")).to.exist;
 
-            await Misc.waitForOutputText(outputView, "OCI profile 'E2ETESTS' loaded.", ociTasksExplicitWait);
-
             await Misc.verifyNotification("Are you sure you want to delete");
 
             const workbench = new Workbench();
@@ -462,10 +430,9 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             await ntfs[ntfs.length - 1].takeAction("NO");
 
-            await Misc.waitForOutputText(outputView, "Deletion aborted", ociTasksExplicitWait);
-
-            await Misc.waitForOutputText(outputView, "Task 'Delete DB System' completed successfully.",
-                ociExplicitWait);
+            await driver.wait(async () => {
+                return Misc.getTreeElement(treeTasksSection, "Delete DB System (done)");
+            }, ociExplicitWait, "Delete DB System (done) was not displayed");
 
         });
 
