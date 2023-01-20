@@ -2,10 +2,13 @@
 
 ## Changes in 1.6.2+8.0.31
 
+### Additions
+
+- Reporting of OCI operation progress in percentage for MySQL Shell Tasks
+
 ### Fixes
 
--
-
+- Fixed HeatWave support for latest server versions
 ## Changes in 1.6.1+8.0.31
 
 ### Fixes
