@@ -980,7 +980,7 @@ describe("DATABASE CONNECTIONS", () => {
                 .to.be.true;
         });
 
-        it("Edit a database connection and verify errors", async () => {
+        it("Edit a database connection and verify issues", async () => {
             const host = await Database.getWebViewConnection(globalConn.caption, false);
             await driver.executeScript(
                 "arguments[0].click();",

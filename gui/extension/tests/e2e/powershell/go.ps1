@@ -1,5 +1,5 @@
 <#
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -79,7 +79,6 @@ try {
         writeMsg "DONE"
     }
 
-    
     $dbLocation = Join-Path $env:userprofile "AppData" "Roaming" "MySQL" "mysqlsh-gui" "plugin_data" "gui_plugin" "mysqlsh_gui_backend.sqlite3"
     if (Test-Path -Path $dbLocation){
         writeMsg "Removing Plugin database..." "-NoNewLine"
@@ -98,21 +97,22 @@ try {
 
     $env:HTTP_PROXY = 'http://www-proxy.us.oracle.com:80'
     $env:HTTPS_PROXY = 'http://www-proxy.us.oracle.com:80'
+
+    if (Test-Path -Path "$basePath\package-lock.json"){
+        writeMsg "Removing package-lock.json..." "-NoNewLine"
+        Remove-Item -Path "$basePath\package-lock.json" -Force
+        writeMsg "DONE"
+    }
     
     writeMsg "Installing node modules..." "-NoNewLine"
-    if ( !(Test-Path -Path "$basePath\node_modules") ){
-        $prc = Start-Process "npm" -ArgumentList "install", "--force" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\nodeExt.log" -RedirectStandardError "$env:WORKSPACE\nodeExtErr.log"
-        if ($prc.ExitCode -ne 0){
-            Throw "Error installing node modules"
-        }
-        else{
-            writeMsg "DONE"
-        }
+    $prc = Start-Process "npm" -ArgumentList "install" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\nodeExt.log" -RedirectStandardError "$env:WORKSPACE\nodeExtErr.log"
+    if ($prc.ExitCode -ne 0){
+        Throw "Error installing node modules"
     }
     else{
-        writeMsg "SKIPPED"
+        writeMsg "DONE"
     }
-
+    
     # COPY OCI .PEM FILES
     $ociPath = Join-Path $env:userprofile ".oci"
     writeMsg "User profile path is: $ociPath"
@@ -177,9 +177,29 @@ try {
         exit 1
     }
 
+    # TEST-RESOURCES LOCATION
+    
+    writeMsg "Start installing VSCode with version: $env:VSCODE_VERSION" "-NoNewLine"
+    $prc = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-vscode", "--", "-s test-resources", "-c $env:VSCODE_VERSION" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\env.log" -RedirectStandardError "$env:WORKSPACE\envErr.log"
+    if ($prc.ExitCode -ne 0){
+        Throw "Error installing vscode"
+    }
+    else{
+        writeMsg "DONE"
+    }
+
+    writeMsg "Start installing Chromedriver..." "-NoNewLine"
+    $prc = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-chromedriver", "--", "-s test-resources" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\env.log" -RedirectStandardError "$env:WORKSPACE\envErr.log"
+    if ($prc.ExitCode -ne 0){
+        Throw "Error installing chromedriver"
+    }
+    else{
+        writeMsg "DONE"
+    }
+    
     # INSTALL VSIX
     writeMsg "Installing '$extensionItem'..." "-NoNewLine"
-    $prc = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-install-vsix", "$dest" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\env.log" -RedirectStandardError "$env:WORKSPACE\envErr.log"
+    $prc = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-install-vsix", "--", "-s test-resources", "-f $dest" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\env.log" -RedirectStandardError "$env:WORKSPACE\envErr.log"
     if ($prc.ExitCode -ne 0){
         Throw "Error installing VSIX"
     }
@@ -250,7 +270,7 @@ try {
     
     # EXECUTE TESTS
     writeMsg "Executing GUI tests..." "-NoNewLine"
-    Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests" -Wait -RedirectStandardOutput "$env:WORKSPACE\resultsExt.log" -RedirectStandardError "$env:WORKSPACE\resultsExtErr.log"
+    Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests", "--", "-s test-resources", "./tests/e2e/output/tests/*.js" -Wait -RedirectStandardOutput "$env:WORKSPACE\resultsExt.log" -RedirectStandardError "$env:WORKSPACE\resultsExtErr.log"
     writeMsg "DONE"
 
     # REMOVE THE RE-RUNS and MERGE
@@ -339,15 +359,22 @@ try {
     }
     
     # CHECK RESULTS
+    $hasErrors = $null -ne (Get-Content -Path "$env:WORKSPACE\resultsExt.log" | Select-String -Pattern "error" | % { $_.Matches.Groups[0].Value })
     $hasFailedTests = $null -ne (Get-Content -Path "$env:WORKSPACE\resultsExt.log" | Select-String -Pattern "(\d+) failing" | % { $_.Matches.Groups[0].Value })
 
-    if ($hasFailedTests -and ([int]$hasFailedTests -gt 0)){
+    if (!$hasErrors) {
+        if ($hasFailedTests -and ([int]$hasFailedTests -gt 0)){
         writeMsg "There are failed tests."
         $err = 1
+        }
+        else{
+            writeMsg "All tests passed."
+        }
+    } else {
+        writeMsg "There are ERRORS on the results file."
+        $err = 1
     }
-    else{
-        writeMsg "All tests passed."
-    }
+    
 }
 catch {
     writeMsg $_

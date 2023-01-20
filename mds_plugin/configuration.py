@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -33,7 +33,6 @@
 
 # cSpell:ignore saopaulo, Paulo, chuncheon, Vinhedo
 
-from cryptography.hazmat.backends import interfaces
 from mysqlsh.plugin_manager import plugin_function
 from mds_plugin import core
 
