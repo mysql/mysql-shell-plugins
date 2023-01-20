@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -483,6 +483,10 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
 
         Monaco.remeasureFonts();
 
+        setTimeout(() => {
+            this.resizeViewZones();
+        }, 0);
+
         /*this.backend?.getSupportedActions().forEach((value: Monaco.IEditorAction) => {
             console.log(value);
         });*/
@@ -891,7 +895,30 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
                 run: () => { return this.runContextCommand("sendBlockUpdates"); },
             });
 
+            // Special key handling for our blocks.
+            editor.addCommand(KeyCode.Backspace, this.handleBackspace, precondition);
+            editor.addCommand(KeyCode.Delete, this.handleDelete, precondition);
+
+            editor.addAction({
+                id: "jumpToBlockStart",
+                label: "Move Cursor to the Start of the Current Statement Block",
+                keybindings: [KeyMod.WinCtrl | KeyMod.CtrlCmd | KeyCode.UpArrow],
+                contextMenuGroupId: "navigation",
+                precondition,
+                run: () => { return this.jumpToBlockStart(); },
+            });
+
+            editor.addAction({
+                id: "jumpToBlockEnd",
+                label: "Move Cursor to the End of the Current Statement Block",
+                keybindings: [KeyMod.WinCtrl | KeyMod.CtrlCmd | KeyCode.DownArrow],
+                contextMenuGroupId: "navigation",
+                precondition,
+                run: () => { return this.jumpToBlockEnd(); },
+            });
         }
+
+        editor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyA, this.handleSelectAll, precondition);
 
         // In embedded mode some key combinations don't work by default. So we add handlers for them here.
         // Doing that always doesn't harm, as we do not trigger other actions than what they do normally.
@@ -911,10 +938,6 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
             editor.trigger("source", "acceptSelectedSuggestion", null);
         }, "suggestWidgetVisible");
 
-        editor.addCommand(KeyCode.Backspace, this.handleBackspace);
-        editor.addCommand(KeyCode.Delete, this.handleDelete);
-        editor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyA, this.handleSelectAll);
-
         this.disposables.push(editor);
         this.disposables.push(editor.onDidChangeCursorPosition((e: Monaco.ICursorPositionChangedEvent) => {
             if (language === "msg") {
@@ -931,19 +954,36 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
         this.disposables.push(editor.onDidChangeModelContent(this.handleModelChange));
         this.disposables.push(editor.onDidPaste(this.handlePaste));
 
-        this.disposables.push(editor.onDidScrollChange(() => {
-            this.scrolling = true;
-            if (this.scrollingTimer) {
-                clearTimeout(this.scrollingTimer);
-            }
-            this.scrollingTimer = setTimeout(() => {
-                this.scrolling = false;
+        this.disposables.push(editor.onDidScrollChange((e) => {
+            if (e.scrollTopChanged) {
+                this.scrolling = true;
                 if (this.scrollingTimer) {
                     clearTimeout(this.scrollingTimer);
                 }
+                this.scrollingTimer = setTimeout(() => {
+                    this.scrolling = false;
+                    if (this.scrollingTimer) {
+                        clearTimeout(this.scrollingTimer);
+                    }
 
-                this.scrollingTimer = null;
-            }, 500);
+                    this.scrollingTimer = null;
+                }, 500);
+            }
+
+            if (e.scrollLeftChanged) {
+                const viewZones = editor.getDomNode()?.getElementsByClassName("view-zones");
+                if (viewZones && viewZones.length > 0) {
+                    (viewZones[0] as HTMLElement).style.left = `${e.scrollLeft}px`;
+                }
+
+            }
+
+            if (e.scrollWidthChanged) {
+                // Need to delay view zone resizing, as the content width is not yet updated at this point.
+                setTimeout(() => {
+                    this.resizeViewZones();
+                }, 0);
+            }
         }));
 
         this.disposables.push(editor.onDidChangeModelOptions(() => {
@@ -1111,6 +1151,58 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
                 endLineNumber: lastLine,
                 endColumn: model.getLineMaxColumn(lastLine),
             });
+        }
+    };
+
+    private jumpToBlockStart = (): void => {
+        const editor = this.backend;
+        const model = this.model;
+        if (editor && model) {
+            const position = editor.getPosition();
+            if (position) {
+                const contexts = model.executionContexts;
+                let context = contexts.contextFromPosition(position);
+                if (context) {
+                    if (context.startLine < position.lineNumber) {
+                        editor.setPosition({ lineNumber: context.startLine, column: 1 });
+                    } else {
+                        // Already at the beginning of the block. Jump further the previous block start.
+                        context = contexts.contextFromPosition({ lineNumber: context.startLine - 1, column: 1 });
+                        if (context) {
+                            editor.setPosition({ lineNumber: context.startLine, column: 1 });
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    private jumpToBlockEnd = (): void => {
+        const editor = this.backend;
+        const model = this.model;
+        if (editor && model) {
+            const position = editor.getPosition();
+            if (position) {
+                const contexts = model.executionContexts;
+                let context = contexts.contextFromPosition(position);
+                if (context) {
+                    if (context.endLine > position.lineNumber) {
+                        editor.setPosition({
+                            lineNumber: context.endLine,
+                            column: model.getLineMaxColumn(context.endLine),
+                        });
+                    } else {
+                        // Already at the beginning of the block. Jump further the previous block start.
+                        context = contexts.contextFromPosition({ lineNumber: context.endLine + 1, column: 1 });
+                        if (context) {
+                            editor.setPosition({
+                                lineNumber: context.endLine,
+                                column: model.getLineMaxColumn(context.endLine),
+                            });
+                        }
+                    }
+                }
+            }
         }
     };
 
@@ -1510,9 +1602,24 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
     };
 
     private handleEditorResize = (entries: readonly ResizeObserverEntry[]): void => {
-        if (entries.length > 0) {
+        if (entries.length > 0 && this.editor) {
             const rect = entries[0].contentRect;
-            this.editor?.layout({ width: rect.width, height: rect.height });
+            this.editor.layout({ width: rect.width, height: rect.height });
+            this.resizeViewZones();
+        }
+    };
+
+    /**
+     * Sets the width of the view zones hosting div to the content width of the editor, to avoid
+     * stretching the zones if the editor scroll width gets larger, beyond the content width.
+     */
+    private resizeViewZones = (): void => {
+        if (this.editor) {
+            const viewZones = this.editor.getDomNode()?.getElementsByClassName("view-zones");
+            if (viewZones && viewZones.length > 0) {
+                const info = this.editor.getLayoutInfo();
+                (viewZones[0] as HTMLElement).style.width = `${info.contentWidth - 1}px`;
+            }
         }
     };
 

@@ -2481,7 +2481,7 @@ exports[`Theme editor lists testing Render test 1`] = `
                       "children": Array [
                         Object {
                           "children": undefined,
-                          "color": "#1A1A1A",
+                          "color": "#141414",
                           "description": "Background color",
                           "id": "editorZone.background",
                           "preview": true,
@@ -2513,7 +2513,7 @@ exports[`Theme editor lists testing Render test 1`] = `
                         },
                         Object {
                           "children": undefined,
-                          "color": "#161616",
+                          "color": "#1e1e1e",
                           "description": "Result View cell background color",
                           "id": "resultView.background",
                           "preview": true,
@@ -2626,7 +2626,7 @@ exports[`Theme editor lists testing Render test 1`] = `
                         },
                         Object {
                           "children": undefined,
-                          "color": "#303030",
+                          "color": "#141414",
                           "description": "Foreground color for the result prompt continuation",
                           "id": "editorPrompt.result",
                           "preview": true,
@@ -7945,7 +7945,7 @@ exports[`Theme editor lists testing Render test 1`] = `
                         "children": Array [
                           Object {
                             "children": undefined,
-                            "color": "#1A1A1A",
+                            "color": "#141414",
                             "description": "Background color",
                             "id": "editorZone.background",
                             "preview": true,
@@ -7977,7 +7977,7 @@ exports[`Theme editor lists testing Render test 1`] = `
                           },
                           Object {
                             "children": undefined,
-                            "color": "#161616",
+                            "color": "#1e1e1e",
                             "description": "Result View cell background color",
                             "id": "resultView.background",
                             "preview": true,
@@ -8090,7 +8090,7 @@ exports[`Theme editor lists testing Render test 1`] = `
                           },
                           Object {
                             "children": undefined,
-                            "color": "#303030",
+                            "color": "#141414",
                             "description": "Foreground color for the result prompt continuation",
                             "id": "editorPrompt.result",
                             "preview": true,

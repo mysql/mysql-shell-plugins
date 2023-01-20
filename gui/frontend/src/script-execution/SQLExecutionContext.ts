@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -134,7 +134,18 @@ export class SQLExecutionContext extends ExecutionContext {
                 }
 
                 if (!done) {
-                    // We found a statement touched by the begin of the range that was deleted.
+                    let startDetails = this.statementDetails[startIndex];
+
+                    // We found a statement touched by the begin of the range that was changed.
+                    // If the change is at the first position of the start statement and there's a delimiter change
+                    // before the start statement, then use this delimiter change instead as start statement and
+                    // add modify that (which may ultimately change following statements).
+                    if (startIndex > 0 && changeOffset === startDetails.span.start
+                        && this.statementDetails[startIndex - 1].state === StatementFinishState.DelimiterChange) {
+                        --startIndex;
+                        startDetails = this.statementDetails[startIndex];
+                    }
+
                     // Now check if we can find one for the end of that range.
                     // At this point newly added text is not relevant.
                     const rangeEnd = changeOffset + change.rangeLength;
@@ -148,8 +159,6 @@ export class SQLExecutionContext extends ExecutionContext {
 
                         return 0;
                     });
-
-                    const startDetails = this.statementDetails[startIndex];
 
                     if (endIndex < 0) {
                         // A negative index means we went beyond the last available statement, which means that
@@ -186,9 +195,12 @@ export class SQLExecutionContext extends ExecutionContext {
                             startDetails.span.length += this.statementDetails[run++].span.length;
                         }
 
-                        // If the start statement was a delimiter changer then scan further in the statement list
+                        // If the start statement was either a delimiter changer, or an incomplete delimiter change,
+                        // or the changed text contains a delimiter keyword, then scan further in the statement list
                         // until the next delimiter change statement or the end of the list.
-                        if (startDetails.state === StatementFinishState.DelimiterChange) {
+                        if (startDetails.state === StatementFinishState.DelimiterChange
+                            || startDetails.state === StatementFinishState.NoDelimiter
+                            || change.text.includes("delimiter ")) {
                             while (run < this.statementDetails.length) {
                                 const detail = this.statementDetails[run];
                                 if (detail.state === StatementFinishState.DelimiterChange) {

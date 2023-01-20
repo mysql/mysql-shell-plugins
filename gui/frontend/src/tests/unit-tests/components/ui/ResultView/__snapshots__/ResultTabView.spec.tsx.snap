@@ -375,28 +375,22 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                   }
                   showIndexes={true}
                 >
-                  <Grid
+                  <div
                     className="msg actionOutput"
-                    columnGap={4}
-                    columns={
-                      Array [
-                        "fit-content(10%)",
-                        "auto",
-                      ]
-                    }
-                    innerRef={
+                    style={
                       Object {
-                        "current": Object {},
+                        "display": "flex",
+                        "flexDirection": "column",
+                        "gap": "2px",
                       }
                     }
                   >
                     <div
-                      className="msg grid actionOutput"
                       style={
                         Object {
-                          "columnGap": "4px",
-                          "gridTemplateColumns": "fit-content(10%) auto",
-                          "rowGap": undefined,
+                          "display": "flex",
+                          "flexDirection": "row",
+                          "gap": "2px",
                         }
                       }
                     >
@@ -427,6 +421,16 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                           Message 1
                         </label>
                       </Label>
+                    </div>
+                    <div
+                      style={
+                        Object {
+                          "display": "flex",
+                          "flexDirection": "row",
+                          "gap": "2px",
+                        }
+                      }
+                    >
                       <Label
                         caption="Message 2"
                         className="actionLabel"
@@ -455,7 +459,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                         </label>
                       </Label>
                     </div>
-                  </Grid>
+                  </div>
                 </ActionOutput>
               </div>
             </Container>

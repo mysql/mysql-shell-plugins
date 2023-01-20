@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -74,12 +74,14 @@
 
 .msg.resultText.error,
 .msg.label.error {
+    padding: 0 4px;
     background-color: hsla(14, 88%, 42%, 0.1);
     color: hsl(14, 88%, 42%);
 }
 
 .msg.resultText.warning,
 .msg.label.warning {
+    padding: 0 4px;
     background-color: hsla(54, 88%, 42%, 0.1);
     color: hsl(54, 88%, 42%);
 }
