@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,6 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import "./Notebook.css";
 import { Position } from "monaco-editor";
 import React from "react";
 
@@ -116,7 +117,7 @@ export class Notebook extends Component<INotebookProperties> {
                     verticalScrollbarSize: 16,
                     horizontalScrollbarSize: 16,
                 }}
-                lineNumbers="off"
+                lineNumbers={this.contextRelativeLineNumbers}
                 onScriptExecution={onScriptExecution}
                 onHelpCommand={onHelpCommand}
                 onCursorChange={this.handleCursorChange}
@@ -348,4 +349,26 @@ export class Notebook extends Component<INotebookProperties> {
 
         return dialect;
     }
+
+    /**
+     * Computes custom line numbers, which are relative to an execution context.
+     *
+     * @param originalLineNumber The line number from Monaco.
+     *
+     * @returns The computed relative line number for the context at the original linenumber position.
+     */
+    private contextRelativeLineNumbers = (originalLineNumber: number): string => {
+        const { editorState } = this.props;
+        const contexts = editorState.model.executionContexts;
+        const context = contexts.contextFromPosition({ lineNumber: originalLineNumber, column: 1 });
+        if (context) {
+            if (context.endLine - context.startLine > 0) {
+                return (originalLineNumber - context.startLine + 1).toString();
+            } else {
+                return "";
+            }
+        }
+
+        return originalLineNumber.toString();
+    };
 }

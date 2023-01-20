@@ -14,28 +14,22 @@ exports[`Action Output Tests Action Full Rendering 1`] = `
   }
   showIndexes={true}
 >
-  <Grid
+  <div
     className="msg actionOutput"
-    columnGap={4}
-    columns={
-      Array [
-        "fit-content(10%)",
-        "auto",
-      ]
-    }
-    innerRef={
+    style={
       Object {
-        "current": Object {},
+        "display": "flex",
+        "flexDirection": "column",
+        "gap": "2px",
       }
     }
   >
     <div
-      className="msg grid actionOutput"
       style={
         Object {
-          "columnGap": "4px",
-          "gridTemplateColumns": "fit-content(10%) auto",
-          "rowGap": undefined,
+          "display": "flex",
+          "flexDirection": "row",
+          "gap": "2px",
         }
       }
     >
@@ -67,7 +61,7 @@ exports[`Action Output Tests Action Full Rendering 1`] = `
         </label>
       </Label>
     </div>
-  </Grid>
+  </div>
 </ActionOutput>
 `;
 
@@ -93,31 +87,15 @@ exports[`Action Output Tests Standard Rendering 1`] = `
   output={Array []}
   showIndexes={false}
 >
-  <Grid
+  <div
     className="msg actionOutput"
-    columnGap={4}
-    columns={
-      Array [
-        "fit-content(10%)",
-        "auto",
-      ]
-    }
-    innerRef={
+    style={
       Object {
-        "current": Object {},
+        "display": "flex",
+        "flexDirection": "column",
+        "gap": "2px",
       }
     }
-  >
-    <div
-      className="msg grid actionOutput"
-      style={
-        Object {
-          "columnGap": "4px",
-          "gridTemplateColumns": "fit-content(10%) auto",
-          "rowGap": undefined,
-        }
-      }
-    />
-  </Grid>
+  />
 </ActionOutput>
 `;

@@ -1,5 +1,18 @@
 # MySQL Shell for VS Code Change Log
 
+## Changes in 1.7.0+8.0.32
+
+### Additions
+
+- New, cleaned up visual appearance of notebooks
+- New keyboard short-cuts for navigating Notebooks
+  - "ctrl+cmd+up" to move to the beginning of the current statement block or the previous block when on first line
+  - "ctrl+cmd+down" to move to the end of the current statement block or the next block when on last line
+
+### Fixes
+
+- Fixed layout issues when word wrap was turned off
+
 ## Changes in 1.6.2+8.0.31
 
 ### Additions
@@ -9,6 +22,7 @@
 ### Fixes
 
 - Fixed HeatWave support for latest server versions
+
 ## Changes in 1.6.1+8.0.31
 
 ### Fixes

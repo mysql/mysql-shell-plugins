@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -67,15 +67,16 @@ export class ActionOutput extends Component<IActionOutputProperties> {
         const className = this.getEffectiveClassNames(["actionOutput"]);
 
         // Note: no GridCell instance is used, as we always have only one entry per cell.
-        const cells: React.ReactElement[] = [];
+        const rows: React.ReactElement[] = [];
         const canShowIndexes = showIndexes && output && output.length > 1;
         output?.forEach((entry) => {
             const index = entry.index !== undefined && entry.index >= 0 ? entry.index : undefined;
+            const cells: React.ReactElement[] = [];
 
             let columnSpan = 1;
             if (index !== undefined && canShowIndexes) {
                 cells.push(
-                    <Label className="commandIndex" caption={`#${index + 1}: `} />,
+                    <Label className="commandIndex" caption={`#${index + 1}: `}/>,
                 );
             } else {
                 columnSpan = 2;
@@ -92,12 +93,17 @@ export class ActionOutput extends Component<IActionOutputProperties> {
                 tabIndex={index === undefined ? -1 : 0}
                 onClick={this.handleLabelClick}
             />);
+
+            rows.push(
+                <div style={{display: "flex", gap: "2px", flexDirection: "row"}}>
+                    {cells}
+                </div>);
         });
 
         return (
-            <Grid innerRef={this.gridRef} columns={["fit-content(10%)", "auto"]} columnGap={4} className={className}>
-                {cells}
-            </Grid>
+            <div className={className} style={{display: "flex", gap: "2px", flexDirection: "column"}}>
+                {rows}
+            </div>
         );
     }
 
