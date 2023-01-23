@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -25,8 +25,8 @@ import {
     IServicePasswordRequest, IDialogRequest, DialogType, IDictionary, IDialogResponse, DialogResponseClosure,
 } from "../../app-logic/Types";
 import {
-    IPromptReplyBackend, IShellFeedbackRequest, IShellPasswordFeedbackRequest, IShellResultType,
-    ShellPromptResponseType,
+    IPromptReplyBackend, IShellFeedbackRequest, IShellPasswordFeedbackRequest, ShellPromptResponseType,
+    IShellResultType,
 } from "../../communication";
 import { requisitions } from "../../supplement/Requisitions";
 
@@ -51,8 +51,9 @@ export class ShellPromptHandler {
      *
      * @returns True, if the result is a prompt request, otherwise false (and the result is not handled).
      */
-    public static handleShellPrompt(result: IShellResultType, requestId: string, backend: IPromptReplyBackend,
-        title?: string, payload?: IDictionary): boolean {
+    public static handleShellPrompt(result: IShellResultType | undefined,
+        requestId: string,
+        backend: IPromptReplyBackend, title?: string, payload?: IDictionary): boolean {
         if (this.isShellPromptResult(result)) {
             switch (result.type) {
                 case "password": {
@@ -143,7 +144,7 @@ export class ShellPromptHandler {
 
     // Must be public for the registration below. Switch to a static init block once we can use ES 2022.
     public static acceptPassword = (
-        data: { request: IServicePasswordRequest; password: string }): Promise<boolean> => {
+        data: { request: IServicePasswordRequest; password: string; }): Promise<boolean> => {
         return new Promise((resolve) => {
             const backend = data.request.payload?.backend as IPromptReplyBackend;
             if (backend) {
@@ -266,7 +267,7 @@ export class ShellPromptHandler {
         return passwordRequest;
     };
 
-    private static isShellPromptResult(response?: IShellResultType): response is IShellFeedbackRequest {
+    private static isShellPromptResult(response?: unknown): response is IShellFeedbackRequest {
         if (!response) {
             return false;
         }

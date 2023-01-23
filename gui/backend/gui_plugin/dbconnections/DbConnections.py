@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -290,13 +290,12 @@ def list_credentials():
 
 
 @plugin_function('gui.dbconnections.testConnection', shell=False, web=True)
-def test_connection(connection, password=None, web_session=None):
+def test_connection(connection, password=None):
     """Opens test connection
 
     Args:
         connection (object): The id of the db_connection or connection information
         password (str): The password to use when opening the connection. If not supplied, then use the password defined in the database options.
-        web_session (object): The web_session object this session will belong to
 
     Allowed options for connection:
         db_type (str,required): The db type name
@@ -306,7 +305,7 @@ def test_connection(connection, password=None, web_session=None):
         None
     """
 
-    new_session = DbModuleSession(web_session)
+    new_session = DbModuleSession()
     new_session.open_connection(connection, password)
     if password is None and not 'password' in connection['options']:
         return {"module_session_id": new_session.module_session_id}

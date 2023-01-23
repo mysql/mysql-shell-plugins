@@ -37,8 +37,10 @@ await ws.sendAndValidate({
             "type": "OK",
             "msg": "Connection was successfully opened."
         },
-        "module_session_id": ws.lastModuleSessionId,
-        "info": {},
-        "default_schema": ws.ignore
+        "result": {
+            "module_session_id": ws.lastModuleSessionId,
+            "info": {},
+            "default_schema": ws.ignore
+        }
     }
 ])

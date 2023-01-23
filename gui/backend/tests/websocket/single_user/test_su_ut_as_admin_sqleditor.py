@@ -165,13 +165,16 @@ def sqlide_session(ws, add_connection):
     }, [{
         "request_id": ws.lastGeneratedRequestId,
         "request_state": {"type": "OK", "msg": "Connection was successfully opened."},
-        "module_session_id": module_session_id,
-        "info": {
-            "version": ws.matchRegexp("8.0.[0-9][0-9]"),
-            "edition": ws.ignore,
-            "sql_mode": ws.ignore
-        },
-        "default_schema": "information_schema"
+        "result":
+        {
+            "module_session_id": module_session_id,
+            "info": {
+                "version": ws.matchRegexp("8.0.[0-9][0-9]"),
+                "edition": ws.ignore,
+                "sql_mode": ws.ignore
+            },
+            "default_schema": "information_schema"
+        }
     }
     ])
 

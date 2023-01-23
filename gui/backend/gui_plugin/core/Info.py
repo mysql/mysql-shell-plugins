@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -30,7 +30,7 @@ def get_backend_information():
     """Returns information about backend
 
     Returns:
-        A dict with information about backend
+       dict: information about backend
     """
 
     try:
@@ -39,7 +39,7 @@ def get_backend_information():
     except Exception as e:
         return Response.error(str(e) + "\nMysql Shell version: %s" % version)
 
-    return Response.ok("Successfully obtained backend info.", {"info": info})
+    return info
 
 
 def parse_shell_version(version):

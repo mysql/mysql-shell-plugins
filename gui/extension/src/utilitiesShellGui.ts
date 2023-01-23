@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,11 +23,11 @@
 
 import { window } from "vscode";
 
-import { ShellPromptResponseType, IShellFeedbackRequest, IShellResultType } from "../../frontend/src/communication";
+import { ShellPromptResponseType, IShellFeedbackRequest } from "../../frontend/src/communication";
 import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface";
 import { stripAnsiCode } from "../../frontend/src/utilities/helpers";
 
-const isShellPromptResult = (response?: IShellResultType): response is IShellFeedbackRequest => {
+const isShellPromptResult = (response?: unknown): response is IShellFeedbackRequest => {
     const candidate = response as IShellFeedbackRequest;
 
     return candidate?.prompt !== undefined;
@@ -44,17 +44,18 @@ export const openSqlEditorConnection = async (sqlEditor: ShellInterfaceSqlEditor
     _progress?: (message: string) => void): Promise<void> => {
 
     await sqlEditor.openConnection(connectionId, undefined, (data, requestId) => {
-        if (isShellPromptResult(data.result)) {
-            if (data.result.type === "password") {
-                void window.showInputBox({ title: data.result.prompt, password: true }).then((value) => {
+        const result = data.result;
+        if (isShellPromptResult(result)) {
+            if (result.type === "password") {
+                void window.showInputBox({ title: result.prompt, password: true }).then((value) => {
                     if (value) {
                         void sqlEditor.sendReply(requestId, ShellPromptResponseType.Ok, value);
                     } else {
                         void sqlEditor.sendReply(requestId, ShellPromptResponseType.Cancel, "");
                     }
                 });
-            } else if (data.result.prompt) {
-                void window.showInputBox({ title: stripAnsiCode(data.result.prompt), password: false, value: "N" })
+            } else if (result.prompt) {
+                void window.showInputBox({ title: stripAnsiCode(result.prompt), password: false, value: "N" })
                     .then((value) => {
                         if (value) {
                             void sqlEditor.sendReply(requestId, ShellPromptResponseType.Ok, value);
@@ -102,4 +103,3 @@ export const openSqlEditorSessionAndConnection = async (sqlEditor: ShellInterfac
             `Error: ${error instanceof Error ? error.message : String(error)}`);
     }
 };
-

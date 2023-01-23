@@ -34,7 +34,7 @@ ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
         "type": "OK",
-        "msg": "The file was created"
+        "msg": ""
     },
     "result": ws.tokens["db_file"]
 })
@@ -84,9 +84,11 @@ ws.validateLastResponse({
         "type": "OK",
         "msg": "Connection was successfully opened."
     },
-    "module_session_id": ws.lastModuleSessionId,
-    "info": {},
-    "default_schema": "tests_add_sqlite_connection"
+    "result": {
+        "module_session_id": ws.lastModuleSessionId,
+        "info": {},
+        "default_schema": "tests_add_sqlite_connection"
+    }
 })
 
 await ws.sendAndValidate({

@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -48,15 +48,13 @@ def get_gui_module_display_info():
 
 
 @plugin_function('gui.sqleditor.startSession', shell=False, web=True)
-def start_session(web_session=None):
+def start_session():
     """Starts a SQL Editor Session
 
-    Args:
-        web_session (object): The web_session object this session will belong to
     Returns:
         dict: contains module session ID
     """
-    new_session = SqleditorModuleSession(web_session)
+    new_session = SqleditorModuleSession()
 
     return {"module_session_id": new_session.module_session_id}
 

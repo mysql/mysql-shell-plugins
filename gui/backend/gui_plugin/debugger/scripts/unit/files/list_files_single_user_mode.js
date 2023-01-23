@@ -9,7 +9,7 @@ ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
         "type": "OK",
-        "msg": "Files in directory"
+        "msg": ""
     },
     "result": ws.ignore,
 })
@@ -29,7 +29,7 @@ ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
         "type": "OK",
-        "msg": "Files in directory"
+        "msg": ""
     },
     "result": ws.ignore,
 })
@@ -49,7 +49,7 @@ ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
         "type": "OK",
-        "msg": "Files in directory"
+        "msg": ""
     },
     "result": ws.ignore,
 })
@@ -68,7 +68,7 @@ ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
         "type": "OK",
-        "msg": "Files in directory"
+        "msg": ""
     },
     "result": ws.ignore,
 })
@@ -127,7 +127,7 @@ ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
         "type": "OK",
-        "msg": "Files in directory"
+        "msg": ""
     },
     "result": ws.matchList([ws.tokens["testTempDirPosix"] + "/directory1", ws.tokens["testTempDirPosix"] + "/inaccessible"], false)
 })

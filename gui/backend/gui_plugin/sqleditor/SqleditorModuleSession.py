@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -19,12 +19,12 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from gui_plugin.core.dbms import DbSessionFactory
-from gui_plugin.core.modules.DbModuleSession import DbModuleSession
-from gui_plugin.core.modules.DbModuleSession import check_service_database_session
-from gui_plugin.core.Error import MSGException
-from gui_plugin.core.dbms.DbSession import ReconnectionMode
 import gui_plugin.core.Error as Error
+from gui_plugin.core.dbms import DbSessionFactory
+from gui_plugin.core.dbms.DbSession import ReconnectionMode
+from gui_plugin.core.Error import MSGException
+from gui_plugin.core.modules.DbModuleSession import (
+    DbModuleSession, check_service_database_session)
 from gui_plugin.core.Protocols import Response
 
 
@@ -38,21 +38,21 @@ def check_user_database_session(func):
 
 
 class SqleditorModuleSession(DbModuleSession):
-    def __init__(self, web_session):
-        super().__init__(web_session, reconnection_mode=ReconnectionMode.EXTENDED)
+    def __init__(self):
+        super().__init__(reconnection_mode=ReconnectionMode.EXTENDED)
         self._db_user_session = None
 
     def __del__(self):
         self.close()
         super().__del__()
 
-    def close_connection(self):
+    def close_connection(self, after_fail=False):
         # do cleanup
         if self._db_user_session is not None:
             self._db_user_session.close()
             self._db_user_session = None
 
-        super().close_connection()
+        super().close_connection(after_fail)
 
     # Overrides the on_connected function at the DBModuleSession to actually
     # trigger the user session connection, on this one no prompts are expected
@@ -74,11 +74,11 @@ class SqleditorModuleSession(DbModuleSession):
             self._db_user_session.reconnect(db_session.connection_options)
 
     def on_user_session_connected(self, db_session):
-        data = Response.ok("Connection was successfully opened.", {
+        data = Response.ok("Connection was successfully opened.", {"result": {
             "module_session_id": self._module_session_id,
             "info": db_session.info(),
             "default_schema": db_session.get_default_schema()
-        })
+        }})
         self.send_command_response(self._current_request_id, data)
 
     @check_user_database_session

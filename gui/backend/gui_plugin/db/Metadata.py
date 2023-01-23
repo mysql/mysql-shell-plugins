@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -171,21 +171,18 @@ def get_table_object(session, type, schema_name, table_name, name):
 
 
 @plugin_function('gui.db.startSession', shell=False, web=True)
-def start_session(connection, password=None, web_session=None):
+def start_session(connection, password=None):
     """Starts a DB Session
     Args:
         connection (object): The id of the db_connection or connection information
         password (str): The password to use when opening the connection. If not supplied, then use the password defined in the database options.
-        web_session (object): The web_session object this session will belong to
 
     Returns:
-        A dict holding the result message
+        None
     """
 
-    new_session = DbModuleSession(web_session)
+    new_session = DbModuleSession()
     new_session.open_connection(connection, password)
-
-    return {"module_session_id": new_session.module_session_id}
 
 
 @plugin_function('gui.db.closeSession', shell=False, web=True)

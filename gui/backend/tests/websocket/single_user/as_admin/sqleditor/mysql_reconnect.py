@@ -149,13 +149,16 @@ ws.sendAndValidate({
     [
         {
             "request_state": {"type": "OK", "msg": "Connection was successfully opened."},
-            "module_session_id": ws.tokens["module_session_id"],
-            "info": {
-                "version": ws.matchRegexp("8.0.[0-9][0-9]"),
-                "edition": ws.ignore,
-                "sql_mode": ws.ignore
+            "result":
+            {
+                "module_session_id": ws.tokens["module_session_id"],
+                "info": {
+                    "version": ws.matchRegexp("8.0.[0-9][0-9]"),
+                    "edition": ws.ignore,
+                    "sql_mode": ws.ignore
+                },
+                "default_schema": connection_options["schema"],
             },
-            "default_schema": connection_options["schema"],
             "request_id": ws.lastGeneratedRequestId
         }
 ]

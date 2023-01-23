@@ -14,12 +14,10 @@ ws.validateLastResponse({
         "type": "OK",
         "msg": ""
     },
-    "result": {
-        "path": ws.ignore
-    }
+    "result": ws.ignore
 })
 
-ws.tokens['homePath'] = ws.lastResponse['result']['path']
+ws.tokens['homePath'] = ws.lastResponse['result']
 
 //  list files from the user directory
 await ws.send({
@@ -35,7 +33,7 @@ ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
         "type": "OK",
-        "msg": "Files in directory"
+        "msg": ""
     },
     "result": []
 })
@@ -58,9 +56,7 @@ ws.validateLastResponse({
         "type": "OK",
         "msg": ""
     },
-    "result": {
-        "path": ws.tokens['homePath']
-    }
+    "result": ws.tokens['homePath']
 })
 
 //  validate './' path
@@ -79,9 +75,7 @@ ws.validateLastResponse({
         "type": "OK",
         "msg": ""
     },
-    "result": {
-        "path": ws.tokens['homePath']
-    }
+    "result": ws.tokens['homePath']
 })
 
 
@@ -103,9 +97,6 @@ ws.validateLastResponse({
         "code": 1002,
         "source": "MSG"
     },
-    "result": {
-        "path": ws.tokens['homePath'] + "/some_directory/sub_directory"
-    }
 })
 
 //  validate with a valid path
@@ -123,9 +114,7 @@ await ws.sendAndValidate({
             "type": "OK",
             "msg": ""
         },
-        "result": {
-            "path": ws.tokens['homePathList'][0]
-        }
+        "result": ws.tokens['homePathList'][0]
     }
 ])
 
@@ -146,9 +135,6 @@ await ws.sendAndValidate({
             "code": 1002,
             "source": "MSG"
         },
-        "result": {
-            "path": ws.tokens['homePath'] + "/file5"
-        }
     }
 ])
 
@@ -169,7 +155,5 @@ ws.validateLastResponse({
         "type": "OK",
         "msg": ""
     },
-    "result": {
-        "path": ws.tokens["testTempDirPosix"] + "/directory1/file1"
-    }
+    "result": ws.tokens["testTempDirPosix"] + "/directory1/file1"
 })

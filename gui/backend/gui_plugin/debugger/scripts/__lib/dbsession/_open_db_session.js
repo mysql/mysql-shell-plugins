@@ -8,29 +8,17 @@ var _this = lib.dbsession.open_db_session
 var settings = _this.params["database_settings"]
 
 
-await ws.sendAndValidate({
+await ws.send({
     "request": "execute",
     "request_id": ws.generateRequestId(),
     "command": "gui.db.start_session",
     "args": {
         "connection": settings.result["connection_id"],
     }
-}, [
-    {
-        "request_id": ws.lastGeneratedRequestId,
-        "request_state": {
-            "type": "OK",
-            "msg": ""
-        },
-        "result": {
-            "module_session_id": ws.matchRegexp("[a-f0-9]{8}-[a-f0-9]{4}-1[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$")
-        }
-    }
-])
-
-_this.result["session_id"] = ws.lastResponse['result']
+})
 
 // Validation of opened connection
 _this.params["validation"].params["default_schema"] = settings.result["default_schema"]
 ws.execute(_this.params["validation"].file)
 
+_this.result["session_id"] = ws.lastResponse['result']['module_session_id']

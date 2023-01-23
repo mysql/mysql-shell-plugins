@@ -21,25 +21,17 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId,
         "request_state": {
             "type": "OK",
-            "msg": ""
-        },
-        "result": {
-            "module_session_id": ws.matchRegexp("[a-f0-9]{8}-[a-f0-9]{4}-1[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$")
-        }
-    },
-    {
-        "request_id": ws.lastGeneratedRequestId,
-        "request_state": {
-            "type": "OK",
             "msg": "Connection was successfully opened."
         },
-        "module_session_id": ws.lastModuleSessionId,
-        "info": {
-            "version": ws.matchRegexp("8.0.[0-9][0-9]"),
-            "edition": ws.ignore,
-            "sql_mode": ws.ignore
-        },
-        "default_schema": ws.ignore
+        "result": {
+            "module_session_id": ws.lastModuleSessionId,
+            "info": {
+                "version": ws.matchRegexp("8.0.[0-9][0-9]"),
+                "edition": ws.ignore,
+                "sql_mode": ws.ignore
+            },
+            "default_schema": ws.ignore
+        }
     }
 ])
 

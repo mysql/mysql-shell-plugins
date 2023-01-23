@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -40,15 +40,15 @@ export class ShellInterfaceCore {
             });
 
             return {
-                architecture: response.info.architecture,
-                major: filterInt(response.info.major),
-                minor: filterInt(response.info.minor),
-                patch: filterInt(response.info.patch),
-                platform: response.info.platform,
-                serverDistribution: response.info.serverDistribution,
-                serverMajor: filterInt(response.info.serverMajor),
-                serverMinor: filterInt(response.info.serverMinor),
-                serverPatch: filterInt(response.info.serverPatch),
+                architecture: response.result.architecture,
+                major: filterInt(response.result.major),
+                minor: filterInt(response.result.minor),
+                patch: filterInt(response.result.patch),
+                platform: response.result.platform,
+                serverDistribution: response.result.serverDistribution,
+                serverMajor: filterInt(response.result.serverMajor),
+                serverMinor: filterInt(response.result.serverMinor),
+                serverPatch: filterInt(response.result.serverPatch),
             };
         })();
     }
@@ -126,7 +126,7 @@ export class ShellInterfaceCore {
             parameters: {},
         });
 
-        return response.scripts;
+        return response.result;
     }
 
     /**
@@ -140,6 +140,6 @@ export class ShellInterfaceCore {
             parameters: { args: { path } },
         });
 
-        return response.script;
+        return response.result;
     }
 }

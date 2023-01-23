@@ -53,7 +53,7 @@ ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
         "type": "OK",
-        "msg": "The file was created"
+        "msg": ""
     },
     "result": "test_db.sqlite"
 })
@@ -72,7 +72,7 @@ ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
         "type": "OK",
-        "msg": "The file was created"
+        "msg": ""
     },
     "result": "test_db.sqlite3"
 })
@@ -91,7 +91,7 @@ ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
         "type": "OK",
-        "msg": "Files in directory"
+        "msg": ""
     },
     "result": ws.matchList(["test_db.sqlite", "test_db.sqlite3"], 0),
 })
@@ -130,7 +130,7 @@ ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
         "type": "OK",
-        "msg": "The file was created"
+        "msg": ""
     },
     "result": "directory1/test_db.sqlite"
 })
@@ -148,7 +148,7 @@ ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
         "type": "OK",
-        "msg": "Files in directory"
+        "msg": ""
     },
     "result": ws.matchList(["directory1/test_db.sqlite"], 0),
 })

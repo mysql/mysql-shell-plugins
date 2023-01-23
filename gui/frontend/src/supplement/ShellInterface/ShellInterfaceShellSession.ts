@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -72,7 +72,7 @@ export class ShellInterfaceShellSession implements IPromptReplyBackend {
         this.moduleSessionLookupId = `shellSession.${id}`;
 
         if (this.hasSession) {
-            return;
+            return undefined;
         }
 
         const response = await MessageScheduler.get.sendRequest({
@@ -173,7 +173,7 @@ export class ShellInterfaceShellSession implements IPromptReplyBackend {
      * @returns A listener for the response.
      */
     public async getCompletionItems(text: string,
-        offset: number): Promise<Array<{ offset?: number; options?: string[] }>> {
+        offset: number): Promise<Array<{ offset?: number; options?: string[]; }>> {
         const moduleSessionId = this.moduleSessionId;
         if (moduleSessionId) {
             const response = await MessageScheduler.get.sendRequest({
@@ -187,7 +187,7 @@ export class ShellInterfaceShellSession implements IPromptReplyBackend {
                 },
             });
 
-            const result: Array<{ offset: number; options: string[] }> = [];
+            const result: Array<{ offset: number; options: string[]; }> = [];
             response.forEach((list) => {
                 if (list.result) {
                     result.push(list.result);

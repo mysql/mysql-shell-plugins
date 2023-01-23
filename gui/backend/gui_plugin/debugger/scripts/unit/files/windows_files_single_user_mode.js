@@ -14,9 +14,7 @@ await ws.sendAndValidate({
             "msg": "The supplied path does not exist.",
             "code": 1002,
             "source": "MSG"
-        }, "result": {
-            "path": ws.tokens["homeDir"] + "/inaccessible"
-        }
+        },
     }
 ])
 
@@ -36,9 +34,7 @@ await ws.sendAndValidate({
             "type": "OK",
             "msg": ""
         },
-        "result": {
-            "path": ws.ignore
-        }
+        "result": ws.ignore
     }
 ])
 
@@ -60,9 +56,6 @@ await ws.sendAndValidate({
             "code": 1002,
             "source": "MSG"
         },
-        "result": {
-            "path": ws.matchRegexp("\\w:/some_directory")
-        }
     }
 ])
 
@@ -103,9 +96,6 @@ await ws.sendAndValidate({
             "code": 1009,
             "source": "MSG"
         },
-        "result": {
-            "path": "prn"
-        }
     }
 ])
 
@@ -126,9 +116,6 @@ await ws.sendAndValidate({
             "code": 1009,
             "source": "MSG"
         },
-        "result": {
-            "path": "con"
-        }
     }
 ])
 
@@ -150,9 +137,6 @@ await ws.sendAndValidate({
             "code": 1009,
             "source": "MSG"
         },
-        "result": {
-            "path": "con.txt"
-        }
     }
 ])
 
@@ -173,9 +157,6 @@ await ws.sendAndValidate({
             "code": 1009,
             "source": "MSG"
         },
-        "result": {
-            "path": "c:\\windows\\con.txt"
-        }
     }
 ])
 
@@ -196,8 +177,5 @@ await ws.sendAndValidate({
             "code": 1009,
             "source": "MSG"
         },
-        "result": {
-            "path": "con,txt"
-        }
     }
 ])

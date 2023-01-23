@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -19,9 +19,11 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
+import mysqlsh
+
 # pylint: disable-msg=W0631 for variable ws
 from tests.websocket.TestWebSocket import TWebSocket
-import mysqlsh
+
 ws: TWebSocket
 
 test_session_id = ws.generateRequestId()
@@ -97,25 +99,19 @@ ws.sendAndValidate({
         "connection": connection_id,
     }
 }, [
-    # TODO(Milosz): gui.db.start_session is returning double OK, should NOT
-    {
-        "request_id": ws.lastGeneratedRequestId,
-        "request_state": {"type": "OK", "msg": ""},
-        "result": {
-            "module_session_id": ws.matchRegexp("[a-f0-9]{8}-[a-f0-9]{4}-1[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$")
-        }
-    },
     {
         "request_state": {"type": "OK", "msg": "Connection was successfully opened."},
-        "module_session_id": ws.lastModuleSessionId,
-        "info":
-            {
-                "version": ws.ignore,
-                "edition": ws.ignore,
-                "sql_mode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
-                "heat_wave_available": false
+        "result": {
+            "module_session_id": ws.lastModuleSessionId,
+            "info":
+                {
+                    "version": ws.ignore,
+                    "edition": ws.ignore,
+                    "sql_mode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
+                    "heat_wave_available": false
+                },
+            "default_schema": "information_schema",
         },
-        "default_schema": "information_schema",
         "request_id": ws.lastGeneratedRequestId
     }
 ])
@@ -165,22 +161,18 @@ ws.sendAndValidate({
     }
 },
     [
-        # TODO(Milosz): gui.db.reconnect is returning double OK, should NOT
         {
             "request_state": {"type": "OK", "msg": "Connection was successfully opened."},
-            "module_session_id": ws.lastModuleSessionId,
-            "info": {
-                "version": ws.matchRegexp("8.0.[0-9][0-9]"),
-                "edition": ws.ignore,
-                "sql_mode": ws.ignore
+            "result": {
+                "module_session_id": ws.lastModuleSessionId,
+                "info": {
+                    "version": ws.matchRegexp("8.0.[0-9][0-9]"),
+                    "edition": ws.ignore,
+                    "sql_mode": ws.ignore
+                },
+                "default_schema": params["connection"]["options"]["schema"],
             },
-            "default_schema": params["connection"]["options"]["schema"],
             "request_id": ws.lastGeneratedRequestId
-        },
-        {
-            'request_state': {'type': 'OK', 'msg': ''},
-            'request_id': ws.lastGeneratedRequestId,
-            'result': 'Completed'
         }
 ]
 )

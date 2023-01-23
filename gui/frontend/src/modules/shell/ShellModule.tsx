@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -273,7 +273,7 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
         );
     }
 
-    private showPage = (data: { module: string; page: string }): Promise<boolean> => {
+    private showPage = (data: { module: string; page: string; }): Promise<boolean> => {
         return new Promise((resolve) => {
             if (data.module === ShellModuleId) {
                 if (data.page === "sessions") {
@@ -416,11 +416,9 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
                 const requestId = uuid();
                 try {
                     await backend.startShellSession(id, session.dbConnectionId, undefined, requestId,
-                        (result) => {
-                            if (result && result.result) {
-                                if (!ShellPromptHandler.handleShellPrompt(result.result, requestId, backend)) {
-                                    this.setProgressMessage("Loading ...");
-                                }
+                        (response) => {
+                            if (!ShellPromptHandler.handleShellPrompt(response.result, requestId, backend)) {
+                                this.setProgressMessage("Loading ...");
                             }
                         });
 
