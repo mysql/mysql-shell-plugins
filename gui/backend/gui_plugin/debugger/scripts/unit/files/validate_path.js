@@ -14,9 +14,7 @@ ws.validateLastResponse({
         "type": "OK",
         "msg": ""
     },
-    "result": {
-        "path": "."
-    }
+    "result": "."
 })
 
 //  validate '.' path
@@ -35,9 +33,7 @@ ws.validateLastResponse({
         "type": "OK",
         "msg": ""
     },
-    "result": {
-        "path": "."
-    }
+    "result": "."
 })
 
 //  validate './' path
@@ -56,9 +52,7 @@ ws.validateLastResponse({
         "type": "OK",
         "msg": ""
     },
-    "result": {
-        "path": "."
-    }
+    "result": "."
 })
 
 
@@ -80,9 +74,6 @@ ws.validateLastResponse({
         "code": 1001,
         "source": "MSG"
     },
-    "result": {
-        "path": ".."
-    }
 })
 
 //  validate with absolute path
@@ -103,9 +94,6 @@ ws.validateLastResponse({
         "code": 1000,
         "source": "MSG"
     },
-    "result": {
-        "path": "/some_directory"
-    }
 })
 
 //  validate with an invalid path
@@ -127,9 +115,6 @@ ws.validateLastResponse({
         "code": 1002,
         "source": "MSG"
     },
-    "result": {
-        "path": "some_directory/sub_directory"
-    }
 })
 
 //  validate with an valid subdirectory
@@ -148,9 +133,7 @@ ws.validateLastResponse({
         "type": "OK",
         "msg": ""
     },
-    "result": {
-        "path": "directory1/subdirectory1"
-    }
+    "result": "directory1/subdirectory1"
 })
 
 //  validate with an valid file
@@ -169,9 +152,7 @@ ws.validateLastResponse({
         "type": "OK",
         "msg": ""
     },
-    "result": {
-        "path": "directory1/subdirectory1/file1"
-    }
+    "result": "directory1/subdirectory1/file1"
 })
 
 //  validate with an invalid file
@@ -192,9 +173,6 @@ ws.validateLastResponse({
         "code": 1002,
         "source": "MSG"
     },
-    "result": {
-        "path": "directory1/subdirectory1/file5"
-    }
 })
 
 
@@ -214,7 +192,5 @@ ws.validateLastResponse({
         "type": "OK",
         "msg": ""
     },
-    "result": {
-        "path": "directory1/subdirectory1/file1"
-    }
+    "result": "directory1/subdirectory1/file1"
 })

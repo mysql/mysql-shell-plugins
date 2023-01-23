@@ -8,8 +8,10 @@ await ws.validateLastResponse(
             "type": "OK",
             "msg": "Connection was successfully opened."
         },
-        "module_session_id": ws.lastModuleSessionId,
-        "info": {},
-        "default_schema": _this.params["default_schema"]
+        "result": {
+            "module_session_id": ws.lastModuleSessionId,
+            "info": {},
+            "default_schema": _this.params["default_schema"]
+        }
     }
 )

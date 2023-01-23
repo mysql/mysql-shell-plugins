@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -337,19 +337,19 @@ class ProtocolBuilder:
                     line_args += f"{argument}: {{ "
                     for option in bindings[func_name]['args'][argument]:
                         line_args += f"{option[0]}: {option[1]}; "
-                    line_args = line_args[:-2] + " }; "
+                    line_args = line_args + "}; "
                 else:
                     param_type, required, _, default_none = bindings[func_name]['args'][argument]
                     line_args += f"{argument}{'?' if default_none or not required else ''}: {param_type}; "
                 contains_args = True
 
-            line_args = line_args[:-2] + " };"
+            line_args = line_args + "};"
 
             for argument in bindings[func_name]['kwargs']:
                 line_kwargs += f"{bindings[func_name]['kwargs'][argument][0]}?: {bindings[func_name]['kwargs'][argument][1]}, "
                 contains_kwargs = True
 
-            line_kwargs = line_kwargs[:-2]
+            line_kwargs = line_kwargs[:-2] + ";"
 
             if not contains_args and not contains_kwargs:
                 output += "{};\n"
@@ -454,7 +454,8 @@ class TypeScriptParameter(ABC):
     def __init__(self, plugin_name: str, func_name: str) -> None:
         self._plugin_name = plugin_name
         self._func_name = func_name
-        self._params_to_ignore = ['request_id', 'web_session', 'be_session']
+        self._params_to_ignore = ['request_id',
+                                  'web_session', 'be_session', '_user_id']
 
     def add_bindings(self) -> None:
         """Adds the bindings for the parameter."""

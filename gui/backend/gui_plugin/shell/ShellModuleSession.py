@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -109,8 +109,7 @@ class ShellModuleSession(ModuleSession):
     def __init__(self, options=None, shell_args=None):
         context = get_context()
         request_id = context.request_id if context else None
-        web_session = context.web_handler if context else None
-        super().__init__(web_session)
+        super().__init__()
 
         EXTENSION_SHELL_USER_CONFIG_FOLDER_BASENAME = "mysqlsh-gui"
 

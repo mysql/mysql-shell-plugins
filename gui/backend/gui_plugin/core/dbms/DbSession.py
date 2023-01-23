@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -19,17 +19,19 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-import threading
 import copy
+import enum
+import threading
 import time
-from queue import Queue
 from contextlib import contextmanager
-from .DbSessionTasks import DbSqlTask, DBCloseTask
-from gui_plugin.core.Error import MSGException
+from queue import Queue
+
 import gui_plugin.core.Error as Error
 import gui_plugin.core.Logger as logger
-import enum
 from gui_plugin.core.Context import get_context
+from gui_plugin.core.Error import MSGException
+
+from .DbSessionTasks import DBCloseTask, DbSqlTask
 
 
 class ReconnectionMode(enum.Enum):
@@ -285,13 +287,17 @@ class DbSession(threading.Thread):
     def get_default_schema(self):  # pragma: no cover
         raise NotImplementedError()
 
-    def close(self):
+    def close(self, after_fail=False):
         for setup_task in self._setup_tasks:
             setup_task.on_close()
 
         if self.threaded:
-            self.add_task(DBCloseTask())
-            self._term_complete.wait()
+            # If connection failed to open
+            # we don't need to close it as it's
+            # not open
+            if not after_fail:
+                self.add_task(DBCloseTask())
+                self._term_complete.wait()
         else:
             self._close_database(True)
 

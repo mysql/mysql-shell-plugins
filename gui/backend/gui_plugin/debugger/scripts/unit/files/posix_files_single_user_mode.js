@@ -15,9 +15,6 @@ await ws.sendAndValidate({
             "code": 1005,
             "source": "MSG"
         },
-        "result": {
-            "path": ws.ignore
-        }
     }
 ])
 
@@ -38,9 +35,6 @@ await ws.sendAndValidate({
             "code": 1002,
             "source": "MSG"
         },
-        "result": {
-            "path": "/some_directory"
-        }
     }
 ])
 
@@ -60,9 +54,6 @@ await ws.sendAndValidate({
             "code": 1005,
             "source": "MSG"
         },
-        "result": {
-            "path": ws.tokens['testTempDir'] + "/inaccessible"
-        }
     }
 ])
 
@@ -83,9 +74,6 @@ await ws.sendAndValidate({
             "code": 1002,
             "source": "MSG"
         },
-        "result": {
-            "path": ws.tokens["homeDir"] + "/prn"
-        }
     }
 ])
 
@@ -106,9 +94,6 @@ await ws.sendAndValidate({
             "code": 1002,
             "source": "MSG"
         },
-        "result": {
-            "path": ws.tokens["homeDir"] + "/con"
-        }
     }
 ])
 
@@ -130,9 +115,6 @@ await ws.sendAndValidate({
             "code": 1002,
             "source": "MSG"
         },
-        "result": {
-            "path": ws.tokens["homeDir"] + "/con.txt"
-        }
     }
 ])
 
@@ -153,9 +135,6 @@ await ws.sendAndValidate({
             "code": 1002,
             "source": "MSG"
         },
-        "result": {
-            "path": ws.tokens["homeDir"] + "/c:\\windows\\con.txt"
-        }
     }
 ])
 
@@ -176,8 +155,5 @@ await ws.sendAndValidate({
             "code": 1002,
             "source": "MSG"
         },
-        "result": {
-            "path": ws.tokens["homeDir"] + "/con,txt"
-        }
     }
 ])

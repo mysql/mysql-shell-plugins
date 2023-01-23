@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -27,6 +27,7 @@ from mysqlsh.plugin_manager import plugin_function  # pylint: disable=no-name-in
 from . import backend
 import gui_plugin.core.Error as Error
 from gui_plugin.core.Error import MSGException
+from gui_plugin.core.Context import get_context
 
 
 @plugin_function('gui.users.createUser', cli=True, web=True)
@@ -453,18 +454,18 @@ def set_default_profile(user_id, profile_id, be_session=None):
 
 
 @plugin_function('gui.users.setCurrentProfile', shell=False, web=True)
-def set_current_profile(profile_id, web_session):
+def set_current_profile(profile_id):
     """Sets the profile of the user's current web session.
 
     Args:
         profile_id (int): The id of the profile to become the current profile
-        web_session (object): The web session object, optional. Will be
-            passed in by the webserver automatically
 
     Returns:
         None
     """
-    web_session.set_active_profile_id(profile_id)
+    context = get_context()
+    if context:
+        context.web_handler.set_active_profile_id(profile_id)
 
 
 @plugin_function('gui.users.listUserGroups', cli=True, web=True)

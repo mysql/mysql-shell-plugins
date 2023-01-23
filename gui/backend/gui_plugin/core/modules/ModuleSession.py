@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -23,8 +23,9 @@ import uuid
 from gui_plugin.core.Context import get_context
 
 class ModuleSession():
-    def __init__(self, web_session):
-        self._web_session = web_session
+    def __init__(self):
+        context = get_context()
+        self._web_session = context.web_handler if context else None
 
         # define a module session uuid
         self._module_session_id = str(uuid.uuid1())

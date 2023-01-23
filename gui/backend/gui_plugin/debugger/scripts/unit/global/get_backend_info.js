@@ -9,9 +9,9 @@ ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
         "type": "OK",
-        "msg": "Successfully obtained backend info."
+        "msg": ""
     },
-    "info": {
+    "result": {
         "major": ws.matchRegexp("\\d+"),
         "minor": ws.matchRegexp("\\d+"),
         "patch": ws.matchRegexp("\\d+"),

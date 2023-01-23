@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -68,6 +68,7 @@ import { ShellPromptHandler } from "../common/ShellPromptHandler";
 import { parseVersion } from "../../parsing/mysql/mysql-helpers";
 import { DocumentDropdownItem, IDocumentDropdownItemProperties } from "./DocumentDropdownItem";
 import { uuid } from "../../utilities/helpers";
+import { IOpenConnectionData, IShellPasswordFeedbackRequest } from "../../communication";
 
 /* eslint import/no-webpack-loader-syntax: off */
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -770,9 +771,9 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         try {
             // Generate an own request ID, as we may need that for reply requests from the backend.
             const requestId = uuid();
-            const data = await backend.openConnection(connection.id, requestId, ((data, requestId) => {
-                if (data.result && !ShellPromptHandler.handleShellPrompt(data.result, requestId, backend,
-                    "Provide Password")) {
+            const data = await backend.openConnection(connection.id, requestId, ((response, requestId) => {
+                if (!ShellPromptHandler.handleShellPrompt(response.result as IShellPasswordFeedbackRequest, requestId,
+                    backend, "Provide Password")) {
                     this.setProgressMessage("Loading ...");
                 }
             }));
@@ -785,13 +786,14 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
             // Once the connection is open we can create the editor.
             let currentSchema = "";
-            if (data.currentSchema) {
-                currentSchema = data.currentSchema;
+            const connectionData = data as IOpenConnectionData;
+            if (connectionData.currentSchema) {
+                currentSchema = connectionData.currentSchema;
             } else if (connection.dbType === DBType.MySQL) {
                 currentSchema = (connection.options as IMySQLConnectionOptions).schema ?? "";
             }
 
-            const info = data.info;
+            const info = connectionData.info;
             const sqlMode = info.sqlMode ?? settings.get("editor.sqlMode", "");
             const serverVersion = info.version ? parseVersion(info.version) : settings.get("editor.dbVersion", 80024);
             const serverEdition = info.edition ?? "";
@@ -849,10 +851,10 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             this.hideProgress(false);
             await this.setStatePromise({ editorTabs, selectedPage: tabId, loading: false });
 
-
-            if (data.result && !ShellPromptHandler.handleShellPrompt(data.result, requestId, backend)) {
-                this.setProgressMessage("Loading ...");
-            }
+            /*
+                        if (data.result && !ShellPromptHandler.handleShellPrompt(data.result, requestId, backend)) {
+                            this.setProgressMessage("Loading ...");
+                        }*/
         } catch (reason) {
             void requisitions.execute("showError", ["Connection Error", String(reason)]);
 
@@ -874,8 +876,9 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
      */
     private async reOpenConnection(backend: ShellInterfaceSqlEditor, connection: IConnectionDetails): Promise<void> {
         try {
-            await backend.openConnection(connection.id, undefined, (data, requestId) => {
-                if (data.result && !ShellPromptHandler.handleShellPrompt(data.result, requestId, backend)) {
+            await backend.openConnection(connection.id, undefined, (response, requestId) => {
+                if (!ShellPromptHandler.handleShellPrompt(response.result as IShellPasswordFeedbackRequest, requestId,
+                    backend)) {
                     this.setProgressMessage("Loading ...");
                 }
             });

@@ -19,7 +19,7 @@ await ws.sendAndValidate({
     {
         "request_id": ws.lastGeneratedRequestId,
         "request_state": {
-            "msg": ws.matchRegexp("The file was created|The supplied file already exists\.")
+            "msg": ws.matchRegexp("|The supplied file already exists\.")
         }
     }
 ])

@@ -33,7 +33,7 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId,
         "request_state": {
             "type": "OK",
-            "msg": "The file was created"
+            "msg": ""
         },
         "result": ws.tokens["schema1"]
     }
@@ -52,7 +52,7 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId,
         "request_state": {
             "type": "OK",
-            "msg": "The file was created"
+            "msg": ""
         },
         "result": ws.tokens["schema2"]
     }
@@ -70,7 +70,7 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId,
         "request_state": {
             "type": "OK",
-            "msg": "The file was created"
+            "msg": ""
         },
         "result": ws.tokens["schema3"]
     }
@@ -131,9 +131,11 @@ await ws.sendAndValidate({
             "type": "OK",
             "msg": "Connection was successfully opened."
         },
-        "module_session_id": ws.lastModuleSessionId,
-        "info": {},
-        "default_schema": "schema1"
+        "result": {
+            "module_session_id": ws.lastModuleSessionId,
+            "info": {},
+            "default_schema": "schema1"
+        }
     }
 ])
 

@@ -10,7 +10,7 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId,
         "request_state": {
             "type": "OK",
-            "msg": "Files in directory"
+            "msg": ""
         },
         "result": []
     }
@@ -32,8 +32,6 @@ await ws.sendAndValidate({
             "type": "OK",
             "msg": ""
         },
-        "result": {
-            "path": "inaccessible"
-        }
+        "result": "inaccessible"
     }
 ])

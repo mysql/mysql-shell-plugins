@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -54,7 +54,7 @@ import {
 import { filterInt } from "../../utilities/string-helpers";
 import { settings } from "../../supplement/Settings/Settings";
 import { ConfirmDialog } from "../../components/Dialogs";
-import { IBastionSummary, IMySQLDbSystem } from "../../communication";
+import { IBastionSummary, IMySQLDbSystem, IShellPasswordFeedbackRequest } from "../../communication";
 import {
     DialogResponseClosure, DialogType, IDialogResponse, IDictionary, IServicePasswordRequest,
 } from "../../app-logic/Types";
@@ -346,7 +346,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         );
     }
 
-    private addNewConnection = (details: { mdsData?: IMySQLDbSystem; profileName?: String }): Promise<boolean> => {
+    private addNewConnection = (details: { mdsData?: IMySQLDbSystem; profileName?: String; }): Promise<boolean> => {
         const options = details.mdsData as IDictionary;
         if (options) {
             options.profileName = details.profileName;
@@ -400,7 +400,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         return Promise.resolve(false);
     };
 
-    private handleSettingsChanged = (entry?: { key: string; value: unknown }): Promise<boolean> => {
+    private handleSettingsChanged = (entry?: { key: string; value: unknown; }): Promise<boolean> => {
         if (entry?.key === "dbEditor.connectionBrowser.showGreeting") {
             this.forceUpdate();
 
@@ -1688,7 +1688,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         }
     }
 
-    private parseConnectionAttributes(value: { [key: string]: string }): IDictionary[] {
+    private parseConnectionAttributes(value: { [key: string]: string; }): IDictionary[] {
         return Object.entries(value).map((entry) => {
             return { key: entry[0], value: entry[1] };
         });
@@ -1811,7 +1811,8 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         }
     };
 
-    private acceptPassword = async (data: { request: IServicePasswordRequest; password: string }): Promise<boolean> => {
+    private acceptPassword = async (
+        data: { request: IServicePasswordRequest; password: string; }): Promise<boolean> => {
         if (data.request.service) {
             try {
                 await ShellInterface.users.storePassword(data.request.service, data.password);
@@ -1928,9 +1929,9 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
 
     private async testOpenConnection(backend: ShellInterfaceSqlEditor, connection: IConnectionDetails): Promise<void> {
         try {
-            await backend.openConnection(connection.id, undefined, ((data, requestId) => {
-                if (data.result && !ShellPromptHandler.handleShellPrompt(data.result, requestId, backend,
-                    "Provide Password")) {
+            await backend.openConnection(connection.id, undefined, ((response, requestId) => {
+                if (!ShellPromptHandler.handleShellPrompt(response.result as IShellPasswordFeedbackRequest, requestId,
+                    backend, "Provide Password")) {
                     this.setProgressMessage("Loading ...");
                 }
             }));

@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -20,9 +20,7 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
-import re
 from pathlib import Path
-from gui_plugin.core.Protocols import Response
 from mysqlsh.plugin_manager import plugin_function  # pylint: disable=no-name-in-module
 
 
@@ -31,7 +29,7 @@ def is_gui_module_backend():
     """ Indicates whether this module is a GUI backend module
 
     Returns:
-        True
+        bool True
     """
     return True
 
@@ -41,14 +39,14 @@ def get_gui_module_display_info():
     """ Returns display information about the module
 
     Returns:
-        A dict with display information for the module
+        dict: display information for the module
     """
     return {"name:": "Debugger",
             "description": "Websocket Debugger",
             "icon_path": "/images/icons/modules/gui.wsdebugger.svg"}
 
 
-def list_scripts():
+def list_scripts() -> list:
     this_file = Path(__file__)
     user_stories = []
     root = Path(os.path.join(this_file.parent, "scripts"))
@@ -63,18 +61,16 @@ def list_scripts():
 
 
 @plugin_function('gui.debugger.getScripts', shell=False, web=True)
-def get_scripts():
+def get_scripts() -> list:
     """Returns the list of available scripts
 
     Returns:
-        A dict holding the result message
+        list: available scripts
     """
-    return Response.ok("Script files successfully fetched.", {
-        "scripts": list_scripts()
-    })
+    return list_scripts()
 
 
-def read_script(path):
+def read_script(path: str) -> str:
     this_file = Path(__file__)
     path_tokens = [this_file.parent, "scripts"] + path.split("/")
     target_path = os.path.join(*path_tokens)
@@ -86,17 +82,15 @@ def read_script(path):
 
 
 @plugin_function('gui.debugger.getScriptContent', shell=False, web=True)
-def get_script_content(path):
+def get_script_content(path: str) -> str:
     """Returns the content of the given script
 
     Args:
         path (string): The path to the script
     Returns:
-        A dict holding the result message
+        str: Content of the script
 
     The default behavior of this function is to return the script content
     exactly as defined.
     """
-    return Response.ok("Script file content successfully fetched.", {
-        "script": read_script(path)
-    })
+    return read_script(path)

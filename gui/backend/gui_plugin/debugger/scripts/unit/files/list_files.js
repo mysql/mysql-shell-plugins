@@ -9,7 +9,7 @@ ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
         "type": "OK",
-        "msg": "Files in directory"
+        "msg": ""
     },
     "result": ws.ignore,
 })
@@ -29,7 +29,7 @@ ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
         "type": "OK",
-        "msg": "Files in directory"
+        "msg": ""
     },
     "result": ws.ignore,
 })
@@ -48,7 +48,7 @@ ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
         "type": "OK",
-        "msg": "Files in directory"
+        "msg": ""
     },
     "result": ws.ignore,
 })
@@ -67,7 +67,7 @@ ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
         "type": "OK",
-        "msg": "Files in directory"
+        "msg": ""
     },
     "result": ws.ignore,
 })
@@ -87,7 +87,7 @@ ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
         "type": "OK",
-        "msg": "Files in directory"
+        "msg": ""
     },
     "result": ws.ignore,
 })
@@ -126,7 +126,7 @@ ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
         "type": "OK",
-        "msg": "Files in directory"
+        "msg": ""
     },
     "result": ["directory1/subdirectory1"],
 })
@@ -145,7 +145,7 @@ ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
         "type": "OK",
-        "msg": "Files in directory"
+        "msg": ""
     },
     "result": ws.matchList(["directory1/subdirectory1/file1", "directory1/subdirectory1/file2"], 0),
 })
@@ -165,7 +165,7 @@ ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
         "type": "OK",
-        "msg": "Files in directory"
+        "msg": ""
     },
     "result": ws.matchList(["directory1/subdirectory1/file1", "directory1/subdirectory1/file2"], 0),
 })

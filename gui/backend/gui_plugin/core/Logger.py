@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -264,7 +264,7 @@ def set_log_level(log_level=LogLevel.INFO.name):
         log_level (str): Level of logging
 
     Returns:
-        The generated shell request record.
+       None
     """
     BackendLogger.get_instance().set_log_level(LogLevel[log_level.upper()])
 
@@ -274,6 +274,6 @@ def get_log_level():
     """Gets the current log level
 
     Returns:
-        The generated shell request record.
+       str: log level
     """
     return BackendLogger.get_instance().get_log_level().name

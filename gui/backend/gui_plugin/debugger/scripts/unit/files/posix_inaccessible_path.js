@@ -35,8 +35,5 @@ await ws.sendAndValidate({
             "code": 1005,
             "source": "MSG"
         },
-        "result": {
-            "path": "inaccessible"
-        }
     }
 ])

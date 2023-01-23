@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -21,16 +21,18 @@
 
 import os
 import threading
+
 import mysqlsh
-from gui_plugin.core.modules.ModuleSession import ModuleSession
-from gui_plugin.core.dbms import DbSessionFactory
-from gui_plugin.core.dbms.DbSession import ReconnectionMode
-from gui_plugin.core.Error import MSGException
+
 import gui_plugin.core.Error as Error
-from gui_plugin.core.dbms.DbSqliteSession import find_schema_name
-from gui_plugin.core.Protocols import Response
 import gui_plugin.core.Logger as logger
 from gui_plugin.core.Context import get_context
+from gui_plugin.core.dbms import DbSessionFactory
+from gui_plugin.core.dbms.DbSession import ReconnectionMode
+from gui_plugin.core.dbms.DbSqliteSession import find_schema_name
+from gui_plugin.core.Error import MSGException
+from gui_plugin.core.modules.ModuleSession import ModuleSession
+from gui_plugin.core.Protocols import Response
 
 
 def check_service_database_session(func):
@@ -43,8 +45,8 @@ def check_service_database_session(func):
 
 
 class DbModuleSession(ModuleSession):
-    def __init__(self, web_session, reconnection_mode=ReconnectionMode.STANDARD):
-        super().__init__(web_session)
+    def __init__(self, reconnection_mode=ReconnectionMode.STANDARD):
+        super().__init__()
         self._db_type = None
         self._connection_options = None
         self._db_service_session = None
@@ -59,13 +61,13 @@ class DbModuleSession(ModuleSession):
         self.close_connection()
         super().close()
 
-    def close_connection(self):
+    def close_connection(self, after_fail=False):
         # do cleanup
         self._connection_options = None
         self._db_type = None
 
         if self._db_service_session is not None:
-            self._db_service_session.close()
+            self._db_service_session.close(after_fail)
             self._db_service_session = None
 
     def reconnect(self):
@@ -90,7 +92,7 @@ class DbModuleSession(ModuleSession):
                                    f"Absolute paths are not allowed when running a remote session for '{database_name}' database.")
         else:
             user_dir = os.path.abspath(mysqlsh.plugin_manager.general.get_shell_user_dir(
-                'plugin_data', 'gui_plugin', f'user_{self._web_session.user_id}'))
+                'plugin_data', 'gui_plugin', f'user_{self._web_session.session_user_id}'))
 
             path = os.path.join(user_dir, path)
 
@@ -226,11 +228,11 @@ class DbModuleSession(ModuleSession):
         return self._prompt_replied, self._prompt_reply
 
     def on_connected(self, db_session):
-        data = Response.ok("Connection was successfully opened.", {
+        data = Response.ok("Connection was successfully opened.", {"result": {
             "module_session_id": self._module_session_id,
             "info": db_session.info(),
             "default_schema": db_session.get_default_schema()
-        })
+        }})
 
         self.send_command_response(self._current_request_id, data)
 
@@ -239,6 +241,8 @@ class DbModuleSession(ModuleSession):
 
         self.send_command_response(
             self._current_request_id, Response.exception(exc))
+
+        self.close_connection(True)
 
     def cancel_request(self, request_id):
         raise NotImplementedError()

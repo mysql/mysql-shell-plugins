@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,6 +23,7 @@
 
 import {
     ShellAPIGui, ShellPromptResponseType, IPromptReplyBackend, MessageScheduler, Protocol, DataCallback,
+    IShellPasswordFeedbackRequest,
 } from "../../communication";
 import { webSession } from "../WebSession";
 import { settings } from "../Settings/Settings";
@@ -116,7 +117,8 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
      * @returns A promise resolving to various connection data or undefined if no session is open.
      */
     public async openConnection(dbConnectionId: number, requestId?: string,
-        callback?: DataCallback<ShellAPIGui.GuiSqleditorOpenConnection>): Promise<IOpenConnectionData | undefined> {
+        callback?: DataCallback<ShellAPIGui.GuiSqleditorOpenConnection>):
+        Promise<IOpenConnectionData | IShellPasswordFeedbackRequest | undefined> {
         const moduleSessionId = this.moduleSessionId;
         if (moduleSessionId) {
             const response = await MessageScheduler.get.sendRequest({
@@ -126,8 +128,10 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
                 onData: callback,
             });
 
-            return response;
+            return response.result;
         }
+
+        return undefined;
     }
 
     /**

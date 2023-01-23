@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -19,32 +19,34 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-import gui_plugin as gui
-import threading
-import uuid
+import base64
 import datetime
+import hashlib
+import inspect
 import json
 import re
-import hashlib
-import base64
-import inspect
 import sys
-from gui_plugin.core.HTTPWebSocketsHandler import HTTPWebSocketsHandler
-from gui_plugin.core.Db import GuiBackendDb
-from gui_plugin.core.Protocols import Response
+import threading
+import uuid
+from contextlib import contextmanager
+from queue import Empty, Queue
+
+import mysqlsh
+
+import gui_plugin as gui
 import gui_plugin.core.Logger as logger
 import gui_plugin.core.WebSocketCommon as WebSocket
+from gui_plugin.core.BackendDbLogger import BackendDbLogger
+from gui_plugin.core.Db import GuiBackendDb
+from gui_plugin.core.dbms.DbMySQLSession import DbSession
+from gui_plugin.core.HTTPWebSocketsHandler import HTTPWebSocketsHandler
+from gui_plugin.core.modules.DbModuleSession import DbModuleSession
 from gui_plugin.core.modules.ModuleSession import ModuleSession
+from gui_plugin.core.Protocols import Response
+from gui_plugin.core.RequestHandler import RequestHandler
 from gui_plugin.sqleditor.SqleditorModuleSession import SqleditorModuleSession
-import mysqlsh
-from contextlib import contextmanager
 from gui_plugin.users import backend as user_handler
 from gui_plugin.users.backend import get_id_personal_user_group
-from queue import Queue, Empty
-from gui_plugin.core.RequestHandler import RequestHandler
-from gui_plugin.core.BackendDbLogger import BackendDbLogger
-from gui_plugin.core.modules.DbModuleSession import DbModuleSession
-from gui_plugin.core.dbms.DbMySQLSession import DbSession
 
 
 class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
@@ -270,6 +272,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                 self.db.execute("UPDATE session SET ended=? WHERE uuid=?",
                                 (datetime.datetime.now(), self.session_uuid))
             self._db.close()
+            self._db = None
 
         # close module sessions. use a copy so that we don't change the dict during the for
         for module_session in dict(self._module_sessions).values():
@@ -638,22 +641,24 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
 
                 kwargs.update({"user_id": self.session_user_id})
 
+            if "_user_id" in f_args and not self.is_local_session:
+                kwargs.update({"_user_id": self.session_user_id})
+
             if "profile_id" in f_args:
                 if "profile_id" not in kwargs:
                     kwargs.update({"profile_id":
                                    self.session_active_profile_id})
 
             if "web_session" in f_args:
-                kwargs.update({"web_session": WebSession(self)})
+                raise Exception(
+                    f'Argument web_session not allowed for function: {cmd}.')
 
             if "request_id" in f_args:
-                kwargs.update({"request_id": request_id})
+                raise Exception(
+                    f'Argument request_id not allowed for function: {cmd}.')
 
             if "interactive" in f_args:
                 kwargs.update({"interactive": False})
-
-            if "be_session" in f_args:
-                kwargs.update({"be_session": self.db})
 
             lock_session = False
             if "be_session" in f_args:
@@ -713,51 +718,23 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                     request_id, kwargs['module_session_id'])
                 del kwargs['module_session_id']
 
-            # if the function has an async_web_session argument it needs to be
-            # run in a separate thread and communication with the web_session
-            # thread needs to be synchronized
-            if "async_web_session" in f_args:
-                kwargs.update({"async_web_session": WebSession(self)})
+            confirm_complete = True
+            if cmd in ['gui.sqleditor.execute', 'gui.sqleditor.open_connection',
+                       'gui.sqleditor.set_auto_commit', 'gui.sqleditor.get_auto_commit',
+                       'gui.sqleditor.get_current_schema', 'gui.sqleditor.set_current_schema',
+                       'gui.sqleditor.reconnect', 'gui.dbconnections.test_connection',
+                       'gui.db.get_catalog_object_names', 'gui.db.get_schema_object_names',
+                       'gui.db.get_table_object_names', 'gui.db.get_catalog_object',
+                       'gui.db.get_schema_object', 'gui.db.get_table_object',
+                       'gui.shell.start_session', 'gui.shell.execute', 'gui.shell.complete',
+                       'gui.db.start_session', 'gui.sqleditor.start_session',
+                       'gui.db.reconnect']:
+                confirm_complete = False
 
-                res = {"request_state":
-                       {'type': 'PENDING',
-                        'msg': 'Async execution has been started'}}
-
-                # execute command in its own thread
-                thread = threading.Thread(target=func, kwargs=kwargs)
-                thread.name = f'req-{request_id}'
-                thread.start()
-            elif found_objects[0] != 'gui':
-                thread = RequestHandler(
-                    request_id, func, kwargs, self, True, lock_session=lock_session)
-                thread.start()
-                result = None
-            else:
-                if cmd.startswith('gui.db.') \
-                        or cmd.startswith('gui.sqleditor.') \
-                        or cmd.startswith('gui.dbconnections.') \
-                        or cmd.startswith('gui.users.') \
-                        or cmd.startswith('gui.modules.') \
-                        or cmd.startswith('gui.dbconnections.') \
-                        or cmd.startswith('gui.shell.') \
-                        or cmd in ['gui.core.set_log_level', 'gui.core.get_log_level']:
-
-                    confirm_complete = True
-                    if cmd in ['gui.sqleditor.execute', 'gui.sqleditor.open_connection',
-                               'gui.sqleditor.set_auto_commit', 'gui.sqleditor.get_auto_commit',
-                               'gui.sqleditor.get_current_schema', 'gui.sqleditor.set_current_schema',
-                               'gui.sqleditor.reconnect', 'gui.dbconnections.test_connection',
-                               'gui.db.get_catalog_object_names', 'gui.db.get_schema_object_names',
-                               'gui.db.get_table_object_names', 'gui.db.get_catalog_object',
-                               'gui.db.get_schema_object', 'gui.db.get_table_object',
-                               'gui.shell.start_session', 'gui.shell.execute', 'gui.shell.complete']:
-                        confirm_complete = False
-                    thread = RequestHandler(
-                        request_id, func, kwargs, self, confirm_complete)
-                    thread.start()
-                    result = None
-                else:
-                    result = func(**kwargs)
+            thread = RequestHandler(
+                request_id, func, kwargs, self, confirm_complete, lock_session=lock_session)
+            thread.start()
+            result = None
 
         except Exception as e:
             logger.exception(e)
@@ -866,72 +843,3 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
             logger.error(e)
 
             self.send_response_message('ERROR', str(e).strip(), request_id)
-
-
-class WebSession():
-    def __init__(self, shell_gui_web_socket_handler):
-        self._socket_handler = shell_gui_web_socket_handler
-        self._db = None
-
-    @property
-    def db(self):
-        # if the db object has not yet been initialized for this web session
-        if not self._db:
-            # open the database connection for this thread
-            self._db = self._socket_handler.db
-
-        return self._db
-
-    @property
-    def user_id(self):
-        return self._socket_handler._session_user_id
-
-    @property
-    def user_personal_group_id(self):
-        return self._socket_handler._session_user_personal_group_id
-
-    @property
-    def session_uuid(self):
-        return self._socket_handler.session_uuid
-
-    @property
-    def is_local_session(self):
-        return self._socket_handler.is_local_session
-
-    def send_response_message(self, msg_type, msg, request_id=None,
-                              values=None, api=False):
-        if self._socket_handler:
-            self._socket_handler.send_response_message(msg_type, msg,
-                                                       request_id=request_id,
-                                                       values=values,
-                                                       api=api)
-
-    def send_command_response(self, request_id, values):
-        if self._socket_handler:
-            self._socket_handler.send_command_response(request_id, values)
-
-    def register_module_session(self, module_session):
-        if self._socket_handler:
-            self._socket_handler.register_module_session(module_session)
-
-    def unregister_module_session(self, module_session):
-        if self._socket_handler:
-            self._socket_handler.unregister_module_session(module_session)
-
-    def get_module_session_object(self, module_session_id):
-        if self._socket_handler:
-            return self._socket_handler.get_module_session_object(module_session_id)
-
-    def set_active_profile_id(self, profile_id):
-        if self._socket_handler:
-            self._socket_handler.set_active_profile_id(profile_id)
-
-    @property
-    def session_active_profile_id(self):
-        if self._socket_handler:
-            return self._socket_handler.session_active_profile_id
-
-    def send_prompt_response(self, request_id, prompt, handler):
-        if self._socket_handler:
-            self._socket_handler.send_prompt_response(
-                request_id, prompt, handler)

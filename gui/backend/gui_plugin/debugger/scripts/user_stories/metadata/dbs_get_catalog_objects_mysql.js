@@ -17,7 +17,6 @@ lib.dbsession.open_db_session.params = {
     "database_settings": settings,
     "validation": lib.dbsession.open_connection_validate_mysql
 }
-await ws.execute(lib.dbsession.open_db_session.file)
 
 // Open DB session
 lib.dbsession.open_db_session.params = {

@@ -19,6 +19,7 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
+import threading
 import time
 import uuid
 
@@ -30,6 +31,10 @@ from gui_plugin import dbconnections, sqleditor
 from gui_plugin.core.Error import MSGException
 from tests.lib.MockWebSession import MockWebSession
 from tests.lib.utils import backend_callback, backend_callback_with_pending
+
+
+class MockContext:
+    pass
 
 
 class Parameters:
@@ -54,7 +59,14 @@ def params():
     parameters._web_session.register_callback(
         open_connection_cb.request_id, open_connection_cb)
 
-    result = sqleditor.start_session(parameters._web_session)
+    _thread = threading.current_thread()
+
+    _context = MockContext()
+    setattr(_context, "web_handler", parameters._web_session)
+    setattr(_context, "request_id", None)
+    setattr(_thread, "get_context", lambda: _context)
+
+    result = sqleditor.start_session()
     parameters._module_session_id = result['module_session_id']
     parameters._module_session = parameters._web_session.module_sessions[
         parameters._module_session_id]
