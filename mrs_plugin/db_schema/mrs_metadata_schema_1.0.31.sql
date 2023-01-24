@@ -577,7 +577,7 @@ ENGINE = InnoDB;
 -- Table `mysql_rest_service_metadata`.`router`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`router` (
-  `id` INT UNSIGNED NOT NULL COMMENT 'The ID of the router instance and is a unique identifier of the server instance.',
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'The ID of the router instance and is a unique identifier of the server instance.',
   `router_name` VARCHAR(255) NOT NULL COMMENT 'A user specified name for an instance of the router. Should default to address:port, where port is the RW port for classic protocol. Set via --name during router bootstrap.',
   `address` VARCHAR(255) CHARACTER SET 'ascii' COLLATE 'ascii_general_ci' NOT NULL COMMENT 'Network address of the host the Router is running on. Set via --report--host during bootstrap.',
   `product_name` VARCHAR(128) NOT NULL COMMENT 'The product name of the routing component, e.g. \'MySQL Router\'',
@@ -772,14 +772,19 @@ USE `mysql_rest_service_metadata`$$
 CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`mrs_user_BEFORE_INSERT` BEFORE INSERT ON `mrs_user` FOR EACH ROW
 BEGIN
 	IF NEW.name IS NOT NULL AND (SELECT COUNT(*) FROM `mysql_rest_service_metadata`.`mrs_user` AS u 
-		WHERE UPPER(u.name) = UPPER(NEW.name) AND u.auth_app_id = NEW.auth_app_id) > 0
+		WHERE UPPER(u.name) = UPPER(NEW.name) AND u.auth_app_id = NEW.auth_app_id AND NEW.id <> u.id) > 0
 	THEN
 		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "This name has already been used.";
 	END IF;
 	IF NEW.email IS NOT NULL AND (SELECT COUNT(*) FROM `mysql_rest_service_metadata`.`mrs_user` AS u 
-		WHERE UPPER(u.email) = UPPER(NEW.email) AND u.auth_app_id = NEW.auth_app_id) > 0
+		WHERE UPPER(u.email) = UPPER(NEW.email) AND u.auth_app_id = NEW.auth_app_id AND NEW.id <> u.id) > 0
 	THEN
 		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "This email has already been used.";
+    END IF;
+    IF (NEW.auth_string IS NULL AND 
+        (SELECT a.auth_vendor_id FROM `mysql_rest_service_metadata`.`auth_app` AS a WHERE a.id = NEW.auth_app_id) = 0x30000000000000000000000000000000)
+    THEN
+		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "A this account requires a password to be set.";
     END IF;
     IF JSON_STORAGE_SIZE(NEW.app_options) > 16384 THEN
 		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "The JSON value stored in app_options must not be bigger than 16KB.";
@@ -790,14 +795,19 @@ USE `mysql_rest_service_metadata`$$
 CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`mrs_user_BEFORE_UPDATE` BEFORE UPDATE ON `mrs_user` FOR EACH ROW
 BEGIN
 	IF NEW.name IS NOT NULL AND (SELECT COUNT(*) FROM `mysql_rest_service_metadata`.`mrs_user` AS u 
-		WHERE UPPER(u.name) = UPPER(NEW.name) AND u.auth_app_id = NEW.auth_app_id) > 0
+		WHERE UPPER(u.name) = UPPER(NEW.name) AND u.auth_app_id = NEW.auth_app_id AND NEW.id <> u.id) > 0
 	THEN
 		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "This name has already been used.";
 	END IF;
 	IF NEW.email IS NOT NULL AND (SELECT COUNT(*) FROM `mysql_rest_service_metadata`.`mrs_user` AS u 
-		WHERE UPPER(u.email) = UPPER(NEW.email) AND u.auth_app_id = NEW.auth_app_id) > 0
+		WHERE UPPER(u.email) = UPPER(NEW.email) AND u.auth_app_id = NEW.auth_app_id AND NEW.id <> u.id) > 0
 	THEN
 		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "This email has already been used.";
+    END IF;
+    IF (NEW.auth_string IS NULL AND 
+        (SELECT a.auth_vendor_id FROM `mysql_rest_service_metadata`.`auth_app` AS a WHERE a.id = NEW.auth_app_id) = 0x30000000000000000000000000000000)
+    THEN
+		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "A this account requires a password to be set.";
     END IF;
     IF JSON_STORAGE_SIZE(NEW.app_options) > 16384 THEN
 		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "The JSON value stored in app_options must not be bigger than 16KB.";

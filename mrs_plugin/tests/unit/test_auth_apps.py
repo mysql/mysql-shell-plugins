@@ -72,7 +72,7 @@ def test_add_auth_apps(init_mrs, table_contents):
     auth_apps_table = table_contents("auth_app")
 
     args = {
-        "auth_vendor_id": "0x30000000000000000000000000000000",
+        "auth_vendor_id": "0x31000000000000000000000000000000",
         "description": "Authentication via MySQL accounts",
         "url": "/test_auth",
         "access_token": "test_token",
@@ -103,7 +103,7 @@ def test_add_auth_apps(init_mrs, table_contents):
     }
 
     args = {
-        "auth_vendor_id": "0x30000000000000000000000000000000",
+        "auth_vendor_id": "0x31000000000000000000000000000000",
         "description": "Authentication via MySQL accounts 2",
         "url": "/test_auth2",
         "access_token": "test_token",
@@ -184,7 +184,7 @@ def test_update_auth_apps(init_mrs, table_contents):
     assert auth_apps_table.get("id", args["app_id"]) == {
         'access_token': value["access_token"],
         'app_id': value["app_id"],
-        'auth_vendor_id': lib.core.id_to_binary("0x30000000000000000000000000000000", ""),
+        'auth_vendor_id': lib.core.id_to_binary("0x31000000000000000000000000000000", ""),
         'default_role_id': value["default_role_id"],
         'description': value["description"],
         'enabled': int(value["enabled"]),
