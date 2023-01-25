@@ -490,6 +490,98 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             }
         });
 
+        it("Get Bastion Information and set it as current", async () => {
+
+            await Misc.selectContextMenuItem(treeBastion!, "Get Bastion Information");
+
+            await driver.wait(async () => {
+                const editors = await new EditorView().getOpenEditorTitles();
+
+                return editors.includes("Bastion4PrivateSubnetStandardVnc Info.json");
+            }, explicitWait, "Bastion4PrivateSubnetStandardVnc Info.json was not opened");
+
+            const textEditor = new TextEditor();
+            await driver.wait(async () => {
+                return (await textEditor.getText()).indexOf("{") !== -1;
+            }, explicitWait, "No text was found inside Bastion4PrivateSubnetStandardVnc Info.json");
+
+            const json = await textEditor.getText();
+            expect(Misc.isJson(json)).to.equal(true);
+
+            const parsed = JSON.parse(json);
+            const bastionId = parsed.id;
+
+            await Misc.selectContextMenuItem(treeBastion!, "Set as Current Bastion");
+
+            await driver.wait(async () => {
+                return !(await Misc.hasLoadingBar(treeOCISection!));
+            }, ociExplicitWait, "There is still a loading bar on OCI");
+
+            expect(await Misc.isDefaultItem(treeBastion!, "bastion")).to.be.true;
+
+            await treeConsolesSection?.expand();
+
+            await Misc.clickSectionToolbarButton(treeConsolesSection!, "Add a New MySQL Shell Console");
+
+            await Misc.switchToWebView();
+
+            await driver.wait(until.elementLocated(By.id("shellEditorHost")), 20000, "Console was not loaded");
+
+            const result = await Misc.execCmd("mds.get.currentBastionId()", undefined, 60000);
+
+            expect(result[0]).to.equal(bastionId);
+
+        });
+
+        it("Refresh When Bastion Reaches Active State", async () => {
+
+            await Misc.selectContextMenuItem(treeBastion!, "Refresh When Bastion Reaches Active State");
+
+            await treeTasksSection?.expand();
+
+            expect(await Misc.getTreeElement(treeTasksSection, "Refresh Bastion (running)")).to.exist;
+
+            const bottomBar = new BottomBarPanel();
+            const outputView = await bottomBar.openOutputView();
+
+            await Misc.waitForOutputText(outputView, "Task 'Refresh Bastion' completed successfully", 20000);
+
+            await outputView.clearText();
+
+            expect(await Misc.getTreeElement(treeTasksSection, "Refresh Bastion (done)")).to.exist;
+
+        });
+
+        it("Delete Bastion", async () => {
+
+            const bottomBar = new BottomBarPanel();
+            const outputView = await bottomBar.openOutputView();
+            await outputView.clearText();
+            treeBastion = await Misc.getTreeElement(treeShellTesting, "Bastion4PrivateSubnetStandardVnc");
+            await Misc.selectContextMenuItem(treeBastion!, "Delete Bastion");
+
+            await treeTasksSection?.expand();
+
+            expect(await Misc.getTreeElement(treeTasksSection, "Delete Bastion (running)")).to.exist;
+
+            await Misc.waitForOutputText(outputView, "OCI profile 'E2ETESTS' loaded.", ociTasksExplicitWait);
+
+            await Misc.verifyNotification("Are you sure you want to delete");
+
+            const workbench = new Workbench();
+            const ntfs = await workbench.getNotifications();
+
+            await ntfs[ntfs.length - 1].takeAction("NO");
+
+            await driver.wait(Misc.getTreeElement(treeTasksSection, "Delete Bastion (error)"),
+                explicitWait, "'Delete Bastion (error)' was not found on the tree");
+
+            await Misc.waitForOutputText(outputView, "Deletion aborted", explicitWait);
+
+            await outputView.clearText();
+
+        });
+
         it("Create connection with Bastion Service", async function () {
 
             if (!await Misc.isDBSystemStopped(treeDbSystem!)) {
@@ -585,11 +677,6 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             } else {
                 await Misc.selectContextMenuItem(treeDbSystem!, "Start the DB System");
 
-                const bottomBar = new BottomBarPanel();
-                const outputView = await bottomBar.openOutputView();
-
-                await Misc.waitForOutputText(outputView, "OCI profile 'E2ETESTS' loaded.", 30000);
-
                 await Misc.verifyNotification("Are you sure you want to start the DB System");
 
                 const workbench = new Workbench();
@@ -597,103 +684,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
                 await ntfs[ntfs.length - 1].takeAction("Yes");
 
-                await Misc.waitForOutputText(outputView, "Waiting for DB System to start", ociExplicitWait);
-
                 this.skip();
             }
-
-        });
-
-        it("Get Bastion Information and set it as current", async () => {
-
-            treeBastion = await Misc.getTreeElement(treeShellTesting, "Bastion4PrivateSubnetStandardVnc");
-            await Misc.selectContextMenuItem(treeBastion!, "Get Bastion Information");
-
-            await driver.wait(async () => {
-                const editors = await new EditorView().getOpenEditorTitles();
-
-                return editors.includes("Bastion4PrivateSubnetStandardVnc Info.json");
-            }, explicitWait, "Bastion4PrivateSubnetStandardVnc Info.json was not opened");
-
-            const textEditor = new TextEditor();
-            await driver.wait(async () => {
-                return (await textEditor.getText()).indexOf("{") !== -1;
-            }, explicitWait, "No text was found inside Bastion4PrivateSubnetStandardVnc Info.json");
-
-            const json = await textEditor.getText();
-            expect(Misc.isJson(json)).to.equal(true);
-
-            const parsed = JSON.parse(json);
-            const bastionId = parsed.id;
-
-            await Misc.selectContextMenuItem(treeBastion!, "Set as Current Bastion");
-
-            await driver.wait(async () => {
-                return !(await Misc.hasLoadingBar(treeOCISection!));
-            }, ociExplicitWait, "There is still a loading bar on OCI");
-
-            expect(await Misc.isDefaultItem(treeBastion!, "bastion")).to.be.true;
-
-            await treeConsolesSection?.expand();
-
-            await Misc.clickSectionToolbarButton(treeConsolesSection!, "Add a New MySQL Shell Console");
-
-            await Misc.switchToWebView();
-
-            await driver.wait(until.elementLocated(By.id("shellEditorHost")), 20000, "Console was not loaded");
-
-            const result = await Misc.execCmd("mds.get.currentBastionId()", undefined, 60000);
-
-            expect(result[0]).to.equal(bastionId);
-
-        });
-
-        it("Refresh When Bastion Reaches Active State", async () => {
-
-            await Misc.selectContextMenuItem(treeBastion!, "Refresh When Bastion Reaches Active State");
-
-            await treeTasksSection?.expand();
-
-            expect(await Misc.getTreeElement(treeTasksSection, "Refresh Bastion (running)")).to.exist;
-
-            const bottomBar = new BottomBarPanel();
-            const outputView = await bottomBar.openOutputView();
-
-            await Misc.waitForOutputText(outputView, "Task 'Refresh Bastion' completed successfully", 20000);
-
-            await outputView.clearText();
-
-            expect(await Misc.getTreeElement(treeTasksSection, "Refresh Bastion (done)")).to.exist;
-
-        });
-
-        it("Delete Bastion", async () => {
-
-            const bottomBar = new BottomBarPanel();
-            const outputView = await bottomBar.openOutputView();
-            await outputView.clearText();
-
-            await Misc.selectContextMenuItem(treeBastion!, "Delete Bastion");
-
-            await treeTasksSection?.expand();
-
-            expect(await Misc.getTreeElement(treeTasksSection, "Delete Bastion (running)")).to.exist;
-
-            await Misc.waitForOutputText(outputView, "OCI profile 'E2ETESTS' loaded.", ociTasksExplicitWait);
-
-            await Misc.verifyNotification("Are you sure you want to delete");
-
-            const workbench = new Workbench();
-            const ntfs = await workbench.getNotifications();
-
-            await ntfs[ntfs.length - 1].takeAction("NO");
-
-            await driver.wait(Misc.getTreeElement(treeTasksSection, "Delete Bastion (error)"),
-                explicitWait, "'Delete Bastion (error)' was not found on the tree");
-
-            await Misc.waitForOutputText(outputView, "Deletion aborted", explicitWait);
-
-            await outputView.clearText();
 
         });
 

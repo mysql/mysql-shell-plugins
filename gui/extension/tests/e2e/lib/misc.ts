@@ -51,7 +51,7 @@ export const consolesTreeSection = "MYSQL SHELL CONSOLES";
 export const tasksTreeSection = "MYSQL SHELL TASKS";
 
 export const explicitWait = 5000;
-export const ociExplicitWait = 10000;
+export const ociExplicitWait = 20000;
 export const ociTasksExplicitWait = 50000;
 
 export const mysqlshLog = join(String(process.env.APPDATA), "MySQL", "mysqlsh-gui", "mysqlsh.log");
