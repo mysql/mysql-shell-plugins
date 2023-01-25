@@ -90,7 +90,6 @@ interface IConnectionBrowserState extends IComponentState {
 
 const editorHeading = "Database Connection Configuration";
 const editorDescription = [
-    "Use this form to specify your database connection information.",
     "Select a database type and enter database specific connection data.",
 ];
 
@@ -1342,13 +1341,22 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     type: "text",
                     caption: "Default Schema",
                     value: optionsMySQL.schema,
-                    horizontalSpan: 8,
+                    horizontalSpan: 4,
+                },
+                connectionTunnelingTitle: {
+                    type: "description",
+                    caption: "Tunneling Options",
+                    horizontalSpan: 4,
+                    options: [
+                        CommonDialogValueOption.Grouped,
+                        CommonDialogValueOption.NewGroup,
+                    ],
                 },
                 useSSH: {
                     type: "boolean",
                     caption: "Connect using SSH Tunnel",
                     value: details.useSSH === true,
-                    horizontalSpan: 8,
+                    horizontalSpan: 4,
                     onChange: (value: boolean, dialog: ValueEditDialog): void => {
                         const contexts = {
                             add: value ? ["useSSH"] : [],
@@ -1356,10 +1364,13 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                         };
                         dialog.updateActiveContexts(contexts);
                     },
+                    options: [
+                        CommonDialogValueOption.Grouped,
+                    ],
                 },
                 useMDS: {
                     type: "boolean",
-                    caption: "Connect to OCI DB server using MDS settings",
+                    caption: "Connect using OCI Bastion service",
                     value: details.useMDS === true,
                     onChange: (value: boolean, dialog: ValueEditDialog): void => {
                         // The MDS tab should be shown/hidden based on the checkbox value
@@ -1378,7 +1389,10 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                             });
                         }
                     },
-                    horizontalSpan: 8,
+                    horizontalSpan: 4,
+                    options: [
+                        CommonDialogValueOption.Grouped,
+                    ],
                 },
             },
         };
@@ -1394,6 +1408,13 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     value: ConnectionBrowser.mysqlSslModeMap
                         .get(optionsMySQL["ssl-mode"] ?? MySQLSslMode.Preferred),
                     choices: Array.from(ConnectionBrowser.mysqlSslModeMap.values()),
+                    horizontalSpan: 3,
+                },
+                sslCipher: {
+                    type: "text",
+                    caption: "Permitted ciphers (optional, comma separated list)",
+                    value: optionsMySQL["ssl-cipher"] as string,
+                    horizontalSpan: 5,
                 },
                 sslCaFile: {
                     type: "resource",
@@ -1411,12 +1432,6 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     type: "resource",
                     caption: "Path to Client Key file for SSL",
                     value: optionsMySQL["ssl-key"],
-                    horizontalSpan: 8,
-                },
-                sslCipher: {
-                    type: "text",
-                    caption: "Comma separated list of permissible ciphers to use for SSL encryption (optional)",
-                    value: optionsMySQL["ssl-cipher"] as string,
                     horizontalSpan: 8,
                 },
             },
@@ -1453,28 +1468,6 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
             caption: "Advanced",
             groupName: "group1",
             values: {
-                compression: {
-                    type: "choice",
-                    caption: "Compression",
-                    value: optionsMySQL.compression,
-                    choices: Object.keys(MySQLConnCompression),
-                    horizontalSpan: 2,
-                    optional: true,
-                },
-                compressionAlgorithms: {
-                    type: "set",
-                    caption: "Compression Algorithms",
-                    value: optionsMySQL["compression-algorithms"]?.split(","),
-                    tagSet: ["zstd", "zlib", "lz4", "uncompressed"],
-                    horizontalSpan: 3,
-                },
-                compressionLevel: {
-                    type: "number",
-                    caption: "Compression Level",
-                    value: optionsMySQL["compression-level"] ?? 3,
-                    horizontalSpan: 3,
-
-                },
                 // ansiQuotes: {
                 //     caption: "Use ANSI Quotes to Quote Identifiers",
                 //     value: optionsMySQL.useAnsiQuotes ?? false,
@@ -1499,22 +1492,57 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                         return { data: result };
                     }),
                     horizontalSpan: 4,
+                    verticalSpan: 3,
                 },
                 timeout: {
                     type: "number",
-                    caption: "Timeout",
+                    caption: "Connection Timeout",
                     value: optionsMySQL["connect-timeout"],
                     horizontalSpan: 4,
                 },
+                compression: {
+                    type: "choice",
+                    caption: "Compression",
+                    value: optionsMySQL.compression,
+                    choices: Object.keys(MySQLConnCompression),
+                    horizontalSpan: 2,
+                    optional: true,
+                },
+                compressionLevel: {
+                    type: "number",
+                    caption: "Compression Level",
+                    value: optionsMySQL["compression-level"] ?? 3,
+                    horizontalSpan: 2,
+
+                },
+                compressionAlgorithms: {
+                    type: "set",
+                    caption: "Compression Algorithms",
+                    value: optionsMySQL["compression-algorithms"]?.split(","),
+                    tagSet: ["zstd", "zlib", "lz4", "uncompressed"],
+                    horizontalSpan: 4,
+                },
+                disableHeatwaveCheckTitle: {
+                    type: "description",
+                    caption: "Connection Startup Checks",
+                    horizontalSpan: 4,
+                    options: [
+                        CommonDialogValueOption.Grouped,
+                        CommonDialogValueOption.NewGroup,
+                    ],
+                },
                 disableHeatwaveCheck: {
                     type: "boolean",
-                    caption: "Disable HeatWave Check on Connection Startup",
+                    caption: "Disable HeatWave Check",
                     value: optionsMySQL["disable-heat-wave-check"] ?? false,
-                    horizontalSpan: 8,
+                    horizontalSpan: 4,
+                    options: [
+                        CommonDialogValueOption.Grouped,
+                    ],
                 },
                 others: {
                     type: "matrix",
-                    caption: "Other Options for Connection",
+                    caption: "Other Connection Options",
                     value: this.parseConnectionAttributes(optionsMySQL["connection-attributes"] ?? {}),
                     horizontalSpan: 8,
                 },
@@ -1525,7 +1553,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
 
         const mdsAdvancedSection: IDialogSection = {
             contexts: ["MySQL", "useMDS"],
-            caption: "MDS",
+            caption: "MDS/Bastion Service",
             groupName: "group1",
             values: {
                 profileName: {

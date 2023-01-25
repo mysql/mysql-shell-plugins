@@ -397,27 +397,6 @@ export class Misc {
         return Misc.getCmdResult(cmd, String(nextBlockId), timeout, hasMultipleQueries);
     };
 
-    public static reloadSection = async (section: CustomTreeSection): Promise<void> => {
-
-        let btn: WebElement | undefined;
-        const label = await section.getTitle();
-        let btnLabel = "";
-        if (label === dbTreeSection) {
-            btnLabel = "Reload the connection list";
-        } else if (label === ociTreeSection) {
-            btnLabel = "Reload the OCI Profile list";
-        }
-
-        await driver.wait(async () => {
-            btn = await section.getAction(btnLabel);
-            await section.click();
-
-            return btn!.isDisplayed();
-        }, explicitWait, `'${btnLabel}' button was not visible`);
-
-        await btn?.click();
-    };
-
     public static processFailure = async (testContext: Mocha.Context): Promise<void> => {
 
         const img = await driver.takeScreenshot();

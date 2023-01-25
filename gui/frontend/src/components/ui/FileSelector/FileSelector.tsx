@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -115,7 +115,7 @@ export class FileSelector extends Component<IFileSelectorProperties> {
     }
 
     public render(): React.ReactNode {
-        const { path, placeholder } = this.mergedProps;
+        const { path, placeholder, id } = this.mergedProps;
 
         const className = this.getEffectiveClassNames(["fileSelector"]);
 
@@ -126,6 +126,7 @@ export class FileSelector extends Component<IFileSelectorProperties> {
                 orientation={Orientation.LeftToRight}
             >
                 <Input
+                    id={id}
                     value={path}
                     placeholder={placeholder}
                     onChange={this.handleInputChange}
@@ -133,6 +134,7 @@ export class FileSelector extends Component<IFileSelectorProperties> {
                     onCancel={this.handleInputCancel}
                 />
                 <Button
+                    id={id && `${id}Btn`}
                     caption="..."
                     onClick={this.handleButtonClick}
                 />

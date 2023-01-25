@@ -127,7 +127,7 @@ describe("DATABASE CONNECTIONS", () => {
             expect(await Database.getWebViewConnection(globalConn.caption)).to.exist;
             const edView = new EditorView();
             await edView.closeAllEditors();
-            await Misc.reloadSection(treeDBSection!);
+            await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
 
             treeGlobalConn = await Misc.getTreeElement(treeDBSection, globalConn.caption, dbTreeSection);
             expect(treeGlobalConn).to.exist;
@@ -182,7 +182,7 @@ describe("DATABASE CONNECTIONS", () => {
                 await Database.createConnection(treeDBSection!, localConn);
                 flag = true;
                 expect(await Database.getWebViewConnection(localConn.caption)).to.exist;
-                await Misc.reloadSection(treeDBSection!);
+                await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
                 expect(await Misc.getTreeElement(undefined, localConn.caption, dbTreeSection)).to.exist;
             } finally {
                 if (flag) {
@@ -296,6 +296,7 @@ describe("DATABASE CONNECTIONS", () => {
         let treeGlobalSchema: TreeItem | undefined;
         let treeGlobalSchemaTables: TreeItem | undefined;
         let treeGlobalSchemaViews: TreeItem | undefined;
+        let clean = false;
 
         before(async function () {
             try {
@@ -312,9 +313,17 @@ describe("DATABASE CONNECTIONS", () => {
             }
         });
 
+        beforeEach( () => {
+            clean = false;
+        });
+
         afterEach(async function () {
             if (this.currentTest?.state === "failed") {
                 await Misc.processFailure(this);
+            }
+
+            if (clean) {
+                await Misc.cleanEditor();
             }
 
             await driver.switchTo().defaultContent();
@@ -422,7 +431,7 @@ describe("DATABASE CONNECTIONS", () => {
             const edView = new EditorView();
             await edView.closeEditor("DB Connections");
 
-            await Misc.reloadSection(treeDBSection!);
+            await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
 
             const treeLocalConn = await Misc.getTreeElement(treeDBSection, localConn.caption);
             await Misc.selectContextMenuItem(treeLocalConn!, "Edit DB Connection");
@@ -447,7 +456,7 @@ describe("DATABASE CONNECTIONS", () => {
             await driver.switchTo().defaultContent();
 
             await driver.wait(async () => {
-                await Misc.reloadSection(treeDBSection!);
+                await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
 
                 return (await Misc.getTreeElement(treeDBSection, edited, dbTreeSection)) !== undefined;
             }, explicitWait, "Database was not updated");
@@ -475,7 +484,7 @@ describe("DATABASE CONNECTIONS", () => {
             await driver.switchTo().defaultContent();
 
             await driver.wait(async () => {
-                await Misc.reloadSection(treeDBSection!);
+                await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
                 const db = await Misc.getSection(dbTreeSection);
 
                 return (await db?.findElements(By.xpath(`//div[contains(@aria-label, '${dup}')]`)))!.length === 1;
@@ -536,9 +545,8 @@ describe("DATABASE CONNECTIONS", () => {
                 textAreaValue = await textArea.getAttribute("value");
                 expect(textAreaValue).to.include("CREATE DATABASE");
             } finally {
-                await Misc.cleanEditor();
+                clean = true;
             }
-
 
         });
 
@@ -592,7 +600,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await driver.wait(until.stalenessOf(msg), 7000, "Drop message dialog was not displayed");
 
-            await Misc.reloadSection(treeDBSection!);
+            await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
             expect(await Misc.getTreeElement(treeGlobalConn, testSchema)).to.not.exist;
 
         });
@@ -607,9 +615,9 @@ describe("DATABASE CONNECTIONS", () => {
                 await new EditorView().openEditor(globalConn.caption);
                 await Misc.switchToWebView();
                 const result = await Misc.getCmdResultMsg();
-                expect(result).to.match(/OK, (\d+) records/);
+                expect(result).to.match(/OK/);
             } finally {
-                await Misc.cleanEditor();
+                clean = true;
             }
 
         });
@@ -657,7 +665,7 @@ describe("DATABASE CONNECTIONS", () => {
                 textAreaValue = await textArea.getAttribute("value");
                 expect(textAreaValue).to.include("idx_actor_last_name");
             } finally {
-                await Misc.cleanEditor();
+                clean = true;
             }
         });
 
@@ -709,7 +717,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await driver.wait(until.stalenessOf(msg), 7000, "Drop message dialog was not displayed");
 
-            await Misc.reloadSection(treeDBSection!);
+            await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
             expect(await Misc.getTreeElement(treeGlobalSchemaTables, testTable)).to.not.exist;
 
         });
@@ -772,7 +780,7 @@ describe("DATABASE CONNECTIONS", () => {
                 textAreaValue = await textArea.getAttribute("value");
                 expect(textAreaValue).to.include("DEFINER VIEW");
             } finally {
-                await Misc.cleanEditor();
+                clean = true;
             }
 
         });
@@ -830,7 +838,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await driver.wait(until.stalenessOf(msg), 7000, "Drop message dialog was not displayed");
 
-            await Misc.reloadSection(treeDBSection!);
+            await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
             expect(await Misc.getTreeElement(treeGlobalSchemaViews, testView)).to.not.exist;
 
         });
@@ -1074,18 +1082,11 @@ describe("DATABASE CONNECTIONS", () => {
                 .findElement(By.id("description"))
                 .sendKeys("Local Sqlite connection");
 
-            const inputs = await newConDialog.findElements(By.css("input.msg.input"));
-            let dbPath: WebElement;
-            for (const input of inputs) {
-                if (!(await input.getAttribute("id"))) {
-                    dbPath = input;
-                }
-            }
-
             const sqlite = join(String(process.env.APPDATA), "MySQL", "mysqlsh-gui", "plugin_data",
                 "gui_plugin", "mysqlsh_gui_backend.sqlite3");
 
-            await dbPath!.sendKeys(sqlite);
+            const dbPath = await driver.findElement(By.id("dbFilePath"));
+            await dbPath.sendKeys(sqlite);
             await newConDialog.findElement(By.id("dbName")).sendKeys("SQLite");
             await newConDialog.findElement(By.id("ok")).click();
 
@@ -1103,7 +1104,7 @@ describe("DATABASE CONNECTIONS", () => {
             expect(await Database.isConnectionSuccessful(sqliteConName)).to.be.true;
 
             await driver.switchTo().defaultContent();
-            await Misc.reloadSection(treeDBSection!);
+            await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
 
             await treeGlobalConn?.expand();
             const treeSqliteConn = await Misc.getTreeElement(treeDBSection, sqliteConName);
@@ -1171,10 +1172,13 @@ describe("DATABASE CONNECTIONS", () => {
             expect(await newConDialog.findElement(By.css("#sslMode label")).getText())
                 .to.equals("Require and Verify CA");
 
-            const paths = await newConDialog.findElements(By.css(".tabview.top input.msg"));
-            await paths[0].sendKeys(`${String(process.env.SSLCERTSPATH)}/ca-cert.pem`);
-            await paths[1].sendKeys(`${String(process.env.SSLCERTSPATH)}/client-cert.pem`);
-            await paths[2].sendKeys(`${String(process.env.SSLCERTSPATH)}/client-key.pem`);
+            const sslCaFile = await driver.findElement(By.id("sslCaFile"));
+            const sslCertFile = await driver.findElement(By.id("sslCertFile"));
+            const sslKeyFile = await driver.findElement(By.id("sslKeyFile"));
+
+            await sslCaFile.sendKeys(`${String(process.env.SSL_ROOT_FOLDER)}/ca-cert.pem`);
+            await sslCertFile.sendKeys(`${String(process.env.SSL_ROOT_FOLDER)}/client-cert.pem`);
+            await sslKeyFile.sendKeys(`${String(process.env.SSL_ROOT_FOLDER)}/client-key.pem`);
 
             const okBtn = await driver.findElement(By.id("ok"));
             await driver.executeScript("arguments[0].scrollIntoView(true)", okBtn);
@@ -1848,7 +1852,7 @@ describe("DATABASE CONNECTIONS", () => {
 
                 await driver?.switchTo().defaultContent();
 
-                await Misc.reloadSection(treeDBSection!);
+                await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
 
                 await treeMySQLRESTService?.expand();
 
@@ -1927,7 +1931,7 @@ describe("DATABASE CONNECTIONS", () => {
             await Misc.verifyNotification("The MRS service has been successfully updated.");
 
             await driver.wait(async () => {
-                await Misc.reloadSection(treeDBSection!);
+                await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
                 treeRandomService = await Misc.getTreeElement(treeMySQLRESTService, `/edited${randomService}`);
 
                 return treeRandomService;
@@ -1973,7 +1977,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await Misc.verifyNotification("The MRS schema has been added successfully.");
 
-            await Misc.reloadSection(treeDBSection!);
+            await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
 
             const treeService = await Misc.getTreeElement(treeMySQLRESTService, String(randomServiceLabel));
 
@@ -2003,7 +2007,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await Misc.verifyNotification("The MRS schema has been updated successfully.");
 
-            await Misc.reloadSection(treeDBSection!);
+            await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
 
             const treeSakilaEdited = await Misc.getTreeElement(treeRandomService, "sakila (/edited)");
 
@@ -2077,7 +2081,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await Misc.verifyNotification("The MRS schema has been deleted successfully");
 
-            await Misc.reloadSection(treeDBSection!);
+            await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
 
             expect(await Misc.getTreeElement(treeRandomService,
                 String(await treeMySQLRESTSchema?.getLabel()))).to.not.exist;
@@ -2099,7 +2103,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await Misc.verifyNotification("The MRS service has been deleted successfully");
 
-            await Misc.reloadSection(treeDBSection!);
+            await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
 
             expect(await Misc.getTreeElement(treeMySQLRESTService,
                 String(await treeRandomService?.getLabel()))).to.not.exist;

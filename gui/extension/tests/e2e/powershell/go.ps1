@@ -270,7 +270,7 @@ try {
     
     # EXECUTE TESTS
     writeMsg "Executing GUI tests..." "-NoNewLine"
-    Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests", "--", "-s test-resources", "./tests/e2e/output/tests/*.js" -Wait -RedirectStandardOutput "$env:WORKSPACE\resultsExt.log" -RedirectStandardError "$env:WORKSPACE\resultsExtErr.log"
+    Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests", "--", "-s test-resources", "-u", "-f", "./tests/e2e/output/tests/*.js" -Wait -RedirectStandardOutput "$env:WORKSPACE\resultsExt.log" -RedirectStandardError "$env:WORKSPACE\resultsExtErr.log"
     writeMsg "DONE"
 
     # REMOVE THE RE-RUNS and MERGE

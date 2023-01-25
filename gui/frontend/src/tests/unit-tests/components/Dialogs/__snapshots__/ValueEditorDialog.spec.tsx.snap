@@ -59,7 +59,7 @@ exports[`Value Edit Dialog Tests Footer, Heading, Description and Payload 1`] = 
         <div
           __self="[object Object]"
           __source="[object Object]"
-          class="msg container fixedScrollbar gridCell"
+          class="msg container fixedScrollbar gridCell dialogDescriptionCell"
           style="flex-direction: row; grid-column: span 8;"
         >
           <div
@@ -1434,6 +1434,7 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
               __self="[object Object]"
               __source="[object Object]"
               class="msg input"
+              id="file"
               spellcheck="true"
               type="text"
             />
@@ -1442,6 +1443,7 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
               __source="[object Object]"
               caption="..."
               class="msg button"
+              id="fileBtn"
               tabindex="0"
             >
               ...
@@ -2044,6 +2046,7 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
               __self="[object Object]"
               __source="[object Object]"
               class="msg input"
+              id="file"
               spellcheck="true"
               type="text"
             />
@@ -2052,6 +2055,7 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
               __source="[object Object]"
               caption="..."
               class="msg button"
+              id="fileBtn"
               tabindex="0"
             >
               ...

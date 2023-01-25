@@ -590,7 +590,7 @@ export class MDSCommandHandler {
 
             statusbarItem.hide();
 
-            const title = dbSystem.heatWaveCluster
+            const title = (dbSystem.heatWaveCluster && dbSystem.heatWaveCluster.lifecycleState !== "DELETED")
                 ? "Rescale the MySQL HeatWave Cluster"
                 : "Configure the MySQL HeatWave Cluster";
 
