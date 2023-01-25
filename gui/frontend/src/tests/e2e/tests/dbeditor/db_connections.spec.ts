@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -554,15 +554,8 @@ describe("Database Connections", () => {
                 .findElement(By.id("description"))
                 .sendKeys("Local Sqlite connection");
 
-            const inputs = await newConDialog.findElements(By.css("input.msg.input"));
-            let dbPath: WebElement;
-            for (const input of inputs) {
-                if (!(await input.getAttribute("id"))) {
-                    dbPath = input;
-                }
-            }
-
-            await dbPath!.sendKeys(String(process.env.SQLITE_PATH_FILE));
+            const dbPath = await driver.findElement(By.id("dbFilePath"));
+            await dbPath.sendKeys(String(process.env.SQLITE_PATH_FILE));
             await newConDialog.findElement(By.id("dbName")).sendKeys("SQLite");
             await newConDialog.findElement(By.id("ok")).click();
 
@@ -663,10 +656,13 @@ describe("Database Connections", () => {
             expect(await newConDialog.findElement(By.css("#sslMode label"))
                 .getText()).toBe("Require and Verify CA");
 
-            const paths = await newConDialog.findElements(By.css(".tabview.top input.msg"));
-            await paths[0].sendKeys(`${String(process.env.SSL_ROOT_FOLDER)}/ca.pem`);
-            await paths[1].sendKeys(`${String(process.env.SSL_ROOT_FOLDER)}/client-cert.pem`);
-            await paths[2].sendKeys(`${String(process.env.SSL_ROOT_FOLDER)}/client-key.pem`);
+            const sslCaFile = await driver.findElement(By.id("sslCaFile"));
+            const sslCertFile = await driver.findElement(By.id("sslCertFile"));
+            const sslKeyFile = await driver.findElement(By.id("sslKeyFile"));
+
+            await sslCaFile.sendKeys(`${String(process.env.SSL_ROOT_FOLDER)}/ca.pem`);
+            await sslCertFile.sendKeys(`${String(process.env.SSL_ROOT_FOLDER)}/client-cert.pem`);
+            await sslKeyFile.sendKeys(`${String(process.env.SSL_ROOT_FOLDER)}/client-key.pem`);
 
             const okBtn = await driver.findElement(By.id("ok"));
             await driver.executeScript("arguments[0].scrollIntoView(true)", okBtn);

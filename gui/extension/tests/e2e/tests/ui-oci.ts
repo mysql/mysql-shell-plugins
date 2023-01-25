@@ -103,7 +103,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await editor.sendKeys(config);
 
             await textEditor.save();
-            await Misc.reloadSection(treeOCISection!);
+            await Misc.clickSectionToolbarButton(treeOCISection, "Reload the OCI Profile list");
 
             treeE2eTests = await Misc.getTreeElement(treeOCISection, "E2ETESTS (us-ashburn-1)");
             await treeE2eTests?.expand();
@@ -671,7 +671,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 } finally {
                     await driver.switchTo().defaultContent();
                     await treeDBSection?.expand();
-                    await Misc.reloadSection(treeDBSection!);
+                    await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
                     await treeDBSection?.collapse();
                 }
             } else {
