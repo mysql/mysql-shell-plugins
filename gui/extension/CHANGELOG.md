@@ -2,6 +2,8 @@
 
 ## Changes in 1.7.0+8.0.32
 
+- Updated MySQL Shell to 8.0.32
+
 ### Additions
 
 - New, cleaned up visual appearance of notebooks
