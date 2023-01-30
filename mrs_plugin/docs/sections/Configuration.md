@@ -40,9 +40,9 @@ The following MySQL solutions are supported.
 - MySQL InnoDB ReplicaSet
 - MySQL Operator
 
-For development purposes, a single MySQL Server setup is also supported. Please note that this setup cannot be used in a production deployment since it does not offer any form of High Availability (HA).
+For development purposes, a standalone MySQL Server setup is also supported. Please note that this setup should not be used in a production deployment since it does not offer any form of High Availability (HA).
 
-- Single MySQL Server
+- Standalone MySQL Server
 
 Please refer to the corresponding documentation on how to deploy and configure the different MySQL solutions.
 
@@ -83,7 +83,7 @@ MySQL Routers are an essential part of any MySQL solution and therefore often de
 
 When deploying a new MySQL Router it is advised to use the `mysqlrouter_bootstrap` command to bootstrap and configure the router, including the MRS configuration.
 
-    mysqlrouter_bootstrap --bootstrap=dba@127.0.0.1:13000 --directory ~/.mysqlrouter
+    mysqlrouter_bootstrap dba@127.0.0.1:13000 --mrs --directory ~/.mysqlrouter
 
 Please follow the interactive steps on the command line to configure the router.
 
@@ -93,12 +93,12 @@ When using the `mysqlrouter_bootstrap` command to configure the MySQL Router for
 
 If you want to manually manage the required MySQL accounts for use access the following steps need to be performed.
 
-1. Creating of the MySQL user account(s)
+1. Creation of the MySQL user account(s)
    - Either one or two MySQL accounts with limited privileges needs to be created
    - If only one account is used 
 2. Bootstrapping the MySQL Routers using the created MySQL accounts via the following options
-   - `--mrs-metadata-account` used by the router to access the MRS metadata schema
-   - `--mrs-data-account` used by the router to access the application schema
+   - `--mrs-mysql-metadata-account` used by the router to access the MRS metadata schema
+   - `--mrs-mysql-data-account` used by the router to access the application schema
 
 As part of the MRS metadata schema creation, two SQL ROLEs have been created for MySQL Router access.
 
@@ -112,8 +112,8 @@ To create the MySQL account, connect to the MySQL setup with the MySQL Shell or 
 
 The user name specified above can then be used when calling the `mysqlrouter_bootstrap` command.
 
-    --mrs-metadata-account=USER_NAME
-    --mrs-data-account=USER_NAME
+    --mrs-mysql-metadata-account=USER_NAME
+    --mrs-mysql-data-account=USER_NAME
 
 **_Adding a MRS configuration to an existing MySQL Router configuration_**
 
@@ -142,14 +142,14 @@ To enable MRS support on the router, the configuration file needs to be extended
 
 It is advised to use the `mysqlrouter_bootstrap` command to configure the router for MRS.
 
-    mysqlrouter_bootstrap --bootstrap=dba@127.0.0.1:13000 --directory /export/mysql/src/mysql-trunk/boot --mode=mrs
+    mysqlrouter_bootstrap dba@127.0.0.1:13000 --mrs --directory /export/mysql/src/mysql-trunk/boot
 
 The following parameters can be used to set the MRS configuration options.
 
-    --mode=all|mrs|bootstrap
-    --mrs-metadata-account=USER_NAME
-    --mrs-data-account=USER_NAME
-    --mrs-secret=SECRET
+    --mrs
+    --mrs-mysql-metadata-account=USER_NAME
+    --mrs-mysql-data-account=USER_NAME
+    --mrs-global-secret=SECRET
 
 The following is an example when connecting to a single development server and serving the REST services via HTTP.
 
@@ -158,6 +158,6 @@ The following is an example when connecting to a single development server and s
     ssl=0
     static_folder=/var/run/mysqlrouter/www/
 
-    [rest_mrs]
-    user=mysqlrouter_mrs
-    routing=mrs_rw
+    [mysql_rest_service]
+    mysql_user=mysqlrouter_mrs
+    mysql_read_write_route=mrs_rw
