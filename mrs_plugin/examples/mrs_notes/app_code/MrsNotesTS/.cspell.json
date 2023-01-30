@@ -22,6 +22,7 @@
         "isnan",
         "camelcase",
         "paren",
-        "preinstall"
+        "preinstall",
+        "mkcert"
     ]
 }

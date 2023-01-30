@@ -189,7 +189,7 @@ export class ShellInterfaceMrs {
                     limitToRegisteredUsers: authApp.limitToRegisteredUsers,
                     useBuiltInAuthorization: authApp.useBuiltInAuthorization,
                     registeredUsers: registerUsers,
-                    defaultRoleId: authApp.defaultRoleId ?? "",
+                    defaultRoleId: authApp.defaultRoleId,
                     moduleSessionId: this.moduleSessionId,
                 },
             },

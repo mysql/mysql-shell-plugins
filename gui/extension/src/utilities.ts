@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,8 +21,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import path from "path";
+import { existsSync } from "fs";
+
 import { window, ProgressLocation, MessageOptions, commands, ProviderResult } from "vscode";
 import { waitFor } from "../../frontend/src/utilities/helpers";
+
 
 /**
  * Dynamically switches a VS Code context on or off. Such a context is used to enable/disable VS Code commands,
@@ -82,4 +86,31 @@ export const showModalDialog = (message: string, okText = "OK", detail?: string)
         });
 
     });
+};
+
+/**
+ * Checks if a given executable is in the OS path
+ *
+ * @param exe The name of the executable to find, without file extension
+ * @returns true if the file was found
+ */
+export const findExecutable = (exe: string): boolean => {
+    const envPath = process.env.PATH || "";
+    const envExt = process.env.PATHEXT || "";
+    const pathDirs = envPath
+        .replace(/["]+/g, "")
+        .split(path.delimiter)
+        .filter(Boolean);
+    const extensions = envExt.split(";");
+    const candidates = pathDirs.flatMap((d) => {
+        return extensions.map((ext) => { return path.join(d, exe + ext); });
+    });
+
+    for (const filePath of candidates) {
+        if (existsSync(filePath)) {
+            return true;
+        }
+    }
+
+    return false;
 };

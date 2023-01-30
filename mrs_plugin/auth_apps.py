@@ -67,13 +67,14 @@ def add_auth_app(app_name=None, service_id=None, **kwargs):
         limit_to_registered_users (bool): Limit access to registered users
         use_built_in_authorization (bool): Limit access to registered users
         registered_users (list): List of registered users, separated by ,
-        default_role_id (str): The default role to be assigned to new users
+        default_role_id (str,required): The default role to be assigned to new users
         session (object): The database session to use
 
     Returns:
         A dict with content_set_id and number_of_files_uploaded
     """
-    service_id = lib.core.id_to_binary(service_id, "service_id")
+    if service_id:
+        service_id = lib.core.id_to_binary(service_id, "service_id")
     lib.core.convert_ids_to_binary(["auth_vendor_id", "default_role_id"], kwargs)
 
     auth_vendor_id = kwargs.get("auth_vendor_id")

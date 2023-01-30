@@ -10,7 +10,7 @@
             "name": "MRS Example - Notes TypeScript",
             "runtimeExecutable": "/Applications/Thorium.app/Contents/MacOS/Thorium",
             "userDataDir": "${workspaceFolder}/.vscode/chrome",
-            "url": "http://localhost:8083",
+            "url": "https://localhost:8083",
             "webRoot": "${workspaceFolder}/src",
             "sourceMaps": true,
             "showAsyncStacks": true,

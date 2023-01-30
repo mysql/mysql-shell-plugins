@@ -555,7 +555,7 @@ export interface IShellMrsAddAuthenticationAppKwargs {
     /** List of registered users, separated by , */
     registeredUsers?: unknown[];
     /** The default role to be assigned to new users */
-    defaultRoleId?: string;
+    defaultRoleId: string | null;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
@@ -1163,7 +1163,7 @@ export interface IMrsAuthAppData {
     enabled: boolean;
     useBuiltInAuthorization: boolean;
     limitToRegisteredUsers: boolean;
-    defaultRoleId?: string | null;
+    defaultRoleId: string | null;
 }
 
 export interface IMrsAuthVendorData {

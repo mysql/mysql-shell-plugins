@@ -22,7 +22,7 @@
  */
 
 import { IShellDictionary } from "../../frontend/src/communication";
-import { commands, ExtensionContext, Uri, ViewColumn, WebviewPanel, window } from "vscode";
+import { commands, env, ExtensionContext, TerminalExitStatus, Uri, ViewColumn, WebviewPanel, window } from "vscode";
 import { DialogResponseClosure, DialogType } from "../../frontend/src/app-logic/Types";
 import {
     IMrsDbObjectFieldData, IMrsAuthAppData, IMrsContentSetData,
@@ -41,12 +41,14 @@ import { MrsSchemaTreeItem } from "./tree-providers/ConnectionsTreeProvider/MrsS
 import { MrsServiceTreeItem } from "./tree-providers/ConnectionsTreeProvider/MrsServiceTreeItem";
 import { MrsTreeItem } from "./tree-providers/ConnectionsTreeProvider/MrsTreeItem";
 import { SchemaMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaMySQLTreeItem";
-import { showMessageWithTimeout, showModalDialog } from "./utilities";
+import { findExecutable, showMessageWithTimeout, showModalDialog } from "./utilities";
 import { openSqlEditorSessionAndConnection, openSqlEditorConnection } from "./utilitiesShellGui";
 import { DialogWebviewManager } from "./web-views/DialogWebviewProvider";
-import { homedir } from "os";
-import { join } from "path";
-import { cpSync, existsSync, readFileSync } from "fs";
+import { homedir, platform } from "os";
+import path, { join } from "path";
+import { cpSync, existsSync, readFileSync, renameSync, rmSync } from "fs";
+import { IMySQLConnectionOptions, MySQLConnectionScheme } from "../../frontend/src/communication/MySQL";
+import { MySQLShellLauncher } from "../../frontend/src/utilities/MySQLShellLauncher";
 
 export class MRSCommandHandler {
     protected docsWebviewPanel?: WebviewPanel;
@@ -70,6 +72,16 @@ export class MRSCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.mrs.enableMySQLRestService",
             async (item?: ConnectionMySQLTreeItem) => {
                 await this.configureMrs(item, true);
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.bootstrapLocalRouter",
+            async (item?: MrsTreeItem) => {
+                await this.bootstrapLocalRouter(context, item);
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.runLocalRouter",
+            async (item?: MrsTreeItem) => {
+                await this.runLocalRouter(context, item);
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.docs", () => {
@@ -458,7 +470,11 @@ export class MRSCommandHandler {
                         },
                     }).then(async (value) => {
                         if (value !== undefined) {
+                            const statusbarItem = window.createStatusBarItem();
                             try {
+                                statusbarItem.text = "$(loading~spin) Loading REST Schema ...";
+                                statusbarItem.show();
+
                                 const path = value[0].fsPath;
                                 await backend.mrs.loadSchema(path,
                                     item.value.id);
@@ -467,6 +483,8 @@ export class MRSCommandHandler {
                             } catch (error) {
                                 void window.showErrorMessage(
                                     `Error loading REST Schema: ${String(error)}`);
+                            } finally {
+                                statusbarItem.hide();
                             }
                         }
                     });
@@ -487,8 +505,6 @@ export class MRSCommandHandler {
                                 statusbarItem.text = "$(loading~spin) " + message;
                             });
 
-                            statusbarItem.hide();
-
                             const services = await sqlEditor.mrs.listServices();
                             let service: IMrsServiceData | undefined;
 
@@ -497,6 +513,8 @@ export class MRSCommandHandler {
                             } else if (services.length === 1) {
                                 service = services[0];
                             } else {
+                                statusbarItem.text = "Please select a MRS Service ...";
+
                                 // No default connection set. Show a picker.
                                 const items = services.map((service) => {
                                     return service.hostCtx;
@@ -514,7 +532,9 @@ export class MRSCommandHandler {
                             }
 
                             if (service !== undefined) {
+                                statusbarItem.text = "$(loading~spin) Loading REST Schema ...";
                                 await sqlEditor.mrs.loadSchema(item.path, service.id);
+                                void commands.executeCommand("msg.refreshConnections");
                                 showMessageWithTimeout("The REST Schema has been loaded successfully.");
                             }
                         } catch (error) {
@@ -624,6 +644,142 @@ export class MRSCommandHandler {
                     `Error: ${error instanceof Error ? error.message : String(error)}`);
             } finally {
                 await sqlEditor.closeSession();
+            }
+        }
+    };
+
+    private bootstrapLocalRouter = async (context: ExtensionContext,
+        item?: MrsTreeItem, waitAndClosedWhenFinished = false): Promise<TerminalExitStatus | undefined> => {
+        if (item) {
+            if (findExecutable("mysqlrouter_bootstrap")) {
+                const shellConfDir = MySQLShellLauncher.getShellUserConfigDir(context.extensionPath);
+                const certDir = path.join(shellConfDir, "plugin_data", "gui_plugin", "web_certs");
+
+                const mysqlConnOptions = item.entry.details.options as IMySQLConnectionOptions;
+                if (mysqlConnOptions.scheme !== MySQLConnectionScheme.MySQL) {
+                    void window.showErrorMessage(
+                        "Only DB Connections using classic MySQL protocol can be used for bootstrapping.");
+
+                    return;
+                }
+                if (mysqlConnOptions.ssh !== undefined || mysqlConnOptions["mysql-db-system-id"] !== undefined) {
+                    void window.showErrorMessage(
+                        "DB Connection using SSH Tunneling or MDS Bastion settings cannot be used for bootstrapping.");
+
+                    return;
+                }
+                const connString = `${mysqlConnOptions.user ?? ""}@${mysqlConnOptions.host}` +
+                    ((mysqlConnOptions.port !== undefined) ? `:${mysqlConnOptions.port}` : "");
+
+                let term = window.terminals.find((t) => { return t.name === "MySQL Router MRS"; });
+                if (term === undefined) {
+                    term = window.createTerminal("MySQL Router MRS");
+                }
+
+                let routerConfigDir: string;
+                if (platform() === "win32") {
+                    routerConfigDir = join(homedir(), "AppData", "Roaming", "MySQL", "mysqlrouter");
+                } else {
+                    routerConfigDir = join(homedir(), ".mysqlrouter");
+                }
+
+                if (existsSync(routerConfigDir)) {
+                    const answer = await window.showInformationMessage(
+                        `The MySQL Router config directory ${routerConfigDir} already exists. `
+                        + "Do you want to rename the existing directory and proceed?",
+                        "Yes", "No");
+                    if (answer === "Yes") {
+                        try {
+                            renameSync(routerConfigDir, routerConfigDir + "_old");
+                        } catch (e) {
+                            rmSync(routerConfigDir + "_old", { recursive: true, force: true });
+                            renameSync(routerConfigDir, routerConfigDir + "_old");
+                        }
+                    } else {
+                        return;
+                    }
+                }
+
+                // cSpell:ignore consolelog
+                if (term !== undefined) {
+                    term.show();
+                    term.sendText(
+                        `mysqlrouter_bootstrap ${connString} --mrs --directory ${routerConfigDir} ` +
+                        `--conf-set-option=http_server.ssl_cert=${path.join(certDir, "server.crt")} ` +
+                        `--conf-set-option=http_server.ssl_key=${path.join(certDir, "server.key")} ` +
+                        `--conf-set-option=logger.level=DEBUG --conf-set-option=logger.sinks=consolelog`,
+                        !waitAndClosedWhenFinished);
+
+                    if (waitAndClosedWhenFinished) {
+                        term.sendText("; exit");
+
+                        return new Promise((resolve, reject) => {
+                            const disposeToken = window.onDidCloseTerminal(
+                                (closedTerminal) => {
+                                    if (closedTerminal === term) {
+                                        disposeToken.dispose();
+                                        if (term.exitStatus !== undefined) {
+                                            resolve(term.exitStatus);
+                                        } else {
+                                            reject("Terminal exited with undefined status");
+                                        }
+                                    }
+                                },
+                            );
+                        });
+                    }
+
+                }
+            } else {
+                const answer = await window.showInformationMessage(
+                    `The mysqlrouter_bootstrap executable could not be found. `
+                    + "Do you want to download and install the MySQL Router now?",
+                    "Yes", "No");
+                if (answer === "Yes") {
+                    void env.openExternal(Uri.parse("https://labs.mysql.com"));
+                }
+            }
+        }
+    };
+
+    private runLocalRouter = async (context: ExtensionContext, item?: MrsTreeItem): Promise<void> => {
+        if (item) {
+            if (findExecutable("mysqlrouter")) {
+                let routerConfigDir: string;
+                if (platform() === "win32") {
+                    routerConfigDir = join(homedir(), "AppData", "Roaming", "MySQL", "mysqlrouter");
+                } else {
+                    routerConfigDir = join(homedir(), ".mysqlrouter");
+                }
+
+                if (existsSync(routerConfigDir)) {
+                    let term = window.terminals.find((t) => { return t.name === "MySQL Router MRS"; });
+                    if (term === undefined) {
+                        term = window.createTerminal("MySQL Router MRS");
+                    }
+
+                    if (term !== undefined) {
+                        term.show();
+                        term.sendText(`mysqlrouter -c ${path.join(routerConfigDir, "mysqlrouter.conf")}`, true);
+                    }
+                } else {
+                    const answer = await window.showInformationMessage(
+                        `The MySQL Router config directory ${routerConfigDir} was not found. `
+                        + "Do you want to bootstrap a local MySQL Router instance for development now?",
+                        "Yes", "No");
+                    if (answer === "Yes") {
+                        await this.bootstrapLocalRouter(context, item, true);
+                        void this.runLocalRouter(context, item);
+                    }
+                }
+            } else {
+                const answer = await window.showInformationMessage(
+                    `The mysqlrouter executable could not be found. `
+                    + "Do you want to download and install the MySQL Router now?",
+                    "Yes", "No");
+                if (answer === "Yes") {
+                    void env.openExternal(Uri.parse("https://labs.mysql.com"));
+                }
             }
         }
     };
@@ -757,7 +913,7 @@ export class MRSCommandHandler {
 
         const defaultRole = roles.find((role) => {
             return authApp?.defaultRoleId === role.id;
-        })?.caption ?? "";
+        })?.caption ?? (roles.length > 0) ? roles[0].caption : "";
 
         const request = {
             id: "mrsAuthenticationAppDialog",
@@ -778,7 +934,7 @@ export class MRSCommandHandler {
                 appId: authApp?.appId,
                 url: authApp?.url,
                 urlDirectAuth: authApp?.urlDirectAuth,
-                enabled: authApp?.enabled,
+                enabled: authApp?.enabled ?? true,
                 useBuiltInAuthorization: authApp?.useBuiltInAuthorization,
                 limitToRegisteredUsers: authApp?.limitToRegisteredUsers,
                 defaultRoleId: defaultRole,
@@ -896,7 +1052,7 @@ export class MRSCommandHandler {
             return;
         }
 
-        const authAppId = authApps.find((authApp) =>  {
+        const authAppId = authApps.find((authApp) => {
             return authApp.name === response.data?.authAppName;
         })?.id;
 
@@ -1079,7 +1235,7 @@ export class MRSCommandHandler {
                 })?.id ?? "";
                 app.serviceId = app.serviceId === "" ? undefined : app.serviceId;
                 app.authVendorId = app.authVendorId === "" ? undefined : app.authVendorId;
-                app.defaultRoleId = app.defaultRoleId === "" ? undefined : app.defaultRoleId;
+                app.defaultRoleId = app.defaultRoleId === "" ? null : app.defaultRoleId;
             }
 
 
@@ -1161,7 +1317,7 @@ export class MRSCommandHandler {
                     serviceId: schema?.serviceId,
                     name: schema?.name ?? schemaName,
                     requestPath: schema?.requestPath ?? `/${schemaName ?? ""}`,
-                    requiresAuth: schema?.requiresAuth === 1,
+                    requiresAuth: !schema || schema?.requiresAuth === 1,
                     enabled: !schema || schema.enabled === 1,
                     itemsPerPage: schema?.itemsPerPage,
                     comments: schema?.comments ?? "",
@@ -1615,3 +1771,5 @@ export class MRSCommandHandler {
         this.docsWebviewPanel = undefined;
     };
 }
+
+

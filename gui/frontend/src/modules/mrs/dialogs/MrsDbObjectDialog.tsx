@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -82,6 +82,7 @@ export class MrsDbObjectDialog extends ValueDialogBase {
                     value: selectedService?.hostCtx,
                     choices: services.map((service) => { return service.hostCtx; }),
                     horizontalSpan: 4,
+                    description: "The path of the MRS Service this DB Object belongs to",
                 },
                 schema: {
                     type: "choice",
@@ -93,14 +94,7 @@ export class MrsDbObjectDialog extends ValueDialogBase {
                         return schema.requestPath;
                     }),
                     horizontalSpan: 4,
-                },
-                name: {
-                    type: "text",
-                    caption: "Database Object Name",
-                    value: request.values?.name as string,
-                    horizontalSpan: 4,
-                    options: [CommonDialogValueOption.AutoFocus],
-                    description: "The name of the database object",
+                    description: "The path of the MRS Schema this DB Object belongs to",
                 },
                 requestPath: {
                     type: "text",
@@ -108,6 +102,14 @@ export class MrsDbObjectDialog extends ValueDialogBase {
                     value: request.values?.requestPath as string,
                     horizontalSpan: 4,
                     description: "The path to access the object, has to start with /",
+                    options: [CommonDialogValueOption.AutoFocus],
+                },
+                name: {
+                    type: "text",
+                    caption: "Database Object Name",
+                    value: request.values?.name as string,
+                    horizontalSpan: 4,
+                    description: "The name of the database object",
                 },
                 crudOperations: {
                     type: "set",
@@ -157,36 +159,36 @@ export class MrsDbObjectDialog extends ValueDialogBase {
                     caption: "Result Format",
                     choices: ["FEED", "ITEM", "MEDIA"],
                     value: request.values?.crudOperationFormat as string,
-                    horizontalSpan: 4,
+                    horizontalSpan: 2,
                 },
                 itemsPerPage: {
                     type: "text",
                     caption: "Items per Page",
-                    horizontalSpan: 4,
+                    horizontalSpan: 2,
                     value: request.values?.itemsPerPage as string,
-                },
-                rowUserOwnershipColumn: {
-                    type: "choice",
-                    caption: "Ownership Field",
-                    value: request.values?.rowUserOwnershipColumn as string,
-                    choices: rowOwnershipFields,
-                    horizontalSpan: 4,
-                    optional: true,
-                    description: "Field that holds the user ID that should be managed by MRS",
-                },
-                rowUserOwnershipEnforced: {
-                    type: "boolean",
-                    caption: "User Ownership",
-                    label: "Enforce Row User Ownership",
-                    horizontalSpan: 4,
-                    value: (request.values?.rowUserOwnershipEnforced ?? true) as boolean,
-                    description: "Enables the user ID management by MRS",
                 },
                 comments: {
                     type: "text",
                     caption: "Comments",
                     value: request.values?.comments as string,
-                    horizontalSpan: 8,
+                    horizontalSpan: 4,
+                },
+                rowUserOwnershipEnforced: {
+                    type: "boolean",
+                    caption: "Row Ownership",
+                    label: "Enforce Row User Ownership",
+                    horizontalSpan: 4,
+                    value: (request.values?.rowUserOwnershipEnforced ?? true) as boolean,
+                    description: "Enables the MRS row ownership management",
+                },
+                rowUserOwnershipColumn: {
+                    type: "choice",
+                    caption: "Row Ownership Field",
+                    value: request.values?.rowUserOwnershipColumn as string,
+                    choices: rowOwnershipFields,
+                    horizontalSpan: 4,
+                    optional: true,
+                    description: "Field that holds the user ID that should be managed by MRS",
                 },
             },
         };
@@ -294,10 +296,11 @@ export class MrsDbObjectDialog extends ValueDialogBase {
             values: {
                 options: {
                     type: "text",
-                    caption: "Options in JSON Format:",
+                    caption: "Options",
                     value: request.values?.options as string,
                     horizontalSpan: 8,
                     multiLine: true,
+                    description: "Additional options in JSON format",
                 },
             },
         };

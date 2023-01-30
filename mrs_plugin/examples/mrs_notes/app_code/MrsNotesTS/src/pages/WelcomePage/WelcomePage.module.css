@@ -66,6 +66,12 @@
     color: #2997ff;
 }
 
+.error {
+    color: #F2482A;
+    text-align: center;
+    white-space: pre-wrap;
+}
+
 .loginButtons {
     display: flex;
     flex-direction: row;

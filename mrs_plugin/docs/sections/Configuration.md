@@ -94,21 +94,21 @@ When using the `mysqlrouter_bootstrap` command to configure the MySQL Router for
 If you want to manually manage the required MySQL accounts for use access the following steps need to be performed.
 
 1. Creation of the MySQL user account(s)
-   - If only one account is specified, the MySQL Router will use it to access both the MRS metadata schema and application schema data. This account must have the `mrs_provider_metadata` and `mrs_provider_data_access` roles.
-   - If two accounts are used, the MySQL Router will use one for the MRS metadata schema access and the other one for the application schema data. Assign the `mrs_provider_metadata` role to one user and `mrs_provider_data_access` to the other.
+   - If only one account is specified, the MySQL Router will use it to access both the MRS metadata schema and application schema data. This account must have the `mysql_rest_service_meta_provider` and `mysql_rest_service_data_provider` roles.
+   - If two accounts are used, the MySQL Router will use one for the MRS metadata schema access and the other one for the application schema data. Assign the `mysql_rest_service_meta_provider` role to one user and `mysql_rest_service_data_provider` to the other.
 2. Bootstrapping the MySQL Routers using the created MySQL accounts via the following options
    - `--mrs-mysql-metadata-account` used by the router to access the MRS metadata schema
    - `--mrs-mysql-data-account` used by the router to access the application schema
 
 As part of the MRS metadata schema creation, two SQL ROLEs have been created for MySQL Router to access MySQL.
 
-- The 'mrs_provider_metadata' ROLE grants access to the required MRS metadata schema tables.
-- The 'mrs_provider_data_access' ROLE grants access to the served schema objects in the application database schemas.
+- The 'mysql_rest_service_meta_provider' ROLE grants access to the required MRS metadata schema tables.
+- The 'mysql_rest_service_data_provider' ROLE grants access to the served schema objects in the application database schemas.
 
 To create the MySQL account, connect to the MySQL setup with the MySQL Shell or MySQL Shell for VS Code and execute the following SQL statements.
 
     CREATE USER 'mysqlrouter_mrs_<router_name>'@'<router_host>' IDENTIFIED BY 'password';
-    GRANT 'mrs_provider_metadata', 'mrs_provider_data_access' TO 'mysqlrouter_mrs_<router_name>'@'<router_host>';
+    GRANT 'mysql_rest_service_meta_provider', 'mysql_rest_service_data_provider' TO 'mysqlrouter_mrs_<router_name>'@'<router_host>';
 
 The user name specified above can then be used when calling the `mysqlrouter_bootstrap` command.
 

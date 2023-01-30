@@ -22,16 +22,26 @@
  */
 
 import { Component, ComponentChild } from "preact";
-import { serviceUrl } from "../../app";
+import { IFetchInput, serviceUrl } from "../../app";
+import MrsLogin from "../../components/MrsLogin";
 import styles from "./WelcomePage.module.css";
+
+interface IAuthApp {
+    name: string;
+    vendorId: string;
+}
 
 interface IWelcomePageProps {
     startLogin: (authApp: string) => void;
+    doFetch: (input: string | IFetchInput, errorMsg?: string,
+        method?: string, body?: object) => Promise<Response>,
+    handleLogin: (authApp?: string, accessToken?: string) => void,
 }
 
 interface IWelcomePageState {
     notesServed: number;
-    authApps?: string[];
+    authApps?: IAuthApp[];
+    error?: string;
 }
 
 /**
@@ -72,7 +82,10 @@ export default class WelcomePage extends Component<IWelcomePageProps, IWelcomePa
                 }
             }
         } catch (e) {
-            // Ignore any exceptions
+            const errStr = (typeof e === "string") ? e : (e instanceof Error) ? e.message : "";
+            this.setState({
+                error: `Failed to connect to the REST endpoint:\n${serviceUrl}/mrsNotes/notesServed\nError: ${errStr}`,
+            });
         }
     };
 
@@ -81,17 +94,17 @@ export default class WelcomePage extends Component<IWelcomePageProps, IWelcomePa
      *
      * @returns The list of enabled authApps
      */
-    private readonly getAuthApps = async (): Promise<string[] | undefined> => {
+    private readonly getAuthApps = async (): Promise<IAuthApp[] | undefined> => {
         try {
             const response = await fetch(`${serviceUrl}/authentication/authApps`);
 
             if (response.ok) {
                 const result = await response.json();
 
-                return result as string[];
+                return result as IAuthApp[];
             }
         } catch (e) {
-            // Ignore any exceptions
+            return [] as IAuthApp[];
         }
     };
 
@@ -104,23 +117,32 @@ export default class WelcomePage extends Component<IWelcomePageProps, IWelcomePa
      * @returns The rendered ComponentChild
      */
     public render = (props: IWelcomePageProps, state: IWelcomePageState): ComponentChild => {
-        const { startLogin } = props;
-        const { notesServed, authApps } = state;
+        const { startLogin, doFetch, handleLogin } = props;
+        const { notesServed, authApps, error } = state;
         // Build a human readable string of there are notesServed > 0
         const notesManaged = (notesServed > 0)
             ? `Managing ${notesServed ?? 0} note${notesServed !== 1 ? "s" : ""} for our users so far.`
             : "Managing notes for you.";
+        // The built-in MRS authApp uses a specific ID
+        const mrsAuthAppId = "0x30000000000000000000000000000000";
+        const mrsAuthApp = authApps?.find((authApp) => {
+            return authApp.vendorId === mrsAuthAppId;
+        });
         const loginOptions = (authApps === undefined)
             ? <p>Loading ...</p>
             : ((authApps.length === 0)
                 ? <p>No Authentication Apps setup for this MRS Service yet.</p>
                 : <>
-                    <p>Choose one of the following login methods to start.</p>
+                    {(mrsAuthApp !== undefined)
+                        ? <MrsLogin authApp={mrsAuthApp.name} doFetch={doFetch} handleLogin={handleLogin} />
+                        : undefined
+                    }
                     <div className={styles.loginButtons}>
-                        {authApps.map((authAppName) => {
-                            return (
-                                <button key={authAppName} onClick={() => { startLogin(authAppName); }}
-                                    className={styles[`btn${authAppName}`]}>Login with {authAppName}</button>);
+                        {authApps.map((authApp) => {
+                            return (authApp.vendorId !== mrsAuthAppId)
+                                ? <button key={authApp.name} onClick={() => { startLogin(authApp.name); }}
+                                    className={styles[`btn${authApp.name}`]}>Sign in with {authApp.name}</button>
+                                : undefined;
                         })}
                     </div>
                 </>
@@ -132,12 +154,11 @@ export default class WelcomePage extends Component<IWelcomePageProps, IWelcomePa
                     <h1 className="gradientText">MRS Notes</h1>
                     <h2>Powered by the<br />MySQL REST Service.</h2>
                     <div className={styles.productInfo}>
-                        <p>Writing a web app that uses the MySQL REST Service is straight forward.
-                            This example implements a simple note taking application that allows
+                        <p>This example implements a simple note taking application that allows
                             note sharing between its users.</p>
                         <p className={styles.marketing}>{notesManaged}</p>
                     </div>
-                    {loginOptions}
+                    {(error !== undefined) ? <p className={styles.error}>{error}</p> : loginOptions}
                 </div>
                 <div className="footer">
                     <p>Copyright (c) 2022, 2023, Oracle and/or its affiliates.</p>
