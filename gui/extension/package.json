@@ -542,6 +542,14 @@
                 "title": "Disable MySQL REST Service"
             },
             {
+                "command": "msg.mrs.bootstrapLocalRouter",
+                "title": "Bootstrap Local MySQL Router Instance for MRS Development"
+            },
+            {
+                "command": "msg.mrs.runLocalRouter",
+                "title": "Run Local MySQL Router Instance for MRS Development"
+            },
+            {
                 "command": "msg.mrs.docs",
                 "title": "Browse the MySQL REST Service Documentation",
                 "icon": {
@@ -1062,9 +1070,19 @@
                     "group": "2_msg@2"
                 },
                 {
-                    "command": "msg.mrs.docs",
+                    "command": "msg.mrs.bootstrapLocalRouter",
                     "when": "viewItem == mrs",
                     "group": "3_msg@1"
+                },
+                {
+                    "command": "msg.mrs.runLocalRouter",
+                    "when": "viewItem == mrs",
+                    "group": "3_msg@2"
+                },
+                {
+                    "command": "msg.mrs.docs",
+                    "when": "viewItem == mrs",
+                    "group": "4_msg@1"
                 },
                 {
                     "command": "msg.mrs.docs",

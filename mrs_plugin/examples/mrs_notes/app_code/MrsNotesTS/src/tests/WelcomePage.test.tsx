@@ -24,12 +24,21 @@ import { describe, it, expect } from "vitest";
 import { mount } from "enzyme";
 
 import WelcomePage from "../pages/WelcomePage/WelcomePage";
+import { IFetchInput } from "../app";
 
 if (import.meta.vitest !== undefined) {
     describe("WelcomePage", () => {
         it("should display the title MRS Notes", () => {
-            const f = (_authApp: string): void => { /**/ };
-            const wrapper = mount(<WelcomePage startLogin={f}/>);
+            const startLogin = (_authApp: string): void => { /**/ };
+            const doFetch = async (_input: string | IFetchInput, _errorMsg?: string,
+                _method?: string, _body?: object): Promise<Response> => {
+                const response = await fetch("");
+
+                return response;
+            };
+            const handleLogin = (_authApp?: string, _accessToken?: string): void => { /**/ };
+
+            const wrapper = mount(<WelcomePage startLogin={startLogin} doFetch={doFetch} handleLogin={handleLogin}/>);
             expect(wrapper.text()).to.include("MRS Notes");
         });
     });

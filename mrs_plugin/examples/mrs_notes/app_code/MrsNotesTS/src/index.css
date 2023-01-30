@@ -40,7 +40,8 @@
     --splitter-color: #D4D4D4;
     --icon-color: hsl(200, 65%, 40%);
     --focus-color: hsl(200, 65%, 70%);
-    --error-color: red;
+    --error-color: hsl(0, 100%, 70%);
+    --error-text-color: #500;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -63,7 +64,8 @@
         --splitter-color: #3A3436;
         --icon-color: hsl(200, 65%, 40%);
         --focus-color: hsl(200, 65%, 30%);
-        --error-color: hsl(0, 100%, 50%);
+        --error-color: hsl(0, 100%, 20%);
+        --error-text-color: #e00;
     }
 }
 

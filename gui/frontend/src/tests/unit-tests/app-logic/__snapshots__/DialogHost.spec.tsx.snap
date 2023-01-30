@@ -103,6 +103,14 @@ exports[`DialogHost Tests Show MRS DB Object Dialog (snapshot) 1`] = `
               /mrs
             </label>
           </div>
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The path of the MRS Service this DB Object belongs to
+          </label>
         </div>
         <div
           __self="[object Object]"
@@ -136,43 +144,13 @@ exports[`DialogHost Tests Show MRS DB Object Dialog (snapshot) 1`] = `
               /mrs_notes
             </label>
           </div>
-        </div>
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
-        >
-          <label
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-            Database Object Name
-          </label>
-          <div
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
-          >
-            <input
-              __self="[object Object]"
-              __source="[object Object]"
-              class="msg input valueEditor"
-              id="name"
-              spellcheck="true"
-              type="text"
-            />
-          </div>
           <label
             __self="[object Object]"
             __source="[object Object]"
             class="msg label cellDescription"
             data-tooltip="expand"
           >
-            The name of the database object
+            The path of the MRS Schema this DB Object belongs to
           </label>
         </div>
         <div
@@ -211,6 +189,44 @@ exports[`DialogHost Tests Show MRS DB Object Dialog (snapshot) 1`] = `
             data-tooltip="expand"
           >
             The path to access the object, has to start with /
+          </label>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Database Object Name
+          </label>
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg input valueEditor"
+              id="name"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The name of the database object
           </label>
         </div>
         <div
@@ -411,7 +427,7 @@ exports[`DialogHost Tests Show MRS DB Object Dialog (snapshot) 1`] = `
                   __self="[object Object]"
                   __source="[object Object]"
                   class="msg container fixedScrollbar gridCell"
-                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 2;"
                 >
                   <label
                     __self="[object Object]"
@@ -444,7 +460,7 @@ exports[`DialogHost Tests Show MRS DB Object Dialog (snapshot) 1`] = `
                   __self="[object Object]"
                   __source="[object Object]"
                   class="msg container fixedScrollbar gridCell"
-                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 2;"
                 >
                   <label
                     __self="[object Object]"
@@ -482,7 +498,74 @@ exports[`DialogHost Tests Show MRS DB Object Dialog (snapshot) 1`] = `
                     class="msg label valueTitle"
                     data-tooltip="expand"
                   >
-                    Ownership Field
+                    Comments
+                  </label>
+                  <div
+                    __self="[object Object]"
+                    __source="[object Object]"
+                    class="msg container fixedScrollbar inputWithProgress"
+                    style="flex-direction: row;"
+                  >
+                    <input
+                      __self="[object Object]"
+                      __source="[object Object]"
+                      class="msg input valueEditor"
+                      id="comments"
+                      spellcheck="true"
+                      type="text"
+                    />
+                  </div>
+                </div>
+                <div
+                  __self="[object Object]"
+                  __source="[object Object]"
+                  class="msg container fixedScrollbar gridCell"
+                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+                >
+                  <label
+                    __self="[object Object]"
+                    __source="[object Object]"
+                    class="msg label valueTitle"
+                    data-tooltip="expand"
+                  >
+                    Row Ownership
+                  </label>
+                  <label
+                    __self="[object Object]"
+                    __source="[object Object]"
+                    class="msg checkbox checked valueEditor"
+                    id="rowUserOwnershipEnforced"
+                    tabindex="0"
+                  >
+                    <span
+                      __self="[object Object]"
+                      __source="[object Object]"
+                      class="checkMark"
+                    />
+                    Enforce Row User Ownership
+                  </label>
+                  <label
+                    __self="[object Object]"
+                    __source="[object Object]"
+                    class="msg label cellDescription"
+                    data-tooltip="expand"
+                  >
+                    Enables the MRS row ownership management
+                  </label>
+                </div>
+                <div
+                  __self="[object Object]"
+                  __source="[object Object]"
+                  class="msg container fixedScrollbar gridCell"
+                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+                >
+                  <label
+                    __self="[object Object]"
+                    __source="[object Object]"
+                    class="msg label valueTitle"
+                    data-tooltip="expand"
+                  >
+                    Row Ownership Field
                   </label>
                   <div
                     __self="[object Object]"
@@ -510,73 +593,6 @@ exports[`DialogHost Tests Show MRS DB Object Dialog (snapshot) 1`] = `
                   >
                     Field that holds the user ID that should be managed by MRS
                   </label>
-                </div>
-                <div
-                  __self="[object Object]"
-                  __source="[object Object]"
-                  class="msg container fixedScrollbar gridCell"
-                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
-                >
-                  <label
-                    __self="[object Object]"
-                    __source="[object Object]"
-                    class="msg label valueTitle"
-                    data-tooltip="expand"
-                  >
-                    User Ownership
-                  </label>
-                  <label
-                    __self="[object Object]"
-                    __source="[object Object]"
-                    class="msg checkbox checked valueEditor"
-                    id="rowUserOwnershipEnforced"
-                    tabindex="0"
-                  >
-                    <span
-                      __self="[object Object]"
-                      __source="[object Object]"
-                      class="checkMark"
-                    />
-                    Enforce Row User Ownership
-                  </label>
-                  <label
-                    __self="[object Object]"
-                    __source="[object Object]"
-                    class="msg label cellDescription"
-                    data-tooltip="expand"
-                  >
-                    Enables the user ID management by MRS
-                  </label>
-                </div>
-                <div
-                  __self="[object Object]"
-                  __source="[object Object]"
-                  class="msg container fixedScrollbar gridCell"
-                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
-                >
-                  <label
-                    __self="[object Object]"
-                    __source="[object Object]"
-                    class="msg label valueTitle"
-                    data-tooltip="expand"
-                  >
-                    Comments
-                  </label>
-                  <div
-                    __self="[object Object]"
-                    __source="[object Object]"
-                    class="msg container fixedScrollbar inputWithProgress"
-                    style="flex-direction: row;"
-                  >
-                    <input
-                      __self="[object Object]"
-                      __source="[object Object]"
-                      class="msg input valueEditor"
-                      id="comments"
-                      spellcheck="true"
-                      type="text"
-                    />
-                  </div>
                 </div>
               </div>
             </div>
@@ -695,36 +711,6 @@ exports[`DialogHost Tests Show MRS Schema Dialog (snapshot) 1`] = `
             class="msg label valueTitle"
             data-tooltip="expand"
           >
-            Schema Name
-          </label>
-          <div
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
-          >
-            <input
-              __self="[object Object]"
-              __source="[object Object]"
-              class="msg input valueEditor"
-              id="name"
-              spellcheck="true"
-              type="text"
-            />
-          </div>
-        </div>
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
-        >
-          <label
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
             MRS Service
           </label>
           <div
@@ -758,6 +744,36 @@ exports[`DialogHost Tests Show MRS Schema Dialog (snapshot) 1`] = `
             class="msg label valueTitle"
             data-tooltip="expand"
           >
+            Comments
+          </label>
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg input valueEditor"
+              id="comments"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
             Request Path
           </label>
           <div
@@ -771,6 +787,36 @@ exports[`DialogHost Tests Show MRS Schema Dialog (snapshot) 1`] = `
               __source="[object Object]"
               class="msg input valueEditor"
               id="requestPath"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Schema Name
+          </label>
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg input valueEditor"
+              id="name"
               spellcheck="true"
               type="text"
             />
@@ -818,7 +864,7 @@ exports[`DialogHost Tests Show MRS Schema Dialog (snapshot) 1`] = `
             class="msg label valueTitle"
             data-tooltip="expand"
           >
-            Enabled
+            Flags
           </label>
           <label
             __self="[object Object]"
@@ -834,21 +880,6 @@ exports[`DialogHost Tests Show MRS Schema Dialog (snapshot) 1`] = `
             />
             Enabled
           </label>
-        </div>
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
-        >
-          <label
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-            Requires Authentication
-          </label>
           <label
             __self="[object Object]"
             __source="[object Object]"
@@ -863,36 +894,6 @@ exports[`DialogHost Tests Show MRS Schema Dialog (snapshot) 1`] = `
             />
             Requires Authentication
           </label>
-        </div>
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
-        >
-          <label
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-            Comments
-          </label>
-          <div
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
-          >
-            <input
-              __self="[object Object]"
-              __source="[object Object]"
-              class="msg input valueEditor"
-              id="comments"
-              spellcheck="true"
-              type="text"
-            />
-          </div>
         </div>
         <div
           __self="[object Object]"
@@ -923,6 +924,14 @@ exports[`DialogHost Tests Show MRS Schema Dialog (snapshot) 1`] = `
               type="text"
             />
           </div>
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            Additional options in JSON format
+          </label>
         </div>
       </div>
     </div>
@@ -1029,7 +1038,7 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
           __self="[object Object]"
           __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
         >
           <label
             __self="[object Object]"
@@ -1059,7 +1068,7 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
           __self="[object Object]"
           __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 5;"
         >
           <label
             __self="[object Object]"
@@ -1089,7 +1098,7 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
           __self="[object Object]"
           __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
         >
           <label
             __self="[object Object]"
@@ -1119,7 +1128,7 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
           __self="[object Object]"
           __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
         >
           <label
             __self="[object Object]"
@@ -1143,7 +1152,7 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
           __self="[object Object]"
           __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 2;"
         >
           <label
             __self="[object Object]"
@@ -1279,7 +1288,7 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
                   __self="[object Object]"
                   __source="[object Object]"
                   class="msg container fixedScrollbar gridCell"
-                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
                 >
                   <label
                     __self="[object Object]"
@@ -1317,7 +1326,7 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
                   __self="[object Object]"
                   __source="[object Object]"
                   class="msg container fixedScrollbar gridCell"
-                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 5;"
                 >
                   <label
                     __self="[object Object]"
@@ -1348,14 +1357,14 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
                     class="msg label cellDescription"
                     data-tooltip="expand"
                   >
-                    The authentication workflow will redirect to this URL after successful- or failed login.
+                    The authentication workflow will redirect to this URL after login.
                   </label>
                 </div>
                 <div
                   __self="[object Object]"
                   __source="[object Object]"
                   class="msg container fixedScrollbar gridCell"
-                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
                 >
                   <label
                     __self="[object Object]"
@@ -1363,7 +1372,7 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
                     class="msg label valueTitle"
                     data-tooltip="expand"
                   >
-                    App Redirection URL Validation:
+                    Redirection URL Validation:
                   </label>
                   <div
                     __self="[object Object]"
@@ -1393,7 +1402,7 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
                   __self="[object Object]"
                   __source="[object Object]"
                   class="msg container fixedScrollbar gridCell"
-                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
                 >
                   <label
                     __self="[object Object]"

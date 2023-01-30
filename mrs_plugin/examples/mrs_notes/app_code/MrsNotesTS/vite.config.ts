@@ -25,15 +25,17 @@
 
 import { defineConfig } from "vite";
 import preact from "@preact/preset-vite";
+import mkcert from "vite-plugin-mkcert";
 
 // https://vitejs.dev/config/
 export default defineConfig({
+    server: { https: true },
     base: "",
     define: {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         "import.meta.vitest": "undefined",
     },
-    plugins: [preact()],
+    plugins: [preact(), mkcert()],
     test: {
         setupFiles: ["./vitest.setup.ts"],
         includeSource: ["src/**/*.{ts,tsx}"],

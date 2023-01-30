@@ -72,7 +72,8 @@
         "vsix",
         "redistributable",
         "regedit",
-        "Kubuntu"
+        "Kubuntu",
+        "mysqlrouter"
     ],
     "ignoreWords": [
         "Divs",

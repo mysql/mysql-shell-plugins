@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -64,13 +64,6 @@ export class MrsSchemaDialog extends ValueDialogBase {
         const mainSection: IDialogSection = {
             caption: title,
             values: {
-                name: {
-                    type: "text",
-                    caption: "Schema Name",
-                    value: request.values?.name as string,
-                    horizontalSpan: 4,
-                    options: [CommonDialogValueOption.AutoFocus],
-                },
                 service: {
                     type: "choice",
                     caption: "MRS Service",
@@ -80,10 +73,23 @@ export class MrsSchemaDialog extends ValueDialogBase {
                     }),
                     horizontalSpan: 4,
                 },
+                comments: {
+                    type: "text",
+                    caption: "Comments",
+                    value: request.values?.comments as string,
+                    horizontalSpan: 4,
+                },
                 requestPath: {
                     type: "text",
                     caption: "Request Path",
                     value: request.values?.requestPath as string,
+                    horizontalSpan: 4,
+                    options: [CommonDialogValueOption.AutoFocus],
+                },
+                name: {
+                    type: "text",
+                    caption: "Schema Name",
+                    value: request.values?.name as string,
                     horizontalSpan: 4,
                 },
                 itemsPerPage: {
@@ -92,23 +98,28 @@ export class MrsSchemaDialog extends ValueDialogBase {
                     horizontalSpan: 4,
                     value: request.values?.itemsPerPage as string,
                 },
+                flagsTitle: {
+                    type: "description",
+                    caption: "Flags",
+                    horizontalSpan: 4,
+                    options: [
+                        CommonDialogValueOption.Grouped,
+                        CommonDialogValueOption.NewGroup,
+                    ],
+                },
                 enabled: {
                     type: "boolean",
                     caption: "Enabled",
                     horizontalSpan: 4,
                     value: (request.values?.enabled ?? true) as boolean,
+                    options: [CommonDialogValueOption.Grouped],
                 },
                 requiresAuth: {
                     type: "boolean",
                     caption: "Requires Authentication",
                     horizontalSpan: 4,
                     value: (request.values?.requiresAuth ?? true) as boolean,
-                },
-                comments: {
-                    type: "text",
-                    caption: "Comments",
-                    value: request.values?.comments as string,
-                    horizontalSpan: 8,
+                    options: [CommonDialogValueOption.Grouped],
                 },
                 options: {
                     type: "text",
@@ -116,6 +127,7 @@ export class MrsSchemaDialog extends ValueDialogBase {
                     value: request.values?.options as string,
                     horizontalSpan: 8,
                     multiLine: true,
+                    description: "Additional options in JSON format",
                 },
             },
         };

@@ -98,7 +98,7 @@ export interface IMrsAuthAppData {
     enabled: boolean;
     useBuiltInAuthorization: boolean;
     limitToRegisteredUsers: boolean;
-    defaultRoleId?: string | null;
+    defaultRoleId: string | null;
 }
 
 export interface IMrsAuthVendorData {

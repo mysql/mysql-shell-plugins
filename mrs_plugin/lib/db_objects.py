@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -256,7 +256,7 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
     grant_privileges = []
     for crud_operation in crud_operations:
         if crud_operation == "CREATE" or crud_operation == "1":
-            grant_privileges.append("CREATE")
+            grant_privileges.append("INSERT")
         elif crud_operation == "READ" or crud_operation == "2":
             grant_privileges.append("SELECT")
         elif crud_operation == "UPDATE" or crud_operation == "3":
@@ -293,18 +293,18 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
         field["db_object_id"] = db_object_id
         core.insert(table="field", values=field).exec(session)
 
-    # Grant privilege to the 'mrs_provider_data_access' role
+    # Grant privilege to the 'mysql_rest_service_data_provider' role
     if not grant_privileges:
         raise ValueError("No valid CRUD Operation specified")
 
     if db_object_type == "PROCEDURE":
         sql = (f"GRANT EXECUTE ON PROCEDURE `"
                 f"{schema.get('name')}`.`{db_object_name}` "
-                "TO 'mrs_provider_data_access'")
+                "TO 'mysql_rest_service_data_provider'")
     else:
         sql = (f"GRANT {','.join(grant_privileges)} ON "
                 f"{schema.get('name')}.{db_object_name} "
-                "TO 'mrs_provider_data_access'")
+                "TO 'mysql_rest_service_data_provider'")
     session.run_sql(sql)
 
     return db_object_id
@@ -367,7 +367,7 @@ def set_crud_operations(session, db_object_id: bytes, crud_operations=None,
         raise Exception(f'Invalid CRUD operation format.')
 
     crud_to_grant_mapping = {
-        'CREATE': 'CREATE',
+        'CREATE': 'INSERT',
         'READ': 'SELECT',
         'UPDATE': 'UPDATE',
         'DELETE': 'DELETE'
@@ -383,7 +383,7 @@ def set_crud_operations(session, db_object_id: bytes, crud_operations=None,
     with core.MrsDbTransaction(session):
         sql = (f"REVOKE IF EXISTS ALL ON  "
             f"{schema.get('name')}.{db_object.get('name')} "
-            "FROM 'mrs_provider_data_access'")
+            "FROM 'mysql_rest_service_data_provider'")
         session.run_sql(sql)
 
         core.update(table="db_object", sets={
@@ -395,7 +395,7 @@ def set_crud_operations(session, db_object_id: bytes, crud_operations=None,
 
         sql = (f"GRANT {','.join(grant_privileges)} ON "
             f"{schema.get('name')}.{db_object.get('name')} "
-            "TO 'mrs_provider_data_access'")
+            "TO 'mysql_rest_service_data_provider'")
 
         session.run_sql(sql)
 

@@ -130,9 +130,7 @@ def add_user(session, auth_app_id, name, email, vendor_user_id, login_permitted,
 
 def delete_users(session, user_id=None, auth_app_id=None):
     sql = """
-    DELETE u, uhr
-    FROM `mysql_rest_service_metadata`.`mrs_user_has_role` uhr
-    INNER JOIN `mysql_rest_service_metadata`.`mrs_user` u ON uhr.user_id = u.id
+    DELETE FROM `mysql_rest_service_metadata`.`mrs_user` u
     """
 
     wheres = []

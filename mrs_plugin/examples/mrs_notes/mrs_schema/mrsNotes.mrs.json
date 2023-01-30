@@ -8,7 +8,7 @@
     "schema": {
         "id": "0x11ed77ef44e64a1badfb020017059995",
         "service_id": "0x11ed77eeddb71166adfb020017059995",
-        "name": "mrsNotes",
+        "name": "mrs_notes",
         "request_path": "/mrsNotes",
         "requires_auth": 0,
         "enabled": 1,
