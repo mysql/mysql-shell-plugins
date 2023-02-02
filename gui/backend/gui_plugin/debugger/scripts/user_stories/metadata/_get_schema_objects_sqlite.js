@@ -12,9 +12,22 @@ await ws.sendAndValidate({
     }
 }, [
     responses.pending.executionStarted,
-    Object.assign(Object(), responses.ok.default, {
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
         "result": ws.ignore
-    })
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
 ])
 
 await ws.sendAndValidate({
@@ -28,7 +41,20 @@ await ws.sendAndValidate({
     }
 }, [
     responses.pending.executionStarted,
-    Object.assign(Object(), responses.ok.default, {
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
         "result": ws.ignore
-    })
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
 ])

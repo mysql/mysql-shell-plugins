@@ -17,11 +17,19 @@ await ws.sendAndValidate({
     },
     {
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": 1
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
     }
 ])
 
@@ -43,11 +51,19 @@ await ws.sendAndValidate({
     },
     {
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": 1
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
     }
 ])
 
@@ -94,7 +110,7 @@ await ws.sendAndValidate({
     },
     {
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
@@ -103,6 +119,14 @@ await ws.sendAndValidate({
             "total_row_count": 0,
             "execution_time": ws.ignore
         }
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
     }
 ])
 
@@ -123,11 +147,19 @@ await ws.sendAndValidate({
     },
     {
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": 0
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
     }
 ])
 
@@ -153,7 +185,7 @@ await ws.sendAndValidate({
     },
     {
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
@@ -162,6 +194,14 @@ await ws.sendAndValidate({
             "total_row_count": 0,
             "execution_time": ws.ignore
         }
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
     }
 ])
 
@@ -182,10 +222,18 @@ await ws.sendAndValidate({
     },
     {
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": 1
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
     }
 ])

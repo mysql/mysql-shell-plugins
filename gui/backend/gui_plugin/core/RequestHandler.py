@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -19,10 +19,12 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from threading import Thread, Event
 import threading
-from gui_plugin.core.Protocols import Response
+from threading import Event, Thread
+
 import mysqlsh
+
+from gui_plugin.core.Protocols import Response
 
 
 class RequestHandler(Thread):
@@ -147,21 +149,34 @@ class RequestHandler(Thread):
                 # the session needs to be locked and it needs to notify a task
                 # will begin execution
                 self._kwargs["session"].lock()
-                self._kwargs["session"].notify_task_execution_state(None, "started")
+                self._kwargs["session"].notify_task_execution_state(
+                    None, "started")
             result = self._func(**self._kwargs)
+            if hasattr(self._thread_context, "completion_event"):
+                self._thread_context.completion_event.wait()
         except Exception as e:
             result = Response.exception(e)
         finally:
             if self._lock_session:
-                self._kwargs["session"].notify_task_execution_state(None, "finished")
+                self._kwargs["session"].notify_task_execution_state(
+                    None, "finished")
                 self._kwargs["session"].release()
 
         if result is not None:
             self.web_handler.send_command_response(
                 self.request_id, result)
+        elif hasattr(self._thread_context, "completion_event"):
+            if not self._thread_context.completion_event.has_errors:
+                for error in self._thread_context.completion_event.get_errors():
+                    self.web_handler.send_command_response(
+                        self.request_id, Response.error(error))
+            elif self._thread_context.completion_event.is_cancelled:
+                self.web_handler.send_command_response(
+                    self.request_id, Response.cancelled(""))
+            else:
+                self.web_handler.send_command_done(self.request_id)
         elif self._confirm_complete:
             # This is the case of any plugin function that does not fail but
             # does not return anything, we should return an OK response anyway
             # to confirm it completed
-            self.web_handler.send_command_response(
-                self.request_id, Response.completed)
+            self.web_handler.send_command_done(self.request_id)

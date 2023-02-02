@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -22,10 +22,32 @@
 import threading
 from typing import Union
 
+from gui_plugin.core.CompletionEvent import CompletionEvent
+
 
 def get_context() -> Union[threading.local, None]:
+    """Getting context of the current thread.
+
+    Returns:
+        threading.local | None: context of the current thread or None if no context
+    """
+
     current_thread = threading.current_thread()
     if hasattr(current_thread, "get_context"):
         return current_thread.get_context()
+
+    return None
+
+
+def set_completion_event() -> Union[CompletionEvent, None]:
+    """Creates and adds CompletionEvent to the current thread context.
+
+    Returns:
+        CompletionEvent | None: The created CompletionEvent or None if no context
+    """
+    context = get_context()
+    if context:
+        context.completion_event = CompletionEvent()
+        return context.completion_event
 
     return None

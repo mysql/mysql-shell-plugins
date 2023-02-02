@@ -19,10 +19,11 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from mysqlsh.plugin_manager import plugin_function  # pylint: disable=no-name-in-module
-from gui_plugin.sqleditor.SqleditorModuleSession import SqleditorModuleSession
-from gui_plugin.core.Protocols import Response
+from mysqlsh.plugin_manager import \
+    plugin_function  # pylint: disable=no-name-in-module
+
 from gui_plugin.db import backend
+from gui_plugin.sqleditor.SqleditorModuleSession import SqleditorModuleSession
 
 
 @plugin_function('gui.sqleditor.isGuiModuleBackend', web=True)
@@ -85,6 +86,7 @@ def open_connection(db_connection_id, module_session, password=None):
     """
     module_session.open_connection(db_connection_id, password)
 
+
 @plugin_function('gui.sqleditor.reconnect', shell=False, web=True)
 def reconnect(module_session):
     """Reconnects the SQL Editor Session
@@ -116,6 +118,7 @@ def execute(session, sql, params=None, options=None):
         dict: the result message
     """
     session = backend.get_db_session(session)
+
     return session.execute(sql=sql, params=params, options=options)
 
 

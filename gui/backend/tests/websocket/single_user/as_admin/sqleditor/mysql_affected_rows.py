@@ -44,14 +44,21 @@ ws.sendAndValidate({
     },
     {
         "request_id": execute_request_id,
-        "request_state": {"type": "OK", "msg": ""},
+        "request_state": {"type": "PENDING", "msg": ""},
         "result": {
             "rows": [],
-            "done": true,
             "total_row_count": 0,
             "execution_time": ws.ignore,
             "rows_affected": ws.ignore
         }
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": True
     }
 ])
 
@@ -71,14 +78,21 @@ ws.sendAndValidate({
     },
     {
         "request_id": execute_request_id,
-        "request_state": {"type": "OK", "msg": ""},
+        "request_state": {"type": "PENDING", "msg": ""},
         "result": {
             "rows": [],
-            "done": true,
             "total_row_count": 0,
             "execution_time": ws.ignore,
             "rows_affected": 1
         }
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": True
     }
 ])
 
@@ -98,14 +112,21 @@ ws.sendAndValidate({
     },
     {
         "request_id": execute_request_id,
-        "request_state": {"type": "OK", "msg": ""},
+        "request_state": {"type": "PENDING", "msg": ""},
         "result": {
             "rows": [],
-            "done": true,
             "total_row_count": 0,
             "execution_time": ws.ignore,
             "rows_affected": 0
         }
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": True
     }
 ])
 
@@ -125,14 +146,21 @@ ws.sendAndValidate({
     },
     {
         "request_id": execute_request_id,
-        "request_state": {"type": "OK", "msg": ""},
+        "request_state": {"type": "PENDING", "msg": ""},
         "result": {
             "rows": [],
-            "done": true,
             "total_row_count": 0,
             "execution_time": ws.ignore,
             "rows_affected": 1
         }
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": True
     }
 ])
 
@@ -152,14 +180,21 @@ ws.sendAndValidate({
     },
     {
         "request_id": execute_request_id,
-        "request_state": {"type": "OK", "msg": ""},
+        "request_state": {"type": "PENDING", "msg": ""},
         "result": {
             "rows": [],
-            "done": true,
             "total_row_count": 0,
             "execution_time": ws.ignore,
             "rows_affected": 1
         }
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": True
     }
 ])
 
@@ -179,14 +214,21 @@ ws.sendAndValidate({
     },
     {
         "request_id": execute_request_id,
-        "request_state": {"type": "OK", "msg": ""},
+        "request_state": {"type": "PENDING", "msg": ""},
         "result": {
             "rows": [],
-            "done": true,
             "total_row_count": 0,
             "execution_time": ws.ignore,
             "rows_affected": 0
         }
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": True
     }
 ])
 
@@ -207,12 +249,19 @@ ws.sendAndValidate({
     },
     {
         "request_id": execute_request_id,
-        "request_state": {"type": "OK", "msg": ""},
+        "request_state": {"type": "PENDING", "msg": ""},
         "result": {
             "rows": [],
-            "done": true,
             "total_row_count": 0,
             "execution_time": ws.ignore
         }
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": True
     }
 ])

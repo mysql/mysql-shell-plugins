@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -19,20 +19,21 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-import pytest
 import datetime
+import json
+import os
 import sqlite3
 import time
 import uuid
-import json
-import config
-import mysqlsh
-import os
 
-from gui_plugin.dbconnections import DbConnections
-from gui_plugin.core.dbms.DbSqliteSession import DbSqliteSession
-from gui_plugin.core.dbms.DbMySQLSession import DbMysqlSession
+import mysqlsh
+import pytest
+
+import config
 import gui_plugin.core.Logger as logger
+from gui_plugin.core.dbms.DbMySQLSession import DbMysqlSession
+from gui_plugin.core.dbms.DbSqliteSession import DbSqliteSession
+from gui_plugin.dbconnections import DbConnections
 from tests.lib.utils import backend_callback, backend_callback_with_pending
 
 

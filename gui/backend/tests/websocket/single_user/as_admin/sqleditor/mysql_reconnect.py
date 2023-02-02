@@ -88,15 +88,19 @@ ws.sendAndValidate({
             "request_id": ws.lastGeneratedRequestId
         },
         {
-            "request_state": {"type": "OK", "msg": ""},
+            "request_state": {"type": "PENDING", "msg": ""},
             "request_id": ws.lastGeneratedRequestId,
             "result": {
                 "rows": [[1]],
                 "columns": [{"name": "result", "type": "INTEGER", "length": ws.ignore}],
-                "done": true,
                 "total_row_count": 1,
                 "execution_time": ws.ignore
             }
+        },
+        {
+            "request_state": {"type": "OK", "msg": ""},
+            "request_id": ws.lastGeneratedRequestId,
+            "done": True
         }
 ]
 )
@@ -124,9 +128,14 @@ ws.sendAndValidate({
         "request_state": {"type": "PENDING", "msg": "Execution started..."}
     },
     {
-        "request_state": {"type": "OK", "msg": ""},
+        "request_state": {"type": "PENDING", "msg": ""},
         "request_id": ws.lastGeneratedRequestId,
         "result": ws.matchList(["information_schema", "mysql", "performance_schema"], 0)
+    },
+    {
+        "request_state": {"type": "OK", "msg": ""},
+        "request_id": ws.lastGeneratedRequestId,
+        "done": True
     }
 ])
 

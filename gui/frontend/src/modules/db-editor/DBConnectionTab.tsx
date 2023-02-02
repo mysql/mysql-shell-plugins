@@ -678,6 +678,38 @@ Execute \\help or \\? for help;`;
             const finalData = await options.backend.execute(options.query, options.params, undefined, (data) => {
                 const { dbType } = this.props;
 
+                let hasMoreRows = false;
+                let rowCount = 0;
+                let status: IExecutionInfo = {text: ""};
+                let resultSummary = false;
+
+                if (data.result.totalRowCount !== undefined) {
+                    resultSummary = true;
+
+                    rowCount = data.result.totalRowCount;
+
+                    if (options.explicitPaging) {
+                        // We added 1 to the total count for the LIMIT clause to allow determining if
+                        // more pages are available. That's why we have to decrement the row count for display.
+                        const pageSize = Settings.get("sql.limitRowCount", 1000);
+                        if (pageSize < rowCount) {
+                            --rowCount;
+                            data.result.rows?.pop();
+
+                            hasMoreRows = true;
+                        }
+                    }
+
+                    status = {
+                        text: `OK, ${formatWithNumber("record", rowCount)} retrieved in ` +
+                            `${formatTime(data.result.executionTime)}`,
+                    };
+
+                    if (rowCount === 0) {
+                        status.type = MessageType.Response;
+                    }
+                }
+
                 if (data.result.columns) {
                     columns = generateColumnInfo(dbType, data.result.columns);
                     setColumns = true;
@@ -689,7 +721,9 @@ Execute \\help or \\? for help;`;
                     resultId,
                     rows,
                     columns: setColumns ? columns : undefined,
-                    hasMoreRows: false,
+                    executionInfo: resultSummary ? status : undefined,
+                    totalRowCount: resultSummary ? rowCount: undefined,
+                    hasMoreRows,
                     currentPage: options.currentPage,
                     index: options.index,
                     sql: options.original,
@@ -699,7 +733,9 @@ Execute \\help or \\? for help;`;
                     type: "resultSetRows",
                     rows,
                     columns: setColumns ? columns : undefined,
-                    hasMoreRows: false,
+                    executionInfo: resultSummary ? status : undefined,
+                    totalRowCount: resultSummary ? rowCount: undefined,
+                    hasMoreRows,
                     currentPage: options.currentPage,
                 }, {
                     resultId,
@@ -707,6 +743,10 @@ Execute \\help or \\? for help;`;
                     sql: options.original,
                     replaceData,
                 });
+
+                if (resultSummary) {
+                    resultId = uuid();
+                }
 
                 setColumns = false;
                 replaceData = false;
@@ -714,68 +754,9 @@ Execute \\help or \\? for help;`;
 
             // Handling of the final response.
             if (finalData) {
-                const { dbType } = this.props;
+                // const { dbType } = this.props;
 
                 await this.handleDependentTasks(options.queryType);
-
-                let hasMoreRows = false;
-                let rowCount = finalData.totalRowCount ?? 0;
-                if (options.explicitPaging) {
-                    // We added 1 to the total count for the LIMIT clause to allow determining if
-                    // more pages are available. That's why we have to decrement the row count for display.
-                    const pageSize = Settings.get("sql.limitRowCount", 1000);
-                    if (pageSize < rowCount) {
-                        --rowCount;
-                        finalData.rows?.pop();
-
-                        hasMoreRows = true;
-                    }
-                }
-
-                const status: IExecutionInfo = {
-                    text: `OK, ${formatWithNumber("record", rowCount)} retrieved in ` +
-                        `${formatTime(finalData.executionTime)}`,
-                };
-
-                if (rowCount === 0) {
-                    // Indicate that this data is a simple response (no data actually).
-                    status.type = MessageType.Response;
-                }
-
-                if (finalData.columns) {
-                    columns = generateColumnInfo(dbType, finalData.columns);
-                    setColumns = true;
-                }
-
-                const rows = convertRows(columns, finalData.rows);
-
-                void ApplicationDB.db.put("dbModuleResultData", {
-                    tabId: id,
-                    resultId,
-                    rows,
-                    columns: setColumns ? columns : undefined,
-                    executionInfo: status,
-                    totalRowCount: finalData.totalRowCount ?? 0,
-                    hasMoreRows,
-                    currentPage: options.currentPage,
-                    index: options.index,
-                    sql: options.original,
-                });
-
-                this.addTimedResult(options.context, {
-                    type: "resultSetRows",
-                    rows,
-                    columns: setColumns ? columns : undefined,
-                    executionInfo: status,
-                    totalRowCount: finalData.totalRowCount ?? 0,
-                    hasMoreRows,
-                    currentPage: options.currentPage,
-                }, {
-                    resultId,
-                    index: options.index,
-                    sql: options.original,
-                    replaceData,
-                });
             }
         } catch (reason) {
             const resultTimer = this.resultTimers.get(resultId);

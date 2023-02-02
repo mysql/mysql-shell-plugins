@@ -71,9 +71,5 @@ await ws.sendAndValidate({
             "msg": "MySQL Error 1045 (28000): Access denied for user 'root'@'localhost' (using password: YES)"
         },
         "request_id": request_id,
-        "result":
-        {
-            "exit_status": 1
-        }
     }
 ])

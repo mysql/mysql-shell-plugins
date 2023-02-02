@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -20,18 +20,20 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 import sqlite3
-from gui_plugin.core.dbms.DbSessionTasks import DbQueryTask, DbTask
-from gui_plugin.core.dbms.DbSessionTasks import DbSqlTask, BaseObjectTask
-from gui_plugin.core.Protocols import Response
+
 import gui_plugin.core.Error as Error
-from gui_plugin.core.Error import MSGException
 import gui_plugin.core.Logger as logger
+from gui_plugin.core.dbms.DbSessionTasks import (BaseObjectTask, DbQueryTask,
+                                                 DbTask)
+from gui_plugin.core.Error import MSGException
+from gui_plugin.core.Protocols import Response
 
 
 class SqliteOneFieldListTask(DbQueryTask):
     def process_result(self):
         buffer_size = self.options.get("row_packet_size", 25)
         name_list = []
+        send_empty = True
         for row in self.resultset:
             name_list.append(row[0])
 
@@ -40,8 +42,10 @@ class SqliteOneFieldListTask(DbQueryTask):
             if buffer_size > 0 and len(name_list) >= buffer_size:
                 self.dispatch_result("PENDING", data=name_list)
                 name_list = []
+                send_empty = False
 
-        self.dispatch_result("OK", data=name_list)
+        if send_empty or len(name_list) > 0:
+            self.dispatch_result("PENDING", data=name_list)
 
 
 class SqliteBaseObjectTask(BaseObjectTask):
@@ -50,8 +54,8 @@ class SqliteBaseObjectTask(BaseObjectTask):
         if row is None:
             self.dispatch_result(
                 "ERROR", message=f"The {self.type} '{self.name}' does not exist.")
-
-        self.dispatch_result("OK", data=self.format(row))
+        else:
+            self.dispatch_result("PENDING", data=self.format(row))
 
 
 class SqliteTableObjectTask(BaseObjectTask):
@@ -67,8 +71,8 @@ class SqliteTableObjectTask(BaseObjectTask):
             if row is None:
                 self.dispatch_result(
                     "ERROR", message=f"The table '{self.name}' does not exist.")
-
-            self.dispatch_result("PENDING", data=self.format(row))
+            else:
+                self.dispatch_result("PENDING", data=self.format(row))
         else:
             # Process result set
             buffer_size = self.options.get("row_packet_size", 25)
@@ -97,7 +101,8 @@ class SqliteTableObjectTask(BaseObjectTask):
                 return
 
             # Call the callback
-            self.dispatch_result("OK", data=values)
+            if values['columns']:
+                self.dispatch_result("PENDING", data=values)
 
 
 class SqliteSetCurrentSchemaTask(DbTask):
@@ -106,8 +111,6 @@ class SqliteSetCurrentSchemaTask(DbTask):
         for (database_name, _) in self.session.databases.items():
             if database_name == schema_name:
                 self.session.set_active_schema(schema_name)
-
-                self.dispatch_result("OK")
                 return
 
         self.dispatch_result(
@@ -122,10 +125,10 @@ class SqliteGetAutoCommit(DbTask):
             # If it succeeds, then auto-transaction is on
             self.session.do_execute("BEGIN TRANSACTION;")
             self.session.do_execute("ROLLBACK;")
-            self.dispatch_result("OK", data=1)
+            self.dispatch_result("PENDING", data=1)
         except sqlite3.OperationalError as e:
             logger.exception(e)
-            self.dispatch_result("OK", data=0)
+            self.dispatch_result("PENDING", data=0)
         except Exception as e:
             logger.exception(e)
             self.dispatch_result("ERROR", message=str(e),

@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -19,23 +19,28 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from typing import Dict
-import mysqlsh
-from gui_plugin.core.dbms.DbSession import DbSession, DbSessionFactory, ReconnectionMode
-from gui_plugin.core.dbms import DbPingHandlerTask
-from gui_plugin.core.dbms.DbSessionTasks import DbExecuteTask, check_supported_type
-from gui_plugin.core.Error import MSGException
-import gui_plugin.core.Error as Error
-from gui_plugin.core.dbms.DbMySQLSessionTasks import MySQLOneFieldTask, MySQLOneFieldListTask
-from gui_plugin.core.dbms.DbMySQLSessionTasks import MySQLBaseObjectTask, MySQLTableObjectTask
-from gui_plugin.core.dbms import DbMySQLSessionSetupTasks as SetupTasks
-import gui_plugin.core.dbms.DbMySQLSessionCommon as common
-from gui_plugin.core import Filtering
-import gui_plugin.core.Logger as logger
-from gui_plugin.core.Context import get_context
 import base64
 import sys
 import time
+
+import mysqlsh
+
+import gui_plugin.core.dbms.DbMySQLSessionCommon as common
+import gui_plugin.core.Error as Error
+import gui_plugin.core.Logger as logger
+from gui_plugin.core import Filtering
+from gui_plugin.core.Context import get_context
+from gui_plugin.core.dbms import DbMySQLSessionSetupTasks as SetupTasks
+from gui_plugin.core.dbms import DbPingHandlerTask
+from gui_plugin.core.dbms.DbMySQLSessionTasks import (MySQLBaseObjectTask,
+                                                      MySQLOneFieldListTask,
+                                                      MySQLOneFieldTask,
+                                                      MySQLTableObjectTask)
+from gui_plugin.core.dbms.DbSession import (DbSession, DbSessionFactory,
+                                            ReconnectionMode)
+from gui_plugin.core.dbms.DbSessionTasks import (DbExecuteTask,
+                                                 check_supported_type)
+from gui_plugin.core.Error import MSGException
 from gui_plugin.core.lib.OciUtils import BastionSessionRegistry
 
 _MYSQL_INACTIVITY_TIMEOUT_ERROR = 4031
@@ -71,7 +76,7 @@ class DbMysqlSession(DbSession):
         self._connected_cb = on_connected_cb
         self._failed_cb = on_failed_cb
         self.session = session
-        self._message_callback = message_callback if message_callback is not None else message_callback
+        self._message_callback = message_callback
         self._shell_ctx = None
 
         # When a Bastion Session is just created in OCI, it may get into

@@ -13,9 +13,22 @@ await ws.sendAndValidate({
     }
 }, [
     responses.pending.executionStarted,
-    Object.assign(Object(), responses.ok.default, {
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
         "result": ws.ignore
-    })
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
 ])
 
 await ws.sendAndValidate({
@@ -30,9 +43,22 @@ await ws.sendAndValidate({
     }
 }, [
     responses.pending.executionStarted,
-    Object.assign(Object(), responses.ok.default, {
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
         "result": ws.ignore
-    })
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
 ])
 
 await ws.sendAndValidate({
@@ -47,9 +73,22 @@ await ws.sendAndValidate({
     }
 }, [
     responses.pending.executionStarted,
-    Object.assign(Object(), responses.ok.default, {
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
         "result": ["type", "name", "tbl_name", "rootpage", "sql"]
-    })
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
 ])
 
 
@@ -66,9 +105,22 @@ await ws.sendAndValidate({
     }
 }, [
     responses.pending.executionStarted,
-    Object.assign(Object(), responses.ok.default, {
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
         "result": ws.ignore
-    })
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
 ])
 
 await ws.sendAndValidate({
@@ -84,9 +136,22 @@ await ws.sendAndValidate({
     }
 }, [
     responses.pending.executionStarted,
-    Object.assign(Object(), responses.ok.default, {
-        "result": {"name": "type"}
-    })
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": { "name": "type" },
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
 ])
 
 await ws.sendAndValidate({
@@ -102,9 +167,22 @@ await ws.sendAndValidate({
     }
 }, [
     responses.pending.executionStarted,
-    Object.assign(Object(), responses.ok.default, {
-        "result": {"name": "fk_tests_session_users1_idx"}
-    })
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": { "name": "fk_tests_session_users1_idx" }
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
 ])
 
 await ws.sendAndValidate({
@@ -120,9 +198,22 @@ await ws.sendAndValidate({
     }
 }, [
     responses.pending.executionStarted,
-    Object.assign(Object(), responses.ok.default, {
-        "result": {"name": "update_tests_user_name"}
-    })
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": { "name": "update_tests_user_name" }
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
 ])
 
 await ws.sendAndValidate({
@@ -144,6 +235,5 @@ await ws.sendAndValidate({
             "msg": "The trigger 'main.unexisting_name' does not exist."
         },
         "request_id": ws.lastGeneratedRequestId
-    },
-    responses.ok.default
+    }
 ])

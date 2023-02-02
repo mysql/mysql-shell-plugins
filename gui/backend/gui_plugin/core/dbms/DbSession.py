@@ -29,9 +29,8 @@ from queue import Queue
 import gui_plugin.core.Error as Error
 import gui_plugin.core.Logger as logger
 from gui_plugin.core.Context import get_context
+from gui_plugin.core.dbms.DbSessionTasks import DBCloseTask, DbSqlTask
 from gui_plugin.core.Error import MSGException
-
-from .DbSessionTasks import DBCloseTask, DbSqlTask
 
 
 class ReconnectionMode(enum.Enum):

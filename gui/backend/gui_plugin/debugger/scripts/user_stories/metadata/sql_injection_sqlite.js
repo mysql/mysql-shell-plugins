@@ -53,13 +53,6 @@ await ws.sendAndValidate({
             "msg": "The schema 'main\`; SELECT 'fake_main'; --' does not exist."
         },
         "request_id": ws.lastGeneratedRequestId,
-    },
-    {
-        "request_state": {
-            "type": "OK",
-            "msg": ""
-        },
-        "request_id": ws.lastGeneratedRequestId,
     }
 ])
 
@@ -86,13 +79,6 @@ await ws.sendAndValidate({
             "msg": "The schema 'main`; SELECT 'fake_main'; --' does not exist."
         },
         "request_id": ws.lastGeneratedRequestId,
-    },
-    {
-        "request_state": {
-            "type": "OK",
-            "msg": ""
-        },
-        "request_id": ws.lastGeneratedRequestId,
     }
 ])
 
@@ -117,13 +103,6 @@ await ws.sendAndValidate({
         "request_state": {
             "type": "ERROR",
             "msg": "The schema 'main``; SELECT 'fake_main'; --' does not exist."
-        },
-        "request_id": ws.lastGeneratedRequestId,
-    },
-    {
-        "request_state": {
-            "type": "OK",
-            "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
     }
@@ -227,11 +206,19 @@ await ws.sendAndValidate({
     },
     {
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": []
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
     }
 ])
 
@@ -261,14 +248,6 @@ await ws.sendAndValidate({
             "msg": "The column 'main.type`; SELECT 'MyColumn'; --' does not exist."
         },
         "request_id": ws.lastGeneratedRequestId,
-    },
-    {
-        "request_state": {
-            "type": "OK",
-            "msg": ""
-        },
-        "request_id": ws.lastGeneratedRequestId,
-        "result": {"name": ""}
     }
 ])
 
@@ -306,7 +285,7 @@ await ws.sendAndValidate({
         "type": "OK",
         "msg": ""
     },
-    "result": "Completed"
+    "done": true
 }])
 
 ws.log("-----=== [END] " + ws.tokens["current_test_name"] + " test ===-----")

@@ -17,6 +17,6 @@ ws.validateLastResponse({
         "type": "OK",
         "msg": ""
     },
-    "result": "Completed"
+    "done": true
 })
 

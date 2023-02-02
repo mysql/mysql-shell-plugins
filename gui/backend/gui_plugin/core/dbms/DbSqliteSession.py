@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -19,19 +19,20 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from asyncio.log import logger
-import sqlite3
 import os.path
+import sqlite3
 import time
-from pathlib import Path
-from gui_plugin.core.dbms.DbSession import DbSession, DbSessionFactory, ReconnectionMode
-from gui_plugin.core.dbms.DbSqliteSessionTasks import SqliteOneFieldListTask, SqliteSetCurrentSchemaTask
-from gui_plugin.core.dbms.DbSqliteSessionTasks import SqliteBaseObjectTask, SqliteTableObjectTask, SqliteGetAutoCommit
-from gui_plugin.core.Error import MSGException
+
 import gui_plugin.core.Error as Error
-from gui_plugin.core.dbms.DbSessionTasks import check_supported_type
 import gui_plugin.core.Logger as logger
 from gui_plugin.core.Context import get_context
+from gui_plugin.core.dbms.DbSession import (DbSession, DbSessionFactory,
+                                            ReconnectionMode)
+from gui_plugin.core.dbms.DbSessionTasks import check_supported_type
+from gui_plugin.core.dbms.DbSqliteSessionTasks import (
+    SqliteBaseObjectTask, SqliteGetAutoCommit, SqliteOneFieldListTask,
+    SqliteSetCurrentSchemaTask, SqliteTableObjectTask)
+from gui_plugin.core.Error import MSGException
 
 
 def find_schema_name(config):
@@ -68,10 +69,7 @@ class DbCursor(sqlite3.Cursor):
 
     @property
     def last_error(self):
-        if self._last_error:
-            return self._last_error
-        else:
-            return None
+        return self._last_error
 
     def execute(self, sql, params=None):
         # reset last error and execution time
@@ -376,8 +374,7 @@ class DbSqliteSession(DbSession):
                         ORDER BY name;"""
 
             self.add_task(SqliteBaseObjectTask(self, task_id=task_id, sql=sql,
-                                               type=type, name=f"{schema_name}.{name}",
-                                               params=params))
+                                               type=type, name=f"{schema_name}.{name}"))
 
     @check_supported_type
     def get_table_object(self, type, schema_name, table_name, name):

@@ -194,7 +194,7 @@ def sqlide_session(ws, add_connection):
                 "type": "OK",
                 "msg": ""
             },
-            "result": "Completed"
+            "done": True
         }
     ])
 

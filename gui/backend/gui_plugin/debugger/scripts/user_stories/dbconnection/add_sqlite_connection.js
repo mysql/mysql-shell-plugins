@@ -111,18 +111,26 @@ await ws.sendAndValidate({
     },
     {
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": {
-            "columns": [{"name": "seq", "type": "int"},
-                        {"name": "name", "type": "str"},
-                        {"name": "file", "type": "str"}],
+            "columns": [{ "name": "seq", "type": "int" },
+            { "name": "name", "type": "str" },
+            { "name": "file", "type": "str" }],
             "rows": ws.ignore,
             "total_row_count": 1,
             "execution_time": ws.ignore
         }
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
     }
 ])
 
@@ -141,7 +149,7 @@ ws.validateLastResponse({
         "type": "OK",
         "msg": ""
     },
-    "result": "Completed"
+    "done": true
 })
 
 await ws.send({
