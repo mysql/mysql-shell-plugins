@@ -381,6 +381,12 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
             options: defaultEditorOptions,
         };
 
+        if (state.model.getEndOfLineSequence() !== Monaco.EndOfLineSequence.LF) {
+            state.model.setEOL(Monaco.EndOfLineSequence.LF);
+        } else {
+            state.model.setValue(content);
+        }
+
         // We don't need the execution contexts in the debugger, but they are required to make overall handling easier.
         state.model.executionContexts = new ExecutionContexts(undefined, 80024, "", "");
         state.model.editorMode = CodeEditorMode.Standard;

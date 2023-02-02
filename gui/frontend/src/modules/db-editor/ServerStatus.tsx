@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -255,16 +255,16 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
                 <GridCell key="cell12">
                     {serverStatus.version ?? "none"}
                 </GridCell>
-                <GridCell key="cell12" className="left">Compiled For:</GridCell>
-                <GridCell key="cell13">
+                <GridCell key="cell13" className="left">Compiled For:</GridCell>
+                <GridCell key="cell14">
                     {serverStatus.compiledFor ?? "none"}
                 </GridCell>
-                <GridCell key="cell14" className="left">Configuration File:</GridCell>
-                <GridCell key="cell15">
+                <GridCell key="cell15" className="left">Configuration File:</GridCell>
+                <GridCell key="cell16">
                     {serverStatus.configFile ?? "none"}
                 </GridCell>
-                <GridCell key="cell14" className="left">Running Since:</GridCell>
-                <GridCell key="cell15">
+                <GridCell key="cell17" className="left">Running Since:</GridCell>
+                <GridCell key="cell18">
                     {serverStatus?.runningSince ?? "none"}
                 </GridCell>
             </Grid>
@@ -518,8 +518,8 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
 
         try {
             let result = await backend.execute("show variables");
-            if (result && result[0] && result[0].rows) {
-                const values = new Map<string, string>(result[0].rows as Array<[string, string]>);
+            if (result && result.rows) {
+                const values = new Map<string, string>(result.rows as Array<[string, string]>);
 
                 serverStatus.connectionName = values.get("connection") ?? "none";
                 serverStatus.host = values.get("hostname") ?? "none";

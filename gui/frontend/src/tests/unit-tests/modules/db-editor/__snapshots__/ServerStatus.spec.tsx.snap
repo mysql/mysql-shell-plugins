@@ -504,7 +504,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                   </GridCell>
                   <GridCell
                     className="left"
-                    key="cell12"
+                    key="cell13"
                   >
                     <Container
                       className="msg gridCell left"
@@ -527,7 +527,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
-                    key="cell13"
+                    key="cell14"
                   >
                     <Container
                       className="msg gridCell"
@@ -551,7 +551,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                   </GridCell>
                   <GridCell
                     className="left"
-                    key="cell14"
+                    key="cell15"
                   >
                     <Container
                       className="msg gridCell left"
@@ -574,7 +574,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
-                    key="cell15"
+                    key="cell16"
                   >
                     <Container
                       className="msg gridCell"
@@ -598,7 +598,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                   </GridCell>
                   <GridCell
                     className="left"
-                    key="cell14"
+                    key="cell17"
                   >
                     <Container
                       className="msg gridCell left"
@@ -621,7 +621,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
-                    key="cell15"
+                    key="cell18"
                   >
                     <Container
                       className="msg gridCell"
@@ -2927,7 +2927,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                   </GridCell>
                   <GridCell
                     className="left"
-                    key="cell12"
+                    key="cell13"
                   >
                     <Container
                       className="msg gridCell left"
@@ -2950,7 +2950,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
-                    key="cell13"
+                    key="cell14"
                   >
                     <Container
                       className="msg gridCell"
@@ -2974,7 +2974,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                   </GridCell>
                   <GridCell
                     className="left"
-                    key="cell14"
+                    key="cell15"
                   >
                     <Container
                       className="msg gridCell left"
@@ -2997,7 +2997,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
-                    key="cell15"
+                    key="cell16"
                   >
                     <Container
                       className="msg gridCell"
@@ -3021,7 +3021,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                   </GridCell>
                   <GridCell
                     className="left"
-                    key="cell14"
+                    key="cell17"
                   >
                     <Container
                       className="msg gridCell left"
@@ -3044,7 +3044,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
-                    key="cell15"
+                    key="cell18"
                   >
                     <Container
                       className="msg gridCell"

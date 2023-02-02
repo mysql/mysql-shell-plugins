@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -80,7 +80,7 @@ export class ThemePreview extends Component<{}, IThemePreviewState> {
             let start = delimiter.lastIndex;
             let currentLanguage = matches ? matches[2] : "";
 
-            const codeExamples: { [key: string]: string } = {};
+            const codeExamples: { [key: string]: string; } = {};
 
             do {
                 matches = delimiter.exec(response);
@@ -104,6 +104,12 @@ export class ThemePreview extends Component<{}, IThemePreviewState> {
         content += `\nselect "(my)sql" from dual;\n\\py\n`;
         content += `\nprint("python");\n`;
         const model = Monaco.createModel("", "msg") as ICodeEditorModel;
+        if (model.getEndOfLineSequence() !== Monaco.EndOfLineSequence.LF) {
+            model.setEOL(Monaco.EndOfLineSequence.LF);
+        } else {
+            model.setValue(content);
+        }
+
         model.executionContexts = new ExecutionContexts(undefined, 80024, "", "");
         model.editorMode = CodeEditorMode.Standard;
         model.setValue(content);

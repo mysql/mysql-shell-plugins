@@ -81,6 +81,12 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
 
         if (!this.internalModel || this.internalModel.isDisposed()) {
             const localModel = Monaco.createModel("", this.language) as ICodeEditorModel;
+            if (localModel.getEndOfLineSequence() !== Monaco.EndOfLineSequence.LF) {
+                localModel.setEOL(Monaco.EndOfLineSequence.LF);
+            } else {
+                localModel.setValue("");
+            }
+
             EmbeddedPresentationInterface.propertyList.forEach((name) => {
                 if (editorModel[name]) {
                     localModel[name] = editorModel[name];
@@ -364,4 +370,3 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
     };
 
 }
-

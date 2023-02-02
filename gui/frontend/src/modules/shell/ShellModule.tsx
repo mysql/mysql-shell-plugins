@@ -585,6 +585,12 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
     private createEditorModel(session: ShellInterfaceShellSession, text: string, language: string,
         serverVersion: number, sqlMode: string, currentSchema: string): IShellEditorModel {
         const model = Monaco.createModel(text, language) as IShellEditorModel;
+        if (model.getEndOfLineSequence() !== Monaco.EndOfLineSequence.LF) {
+            model.setEOL(Monaco.EndOfLineSequence.LF);
+        } else {
+            model.setValue(text);
+        }
+
         model.executionContexts = new ExecutionContexts(StoreType.Shell, serverVersion, sqlMode, currentSchema);
 
         model.editorMode = CodeEditorMode.Terminal;

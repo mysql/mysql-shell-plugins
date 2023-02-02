@@ -322,7 +322,7 @@ export class Notebook extends Component<INotebookProperties> {
     private initialSetup(): void {
         const { editorState, showAbout } = this.props;
         const version = editorState.model.getVersionId();
-        if (version === 1 && showAbout) {
+        if (version === 2 && showAbout) {
             // If there was never a change in the editor so far it means that this is the first time it is shown.
             // In this case we can run our one-time initialization.
             this.editorRef.current?.executeText("\\about");

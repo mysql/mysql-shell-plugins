@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -36,6 +36,13 @@ describe("Script editor tests", (): void => {
     content += `\nselect "(my)sql" from dual;\n\\py\n`;
     content += `\nprint("python");\n`;
     const model = Monaco.createModel("", "msg") as ICodeEditorModel;
+    if (model.getEndOfLineSequence() !== Monaco.EndOfLineSequence.LF) {
+        model.setEOL(Monaco.EndOfLineSequence.LF);
+    } else {
+        // Necessary to counter the model version increase that happens when the other branch is taken.
+        model.setValue("");
+    }
+
     model.executionContexts = new ExecutionContexts(undefined, 80024, "", "");
     model.editorMode = CodeEditorMode.Standard;
     model.setValue(content);
