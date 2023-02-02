@@ -15,7 +15,7 @@ await ws.sendAndValidate({
     },
     {
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
@@ -25,6 +25,14 @@ await ws.sendAndValidate({
 
 ws.tokens['autoCommitInitialState'] = ws.lastResponse['result']
 
+ws.validateLastResponse({
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "request_id": ws.lastGeneratedRequestId,
+    "done": true
+})
 
 //  Set the auto-commit to 0
 ws.log(": Test setting auto-commit to false")
@@ -51,6 +59,7 @@ await ws.sendAndValidate({
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
+        "done": true
     }
 ])
 
@@ -71,11 +80,19 @@ await ws.sendAndValidate({
     },
     {
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": 0
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
     }
 ])
 
@@ -104,6 +121,7 @@ await ws.sendAndValidate({
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
+        "done": true
     }
 ])
 
@@ -124,11 +142,19 @@ await ws.sendAndValidate({
     },
     {
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": 0
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
     }
 ])
 
@@ -157,7 +183,8 @@ await ws.sendAndValidate({
             "type": "OK",
             "msg": ""
         },
-        "request_id": ws.lastGeneratedRequestId
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
     }
 ])
 
@@ -178,11 +205,19 @@ await ws.sendAndValidate({
     },
     {
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": 1
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
     }
 ])
 
@@ -211,7 +246,8 @@ await ws.sendAndValidate({
             "type": "OK",
             "msg": ""
         },
-        "request_id": ws.lastGeneratedRequestId
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
     }
 ])
 
@@ -232,11 +268,19 @@ await ws.sendAndValidate({
     },
     {
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": 1
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
     }
 ])
 
@@ -265,7 +309,8 @@ await ws.sendAndValidate({
             "type": "OK",
             "msg": ""
         },
-        "request_id": ws.lastGeneratedRequestId
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
     }
 ])
 
@@ -286,10 +331,18 @@ await ws.sendAndValidate({
     },
     {
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": ws.tokens['autoCommitInitialState']
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
     }
 ])

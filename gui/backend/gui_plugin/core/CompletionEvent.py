@@ -19,46 +19,42 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-import mysqlsh
+import threading
+from typing import List
 
-# pylint: disable-msg=W0631 for variable ws
-from tests.websocket.TestWebSocket import TWebSocket
 
-ws: TWebSocket
+class CompletionEvent(threading.Event):
+    """Class implementing a completion event."""
 
-execute_request_id = ws.generateRequestId()
+    def __init__(self):
+        super().__init__()
+        self._errors = []
+        self._cancelled = False
 
-ws.sendAndValidate({
-    "request": "execute",
-    "request_id": execute_request_id,
-    "command": "gui.sqleditor.execute",
-    "args": {
-        "sql": "SELECT SLEEP(3);",
-        "module_session_id": ws.tokens["module_session_id"],
-        "params": []
-    }
-}, [
-    {
-        "request_state": {"type": "PENDING", "msg": "Execution started..."},
-        "request_id": execute_request_id
-    }
-])
+    def add_error(self, error: str) -> None:
+        """Adds an error to the completion event for the current task.
 
-ws.sendAndValidate({
-    "request": "execute",
-    "request_id": ws.generateRequestId(),
-    "command": "gui.sqleditor.kill_query",
-    "args": {
-        "module_session_id": ws.tokens["module_session_id"],
-    }
-}, [
-    {
-        "request_id": ws.lastGeneratedRequestId,
-        "request_state": {"type": "OK", "msg": ""},
-        "done": True
-    },
-    {
-        "request_id": execute_request_id,
-        "request_state": {"type": "ERROR", "msg": "Error[MSG-1201]: Query killed"},
-    }
-])
+        Args:
+            error (str): The error message
+        """
+        self._errors.append(error)
+        self.set()
+
+    @property
+    def has_errors(self) -> bool:
+        """Returns True if the completion event has any errors."""
+        return len(self._errors) == 0
+
+    def get_errors(self) -> List:
+        """Returns a list of all errors messages."""
+        return self._errors
+
+    def set_cancelled(self) -> None:
+        """Sets the current task as cancelled."""
+        self._cancelled = True
+        self.set()
+
+    @property
+    def is_cancelled(self) -> bool:
+        """Returns True if the current task is cancelled."""
+        return self._cancelled

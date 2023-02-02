@@ -4429,7 +4429,7 @@ ws.sendAndValidate({
              "type": "OK",
              "msg": ""
             },
-            "result": "Completed",
+            "done": true,
             "request_id": ws.lastGeneratedRequestId
         }
 ])
@@ -4466,7 +4466,7 @@ ws.sendAndValidate({
              "type": "OK",
              "msg": ""
             },
-            "result": "Completed",
+            "done": true,
             "request_id": ws.lastGeneratedRequestId
         }
 ])

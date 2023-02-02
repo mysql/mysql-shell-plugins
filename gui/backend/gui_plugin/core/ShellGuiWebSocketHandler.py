@@ -405,6 +405,12 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
             self.send_response_message(
                 "OK", "", request_id=request_id, values=values, api=True)
 
+    def send_command_done(self, request_id):
+        self.send_json_response(Response.standard(
+            "OK", "", {"request_id": request_id, "done": True}))
+
+        self.unregister_module_request(request_id)
+
     @property
     def is_authenticated(self):
         return self.session_user_id is not None
@@ -728,16 +734,11 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                 del kwargs['module_session_id']
 
             confirm_complete = True
-            if cmd in ['gui.sqleditor.execute', 'gui.sqleditor.open_connection',
-                       'gui.sqleditor.set_auto_commit', 'gui.sqleditor.get_auto_commit',
-                       'gui.sqleditor.get_current_schema', 'gui.sqleditor.set_current_schema',
+            if cmd in ['gui.sqleditor.open_connection',
                        'gui.sqleditor.reconnect', 'gui.dbconnections.test_connection',
-                       'gui.db.get_catalog_object_names', 'gui.db.get_schema_object_names',
-                       'gui.db.get_table_object_names', 'gui.db.get_catalog_object',
-                       'gui.db.get_schema_object', 'gui.db.get_table_object',
                        'gui.shell.start_session', 'gui.shell.execute', 'gui.shell.complete',
                        'gui.db.start_session', 'gui.sqleditor.start_session',
-                       'gui.db.reconnect']:
+                       'gui.db.reconnect', 'gui.sqleditor.set_current_schema']:
                 confirm_complete = False
 
             thread = RequestHandler(

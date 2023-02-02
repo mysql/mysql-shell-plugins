@@ -15,7 +15,27 @@ await ws.sendAndValidate({
     }
 }, [
     responses.pending.executionStarted,
-    responses.ok.sqlZeroRows
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": {
+            "rows": [],
+            "total_row_count": 0,
+            "execution_time": ws.ignore,
+            "rows_affected": ws.matchRegexp("[0|1]")
+        }
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
 ])
 
 await ws.sendAndValidate({
@@ -30,7 +50,27 @@ await ws.sendAndValidate({
     }
 }, [
     responses.pending.executionStarted,
-    responses.ok.sqlZeroRows
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": {
+            "rows": [],
+            "total_row_count": 0,
+            "execution_time": ws.ignore,
+            "rows_affected": 0
+        }
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
 ])
 
 // Drop existing test users
@@ -46,7 +86,27 @@ await ws.sendAndValidate({
     }
 }, [
     responses.pending.executionStarted,
-    responses.ok.sqlZeroRows
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": {
+            "rows": [],
+            "total_row_count": 0,
+            "execution_time": ws.ignore,
+            "rows_affected": 0
+        }
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
 ])
 
 await ws.sendAndValidate({
@@ -61,7 +121,27 @@ await ws.sendAndValidate({
     }
 }, [
     responses.pending.executionStarted,
-    responses.ok.sqlZeroRows
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": {
+            "rows": [],
+            "total_row_count": 0,
+            "execution_time": ws.ignore,
+            "rows_affected": 0
+        }
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
 ])
 
 //  Recreate the schemas
@@ -77,7 +157,27 @@ await ws.sendAndValidate({
     }
 }, [
     responses.pending.executionStarted,
-    responses.ok.sqlZeroRows
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": {
+            "rows": [],
+            "total_row_count": 0,
+            "execution_time": ws.ignore,
+            "rows_affected": 1
+        }
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
 ])
 
 await ws.sendAndValidate({
@@ -92,7 +192,27 @@ await ws.sendAndValidate({
     }
 }, [
     responses.pending.executionStarted,
-    responses.ok.sqlZeroRows
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": {
+            "rows": [],
+            "total_row_count": 0,
+            "execution_time": ws.ignore,
+            "rows_affected": 1
+        }
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
 ])
 
 // Create test users
@@ -108,7 +228,27 @@ await ws.sendAndValidate({
     }
 }, [
     responses.pending.executionStarted,
-    responses.ok.sqlZeroRows
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": {
+            "rows": [],
+            "total_row_count": 0,
+            "execution_time": ws.ignore,
+            "rows_affected": 0
+        }
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
 ])
 
 await ws.sendAndValidate({
@@ -123,7 +263,27 @@ await ws.sendAndValidate({
     }
 }, [
     responses.pending.executionStarted,
-    responses.ok.sqlZeroRows
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": {
+            "rows": [],
+            "total_row_count": 0,
+            "execution_time": ws.ignore,
+            "rows_affected": 0
+        }
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
 ])
 
 

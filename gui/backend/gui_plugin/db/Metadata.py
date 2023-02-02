@@ -19,8 +19,10 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from mysqlsh.plugin_manager import plugin_function  # pylint: disable=no-name-in-module
-from gui_plugin.core.Protocols import Response
+from mysqlsh.plugin_manager import \
+    plugin_function  # pylint: disable=no-name-in-module
+
+import gui_plugin.core.Context as context
 import gui_plugin.core.Error as Error
 from gui_plugin.core.Error import MSGException
 from gui_plugin.core.modules.DbModuleSession import DbModuleSession
@@ -35,7 +37,7 @@ def get_objects_types(session):
         session (object): The session used to execute the operation
 
     Returns:
-        object: The list of the database objects
+        list: database objects
     """
     session = backend.get_db_session(session)
 
@@ -53,7 +55,7 @@ def get_catalog_object_names(session, type, filter='%'):
         filter (str): object filter
 
     Returns:
-        object: The list of names
+        list: objects names
     """
     session = backend.get_db_session(session)
 
@@ -73,13 +75,14 @@ def get_schema_object_names(session, type, schema_name, filter='%', routine_type
         routine_type (str): type of the routine ['procedure'|'function']
 
     Returns:
-        object: The list of names
+        list: objects names
     """
     if isinstance(routine_type, str) and routine_type.strip() == "":
         routine_type = None
     if routine_type is not None and routine_type not in ['procedure', 'function']:
         raise MSGException(Error.CORE_INVALID_PARAMETER,
                            "The routine_type could be only 'procedure' or 'function'.")
+
     session = backend.get_db_session(session)
 
     return session.get_schema_object_names(type=type,
@@ -101,7 +104,7 @@ def get_table_object_names(session, type, schema_name, table_name, filter='%'):
         filter (str): object filter
 
     Returns:
-        object: The list of names
+        list: objects names
     """
     session = backend.get_db_session(session)
 
@@ -121,7 +124,7 @@ def get_catalog_object(session, type, name):
         name (str): object name
 
     Returns:
-        object: The catalog object
+        dict: The catalog object
     """
     session = backend.get_db_session(session)
 
@@ -139,7 +142,7 @@ def get_schema_object(session, type, schema_name, name):
         name (str): object name
 
     Returns:
-        object: The database object
+        dict: The catalog object
     """
     session = backend.get_db_session(session)
 
@@ -160,7 +163,7 @@ def get_table_object(session, type, schema_name, table_name, name):
         name (str): object name
 
     Returns:
-        object: The database object
+        dict: The catalog object
     """
     session = backend.get_db_session(session)
 
@@ -193,7 +196,7 @@ def close_session(module_session):
         module_session (object): The module session object that should be closed
 
     Returns:
-        A dict holding the result message
+        None
     """
     module_session.close()
 
@@ -206,7 +209,6 @@ def reconnect(module_session):
         module_session (object): The session where the session will be reconnected
 
     Returns:
-        A dict holding the result message and the connection information
-        when available.
+        None
     """
     module_session.reconnect()

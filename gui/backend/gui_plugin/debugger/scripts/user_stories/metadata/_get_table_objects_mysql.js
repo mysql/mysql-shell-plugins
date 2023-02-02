@@ -2,20 +2,20 @@ responses = ws.tokens['responses']
 ws.tokens["profile_id"] = 1
 ws.tokens["db_type"] = "MySQL"
 ws.tokens["folder_path"] = "tests"
-ws.tokens["types"] = [{"name": "Schema",        "type": "CATALOG_OBJECT"},
-                      {"name": "User Variable", "type": "CATALOG_OBJECT"},
-                      {"name": "User",          "type": "CATALOG_OBJECT"},
-                      {"name": "Engine",        "type": "CATALOG_OBJECT"},
-                      {"name": "Plugin",        "type": "CATALOG_OBJECT"},
-                      {"name": "Character Set", "type": "CATALOG_OBJECT"},
-                      {"name": "Table",         "type": "SCHEMA_OBJECT"},
-                      {"name": "View",          "type": "SCHEMA_OBJECT"},
-                      {"name": "Routine",       "type": "SCHEMA_OBJECT"},
-                      {"name": "Event",         "type": "SCHEMA_OBJECT"},
-                      {"name": "Trigger",       "type": "TABLE_OBJECT"},
-                      {"name": "Foreign Key",   "type": "TABLE_OBJECT"},
-                      {"name": "Index",         "type": "TABLE_OBJECT"},
-                      {"name": "Column",        "type": "TABLE_OBJECT"}]
+ws.tokens["types"] = [{ "name": "Schema", "type": "CATALOG_OBJECT" },
+{ "name": "User Variable", "type": "CATALOG_OBJECT" },
+{ "name": "User", "type": "CATALOG_OBJECT" },
+{ "name": "Engine", "type": "CATALOG_OBJECT" },
+{ "name": "Plugin", "type": "CATALOG_OBJECT" },
+{ "name": "Character Set", "type": "CATALOG_OBJECT" },
+{ "name": "Table", "type": "SCHEMA_OBJECT" },
+{ "name": "View", "type": "SCHEMA_OBJECT" },
+{ "name": "Routine", "type": "SCHEMA_OBJECT" },
+{ "name": "Event", "type": "SCHEMA_OBJECT" },
+{ "name": "Trigger", "type": "TABLE_OBJECT" },
+{ "name": "Foreign Key", "type": "TABLE_OBJECT" },
+{ "name": "Index", "type": "TABLE_OBJECT" },
+{ "name": "Column", "type": "TABLE_OBJECT" }]
 
 // We're assuming that schema `test_user_story` exists and contains all object listed in script below:
 // CREATE DATABASE  IF NOT EXISTS `test_user_story`;
@@ -79,11 +79,19 @@ await ws.sendAndValidate({
     responses.pending.executionStarted,
     {
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": ws.matchList(["categories_AFTER_INSERT"])
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true,
     }
 ])
 
@@ -101,11 +109,19 @@ await ws.sendAndValidate({
     responses.pending.executionStarted,
     {
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": ws.matchList(["fk_category"])
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true,
     }
 ])
 
@@ -123,13 +139,21 @@ await ws.sendAndValidate({
     responses.pending.executionStarted,
     {
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": ws.matchList(["fk_category"], 0),
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true,
     }
- ], 0))
+], 0))
 
 
 await ws.sendAndValidate({
@@ -146,11 +170,19 @@ await ws.sendAndValidate({
     responses.pending.executionStarted,
     {
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": ws.matchList(["categories_AFTER_INSERT"])
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true,
     }
 ])
 
@@ -168,11 +200,19 @@ await ws.sendAndValidate({
     responses.pending.executionStarted,
     {
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": ws.matchList(["fk_category"])
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true,
     }
 ])
 
@@ -190,10 +230,18 @@ await ws.sendAndValidate({
     responses.pending.executionStarted,
     {
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": ws.matchList(["fk_category"], 0),
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true,
     }
- ], 0))
+], 0))

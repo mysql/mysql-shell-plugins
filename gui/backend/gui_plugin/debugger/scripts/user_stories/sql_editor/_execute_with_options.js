@@ -9,16 +9,24 @@ await ws.sendAndValidate(
         responses.pending.executionStarted,
         {
             "request_state": {
-                "type": "OK",
+                "type": "PENDING",
                 "msg": ws.ignore
             },
             "request_id": ws.lastGeneratedRequestId,
             "result": {
-                "columns": [{'name': 'SCHEMA_NAME', 'type': 'STRING'}],
+                "columns": [{ 'name': 'SCHEMA_NAME', 'type': 'STRING' }],
                 "rows": ws.matchList([['mysql'], ['information_schema'], ['performance_schema']], 0),
                 "total_row_count": ws.matchRegexp("\\d+"),
                 "execution_time": ws.ignore
             }
+        },
+        {
+            "request_state": {
+                "type": "OK",
+                "msg": ""
+            },
+            "request_id": ws.lastGeneratedRequestId,
+            "done": true
         }
     ]
 )
@@ -31,16 +39,24 @@ await ws.sendAndValidate(
         responses.pending.executionStarted,
         {
             "request_state": {
-                "type": "OK",
+                "type": "PENDING",
                 "msg": ws.ignore
             },
             "request_id": ws.lastGeneratedRequestId,
             "result": {
-                "columns": [{'name': 'SCHEMA_NAME', 'type': 'STRING'}],
+                "columns": [{ 'name': 'SCHEMA_NAME', 'type': 'STRING' }],
                 "rows": ws.matchList([['mysql'], ['information_schema'], ['performance_schema']], 0),
                 "total_row_count": ws.matchRegexp("\\d+"),
                 "execution_time": ws.ignore
             }
+        },
+        {
+            "request_state": {
+                "type": "OK",
+                "msg": ""
+            },
+            "request_id": ws.lastGeneratedRequestId,
+            "done": true
         }
     ]
 )

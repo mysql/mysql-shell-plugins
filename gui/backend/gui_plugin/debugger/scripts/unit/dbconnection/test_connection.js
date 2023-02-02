@@ -188,7 +188,7 @@ await ws.sendAndValidate({
         "type": "OK",
         "msg": ""
     },
-    "result": "Completed"
+    "done": true
 }])
 
 await ws.sendAndValidate({

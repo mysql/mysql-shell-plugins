@@ -139,9 +139,14 @@ ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId
     },
     {
-        "request_state": {"type": "OK", "msg": ""},
+        "request_state": {"type": "PENDING", "msg": ""},
         "request_id": ws.lastGeneratedRequestId,
         "result": ws.matchList(["information_schema", "mysql", "performance_schema"], 0)
+    },
+    {
+        "request_state": {"type": "OK", "msg": ""},
+        "request_id": ws.lastGeneratedRequestId,
+        "done": True
     }
 ])
 

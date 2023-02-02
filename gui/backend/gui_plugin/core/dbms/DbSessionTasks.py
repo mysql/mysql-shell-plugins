@@ -19,17 +19,15 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-import json
 import time
 
 import mysqlsh
 
 import gui_plugin.core.Error as Error
 import gui_plugin.core.Logger as logger
+from gui_plugin.core.BaseTask import BaseTask
 from gui_plugin.core.Error import MSGException
-
-from ..BaseTask import BaseTask, CommandTask
-from ..Protocols import Response
+from gui_plugin.core.Protocols import Response
 
 
 def check_supported_type(func):
@@ -55,7 +53,9 @@ def check_supported_type(func):
 
 
 class DBCloseTask(BaseTask):
-    pass
+    def __init__(self, task_id=None, result_queue=None, params=None, result_callback=None, options=None):
+        super().__init__(task_id=task_id, result_queue=result_queue,
+                         result_callback=result_callback, options=options, skip_completion=True)
 
 
 class DbTask(BaseTask):
@@ -186,7 +186,8 @@ class DbExecuteTask(DbQueryTask):
     def process_result(self):
         # If this point is reached it means the operation was executed successfully,
         # so we are done
-        self.dispatch_result("OK")
+        if self.completion_event is None:
+            self.dispatch_result("OK")
 
 
 class DbSqlTask(DbQueryTask):
@@ -195,24 +196,23 @@ class DbSqlTask(DbQueryTask):
     this class implements the result handling.
     """
 
-    def dispatch_result(self, state, message=None, data=None):
-        if state == "OK":
-            self.session.update_stats(self._execution_time)
-            self._rows_affected = self.session.rows_affected
-            self._last_insert_id = self.session.last_insert_id
+    def final_dispatch_result(self, data=None):
+        self.session.update_stats(self._execution_time)
+        self._rows_affected = self.session.rows_affected
+        self._last_insert_id = self.session.last_insert_id
 
-            # Set the total row count
-            data["total_row_count"] = self._row_count
-            data["execution_time"] = self._execution_time
+        # Set the total row count
+        data["total_row_count"] = self._row_count
+        data["execution_time"] = self._execution_time
 
-            if self._last_insert_id:
-                data["last_insert_id"] = self._last_insert_id
+        if self._last_insert_id:
+            data["last_insert_id"] = self._last_insert_id
 
-            # To normalizing rows_affected we return
-            # the number of rows affected if there was any, otherwise return 0
-            data["rows_affected"] = self._rows_affected if self._rows_affected > 0 else 0
+        # To normalizing rows_affected we return
+        # the number of rows affected if there was any, otherwise return 0
+        data["rows_affected"] = self._rows_affected if self._rows_affected > 0 else 0
 
-        super().dispatch_result(state, message=message, data=data)
+        super().dispatch_result("PENDING", data=data)
 
     def process_result(self):
         # Process result set
@@ -257,11 +257,15 @@ class DbSqlTask(DbQueryTask):
 
                 has_result = self.session.next_result()
 
-                if not has_result:
-                    values["done"] = True
+                if has_result:
+                    # This is end of first result in multiple resultset
+                    # we need to update some partial statistics for result
+                    values["total_row_count"] = self._row_count
+                    values["execution_time"] = self._execution_time
+                    self.dispatch_result("PENDING", data=values)
 
-                # Call the callback
-                self.dispatch_result("OK", data=values)
+            # Call the callback
+            self.final_dispatch_result(values)
         except Exception as e:
             logger.exception(e)
             self.dispatch_result("ERROR", message=str(e))

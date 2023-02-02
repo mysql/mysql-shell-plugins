@@ -61,9 +61,9 @@ def remove_dict_useless_items(data):
 
 
 class ShellCommandTask(CommandTask):
-    def __init__(self, task_id, command, params=None, result_queue=None, result_callback=None, options=None):
+    def __init__(self, task_id, command, params=None, result_queue=None, result_callback=None, options=None, skip_completion=False):
         super().__init__(task_id, command, params=params,  result_queue=result_queue,
-                         result_callback=result_callback, options=options)
+                         result_callback=result_callback, options=options, skip_completion=skip_completion)
         self.dispatch_result("PENDING", message='Execution started...')
 
     def do_execute(self):
@@ -94,7 +94,7 @@ class ShellCommandTask(CommandTask):
 class ShellQuitTask(ShellCommandTask):
     def __init__(self, task_id=None, params=None, result_queue=None, result_callback=None, options=None):
         super().__init__(task_id, {"execute": "\\quit"},
-                         params, result_queue, result_callback, options)
+                         params, result_queue, result_callback, options, True)
 
 
 class ShellDbSessionHandler(DbMysqlSession):

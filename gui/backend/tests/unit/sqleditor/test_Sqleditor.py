@@ -151,10 +151,8 @@ class TestSqleditor:
     def test_execute_query_with_params(self, params):
         @backend_callback_with_pending()
         def callback_execute(msg_type, msg, request_id=None, values=None):
-            assert 'done' in values
             assert 'columns' in values
             assert 'rows' in values
-            assert values['done'] == True
 
         params._web_session.register_callback(
             callback_execute.request_id, callback_execute)

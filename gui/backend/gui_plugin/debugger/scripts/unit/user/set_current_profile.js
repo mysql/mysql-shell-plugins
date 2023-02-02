@@ -13,7 +13,7 @@ ws.validateLastResponse({
         "type": "OK",
         "msg": ""
     },
-    "result": "Completed"
+    "done": true
 })
 
 ws.tokens["active_profile"]["id"] = 1

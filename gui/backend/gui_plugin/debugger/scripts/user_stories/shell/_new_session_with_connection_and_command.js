@@ -67,5 +67,5 @@ await ws.sendAndValidate({
     }
 }, ws.matchList([
     { "request_state": { "type": "PENDING", "msg": "Execution started..." }, "request_id": ws.lastGeneratedRequestId },
-    { "request_state": { "type": "ERROR", "msg": ws.matchRegexp("Cannot proceed with the dump, the specified directory '.*' already exists at the target location .* and is not empty.\n") }, "request_id": ws.lastGeneratedRequestId, "result": { "exit_status": 1 } }
+    { "request_state": { "type": "ERROR", "msg": ws.matchRegexp("Cannot proceed with the dump, the specified directory '.*' already exists at the target location .* and is not empty.\n") }, "request_id": ws.lastGeneratedRequestId, }
 ], false))

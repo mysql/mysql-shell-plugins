@@ -1,10 +1,10 @@
 requests = ws.tokens['requests']
 responses = ws.tokens['responses']
-ws.tokens["types"] = [{"name": "Schema",  "type": "CATALOG_OBJECT"},
-                      {"name": "Table",   "type": "SCHEMA_OBJECT"},
-                      {"name": "View",    "type": "SCHEMA_OBJECT"},
-                      {"name": "Trigger", "type": "TABLE_OBJECT"},
-                      {"name": "Index",   "type": "TABLE_OBJECT"}]
+ws.tokens["types"] = [{ "name": "Schema", "type": "CATALOG_OBJECT" },
+{ "name": "Table", "type": "SCHEMA_OBJECT" },
+{ "name": "View", "type": "SCHEMA_OBJECT" },
+{ "name": "Trigger", "type": "TABLE_OBJECT" },
+{ "name": "Index", "type": "TABLE_OBJECT" }]
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -31,9 +31,22 @@ await ws.sendAndValidate({
     }
 }, [
     responses.pending.executionStarted,
-    Object.assign(Object(), responses.ok.default, {
-        "result": ws.ignore
-    })
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": ws.ignore,
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true,
+    }
 ])
 
 await ws.sendAndValidate({
@@ -47,7 +60,20 @@ await ws.sendAndValidate({
     }
 }, [
     responses.pending.executionStarted,
-    Object.assign(Object(), responses.ok.default, {
-        "result": {"name": "main"}
-    })
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": { "name": "main" },
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true,
+    }
 ])

@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -19,35 +19,42 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-import gui_plugin.core.Logger as logger
 import threading
+
+import gui_plugin.core.Context as context
+import gui_plugin.core.Logger as logger
 
 
 class BaseTask():
-    def __init__(self, task_id=None, result_queue=None, result_callback=None, options=None):
+    def __init__(self, task_id=None, result_queue=None, result_callback=None, options=None, skip_completion=False):
         self.thread_id = threading.current_thread().native_id
         self.task_id = task_id
         self.result_queue = result_queue
         self.result_callback = result_callback
         self.options = options if options else {}
         self.cancelled = False
+        self.completion_event = None if skip_completion else context.set_completion_event()
 
     def dispatch_result(self, state, message=None, data=None):
-        if not self.result_queue is None:
-            if not message is None:
+        if self.result_queue is not None:
+            if message is not None:
                 self.result_queue.put(message)
 
-            if not data is None:
+            if data is not None:
                 self.result_queue.put(data)
 
-        if not self.result_callback is None:
+        if self.completion_event is not None and state in ["ERROR", "CANCELLED"]:
+            if state == "ERROR":
+                self.completion_event.add_error(message)
+            if state == "CANCELLED":
+                self.completion_event.set_cancelled()
+        elif self.result_callback is not None:
             try:
                 self.result_callback(state, message, self.task_id, data)
             except Exception as e:
-                logger.error(
-                    "There was an unhandled exception during the callback")
                 logger.debug(self.result_callback)
-                logger.exception(e)
+                logger.exception(
+                    e, "There was an unhandled exception during the callback")
                 raise
 
     def do_execute(self):
@@ -57,11 +64,16 @@ class BaseTask():
         self.cancelled = True
 
     def execute(self):
-        self.do_execute() if not self.cancelled else self.dispatch_result("CANCELLED")
+        try:
+            self.do_execute() if not self.cancelled else self.dispatch_result("CANCELLED")
+        finally:
+            if self.completion_event:
+                self.completion_event.set()
 
 
 class CommandTask(BaseTask):
-    def __init__(self, task_id, command, params=None, result_queue=None, result_callback=None, options=None):
-        super().__init__(task_id, result_queue, result_callback, options)
+    def __init__(self, task_id, command, params=None, result_queue=None, result_callback=None, options=None, skip_completion=False):
+        super().__init__(task_id, result_queue, result_callback,
+                         options, skip_completion=skip_completion)
         self.command = command
         self.params = params

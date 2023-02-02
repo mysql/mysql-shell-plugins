@@ -1,19 +1,19 @@
 ws.tokens["profile_id"] = 1
 ws.tokens["db_type"] = "MySQL"
 ws.tokens["folder_path"] = "tests"
-ws.tokens["types"] = [{"name": "Schema",        "type": "CATALOG_OBJECT"},
-                      {"name": "User Variable", "type": "CATALOG_OBJECT"},
-                      {"name": "User",          "type": "CATALOG_OBJECT"},
-                      {"name": "Engine",        "type": "CATALOG_OBJECT"},
-                      {"name": "Plugin",        "type": "CATALOG_OBJECT"},
-                      {"name": "Character Set", "type": "CATALOG_OBJECT"},
-                      {"name": "Table",         "type": "SCHEMA_OBJECT"},
-                      {"name": "View",          "type": "SCHEMA_OBJECT"},
-                      {"name": "Routine",       "type": "SCHEMA_OBJECT"},
-                      {"name": "Event",         "type": "SCHEMA_OBJECT"},
-                      {"name": "Trigger",       "type": "TABLE_OBJECT"},
-                      {"name": "Foreign Key",   "type": "TABLE_OBJECT"},
-                      {"name": "Index",         "type": "TABLE_OBJECT"}]
+ws.tokens["types"] = [{ "name": "Schema", "type": "CATALOG_OBJECT" },
+{ "name": "User Variable", "type": "CATALOG_OBJECT" },
+{ "name": "User", "type": "CATALOG_OBJECT" },
+{ "name": "Engine", "type": "CATALOG_OBJECT" },
+{ "name": "Plugin", "type": "CATALOG_OBJECT" },
+{ "name": "Character Set", "type": "CATALOG_OBJECT" },
+{ "name": "Table", "type": "SCHEMA_OBJECT" },
+{ "name": "View", "type": "SCHEMA_OBJECT" },
+{ "name": "Routine", "type": "SCHEMA_OBJECT" },
+{ "name": "Event", "type": "SCHEMA_OBJECT" },
+{ "name": "Trigger", "type": "TABLE_OBJECT" },
+{ "name": "Foreign Key", "type": "TABLE_OBJECT" },
+{ "name": "Index", "type": "TABLE_OBJECT" }]
 ws.tokens["schema"] = "mysql"
 
 ws.log("Executing mysql metadata tests")
@@ -56,11 +56,19 @@ await ws.sendAndValidate({
     },
     {
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": ws.matchList(["information_schema", "mysql", "performance_schema"], 0)
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true,
     }
 ])
 
@@ -83,11 +91,19 @@ await ws.sendAndValidate({
     },
     {
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": ["mysql"]
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true,
     }
 ])
 
@@ -110,11 +126,19 @@ await ws.sendAndValidate({
     },
     {
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": ws.matchList([], 0)
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true,
     }
 ])
 
@@ -136,11 +160,19 @@ await ws.sendAndValidate({
     },
     {
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": ws.matchList(['root@localhost'], 0)
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true,
     }
 ])
 
@@ -162,11 +194,19 @@ await ws.sendAndValidate({
     },
     {
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": ws.matchList(['InnoDB', 'MyISAM'], 0)
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true,
     }
 ])
 
@@ -196,11 +236,19 @@ await ws.sendAndValidate({
     },
     {
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": ws.matchList(["mysql_native_password"], 0)
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true,
     }
 ])
 
@@ -230,11 +278,19 @@ await ws.sendAndValidate({
     },
     {
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": ws.matchList(["utf8mb4"], 0)
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true,
     }
 ])
 
@@ -258,11 +314,19 @@ await ws.sendAndValidate({
     },
     {
         "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": { "name": "mysql" }
+    },
+    {
+        "request_state": {
             "type": "OK",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
-        "result": {"name": "mysql"}
+        "done": true,
     }
 ])
 
@@ -338,11 +402,19 @@ await ws.sendAndValidate({
     },
     {
         "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": { "name": "root@localhost" }
+    },
+    {
+        "request_state": {
             "type": "OK",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
-        "result": {"name": "root@localhost"}
+        "done": true,
     }
 ])
 
@@ -391,11 +463,19 @@ await ws.sendAndValidate({
     },
     {
         "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": { "name": "InnoDB" }
+    },
+    {
+        "request_state": {
             "type": "OK",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
-        "result": {"name": "InnoDB"}
+        "done": true,
     }
 ])
 
@@ -444,11 +524,19 @@ await ws.sendAndValidate({
     },
     {
         "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": { "name": "sha256_password" }
+    },
+    {
+        "request_state": {
             "type": "OK",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
-        "result": {"name": "sha256_password"}
+        "done": true,
     }
 ])
 
@@ -497,11 +585,19 @@ await ws.sendAndValidate({
     },
     {
         "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": { "name": "ascii" }
+    },
+    {
+        "request_state": {
             "type": "OK",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
-        "result": {"name": "ascii"}
+        "done": true,
     }
 ])
 

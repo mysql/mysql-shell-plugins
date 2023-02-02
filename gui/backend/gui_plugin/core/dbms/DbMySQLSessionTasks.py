@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022 Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023 Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -19,36 +19,33 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from gui_plugin.core.dbms.DbSessionTasks import DbQueryTask
-from gui_plugin.core.dbms.DbSessionTasks import BaseObjectTask
-from gui_plugin.core.Error import MSGException
 import gui_plugin.core.Error as Error
+from gui_plugin.core.dbms.DbSessionTasks import BaseObjectTask, DbQueryTask
+from gui_plugin.core.Error import MSGException
 
 
 class MySQLOneFieldTask(DbQueryTask):
     def process_result(self):
+        data = None
         if self.resultset.has_data():
             row = self.resultset.fetch_one()
-            self.dispatch_result("OK", data=row[0])
-        else:
-            # TODO(rennox): Is this the case for an empty set?
-            # If so, should the default value be provided by the caller?
-            self.dispatch_result("OK", data="")
+            data = row[0]
+
+        self.dispatch_result("PENDING", data=data)
 
 
 class MySQLBaseObjectTask(BaseObjectTask):
     def process_result(self):
+        _err_msg = f"The {self.type} '{self.name}' does not exist."
         if self.resultset.has_data():
             row = self.resultset.fetch_one()
 
             if not row:
-                self.dispatch_result(
-                    "ERROR", message=f"The {self.type} '{self.name}' does not exist.")
+                self.dispatch_result("ERROR", message=_err_msg)
             else:
-                self.dispatch_result("OK", data=self.format(row))
+                self.dispatch_result("PENDING", data=self.format(row))
         else:
-            self.dispatch_result(
-                "ERROR", message=f"The {self.type} '{self.name}' does not exist.")
+            self.dispatch_result("ERROR", message=_err_msg)
 
 
 class MySQLTableObjectTask(BaseObjectTask):
@@ -60,19 +57,18 @@ class MySQLTableObjectTask(BaseObjectTask):
 
     def process_result(self):
         if self._sql_index == 0:
+            _err_msg = f"The table '{self.name}' does not exist."
             if self.resultset.has_data():
                 row = self.resultset.fetch_one()
 
                 if not row:
                     self._break = True
-                    self.dispatch_result(
-                        "ERROR", message=f"The table '{self.name}' does not exist.")
+                    self.dispatch_result("ERROR", message=_err_msg)
                 else:
                     self.dispatch_result("PENDING", data=self.format(row))
             else:
                 self._break = True
-                self.dispatch_result(
-                    "ERROR", message=f"The table '{self.name}' does not exist.")
+                self.dispatch_result("ERROR", message=_err_msg)
         else:
             # Process result set
             buffer_size = self.options.get("row_packet_size", 25)
@@ -100,13 +96,15 @@ class MySQLTableObjectTask(BaseObjectTask):
                 return
 
             # Call the callback
-            self.dispatch_result("OK", data=values)
+            if values['columns']:
+                self.dispatch_result("PENDING", data=values)
 
 
 class MySQLOneFieldListTask(DbQueryTask):
     def process_result(self):
         buffer_size = self.options.get("row_packet_size", 25)
         name_list = []
+        send_empty = True
         if self.resultset.has_data():
             row = self.resultset.fetch_one()
             while row:
@@ -115,12 +113,10 @@ class MySQLOneFieldListTask(DbQueryTask):
 
                 # Return chunks of buffer_size a time, if buffer_size is 0
                 # or -1, do not return chunks but only the full result set
-                if buffer_size > 0 and len(name_list) >= buffer_size:
-                    if row:
-                        self.dispatch_result("PENDING", data=name_list)
-                        name_list = []
-                    else:
-                        self.dispatch_result("OK", data=name_list)
-                        return
+                if not row or (buffer_size > 0 and len(name_list) >= buffer_size):
+                    self.dispatch_result("PENDING", data=name_list)
+                    name_list = []
+                    send_empty = False
 
-        self.dispatch_result("OK", data=name_list)
+        if send_empty or len(name_list) > 0:
+            self.dispatch_result("PENDING", data=name_list)

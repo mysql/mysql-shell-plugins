@@ -24,7 +24,7 @@ await ws.sendAndValidate({
     responses.pending.executionStarted,
     {
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
@@ -33,6 +33,15 @@ await ws.sendAndValidate({
 ])
 
 ws.tokens['initialSchema'] = ws.lastResponse['result']
+
+ws.validateLastResponse({
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "request_id": ws.lastGeneratedRequestId,
+    "done": true
+})
 
 ws.log("Set current schema")
 
@@ -68,11 +77,19 @@ await ws.sendAndValidate({
     responses.pending.executionStarted,
     {
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": "mysql"
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
     }
 ])
 
@@ -108,11 +125,19 @@ await ws.sendAndValidate({
     responses.pending.executionStarted,
     {
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": "information_schema"
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
     }
 ])
 
@@ -149,11 +174,19 @@ await ws.sendAndValidate({
     responses.pending.executionStarted,
     {
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": ws.tokens['initialSchema']
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
     }
 ])
 
@@ -174,21 +207,28 @@ await ws.sendAndValidate({
     responses.pending.executionStarted,
     {
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ws.ignore
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": {
-            "columns": [{"name": "CATALOG_NAME", "type": "STRING"},
-                        {"name": "SCHEMA_NAME", "type": "STRING"},
-                        {"name": "DEFAULT_CHARACTER_SET_NAME", "type": "STRING"},
-                        {"name": "DEFAULT_COLLATION_NAME", "type": "STRING"},
-                        {"name": "SQL_PATH", "type": "NULL"}],
+            "columns": [{ "name": "CATALOG_NAME", "type": "STRING" },
+            { "name": "SCHEMA_NAME", "type": "STRING" },
+            { "name": "DEFAULT_CHARACTER_SET_NAME", "type": "STRING" },
+            { "name": "DEFAULT_COLLATION_NAME", "type": "STRING" },
+            { "name": "SQL_PATH", "type": "NULL" }],
             "rows": ws.ignore,
             "total_row_count": ws.matchRegexp("\\d+"),
             "execution_time": ws.ignore,
-            "done": 1
         }
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
     }
 ])
 
@@ -206,17 +246,24 @@ await ws.sendAndValidate({
     responses.pending.executionStarted,
     {
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ws.ignore
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": {
-            "columns": [{"name": "Database (mysql)", "type": "STRING"}],
+            "columns": [{ "name": "Database (mysql)", "type": "STRING" }],
             "rows": ws.ignore,
             "total_row_count": ws.matchRegexp("\\d+"),
             "execution_time": ws.ignore,
-            "done": 1
         }
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
     }
 ])
 
@@ -261,16 +308,23 @@ await ws.sendAndValidate({
     responses.pending.executionStarted,
     {
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ws.ignore
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": {
-            "columns": [{"name": "Database (mysql)", "type": "STRING"}],
+            "columns": [{ "name": "Database (mysql)", "type": "STRING" }],
             "rows": ws.ignore,
             "total_row_count": ws.matchRegexp("\\d+"),
             "execution_time": ws.ignore,
-            "done": 1
         }
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
     }
 ])

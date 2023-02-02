@@ -331,7 +331,12 @@ export class MessageScheduler {
 
                         case EventType.DoneResponse: {
                             this.ongoingRequests.delete(response.requestId);
-                            ongoing.resolve(ongoing.result);
+                            if (MessageScheduler.multiResultList.includes(record.protocolType) ||
+                                ongoing.result.length === 0) {
+                                ongoing.resolve(ongoing.result);
+                            } else {
+                                ongoing.resolve(ongoing.result[0]);
+                            }
 
                             break;
                         }

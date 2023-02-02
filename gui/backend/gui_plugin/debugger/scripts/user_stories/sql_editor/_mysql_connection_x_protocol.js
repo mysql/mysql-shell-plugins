@@ -25,20 +25,27 @@ await ws.sendAndValidate({
     },
     {
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ws.ignore
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": {
-            "columns": [{"name": "CATALOG_NAME", "type": "STRING"},
-                        {"name": "SCHEMA_NAME", "type": "STRING"},
-                        {"name": "DEFAULT_CHARACTER_SET_NAME", "type": "STRING"},
-                        {"name": "DEFAULT_COLLATION_NAME", "type": "STRING"},
-                        {"name": "SQL_PATH", "type": "BYTES"}],
+            "columns": [{ "name": "CATALOG_NAME", "type": "STRING" },
+            { "name": "SCHEMA_NAME", "type": "STRING" },
+            { "name": "DEFAULT_CHARACTER_SET_NAME", "type": "STRING" },
+            { "name": "DEFAULT_COLLATION_NAME", "type": "STRING" },
+            { "name": "SQL_PATH", "type": "BYTES" }],
             "rows": ws.ignore,
             "total_row_count": ws.matchRegexp("\\d+"),
             "execution_time": ws.ignore,
-            "done": 1
         }
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
     }
 ])

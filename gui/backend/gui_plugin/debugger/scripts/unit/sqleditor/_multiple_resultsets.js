@@ -7,7 +7,28 @@ await ws.sendAndValidate(
     }),
     [
         responses.pending.executionStarted,
-        responses.ok.sqlZeroRows
+        {
+            "request_state":
+            {
+                "type": "PENDING", "msg": ""
+            },
+            "request_id": ws.lastGeneratedRequestId,
+            "result":
+            {
+                "rows": [],
+                "total_row_count": 0,
+                "execution_time": ws.ignore,
+                "rows_affected": ws.matchRegexp("[0|1]")
+            }
+        },
+        {
+            "request_state":
+            {
+                "type": "OK", "msg": ""
+            },
+            "request_id": ws.lastGeneratedRequestId,
+            "done": true
+        }
     ]
 )
 
@@ -17,7 +38,23 @@ await ws.sendAndValidate(
     }),
     [
         responses.pending.executionStarted,
-        responses.ok.sqlZeroRows
+        {
+            "request_id": ws.lastGeneratedRequestId,
+            "request_state": { "type": "PENDING", "msg": "" },
+            "result": {
+                "rows": [],
+                "total_row_count": 0,
+                "execution_time": ws.ignore
+            }
+        },
+        {
+            "request_state": {
+                "type": "OK",
+                "msg": ""
+            },
+            "request_id": ws.lastGeneratedRequestId,
+            "done": true
+        }
     ]
 )
 
@@ -27,7 +64,23 @@ await ws.sendAndValidate(
     }),
     [
         responses.pending.executionStarted,
-        responses.ok.sqlZeroRows
+        {
+            "request_id": ws.lastGeneratedRequestId,
+            "request_state": { "type": "PENDING", "msg": "" },
+            "result": {
+                "rows": [],
+                "total_row_count": 0,
+                "execution_time": ws.ignore
+            }
+        },
+        {
+            "request_state": {
+                "type": "OK",
+                "msg": ""
+            },
+            "request_id": ws.lastGeneratedRequestId,
+            "done": true
+        }
     ]
 )
 
@@ -39,51 +92,51 @@ await ws.sendAndValidate(
         responses.pending.executionStarted,
         {
             "request_state": {
-                "type": "OK",
+                "type": "PENDING",
                 "msg": ""
             },
             "request_id": ws.lastGeneratedRequestId,
             "result": {
                 "rows": [["column1", "column2"]],
-                "columns": [{"name": "colA", "type": "STRING"}, {"name": "colB", "type": "STRING"}],
+                "columns": [{ "name": "colA", "type": "STRING" }, { "name": "colB", "type": "STRING" }],
                 "total_row_count": 1,
                 "execution_time": ws.ignore
             }
         },
         {
             "request_state": {
-                "type": "OK",
+                "type": "PENDING",
                 "msg": ""
             },
             "request_id": ws.lastGeneratedRequestId,
             "result": {
                 "rows": [["column1", "column2", "column3"]],
-                "columns": [{"name": "col1", "type": "STRING"},
-                            {"name": "col2", "type": "STRING"},
-                            {"name": "col3", "type": "STRING"}],
+                "columns": [{ "name": "col1", "type": "STRING" },
+                { "name": "col2", "type": "STRING" },
+                { "name": "col3", "type": "STRING" }],
                 "total_row_count": 1,
                 "execution_time": ws.ignore
             }
         },
         {
             "request_state": {
-                "type": "OK",
+                "type": "PENDING",
                 "msg": ""
             },
             "request_id": ws.lastGeneratedRequestId,
             "result": {
                 "rows": [["column1", "column2", "column3", "column4"]],
-                "columns": [{"name": "col1A", "type": "STRING"},
-                            {"name": "col2B", "type": "STRING"},
-                            {"name": "col3C", "type": "STRING"},
-                            {"name": "col4D", "type": "STRING"}],
+                "columns": [{ "name": "col1A", "type": "STRING" },
+                { "name": "col2B", "type": "STRING" },
+                { "name": "col3C", "type": "STRING" },
+                { "name": "col4D", "type": "STRING" }],
                 "total_row_count": 1,
                 "execution_time": ws.ignore
             }
         },
         {
             "request_state": {
-                "type": "OK",
+                "type": "PENDING",
                 "msg": ""
             },
             "request_id": ws.lastGeneratedRequestId,
@@ -91,8 +144,15 @@ await ws.sendAndValidate(
                 "rows": [],
                 "total_row_count": 0,
                 "execution_time": ws.ignore,
-                "done": 1
             }
+        },
+        {
+            "request_state": {
+                "type": "OK",
+                "msg": ""
+            },
+            "request_id": ws.lastGeneratedRequestId,
+            "done": true
         }
     ]
 )

@@ -176,7 +176,7 @@ await ws.sendAndValidate({
         "type": "OK",
         "msg": ""
     },
-    "result": "Completed",
+    "done": true,
     "request_id": ws.lastGeneratedRequestId
 }])
 
@@ -193,7 +193,7 @@ await ws.sendAndValidate({
         "type": "OK",
         "msg": ""
     },
-    "result": "Completed",
+    "done": true,
     "request_id": ws.lastGeneratedRequestId
 }])
 
