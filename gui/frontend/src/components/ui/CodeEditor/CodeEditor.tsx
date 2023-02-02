@@ -392,6 +392,13 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
         } else {
             combinedLanguage = language === "msg";
             model = Monaco.createModel(initialContent ?? "", language) as ICodeEditorModel;
+            if (model.getEndOfLineSequence() !== Monaco.EndOfLineSequence.LF) {
+                model.setEOL(Monaco.EndOfLineSequence.LF);
+            } else {
+                // Set content again to increase model change version, in case we don't need to set
+                // the end of line sequence.
+                model.setValue(initialContent ?? "");
+            }
             model.executionContexts =
                 new ExecutionContexts(undefined, settings.get("editor.dbVersion", 80024),
                     settings.get("editor.sqlMode", ""), "");
@@ -619,7 +626,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
             });
 
             if (value.defaultEOL) {
-                model.pushEOL(value.defaultEOL === "LF" ? Monaco.EndOfLineSequence.LF : Monaco.EndOfLineSequence.CRLF);
+                model.setEOL(value.defaultEOL === "LF" ? Monaco.EndOfLineSequence.LF : Monaco.EndOfLineSequence.CRLF);
             }
         }
     }

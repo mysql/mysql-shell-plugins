@@ -1638,6 +1638,12 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         serverVersion: number, sqlMode: string, currentSchema: string): ICodeEditorModel {
 
         const model = Monaco.createModel(text, language) as ICodeEditorModel;
+        if (model.getEndOfLineSequence() !== Monaco.EndOfLineSequence.LF) {
+            model.setEOL(Monaco.EndOfLineSequence.LF);
+        } else {
+            model.setValue(text);
+        }
+
         model.executionContexts = new ExecutionContexts(StoreType.DbEditor, serverVersion, sqlMode, currentSchema);
         model.symbols = new DynamicSymbolTable(backend, "db symbols", { allowDuplicateSymbols: true });
         model.editorMode = CodeEditorMode.Standard;
