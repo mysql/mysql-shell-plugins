@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -89,7 +89,12 @@ export class ShellInterfaceDb {
             parameters: { args: { type, filter, moduleSessionId: this.moduleSessionId } },
         });
 
-        return response.result;
+        const result: string[] = [];
+        response.forEach((entry) => {
+            result.push(...entry.result);
+        });
+
+        return result;
     }
 
     /**
@@ -157,7 +162,12 @@ export class ShellInterfaceDb {
             },
         });
 
-        return response.result;
+        const result: string[] = [];
+        response.forEach((entry) => {
+            result.push(...entry.result);
+        });
+
+        return result;
     }
 
     protected get moduleSessionId(): string | undefined {
