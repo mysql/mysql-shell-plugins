@@ -748,4 +748,6 @@ export const multiResultAPIs = [
     ShellAPIGui.GuiModulesGetProfileDataTree,
     ShellAPIGui.GuiShellComplete,
     ShellAPIGui.GuiSqleditorExecute,
+    ShellAPIGui.GuiDbGetCatalogObjectNames,
+    ShellAPIGui.GuiDbGetTableObjectNames,
 ] as const;

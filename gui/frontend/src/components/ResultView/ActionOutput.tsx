@@ -23,7 +23,7 @@
 
 import React from "react";
 
-import { Label, Component, IComponentProperties, Grid } from "../ui";
+import { Label, Component, IComponentProperties } from "../ui";
 import { ITextResultEntry } from "../../script-execution";
 import { requisitions } from "../../supplement/Requisitions";
 
