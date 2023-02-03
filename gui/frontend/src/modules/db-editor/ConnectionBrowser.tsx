@@ -1063,8 +1063,11 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     } as ISqliteConnectionOptions;
                 } else if (isMySQL) {
                     let sshKeyFile;
-                    if ((details.useSSH || details.useMDS) && mysqlSshSection.sshKeyFile.value !== "") {
+                    if (details.useSSH && mysqlSshSection.sshKeyFile.value !== "") {
                         sshKeyFile = mysqlSshSection.sshKeyFile.value;
+                    }
+                    if (details.useMDS && mdsAdvancedSection.sshKeyFile.value !== "") {
+                        sshKeyFile = mdsAdvancedSection.sshKeyFile.value;
                     }
                     let sshKeyFilePublic;
                     if (details.useMDS && mdsAdvancedSection.sshPublicKeyFile.value !== "") {
@@ -1572,13 +1575,13 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                 sshKeyFile: {
                     type: "resource",
                     caption: "SSH Private Key File",
-                    value: optionsMySQL["ssh-identity-file"] ?? "id_rsa",
+                    value: optionsMySQL["ssh-identity-file"] ?? "id_rsa_mysql_shell",
                     horizontalSpan: 4,
                 },
                 sshPublicKeyFile: {
                     type: "resource",
                     caption: "SSH Public Key File",
-                    value: details.useMDS ? optionsMySQL["ssh-public-identity-file"] ?? "id_rsa.pub" : "",
+                    value: details.useMDS ? optionsMySQL["ssh-public-identity-file"] ?? "id_rsa_mysql_shell.pub" : "",
                     horizontalSpan: 4,
                     options: !details.useMDS ? [CommonDialogValueOption.Disabled] : [],
                 },
