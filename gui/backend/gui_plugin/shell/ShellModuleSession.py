@@ -262,7 +262,8 @@ class ShellModuleSession(ModuleSession):
         exec_name = sys.executable if sys.executable.endswith(
             "mysqlsh") or sys.executable.endswith("mysqlsh.exe") else "mysqlsh"
 
-        popen_args = ["--interactive=full", "--passwords-from-stdin",
+        # Temporarily passing --no-defaults until it is a configurable option in FE and is received as parameter in the BE
+        popen_args = ["--no-defaults", "--interactive=full", "--passwords-from-stdin",
                       "--py", "--json=raw", "--quiet-start=2", "--column-type-info"]
 
         # Adds the connection data to the call arguments

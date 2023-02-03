@@ -370,6 +370,7 @@ export class MySQLShellLauncher {
 
                 const secureString = secure ? "secure={}, " : "";
                 const parameters = [
+                    "--no-defaults",
                     "--py",
                     "-e",
                     `gui.start.web_server(port=${this.launchDetails.port}, ${secureString}read_token_on_stdin=True)`,
