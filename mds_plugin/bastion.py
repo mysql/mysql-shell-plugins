@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -1142,7 +1142,7 @@ def create_session(**kwargs):
                 raise Exception("No public SSH Key specified."
                                 "Cancelling operation")
 
-        default_key_file = os.path.join(ssh_key_location, "id_rsa.pub")
+        default_key_file = os.path.join(ssh_key_location, "id_rsa_oci_tunnel.pub")
         if not public_key_file and os.path.exists(default_key_file):
             public_key_file = default_key_file
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -326,12 +326,12 @@ class BastionSessionRegistry(object):
 
         # Gets the full path to the identity files
         ssh_identity_file = self._get_identity_file_name(
-            options, SSH_IDENTITY_FILE_OPT, 'id_rsa')
+            options, SSH_IDENTITY_FILE_OPT, 'id_rsa_mysql_shell')
         ssh_public_identity_file = self._get_identity_file_name(
-            options, SSH_PUBLIC_IDENTITY_FILE_OPT, 'id_rsa.pub')
+            options, SSH_PUBLIC_IDENTITY_FILE_OPT, 'id_rsa_mysql_shell.pub')
 
         # Ensures the identity files exist
-        if not self._check_identity_files_exists(ssh_identity_file, ssh_public_identity_file):
+        if not os.path.exists(ssh_identity_file) or not os.path.exists(ssh_public_identity_file):
             self._create_ssh_keys(ssh_identity_file, ssh_public_identity_file)
 
             if not os.path.exists(ssh_identity_file):
@@ -371,24 +371,6 @@ class BastionSessionRegistry(object):
                 os.path.expanduser("~/.ssh")), file)
 
         return file
-
-    def _check_identity_files_exists(self, private_file, public_file):
-        """
-        Verifies the existence of the identity files.
-        Return True if both exists or False if none exist, otherwise raises errors
-        """
-        private = os.path.exists(private_file)
-        public = os.path.exists(public_file)
-
-        if private != public:
-            if private:
-                raise Exception(
-                    f"Public SSH key file {public_file} not found.")
-            else:
-                raise Exception(
-                    f"Private SSH key file {private_file} not found.")
-
-        return private and public
 
     def _create_ssh_keys(self, ssh_private_key_path, ssh_public_key_path):
         from cryptography.hazmat.primitives import serialization
