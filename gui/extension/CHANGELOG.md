@@ -1,5 +1,14 @@
 # MySQL Shell for VS Code Change Log
 
+## Changes in 1.7.1+8.0.32
+
+### Fixes
+
+- Fixed partial listing of schemas and schema objects.
+- Disabled usage of defaults file in Shell instances launched from the GUI.
+- Updated default file names for MDS SSH keys.
+- Fixed error that prevented updating the SSH private file name in MDS connections.
+
 ## Changes in 1.7.0+8.0.32
 
 - Updated MySQL Shell to 8.0.32
