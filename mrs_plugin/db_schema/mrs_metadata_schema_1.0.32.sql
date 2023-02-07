@@ -3038,6 +3038,37 @@ GRANT SELECT ON `mysql_rest_service_metadata`.`mrs_user_group_hierarchy`
 	TO 'mysql_rest_service_data_provider';
 
 -- -----------------------------------------------------
+-- Router Management
+
+-- `mysql_rest_service_metadata`.`router`
+GRANT SELECT, INSERT, UPDATE, DELETE
+    ON `mysql_rest_service_metadata`.`router` 
+    TO 'mysql_rest_service_admin';
+GRANT SELECT, INSERT, UPDATE ON `mysql_rest_service_metadata`.`router` 
+	TO 'mysql_rest_service_meta_provider';
+
+-- `mysql_rest_service_metadata`.`router_status`
+GRANT SELECT, INSERT, UPDATE, DELETE
+    ON `mysql_rest_service_metadata`.`router_status` 
+    TO 'mysql_rest_service_admin';
+GRANT SELECT, INSERT, UPDATE ON `mysql_rest_service_metadata`.`router_status` 
+	TO 'mysql_rest_service_meta_provider';
+
+-- `mysql_rest_service_metadata`.`router_general_log`
+GRANT SELECT, INSERT, UPDATE, DELETE
+    ON `mysql_rest_service_metadata`.`router_general_log` 
+    TO 'mysql_rest_service_admin';
+GRANT INSERT ON `mysql_rest_service_metadata`.`router_general_log` 
+	TO 'mysql_rest_service_meta_provider';
+
+-- `mysql_rest_service_metadata`.`router_session`
+GRANT SELECT, INSERT, UPDATE, DELETE
+    ON `mysql_rest_service_metadata`.`router_session` 
+    TO 'mysql_rest_service_admin';
+GRANT SELECT, INSERT ON `mysql_rest_service_metadata`.`router_session` 
+	TO 'mysql_rest_service_meta_provider';
+
+-- -----------------------------------------------------
 -- Procedures
 
 -- `mysql_rest_service_metadata`.`get_sequence_id`
