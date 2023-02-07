@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -156,7 +156,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
     private initialSetup(): void {
         const { savedState } = this.props;
         const version = savedState.state.model.getVersionId();
-        if (version === 1) {
+        if (version === 2) {
             // If there was never a change in the editor so far it means that this is the first time it is shown.
             // In this case we can run our one-time initialization.
             this.consoleRef.current?.executeCommand("\\about");
