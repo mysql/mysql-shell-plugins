@@ -148,6 +148,12 @@ export interface IMrsRoleData {
     description: string,
 }
 
+export interface IMrsUserRoleData {
+    userId: string | null,
+    roleId: string | null,
+    comments: string | null,
+}
+
 export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsAddService]: { result: IMrsServiceData };
     [ShellAPIMrs.MrsGetService]: {};
@@ -216,5 +222,8 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsUpdateUser]: {};
     [ShellAPIMrs.MrsGetUser]: { result: IMrsUserData; };
     [ShellAPIMrs.MrsListRoles]: { result: IMrsRoleData[]; };
-
+    [ShellAPIMrs.MrsListUserRoles]: { result: IMrsUserRoleData[]; };
+    [ShellAPIMrs.MrsAddUserRole]: {};
+    [ShellAPIMrs.MrsDeleteUserRoles]: {};
+    [ShellAPIMrs.MrsAddRole]: {};
 }

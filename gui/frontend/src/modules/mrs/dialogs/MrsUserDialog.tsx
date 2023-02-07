@@ -23,13 +23,14 @@
 
 import React from "react";
 import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types";
-import { IMrsUserData, IMrsAuthAppData } from "../../../communication/";
+import { IMrsUserData, IMrsAuthAppData, IMrsRoleData, IMrsUserRoleData } from "../../../communication/";
 
 import {
     CommonDialogValueOption, IDialogSection, IDialogValidations, IDialogValues, ValueDialogBase,
     ValueEditDialog,
 } from "../../../components/Dialogs";
 
+// cSpell:ignore MAAAAAAAAAAAAAAAAAAAAA
 const mrsVendorId = "MAAAAAAAAAAAAAAAAAAAAA==";
 
 export class MrsUserDialog extends ValueDialogBase {
@@ -49,14 +50,25 @@ export class MrsUserDialog extends ValueDialogBase {
 
     public show(request: IDialogRequest, title: string): void {
         const authApps = request.parameters?.authApps as IMrsAuthAppData[];
+        const availableRoles = request.parameters?.availableRoles as IMrsRoleData[];
+        const userRoles = request.parameters?.userRoles as IMrsUserRoleData[];
 
-        this.dialogRef.current?.show(this.dialogValues(request, title, authApps),
-            { title: "MySQL REST User" });
+        this.dialogRef.current?.show(this.dialogValues(request, title, authApps,
+            availableRoles, userRoles),
+        { title: "MySQL REST User" });
     }
 
-    private dialogValues(request: IDialogRequest, title: string, authApps: IMrsAuthAppData[]): IDialogValues {
+    private dialogValues(request: IDialogRequest, title: string,
+        authApps: IMrsAuthAppData[],
+        availableRoles: IMrsRoleData[], userRoles: IMrsUserRoleData[]): IDialogValues {
         const data = (request.values as unknown) as IMrsUserData;
         this.currentAuthApp = request.parameters?.authApp as IMrsAuthAppData;
+
+        const rolesToDisplay = userRoles.map((role) => {
+            return availableRoles.find((availableRole) => {
+                return availableRole.id === role.roleId;
+            })?.caption ?? "unknown role";
+        });
 
         const mainSection: IDialogSection = {
             caption: title,
@@ -93,8 +105,19 @@ export class MrsUserDialog extends ValueDialogBase {
                     type: "text",
                     caption: "Email",
                     value: data.email,
-                    horizontalSpan: 6,
+                    horizontalSpan: 3,
                     description: "The email of the user",
+                },
+                roles: {
+                    type: "set",
+                    caption: "Assigned Roles",
+                    tagSet: availableRoles.map((role) => {
+                        return role.caption;
+                    }),
+                    value: rolesToDisplay,
+                    horizontalSpan: 3,
+                    options: [CommonDialogValueOption.AutoFocus],
+                    description: "Roles assign DB Object privileges to the user.",
                 },
                 loginPermittedTitle: {
                     type: "description",
@@ -165,6 +188,8 @@ export class MrsUserDialog extends ValueDialogBase {
                 values.mappedUserId = mainSection.values.mappedUserId.value as string;
                 values.appOptions = mainSection.values.appOptions.value as string;
                 values.authString = mainSection.values.authString.value as string;
+
+                values.userRoles = mainSection.values.roles.value as string[];
 
                 onClose(closure, values);
             }

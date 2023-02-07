@@ -42,6 +42,8 @@ def test_add_users(init_mrs, table_contents):
         "app_options": {},
         "auth_string": None,
         "session": init_mrs["session"],
+        "user_roles": [
+            ]
     }
 
 
@@ -199,6 +201,42 @@ def test_edit_users(init_mrs, table_contents):
     user_update = {
         "user_id": users[1]["id"],
         "value": {
+        },
+        "user_roles": None,
+        "session": init_mrs["session"]
+    }
+
+    # Update setting user_roles to None
+    roles = get_user_roles(users[1]["id"])
+    update_user(**user_update)
+    roles2 = get_user_roles(users[1]["id"])
+
+    assert roles == roles2
+
+    # Update setting user_roles to an empty list
+    user_update["user_roles"] = []
+    update_user(**user_update)
+    roles3 = get_user_roles(users[1]["id"])
+
+    assert roles3 == []
+
+    # Update setting user_roles to the previous roles
+    for role in roles:
+        user_update["user_roles"].append({
+            "user_id": lib.core.convert_id_to_string(role["user_id"]),
+            "role_id": lib.core.convert_id_to_string(role["role_id"]),
+            "comments": role["comments"],
+        })
+
+    update_user(**user_update)
+    roles4 = get_user_roles(users[1]["id"])
+
+    for role in roles:
+        assert role["role_id"] in [r["role_id"] for r in roles4]
+
+    user_update = {
+        "user_id": users[1]["id"],
+        "value": {
             "name": "User 1"
         },
         "session": init_mrs["session"]
@@ -218,6 +256,57 @@ def test_edit_users(init_mrs, table_contents):
         update_user(**user_update)
     assert str(exp.value) == "MySQL Error (1644): ClassicSession.run_sql: This email has already been used."
 
+
+
+@pytest.mark.usefixtures("init_mrs")
+def test_user_roles(init_mrs, table_contents):
+    users = get_users(session=init_mrs["session"], auth_app_id=init_mrs["auth_app_id"])
+    user = get_user(session=init_mrs["session"], user_id=users[1]["id"])
+
+    roles = get_user_roles(user["id"])
+
+    assert roles == [
+        {
+            "user_id": user["id"],
+            "role_id": lib.roles.FULL_ACCESS_ROLE_ID,
+            "comments": "Default role.",
+        }
+    ]
+
+    add_user_role(user["id"], init_mrs["roles"]["Process Admin"], "Added as process admin", init_mrs["session"])
+
+    roles = get_user_roles(user["id"])
+
+    assert roles == [
+        {
+            "user_id": user["id"],
+            "role_id": init_mrs["roles"]["Process Admin"],
+            "comments": "Added as process admin",
+        },
+        {
+            "user_id": user["id"],
+            "role_id": lib.roles.FULL_ACCESS_ROLE_ID,
+            "comments": "Default role.",
+        },
+    ]
+
+    delete_user_roles(user["id"])
+
+    roles = get_user_roles(user["id"])
+
+    assert roles == []
+
+    add_user_role(user["id"], init_mrs["roles"]["Full Access"], "Default role.", init_mrs["session"])
+
+    roles = get_user_roles(user["id"])
+
+    assert roles == [
+        {
+            "user_id": user["id"],
+            "role_id": lib.roles.FULL_ACCESS_ROLE_ID,
+            "comments": "Default role.",
+        }
+    ]
 
 
 @pytest.mark.usefixtures("init_mrs")

@@ -373,15 +373,3 @@ def status(session=None):
             return result
 
 
-@plugin_function('mrs.list.roles', shell=True, cli=True, web=True)
-def get_roles(session=None):
-    """Lists the available roles.
-
-    Args:
-        session (object): The database session to use.
-
-    Returns:
-        The list of available roles.
-    """
-    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, session=session) as session:
-        return lib.core.MrsDbExec("SELECT * FROM `mysql_rest_service_metadata`.mrs_role").exec(session).items

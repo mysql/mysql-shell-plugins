@@ -66,11 +66,14 @@ def reset_mrs_database(session):
     session.run_sql("DELETE FROM mysql_rest_service_metadata.field")
     session.run_sql("DELETE FROM mysql_rest_service_metadata.db_object")
     session.run_sql("DELETE FROM mysql_rest_service_metadata.db_schema")
+    session.run_sql("DELETE FROM mysql_rest_service_metadata.auth_app")
+    session.run_sql("DELETE FROM mysql_rest_service_metadata.mrs_user_has_role")
+    session.run_sql("DELETE FROM mysql_rest_service_metadata.mrs_user")
+    session.run_sql("DELETE FROM mysql_rest_service_metadata.mrs_role WHERE id <> ?",
+        [lib.roles.FULL_ACCESS_ROLE_ID])
     session.run_sql("DELETE FROM mysql_rest_service_metadata.service")
     session.run_sql("DELETE FROM mysql_rest_service_metadata.url_host_alias")
     session.run_sql("DELETE FROM mysql_rest_service_metadata.url_host")
-    session.run_sql("DELETE FROM mysql_rest_service_metadata.auth_app")
-    session.run_sql("DELETE FROM mysql_rest_service_metadata.mrs_user")
 
     session.run_sql("DELETE FROM mysql_rest_service_metadata.config")
     session.run_sql("INSERT INTO mysql_rest_service_metadata.config (id, service_enabled, data) VALUES (1, 1, '{}')")
@@ -208,6 +211,16 @@ def init_mrs():
     user = add_user(**user)
     assert user is not None
 
+    roles = {
+        "Full Access": lib.roles.FULL_ACCESS_ROLE_ID
+    }
+    role_id = lib.roles.add_role(session, None, None, "DBA", "Database administrator.")
+    roles["DBA"] = role_id
+    role_id = lib.roles.add_role(session, role_id, None, "Maintenance Admin", "Maintenance administrator.")
+    roles["Maintenance Admin"] = role_id
+    role_id = lib.roles.add_role(session, role_id, service["id"], "Process Admin", "Process administrator.")
+    roles["Process Admin"] = role_id
+
     yield {
         "session": session,
         "service_id": service["id"],
@@ -217,6 +230,7 @@ def init_mrs():
         "url_host_id": service["url_host_id"],
         "auth_app_id": auth_app["auth_app_id"],
         "mrs_user1": user["id"],
+        "roles": roles,
     }
 
     tmp_dir.cleanup()
