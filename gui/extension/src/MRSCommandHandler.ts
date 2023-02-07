@@ -26,7 +26,7 @@ import { commands, env, ExtensionContext, TerminalExitStatus, Uri, ViewColumn, W
 import { DialogResponseClosure, DialogType } from "../../frontend/src/app-logic/Types";
 import {
     IMrsDbObjectFieldData, IMrsAuthAppData, IMrsContentSetData,
-    IMrsDbObjectData, IMrsSchemaData, IMrsServiceData, IMrsUserData,
+    IMrsDbObjectData, IMrsSchemaData, IMrsServiceData, IMrsUserData, IMrsUserRoleData,
 } from "../../frontend/src/communication/";
 
 import { DBType, ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface";
@@ -1024,6 +1024,19 @@ export class MRSCommandHandler {
             : "Add REST User";
 
         const authApps = await backend.mrs.getAuthApps(authApp.serviceId ?? "unknown");
+        const availableRoles = await backend.mrs.listRoles(authApp?.serviceId);
+
+        let userRoles: IMrsUserRoleData[] = [];
+
+        if (user && user.id) {
+            userRoles = await backend.mrs.listUserRoles(user.id);
+        } else if (authApp.defaultRoleId) {
+            userRoles = [{
+                userId: null,
+                roleId: authApp.defaultRoleId,
+                comments: null,
+            }];
+        }
 
         const request = {
             id: "mrsUserDialog",
@@ -1032,6 +1045,8 @@ export class MRSCommandHandler {
             parameters: {
                 authApp,
                 authApps,
+                availableRoles,
+                userRoles,
             },
             values: {
                 name: user?.name,
@@ -1053,6 +1068,16 @@ export class MRSCommandHandler {
             return authApp.name === response.data?.authAppName;
         })?.id;
 
+        const rolesToUpdate = (response.data?.userRoles as string[]).map((roleToUpdate) => {
+            return {
+                userId: user?.id ?? null,
+                roleId: availableRoles.find((availableRole) => {
+                    return availableRole.caption === roleToUpdate;
+                })!.id,
+                comments: null,
+            };
+        });
+
         if (user) {
             if (response.data && user.id) {
                 try {
@@ -1066,7 +1091,7 @@ export class MRSCommandHandler {
                         appOptions: response.data.appOptions ?
                             JSON.parse(response.data.appOptions as string) as IShellDictionary : null,
                         authString: response.data.authString as string || null,
-                    });
+                    }, rolesToUpdate);
 
                     void commands.executeCommand("msg.refreshConnections");
                     showMessageWithTimeout("The MRS user has been updated.", 5000);
@@ -1085,7 +1110,8 @@ export class MRSCommandHandler {
                         response.data.mappedUserId as string,
                         response.data.appOptions ?
                             JSON.parse(response.data.appOptions as string) as IShellDictionary : null,
-                        response.data.authString as string);
+                        response.data.authString as string,
+                        rolesToUpdate);
                 }
 
                 void commands.executeCommand("msg.refreshConnections");

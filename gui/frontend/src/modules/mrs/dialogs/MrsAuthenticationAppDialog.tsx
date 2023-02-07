@@ -106,11 +106,12 @@ export class MrsAuthenticationAppDialog extends ValueDialogBase {
                 defaultRoleName: {
                     type: "choice",
                     caption: "Default Role",
-                    choices: roles ? [""].concat(roles.map((role) => {
+                    choices: roles ? roles.map((role) => {
                         return role.caption;
-                    })) : [],
+                    }) : [],
                     value: appData.defaultRoleId ?? "",
                     description: "The default role for users",
+                    optional: true,
                 },
                 flags: {
                     type: "description",

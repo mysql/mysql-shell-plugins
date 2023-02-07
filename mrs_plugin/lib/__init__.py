@@ -29,3 +29,4 @@ from mrs_plugin.lib import content_sets
 from mrs_plugin.lib import general
 from mrs_plugin.lib import dump
 from mrs_plugin.lib import users
+from mrs_plugin.lib import roles

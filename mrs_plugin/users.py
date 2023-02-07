@@ -89,6 +89,7 @@ def add_user(**kwargs):
         mapped_user_id (str): The id for the mapped user
         app_options (dict,required): The authentication app options for this user
         auth_string (str): The authentication string for the user.
+        user_roles (list): The list of user roles for this user
         session (object): The database session to use.
 
     Returns:
@@ -105,16 +106,38 @@ def add_user(**kwargs):
     app_options = lib.core.convert_json(kwargs.get("app_options"))
     auth_string = kwargs.get("auth_string")
 
+    user_roles = kwargs.get("user_roles")
+
     with lib.core.MrsDbSession(**kwargs) as session:
         with lib.core.MrsDbTransaction(session):
             user_id = lib.users.add_user(session=session, auth_app_id=auth_app_id, name=name,
                 email=email, vendor_user_id=vendor_user_id, login_permitted=login_permitted,
                 mapped_user_id=mapped_user_id, app_options=app_options, auth_string=auth_string)
 
+            if user_roles is None:
+                user_roles = []
+
+            user_roles = [{
+                "user_id": user_id,
+                "role_id": lib.core.id_to_binary(id, "user_role_id"),
+                "comments": None,
+            }
+            for id in user_roles]
+
             auth_app = lib.auth_apps.get_auth_app(session, auth_app_id)
-            if auth_app["default_role_id"]:
-                role_comments = "Default role." if auth_app["default_role_id"] == lib.auth_apps.DEFAULT_ROLE_ID else ""
-                lib.users.add_user_role(session, user_id, auth_app["default_role_id"], role_comments)
+            default_role_id = auth_app["default_role_id"]
+
+            # Add the default role to the user if specified
+            user_role_filter = list(filter(lambda role: role['role_id'] == default_role_id, user_roles))
+            if default_role_id and not user_role_filter:
+                user_roles.append({
+                    "user_id": user_id,
+                    "role_id": default_role_id,
+                    "comments": "Default role.",
+                })
+
+            for role in user_roles:
+                lib.users.add_user_role(session, role["user_id"], role["role_id"], role["comments"])
 
             return lib.users.get_user(session, user_id)
 
@@ -149,6 +172,11 @@ def update_user(**kwargs):
     Keyword Args:
         user_id (str): The id of the user to update
         value (dict): The values to be updated
+        user_roles (list): The list of user roles for this user. This shall in the format
+            {
+                "role_id": "0x......",
+                "comments": "Add some comments",
+            }
         session (object): The database session to use.
 
     Allowed options for value:
@@ -169,6 +197,11 @@ def update_user(**kwargs):
     user_id = kwargs.get("user_id")
 
     value = lib.core.convert_json(kwargs.get("value"))
+    user_roles = lib.core.convert_json(kwargs.get("user_roles"))
+
+    if user_roles:
+        for user_role in user_roles:
+            lib.core.convert_ids_to_binary(["user_id", "role_id"], user_role)
 
     if value.get("auth_string") == lib.users.STORED_PASSWORD_STRING:
         del value["auth_string"]
@@ -183,3 +216,73 @@ def update_user(**kwargs):
             if value.keys():
                 lib.users.update_user(session, user_id, value)
 
+            if user_roles is not None:
+                lib.users.delete_user_roles(session, user_id)
+
+                for role in user_roles:
+                    lib.users.add_user_role(session, user_id, role["role_id"], role["comments"])
+
+
+
+
+@plugin_function('mrs.list.userRoles', shell=True, cli=True, web=True)
+def get_user_roles(user_id=None, session=None):
+    """Get all user roles
+
+    Args:
+        user_id (str): The id of the user
+        session (object): The database session to use.
+
+    Returns:
+        None
+    """
+    if user_id:
+        user_id = lib.core.id_to_binary(user_id, "user_id")
+
+    with lib.core.MrsDbSession(session=session) as session:
+        return lib.users.get_user_roles(session, user_id)
+
+
+@plugin_function('mrs.add.userRole', shell=True, cli=True, web=True)
+def add_user_role(user_id=None, role_id=None, comments=None, session=None):
+    """Add a user role
+
+    Args:
+        user_id (str): The id of the user
+        role_id (str): The id of the role
+        comments (str): Comments for this role connection
+        session (object): The database session to use.
+
+    Returns:
+        None
+    """
+    if user_id:
+        user_id = lib.core.id_to_binary(user_id, "user_id")
+    if role_id:
+        role_id = lib.core.id_to_binary(role_id, "role_id")
+
+    with lib.core.MrsDbSession(session=session) as session:
+        with lib.core.MrsDbTransaction(session):
+            lib.users.add_user_role(session, user_id, role_id, comments)
+
+
+@plugin_function('mrs.delete.userRoles', shell=True, cli=True, web=True)
+def delete_user_roles(user_id=None, role_id=None, session=None):
+    """Delete all user roles or a single one if the role id is also specified
+
+    Args:
+        user_id (str): The id of the user
+        role_id (str): The id of the role
+        session (object): The database session to use.
+
+    Returns:
+        None
+    """
+    if user_id:
+        user_id = lib.core.id_to_binary(user_id, "user_id")
+    if role_id:
+        role_id = lib.core.id_to_binary(role_id, "role_id")
+
+    with lib.core.MrsDbSession(session=session) as session:
+        with lib.core.MrsDbTransaction(session):
+            lib.users.delete_user_roles(session, user_id, role_id)

@@ -130,17 +130,18 @@ def add_user(session, auth_app_id, name, email, vendor_user_id, login_permitted,
 
 def delete_users(session, user_id=None, auth_app_id=None):
     sql = """
-    DELETE FROM `mysql_rest_service_metadata`.`mrs_user` u
+    DELETE
+    FROM `mysql_rest_service_metadata`.`mrs_user`
     """
 
     wheres = []
     params = []
 
     if user_id:
-        wheres.append("u.id = ?")
+        wheres.append("id = ?")
         params.append(user_id)
     elif auth_app_id:
-        wheres.append("u.auth_app_id = ?")
+        wheres.append("auth_app_id = ?")
         params.append(auth_app_id)
     else:
         raise RuntimeError("The user_id or the auth_app_id must be supplied.")
@@ -180,18 +181,29 @@ def update_user(session, user_id, value: dict):
 
     core.MrsDbExec(sql, params).exec(session)
 
+def get_user_roles(session, user_id):
+    sql = """
+    SELECT *
+    FROM `mysql_rest_service_metadata`.`mrs_user_has_role`
+    WHERE user_id = ?
+    """
+
+    return core.MrsDbExec(sql, [user_id]).exec(session).items
+
+
 def add_user_role(session, user_id, role_id, comments):
     sql = """
     INSERT INTO `mysql_rest_service_metadata`.`mrs_user_has_role`
-    (user_id, role_id, comments)
+        (user_id, role_id, comments)
     VALUES
-    (?, ?, ?)"""
+        (?, ?, ?)"""
 
     core.MrsDbExec(sql, [user_id, role_id, comments]).exec(session)
 
-def delete_user_role(session, user_id, role_id=None):
+
+def delete_user_roles(session, user_id, role_id=None):
     sql = """
-    DELETE FROM `mysql_rest_service_metadata`.`mrs_user_has_role
+    DELETE FROM `mysql_rest_service_metadata`.`mrs_user_has_role`
     """
     wheres = ["user_id = ?"]
     params = [user_id]

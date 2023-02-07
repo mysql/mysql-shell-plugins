@@ -36,8 +36,6 @@ export enum ShellAPIMrs {
     MrsConfigure = "mrs.configure",
     /** Checks the MRS service status and prints its */
     MrsStatus = "mrs.status",
-    /** Lists the available roles. */
-    MrsListRoles = "mrs.list.roles",
     /** Adds a new MRS service */
     MrsAddService = "mrs.add.service",
     /** Gets a specific MRS service */
@@ -159,7 +157,17 @@ export enum ShellAPIMrs {
     /** Delete user */
     MrsDeleteUser = "mrs.delete.user",
     /** Update user */
-    MrsUpdateUser = "mrs.update.user"
+    MrsUpdateUser = "mrs.update.user",
+    /** Get all user roles */
+    MrsListUserRoles = "mrs.list.user_roles",
+    /** Add a user role */
+    MrsAddUserRole = "mrs.add.user_role",
+    /** Delete all user roles or a single one if the role id is also specified */
+    MrsDeleteUserRoles = "mrs.delete.user_roles",
+    /** List the roles for the specified service */
+    MrsListRoles = "mrs.list.roles",
+    /** Add a new role */
+    MrsAddRole = "mrs.add.role"
 }
 
 export interface IShellMrsAddServiceKwargs {
@@ -956,6 +964,8 @@ export interface IShellMrsAddUserKwargs {
     appOptions: IShellDictionary | null;
     /** The authentication string for the user. */
     authString?: string;
+    /** The list of user roles for this user */
+    userRoles?: unknown[];
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
@@ -984,6 +994,19 @@ export interface IShellMrsUpdateUserKwargs {
     userId?: string;
     /** The values to be updated */
     value?: IShellMrsUpdateUserKwargsValue;
+    /** The list of user roles for this user. This shall in the format { "role_id": "0x......", "comments": "Add some comments", } */
+    userRoles?: unknown[];
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsAddRoleKwargs {
+    /** The role from which this role derives */
+    derivedFromRoleId?: string;
+    /** The id for the service to which this role belongs */
+    specificToServiceId?: string;
+    /** The role description */
+    description?: string;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
@@ -994,7 +1017,6 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsLs]: { args: { path?: string; moduleSessionId?: string; }; };
     [ShellAPIMrs.MrsConfigure]: { args: { moduleSessionId?: string; enableMrs?: boolean; }; };
     [ShellAPIMrs.MrsStatus]: { args: { moduleSessionId?: string; }; };
-    [ShellAPIMrs.MrsListRoles]: { args: { moduleSessionId?: string; }; };
     [ShellAPIMrs.MrsAddService]: { kwargs?: IShellMrsAddServiceKwargs; };
     [ShellAPIMrs.MrsGetService]: { kwargs?: IShellMrsGetServiceKwargs; };
     [ShellAPIMrs.MrsListServices]: { kwargs?: IShellMrsListServicesKwargs; };
@@ -1056,6 +1078,11 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsAddUser]: { kwargs?: IShellMrsAddUserKwargs; };
     [ShellAPIMrs.MrsDeleteUser]: { args: { userId?: string; moduleSessionId?: string; }; };
     [ShellAPIMrs.MrsUpdateUser]: { kwargs?: IShellMrsUpdateUserKwargs; };
+    [ShellAPIMrs.MrsListUserRoles]: { args: { userId?: string; moduleSessionId?: string; }; };
+    [ShellAPIMrs.MrsAddUserRole]: { args: { userId?: string; roleId?: string; comments?: string; moduleSessionId?: string; }; };
+    [ShellAPIMrs.MrsDeleteUserRoles]: { args: { userId?: string; roleId?: string; moduleSessionId?: string; }; };
+    [ShellAPIMrs.MrsListRoles]: { args: { serviceId?: string; moduleSessionId?: string; }; };
+    [ShellAPIMrs.MrsAddRole]: { args: { caption: string; }; kwargs?: IShellMrsAddRoleKwargs; };
 
 }
 
@@ -1209,6 +1236,12 @@ export interface IMrsRoleData {
     description: string,
 }
 
+export interface IMrsUserRoleData {
+    userId: string | null,
+    roleId: string | null,
+    comments: string | null,
+}
+
 export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsAddService]: { result: IMrsServiceData };
     [ShellAPIMrs.MrsGetService]: {};
@@ -1277,6 +1310,9 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsUpdateUser]: {};
     [ShellAPIMrs.MrsGetUser]: { result: IMrsUserData; };
     [ShellAPIMrs.MrsListRoles]: { result: IMrsRoleData[]; };
-
+    [ShellAPIMrs.MrsListUserRoles]: { result: IMrsUserRoleData[]; };
+    [ShellAPIMrs.MrsAddUserRole]: {};
+    [ShellAPIMrs.MrsDeleteUserRoles]: {};
+    [ShellAPIMrs.MrsAddRole]: {};
 }
 

@@ -27,7 +27,7 @@ import {
     IMrsDbObjectData, IMrsSchemaData, IMrsServiceData, IMrsStatusData, IMrsDbObjectFieldData,
     IShellMrsUpdateDbObjectKwargsValue,
     IShellMrsUpdateAuthenticationAppKwargsValue, IShellMrsUpdateUserKwargsValue,
-    IMrsRoleData,
+    IMrsRoleData, IMrsUserRoleData,
 } from "../../communication/";
 import { webSession } from "../WebSession";
 
@@ -282,7 +282,7 @@ export class ShellInterfaceMrs {
 
     public async addUser(authAppId: string, name: string, email: string, vendorUserId: string,
         loginPermitted: boolean, mappedUserId: string, appOptions: IShellDictionary | null,
-        authString: string): Promise<void> {
+        authString: string, userRoles: IMrsUserRoleData[]): Promise<void> {
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsAddUser,
             parameters: {
@@ -295,19 +295,22 @@ export class ShellInterfaceMrs {
                     mappedUserId,
                     appOptions,
                     authString,
+                    userRoles,
                     moduleSessionId: this.moduleSessionId,
                 },
             },
         });
     }
 
-    public async updateUser(userId: string, value: IShellMrsUpdateUserKwargsValue): Promise<void> {
+    public async updateUser(userId: string, value: IShellMrsUpdateUserKwargsValue,
+        userRoles: IMrsUserRoleData[]): Promise<void> {
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsUpdateUser,
             parameters: {
                 kwargs: {
                     userId,
                     value,
+                    userRoles,
                     moduleSessionId: this.moduleSessionId,
                 },
             },
@@ -715,11 +718,26 @@ export class ShellInterfaceMrs {
         });
     }
 
-    public async listRoles(): Promise<IMrsRoleData[]> {
+    public async listRoles(serviceId?: string): Promise<IMrsRoleData[]> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsListRoles,
             parameters: {
                 args: {
+                    serviceId,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    public async listUserRoles(userId: string) : Promise<IMrsUserRoleData[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsListUserRoles,
+            parameters: {
+                args: {
+                    userId,
                     moduleSessionId: this.moduleSessionId,
                 },
             },
