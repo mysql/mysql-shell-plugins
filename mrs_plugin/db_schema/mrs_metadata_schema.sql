@@ -606,6 +606,7 @@ CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`router_status` (
   `http_requests_put` MEDIUMINT NOT NULL DEFAULT 0,
   `http_requests_delete` MEDIUMINT NOT NULL DEFAULT 0,
   `active_mysql_connections` MEDIUMINT NOT NULL DEFAULT 0,
+  `details` JSON NULL COMMENT 'More detailed status information.',
   PRIMARY KEY (`id`),
   INDEX `fk_router_status_router1_idx` (`router_id` ASC) VISIBLE,
   INDEX `status_time` (`status_time` ASC) VISIBLE,

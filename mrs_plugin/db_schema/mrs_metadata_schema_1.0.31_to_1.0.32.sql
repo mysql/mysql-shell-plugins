@@ -147,6 +147,9 @@ ALTER TABLE `router_general_log` ADD CONSTRAINT `fk_router_general_log_router1` 
 ALTER TABLE `router_general_log` DROP FOREIGN KEY fk_router_general_log_router_session1;
 ALTER TABLE `router_general_log` ADD CONSTRAINT `fk_router_general_log_router_session1` FOREIGN KEY (`router_session_id`) REFERENCES `router_session` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
 
+ALTER TABLE `mysql_rest_service_metadata`.`router_status`
+    ADD COLUMN `details` JSON NULL COMMENT 'More detailed status information.';
+
 DROP ROLE IF EXISTS 'mrs_service_admin', 'mrs_schema_admin', 'mrs_provider_metadata', 'mrs_provider_data_access';
 
 
