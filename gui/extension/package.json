@@ -634,10 +634,6 @@
                 "title": "Delete REST Database Object"
             },
             {
-                "command": "msg.mrs.editContentSet",
-                "title": "Edit REST Static Content Set"
-            },
-            {
                 "command": "msg.mrs.deleteContentSet",
                 "title": "Delete REST Static Content Set"
             },
@@ -1168,11 +1164,6 @@
                     "command": "msg.mrs.deleteDbObject",
                     "when": "viewItem == mrsDbObject",
                     "group": "3_msg@1"
-                },
-                {
-                    "command": "msg.mrs.editContentSet",
-                    "when": "viewItem == mrsContentSet",
-                    "group": "1_msg@1"
                 },
                 {
                     "command": "msg.mrs.deleteContentSet",
