@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -32,6 +32,6 @@ export class MrsContentFileTreeItem extends MrsTreeBaseItem {
         label: string,
         public value: IMrsContentFileData,
         entry: IConnectionEntry) {
-        super(label, entry, true, value.enabled ? "mrsContentFile.svg" : "mrsContentFileDisabled.svg");
+        super(label, entry, false, value.enabled ? "mrsContentFile.svg" : "mrsContentFileDisabled.svg");
     }
 }
