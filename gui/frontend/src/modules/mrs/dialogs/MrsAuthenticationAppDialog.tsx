@@ -93,15 +93,15 @@ export class MrsAuthenticationAppDialog extends ValueDialogBase {
                 },
                 url: {
                     type: "text",
-                    caption: "URL",
+                    caption: "Custom URL",
                     value: appData.url,
-                    description: "The OAuth2 service URL",
+                    description: "A custom OAuth2 service URL",
                 },
                 urlDirectAuth: {
                     type: "text",
-                    caption: "URL for direct Authentication",
+                    caption: "Custom URL for Access Token",
                     value: appData.urlDirectAuth,
-                    description: "The datatype of the parameter",
+                    description: "A custom URL for exchanging the Access Token",
                 },
                 defaultRoleName: {
                     type: "choice",
@@ -124,14 +124,6 @@ export class MrsAuthenticationAppDialog extends ValueDialogBase {
                     type: "boolean",
                     caption: "Enabled",
                     value: appData.enabled,
-                    options: [
-                        CommonDialogValueOption.Grouped,
-                    ],
-                },
-                useBuiltInAuthorization: {
-                    type: "boolean",
-                    caption: "Use built in authorization",
-                    value: appData.useBuiltInAuthorization,
                     options: [
                         CommonDialogValueOption.Grouped,
                     ],
@@ -171,7 +163,6 @@ export class MrsAuthenticationAppDialog extends ValueDialogBase {
                 values.url = mainSection.values.url.value as string;
                 values.urlDirectAuth = mainSection.values.urlDirectAuth.value as string;
                 values.enabled = mainSection.values.enabled.value as string;
-                values.useBuiltInAuthorization = mainSection.values.useBuiltInAuthorization.value as string;
                 values.limitToRegisteredUsers = mainSection.values.limitToRegisteredUsers.value as string;
                 values.defaultRoleName = mainSection.values.defaultRoleName.value as string;
 

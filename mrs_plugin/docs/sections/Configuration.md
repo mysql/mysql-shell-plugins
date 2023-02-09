@@ -25,12 +25,13 @@ To configure the MySQL REST Service (MRS), the following steps need to be taken.
 
 1. Deployment of a MySQL solution
 2. Configuration of the MRS metadata database schema
-3. Creation of MySQL user account for MySQL Router access
-4. Configuration of one or more MySQL Router instances for MRS
+3. Bootstrapping and running one or more MySQL Router instances for MRS support
 
-After these steps have been performed, the MySQL REST Service is ready to serve REST services.
+After these steps have been performed, the MySQL REST Service is fully configured.
 
-## Deployment of a MySQL solution
+The HTTPS endpoints can then be accessed as configured during the MySQL Router bootstrap process.
+
+**_Deployment of a MySQL solution_**
 
 The following MySQL solutions are supported.
 
@@ -50,6 +51,18 @@ Please refer to the corresponding documentation on how to deploy and configure t
 
 The MySQL REST Service stores its configuration in the `mysql_rest_service_metadata` database schema. To deploy the metadata schema, perform one of the following tasks.
 
+Please note that the MySQL user that is used to connect to the MySQL Solution needs to have MySQL privileges to create database schemas and roles.
+
+### MRS Configuration via MySQL Shell for VS Code
+
+Start VS Code and install the MySQL Shell for VS Code extension, then add a connection to the MySQL setup.
+
+Right click on the connection in the DATABASE CONNECTIONS view and select Configure Instance for MySQL REST Service Support.
+
+![Configure Instance for MySQL REST Service Support](../images/vsc-mrs-configure.png "Configure Instance for MySQL REST Service Support")
+
+The MRS metadata schema has now been configured.
+
 ### MRS Configuration via MySQL Shell
 
 Open a terminal, start the MySQL Shell and connect to the MySQL setup.
@@ -67,23 +80,38 @@ Configure the metadata schema via the MRS plugin by executing `mrs.configure()`.
 
 The MRS metadata schema has now been configured.
 
-### MRS Configuration via MySQL Shell for VS Code
-
-Start VS Code and install the MySQL Shell for VS Code extension, then add a connection to the MySQL setup.
-
-Right click on the connection in the DATABASE CONNECTIONS view and select Configure Instance for MySQL REST Service Support.
-
-![Configure Instance for MySQL REST Service Support](../images/vsc-mrs-configure.jpg "Configure Instance for MySQL REST Service Support")
-
-The MRS metadata schema has now been configured.
-
-## Configuration of MySQL Routers
+## Bootstrapping and running MySQL Routers with MRS support
 
 MySQL Routers are an essential part of any MySQL solution and therefore often deployed in the same step as the MySQL Servers. Please see the MySQL Router documentation for more details.
 
-When deploying a new MySQL Router it is advised to use the `mysqlrouter_bootstrap` command to bootstrap and configure the router, including the MRS configuration.
+A MySQL Router needs to be configured to support MRS. This is usually done by using the `mysqlrouter_bootstrap` command which will query the user for the necessary information.
 
-    mysqlrouter_bootstrap dba@127.0.0.1:13000 --mrs --directory ~/.mysqlrouter
+### Using MySQL Shell for VS Code to Bootstrap and Run a MySQL Router
+
+When working with a local development setup it is common to install the MySQL Router instance on the local development machine.
+
+In this case MySQL Shell for VS Code can be used to simplify the bootstrap process and to launch the MySQL Router.
+
+1. Download and install the MySQL Router package on your local development machine
+   - When not using the DMG on macOS or MSI package on Windows to install MySQL Router, please make sure that the directory holding the MySQL Router binaries is in the system PATH
+2. Inside MySQL Shell for VS Code expand a DB Connection in the DATABASE CONNECTIONS view and right click on the `MySQL REST Service` tree item and select `Run Local MySQL Router Instance for MRS Development`.
+   - If the MySQL Router has not been configured yet the bootstrap operation will run in an integrated VS Code terminal, then start the MySQL Router
+   - The MySQL Router debug output can then be inspected in the VS Code terminal
+3. To shut down the MySQL Router, set the focus to the VS Code terminal showing the debug output and press `Ctrl` + `C`
+
+Please note that this only works for classic MySQL connections that are not using the MySQL SSH tunneling or MDS tunneling feature.
+
+![Bootstrap and Run MySQL Router](../images/vsc-mrs-run-mysql-router.png "Bootstrap and Run MySQL Router")
+
+After the MySQL Router has been bootstrapped and started, the MRS is available at `https://localhost:8443/<service-name>`
+
+You can then proceed and [add a REST Service](#adding-a-rest-service).
+
+### Bootstrapping a MySQL Router on the Command Line
+
+When deploying a new MySQL Router it is advised to use the `mysqlrouter_bootstrap` command to bootstrap and configure the router, including the MRS configuration. This is also true for the reconfiguring of an existing MySQL Router for MRS support.
+
+    mysqlrouter_bootstrap dba@127.0.0.1:3306 --mrs --directory ~/.mysqlrouter
 
 Please follow the interactive steps on the command line to configure the router.
 

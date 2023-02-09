@@ -711,7 +711,7 @@ exports[`DialogHost Tests Show MRS Schema Dialog (snapshot) 1`] = `
             class="msg label valueTitle"
             data-tooltip="expand"
           >
-            MRS Service
+            MRS Service Path
           </label>
           <div
             __self="[object Object]"
@@ -731,6 +731,14 @@ exports[`DialogHost Tests Show MRS Schema Dialog (snapshot) 1`] = `
               localhost
             </label>
           </div>
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The path of the MRS Service this DB Schema belongs to
+          </label>
         </div>
         <div
           __self="[object Object]"
@@ -761,6 +769,14 @@ exports[`DialogHost Tests Show MRS Schema Dialog (snapshot) 1`] = `
               type="text"
             />
           </div>
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            Comments to describe this MRS Schema.
+          </label>
         </div>
         <div
           __self="[object Object]"
@@ -774,7 +790,7 @@ exports[`DialogHost Tests Show MRS Schema Dialog (snapshot) 1`] = `
             class="msg label valueTitle"
             data-tooltip="expand"
           >
-            Request Path
+            MRS Schema Path
           </label>
           <div
             __self="[object Object]"
@@ -791,6 +807,14 @@ exports[`DialogHost Tests Show MRS Schema Dialog (snapshot) 1`] = `
               type="text"
             />
           </div>
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The request path to access the schema, has to start with /
+          </label>
         </div>
         <div
           __self="[object Object]"
@@ -821,6 +845,14 @@ exports[`DialogHost Tests Show MRS Schema Dialog (snapshot) 1`] = `
               type="text"
             />
           </div>
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The name of the corresponding database schema.
+          </label>
         </div>
         <div
           __self="[object Object]"
@@ -851,6 +883,44 @@ exports[`DialogHost Tests Show MRS Schema Dialog (snapshot) 1`] = `
               type="text"
             />
           </div>
+        </div>
+        <div
+          __self="[object Object]"
+          __source="[object Object]"
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-row: span 2; grid-column: span 4;"
+        >
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Options
+          </label>
+          <div
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <textarea
+              __self="[object Object]"
+              __source="[object Object]"
+              class="msg input valueEditor"
+              id="options"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            Additional options in JSON format
+          </label>
         </div>
         <div
           __self="[object Object]"
@@ -893,44 +963,6 @@ exports[`DialogHost Tests Show MRS Schema Dialog (snapshot) 1`] = `
               class="checkMark"
             />
             Requires Authentication
-          </label>
-        </div>
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
-          class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
-        >
-          <label
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-            Options
-          </label>
-          <div
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
-          >
-            <textarea
-              __self="[object Object]"
-              __source="[object Object]"
-              class="msg input valueEditor"
-              id="options"
-              spellcheck="true"
-              type="text"
-            />
-          </div>
-          <label
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg label cellDescription"
-            data-tooltip="expand"
-          >
-            Additional options in JSON format
           </label>
         </div>
       </div>
@@ -1046,7 +1078,7 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
             class="msg label valueTitle"
             data-tooltip="expand"
           >
-            Service Path
+            MRS Service Path
           </label>
           <div
             __self="[object Object]"
@@ -1063,6 +1095,14 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
               type="text"
             />
           </div>
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The URL context root of this service.
+          </label>
         </div>
         <div
           __self="[object Object]"
@@ -1093,6 +1133,14 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
               type="text"
             />
           </div>
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            Comments to describe this MRS Service.
+          </label>
         </div>
         <div
           __self="[object Object]"
@@ -1123,6 +1171,14 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
               type="text"
             />
           </div>
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            If specified, only requests for this host will served.
+          </label>
         </div>
         <div
           __self="[object Object]"
@@ -1147,6 +1203,14 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
             style="flex-direction: row; flex-wrap: wrap;"
             tabindex="0"
           />
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The supported protocols.
+          </label>
         </div>
         <div
           __self="[object Object]"
@@ -1166,20 +1230,6 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
             __self="[object Object]"
             __source="[object Object]"
             class="msg checkbox checked valueEditor"
-            id="makeDefault"
-            tabindex="0"
-          >
-            <span
-              __self="[object Object]"
-              __source="[object Object]"
-              class="checkMark"
-            />
-            Default
-          </label>
-          <label
-            __self="[object Object]"
-            __source="[object Object]"
-            class="msg checkbox checked valueEditor"
             id="enabled"
             tabindex="0"
           >
@@ -1189,6 +1239,20 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
               class="checkMark"
             />
             Enabled
+          </label>
+          <label
+            __self="[object Object]"
+            __source="[object Object]"
+            class="msg checkbox checked valueEditor"
+            id="makeDefault"
+            tabindex="0"
+          >
+            <span
+              __self="[object Object]"
+              __source="[object Object]"
+              class="checkMark"
+            />
+            Default
           </label>
         </div>
         <div
@@ -1229,7 +1293,7 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
                   class="msg label"
                   data-tooltip="inherit"
                 >
-                  Authentication
+                  Options
                 </label>
               </div>
               <div
@@ -1245,7 +1309,7 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
                   class="msg label"
                   data-tooltip="inherit"
                 >
-                  Authentication Apps
+                  Authentication
                 </label>
               </div>
               <div
@@ -1261,7 +1325,7 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
                   class="msg label"
                   data-tooltip="inherit"
                 >
-                  Options
+                  Authentication Apps
                 </label>
               </div>
               <div
@@ -1288,7 +1352,7 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
                   __self="[object Object]"
                   __source="[object Object]"
                   class="msg container fixedScrollbar gridCell"
-                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
+                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
                 >
                   <label
                     __self="[object Object]"
@@ -1296,121 +1360,7 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
                     class="msg label valueTitle"
                     data-tooltip="expand"
                   >
-                    Authentication Path:
-                  </label>
-                  <div
-                    __self="[object Object]"
-                    __source="[object Object]"
-                    class="msg container fixedScrollbar inputWithProgress"
-                    style="flex-direction: row;"
-                  >
-                    <input
-                      __self="[object Object]"
-                      __source="[object Object]"
-                      class="msg input valueEditor"
-                      id="authPath"
-                      spellcheck="true"
-                      type="text"
-                    />
-                  </div>
-                  <label
-                    __self="[object Object]"
-                    __source="[object Object]"
-                    class="msg label cellDescription"
-                    data-tooltip="expand"
-                  >
-                    The path used for authentication.
-                  </label>
-                </div>
-                <div
-                  __self="[object Object]"
-                  __source="[object Object]"
-                  class="msg container fixedScrollbar gridCell"
-                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 5;"
-                >
-                  <label
-                    __self="[object Object]"
-                    __source="[object Object]"
-                    class="msg label valueTitle"
-                    data-tooltip="expand"
-                  >
-                    Redirection URL:
-                  </label>
-                  <div
-                    __self="[object Object]"
-                    __source="[object Object]"
-                    class="msg container fixedScrollbar inputWithProgress"
-                    style="flex-direction: row;"
-                  >
-                    <input
-                      __self="[object Object]"
-                      __source="[object Object]"
-                      class="msg input valueEditor"
-                      id="authCompletedUrl"
-                      spellcheck="true"
-                      type="text"
-                    />
-                  </div>
-                  <label
-                    __self="[object Object]"
-                    __source="[object Object]"
-                    class="msg label cellDescription"
-                    data-tooltip="expand"
-                  >
-                    The authentication workflow will redirect to this URL after login.
-                  </label>
-                </div>
-                <div
-                  __self="[object Object]"
-                  __source="[object Object]"
-                  class="msg container fixedScrollbar gridCell"
-                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
-                >
-                  <label
-                    __self="[object Object]"
-                    __source="[object Object]"
-                    class="msg label valueTitle"
-                    data-tooltip="expand"
-                  >
-                    Redirection URL Validation:
-                  </label>
-                  <div
-                    __self="[object Object]"
-                    __source="[object Object]"
-                    class="msg container fixedScrollbar inputWithProgress"
-                    style="flex-direction: row;"
-                  >
-                    <input
-                      __self="[object Object]"
-                      __source="[object Object]"
-                      class="msg input valueEditor"
-                      id="authCompletedUrlValidation"
-                      spellcheck="true"
-                      type="text"
-                    />
-                  </div>
-                  <label
-                    __self="[object Object]"
-                    __source="[object Object]"
-                    class="msg label cellDescription"
-                    data-tooltip="expand"
-                  >
-                    A regular expression to validate the /login?onCompletionRedirect parameter set by the app.
-                  </label>
-                </div>
-                <div
-                  __self="[object Object]"
-                  __source="[object Object]"
-                  class="msg container fixedScrollbar gridCell"
-                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
-                >
-                  <label
-                    __self="[object Object]"
-                    __source="[object Object]"
-                    class="msg label valueTitle"
-                    data-tooltip="expand"
-                  >
-                    Authentication Completed Page Content:
+                    Options in JSON Format:
                   </label>
                   <div
                     __self="[object Object]"
@@ -1422,19 +1372,11 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
                       __self="[object Object]"
                       __source="[object Object]"
                       class="msg input valueEditor"
-                      id="authCompletedPageContent"
+                      id="options"
                       spellcheck="true"
                       type="text"
                     />
                   </div>
-                  <label
-                    __self="[object Object]"
-                    __source="[object Object]"
-                    class="msg label cellDescription"
-                    data-tooltip="expand"
-                  >
-                    If this field is set its content will replace the page content of the /completed page.
-                  </label>
                 </div>
               </div>
             </div>

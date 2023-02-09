@@ -29,7 +29,7 @@ InitialAuthAppIds = []
 def test_add_auth_vendors(init_mrs, table_contents):
     auth_vendor_table = table_contents("auth_vendor")
 
-    assert auth_vendor_table.count == 5
+    assert auth_vendor_table.count == 4
     assert auth_vendor_table.items == [{
         'comments': 'Built-in user management of MRS',
         'enabled': 1,
@@ -49,13 +49,6 @@ def test_add_auth_vendors(init_mrs, table_contents):
         'enabled': 1,
         'id': lib.core.id_to_binary("0x32000000000000000000000000000000", ""),
         'name': 'Facebook',
-        'validation_url': 'NULL'
-    },
-    {
-        'comments': 'Uses the Twitter OAuth2 service',
-        'enabled': 1,
-        'id': lib.core.id_to_binary("0x33000000000000000000000000000000", ""),
-        'name': 'Twitter',
         'validation_url': 'NULL'
     },
     {
@@ -98,8 +91,7 @@ def test_add_auth_apps(init_mrs, table_contents):
         'name': 'Test Auth App',
         'service_id': init_mrs["service_id"],
         'url': args["url"],
-        'url_direct_auth': None,
-        'use_built_in_authorization': 1
+        'url_direct_auth': None
     }
 
     args = {
@@ -129,8 +121,7 @@ def test_add_auth_apps(init_mrs, table_contents):
         'name': 'Test Auth App 2',
         'service_id': init_mrs["service_id"],
         'url': args["url"],
-        'url_direct_auth': None,
-        'use_built_in_authorization': 1
+        'url_direct_auth': None
     }
 
 @pytest.mark.usefixtures("init_mrs")
@@ -168,7 +159,6 @@ def test_update_auth_apps(init_mrs, table_contents):
         "access_token": "new access token",
         "app_id": "new app id",
         "enabled": False,
-        "use_built_in_authorization": False,
         "limit_to_registered_users": False,
         "default_role_id": None
     }
@@ -193,8 +183,7 @@ def test_update_auth_apps(init_mrs, table_contents):
         'name': value["name"],
         'service_id': init_mrs["service_id"],
         'url': value["url"],
-        'url_direct_auth': value["url_direct_auth"],
-        'use_built_in_authorization': int(value["use_built_in_authorization"])
+        'url_direct_auth': value["url_direct_auth"]
     }
 
 

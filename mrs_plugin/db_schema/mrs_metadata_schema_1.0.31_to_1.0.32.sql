@@ -15,6 +15,8 @@ DELIMITER ;
 ALTER TABLE `service` DROP FOREIGN KEY fk_service_url_host1;
 ALTER TABLE `service` ADD CONSTRAINT `fk_service_url_host1` FOREIGN KEY (`url_host_id`) REFERENCES `url_host` (`id`) ON DELETE RESTRICT ON UPDATE NO ACTION;
 
+ALTER TABLE `auth_app` DROP COLUMN `use_built_in_authorization`;
+
 DELIMITER $$
 CREATE DEFINER=CURRENT_USER TRIGGER `service_BEFORE_DELETE` BEFORE DELETE ON `service` FOR EACH ROW BEGIN
         # Since FK CASCADE does not fire the triggers on the related tables, manually trigger the DELETEs
@@ -74,8 +76,11 @@ ALTER TABLE `mrs_role` ADD CONSTRAINT `fk_priv_role_priv_role1` FOREIGN KEY (`de
 
 DELIMITER $$
 CREATE DEFINER=CURRENT_USER TRIGGER `mrs_role_BEFORE_DELETE` BEFORE DELETE ON `mrs_role` FOR EACH ROW BEGIN
-        DELETE FROM `mysql_rest_service_metadata`.`mrs_user_has_role` WHERE `role_id` = OLD.`id`;
-        DELETE FROM `mysql_rest_service_metadata`.`mrs_role` WHERE `derived_from_role_id` = OLD.`id`;
+    DELETE FROM `mysql_rest_service_metadata`.`mrs_user_has_role` WHERE `role_id` = OLD.`id`;
+    -- Workaround to fix issue with recursive delete
+	IF OLD.id <> NULL THEN
+		DELETE FROM `mysql_rest_service_metadata`.`mrs_role` WHERE `derived_from_role_id` = OLD.`id`;
+	END IF;
     DELETE FROM `mysql_rest_service_metadata`.`mrs_privilege` WHERE `role_id` = OLD.`id`;
     DELETE FROM `mysql_rest_service_metadata`.`mrs_user_group_has_role` WHERE `role_id` = OLD.`id`;
 END$$
@@ -149,6 +154,112 @@ ALTER TABLE `router_general_log` ADD CONSTRAINT `fk_router_general_log_router_se
 
 ALTER TABLE `mysql_rest_service_metadata`.`router_status`
     ADD COLUMN `details` JSON NULL COMMENT 'More detailed status information.';
+
+DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`auth_app_AFTER_INSERT_AUDIT_LOG`;
+DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`auth_app_AFTER_UPDATE_AUDIT_LOG`;
+DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`auth_app_AFTER_DELETE_AUDIT_LOG`;
+
+DELIMITER $$
+
+CREATE TRIGGER `mysql_rest_service_metadata`.`auth_app_AFTER_INSERT_AUDIT_LOG` AFTER INSERT ON `auth_app` FOR EACH ROW
+BEGIN
+	INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
+		table_name, dml_type, old_row_data, new_row_data, old_row_id, new_row_id, changed_by, changed_at)
+	VALUES (
+        "auth_app", 
+        "INSERT", 
+        NULL,
+        JSON_OBJECT(
+            "id", NEW.id,
+            "auth_vendor_id", NEW.auth_vendor_id,
+            "service_id", NEW.service_id,
+            "name", NEW.name,
+            "description", NEW.description,
+            "url", NEW.url,
+            "url_direct_auth", NEW.url_direct_auth,
+            "access_token", NEW.access_token,
+            "app_id", NEW.app_id,
+            "enabled", NEW.enabled,
+            "limit_to_registered_users", NEW.limit_to_registered_users,
+            "default_role_id", NEW.default_role_id),
+        NULL,
+        NEW.id,
+        CURRENT_USER(), 
+        CURRENT_TIMESTAMP
+    );
+END$$
+
+CREATE TRIGGER `mysql_rest_service_metadata`.`auth_app_AFTER_UPDATE_AUDIT_LOG` AFTER UPDATE ON `auth_app` FOR EACH ROW
+BEGIN
+	INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
+		table_name, dml_type, old_row_data, new_row_data, old_row_id, new_row_id, changed_by, changed_at)
+	VALUES (
+        "auth_app", 
+        "UPDATE", 
+        JSON_OBJECT(
+            "id", OLD.id,
+            "auth_vendor_id", OLD.auth_vendor_id,
+            "service_id", OLD.service_id,
+            "name", OLD.name,
+            "description", OLD.description,
+            "url", OLD.url,
+            "url_direct_auth", OLD.url_direct_auth,
+            "access_token", OLD.access_token,
+            "app_id", OLD.app_id,
+            "enabled", OLD.enabled,
+            "limit_to_registered_users", OLD.limit_to_registered_users,
+            "default_role_id", OLD.default_role_id),
+        JSON_OBJECT(
+            "id", NEW.id,
+            "auth_vendor_id", NEW.auth_vendor_id,
+            "service_id", NEW.service_id,
+            "name", NEW.name,
+            "description", NEW.description,
+            "url", NEW.url,
+            "url_direct_auth", NEW.url_direct_auth,
+            "access_token", NEW.access_token,
+            "app_id", NEW.app_id,
+            "enabled", NEW.enabled,
+            "limit_to_registered_users", NEW.limit_to_registered_users,
+            "default_role_id", NEW.default_role_id),
+        OLD.id,
+        NEW.id,
+        CURRENT_USER(), 
+        CURRENT_TIMESTAMP
+    );
+END$$
+
+CREATE TRIGGER `mysql_rest_service_metadata`.`auth_app_AFTER_DELETE_AUDIT_LOG` AFTER DELETE ON `auth_app` FOR EACH ROW
+BEGIN
+	INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
+		table_name, dml_type, old_row_data, new_row_data, old_row_id, new_row_id, changed_by, changed_at)
+	VALUES (
+        "auth_app", 
+        "DELETE", 
+        JSON_OBJECT(
+            "id", OLD.id,
+            "auth_vendor_id", OLD.auth_vendor_id,
+            "service_id", OLD.service_id,
+            "name", OLD.name,
+            "description", OLD.description,
+            "url", OLD.url,
+            "url_direct_auth", OLD.url_direct_auth,
+            "access_token", OLD.access_token,
+            "app_id", OLD.app_id,
+            "enabled", OLD.enabled,
+            "limit_to_registered_users", OLD.limit_to_registered_users,
+            "default_role_id", OLD.default_role_id),
+        NULL,
+        OLD.id,
+        NULL,
+        CURRENT_USER(), 
+        CURRENT_TIMESTAMP
+    );
+END$$
+
+DELIMITER ;
+
+DELETE FROM `mysql_rest_service_metadata`.`auth_vendor` WHERE id = 0x33000000000000000000000000000000;
 
 DROP ROLE IF EXISTS 'mrs_service_admin', 'mrs_schema_admin', 'mrs_provider_metadata', 'mrs_provider_data_access';
 

@@ -627,11 +627,11 @@
             },
             {
                 "command": "msg.mrs.editDbObject",
-                "title": "Edit REST Database Object"
+                "title": "Edit REST Object"
             },
             {
                 "command": "msg.mrs.deleteDbObject",
-                "title": "Delete REST Database Object"
+                "title": "Delete REST Object"
             },
             {
                 "command": "msg.mrs.deleteContentSet",
@@ -647,7 +647,7 @@
             },
             {
                 "command": "msg.mrs.dumpObjectToJSONFile",
-                "title": "Dump REST Database Object To JSON File..."
+                "title": "Dump REST Object To JSON File..."
             },
             {
                 "command": "msg.mrs.loadSchemaFromJSONFile",
@@ -655,7 +655,7 @@
             },
             {
                 "command": "msg.mrs.loadObjectFromJSONFile",
-                "title": "Load REST Database Object From JSON File..."
+                "title": "Load REST Object From JSON File..."
             },
             {
                 "command": "msg.showTaskOutput",

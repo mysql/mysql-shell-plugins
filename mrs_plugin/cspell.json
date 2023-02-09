@@ -15,6 +15,9 @@
     "ignoreWords": [
         "mysqlsh",
         "PYTHONPATH",
-        "InnoDB"
+        "InnoDB",
+        "mysqlrouter",
+        "myservice",
+        "AREST"
     ]
 }

@@ -23,7 +23,7 @@ along with this program; if not, write to the Free Software Foundation, Inc.,
 
 The MySQL REST Service (MRS) can be deployed in many different ways depending on the individual project requirements.
 
-## Deployments for Development
+**_Deployments for Development_**
 
 The smallest possible development environment consists of a single MySQL Server and a MySQL Router running on the same machine.
 
@@ -31,7 +31,7 @@ The recommended deployment for development consists of an InnoDB Cluster setup w
 
 For cloud based development, a MySQL Database Service instance with the high availability feature enabled and two compute instances with MySQL Router deployments should be used.
 
-## Production Deployments
+**_Production Deployments_**
 
 In a production environment an InnoDB Cluster setup with three or more MySQL Router instances should be used. It is recommended to use a load balancer to expose the HTTPS port of the MySQL Routers to the public internet.
 

@@ -31,12 +31,16 @@ See here for more details about [ORDS](https://docs.oracle.com/en/database/oracl
 
 MRS consists of the following components:
 
-- A MySQL Router plugin to serve the HTTP REST interface.
-- A metadata schema `mysql_rest_service_metadata` that holds the MRS configuration
-- A MySQL Shell plugin to configure and manage the MRS setup
-- MySQL Shell for VS Code support for managing MRS through a graphical user interface (GUI)
+- A MySQL Solution (like MySQL Heatwave, MySQL InnoDB Cluster, a standalone MySQL Server, etc.)
+  - Serving a metadata schema `mysql_rest_service_metadata` that holds the MRS configuration
+  - Serving the application's data
+- MySQL Router
+  - One or many MySQL Router instances to serve the HTTPS REST interface on default port 8443
+- MySQL Shell / MySQL Shell for VS Code
+  - Support for managing MRS through a graphical user interface (GUI) embedded inside VS Code
+  - MRS plugin to configure and manage the MRS setup on the terminal and via scripts
 
-**_About REST APIs_**
+### About REST APIs
 
 Representational State Transfer (REST) is a style of software architecture for distributed hypermedia systems such as the World Wide Web. An API is described as RESTful when it conforms to the tenets of REST. Although a full discussion of REST is outside the scope of this document, a REST API has the following characteristics:
 
