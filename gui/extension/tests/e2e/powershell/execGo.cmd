@@ -1,5 +1,5 @@
 
- Rem * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ Rem * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  Rem *
  Rem * This program is free software; you can redistribute it and/or modify
  Rem * it under the terms of the GNU General Public License, version 2.0,
@@ -19,4 +19,4 @@
  Rem * You should have received a copy of the GNU General Public License
  Rem * along with this program; if not, write to the Free Software Foundation, Inc.,
  Rem * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
-"C:\Program Files\PowerShell\7\pwsh.exe" -NoProfile -ExecutionPolicy Bypass -Command "& '%WORKSPACE%\shell-plugins\gui\extension\tests\e2e\powershell\go.ps1'"
+"C:\Program Files\PowerShell\7\pwsh.exe" -NoProfile -ExecutionPolicy Bypass -Command "& {Start-Process pwsh -Wait -WindowStyle Minimized -ArgumentList '-NoProfile -ExecutionPolicy Bypass -File ""%WORKSPACE%\shell-plugins\gui\extension\tests\e2e\powershell\go.ps1""' -Verb RunAs}" 

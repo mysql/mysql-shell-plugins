@@ -37,6 +37,7 @@ import {
     EditorView,
     error,
     TreeItem,
+    InputBox,
 } from "vscode-extension-tester";
 import { expect } from "chai";
 import { ChildProcess, spawn } from "child_process";
@@ -51,10 +52,9 @@ export const consolesTreeSection = "MYSQL SHELL CONSOLES";
 export const tasksTreeSection = "MYSQL SHELL TASKS";
 
 export const explicitWait = 5000;
-export const ociExplicitWait = 20000;
+export const ociExplicitWait = 10000;
 export const ociTasksExplicitWait = 50000;
 
-export const mysqlshLog = join(String(process.env.APPDATA), "MySQL", "mysqlsh-gui", "mysqlsh.log");
 export let isExtPrepared = false;
 
 export let driver: WebDriver;
@@ -73,7 +73,21 @@ export class Misc {
 
         await Misc.reloadVSCode();
 
-        await fs.truncate(mysqlshLog);
+        try {
+            await fs.truncate(Misc.getMysqlshLog());
+        } catch (e) {
+            await driver.wait(async ()  => {
+                try {
+                    await fs.truncate(Misc.getMysqlshLog());
+
+                    return true;
+                } catch (e) {
+                    // continue
+                }
+            }, explicitWait,
+            `mysqlsh.log was not created for suite ${String(process.env.TEST_SUITE)}`);
+        }
+
         await new EditorView().closeAllEditors();
         activityBar = new ActivityBar();
         await (await activityBar.getViewControl("MySQL Shell for VS Code"))?.openView();
@@ -189,25 +203,27 @@ export class Misc {
         ctxMenuItem: string,
     ): Promise<void> => {
 
-        await driver.wait(async () => {
-            try {
-                const ctxMenuItems = ctxMenuItem.split("->");
-                const menu = await treeItem?.openContextMenu();
-                const menuItem = await menu?.getItem(ctxMenuItems[0].trim());
-                const anotherMenu = await menuItem!.select();
-                if (ctxMenuItems.length > 1) {
-                    await (await anotherMenu?.getItem(ctxMenuItems[1].trim()))!.select();
+        if (treeItem) {
+            await driver.wait(async () => {
+                try {
+                    const ctxMenuItems = ctxMenuItem.split("->");
+                    const menu = await treeItem?.openContextMenu();
+                    const menuItem = await menu?.getItem(ctxMenuItems[0].trim());
+                    const anotherMenu = await menuItem!.select();
+                    if (ctxMenuItems.length > 1) {
+                        await (await anotherMenu?.getItem(ctxMenuItems[1].trim()))!.select();
+                    }
+
+                    return true;
+                } catch (e) {
+                    console.log(e);
+
+                    return false;
                 }
-    
-                return true;
-            } catch (e) {
-                if (!(e instanceof error.StaleElementReferenceError)) {
-                    throw e;
-                }
-            }
-            
-        }, explicitWait, "Context menu was stale after 5 secs");
-        
+            }, explicitWait, `Could not select '${ctxMenuItem}' for Tree Item '${await treeItem.getLabel()}'`);
+        } else {
+            throw new Error(`TreeItem for context menu '${ctxMenuItem}' is undefined`);
+        }
     };
 
     public static clickSectionToolbarButton = async (
@@ -413,15 +429,16 @@ export class Misc {
 
         const img = await driver.takeScreenshot();
         const testName = testContext.currentTest?.title;
+        const ssDir = `${String(process.env.WORKSPACE)}/screenshots`;
         try {
-            await fs.access("tests/e2e/screenshots");
+            await fs.access(ssDir);
         } catch (e) {
-            await fs.mkdir("tests/e2e/screenshots");
+            await fs.mkdir(ssDir);
         }
-        const imgPath = `tests/e2e/screenshots/${String(testName)}_screenshot.png`;
+        const imgPath = join(ssDir, `${String(testName)}_screenshot.png`);
         await fs.writeFile(imgPath, img, "base64");
 
-        addContext(testContext, { title: "Failure", value: `../${imgPath}` });
+        addContext(testContext, { title: "Failure", value: `../screenshots/${String(testName)}_screenshot.png` });
 
     };
 
@@ -495,6 +512,27 @@ export class Misc {
 
         return (await section.findElements(By.css(".monaco-progress-container.active"))).length > 0;
     };
+
+    public static setInputPassword = async (password: string): Promise<void> => {
+        await driver.wait(async () => {
+            try {
+                const input = new InputBox();
+                await input.setText(password);
+                await input.confirm();
+                try {
+                    await input.setText("N");
+                    await input.confirm();
+                } catch (e) {
+                    // continue
+                }
+
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }, explicitWait, "Input password was not displayed");
+    };
+
 
     public static setConfirmDialog = async (dbConfig: IDBConnection, value: string): Promise<void> => {
 
@@ -712,6 +750,14 @@ export class Misc {
                 }
             }
         }, explicitWait, "Could not connect to DB (button was always stale)");
+    };
+
+    public static getMysqlshLog = (): string => {
+        if (process.env.TEST_SUITE !== undefined) {
+            return join(String(process.env.USERPROFILE), `mysqlsh-${String(process.env.TEST_SUITE)}`, "mysqlsh.log");
+        } else {
+            return join(String(process.env.APPDATA), "MySQL", "mysqlsh-gui", "mysqlsh.log");
+        }
     };
 
     private static getCmdResultContent = async (multipleQueries: boolean,
@@ -944,9 +990,8 @@ export class Misc {
     };
 
     private static checkCertificate = async (): Promise<void> => {
-
         await driver.wait(async () => {
-            const text = await fs.readFile(mysqlshLog);
+            const text = await fs.readFile(Misc.getMysqlshLog());
             if (text.includes("Certificate is not installed")) {
                 throw new Error("Certificate is not installed");
             } else if (
@@ -956,6 +1001,5 @@ export class Misc {
                 return true;
             }
         }, 15000, "Could not verify certificate installation");
-
     };
 }
