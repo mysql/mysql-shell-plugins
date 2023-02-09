@@ -45,7 +45,7 @@ def get_users(**kwargs):
     if auth_app_id is None and service_id is None:
         raise Exception("Either the auth_app_id or the service_id is required.")
 
-    with lib.core.MrsDbSession(**kwargs) as session:
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         users = None
         return lib.users.get_users(session, auth_app_id=auth_app_id, service_id=service_id)
 
@@ -68,7 +68,7 @@ def get_user(**kwargs):
 
     user_id = kwargs.get("user_id")
 
-    with lib.core.MrsDbSession(**kwargs) as session:
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         return lib.users.get_user(session, user_id)
 
 
@@ -108,7 +108,7 @@ def add_user(**kwargs):
 
     user_roles = kwargs.get("user_roles")
 
-    with lib.core.MrsDbSession(**kwargs) as session:
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         with lib.core.MrsDbTransaction(session):
             user_id = lib.users.add_user(session=session, auth_app_id=auth_app_id, name=name,
                 email=email, vendor_user_id=vendor_user_id, login_permitted=login_permitted,
@@ -158,7 +158,7 @@ def delete_user(user_id=None, session=None):
     if not user_id:
         raise Exception("The user_id is required to perform this operation.")
 
-    with lib.core.MrsDbSession(session=session) as session:
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, session=session) as session:
         with lib.core.MrsDbTransaction(session):
             lib.users.delete_user_by_id(session, user_id)
 
@@ -211,7 +211,7 @@ def update_user(**kwargs):
     if "auth_string" in value and "auth_app_id" not in value:
         raise RuntimeError("The auth_app_id is required to set the auth_string.")
 
-    with lib.core.MrsDbSession(**kwargs) as session:
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         with lib.core.MrsDbTransaction(session):
             if value.keys():
                 lib.users.update_user(session, user_id, value)

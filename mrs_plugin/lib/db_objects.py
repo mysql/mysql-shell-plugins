@@ -34,7 +34,6 @@ def format_db_object_listing(db_objects, print_header=False):
     Returns:
         The formated list of services
     """
-
     if print_header:
         output = (f"{'ID':>3} {'PATH':35} {'OBJECT NAME':30} {'CRUD':4} "
                   f"{'TYPE':10} {'ENABLED':7} {'AUTH':4} "
@@ -45,6 +44,10 @@ def format_db_object_listing(db_objects, print_header=False):
     for i, item in enumerate(db_objects, start=1):
         path = (item['host_ctx'] + item['schema_request_path'] +
                 item['request_path'])
+
+        if len(path) > 35:
+            path = f"{path[:32]}..."
+
         # Shorten the list of CRUD operation names to just the first characters
         crud = ''.join([o[0] for o in item['crud_operations']]) \
             if item['crud_operations'] else ""

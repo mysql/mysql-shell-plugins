@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -64,7 +64,7 @@ def format_service_listing(services, print_header=False):
 
 
     Returns:
-        The formated list of services
+        The formatted list of services
     """
 
     if print_header:

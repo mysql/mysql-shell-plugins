@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -38,7 +38,7 @@ def resolve_db_object_ids(db_object_name=None, schema_id=None, request_path=None
     kwargs["db_object_ids"] = [db_object_id] if db_object_id is not None else []
 
     if not db_object_id:
-        schema = lib.schemas.get_schema(schema_id=schema_id, session=session)
+        schema = resolve_schema(session, schema_id)
         schema_id = schema.get("id")
 
         if db_object_name:
@@ -243,7 +243,7 @@ def add_db_object(**kwargs):
 
                 db_object_name = lib.core.prompt_for_list_item(
                     item_list=[db_object["OBJECT_NAME"] for db_object in db_objects],
-                    prompt_caption=("Please enter the name or index of an "
+                    prompt_caption=("Please enter the name or index of a "
                                     "database object: "),
                     print_list=True)
 

@@ -111,9 +111,13 @@ def print_exception(exc_type, exc_value, exc_traceback):
     # Exception handler for the MrsDbSession context manager, which should
     # be used only in interactive mode.
     # Returns True to signal the exception was dealt with
-    exc_str = "".join([s.replace("\\n", "\n") for s in traceback.format_exception(
-        exc_type, exc_value, exc_traceback)])
-    print(exc_str)
+    if mysqlsh.globals.shell.options.verbose <= 1:
+        print(f"{exc_value}")
+    else:
+        exc_str = "".join([s.replace("\\n", "\n") for s in traceback.format_exception(
+            exc_type, exc_value, exc_traceback)])
+        print(exc_str)
+
     return True
 
 
