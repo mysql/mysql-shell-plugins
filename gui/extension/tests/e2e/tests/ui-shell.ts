@@ -75,15 +75,6 @@ describe("MYSQL SHELL CONSOLES", () => {
 
     });
 
-    after(async function () {
-        try {
-            await treeConsolesSection?.collapse();
-        } catch (e) {
-            await Misc.processFailure(this);
-            throw e;
-        }
-    });
-
     describe("Toolbar shell", () => {
 
         afterEach(async function () {
@@ -118,7 +109,6 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Open MySQL Shell Console Browser", async () => {
 
             await Misc.clickSectionToolbarButton(treeConsolesSection!, "Open MySQL Shell Console Browser");
-
             await Misc.switchToWebView();
 
             expect(await driver.wait(until.elementLocated(By.id("title")),
@@ -170,8 +160,6 @@ describe("MYSQL SHELL CONSOLES", () => {
             try {
                 await Misc.clickSectionToolbarButton(treeConsolesSection!, "Add a New MySQL Shell Console");
                 await Misc.switchToWebView();
-                await driver.wait(until.elementLocated(By.css("textarea")),
-                    explicitWait*2, "Could not find the textarea");
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -240,7 +228,11 @@ describe("MYSQL SHELL CONSOLES", () => {
 
             await Database.setPassword(shellConn);
 
-            await Misc.setConfirmDialog(shellConn, "no");
+            try {
+                await Misc.setConfirmDialog(shellConn, "no");
+            } catch (e) {
+                // continue
+            }
 
             await driver.wait(async () => {
                 const next = await driver

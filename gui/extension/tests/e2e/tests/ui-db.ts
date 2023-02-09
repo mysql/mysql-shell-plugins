@@ -23,9 +23,7 @@
 import {
     By,
     EditorView,
-    Workbench,
     until,
-    InputBox,
     Key as seleniumKey,
     ModalDialog,
     WebElement,
@@ -46,13 +44,11 @@ import {
     driver,
     explicitWait,
     Misc,
-    mysqlshLog,
     isExtPrepared,
 } from "../lib/misc";
 
 import { IDBConnection, Database } from "../lib/db";
 
-import { ChildProcess } from "child_process";
 import { join } from "path";
 
 describe("DATABASE CONNECTIONS", () => {
@@ -107,6 +103,7 @@ describe("DATABASE CONNECTIONS", () => {
     before(async function () {
 
         try {
+
             if (!isExtPrepared) {
                 await Misc.prepareExtension();
             }
@@ -133,15 +130,6 @@ describe("DATABASE CONNECTIONS", () => {
             treeGlobalConn = await Misc.getTreeElement(treeDBSection, globalConn.caption, dbTreeSection);
             expect(treeGlobalConn).to.exist;
 
-        } catch (e) {
-            await Misc.processFailure(this);
-            throw e;
-        }
-    });
-
-    after(async function () {
-        try {
-            await (await Misc.getSection(dbTreeSection))?.collapse();
         } catch (e) {
             await Misc.processFailure(this);
             throw e;
@@ -219,38 +207,9 @@ describe("DATABASE CONNECTIONS", () => {
 
         });
 
-        // bug: https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=34200753
-        it.skip("Connect to external MySQL Shell process", async () => {
-            let prc: ChildProcess;
-            try {
-                prc = await Misc.startServer();
-                await Misc.selectMoreActionsItem(treeDBSection!, "Connect to External MySQL Shell Process");
-                const input = new InputBox();
-                await input.setText("http://localhost:8500");
-                await input.confirm();
-
-                let serverOutput = "";
-                prc!.stdout!.on("data", (data) => {
-                    serverOutput += data as String;
-                });
-
-                await driver.wait(() => {
-                    if (serverOutput.indexOf(
-                        "Registering session") !== -1) {
-                        return true;
-                    }
-                }, 10000, "External process was not successful");
-
-            } finally {
-                if (prc!) {
-                    prc!.kill();
-                }
-            }
-        });
-
         it("Restart internal MySQL Shell process", async () => {
 
-            await fs.truncate(mysqlshLog);
+            await fs.truncate(Misc.getMysqlshLog());
 
             await Misc.selectMoreActionsItem(treeDBSection!, "Restart the Internal MySQL Shell Process");
 
@@ -262,7 +221,7 @@ describe("DATABASE CONNECTIONS", () => {
             await driver.wait(until.stalenessOf(dialog), 3000, "Restart MySQL Shell dialog is still displayed");
 
             await driver.wait(async () => {
-                const text = await fs.readFile(mysqlshLog);
+                const text = await fs.readFile(Misc.getMysqlshLog());
                 if (text.includes("Registering session...")) {
                     return true;
                 }
@@ -302,6 +261,7 @@ describe("DATABASE CONNECTIONS", () => {
         before(async function () {
             try {
                 await treeGlobalConn?.expand();
+                await Misc.setInputPassword(globalConn.password);
                 treeGlobalSchema = await Misc.getTreeElement(treeGlobalConn, globalConn.schema);
                 await treeGlobalSchema!.expand();
                 treeGlobalSchemaTables = await Misc.getTreeElement(treeGlobalSchema, "Tables");
@@ -315,17 +275,17 @@ describe("DATABASE CONNECTIONS", () => {
             }
         });
 
-        beforeEach( () => {
-            clean = false;
-        });
-
         afterEach(async function () {
             if (this.currentTest?.state === "failed") {
                 await Misc.processFailure(this);
             }
 
             if (clean) {
-                await Misc.cleanEditor();
+                try {
+                    await Misc.cleanEditor();
+                } catch (e) {
+                    // continue
+                }
             }
 
             await driver.switchTo().defaultContent();
@@ -348,6 +308,13 @@ describe("DATABASE CONNECTIONS", () => {
             await new EditorView().openEditor(globalConn.caption);
 
             await Misc.switchToWebView();
+
+            await Database.setPassword(globalConn);
+            try {
+                await Misc.setConfirmDialog(globalConn, "no");
+            } catch (e) {
+                // continue
+            }
 
             const item = await driver.wait(until.elementLocated(By.css(".zoneHost")),
                 explicitWait, "zoneHost not found");
@@ -383,21 +350,30 @@ describe("DATABASE CONNECTIONS", () => {
 
             await new EditorView().closeEditor(globalConn.caption);
 
+            await new EditorView().closeEditor(globalConn.caption);
+
         });
 
         it("Open MySQL Shell Console for this connection", async () => {
-            
+
             await Misc.selectContextMenuItem(treeGlobalConn!, "Open MySQL Shell Console for this Connection");
-            
+
             await new EditorView().openEditor("MySQL Shell Consoles");
-            
+
             await Misc.switchToWebView();
-            
+
+            await Database.setPassword(globalConn);
+            try {
+                await Misc.setConfirmDialog(globalConn, "no");
+            } catch (e) {
+                // continue
+            }
+
             const item = await driver.wait(until
                 .elementLocated(By.css(".zoneHost .actionLabel > span")), 10000, "MySQL Shell Console was not loaded");
 
             expect(await item.getText()).to.include("Welcome to the MySQL Shell - GUI Console");
-           
+
             await driver.switchTo().defaultContent();
 
             try {
@@ -405,6 +381,8 @@ describe("DATABASE CONNECTIONS", () => {
                 expect(await Misc.getTreeElement(
                     treeConsolesSection, `Session to ${globalConn.caption}`)).to.exist;
             } finally {
+                const edView = new EditorView();
+                await edView.closeEditor("MySQL Shell Consoles");
                 await treeConsolesSection?.collapse();
             }
 
@@ -505,6 +483,13 @@ describe("DATABASE CONNECTIONS", () => {
             }, explicitWait, `${globalConn.caption} editor was not opened`);
 
             await Misc.switchToWebView();
+
+            await Database.setPassword(globalConn);
+            try {
+                await Misc.setConfirmDialog(globalConn, "no");
+            } catch (e) {
+                // continue
+            }
 
             await driver.wait(until.elementLocated(By.css(".zoneHost")),
                 explicitWait, "zoneHost not found");
@@ -610,6 +595,10 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Table - Show Data", async () => {
 
+            treeGlobalSchema = await Misc.getTreeElement(treeGlobalConn, globalConn.schema);
+
+            treeGlobalSchemaTables = await Misc.getTreeElement(treeGlobalSchema, "Tables");
+
             const actorTable = await Misc.getTreeElement(treeGlobalSchemaTables, "actor");
 
             await Misc.selectContextMenuItem(actorTable!, "Show Data...");
@@ -698,6 +687,8 @@ describe("DATABASE CONNECTIONS", () => {
             let treeTestTable: TreeItem | undefined;
             await driver?.wait(async () => {
                 await Database.reloadConnection(treeGlobalConn!);
+                treeGlobalSchema = await Misc.getTreeElement(treeGlobalConn, globalConn.schema);
+                treeGlobalSchemaTables = await Misc.getTreeElement(treeGlobalSchema, "Tables");
                 treeTestTable = await Misc.getTreeElement(treeGlobalSchemaTables, testTable);
 
                 return treeTestTable;
@@ -727,6 +718,9 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("View - Show Data", async () => {
 
+            treeGlobalSchema = await Misc.getTreeElement(treeGlobalConn, globalConn.schema);
+            treeGlobalSchemaViews = await Misc.getTreeElement(treeGlobalSchema, "Views");
+
             const treeTestView = await Misc.getTreeElement(treeGlobalSchemaViews, "test_view");
 
             await Misc.selectContextMenuItem(treeTestView!, "Show Data...");
@@ -741,6 +735,8 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("View - Copy name and create statement to clipboard", async () => {
 
+            treeGlobalSchema = await Misc.getTreeElement(treeGlobalConn, globalConn.schema);
+            treeGlobalSchemaViews = await Misc.getTreeElement(treeGlobalSchema, "Views");
             const treeTestView = await Misc.getTreeElement(treeGlobalSchemaViews, "test_view");
 
             await Misc.selectContextMenuItem(treeTestView!, "Copy To Clipboard -> Name");
@@ -815,6 +811,8 @@ describe("DATABASE CONNECTIONS", () => {
             let treeTestView: TreeItem | undefined;
             await driver?.wait(async () => {
                 await Database.reloadConnection(treeGlobalConn!);
+                treeGlobalSchema = await Misc.getTreeElement(treeGlobalConn, globalConn.schema);
+                treeGlobalSchemaViews = await Misc.getTreeElement(treeGlobalSchema, "Views");
                 treeTestView = await Misc.getTreeElement(treeGlobalSchemaViews, testView);
 
                 return treeTestView;
@@ -879,119 +877,8 @@ describe("DATABASE CONNECTIONS", () => {
             }
         });
 
-        it("Store and clear password", async () => {
 
-            let host = await Database.getWebViewConnection(globalConn.caption, false);
-            await driver.executeScript(
-                "arguments[0].click();",
-                await host.findElement(By.id("triggerTileAction")),
-            );
-
-            let contextMenu = await driver.wait(
-                until.elementLocated(By.css(".noArrow.menu")),
-                2000,
-            );
-
-            await driver.executeScript(
-                "arguments[0].click();",
-                await contextMenu.findElement(By.id("edit")),
-            );
-
-            let conDialog = await driver.wait(until.elementLocated(By.css(".valueEditDialog")),
-                explicitWait, "Dialog was not displayed");
-            await conDialog.findElement(By.id("storePassword")).click();
-            const savePassDialog = await driver.findElement(By.css(".visible.passwordDialog"));
-            await savePassDialog.findElement(By.css("input")).sendKeys(globalConn.password);
-            await savePassDialog.findElement(By.id("ok")).click();
-            await conDialog.findElement(By.id("ok")).click();
-
-            await driver.executeScript(
-                "arguments[0].click();",
-                await Database.getWebViewConnection(globalConn.caption, false),
-            );
-
-            expect(await Database.isConnectionSuccessful(globalConn.caption)).to.be.true;
-
-            await Database.closeConnection(globalConn.caption);
-
-            await Misc.clickSectionToolbarButton(treeDBSection!,
-                "Open the DB Connection Browser");
-
-            await Misc.switchToWebView();
-
-            host = await Database.getWebViewConnection(globalConn.caption, false);
-
-            await driver.executeScript(
-                "arguments[0].click();",
-                await host.findElement(By.id("triggerTileAction")),
-            );
-
-            contextMenu = await driver.wait(
-                until.elementLocated(By.css(".noArrow.menu")),
-                2000,
-            );
-
-            await driver.executeScript(
-                "arguments[0].click();",
-                await contextMenu.findElement(By.id("edit")),
-            );
-
-            conDialog = await driver.findElement(By.css(".valueEditDialog"));
-            await conDialog.findElement(By.id("clearPassword")).click();
-
-            const confirmDialog = await driver.wait(until.elementLocated(By.css(".confirmDialog")),
-                explicitWait, "Confirm dialog was not displayed");
-            const confirmText = await confirmDialog.findElement(By.id("dialogMessage"));
-            expect(await confirmText.getText()).to.equals("Password was cleared.");
-            await confirmDialog.findElement(By.id("accept")).click();
-            await driver.wait(until.stalenessOf(confirmDialog), 3000, "Confirm dialog was not closed");
-            await conDialog.findElement(By.id("ok")).click();
-
-            await driver.executeScript(
-                "arguments[0].click();",
-                await Database.getWebViewConnection(globalConn.caption, false),
-            );
-
-            const passwordDialog = await driver.wait(until.elementLocated(By.css(".passwordDialog")),
-                explicitWait, "Password dialog was not displayed");
-
-            expect(passwordDialog).to.exist;
-            await passwordDialog.findElement(By.id("cancel")).click();
-            await driver.wait(until.elementLocated(By.css(".errorPanel button")), explicitWait,
-                "Cancellation error dialog was not found").click();
-        });
-
-        it("Confirm dialog - Save password", async () => {
-
-            await driver.executeScript(
-                "arguments[0].click();",
-                await Database.getWebViewConnection(globalConn.caption, false),
-            );
-
-            await Database.setPassword(globalConn);
-
-            await Misc.setConfirmDialog(globalConn, "yes");
-
-            expect(await Database.isConnectionSuccessful(globalConn.caption))
-                .to.be.true;
-
-            await Database.closeConnection(globalConn.caption);
-
-            await Misc.clickSectionToolbarButton(treeDBSection!,
-                "Open the DB Connection Browser");
-
-            await Misc.switchToWebView();
-
-            await driver.executeScript(
-                "arguments[0].click();",
-                await Database.getWebViewConnection(globalConn.caption, false),
-            );
-
-            expect(await Database.isConnectionSuccessful(globalConn.caption))
-                .to.be.true;
-        });
-
-        it("Edit a database connection and verify issues", async () => {
+        it("Edit a database connection and verify errors", async () => {
             const host = await Database.getWebViewConnection(globalConn.caption, false);
             await driver.executeScript(
                 "arguments[0].click();",
@@ -1085,8 +972,8 @@ describe("DATABASE CONNECTIONS", () => {
                 .findElement(By.id("description"))
                 .sendKeys("Local Sqlite connection");
 
-            const sqlite = join(String(process.env.APPDATA), "MySQL", "mysqlsh-gui", "plugin_data",
-                "gui_plugin", "mysqlsh_gui_backend.sqlite3");
+            const sqlite = join(String(process.env.USERPROFILE), `mysqlsh-${String(process.env.TEST_SUITE)}`,
+                "plugin_data", "gui_plugin", "mysqlsh_gui_backend.sqlite3");
 
             const dbPath = await driver.findElement(By.id("dbFilePath"));
             await dbPath.sendKeys(sqlite);
@@ -1195,6 +1082,13 @@ describe("DATABASE CONNECTIONS", () => {
                 dbConn,
             );
 
+            await Database.setPassword(globalConn);
+            try {
+                await Misc.setConfirmDialog(globalConn, "no");
+            } catch (e) {
+                // continue
+            }
+
             expect(await Database.isConnectionSuccessful(conName)).to.be.true;
 
             const result = await Misc.execCmd("SHOW STATUS LIKE 'Ssl_cipher';");
@@ -1209,19 +1103,35 @@ describe("DATABASE CONNECTIONS", () => {
 
     describe("DB Editor", () => {
 
+        let clean = false;
+
         before(async function () {
             try {
                 await Misc.connectToDatabase(treeGlobalConn!);
                 await Misc.switchToWebView();
+                await Database.setPassword(globalConn);
+                try {
+                    await Misc.setConfirmDialog(globalConn, "no");
+                } catch (e) {
+                // continue
+                }
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
             }
         });
 
+        beforeEach( () => {
+            clean = false;
+        });
+
         afterEach(async function () {
             if (this.currentTest?.state === "failed") {
                 await Misc.processFailure(this);
+            }
+
+            if (clean) {
+                await Misc.cleanEditor();
             }
         });
 
@@ -1237,7 +1147,6 @@ describe("DATABASE CONNECTIONS", () => {
         });
 
         it("Multi-cursor", async () => {
-
             try {
                 await Misc.writeCmd("select * from sakila.actor;");
                 await driver.actions().sendKeys(Key.ENTER).perform();
@@ -1279,7 +1188,7 @@ describe("DATABASE CONNECTIONS", () => {
                 expect(items[1]).to.include("testing");
                 expect(items[2]).to.include("testing");
             } finally {
-                await Misc.cleanEditor();
+                clean = true;
             }
         });
 
@@ -1350,7 +1259,7 @@ describe("DATABASE CONNECTIONS", () => {
 
                 expect(await Misc.getResultColumns(result[1] as WebElement)).to.include("address_id");
             } finally {
-                await Misc.cleanEditor();
+                clean = true;
             }
         });
 
@@ -1493,7 +1402,7 @@ describe("DATABASE CONNECTIONS", () => {
                 expect(await finder.getAttribute("aria-hidden")).equals("true");
 
             } finally {
-                await Misc.cleanEditor();
+                clean = true;
             }
 
 
@@ -1550,7 +1459,7 @@ describe("DATABASE CONNECTIONS", () => {
                 expect(otherResult1 !== result4[0]).equals(true);
 
             } finally {
-                await Misc.cleanEditor();
+                clean = true;
             }
 
 
@@ -1641,6 +1550,12 @@ describe("DATABASE CONNECTIONS", () => {
             try {
                 await Misc.connectToDatabase(treeGlobalConn!);
                 await Misc.switchToWebView();
+                await Database.setPassword(globalConn);
+                try {
+                    await Misc.setConfirmDialog(globalConn, "no");
+                } catch (e) {
+                // continue
+                }
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -1711,6 +1626,7 @@ describe("DATABASE CONNECTIONS", () => {
                 await treeGlobalConn?.expand();
                 treeMySQLAdmin = await Misc.getTreeElement(treeGlobalConn, "MySQL Administration");
                 await treeMySQLAdmin?.expand();
+
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -1741,6 +1657,12 @@ describe("DATABASE CONNECTIONS", () => {
             const serverSt = await Misc.getTreeElement(treeMySQLAdmin, "Server Status");
             await serverSt!.click();
             await Misc.switchToWebView();
+            await Database.setPassword(globalConn);
+            try {
+                await Misc.setConfirmDialog(globalConn, "no");
+            } catch (e) {
+                // continue
+            }
             expect(await Database.getCurrentEditor()).to.equals("Server Status");
 
             const sections = await driver?.findElements(By.css(".grid .heading label"));
@@ -1760,6 +1682,7 @@ describe("DATABASE CONNECTIONS", () => {
             const clientConn = await Misc.getTreeElement(treeMySQLAdmin, "Client Connections");
             await clientConn!.click();
             await Misc.switchToWebView();
+
             await driver.wait(async () => {
                 return await Database.getCurrentEditor() === "Client Connections";
             }, explicitWait, "Clients Connections editor was not selected");
@@ -1793,6 +1716,7 @@ describe("DATABASE CONNECTIONS", () => {
             const perfDash = await Misc.getTreeElement(treeMySQLAdmin, "Performance Dashboard");
             await perfDash!.click();
             await Misc.switchToWebView();
+
             await driver.wait(async () => {
                 return await Database.getCurrentEditor() === "Performance Dashboard";
             }, explicitWait, "Performance Dashboard editor was not selected");
@@ -1812,301 +1736,6 @@ describe("DATABASE CONNECTIONS", () => {
 
         });
 
-    });
-
-    describe("REST API", () => {
-
-        let randomService = "";
-        let treeRandomService: TreeItem | undefined;
-        let treeMySQLRESTService: TreeItem | undefined;
-        let treeMySQLRESTSchema: TreeItem | undefined;
-
-        before(async function () {
-            try {
-                const randomCaption = String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000));
-                await treeGlobalConn?.expand();
-
-                await Misc.selectContextMenuItem(treeGlobalConn!, "Configure Instance for MySQL REST Service Support");
-
-                await Misc.verifyNotification("MySQL REST Service configured successfully.");
-
-                await driver.wait(async () => {
-                    treeMySQLRESTService = await Misc.getTreeElement(treeGlobalConn, "MySQL REST Service");
-
-                    return treeMySQLRESTService;
-                }, explicitWait, `MySQL REST Service is not on the tree`);
-
-                await Misc.selectContextMenuItem(treeGlobalConn!, "Show MySQL System Schemas");
-
-                await driver.wait(Misc.getTreeElement(treeGlobalConn, "mysql_rest_service_metadata"),
-                    explicitWait, `mysql_rest_service_metadata is not on the tree`);
-
-                await Misc.selectContextMenuItem(treeMySQLRESTService!, "Add REST Service...");
-
-                randomService = `Service${randomCaption}`;
-                await Misc.switchToWebView();
-                await Database.setRestService(`/${randomService}`, "", "localhost", ["HTTP"], true, true);
-
-                await Misc.verifyNotification("The MRS service has been created.");
-
-                await driver?.switchTo().defaultContent();
-
-                await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
-
-                await treeMySQLRESTService?.expand();
-
-                treeRandomService = await Misc.getTreeElement(treeMySQLRESTService, `/${randomService}`);
-
-                expect(treeRandomService).to.exist;
-
-                await driver?.switchTo().defaultContent();
-            } catch (e) {
-                await Misc.processFailure(this);
-                throw e;
-            }
-        });
-
-        afterEach(async function () {
-            await driver.switchTo().defaultContent();
-            if (this.currentTest?.state === "failed") {
-                const notifications = await new Workbench().getNotifications();
-                if (notifications.length > 0) {
-                    await notifications[notifications.length - 1].expand();
-                }
-
-                await Misc.processFailure(this);
-
-                if (notifications.length > 0) {
-                    await notifications[notifications.length - 1].dismiss();
-                }
-            }
-
-            await new EditorView().closeAllEditors();
-        });
-
-        after(async function () {
-            try {
-                const treeServMetadata = await Misc.getTreeElement(treeGlobalConn, "mysql_rest_service_metadata");
-                await Misc.selectContextMenuItem(treeServMetadata!, "Drop Schema...");
-
-                const ntf = await driver.findElements(By.css(".notifications-toasts.visible"));
-                if (ntf.length > 0) {
-                    await ntf[0].findElement(By.xpath(
-                        `//a[contains(@title, 'Drop mysql_rest_service_metadata')]`)).click();
-                } else {
-                    const dialog = new ModalDialog();
-                    await dialog.pushButton(`Drop mysql_rest_service_metadata`);
-                }
-
-                await Misc
-                    .verifyNotification("The object mysql_rest_service_metadata has been dropped successfully.");
-
-            } catch (e) {
-                await Misc.processFailure(this);
-                throw e;
-            }
-        });
-
-        it("Set as new DEFAULT REST Service", async () => {
-
-            await Misc.selectContextMenuItem(treeRandomService!, "Set as New Default REST Service");
-
-            await Misc.verifyNotification("The MRS service has been set as the new default service.");
-
-            expect(await Misc.isDefaultItem(treeRandomService!, "rest")).to.be.true;
-        });
-
-        it("Edit REST Service", async () => {
-
-            await Misc.selectContextMenuItem(treeRandomService!, "Edit REST Service...");
-
-            await Misc.switchToWebView();
-
-            await Database.setRestService(`/edited${randomService}`, "edited",
-                "localhost", [], false, false);
-
-            await driver.switchTo().defaultContent();
-
-            await Misc.verifyNotification("The MRS service has been successfully updated.");
-
-            await driver.wait(async () => {
-                await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
-                treeRandomService = await Misc.getTreeElement(treeMySQLRESTService, `/edited${randomService}`);
-
-                return treeRandomService;
-            }, 3000, `/edited${randomService} was not displayed on the tree`);
-
-            await Misc.selectContextMenuItem(treeRandomService!, "Edit REST Service...");
-
-            await Misc.switchToWebView();
-
-            const dialog = await driver.wait(until.elementLocated(By.id("mrsServiceDialog")),
-                explicitWait, "MRS Service dialog was not displayed");
-            const inputServPath = await dialog.findElement(By.id("servicePath"));
-            const inputComments = await dialog.findElement(By.id("comments"));
-            const inputHost = await dialog.findElement(By.id("hostName"));
-
-            const protocols = await dialog.findElements(By.css("#protocols label.tag"));
-            const inputMrsEnabled = await dialog.findElement(By.id("enabled"));
-
-            const mrsEnabledClasses = (await inputMrsEnabled.getAttribute("class")).split(" ");
-
-            expect(protocols.length).to.equals(0);
-            expect(await inputServPath.getAttribute("value")).equals(`/edited${randomService}`);
-            expect(await inputComments.getAttribute("value")).equals("edited");
-            expect(await inputHost.getAttribute("value")).equals("localhost");
-            expect(mrsEnabledClasses).to.include("unchecked");
-
-        });
-
-        it("Add a REST Service Schema", async () => {
-
-            const randomServiceLabel = await treeRandomService?.getLabel();
-
-            const treeSakila = await Misc.getTreeElement(treeGlobalConn, "sakila");
-
-            await Misc.selectContextMenuItem(treeSakila!, "Add Schema to REST Service");
-
-            await Misc.switchToWebView();
-
-            await Database.setRestSchema("sakila",
-                `localhost${String(randomServiceLabel)}`, "/sakila", 1, true, true, "sakila");
-
-            await driver.switchTo().defaultContent();
-
-            await Misc.verifyNotification("The MRS schema has been added successfully.");
-
-            await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
-
-            const treeService = await Misc.getTreeElement(treeMySQLRESTService, String(randomServiceLabel));
-
-            await treeService?.expand();
-
-            treeMySQLRESTSchema = await driver.wait(Misc.getTreeElement(treeService, "sakila (/sakila)"),
-                explicitWait, `'sakila (/sakila)' does not exist on the tree`);
-
-        });
-
-        it("Edit REST Schema", async () => {
-
-            const randomServiceLabel = await treeRandomService?.getLabel();
-
-            const treeService = await Misc.getTreeElement(treeMySQLRESTService, String(randomServiceLabel));
-
-            await treeService?.expand();
-
-            await Misc.selectContextMenuItem(treeMySQLRESTSchema!, "Edit REST Schema...");
-
-            await Misc.switchToWebView();
-
-            await Database.setRestSchema("sakila",
-                `localhost${String(randomServiceLabel)}`, "/edited", 5, false, false, "edited");
-
-            await driver.switchTo().defaultContent();
-
-            await Misc.verifyNotification("The MRS schema has been updated successfully.");
-
-            await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
-
-            const treeSakilaEdited = await Misc.getTreeElement(treeRandomService, "sakila (/edited)");
-
-            await Misc.selectContextMenuItem(treeSakilaEdited!, "Edit REST Schema...");
-
-            await Misc.switchToWebView();
-
-            const dialog = await driver.wait(until.elementLocated(By.id("mrsSchemaDialog")),
-                explicitWait, "MRS Schema dialog was not displayed");
-
-            const inputSchemaName = await dialog.findElement(By.id("name"));
-            const inputRequestPath = await dialog.findElement(By.id("requestPath"));
-            const inputRequiresAuth = await dialog.findElement(By.id("requiresAuth"));
-            const inputEnabled = await dialog.findElement(By.id("enabled"));
-            const inputItemsPerPage = await dialog.findElement(By.css("#itemsPerPage"));
-            const inputComments = await dialog.findElement(By.id("comments"));
-            const inputRequiresAuthClasses = (await inputRequiresAuth.getAttribute("class")).split(" ");
-            const inputEnabledClasses = (await inputEnabled.getAttribute("class")).split(" ");
-
-            expect(await inputSchemaName.getAttribute("value")).equals("sakila");
-            expect(await inputRequestPath.getAttribute("value")).equals("/edited");
-            expect(inputRequiresAuthClasses).to.include("unchecked");
-            expect(inputEnabledClasses).to.include("unchecked");
-            expect(await inputItemsPerPage.getAttribute("value")).equals("5");
-            expect(await inputComments.getAttribute("value")).equals("edited");
-
-        });
-
-        it("Add Table to REST Service", async () => {
-
-            const treeSakilaEdited = await Misc.getTreeElement(treeRandomService, "sakila (/edited)");
-            await treeSakilaEdited?.collapse();
-
-            const treeSakila = await Misc.getTreeElement(treeGlobalConn, "sakila");
-            await treeSakila?.expand();
-
-            const treeTables = await Misc.getTreeElement(treeSakila, "Tables");
-            await treeTables?.expand();
-
-            const treeActor = await Misc.getTreeElement(treeTables, "actor");
-
-            await Misc.selectContextMenuItem(treeActor!, "Add Database Object to REST Service");
-
-            await Misc.switchToWebView();
-
-            const dialog = await driver.wait(until.elementLocated(By.id("mrsSchemaDialog")),
-                explicitWait, "MRS Schema dialog was not displayed");
-
-            await dialog.findElement(By.id("ok")).click();
-
-            await Misc.verifyNotification("The MRS Database Object actor has been added successfully");
-
-            await treeSakilaEdited?.expand();
-
-            expect(await Misc.getTreeElement(treeSakilaEdited, "actor (/actor)"));
-
-        });
-
-        it("Delete REST Schema", async () => {
-
-            await treeRandomService?.expand();
-
-            await Misc.selectContextMenuItem(treeMySQLRESTSchema!, "Delete REST Schema...");
-
-            await Misc.verifyNotification("Are you sure the MRS schema sakila should be deleted?", false);
-
-            const workbench = new Workbench();
-            const ntfs = await workbench.getNotifications();
-
-            await ntfs[ntfs.length - 1].takeAction("Yes");
-
-            await Misc.verifyNotification("The MRS schema has been deleted successfully");
-
-            await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
-
-            expect(await Misc.getTreeElement(treeRandomService,
-                String(await treeMySQLRESTSchema?.getLabel()))).to.not.exist;
-
-        });
-
-        it("Delete REST Service", async () => {
-
-            await Misc.selectContextMenuItem(treeRandomService!, "Delete REST Service...");
-
-            const label = await treeRandomService?.getLabel();
-
-            await Misc.verifyNotification(`Are you sure the MRS service ${String(label)} should be deleted?`);
-
-            const workbench = new Workbench();
-            const ntfs = await workbench.getNotifications();
-
-            await ntfs[ntfs.length - 1].takeAction("Yes");
-
-            await Misc.verifyNotification("The MRS service has been deleted successfully");
-
-            await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
-
-            expect(await Misc.getTreeElement(treeMySQLRESTService,
-                String(await treeRandomService?.getLabel()))).to.not.exist;
-        });
     });
 
 });

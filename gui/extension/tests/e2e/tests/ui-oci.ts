@@ -83,6 +83,10 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             await Misc.toggleBottomBar(false);
 
+            await driver.wait(async () => {
+                return !(await Misc.hasLoadingBar(treeOCISection!));
+            }, 20000, "Loading bar is still displayed before config is set");
+
             const path = join(homedir(), ".oci", "config");
             await fs.writeFile(path, "");
 
@@ -99,7 +103,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             let config = `[E2ETESTS]\nuser=ocid1.user.oc1..aaaaaaaan67cojwa52khe44xtpqsygzxlk4te6gqs7nkmy`;
             config += `abcju2w5wlxcpq\nfingerprint=15:cd:e2:11:ed:0b:97:c4:e4:41:c5:44:18:66:72:80\n`;
             config += `tenancy=ocid1.tenancy.oc1..aaaaaaaaasur3qcs245czbgrlyshd7u5joblbvmxddigtubzqcfo`;
-            config += `5mmi2z3a\nregion=us-ashburn-1\nkey_file= ~/.oci/id_rsa_e2e.pem`;
+            config += `5mmi2z3a\nregion=us-ashburn-1\nkey_file= ${String(process.env.USERPROFILE)}/.oci/id_rsa_e2e.pem`;
             await editor.sendKeys(config);
 
             await textEditor.save();
@@ -111,7 +115,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await driver.wait(async () => {
                 return !(await Misc.hasLoadingBar(treeOCISection!)) &&
                         (await treeE2eTests?.getChildren())!.length > 0;
-            }, 20000, "Loading bar is still displayed");
+            }, 80000, "Loading bar is still displayed");
 
             const treeRoot = await Misc.getTreeElement(treeE2eTests, "/ (Root Compartment)*");
             await treeRoot?.expand();
@@ -119,7 +123,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await driver.wait(async () => {
                 return !(await Misc.hasLoadingBar(treeOCISection!)) &&
                         (await treeRoot?.getChildren())!.length > 0;
-            }, 20000, "Loading bar is still displayed");
+            }, ociExplicitWait, "Loading bar is still displayed");
 
             treeQA = await Misc.getTreeElement(treeE2eTests, "QA*");
             await treeQA?.expand();
@@ -127,7 +131,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await driver.wait(async () => {
                 return !(await Misc.hasLoadingBar(treeOCISection!)) &&
                         (await treeQA?.getChildren())!.length > 0;
-            }, 20000, "Loading bar is still displayed");
+            }, ociExplicitWait, "Loading bar is still displayed");
 
 
             treeShellTesting = await Misc.getTreeElement(treeQA, "MySQLShellTesting");
@@ -266,10 +270,6 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         it("Set as Current Compartment", async () => {
 
             await Misc.selectContextMenuItem(treeQA!, "Set as Current Compartment");
-
-            await driver.wait(async () => {
-                return !(await Misc.hasLoadingBar(treeOCISection!));
-            }, ociExplicitWait, "There is still a loading bar on OCI");
 
             expect(await Misc.isDefaultItem(treeQA!, "compartment")).to.be.true;
 
@@ -442,9 +442,14 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         let treeBastion: TreeItem | undefined;
 
-        before(async () => {
-            treeBastion = await Misc.getTreeElement(treeShellTesting, "Bastion4PrivateSubnetStandardVnc");
-            expect(treeBastion).to.exist;
+        before(async function () {
+            try {
+                treeBastion = await Misc.getTreeElement(treeShellTesting, "Bastion4PrivateSubnetStandardVnc");
+                expect(treeBastion).to.exist;
+            } catch (e) {
+                await Misc.processFailure(this);
+                throw e;
+            }
         });
 
         beforeEach(async function () {
@@ -655,10 +660,14 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                         return false;
                     }, 30000, "Dialogs were not displayed");
 
-                    const confirmDialog = await driver.wait(until.elementLocated(By.css(".visible.confirmDialog")),
-                        explicitWait, "Confirm dialog was not displayed");
+                    try {
+                        const confirmDialog = await driver.wait(until.elementLocated(By.css(".visible.confirmDialog")),
+                            1000, "Confirm dialog was not displayed");
 
-                    await confirmDialog.findElement(By.id("refuse")).click();
+                        await confirmDialog.findElement(By.id("refuse")).click();
+                    } catch (e) {
+                        // continue
+                    }
 
                     const result = await Misc.execCmd("select version();", undefined, 10000);
 

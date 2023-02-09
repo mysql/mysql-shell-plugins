@@ -24,8 +24,6 @@
 import * as assert from "assert";
 import * as vscode from "vscode";
 
-import { printChannelOutput, showStatusText, statusBarItem } from "../../extension";
-
 suite("Extension Test Suite", function () {
     const ext = vscode.extensions.getExtension("Oracle.mysql-shell-for-vs-code");
 

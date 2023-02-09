@@ -1,0 +1,9 @@
+{
+  "timeout": 140000,
+  "reporter": "mochawesome",
+  "reporterOptions": {
+    "showSkipped": true,
+    "html": false,
+    "json": true
+  }
+}

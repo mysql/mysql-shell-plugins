@@ -1,8 +1,0 @@
-{
-    "timeout": 140000,
-    "reporter": "mochawesome",
-    "reporterOptions": {
-      "reportFilename": "test-report",
-      "showSkipped": true
-    }
-}

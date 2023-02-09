@@ -52,7 +52,8 @@ export interface IDBConnection {
 
 export class Database {
 
-    public static createConnection = async (scope: CustomTreeSection ,dbConfig: IDBConnection): Promise<void> => {
+    public static createConnection = async (scope: CustomTreeSection , dbConfig: IDBConnection,
+        storePassword = false): Promise<void> => {
 
         await Misc.clickSectionToolbarButton(scope, "Create New DB Connection");
 
@@ -79,10 +80,12 @@ export class Database {
             .findElement(By.id("defaultSchema"))
             .sendKeys(dbConfig.schema);
 
-        await newConDialog.findElement(By.id("storePassword")).click();
-        const passwordDialog = await driver.findElement(By.css(".passwordDialog"));
-        await passwordDialog.findElement(By.css("input")).sendKeys(dbConfig.password);
-        await passwordDialog.findElement(By.id("ok")).click();
+        if (storePassword) {
+            await newConDialog.findElement(By.id("storePassword")).click();
+            const passwordDialog = await driver.findElement(By.css(".passwordDialog"));
+            await passwordDialog.findElement(By.css("input")).sendKeys(dbConfig.password);
+            await passwordDialog.findElement(By.id("ok")).click();
+        }
 
         const okBtn = await driver.findElement(By.id("ok"));
         await driver.executeScript("arguments[0].scrollIntoView(true)", okBtn);
@@ -128,7 +131,7 @@ export class Database {
 
     public static setPassword = async (dbConfig: IDBConnection): Promise<void> => {
         const dialog = await driver.wait(until.elementLocated(
-            By.css(".passwordDialog")), 10000, "No password dialog was found");
+            By.css(".passwordDialog")), explicitWait, "No password dialog was found");
         const title = await dialog.findElement(By.css(".title .label"));
         const gridDivs = await dialog.findElements(By.css("div.grid > div"));
 

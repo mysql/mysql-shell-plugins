@@ -1,5 +1,5 @@
 <#
- * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -20,31 +20,12 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 #>
-
-##THIS SCRIPT WILL PERFORM THE FOLLOWING TASKS##
-# INSTALL NODE MODULES
-# RUN E2E UPDATE (GET CHROME DRIVER)
-# DOWNLOAD LATEST MYSQLSHELL
-# DOWNLOAD LATEST GUI PLUGIN
-# START MYSQL SHELL FOR THE FIRST TIME, TO CREATE MYSQLSH FOLDER ON APPDATA (REQUIRED) 
-# COPY FILES FROM GUI PLUGIN TO MYSQLSH FOLDER
-# START WEB SERVER TO CHECK THAT IT WORKS
-# STARTS SELENIUM
-# EXECUTE TESTS
-# STOP SELENIUM
-#THESE TASKS WILL ENSURE THAT THE ENVIRONMENT IS OK TO RUN MYSQLSHELL UI TESTS
-
-Set-Location $PSScriptRoot
-$basePath = Join-Path ".." ".." ".."
-Set-Location $basePath
-$basePath = Get-Location
-
-$testsPath = Join-Path "tests" "e2e" "tests" "ui-tests.ts"
+Set-Location "$env:WORKSPACE/shell-plugins/gui/extension/tests/e2e"
 
 try {
     $err = 0
 
-    $log = Join-Path $env:WORKSPACE "psExt.log"
+    $log = Join-Path $env:WORKSPACE "psExt_$env:TEST_SUITE.log"
 
     function writeMsg($msg, $option){
 
@@ -53,10 +34,6 @@ try {
         Invoke-Expression "write-host `"$msg`" $option"
         
     }
-
-    if (!$env:EXTENSION_BRANCH){
-        Throw "Please define 'EXTENSION_BRANCH' env variable"
-    }
     
     if (Test-Path -Path $log){
         Remove-Item -Path $log -Recurse -Force	
@@ -64,316 +41,112 @@ try {
 
     New-Item -ItemType "file" -Path $log
 
-    writeMsg "BRANCH: $env:EXTENSION_BRANCH"
-    writeMsg "PUSH_ID: $env:EXTENSION_PUSH_ID"
-    writeMsg "REVISION: $env:TARGET_REVID"
-    writeMsg "WORKSPACE: $env:WORKSPACE"
-    writeMsg "BASE PATH: $basePath"
-
-    writeMsg "Setup nodejs registry..." "-NoNewLine"
-    $prc = Start-Process "npm" -ArgumentList "set", "registry", "https://artifacthub-phx.oci.oraclecorp.com/api/npm/npmjs-remote/" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\nodeExt.log" -RedirectStandardError "$env:WORKSPACE\nodeExtErr.log"
-    if ($prc.ExitCode -ne 0){
-        Throw "Error setting nodejs registry"
-    }
-    else{
-        writeMsg "DONE"
+    if (!$env:TEST_SUITE){
+        Throw "Please define the TEST_SUITE to run"
     }
 
-    $dbLocation = Join-Path $env:userprofile "AppData" "Roaming" "MySQL" "mysqlsh-gui" "plugin_data" "gui_plugin" "mysqlsh_gui_backend.sqlite3"
-    if (Test-Path -Path $dbLocation){
-        writeMsg "Removing Plugin database..." "-NoNewLine"
-        Remove-Item -Path $dbLocation -Force
-        writeMsg "DONE"
-    }
-    
-	writeMsg "Setup noproxy..." "-NoNewLine"
-    $prc = Start-Process "npm" -ArgumentList "config", "set", "noproxy", "localhost,127.0.0.1,.oraclecorp.com,.oracle.com" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\nodeExt.log" -RedirectStandardError "$env:WORKSPACE\nodeExtErr.log"
-    if ($prc.ExitCode -ne 0){
-        Throw "Error setting nodejs registry"
-    }
-    else{
-        writeMsg "DONE"
-    }
+    writeMsg "TEST_SUITE: $env:TEST_SUITE"
+    $env:MOCHAWESOME_REPORTDIR = $env:WORKSPACE
+    writeMsg "REPORT DIR: $env:MOCHAWESOME_REPORTDIR"
+    $env:MOCHAWESOME_REPORTFILENAME = "test-report-$env:TEST_SUITE.json"
+    writeMsg "REPORT FILENAME: $env:MOCHAWESOME_REPORTFILENAME"
 
-    $env:HTTP_PROXY = 'http://www-proxy.us.oracle.com:80'
-    $env:HTTPS_PROXY = 'http://www-proxy.us.oracle.com:80'
+    $env:MYSQLSH_GUI_CUSTOM_CONFIG_DIR = Join-Path $env:userprofile "mysqlsh-$env:TEST_SUITE"
+    writeMsg "Using config dir: $env:MYSQLSH_GUI_CUSTOM_CONFIG_DIR"
 
-    if (Test-Path -Path "$basePath\package-lock.json"){
-        writeMsg "Removing package-lock.json..." "-NoNewLine"
-        Remove-Item -Path "$basePath\package-lock.json" -Force
-        writeMsg "DONE"
-    }
-    
-    writeMsg "Installing node modules..." "-NoNewLine"
-    $prc = Start-Process "npm" -ArgumentList "install" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\nodeExt.log" -RedirectStandardError "$env:WORKSPACE\nodeExtErr.log"
-    if ($prc.ExitCode -ne 0){
-        Throw "Error installing node modules"
-    }
-    else{
-        writeMsg "DONE"
-    }
-    
-    # COPY OCI .PEM FILES
-    $ociPath = Join-Path $env:userprofile ".oci"
-    writeMsg "User profile path is: $ociPath"
-    if ( !(Test-Path -Path $ociPath) ){
-        writeMsg "Creating .oci folder..." "-NoNewLine"
-        New-Item -Path $env:userprofile -Name ".oci" -ItemType "directory" -Force
-        writeMsg "DONE"
-    }
-
-    $childs = Get-ChildItem -Path $ociPath
-    if ($childs.count -eq 0){
-        $itemsPath = Join-Path $basePath "tests" "e2e" "oci_files"
-        Get-ChildItem -Path $itemsPath | % {
-            writeMsg "Copying $_ file to .oci folder..." "-NoNewLine"
-            Copy-Item -Path $_ $ociPath
-            writeMsg "DONE"
-        }
-    }
-
-    # REMOVE EXISTING SSH KEY FILES
-    $sshPath = Join-Path $env:userprofile ".ssh"
-    if ( Test-Path -Path $sshPath ){
-        Get-ChildItem -Path $sshPath | % {
-            if ( ($_.Name -eq "id_rsa") -or ($_.Name -eq "id_rsa.pub")){
-                writeMsg "Removing $($_.Name) ..." "-NoNewLine"
-                Remove-Item -Path $_ -Force
-                writeMsg "DONE"
-            }
-        }
-    }
-
-    # DOWNLOAD EXTENSION 
-    if (!$env:EXTENSION_PUSH_ID){
-        $env:EXTENSION_PUSH_ID = "latest"
-    }
-
-    $bundles = (Invoke-WebRequest -NoProxy -Uri "http://pb2.mysql.oraclecorp.com/nosso/api/v2/branches/$env:EXTENSION_BRANCH/pushes/$env:EXTENSION_PUSH_ID/").content
-    $bundles = $bundles | ConvertFrom-Json
-    writeMsg "Bundles info:"
-    writeMsg $bundles
-    
-    $extension = ($bundles.builds | Where-Object {
-        $_.product -eq "mysql-shell-ui-plugin_binary_vs-code-extension_vsix--win32-x64" 
-        }).artifacts | Where-Object {
-            $_.name -like "mysql-shell-for-vs-code-win32-x64"
-        }
-
-    writeMsg "Extension info:"
-    writeMsg $extension
-    writeMsg "End"
-    if ($extension){
-        $extension | ForEach-Object { 
-            $extensionItem = $_.url.replace("http://pb2.mysql.oraclecorp.com/nosso/archive/","")
-            writeMsg "Downloading $extensionItem ..." "-NoNewline" 
-            $dest = Join-Path $env:WORKSPACE $extensionItem
-            Invoke-WebRequest -NoProxy -Uri $_.url -OutFile $dest
-            writeMsg "DONE"
-            }
-        }
-    else{
-        writeMsg "Could not download the MySQL Shell for VS Code extension"
-        exit 1
-    }
-
-    # TEST-RESOURCES LOCATION
-    
-    writeMsg "Start installing VSCode with version: $env:VSCODE_VERSION" "-NoNewLine"
-    $prc = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-vscode", "--", "-s test-resources", "-c $env:VSCODE_VERSION" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\env.log" -RedirectStandardError "$env:WORKSPACE\envErr.log"
-    if ($prc.ExitCode -ne 0){
-        Throw "Error installing vscode"
-    }
-    else{
-        writeMsg "DONE"
-    }
-
-    writeMsg "Start installing Chromedriver..." "-NoNewLine"
-    $prc = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-chromedriver", "--", "-s test-resources" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\env.log" -RedirectStandardError "$env:WORKSPACE\envErr.log"
-    if ($prc.ExitCode -ne 0){
-        Throw "Error installing chromedriver"
-    }
-    else{
-        writeMsg "DONE"
-    }
-    
-    # INSTALL VSIX
-    writeMsg "Installing '$extensionItem'..." "-NoNewLine"
-    $prc = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-install-vsix", "--", "-s test-resources", "-f $dest" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\env.log" -RedirectStandardError "$env:WORKSPACE\envErr.log"
-    if ($prc.ExitCode -ne 0){
-        Throw "Error installing VSIX"
-    }
-    else{
-        writeMsg "DONE"
-    }
-
-    # LOAD THE OCI LIBRARY ON EXTENSION (PREVENT OCI TESTS TO TAKE TOO LONG TO RUN AND FAIL DUE TO TIMEOUTS)
-    $loaded = $false
-    $extensionsPath = Join-Path $env:userprofile ".vscode" "extensions"
-    Get-ChildItem -Path $extensionsPath | % {
-        if ( ($_.Name -like "*mysql-shell-for-vs-code*") ){
-            $mysqlsh = Join-Path $_ "shell" "bin" "mysqlsh"
-            writeMsg "Importing OCI Library..." "-NoNewLine"
-            $prc = Start-Process -FilePath $mysqlsh -ArgumentList "--py", "-e", "`"import oci`"" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\oci.log" -RedirectStandardError "$env:WORKSPACE\ociErr.log"
-            if ($prc.ExitCode -ne 0){
-                Throw "Error importing OCI Library"
-            }
-            else{
-                $loaded = $true
-                writeMsg "DONE"
-            }
-        }
-    }
-    if ($loaded -eq $false){
-        Throw "OCI Library not loaded. Maybe the extension folder was not found."
-    }
-    
-    # RERUN
-    if ($env:RERUN -eq $true){
-        $path2json = Join-Path $basePath "mochawesome-report" "test-report.json"
-        $json = Get-Content $path2json | Out-String | ConvertFrom-Json
-        if ( [int]$json.PSObject.Properties.Value.failures[0] -gt 0 ) {
-            writeMsg "There ARE failed tests. Preparing rerun"
-
-            writeMsg "Found an existing test report. Renaming it..." "-NoNewLine"
-            Rename-Item -Path "$basePath\mochawesome-report\test-report.json" -NewName "prev-test-report.json"
-            writeMsg "DONE"
-
-            $failedSuites = $json.results.suites.suites | Where-Object { $_.failures.Length -gt 0 } | % { $_.title }
-            $failedTests = $json.results.suites.suites.tests | Where-Object { $_.fail -eq "true" } | % { $_.title }
-            $content = Get-Content $testsPath
-            if ($failedSuites -is [array]){
-                forEach($failedSuite in $failedSuites){
-                    $content = $content.replace("describe(`"$failedSuite`"", "describe.only(`"$failedSuite`"") 
-                    write-host "Marked test suite '$failedSuite' to be re-runned"
-                }
-            }
-            else {
-                $content = $content.replace("describe(`"$failedSuites`"", "describe.only(`"$failedSuites`"") 
-                writeMsg "Marked test suite '$failedSuites' to be re-runned"
-            }
-            if ($failedTests -is [array]){
-                forEach($failedTest in $failedTests){
-                    $content = $content.replace("it(`"$failedTest`"", "it.only(`"$failedTest`"")
-                    writeMsg "Marked test '$failedTest' to be re-runned"
-                }
-            }
-            else {
-                $content = $content.replace("it(`"$failedTests`"", "it.only(`"$failedTests`"")
-                writeMsg "Marked test '$failedTests' to be re-runned"
-            }
-
-            Set-Content -Path $testsPath -Value $content
-        }
-        writeMsg "There are NO failed tests"
-    }
-    
-    # EXECUTE TESTS
-    writeMsg "Executing GUI tests..." "-NoNewLine"
-    Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests", "--", "-s test-resources", "-u", "-f", "./tests/e2e/output/tests/*.js" -Wait -RedirectStandardOutput "$env:WORKSPACE\resultsExt.log" -RedirectStandardError "$env:WORKSPACE\resultsExtErr.log"
-    writeMsg "DONE"
-
-    # REMOVE THE RE-RUNS and MERGE
-    if ($env:RERUN -eq $true){
-        writeMsg "Removing re-runs on file..." "-NoNewLine"
-        $content = Get-Content $testsPath
-        $content = $content.replace(".only", "")
-        Set-Content -Path $testsPath -Value $content
-        writeMsg "DONE"
-
-        writeMsg "Merging reports..."
-        $path2prevjson = Join-Path $basePath "mochawesome-report" "prev-test-report.json"
-        $path2json = Join-Path $basePath "mochawesome-report" "test-report.json"
-        $prevJson = Get-Content $path2prevjson | Out-String | ConvertFrom-Json
-        $curJson = Get-Content $path2json | Out-String | ConvertFrom-Json
-
-        $prevJson.results.suites.beforeHooks = $curJson.results.suites.beforeHooks #MySQL Shell for VS Code 
-        $prevJson.results.suites.afterHooks = $curJson.results.suites.afterHooks #MySQL Shell for VS Code
-
-        $prevJson.results.suites.beforeHooks | ForEach-Object {
-            $_.parentUUID = $prevJson.results.suites.uuid
-        }
-
-        $prevJson.results.suites.afterHooks | ForEach-Object {
-            $_.parentUUID = $prevJson.results.suites.uuid
-        }
-
-        writeMsg "Merged beforeHooks on 'MySQL Shell for VS Code suite'"
-        writeMsg "Merged afterHooks on 'MySQL Shell for VS Code suite'"
-        
-        $curJson.results.suites.suites | ForEach-Object {
-            $suite = $_
-            for ($i=0; $i -le ($prevJson.results.suites.suites).Length-1; $i++){
-                if ($prevJson.results.suites.suites[$i].title -eq $suite.title){
-                    $prevJson.results.suites.suites[$i].beforeHooks = $suite.beforeHooks
-                    $prevJson.results.suites.suites[$i].afterHooks = $suite.afterHooks
-
-                    $prevJson.results.suites.suites[$i].beforeHooks | ForEach-Object {
-                        $_.parentUUID = $prevJson.results.suites.suites[$i].uuid
-                    }
-
-                    $prevJson.results.suites.suites[$i].afterHooks | ForEach-Object {
-                        $_.parentUUID = $prevJson.results.suites.suites[$i].uuid
-                    }
-
-                    writeMsg "Merged beforeHooks on '"$suite.title"' suite"
-                    writeMsg "Merged afterHooks on '"$suite.title"' suite"
-
-                    $_.tests | ForEach-Object {
-                        $test = $_
-                        for ($j=0; $j -le ($prevJson.results.suites.suites[$i].tests).Length-1; $j++){
-                            if ($prevJson.results.suites.suites[$i].tests[$j].title -eq $test.title){
-                                $prevTestUUid = $prevJson.results.suites.suites[$i].tests[$j].uuid
-                                $prevJson.results.suites.suites[$i].tests[$j] = $test
-                                $prevJson.results.suites.suites[$i].tests[$j].parentUUID = $suite.uuid
-                                if ($test.pass -eq $true){
-                                    $prevFails = $prevJson.results.suites.suites[$i].failures | Where-Object { $_ -ne $prevTestUUid }
-                                    $prevJson.results.suites.suites[$i].failures = $prevFails ??= @()
-                                    $prevJson.results.suites.suites[$i].passes += $test.uuid
-                                }
-                                else{
-                                    $prevJson.results.suites.suites[$i].failures = $prevJson.results.suites.suites[$i].failures -replace $prevTestUUid, $test.uuid
-                                }
-
-                                writeMsg "Merged '"$test.title"' test"
-                            }
-                        }
-                    }
-                    writeMsg "------------------------------------------------"
-                }
-            }
-        }
-
-        $prevJson | ConvertTo-Json -Depth 10 | Out-File "$basePath\mochawesome-report\test-report.json" -Force
-        Remove-Item -Path "$basePath\mochawesome-report\prev-test-report.json" -Force
-
-        writeMsg "DONE"
-        writeMsg "Generating new report..." "-NoNewLine"
-        $prc = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-report" -Wait -RedirectStandardOutput "$env:WORKSPACE\newReport.log" -RedirectStandardError "$env:WORKSPACE\newReportErr.log"
-        if ($prc.ExitCode -ne 0){
-            Throw "Error generating new report"
-        }
-        else{
-            writeMsg "DONE"
-        }
-    }
-    
-    # CHECK RESULTS
-    $hasErrors = $null -ne (Get-Content -Path "$env:WORKSPACE\resultsExt.log" | Select-String -Pattern "error" | % { $_.Matches.Groups[0].Value })
-    $hasFailedTests = $null -ne (Get-Content -Path "$env:WORKSPACE\resultsExt.log" | Select-String -Pattern "(\d+) failing" | % { $_.Matches.Groups[0].Value })
-
-    if (!$hasErrors) {
-        if ($hasFailedTests -and ([int]$hasFailedTests -gt 0)){
-        writeMsg "There are failed tests."
-        $err = 1
-        }
-        else{
-            writeMsg "All tests passed."
-        }
+    if ($env:TEST_SUITE -eq "db") {
+        $env:MYSQLSH_GUI_CUSTOM_PORT = 3331
+    } elseif ($env:TEST_SUITE -eq "oci") {
+        $env:MYSQLSH_GUI_CUSTOM_PORT = 3332
+    } elseif ($env:TEST_SUITE -eq "shell") {
+        $env:MYSQLSH_GUI_CUSTOM_PORT = 3333
+    } elseif ($env:TEST_SUITE -eq "rest") {
+        $env:MYSQLSH_GUI_CUSTOM_PORT = 3334
     } else {
-        writeMsg "There are ERRORS on the results file."
-        $err = 1
+        Throw "Please define the TEST_SUITE env variable"
     }
+    
+    writeMsg "Using mysqlsh port: $env:MYSQLSH_GUI_CUSTOM_PORT"
+
+    $testResources = Join-Path $env:userprofile "test-resources-$env:TEST_SUITE"
+    $extPath = Join-Path $testResources "ext"
+    $testFile = "./tests/e2e/output/tests/ui-$env:TEST_SUITE.js"
+
+    writeMsg "Using test-resources: $testResources"
+    writeMsg "Using extension: $extPath"
+    writeMsg "Using test file: $testFile"
+
+    ## REMOVE EXISTING EXTENSION DATABASES
+    $sqlite = Join-Path $env:userprofile "mysqlsh-$env:TEST_SUITE" "plugin_data" "gui_plugin" "mysqlsh_gui_backend.sqlite3"
+    if (Test-Path -Path $sqlite){
+        writeMsg "Removing Plugin database for mysqlsh $env:TEST_SUITE suite..." "-NoNewLine"
+        Remove-Item -Path $sqlite -Force
+        writeMsg "DONE"
+    }
+
+    ## TRUNCATE MYSQLSH FILE
+    $msqlsh = Join-Path $env:userprofile "mysqlsh-$env:TEST_SUITE" "mysqlsh.log"
+    writeMsg "Truncating $msqlsh ..." "-NoNewLine"
+    if (Test-Path -Path $msqlsh){
+        Clear-Content $msqlsh
+        writeMsg "DONE"
+    } else {
+        writeMsg "SKIPPED. Not found"
+    }
+
+    # REMOVE SHELL INSTANCE HOME
+    $shellInstanceHome = Join-Path $env:userprofile "mysqlsh-$env:TEST_SUITE" "plugin_data" "gui_plugin" "shell_instance_home"
+    writeMsg "Removing $shellInstanceHome ..." "-NoNewLine"
+    if (Test-Path -Path $shellInstanceHome){
+        Remove-Item -Path $shellInstanceHome -Force -Recurse
+        writeMsg "DONE"
+    } else {
+        writeMsg "SKIPPED. Not found"
+    }
+
+    if ($env:TEST_SUITE -eq "oci"){
+        # LOAD THE OCI LIBRARY ON EXTENSION (PREVENT OCI TESTS TO TAKE TOO LONG TO RUN AND FAIL DUE TO TIMEOUTS)
+        $loaded = $false
+        $extensionsPath = Join-Path $env:userprofile "test-resources-oci" "ext"
+        writeMsg "Extension OCI patch: $extensionsPath"
+        Get-ChildItem -Path $extensionsPath | % {
+            if ( ($_.Name -like "*mysql-shell-for-vs-code*") ){
+                $mysqlsh = Join-Path $_ "shell" "bin" "mysqlsh"
+                writeMsg "Importing OCI Library using shell: $mysqlsh ..." "-NoNewLine"
+                $prc = Start-Process -FilePath $mysqlsh -ArgumentList "--py", "-e", "`"import oci`"" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\oci.log" -RedirectStandardError "$env:WORKSPACE\ociErr.log"
+                if ($prc.ExitCode -ne 0){
+                    Throw "Error importing OCI Library"
+                }
+                else{
+                    $loaded = $true
+                    writeMsg "DONE"
+                }
+            }
+        }
+        if ($loaded -eq $false){
+            Throw "OCI Library not loaded. Maybe the extension folder was not found."
+        }
+    }
+
+    # EXECUTE TESTS
+    writeMsg "Executing GUI tests for $env:TEST_SUITE suite..."
+    $prcExecTests = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests", "--", "-s $testResources", "-e $extPath", "-f", "./output/tests/ui-$env:TEST_SUITE.js" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\resultsExt-$env:TEST_SUITE.log" -RedirectStandardError "$env:WORKSPACE\resultsExtErr-$env:TEST_SUITE.log"
+    if ($prcExecTests.ExitCode -eq 0) {
+        writeMsg "DONE for $($env:TEST_SUITE.toUpper()) suite. All tests PASSED!"
+    } else {
+        writeMsg "DONE for $($env:TEST_SUITE.toUpper()) suite. There are FAILED tests. Check resultsExt-$env:TEST_SUITE.log"
+    }
+
+    # UNINSTALL EXTENSION
+    Get-ChildItem -Path $extPath | % {
+        if ( ($_.Name -like "*mysql-shell-for-vs-code*") ){
+            writeMsg "Removing $_ ..." "-NoNewLine"
+            Remove-Item -Path $_ -Force -Recurse
+            writeMsg "DONE"
+        }
+    }
+
+    exit $prcExecTests.ExitCode
     
 }
 catch {
@@ -382,7 +155,7 @@ catch {
 	$err = 1
 }
 finally {
-    if ( $err -eq 1){
+    if ($err -eq 1){
         exit 1
     }
 }
