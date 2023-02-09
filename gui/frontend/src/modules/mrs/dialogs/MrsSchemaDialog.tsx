@@ -66,37 +66,50 @@ export class MrsSchemaDialog extends ValueDialogBase {
             values: {
                 service: {
                     type: "choice",
-                    caption: "MRS Service",
+                    caption: "MRS Service Path",
                     value: selectedService?.hostCtx,
                     choices: services.map((service) => {
                         return service.hostCtx;
                     }),
                     horizontalSpan: 4,
+                    description: "The path of the MRS Service this DB Schema belongs to",
                 },
                 comments: {
                     type: "text",
                     caption: "Comments",
                     value: request.values?.comments as string,
                     horizontalSpan: 4,
+                    description: "Comments to describe this MRS Schema.",
                 },
                 requestPath: {
                     type: "text",
-                    caption: "Request Path",
+                    caption: "MRS Schema Path",
                     value: request.values?.requestPath as string,
                     horizontalSpan: 4,
                     options: [CommonDialogValueOption.AutoFocus],
+                    description: "The request path to access the schema, has to start with /",
                 },
                 name: {
                     type: "text",
                     caption: "Schema Name",
                     value: request.values?.name as string,
                     horizontalSpan: 4,
+                    description: "The name of the corresponding database schema.",
                 },
                 itemsPerPage: {
                     type: "text",
                     caption: "Items per Page",
                     horizontalSpan: 4,
                     value: request.values?.itemsPerPage as string,
+                },
+                options: {
+                    type: "text",
+                    caption: "Options",
+                    value: request.values?.options as string,
+                    horizontalSpan: 4,
+                    verticalSpan: 2,
+                    multiLine: true,
+                    description: "Additional options in JSON format",
                 },
                 flagsTitle: {
                     type: "description",
@@ -120,14 +133,6 @@ export class MrsSchemaDialog extends ValueDialogBase {
                     horizontalSpan: 4,
                     value: (request.values?.requiresAuth ?? true) as boolean,
                     options: [CommonDialogValueOption.Grouped],
-                },
-                options: {
-                    type: "text",
-                    caption: "Options",
-                    value: request.values?.options as string,
-                    horizontalSpan: 8,
-                    multiLine: true,
-                    description: "Additional options in JSON format",
                 },
             },
         };

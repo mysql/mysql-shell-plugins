@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -108,7 +108,6 @@ def test_change_service(init_mrs, table_contents):
         "auth_vendor_name": "Service 1 app 1",
         "url_direct_auth": "/app1",
         "app_id": "my app id 1",
-        "use_built_in_authorization": 1,
         "limit_to_registered_users": 0,
         "access_token": "TestToken1",
     }, {
@@ -116,7 +115,6 @@ def test_change_service(init_mrs, table_contents):
         "auth_vendor_name": "Service 1 app 2",
         "url_direct_auth": "/app2",
         "app_id": "my app id 2",
-        "use_built_in_authorization": 1,
         "limit_to_registered_users": 0,
         "access_token": "TestToken2",
     }]
@@ -138,7 +136,6 @@ def test_change_service(init_mrs, table_contents):
                     "service_id": service_id,
                     "url_direct_auth": "/app2",
                     "app_id": "my app id 1 update",
-                    "use_built_in_authorization": 1,
                     "limit_to_registered_users": 0,
                     "access_token": "TestToken2Updated",
                     "description": "This is a description 1"
@@ -149,7 +146,6 @@ def test_change_service(init_mrs, table_contents):
                     "service_id": service_id,
                     "url_direct_auth": "/app3",
                     "app_id": "my app id 3",
-                    "use_built_in_authorization": 1,
                     "limit_to_registered_users": 0,
                     "access_token": "TestToken3",
                     "description": "This is a description 3"
@@ -165,7 +161,6 @@ def test_change_service(init_mrs, table_contents):
                     "service_id": service_id,
                     "url_direct_auth": "/app2",
                     "app_id": "my app id 1 update",
-                    "use_built_in_authorization": 1,
                     "limit_to_registered_users": 0,
                     "access_token": "TestToken2Updated",
                     "default_role_id": None,
@@ -179,7 +174,6 @@ def test_change_service(init_mrs, table_contents):
                     "service_id": service_id,
                     "url_direct_auth": "/app3",
                     "app_id": "my app id 3",
-                    "use_built_in_authorization": 1,
                     "limit_to_registered_users": 0,
                     "access_token": "TestToken3",
                     "default_role_id": None,

@@ -12,4 +12,4 @@ cd $ROOTPATH/docs
 
 # Generate the docs
 echo "Generating HTML docs ..."
-pandoc index.md -f markdown -t html -s -o $ROOTPATH/docs/index.html --template=$ROOTPATH/docs/templates/mysql_docs.html --toc --toc-depth=3 --metadata title="MRS Developer's Guide" --variable=template_css:style/style.css --filter pandoc-include --number-sections
+pandoc index.md -f markdown -t html -s -o $ROOTPATH/docs/index.html --template=$ROOTPATH/docs/templates/mysql_docs.html --toc --toc-depth=2 --metadata title="MRS Developer's Guide" --variable=template_css:style/style.css --filter pandoc-include --number-sections

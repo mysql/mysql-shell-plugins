@@ -19,19 +19,74 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
 
-# Enabling of Schema Objects for REST Access
-
-Enabling REST access to a database schema table, view or procedure allows it to be accessed through RESTful services.
-
-Note that enabling a database schema is not equivalent to enabling all tables and views in the schema. It just means making the MySQL REST Service aware that the schema exists and that it may have zero or more resources to expose to HTTP/S.
-
-If you are using MySQL Shell for VS Code, you can AUTOREST enable the database schema objects with convenient dialogs. The MySQL REST Service also provides a MySQL Shell plugin that can be used to enable objects for REST on the command line or via scripts.
-
-## Accessing Objects Using RESTful Services
+# Working with MRS RESTful Web Services
 
 This section provides examples of using the MySQL REST Service queries and other operations against tables and views after you have REST-enabled them.
 
-### Get Schema Metadata
+## About MRS RESTful Web Services
+
+MRS supports the creation of an unlimited amount of distinct RESTful Web Services. You can also refer to them as MRS Services. Each of those MRS Services usually maps to one (or more) web applications.
+
+After you create a RESTful Web Service, you can access it by entering the following URL in your browser:
+
+    https://<HOSTNAME:PORT>/<MRS_SERVICE_PATH>/<MRS_DATABASE_SCHEMA_PATH>/<MRS_DATABASE_OBJECT_PATH>/
+
+Where:
+
+- `HOSTNAME:PORT/MRS_SERVICE_PATH`: Specifies the address at which the given MRS Service is running. You can also refer to it as the MRS Service URI.
+- `MRS_DATABASE_SCHEMA_PATH`: Specifies the path that you provided while REST-enabling your database schema. By default, it is the name of the schema.
+- `MRS_DATABASE_OBJECT_PATH`: Specifies the path that you provided while REST-enabling your database object (TABLE, VIEW or PROCEDURE).
+
+Together, these values comprise the MRS Endpoint URL.
+
+Example:
+
+    https://localhost:8000/mrs/sakila/actor
+
+### About Request Path Syntax Requirements
+
+To prevent path-based attacks, MRS requires the syntax of the path element of each request URL to conform to the following rules:
+
+- Is not empty or whitespace-only
+- Does not contain any of the following characters: ?, #, ;, %
+- Does not contain the null character (\u0000)
+- Does not contain characters in the range: \u0001-\u0031
+- Does not end with white space or a period (.)
+- Does not contain double forward slash (//) or double back slash(\\)
+- Does not contain two or more periods in sequence (.., ..., and so on)
+- Total length is {@value #MAX_PATH_LENGTH} characters or less
+- Does not match any of the following names (case insensitive), with or without file extensions: CON, PRN, AUX, CLOCK$, NUL, COM0, COM1, COM2, COM3, COM4, COM5, COM6, COM7, COM8, COM9, LPT0, LPT1, LPT2, LPT3, LPT4, LPT5, LPT6, LPT7, LPT8, LPT9
+
+If you intend to auto-REST enable objects, then avoid object names that do not comply with these requirements. For example, do not create a table named #EMPS. If you do want to auto-REST enable objects that have non-compliant names, then you must use an alias that complies with the requirements.
+
+These requirements are applied to the URL decoded form of the URL, to prevent attempted circumvention of percent encodings.
+
+### About cURL and Testing RESTful Services
+
+Other sections show the testing of RESTful Services using a web browser. However, another useful way to test RESTful Services is using the command line tool named cURL.
+
+This powerful tool is available for most platforms, and enables you to see and control what data is being sent to and received from a RESTful service.
+
+    curl -i https://localhost:8000/mrs/sakila/actor/2
+
+This example produces a response like the following:
+
+    {
+        "links": [
+            {
+                "rel": "self",
+                "href": "http://localhost:8000/mrs/sakila/actor/2"
+            }
+        ],
+        "actor_id": 2,
+        "last_name": "WAHLBERG",
+        "first_name": "NICK",
+        "last_update": "2006-02-15 03:34:33.000000"
+    }
+
+The -i option tells cURL to display the HTTP headers returned by the server.
+
+## Get Schema Metadata
 
 This example retrieves a list of resources available through the specified schema alias. It shows RESTful services that are created by enabling a table, view or procedure.
 
@@ -93,7 +148,7 @@ Each available resource has two hyperlinks:
 - The link with relation describes points to the actual resource.
 - The link with relation canonical describes the resource.
 
-### Get Object Metadata
+## Get Object Metadata
 
 This example retrieves the metadata (which describes the object) of an individual object. The location of the metadata is indicated by the canonical link relation.
 
@@ -147,7 +202,7 @@ Result:
         ]
     }
 
-### Get Object Data
+## Get Object Data
 
 This example retrieves the data in the object. Each row in the object corresponds to a JSON object embedded within the JSON array
 
@@ -203,7 +258,7 @@ Result:
         ]
     }
 
-#### Get Table Data Using Paging
+### Get Table Data Using Paging
 
 This example specifies the offset and limit parameters to control paging of result data.
 
@@ -268,7 +323,7 @@ Result:
         ]
     }
 
-#### Get Table Data Using Query
+### Get Table Data Using Query
 
 This example specifies a filter clause to restrict objects returned.
 
@@ -309,7 +364,7 @@ Result:
         ]
     }
 
-#### Get Table Row Using Primary Key
+### Get Table Row Using Primary Key
 
 This example retrieves an object by specifying its identifying key values.
 
@@ -340,7 +395,7 @@ Result:
         "last_update": "2006-02-15 03:34:33.000000"
     }
 
-### Insert Table Row
+## Insert Table Row
 
 This example inserts data into the object. The body data supplied with the request is a JSON object containing the data to be inserted.
 
@@ -369,7 +424,7 @@ Result:
         "last_update": "2022-11-29 15:35:17.000000"
     }
 
-### Update/Insert Table Row
+## Update/Insert Table Row
 
 This example inserts or updates (sometimes called an "upsert") data in the object. The body data supplied with the request is a JSON object containing the data to be inserted or updated.
 
@@ -396,7 +451,7 @@ Result:
         "last_update": "2022-11-29 15:45:10.000000"
     }
 
-### Delete Using Filter
+## Delete Using Filter
 
 This example deletes object data specified by a filter clause.
 
@@ -414,7 +469,7 @@ Result:
         "itemsDeleted": 1
     }
 
-### FilterObject Grammar
+## FilterObject Grammar
 
 The FilterObject must be a JSON object that complies with the following syntax:
 
@@ -581,7 +636,7 @@ Where:
 
 The FilterObject must be encoded according to Section 2.1 of RFC3986.
 
-### Examples: FilterObject Specifications
+## Examples: FilterObject Specifications
 
 The following are examples of operators in FilterObject specifications.
 
@@ -755,7 +810,7 @@ The following are examples of operators in FilterObject specifications.
     }
     
     
-    #### LIKE operator ($like)
+    ### LIKE operator ($like)
     (Supports strings. Eescape character not supported to try to match expressions with _ or % characters.)
     
     {
@@ -763,7 +818,7 @@ The following are examples of operators in FilterObject specifications.
     }
     
     
-    #### BETWEEN operator ($between)
+    ### BETWEEN operator ($between)
     (Supports string, dates, and numbers)
     
     Numbers
@@ -799,20 +854,20 @@ The following are examples of operators in FilterObject specifications.
     }
     
     
-    #### NULL operator ($null)
+    ### NULL operator ($null)
     
     {
       "ENAME": {"$null": null}
     }
     
-    #### NOT NULL operator ($notnull)
+    ### NOT NULL operator ($notnull)
     
     {
       "ENAME": {"$notnull": null}
     }
     
     
-    #### AND operator ($and)
+    ### AND operator ($and)
     (Supports all operators, including $and and $or)
     
     Column context delegation

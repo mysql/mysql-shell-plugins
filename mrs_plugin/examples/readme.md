@@ -19,13 +19,13 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
 
-# MySQL REST Service (MRS) Examples
+# MRS Examples
 
 The MRS Shell Plugin ships with a set of example projects that showcase the possibilities of the MySQL REST Service.
 
 They are implemented as simple [Progressive Web Apps (PWA)](https://en.wikipedia.org/wiki/Progressive_web_app) to showcase the features offered by MRS.
 
-## MRS Example Project structure
+**_MRS Example Project structure_**
 
 Each MRS example project consists of three components.
 
@@ -33,7 +33,7 @@ Each MRS example project consists of three components.
 2. The MRS schema dump that exposes selected database objects of the applications MySQL database schema (`mrs_schema`) via REST endpoints.
 3. The Progressive Web App's (PWA) application source code (`app_code`) that makes REST calls against the REST endpoints to implement the application logic.
 
-## Build and Deploy a MRS Example Project
+**_Build and Deploy a MRS Example Project_**
 
 The following steps need to be taken to build and deploy an MRS example on the MySQL REST Service.
 

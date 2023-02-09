@@ -550,8 +550,6 @@ export interface IShellMrsAddAuthenticationAppKwargs {
     appId?: string;
     /** Limit access to registered users */
     limitToRegisteredUsers?: boolean;
-    /** Limit access to registered users */
-    useBuiltInAuthorization?: boolean;
     /** List of registered users, separated by , */
     registeredUsers?: unknown[];
     /** The default role to be assigned to new users */
@@ -591,8 +589,6 @@ export interface IShellMrsUpdateAuthenticationAppKwargsValue {
     appId?: string;
     /** Set if it's enabled or not */
     enabled?: boolean;
-    /** Set if uses built in authorization */
-    useBuiltInAuthorization?: boolean;
     /** Set if limited to registered users */
     limitToRegisteredUsers?: boolean;
     /** The new default role id */
@@ -1161,7 +1157,6 @@ export interface IMrsAuthAppData {
     accessToken?: string;
     appId?: string;
     enabled: boolean;
-    useBuiltInAuthorization: boolean;
     limitToRegisteredUsers: boolean;
     defaultRoleId: string | null;
 }

@@ -96,7 +96,6 @@ export interface IMrsAuthAppData {
     accessToken?: string;
     appId?: string;
     enabled: boolean;
-    useBuiltInAuthorization: boolean;
     limitToRegisteredUsers: boolean;
     defaultRoleId: string | null;
 }

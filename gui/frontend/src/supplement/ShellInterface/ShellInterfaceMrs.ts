@@ -187,7 +187,6 @@ export class ShellInterfaceMrs {
                     accessToken: authApp.accessToken,
                     appId: authApp.appId,
                     limitToRegisteredUsers: authApp.limitToRegisteredUsers,
-                    useBuiltInAuthorization: authApp.useBuiltInAuthorization,
                     registeredUsers: registerUsers,
                     defaultRoleId: authApp.defaultRoleId,
                     moduleSessionId: this.moduleSessionId,

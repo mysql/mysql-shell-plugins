@@ -65,7 +65,6 @@ def add_auth_app(app_name=None, service_id=None, **kwargs):
         access_token (str): access_token of the app
         app_id (str): app_id of the app
         limit_to_registered_users (bool): Limit access to registered users
-        use_built_in_authorization (bool): Limit access to registered users
         registered_users (list): List of registered users, separated by ,
         default_role_id (str,required): The default role to be assigned to new users
         session (object): The database session to use
@@ -87,8 +86,6 @@ def add_auth_app(app_name=None, service_id=None, **kwargs):
     access_token = kwargs.get("access_token")
     app_id = kwargs.get("app_id")
 
-
-    use_built_in_authorization = kwargs.get("use_built_in_authorization")
     limit_to_reg_users = kwargs.get("limit_to_registered_users")
     registered_users = kwargs.get("registered_users")
 
@@ -172,7 +169,7 @@ def add_auth_app(app_name=None, service_id=None, **kwargs):
             lib.core.insert(table="auth_app", values=[
                 "id", "auth_vendor_id", "service_id", "name", "description", "url",
                 "url_direct_auth", "access_token", "app_id", "enabled",
-                "use_built_in_authorization", "limit_to_registered_users",
+                "limit_to_registered_users",
                 "default_role_id"
             ]).exec(session, [
                 auth_app_id,
@@ -185,7 +182,6 @@ def add_auth_app(app_name=None, service_id=None, **kwargs):
                 access_token,
                 app_id,
                 1,
-	            use_built_in_authorization if use_built_in_authorization else 1,
                 limit_to_reg_users if limit_to_reg_users else 0,
                 default_role_id
             ])
@@ -311,7 +307,6 @@ def update_auth_app(**kwargs):
         access_token (str,optional): The new access token
         app_id (str,optional): The new application id
         enabled (bool,optional): Set if it's enabled or not
-        use_built_in_authorization (bool,optional): Set if uses built in authorization
         limit_to_registered_users (bool,optional): Set if limited to registered users
         default_role_id (str,required): The new default role id
 

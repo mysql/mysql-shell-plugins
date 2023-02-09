@@ -56,22 +56,25 @@ export class MrsServiceDialog extends ValueDialogBase {
             values: {
                 servicePath: {
                     type: "text",
-                    caption: "Service Path",
+                    caption: "MRS Service Path",
                     value: request.values?.servicePath as string,
                     horizontalSpan: 3,
                     options: [CommonDialogValueOption.AutoFocus],
+                    description: "The URL context root of this service.",
                 },
                 comments: {
                     type: "text",
                     caption: "Comments",
                     value: request.values?.comments as string,
                     horizontalSpan: 5,
+                    description: "Comments to describe this MRS Service.",
                 },
                 hostName: {
                     type: "text",
                     caption: "Host Name",
                     value: request.values?.hostName as string,
                     horizontalSpan: 3,
+                    description: "If specified, only requests for this host will served.",
                 },
                 protocols: {
                     type: "set",
@@ -79,6 +82,7 @@ export class MrsServiceDialog extends ValueDialogBase {
                     horizontalSpan: 3,
                     tagSet: ["HTTP", "HTTPS"],
                     value: request.values?.protocols as string[] ?? [],
+                    description: "The supported protocols.",
                 },
                 makeDefaultTitle: {
                     type: "description",
@@ -89,19 +93,19 @@ export class MrsServiceDialog extends ValueDialogBase {
                         CommonDialogValueOption.NewGroup,
                     ],
                 },
-                makeDefault: {
+                enabled: {
                     type: "boolean",
-                    caption: "Default",
-                    value: (request.values?.isCurrent ?? true) as boolean,
+                    caption: "Enabled",
+                    value: (request.values?.enabled ?? true) as boolean,
                     horizontalSpan: 2,
                     options: [
                         CommonDialogValueOption.Grouped,
                     ],
                 },
-                enabled: {
+                makeDefault: {
                     type: "boolean",
-                    caption: "Enabled",
-                    value: (request.values?.enabled ?? true) as boolean,
+                    caption: "Default",
+                    value: (request.values?.isCurrent ?? true) as boolean,
                     horizontalSpan: 2,
                     options: [
                         CommonDialogValueOption.Grouped,
@@ -118,14 +122,14 @@ export class MrsServiceDialog extends ValueDialogBase {
                     type: "text",
                     caption: "Authentication Path:",
                     value: request.values?.authPath as string,
-                    horizontalSpan: 3,
+                    horizontalSpan: 4,
                     description: "The path used for authentication.",
                 },
                 authCompletedUrl: {
                     type: "text",
                     caption: "Redirection URL:",
                     value: request.values?.authCompletedUrl as string,
-                    horizontalSpan: 5,
+                    horizontalSpan: 4,
                     description: "The authentication workflow will redirect to this URL after login.",
                 },
                 authCompletedUrlValidation: {
@@ -161,7 +165,7 @@ export class MrsServiceDialog extends ValueDialogBase {
                     listItemId: "id",
                     active: appData.length > 0 ? String(appData[0].id) : undefined,
                     horizontalSpan: 2,
-                    verticalSpan: 5,
+                    verticalSpan: 4,
                     relations: {
                         authVendorName: "appAuthVendorName",
                         name: "appName",
@@ -171,7 +175,6 @@ export class MrsServiceDialog extends ValueDialogBase {
                         accessToken: "appAccessToken",
                         appId: "appId",
                         enabled: "appEnabled",
-                        useBuiltInAuthorization: "appUseBuiltInAuthorization",
                         limitToRegisteredUsers: "appLimitToRegisteredUsers",
                     },
                 },
@@ -190,7 +193,7 @@ export class MrsServiceDialog extends ValueDialogBase {
                     caption: "Name",
                     value: "",
                     horizontalSpan: 3,
-                    description: "The name of the authentication app",
+                    description: "The name of the app",
                 },
                 appDescription: {
                     type: "text",
@@ -199,37 +202,9 @@ export class MrsServiceDialog extends ValueDialogBase {
                     horizontalSpan: 3,
                     description: "A short description of the app",
                 },
-                appAccessToken: {
-                    type: "text",
-                    caption: "Access Token",
-                    value: "",
-                    horizontalSpan: 3,
-                    description: "The OAuth2 access token for this app as defined by the vendor",
-                },
-                appId: {
-                    type: "text",
-                    caption: "App ID",
-                    value: "",
-                    horizontalSpan: 3,
-                    description: "The OAuth2 App ID for this app as defined by the vendor",
-                },
-                appUrl: {
-                    type: "text",
-                    caption: "URL",
-                    value: "",
-                    horizontalSpan: 3,
-                    description: "The OAuth2 service URL",
-                },
-                appUrlDirectAuth: {
-                    type: "text",
-                    caption: "URL for direct Authentication",
-                    value: "",
-                    horizontalSpan: 3,
-                    description: "The datatype of the parameter",
-                },
                 flags: {
                     type: "description",
-                    caption: "Flags",
+                    caption: "Auth App Flags",
                     horizontalSpan: 3,
                     options: [
                         CommonDialogValueOption.Grouped,
@@ -245,15 +220,6 @@ export class MrsServiceDialog extends ValueDialogBase {
                         CommonDialogValueOption.Grouped,
                     ],
                 },
-                appUseBuiltInAuthorization: {
-                    type: "boolean",
-                    caption: "Use built in authorization",
-                    horizontalSpan: 3,
-                    value: true,
-                    options: [
-                        CommonDialogValueOption.Grouped,
-                    ],
-                },
                 appLimitToRegisteredUsers: {
                     type: "boolean",
                     caption: "Limit to registered users",
@@ -262,6 +228,34 @@ export class MrsServiceDialog extends ValueDialogBase {
                     options: [
                         CommonDialogValueOption.Grouped,
                     ],
+                },
+                appId: {
+                    type: "text",
+                    caption: "App ID",
+                    value: "",
+                    horizontalSpan: 3,
+                    description: "The OAuth2 App ID for this app as defined by the vendor",
+                },
+                appAccessToken: {
+                    type: "text",
+                    caption: "Access Token",
+                    value: "",
+                    horizontalSpan: 3,
+                    description: "The OAuth2 access token for this app as defined by the vendor",
+                },
+                appUrl: {
+                    type: "text",
+                    caption: "Custom URL",
+                    value: "",
+                    horizontalSpan: 3,
+                    description: "A custom OAuth2 service URL",
+                },
+                appUrlDirectAuth: {
+                    type: "text",
+                    caption: "Custom URL for Access Token",
+                    value: "",
+                    horizontalSpan: 3,
+                    description: "A custom URL for exchanging the Access Token",
                 },
             },
         };
@@ -284,9 +278,9 @@ export class MrsServiceDialog extends ValueDialogBase {
             id: "mainSection",
             sections: new Map<string, IDialogSection>([
                 ["mainSection", mainSection],
+                ["optionsSection", optionsSection],
                 ["authSection", authSection],
                 ["authAppSection", authAppSection],
-                ["optionsSection", optionsSection],
             ]),
         };
     }

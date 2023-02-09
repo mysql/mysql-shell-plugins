@@ -89,7 +89,7 @@ export class MRSCommandHandler {
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.docs.service", () => {
-            this.browseDocs("mrs-restful-web-services");
+            this.browseDocs("rest-service-properties");
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.addService", (item?: MrsTreeItem) => {
@@ -935,7 +935,6 @@ export class MRSCommandHandler {
                 url: authApp?.url,
                 urlDirectAuth: authApp?.urlDirectAuth,
                 enabled: authApp?.enabled ?? true,
-                useBuiltInAuthorization: authApp?.useBuiltInAuthorization,
                 limitToRegisteredUsers: authApp?.limitToRegisteredUsers,
                 defaultRoleId: defaultRole,
             },
@@ -966,7 +965,6 @@ export class MRSCommandHandler {
                         accessToken: response.data.accessToken as string,
                         appId: response.data.appId as string,
                         enabled: response.data.enabled as boolean,
-                        useBuiltInAuthorization: response.data.useBuiltInAuthorization as boolean,
                         limitToRegisteredUsers: response.data.limitToRegisteredUsers as boolean,
                         defaultRoleId,
                     });
@@ -990,7 +988,6 @@ export class MRSCommandHandler {
                             accessToken: response.data.accessToken as string,
                             appId: response.data.appId as string,
                             enabled: response.data.enabled as boolean,
-                            useBuiltInAuthorization: response.data.useBuiltInAuthorization as boolean,
                             limitToRegisteredUsers: response.data.limitToRegisteredUsers as boolean,
                             defaultRoleId,
                         }, []);
@@ -1130,7 +1127,6 @@ export class MRSCommandHandler {
             accessToken: "",
             appId: "",
             enabled: true,
-            useBuiltInAuthorization: true,
             limitToRegisteredUsers: true,
             defaultRoleId: "MQAAAAAAAAAAAAAAAAAAAA==",
         };
@@ -1152,31 +1148,34 @@ export class MRSCommandHandler {
         const defaultOptions = {
             headers: {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
+                "Access-Control-Allow-Credentials": "true",
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, Origin, X-Auth-Token",
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                "Access-Control-Allow-Origin": "*",
+            },
+            http: {
+                allowedOrigin: "auto",
             },
             logging: {
+                exceptions: true,
                 request: {
-                    headers: true,
                     body: true,
+                    headers: true,
                 },
                 response: {
-                    headers: true,
                     body: true,
+                    headers: true,
                 },
-                exceptions: true,
             },
             returnInternalErrorDetails: true,
         };
 
         let serviceOptions = "";
         if (service?.options) {
-            serviceOptions = JSON.stringify(service.options);
+            serviceOptions = JSON.stringify(service.options, undefined, 4);
         } else if (!service) {
-            serviceOptions = JSON.stringify(defaultOptions);
+            serviceOptions = JSON.stringify(defaultOptions, undefined, 4);
         }
 
         const request = {
@@ -1307,6 +1306,9 @@ export class MRSCommandHandler {
             const title = schema
                 ? "Adjust the MySQL REST Schema Configuration"
                 : "Enter Configuration Values for the New MySQL REST Schema";
+            const tabTitle = schema
+                ? "Edit REST Schema"
+                : "Add REST Schema";
 
             const request = {
                 id: "mrsSchemaDialog",
@@ -1325,7 +1327,7 @@ export class MRSCommandHandler {
                 },
             };
 
-            const response = await this.dialogManager.showDialog(request, title);
+            const response = await this.dialogManager.showDialog(request, tabTitle);
             // The request was not sent at all (e.g. there was already one running).
             if (!response || response.closure !== DialogResponseClosure.Accept) {
                 return;
@@ -1404,6 +1406,9 @@ export class MRSCommandHandler {
         const title = dbObject
             ? "Adjust the MySQL REST Object Configuration"
             : "Enter Configuration Values for the New MySQL REST Object";
+        const tabTitle = dbObject
+            ? "Edit REST Object"
+            : "Add REST Object";
         const parameterNewItem: IMrsDbObjectFieldData = {
             id: "",
             dbObjectId: dbObject.id,
@@ -1450,7 +1455,7 @@ export class MRSCommandHandler {
             },
         };
 
-        const response = await this.dialogManager.showDialog(request, title);
+        const response = await this.dialogManager.showDialog(request, tabTitle);
         if (!response || response.closure !== DialogResponseClosure.Accept || !response.data) {
             return;
         }

@@ -81,7 +81,7 @@ def get_auth_app(session, app_id):
     sql = """
         SELECT a.id, a.auth_vendor_id, a.service_id, a.name,
             a.description, a.url, a.url_direct_auth, a.access_token, a.app_id, a.enabled,
-            a.use_built_in_authorization, a.limit_to_registered_users, a.default_role_id,
+            a.limit_to_registered_users, a.default_role_id,
             v.name as auth_vendor
         FROM `mysql_rest_service_metadata`.`auth_app` a
             LEFT OUTER JOIN `mysql_rest_service_metadata`.`auth_vendor` v
