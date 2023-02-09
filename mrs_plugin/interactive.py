@@ -48,14 +48,21 @@ def resolve_service(session, service_id=None, required=True):
 
     return service
 
-def resolve_schema(session, schema_id=None, required=True):
+def resolve_schema(session, schema_id=None, service_id=None, required=True):
     schema = None
+    service = None
 
     if schema_id:
-        schema = lib.schemas.get_schema(session=session, schema_id=schema_id)
+        schema = lib.schemas.get_schema(session=session, schema_id=schema_id, service_id=service_id)
 
-    if not schema and lib.core.get_interactive_default():
-        schemas = lib.schemas.get_schemas(session=session)
+    if schema:
+        return schema
+
+    if lib.core.get_interactive_default():
+        if not service_id:
+            service = resolve_service(session, service_id)
+
+        schemas = lib.schemas.get_schemas(session, service["id"])
         schema = lib.core.prompt_for_list_item(
             item_list=schemas,
             prompt_caption='Please enter the name or index of a schema: ',

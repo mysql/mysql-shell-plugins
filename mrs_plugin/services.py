@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -44,6 +44,7 @@ def resolve_service_ids(**kwargs):
     url_context_root = kwargs.pop("url_context_root", None)
     url_host_name = kwargs.pop("url_host_name", None)
     interactive = lib.core.get_interactive_default()
+    allow_multi_select = kwargs.pop("allow_multi_select", False)
     kwargs.pop("url_protocol", None)
 
     kwargs["service_ids"] = []
@@ -62,8 +63,6 @@ def resolve_service_ids(**kwargs):
 
             # If there are more services, let the user select one or all
             if interactive:
-                allow_multi_select = ("enable" in value or "delete" in value)
-
                 if allow_multi_select:
                     caption = ("Please select a service index, type "
                                 "'hostname/root_context' or type '*' "
@@ -266,9 +265,12 @@ def add_service(**kwargs):
 
         defaultOptions = {
             "headers": {
+                "Access-Control-Allow-Credentials": "true",
                 "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
-                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-                "Access-Control-Allow-Origin": "*"
+                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS"
+            },
+            "http": {
+                "allowedOrigin": "auto"
             },
             "logging": {
                 "request": {
@@ -311,11 +313,12 @@ def add_service(**kwargs):
                 "auth_apps": kwargs.get("auth_apps", [])
             })
 
+        service = lib.services.get_service(session, service_id)
+
         if lib.core.get_interactive_result():
-            return f"\nService with id 0x{service_id.hex()} created successfully."
+            return f"\nService '{service['host_ctx']}' created successfully."
         else:
-            return lib.services.get_service(service_id=service_id,
-                            session=session)
+            return service
 
 
 @plugin_function('mrs.get.service', shell=True, cli=True, web=True)
@@ -438,9 +441,7 @@ def enable_service(**kwargs):
     lib.core.convert_ids_to_binary(["service_id"], kwargs)
 
     kwargs["value"] = {"enabled": True}
-    if "service_id" not in kwargs:
-        kwargs = resolve_url_context_root(required=False, **kwargs)
-        kwargs = resolve_url_host_name(required=False, **kwargs)
+    kwargs["allow_multi_select"] = True
 
     return call_update_service("enabled", **kwargs)
 
@@ -464,9 +465,7 @@ def disable_service(**kwargs):
     lib.core.convert_ids_to_binary(["service_id"], kwargs)
 
     kwargs["value"] = {"enabled": False}
-    if "service_id" not in kwargs:
-        kwargs = resolve_url_context_root(required=False, **kwargs)
-        kwargs = resolve_url_host_name(required=False, **kwargs)
+    kwargs["allow_multi_select"] = True
 
     return call_update_service("disabled", **kwargs)
 
@@ -489,13 +488,9 @@ def delete_service(**kwargs):
     """
     lib.core.convert_ids_to_binary(["service_id"], kwargs)
 
-    if "service_id" not in kwargs:
-        kwargs = resolve_url_context_root(required=False, **kwargs)
-        kwargs = resolve_url_host_name(required=False, **kwargs)
-
-    # return call_update_service("deleted", **kwargs)
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         kwargs["session"] = session
+        kwargs["allow_multi_select"] = True
         kwargs = resolve_service_ids(**kwargs)
 
         with lib.core.MrsDbTransaction(session):

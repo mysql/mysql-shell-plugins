@@ -48,6 +48,10 @@ def format_auth_app_listing(auth_apps, print_header=False):
     for item in auth_apps:
         i += 1
         description=item['description'] if item['description'] is not None else ""
+
+        if len(description) > 36:
+            description = f"{description[:33]}..."
+
         output += (f"{i:>3} {item['name'][:25]:26} "
                    f"{description[:35]:36} "
                    f"{item['auth_vendor'][:15]:16} "
