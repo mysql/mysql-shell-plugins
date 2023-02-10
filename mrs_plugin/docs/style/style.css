@@ -138,6 +138,26 @@ body {
     color: var(--text-color-title);
 }
 
+.header th {
+    padding: 3px;
+}
+
+.odd {
+    background-color: rgba(0,0,0, 0.1);
+}
+
+.even {
+    background-color: rgba(0,0,0, 0.3);
+}
+
+table {
+    padding-top: 30px;
+}
+
+td {
+    padding: 5px 8px 5px 8px;
+}
+
 .page {
     display: flex;
     min-height: 100vh;
@@ -515,4 +535,9 @@ button {
     touch-action: manipulation;
     margin-top: 3px;
     margin-bottom: 14px;
+}
+
+div .sourceCode {
+    padding-top: 20px;
+    padding-bottom: 20px;
 }

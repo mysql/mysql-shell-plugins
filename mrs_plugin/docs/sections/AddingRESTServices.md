@@ -92,16 +92,18 @@ Execute the following command to get detailed help information about the `mrs.ad
 \? mrs.add.service
 ```
 
-## REST Service Properties
+### REST Service Properties
 
 Each REST Service has the following properties.
 
-- MRS Service Path: The URL context root of this service.
-- Comments: Comments to describe this service.
-- Host Name: If specified, only requests for this host will served.
-- Supported Protocols: The supported protocols. Default is HTTPS.
-- Enabled: Specifies if the service is served by the MySQL Router.
-- Options: Advanced options in JSON format.
+| Option | Description |
+| --- | ----- |
+| MRS Service Path | The URL context root of this service |
+| Comments | Comments to describe this service |
+| Host Name | If specified, only requests for this host will served |
+| Supported Protocols | The supported protocols. Default is HTTPS |
+| Enabled | Specifies if the service is served by the MySQL Router |
+| Options | Advanced options in JSON format |
 
 ### REST Service Advanced Options
 
@@ -158,3 +160,37 @@ When deploying a REST Service in production, the following settings need to be c
 - Change `allowedOrigin` to the domain(s) the REST service is running on, e.g. `"https://mydomain.com"` when deploying on a production server.
 - Set `returnInternalErrorDetails` to `false`.
 - Adjust the logging settings as needed.
+
+### REST Service Definitions
+
+#### About MRS AutoREST
+
+AutoREST is a quick and easy way to expose database schema tables, views and procedures as REST resources.
+
+#### REST APIs
+
+Representational State Transfer (REST) is a style of software architecture for distributed hypermedia systems such as the World Wide Web. An API is described as RESTful when it conforms to the tenets of REST. Although a full discussion of REST is outside the scope of this document, a REST API has the following characteristics:
+
+Data is modelled as a set of resources. Resources are identified by URIs.
+
+A small, uniform set of operations are used to manipulate resources (for example, PUT, POST, GET, DELETE).
+
+A resource can have multiple representations (for example, a blog might have an HTML representation and an RSS representation).
+
+Services are stateless and since it is likely that the client will want to access related resources, these should be identified in the representation returned, typically by providing hypertext links.
+
+#### RESTful Services Terminology
+
+This section introduces some common terms that are used throughout this document:
+
+- __RESTful service:__ An HTTP web service that conforms to the tenets of the RESTful architectural style.
+
+- __Resource module:__ An organizational unit that is used to group related resource templates.
+
+- __Resource template:__ An individual RESTful service that is able to service requests for some set of URIs (Universal Resource Identifiers). The set of URIs is defined by the URI Pattern of the Resource Template
+
+- __URI pattern:__ A pattern for the resource template. Can be either a route pattern or a URI template, although you are encouraged to use route patterns.
+
+- __Route pattern:__ A pattern that focuses on decomposing the path portion of a URI into its component parts. For example, a pattern of /:object/:id? will match /emp/101 (matches a request for the item in the emp resource with id of 101) and will also match /emp/ (matches a request for the emp resource, because the :id parameter is annotated with the ? modifier, which indicates that the id parameter is optional).
+
+- __HTTP operation:__ HTTP (HyperText Transport Protocol) defines standard methods that can be performed on resources: GET (retrieve the resource contents), POST (store a new resource), PUT (update an existing resource), and DELETE (remove a resource).

@@ -698,15 +698,6 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
             try {
                 const treeItemList: TreeItem[] = [];
 
-                // Get all MRS auth apps
-                const authApps = await element.entry.backend.mrs.getAuthApps(element.value.id);
-                const authAppList: TreeItem[] = authApps.map((value) => {
-                    const name = value.name ?? "unknown";
-                    const vendor = value.authVendor ?? "unknown";
-
-                    return new MrsAuthAppTreeItem(`${name} (${vendor})`, value, element.entry);
-                });
-
                 // Get all MRS Schemas
                 const schemas = await element.entry.backend.mrs.listSchemas(element.value.id);
                 const schemaList: TreeItem[] = schemas.map((value) => {
@@ -719,7 +710,16 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                     return new MrsContentSetTreeItem(`${value.requestPath}`, value, element.entry);
                 });
 
-                return treeItemList.concat(authAppList, schemaList, contentSetsTreeItemList);
+                // Get all MRS auth apps
+                const authApps = await element.entry.backend.mrs.getAuthApps(element.value.id);
+                const authAppList: TreeItem[] = authApps.map((value) => {
+                    const name = value.name ?? "unknown";
+                    const vendor = value.authVendor ?? "unknown";
+
+                    return new MrsAuthAppTreeItem(`${name} (${vendor})`, value, element.entry);
+                });
+
+                return treeItemList.concat(schemaList, contentSetsTreeItemList, authAppList);
             } catch (error) {
                 throw new Error("Error during retrieving MRS service content. " +
                     `Error: ${error instanceof Error ? error.message : String(error) ?? "<unknown>"}`);

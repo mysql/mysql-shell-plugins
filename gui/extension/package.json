@@ -543,11 +543,15 @@
             },
             {
                 "command": "msg.mrs.bootstrapLocalRouter",
-                "title": "Bootstrap Local MySQL Router Instance for MRS Development"
+                "title": "Bootstrap Local MySQL Router Instance"
             },
             {
-                "command": "msg.mrs.runLocalRouter",
-                "title": "Run Local MySQL Router Instance for MRS Development"
+                "command": "msg.mrs.startLocalRouter",
+                "title": "Start Local MySQL Router Instance"
+            },
+            {
+                "command": "msg.mrs.stopLocalRouter",
+                "title": "Stop Local MySQL Router Instance"
             },
             {
                 "command": "msg.mrs.docs",
@@ -632,6 +636,14 @@
             {
                 "command": "msg.mrs.deleteDbObject",
                 "title": "Delete REST Object"
+            },
+            {
+                "command": "msg.mrs.copyDbObjectRequestPath",
+                "title": "Copy REST Object Request Path"
+            },
+            {
+                "command": "msg.mrs.openDbObjectRequestPath",
+                "title": "Open REST Object Request Path in Web Browser"
             },
             {
                 "command": "msg.mrs.deleteContentSet",
@@ -1071,9 +1083,14 @@
                     "group": "3_msg@1"
                 },
                 {
-                    "command": "msg.mrs.runLocalRouter",
+                    "command": "msg.mrs.startLocalRouter",
                     "when": "viewItem == mrs",
                     "group": "3_msg@2"
+                },
+                {
+                    "command": "msg.mrs.stopLocalRouter",
+                    "when": "viewItem == mrs",
+                    "group": "3_msg@3"
                 },
                 {
                     "command": "msg.mrs.docs",
@@ -1161,9 +1178,24 @@
                     "group": "1_msg@1"
                 },
                 {
+                    "command": "msg.mrs.copyDbObjectRequestPath",
+                    "when": "viewItem == mrsDbObject",
+                    "group": "2_msg@1"
+                },
+                {
+                    "command": "msg.mrs.openDbObjectRequestPath",
+                    "when": "viewItem == mrsDbObject",
+                    "group": "2_msg@2"
+                },
+                {
+                    "command": "msg.mrs.dumpObjectToJSONFile",
+                    "when": "view == msg.connections && viewItem == mrsDbObject",
+                    "group": "3_msg@1"
+                },
+                {
                     "command": "msg.mrs.deleteDbObject",
                     "when": "viewItem == mrsDbObject",
-                    "group": "3_msg@1"
+                    "group": "9_msg@1"
                 },
                 {
                     "command": "msg.mrs.deleteContentSet",
@@ -1173,11 +1205,6 @@
                 {
                     "command": "msg.mrs.dumpSchemaToJSONFile",
                     "when": "view == msg.connections && viewItem == mrsSchema",
-                    "group": "2_msg@1"
-                },
-                {
-                    "command": "msg.mrs.dumpObjectToJSONFile",
-                    "when": "view == msg.connections && viewItem == mrsDbObject",
                     "group": "2_msg@1"
                 },
                 {
