@@ -154,6 +154,18 @@ export interface IMrsUserRoleData {
     comments: string | null,
 }
 
+export interface IMrsRouterData {
+    id: number,
+    routerName: string,
+    address: string,
+    productName: string,
+    version: string,
+    lastCheckIn: string,
+    attributes: IShellDictionary,
+    options: IShellDictionary,
+    active: boolean,
+}
+
 export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsAddService]: { result: IMrsServiceData };
     [ShellAPIMrs.MrsGetService]: {};
@@ -226,4 +238,6 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsAddUserRole]: {};
     [ShellAPIMrs.MrsDeleteUserRoles]: {};
     [ShellAPIMrs.MrsAddRole]: {};
+    [ShellAPIMrs.MrsListRouterIds]: { result: number[]; };
+    [ShellAPIMrs.MrsListRouters]: { result: IMrsRouterData[]; };
 }

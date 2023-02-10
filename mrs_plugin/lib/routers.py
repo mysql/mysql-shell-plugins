@@ -1,4 +1,4 @@
-# Copyright (c) 2022, 2023 Oracle and/or its affiliates.
+# Copyright (c) 2023 Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -19,15 +19,38 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from mrs_plugin.lib import auth_apps
-from mrs_plugin.lib import core
-from mrs_plugin.lib import services
-from mrs_plugin.lib import schemas
-from mrs_plugin.lib import db_objects
-from mrs_plugin.lib import content_files
-from mrs_plugin.lib import content_sets
-from mrs_plugin.lib import general
-from mrs_plugin.lib import dump
-from mrs_plugin.lib import users
-from mrs_plugin.lib import roles
-from mrs_plugin.lib import routers
+from mrs_plugin.lib import *
+
+
+def get_router_ids(session, seen_within=None):
+    sql = """
+    SELECT id FROM `mysql_rest_service_metadata`.`router`
+    """
+
+    if seen_within:
+        sql += f"WHERE last_check_in > CURRENT_TIMESTAMP - INTERVAL {seen_within} SECOND"
+
+    return core.MrsDbExec(sql).exec(session).items
+
+def get_routers(session, router_id=None, active_when_seen_within=10):
+    sql = f"""
+    SELECT
+        *,
+        last_check_in > CURRENT_TIMESTAMP - INTERVAL {active_when_seen_within} SECOND as active
+    FROM `mysql_rest_service_metadata`.`router`
+    """
+    params = []
+
+    if router_id:
+        sql += "WHERE id = ?"
+        params.append(router_id)
+
+    return core.MrsDbExec(sql, params).exec(session).items
+
+def get_router(session, router_id, active_when_seen_within=10):
+    result = get_routers(session, router_id, active_when_seen_within)
+
+    if result:
+        return result[0]
+
+    return None

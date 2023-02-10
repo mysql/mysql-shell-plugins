@@ -64,13 +64,21 @@ export class DBEditorCommandHandler {
 
     public setup(context: ExtensionContext, host: ExtensionHost): void {
         this.codeBlocks.setup(context);
-        context.subscriptions.push(window.createTreeView(
+        const dbConnectionsTreeView = window.createTreeView(
             "msg.connections",
             {
                 treeDataProvider: this.connectionsProvider,
                 showCollapseAll: true,
                 canSelectMany: true,
-            }));
+            });
+        context.subscriptions.push(dbConnectionsTreeView);
+        // Register expand/collapse handlers
+        dbConnectionsTreeView.onDidExpandElement((e) => {
+            this.connectionsProvider.didExpandElement(e.element);
+        });
+        dbConnectionsTreeView.onDidCollapseElement((e) => {
+            this.connectionsProvider.didCollapseElement(e.element);
+        });
 
         requisitions.register("connectedToUrl", this.connectedToUrl);
         requisitions.register("editorRunQuery", this.editorRunQuery);
@@ -79,6 +87,10 @@ export class DBEditorCommandHandler {
 
         context.subscriptions.push(commands.registerCommand("msg.refreshConnections", () => {
             void requisitions.execute("refreshConnections", undefined);
+        }));
+
+        context.subscriptions.push(commands.registerCommand("msg.refreshVisibleRouters", () => {
+            this.connectionsProvider.refreshMrsRouters();
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.openConnection", (item: ConnectionTreeItem) => {

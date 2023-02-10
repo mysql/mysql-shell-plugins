@@ -21,7 +21,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { TreeDataProvider, TreeItem, EventEmitter, ProviderResult, Event, window } from "vscode";
+import {
+    TreeDataProvider, TreeItem, EventEmitter, ProviderResult, Event, window,
+} from "vscode";
 
 import { requisitions } from "../../../../frontend/src/supplement/Requisitions";
 
@@ -41,7 +43,7 @@ import { showStatusText } from "../../extension";
 import { IDictionary } from "../../../../frontend/src/app-logic/Types";
 import {
     AdminSectionTreeItem, AdminTreeItem, ConnectionMySQLTreeItem, ConnectionSqliteTreeItem,
-    MrsAuthAppTreeItem, MrsDbObjectTreeItem,MrsSchemaTreeItem, MrsServiceTreeItem,
+    MrsAuthAppTreeItem, MrsDbObjectTreeItem, MrsSchemaTreeItem, MrsServiceTreeItem,
     MrsTreeItem, SchemaEventTreeItem, SchemaRoutineTreeItem,
     SchemaTableColumnTreeItem, SchemaTableForeignKeyTreeItem, SchemaTableIndexTreeItem, SchemaTableMySQLTreeItem,
     SchemaTableTreeItem, SchemaTableTriggerTreeItem, SchemaViewTreeItem, TableGroupTreeItem,
@@ -54,12 +56,14 @@ import { openSqlEditorConnection } from "../../utilitiesShellGui";
 import { MrsContentFileTreeItem } from "./MrsContentFileTreeItem";
 import { formatBytes } from "../../../../frontend/src/utilities/string-helpers";
 import { MrsUserTreeItem } from "./MrsUserTreeItem";
+import { MrsRouterTreeItem } from "./MrsRouterTreeItem";
 
 export interface IConnectionEntry {
     id: string;
     details: IConnectionDetails;
     backend?: ShellInterfaceSqlEditor;
     schemas?: string[];
+    mrsTreeItem?: MrsTreeItem;
 }
 
 // A class to provide the entire tree structure for DB editor connections and the DB objects from them.
@@ -69,9 +73,14 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
 
     public connections: IConnectionEntry[] = [];
 
+    // List to keep track of visible MrsTreeItems
+    private expandedMrsTreeItems: MrsTreeItem[] = [];
+
     private changeEvent = new EventEmitter<TreeItem | undefined>();
 
     private useDedicatedSchemaSubtree: boolean;
+
+    private refreshMrsRoutersTimer: ReturnType<typeof setTimeout> | null;
 
     public get onDidChangeTreeData(): Event<TreeItem | undefined> {
         return this.changeEvent.event;
@@ -81,9 +90,15 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
         // TODO: make this configurable.
         this.useDedicatedSchemaSubtree = false;
         requisitions.register("refreshConnections", this.refreshConnections);
+
+        this.refreshMrsRoutersTimer = null;
     }
 
     public dispose(): void {
+        if (this.refreshMrsRoutersTimer !== null) {
+            clearTimeout(this.refreshMrsRoutersTimer);
+            this.refreshMrsRoutersTimer = null;
+        }
         requisitions.unregister("refreshConnections", this.refreshConnections);
 
         this.closeAllConnections();
@@ -93,6 +108,11 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
         if (!item) {
             void this.updateConnections().then(() => {
                 this.changeEvent.fire(item);
+
+                // Start the Router refresh timer
+                if (this.refreshMrsRoutersTimer === null) {
+                    this.refreshMrsRouters();
+                }
             });
         } else {
             this.changeEvent.fire(item);
@@ -204,7 +224,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
         }
 
         if (element instanceof MrsTreeItem) {
-            return this.listMrsServices(element);
+            return this.getMrsChildren(element);
         }
 
         if (element instanceof MrsServiceTreeItem) {
@@ -235,6 +255,57 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
 
         this.connections = [];
     }
+
+    /**
+     * When assigned to the TreeView.onDidExpandElement it updates the list of expanded MrsTreeView nodes
+     *
+     * @param i The tree item that got expanded
+     */
+    public readonly didExpandElement = (i: TreeItem): void => {
+        if (i instanceof ConnectionMySQLTreeItem && i.entry.mrsTreeItem !== undefined) {
+            i = i.entry.mrsTreeItem;
+        }
+
+        if (i instanceof MrsTreeItem && this.expandedMrsTreeItems.indexOf(i) === -1 ) {
+            this.expandedMrsTreeItems.push(i);
+        }
+    };
+
+    /**
+     * When assigned to the TreeView.onDidCollapseElement it updates the list of expanded MrsTreeView nodes
+     *
+     * @param i The tree item that got expanded
+     */
+    public readonly didCollapseElement = (i: TreeItem): void => {
+        if (i instanceof ConnectionMySQLTreeItem && i.entry.mrsTreeItem !== undefined) {
+            i = i.entry.mrsTreeItem;
+        }
+
+        if (i instanceof MrsTreeItem) {
+            const index = this.expandedMrsTreeItems.indexOf(i);
+            if (index > -1) {
+                this.expandedMrsTreeItems.splice(index, 1);
+            }
+        }
+    };
+
+    /**
+     * Refreshes all visible MrsTreeItems every 10 seconds to visualize MySQL Routers getting inactive
+     */
+    public readonly refreshMrsRouters = (): void => {
+        if (this.refreshMrsRoutersTimer !== null) {
+            clearTimeout(this.refreshMrsRoutersTimer);
+        }
+
+        for (const item of this.expandedMrsTreeItems) {
+            this.refresh(item);
+        }
+
+        // Start a 10s timer to check if new invitations have been created
+        this.refreshMrsRoutersTimer = setTimeout(() => {
+            this.refreshMrsRouters();
+        }, 10000);
+    };
 
     /**
      * Queries the backend for a list of stored user DB connections and updates our connection entries.
@@ -397,8 +468,11 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                             try {
                                 const status = await backend.mrs.status();
 
-                                schemaList.unshift(
-                                    new MrsTreeItem("MySQL REST Service", schema, entry, true, status.serviceEnabled));
+                                const mrsTreeItem =
+                                    new MrsTreeItem("MySQL REST Service", schema, entry, true, status.serviceEnabled);
+                                schemaList.unshift(mrsTreeItem);
+                                // Store the mrsTreeItem in the IConnectionEntry so it can be accessed later on
+                                entry.mrsTreeItem = mrsTreeItem;
                             } catch (reason) {
                                 void window.showErrorMessage(
                                     `MySQL REST Service: ${reason instanceof Error ? reason.message : String(reason)}`);
@@ -587,32 +661,26 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
      *
      * @returns A promise that resolves to a list of tree items for the UI.
      */
-    private async listMrsServices(element: MrsTreeItem): Promise<TreeItem[]> {
+    private async getMrsChildren(element: MrsTreeItem): Promise<TreeItem[]> {
         if (element.entry.backend) {
-            const services = await element.entry.backend.mrs.listServices();
+            try {
+                const treeItemList: TreeItem[] = [];
 
-            return services.map((value) => {
-                return new MrsServiceTreeItem(`${value.urlContextRoot}`, value, element.entry);
-            });
-        }
+                const services = await element.entry.backend.mrs.listServices();
+                const serviceList: TreeItem[] = services.map((value) => {
+                    return new MrsServiceTreeItem(`${value.urlContextRoot}`, value, element.entry);
+                });
 
-        return [];
-    }
+                const routers = await element.entry.backend.mrs.listRouters(10);
+                const routerList: TreeItem[] = routers.map((value) => {
+                    return new MrsRouterTreeItem(`${value.address}`, value, element.entry);
+                });
 
-    /**
-     * Loads the list of MRS schemas.
-     *
-     * @param element The MRS service element.
-     *
-     * @returns A promise that resolves to a list of tree items for the UI.
-     */
-    private async listMrsSchemas(element: MrsServiceTreeItem): Promise<TreeItem[]> {
-        if (element.entry.backend) {
-            const schemas = await element.entry.backend.mrs.listSchemas(element.value.id);
-
-            return schemas.map((value) => {
-                return new MrsSchemaTreeItem(`${value.name} (${value.requestPath})`, value, element.entry);
-            });
+                return treeItemList.concat(serviceList, routerList);
+            } catch (error) {
+                throw new Error("Error during retrieving MRS content. " +
+                    `Error: ${error instanceof Error ? error.message : String(error) ?? "<unknown>"}`);
+            }
         }
 
         return [];
@@ -653,7 +721,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
 
                 return treeItemList.concat(authAppList, schemaList, contentSetsTreeItemList);
             } catch (error) {
-                throw new Error("Error during retrieving MRS content sets. " +
+                throw new Error("Error during retrieving MRS service content. " +
                     `Error: ${error instanceof Error ? error.message : String(error) ?? "<unknown>"}`);
             }
         }
@@ -740,5 +808,4 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
 
         return Promise.resolve(true);
     };
-
 }
