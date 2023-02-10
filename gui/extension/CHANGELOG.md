@@ -1,5 +1,13 @@
 # MySQL Shell for VS Code Change Log
 
+## Changes in 1.7.2+8.0.32
+
+### Fixes
+
+- Because on Windows text can contain both \r\n or just \n line breaks, SQL text read from the code editor was too short sometimes.
+- No about block was shown on Windows, when opening a new code editor.
+- Duplicate keys were used in the components on the server status page.
+
 ## Changes in 1.7.1+8.0.32
 
 ### Fixes
