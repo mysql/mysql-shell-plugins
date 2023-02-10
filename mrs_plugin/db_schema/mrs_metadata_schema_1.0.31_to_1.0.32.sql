@@ -17,6 +17,9 @@ ALTER TABLE `service` ADD CONSTRAINT `fk_service_url_host1` FOREIGN KEY (`url_ho
 
 ALTER TABLE `auth_app` DROP COLUMN `use_built_in_authorization`;
 
+ALTER TABLE `mysql_rest_service_metadata`.`router_status` 
+    RENAME COLUMN `http_requests_push` TO `http_requests_post`;
+
 DELIMITER $$
 CREATE DEFINER=CURRENT_USER TRIGGER `service_BEFORE_DELETE` BEFORE DELETE ON `service` FOR EACH ROW BEGIN
         # Since FK CASCADE does not fire the triggers on the related tables, manually trigger the DELETEs
