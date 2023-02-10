@@ -167,7 +167,11 @@ export enum ShellAPIMrs {
     /** List the roles for the specified service */
     MrsListRoles = "mrs.list.roles",
     /** Add a new role */
-    MrsAddRole = "mrs.add.role"
+    MrsAddRole = "mrs.add.role",
+    /** List all router ids */
+    MrsListRouterIds = "mrs.list.router_ids",
+    /** List all configured routers */
+    MrsListRouters = "mrs.list.routers"
 }
 
 export interface IShellMrsAddServiceKwargs {
@@ -1083,6 +1087,8 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsDeleteUserRoles]: { args: { userId?: string; roleId?: string; moduleSessionId?: string; }; };
     [ShellAPIMrs.MrsListRoles]: { args: { serviceId?: string; moduleSessionId?: string; }; };
     [ShellAPIMrs.MrsAddRole]: { args: { caption: string; }; kwargs?: IShellMrsAddRoleKwargs; };
+    [ShellAPIMrs.MrsListRouterIds]: { args: { seenWithin?: number; moduleSessionId?: string; }; };
+    [ShellAPIMrs.MrsListRouters]: { args: { activeWhenSeenWithin?: number; moduleSessionId?: string; }; };
 
 }
 
@@ -1242,6 +1248,18 @@ export interface IMrsUserRoleData {
     comments: string | null,
 }
 
+export interface IMrsRouterData {
+    id: number,
+    routerName: string,
+    address: string,
+    productName: string,
+    version: string,
+    lastCheckIn: string,
+    attributes: IShellDictionary,
+    options: IShellDictionary,
+    active: boolean,
+}
+
 export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsAddService]: { result: IMrsServiceData };
     [ShellAPIMrs.MrsGetService]: {};
@@ -1314,5 +1332,7 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsAddUserRole]: {};
     [ShellAPIMrs.MrsDeleteUserRoles]: {};
     [ShellAPIMrs.MrsAddRole]: {};
+    [ShellAPIMrs.MrsListRouterIds]: { result: number[]; };
+    [ShellAPIMrs.MrsListRouters]: { result: IMrsRouterData[]; };
 }
 

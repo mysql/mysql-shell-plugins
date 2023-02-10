@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { MessageScheduler, ShellAPIMrs, IShellDictionary, IMrsUserData } from "../../communication";
+import { MessageScheduler, ShellAPIMrs, IShellDictionary, IMrsUserData, IMrsRouterData } from "../../communication";
 import {
     IMrsAddContentSetData, IMrsAuthAppData, IMrsAuthVendorData, IMrsContentFileData, IMrsContentSetData,
     IMrsDbObjectData, IMrsSchemaData, IMrsServiceData, IMrsStatusData, IMrsDbObjectFieldData,
@@ -745,4 +745,33 @@ export class ShellInterfaceMrs {
 
         return response.result;
     }
+
+    public async listRouterIds(seenWithin?: number): Promise<number[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsListRouterIds,
+            parameters: {
+                args: {
+                    seenWithin,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    public async listRouters(activeWhenSeenWithin?: number): Promise<IMrsRouterData[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsListRouters,
+            parameters: {
+                args: {
+                    activeWhenSeenWithin,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
 }
