@@ -78,15 +78,15 @@ export class MrsDbObjectDialog extends ValueDialogBase {
             values: {
                 service: {
                     type: "choice",
-                    caption: "MRS Service Path",
+                    caption: "REST Service Path",
                     value: selectedService?.hostCtx,
                     choices: services.map((service) => { return service.hostCtx; }),
                     horizontalSpan: 4,
-                    description: "The path of the MRS Service this DB Object belongs to",
+                    description: "The path of the REST Service this REST Object belongs to",
                 },
                 schema: {
                     type: "choice",
-                    caption: "MRS Schema Path",
+                    caption: "REST Schema Path",
                     value: selectedSchema?.requestPath,
                     choices: schemas.filter((schema) => {
                         return schema.name === selectedSchema?.name;
@@ -94,11 +94,11 @@ export class MrsDbObjectDialog extends ValueDialogBase {
                         return schema.requestPath;
                     }),
                     horizontalSpan: 4,
-                    description: "The path of the MRS Schema this DB Object belongs to",
+                    description: "The path of the REST Schema this DB Object belongs to",
                 },
                 requestPath: {
                     type: "text",
-                    caption: "Request Path",
+                    caption: "REST Object Path",
                     value: request.values?.requestPath as string,
                     horizontalSpan: 4,
                     description: "The path to access the object, has to start with /",

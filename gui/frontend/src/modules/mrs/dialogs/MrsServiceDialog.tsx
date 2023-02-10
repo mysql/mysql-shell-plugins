@@ -56,7 +56,7 @@ export class MrsServiceDialog extends ValueDialogBase {
             values: {
                 servicePath: {
                     type: "text",
-                    caption: "MRS Service Path",
+                    caption: "REST Service Path",
                     value: request.values?.servicePath as string,
                     horizontalSpan: 3,
                     options: [CommonDialogValueOption.AutoFocus],

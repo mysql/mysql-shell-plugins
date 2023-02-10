@@ -79,9 +79,14 @@ export class MRSCommandHandler {
                 await this.bootstrapLocalRouter(context, item);
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.runLocalRouter",
+        context.subscriptions.push(commands.registerCommand("msg.mrs.startLocalRouter",
             async (item?: MrsTreeItem) => {
-                await this.runLocalRouter(context, item);
+                await this.startStopLocalRouter(context, item);
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.stopLocalRouter",
+            async (item?: MrsTreeItem) => {
+                await this.startStopLocalRouter(context, item, false);
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.docs", () => {
@@ -173,6 +178,30 @@ export class MRSCommandHandler {
                 });
             }
         }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.copyDbObjectRequestPath",
+            async (item?: MrsDbObjectTreeItem) => {
+                if (item?.entry.backend && item.value) {
+                    const o = item.value;
+                    await env.clipboard.writeText((o.hostCtx ?? "") + (o.schemaRequestPath ?? "") + o.requestPath);
+                }
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.openDbObjectRequestPath",
+            async (item?: MrsDbObjectTreeItem) => {
+                if (item?.entry.backend && item.value) {
+                    const o = item.value;
+                    let url = (o.hostCtx ?? "") + (o.schemaRequestPath ?? "") + o.requestPath;
+
+                    if (url.startsWith("/")) {
+                        url = `https://localhost:8443${url}`;
+                    } else {
+                        url = `https://${url}`;
+                    }
+
+                    await env.openExternal(Uri.parse(url));
+                }
+            }));
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.deleteDbObject",
             async (item?: MrsDbObjectTreeItem) => {
@@ -742,7 +771,8 @@ export class MRSCommandHandler {
         }
     };
 
-    private runLocalRouter = async (context: ExtensionContext, item?: MrsTreeItem): Promise<void> => {
+    private startStopLocalRouter = async (context: ExtensionContext,
+        item?: MrsTreeItem, start = true): Promise<void> => {
         if (item) {
             if (findExecutable("mysqlrouter")) {
                 let routerConfigDir: string;
@@ -759,17 +789,28 @@ export class MRSCommandHandler {
                     }
 
                     if (term !== undefined) {
+                        const cmd = (start ? "start" : "stop") + (platform() === "win32" ? ".ps1" : ".sh");
                         term.show();
-                        term.sendText(`mysqlrouter -c ${path.join(routerConfigDir, "mysqlrouter.conf")}`, true);
+                        if (platform() === "win32") {
+                            term.sendText("Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser", true);
+                            term.sendText("clear", true);
+                        }
+                        term.sendText(path.join(routerConfigDir, cmd), true);
                     }
                 } else {
-                    const answer = await window.showInformationMessage(
-                        `The MySQL Router config directory ${routerConfigDir} was not found. `
-                        + "Do you want to bootstrap a local MySQL Router instance for development now?",
-                        "Yes", "No");
-                    if (answer === "Yes") {
-                        await this.bootstrapLocalRouter(context, item, true);
-                        void this.runLocalRouter(context, item);
+                    if (start) {
+                        const answer = await window.showInformationMessage(
+                            `The MySQL Router config directory ${routerConfigDir} was not found. `
+                            + "Do you want to bootstrap a local MySQL Router instance for development now?",
+                            "Yes", "No");
+                        if (answer === "Yes") {
+                            await this.bootstrapLocalRouter(context, item, true);
+                            void this.startStopLocalRouter(context, item);
+                        }
+                    } else {
+                        showMessageWithTimeout(
+                            `The MySQL Router config directory ${routerConfigDir} was not found. ` +
+                            "Please bootstrap a local MySQL Router instance for development first.");
                     }
                 }
             } else {
@@ -897,8 +938,8 @@ export class MRSCommandHandler {
         authApp?: IMrsAuthAppData, service?: IMrsServiceData): Promise<void> => {
 
         const title = authApp
-            ? "Adjust the MySQL REST Authentication App Configuration"
-            : "Enter Configuration Values for the New MySQL REST Authentication App";
+            ? "Adjust the REST Authentication App Configuration"
+            : "Enter Configuration Values for the New REST Authentication App";
         const tabTitle = authApp
             ? "Edit REST Authentication App"
             : "Add REST Authentication App";
@@ -1017,7 +1058,7 @@ export class MRSCommandHandler {
         authApp: IMrsAuthAppData, user?: IMrsUserData): Promise<void> => {
 
         const title = user
-            ? `Adjust the MySQL REST User`
+            ? `Adjust the REST User`
             : `Enter new MySQL REST User Values`;
         const tabTitle = user
             ? "Edit REST User"
@@ -1136,8 +1177,8 @@ export class MRSCommandHandler {
         const authVendors = await backend.mrs.getAuthVendors();
 
         const title = service
-            ? "Adjust the MySQL REST Service Configuration"
-            : "Enter Configuration Values for the New MySQL REST Service";
+            ? "Adjust the REST Service Configuration"
+            : "Enter Configuration Values for the New REST Service";
         const tabTitle = service
             ? "Edit REST Service"
             : "Add REST Service";
@@ -1330,8 +1371,8 @@ export class MRSCommandHandler {
         try {
             const services = await backend.mrs.listServices();
             const title = schema
-                ? "Adjust the MySQL REST Schema Configuration"
-                : "Enter Configuration Values for the New MySQL REST Schema";
+                ? "Adjust the REST Schema Configuration"
+                : "Enter Configuration Values for the New REST Schema";
             const tabTitle = schema
                 ? "Edit REST Schema"
                 : "Add REST Schema";
@@ -1430,8 +1471,8 @@ export class MRSCommandHandler {
             schemaName, dbObject.objectType);
 
         const title = dbObject
-            ? "Adjust the MySQL REST Object Configuration"
-            : "Enter Configuration Values for the New MySQL REST Object";
+            ? "Adjust the REST Object Configuration"
+            : "Enter Configuration Values for the New REST Object";
         const tabTitle = dbObject
             ? "Edit REST Object"
             : "Add REST Object";
