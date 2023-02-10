@@ -601,7 +601,7 @@ CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`router_status` (
   `mysql_connections` MEDIUMINT NOT NULL DEFAULT 0,
   `mysql_queries` MEDIUMINT NOT NULL DEFAULT 0,
   `http_requests_get` MEDIUMINT NOT NULL DEFAULT 0,
-  `http_requests_push` MEDIUMINT NOT NULL DEFAULT 0,
+  `http_requests_post` MEDIUMINT NOT NULL DEFAULT 0,
   `http_requests_put` MEDIUMINT NOT NULL DEFAULT 0,
   `http_requests_delete` MEDIUMINT NOT NULL DEFAULT 0,
   `active_mysql_connections` MEDIUMINT NOT NULL DEFAULT 0,
