@@ -968,7 +968,7 @@ export interface IShellMrsAddUserKwargs {
     appOptions: IShellDictionary | null;
     /** The authentication string for the user. */
     authString?: string;
-    /** The list of user roles for this user */
+    /** The list of user roles for this user. This needs to be in the following format { "role_id": "0x......", "comments": "Add some comments" } */
     userRoles?: unknown[];
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
@@ -998,7 +998,7 @@ export interface IShellMrsUpdateUserKwargs {
     userId?: string;
     /** The values to be updated */
     value?: IShellMrsUpdateUserKwargsValue;
-    /** The list of user roles for this user. This shall in the format { "role_id": "0x......", "comments": "Add some comments", } */
+    /** The list of user roles for this user. This needs to be in the following format { "role_id": "0x......", "comments": "Add some comments" } */
     userRoles?: unknown[];
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;

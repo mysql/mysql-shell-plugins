@@ -89,7 +89,11 @@ def add_user(**kwargs):
         mapped_user_id (str): The id for the mapped user
         app_options (dict,required): The authentication app options for this user
         auth_string (str): The authentication string for the user.
-        user_roles (list): The list of user roles for this user
+        user_roles (list): The list of user roles for this user. This needs to be in the following format
+            {
+                "role_id": "0x......",
+                "comments": "Add some comments"
+            }
         session (object): The database session to use.
 
     Returns:
@@ -119,10 +123,10 @@ def add_user(**kwargs):
 
             user_roles = [{
                 "user_id": user_id,
-                "role_id": lib.core.id_to_binary(id, "user_role_id"),
+                "role_id": lib.core.id_to_binary(user_role["role_id"], "user_role_id"),
                 "comments": None,
             }
-            for id in user_roles]
+            for user_role in user_roles]
 
             auth_app = lib.auth_apps.get_auth_app(session, auth_app_id)
             default_role_id = auth_app["default_role_id"]
@@ -172,10 +176,10 @@ def update_user(**kwargs):
     Keyword Args:
         user_id (str): The id of the user to update
         value (dict): The values to be updated
-        user_roles (list): The list of user roles for this user. This shall in the format
+        user_roles (list): The list of user roles for this user. This needs to be in the following format
             {
                 "role_id": "0x......",
-                "comments": "Add some comments",
+                "comments": "Add some comments"
             }
         session (object): The database session to use.
 
