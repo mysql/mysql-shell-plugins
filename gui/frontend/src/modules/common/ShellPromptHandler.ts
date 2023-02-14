@@ -89,7 +89,7 @@ export class ShellPromptHandler {
                             alternative,
                             default: result.defaultValue,
                         },
-                        data: { ...payload, requestId, backend, replies },
+                        data: { ...payload, requestId, backend, replies, moduleSessionId: result.moduleSessionId },
                     };
                     void requisitions.execute("showDialog", request);
 
@@ -107,7 +107,7 @@ export class ShellPromptHandler {
                             default: result.defaultValue,
                             options: result.options,
                         },
-                        data: { ...payload, requestId, backend },
+                        data: { ...payload, requestId, backend, moduleSessionId: result.moduleSessionId },
                     };
                     void requisitions.execute("showDialog", request);
 
@@ -128,7 +128,7 @@ export class ShellPromptHandler {
                         values: {
                             prompt: result.prompt,
                         },
-                        data: { ...payload, requestId, backend },
+                        data: { ...payload, requestId, backend, moduleSessionId: result.moduleSessionId },
                     };
                     void requisitions.execute("showDialog", dialogRequest);
 
@@ -148,7 +148,8 @@ export class ShellPromptHandler {
         return new Promise((resolve) => {
             const backend = data.request.payload?.backend as IPromptReplyBackend;
             if (backend) {
-                backend.sendReply(data.request.requestId, ShellPromptResponseType.Ok, data.password)
+                backend.sendReply(data.request.requestId, ShellPromptResponseType.Ok, data.password,
+                    data.request.payload?.moduleSessionId as string)
                     .then(() => { resolve(true); })
                     .catch(() => { resolve(false); });
             } else {
@@ -161,7 +162,8 @@ export class ShellPromptHandler {
         return new Promise((resolve) => {
             const backend = request.payload?.backend as IPromptReplyBackend;
             if (backend) {
-                backend.sendReply(request.requestId, ShellPromptResponseType.Cancel, "")
+                backend.sendReply(request.requestId, ShellPromptResponseType.Cancel, "",
+                    request.payload?.moduleSessionId as string)
                     .then(() => { resolve(true); })
                     .catch(() => { resolve(false); });
             } else {
@@ -179,8 +181,9 @@ export class ShellPromptHandler {
             const backend = response.data?.backend as IPromptReplyBackend;
             const requestId = response.data?.requestId as string;
 
+            const moduleSessionId = response.data?.moduleSessionId as string;
             const sendReply = (type: ShellPromptResponseType, reply: string) => {
-                backend.sendReply(requestId, type, reply)
+                backend.sendReply(requestId, type, reply, moduleSessionId)
                     .then(() => { resolve(true); })
                     .catch(() => { resolve(false); });
             };
@@ -235,6 +238,8 @@ export class ShellPromptHandler {
 
     private static splitAndBuildPasswdRequest = (request: IShellPasswordFeedbackRequest, requestId: string,
         payload: IDictionary, title?: string, description?: string[]): IServicePasswordRequest => {
+
+        payload.moduleSessionId = request.moduleSessionId; // Optionally.
         const passwordRequest: IServicePasswordRequest = {
             requestId,
             caption: title ?? "Open MySQL Connection",
