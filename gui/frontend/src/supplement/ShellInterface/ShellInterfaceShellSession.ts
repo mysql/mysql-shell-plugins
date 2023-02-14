@@ -151,11 +151,13 @@ export class ShellInterfaceShellSession implements IPromptReplyBackend {
      * @param requestId The same request ID that was used to request input from the user.
      * @param type Indicates if the user accepted the request or cancelled it.
      * @param reply The reply from the user.
+     * @param moduleSessionId Use this to override the module session ID.
      *
      * @returns A listener for the response.
      */
-    public async sendReply(requestId: string, type: ShellPromptResponseType, reply: string): Promise<void> {
-        const moduleSessionId = this.moduleSessionId;
+    public async sendReply(requestId: string, type: ShellPromptResponseType, reply: string,
+        moduleSessionId?: string): Promise<void> {
+        moduleSessionId = moduleSessionId ?? this.moduleSessionId;
         if (moduleSessionId) {
             await MessageScheduler.get.sendRequest({
                 requestType: Protocol.PromptReply,

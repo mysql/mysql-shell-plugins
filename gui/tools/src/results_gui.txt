@@ -167,6 +167,12 @@ export interface IShellBaseFeedbackRequest {
 
     /** Defines some context for the actual feedback request. It is a string list where every item is a paragraph. */
     description?: string[];
+
+    /**
+     * If specified use that as session ID to send prompt replies. Used for prompts while a session is being
+     * opened.
+     */
+    moduleSessionId?: string;
 }
 
 /**
