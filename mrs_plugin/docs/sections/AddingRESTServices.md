@@ -21,20 +21,20 @@ along with this program; if not, write to the Free Software Foundation, Inc.,
 
 # Adding REST Services
 
-MRS supports the setup up of a large number individual REST Services.
+MRS supports the setup of a large number individual REST services.
 
-Each REST Service has its own settings for URL path, host name, supported protocols, authentication options and other settings. It can expose a selected list of database schemas and objects.
+Each REST service has its own settings for URL path, host name, supported protocols, authentication options, and other settings. A service can expose a selected list of database schemas and objects.
 
-This allows to perform an individual setup for each application and it is advised to setup an separate REST Service for each application.
+It is possible to perform an individual setup for each application and it is advised to setup an separate REST service for each application.
 
-## Preconditions to adding a REST Services
+## Preconditions for Adding a REST Service
 
-In order to setup a new REST Services the following preconditions need to be met.
+Before setting up a new REST service, ensure that the following preconditions are met:
 
-1. The MySQL REST Service has to be configured on the targeting MySQL Solution. Please see the [Configuration](#configuration-of-the-mysql-rest-service) section of this manual.
-2. The MySQL account used to connect to the targeting MySQL Solution needs to be granted the `mysql_rest_service_admin` MySQL role or a superset of privileges.
+- The MySQL REST Service must be configured on the targeting MySQL Solution. Please see the [Configuration](#configuration-of-the-mysql-rest-service) section of this manual.
+- The MySQL account used to connect to the targeting MySQL Solution needs to be granted the `mysql_rest_service_admin` MySQL role or a superset of privileges.
 
-To grant the `mysql_rest_service_admin` MySQL role execute the following SQL statement.
+To grant the `mysql_rest_service_admin` MySQL role, execute the following SQL statement.
 
 ```sql
 GRANT 'mysql_rest_service_admin' TO 'user_account'@'%';
@@ -44,29 +44,29 @@ GRANT 'mysql_rest_service_admin' TO 'user_account'@'%';
 ALTER USER 'user_account'@'%' DEFAULT ROLE 'mysql_rest_service_admin';
 ```
 
-## Setting up a new REST Service
+## Setting Up a New REST Service
 
-A new REST Service can be added in different ways, depending on the use case.
+A new REST service can be added in one of the following ways:
 
-1. MySQL Shell for VS Code provides a GUI dialog to create the REST Service.
-2. MySQL Shell offers the MRS plugin that can be used to create a REST Service interactively or via scripts on the terminal.
-3. When writing a script or plugin for MySQL Shell the MRS plugin can be used to script the creation in Python or JavaScript.
+- MySQL Shell for VS Code provides a GUI dialog to create the REST service.
+- MySQL Shell offers the MRS plugin that can be used to create a REST service interactively or with scripts in a terminal.
+- When writing a script or plugin for MySQL Shell, the MRS plugin can be used to script the creation in Python or JavaScript.
 
-### Adding a REST Service using MySQL Shell for VS Code
+### Adding a REST Service Using MySQL Shell for VS Code
 
-After configuring the MySQL REST Service on the target MySQL instance a new tree item `MySQL REST Service` is displayed when expanding the DB Connection in the DATABASE CONNECTIONS view.
+After configuring the MySQL REST Service on the target MySQL instance, the DB Connection in the DATABASE CONNECTIONS view (when expanded) shows a new tree item, `MySQL REST Service`.
 
-Right click the tree item `MySQL REST Service` and select `Add REST Service...` from the popup menu. This will display the MySQL REST Service dialog.
+1. Right-click the tree item `MySQL REST Service` and select `Add REST Service...` from the list to display the MySQL REST Service dialog.
 
-Fill in the required parameters and click `OK` to add the new REST Service.
+2. Specify values for the required parameters and click `OK` to add the new REST service.
 
 ![Adding a REST Service](../images/vsc-mrs-add-service.png "Adding a REST Service")
 
-### Adding a REST Service using MySQL Shell
+### Adding a REST Service Using MySQL Shell
 
-When using the MySQL Shell, the `mrs` plugin is used to work with the MySQL REST Service. The `mrs.add.service()` function is used to add a new REST Service.
+For MySQL Shell, the `mrs` plugin is used to work with the MySQL REST Service. The `mrs.add.service()` function adds a new REST service.
 
-When started without parameters, an interactive wizard will ask for the required parameters.
+When started without parameters, an interactive wizard prompt you for the required parameters. For example:
 
 ```bash
 MySQL > localhost:33060+ > Py > mrs.add.service()
@@ -94,41 +94,41 @@ Execute the following command to get detailed help information about the `mrs.ad
 
 ### REST Service Properties
 
-Each REST Service has the following properties.
+Each REST service has a common set of properties.
 
 | Option | Description |
 | --- | ----- |
 | MRS Service Path | The URL context root of this service |
 | Comments | Comments to describe this service |
-| Host Name | If specified, only requests for this host will served |
-| Supported Protocols | The supported protocols. Default is HTTPS |
-| Enabled | Specifies if the service is served by the MySQL Router |
+| Host Name | If specified, only requests for this host are served |
+| Supported Protocols | The supported protocols (HTTPS by default) |
+| Enabled | Specifies if the service is served by MySQL Router |
 | Options | Advanced options in JSON format |
 
 ### REST Service Advanced Options
 
-The following advanced options can be set in JSON format.
+The following advanced options can be set in JSON format:
 
-- headers: Accepts a JSON object with one or more HTTP header names as key and it's setting as value.
+- headers: Accepts a JSON object with one or more HTTP header names as key and its setting as value.
 - http:
-  - allowedOrigin: If set to `auto` the MySQL Router will dynamically set the header `Access-Control-Allow-Origin` to the domain the request is coming from. Alternatively this can be set to a specific domain `https://mydomain.com` or a list of domains, e.g. `["https://mydomain.com", "https://myotherdomain.com"]`.
+  - allowedOrigin: If set to `auto`, MySQL Router dynamically sets the header `Access-Control-Allow-Origin` to the domain generating the request. Alternatively, this can be set to a specific domain `https://mydomain.com` or a list of domains (for example, `["https://mydomain.com", "https://myotherdomain.com"]`).
 - logging:
-  - exceptions: If set to `true` exceptions will be logged
+  - exceptions: If set to `true`, exceptions are logged.
   - requests:
-    - body: If set to `true` the full body of all requests will be logged
-    - headers: If set to `true` only the headers of all requests will be logged
+    - body: If set to `true`, the full body of all requests are logged.
+    - headers: If set to `true,` only the headers of all requests are logged.
   - response:
-    - body: If set to `true` the full body of all responses will be logged
-    - headers: If set to `true` only the headers of all responses will be logged
-  - returnInternalErrorDetails: If set to `true` the reason of errors with code 500 will be sent to the client
+    - body: If set to `true`, the full body of all responses are logged.
+    - headers: If set to `true`, only the headers of all responses are logged.
+  - returnInternalErrorDetails: If set to `true`, the cause errors with code 500 are sent to the client.
 
-#### Default REST Service options
+#### Default REST Service Options
 
-The following options are used as default when deploying a new service.
+The example that follows shows the options that are used as default when deploying a new service.
 
-Please note that they are only recommended for development development and must be changed for production usage.
+Note: These options are only recommended for development and must be changed for use in production.
 
-By setting `allowedOrigin` to `auto` the MySQL Router will dynamically set the header `Access-Control-Allow-Origin` to the domain the request is coming from. This is done to work around Cross-origin resource sharing (CORS) checks of web browsers during development time.
+By setting `allowedOrigin` to `auto` MySQL Router dynamically sets the header `Access-Control-Allow-Origin` to the domain that generates the request. This is done to work around Cross-origin resource sharing (CORS) checks of web browsers during development time.
 
 ```json
 {
@@ -155,29 +155,29 @@ By setting `allowedOrigin` to `auto` the MySQL Router will dynamically set the h
 }
 ```
 
-When deploying a REST Service in production, the following settings need to be changed.
+When deploying a REST service in production, the following settings need to be changed:
 
-- Change `allowedOrigin` to the domain(s) the REST service is running on, e.g. `"https://mydomain.com"` when deploying on a production server.
-- Set `returnInternalErrorDetails` to `false`.
-- Adjust the logging settings as needed.
+1. Change `allowedOrigin` to the domain, or domains, the REST service is running on (for example,  `"https://mydomain.com"` when deploying on a production server).
+2. Set `returnInternalErrorDetails` to `false`.
+3. Adjust the logging settings as needed.
 
 ### REST Service Definitions
 
 #### About MRS AutoREST
 
-AutoREST is a quick and easy way to expose database schema tables, views and procedures as REST resources.
+AutoREST is a quick and easy way to expose database schema tables, views, and procedures as REST resources.
 
 #### REST APIs
 
 Representational State Transfer (REST) is a style of software architecture for distributed hypermedia systems such as the World Wide Web. An API is described as RESTful when it conforms to the tenets of REST. Although a full discussion of REST is outside the scope of this document, a REST API has the following characteristics:
 
-Data is modelled as a set of resources. Resources are identified by URIs.
+- Data is modelled as a set of resources. Resources are identified by URIs.
 
-A small, uniform set of operations are used to manipulate resources (for example, PUT, POST, GET, DELETE).
+- A small, uniform set of operations are used to manipulate resources (for example, PUT, POST, GET, DELETE).
 
-A resource can have multiple representations (for example, a blog might have an HTML representation and an RSS representation).
+- A resource can have multiple representations (for example, a blog might have an HTML representation and an RSS representation).
 
-Services are stateless and since it is likely that the client will want to access related resources, these should be identified in the representation returned, typically by providing hypertext links.
+- Services are stateless and since it is likely that the client will want to access related resources, these should be identified in the representation returned, typically by providing hypertext links.
 
 #### RESTful Services Terminology
 

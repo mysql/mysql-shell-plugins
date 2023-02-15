@@ -21,22 +21,22 @@ along with this program; if not, write to the Free Software Foundation, Inc.,
 
 # Adding Database Schemas and Objects to a REST Service
 
-Adding database schema objects (tables, views or procedures) to a REST Service allows them to be accessed through RESTful Web services. Before database schema object can be added, the database schema containing those objects has to be added to the REST Service first.
+Adding database schema objects (tables, views, or procedures) to a MySQL REST Service (MRS) allows them to be accessed through RESTful Web services. Before database schema object can be added, the database schema containing those objects has to be added to the REST service first.
 
-The following image shows the a REST Schema and its REST Objects.
+The following figure shows the a REST schema and its REST objects.
 
 ![REST Schema and its Objects](../images/vsc-mrs-schema-and-objects.png "REST Schema and its Objects")
 
-Note that adding a database schema is not equivalent to exposing all tables and views in the schema through the RESTful Web service. It just means making the MySQL REST Service aware that the schema exists and that it may have zero or more resources to expose to HTTP/S.
+Note: Adding a database schema is not equivalent to exposing all tables and views in the schema through the RESTful Web service. It just means making the MySQL REST Service aware that the schema exists and that it may have zero or more resources to expose to HTTP/S.
 
-## Preconditions to adding Database Schemas and Objects
+## Preconditions for Adding Database Schemas and Objects
 
-In order to add REST Schemas and Objects the following preconditions need to be met.
+Before adding REST schemas and objects, ensure that the following preconditions are met:
 
-1. A REST Service has to be added first. Please see the [Adding a REST Service](#adding-a-rest-service) section of this manual.
-2. The MySQL account used to connect to the targeting MySQL Solution needs to be granted the `mysql_rest_service_schema_admin` MySQL role or a superset of privileges.
+- A REST service must be added first (see [Adding a REST Service](#adding-a-rest-service)).
+- The MySQL account used to connect to the targeting MySQL Solution needs to be granted the `mysql_rest_service_schema_admin` MySQL role or a superset of privileges.
 
-To grant the `mysql_rest_service_schema_admin` MySQL role execute the following SQL statement.
+To grant the `mysql_rest_service_schema_admin` MySQL role, execute the following SQL statement.
 
 ```sql
 GRANT 'mysql_rest_service_schema_admin' TO 'user_account'@'%';
@@ -48,21 +48,23 @@ ALTER USER 'user_account'@'%' DEFAULT ROLE 'mysql_rest_service_schema_admin';
 
 ## Adding a Database Schema
 
-MySQL database schemas can be added either with MySQL Shell for VS Code through convenient UI dialogs or with MySQL Shell directly on the command line or with scripts.
+It is possible to add MySQL database schemas by using MySQL Shell for VS Code through dialogs, MySQL Shell directly on the command line, or with scripts.
 
 ### Adding a Schema with MySQL Shell for VS Code
 
-To add a database schema to a REST Service, right click on the schema in the DATABASE CONNECTIONS view and select `Add Schema to REST Service`.
+To add a database schema to a REST service:
 
-This will show a dialog that lets you set all REST Schema parameters. Press `OK` to add the schema.
+1. Right-click the schema in the DATABASE CONNECTIONS view and select `Add Schema to REST Service` to open a dialog from which you set all REST schema parameters.
+
+2. Click `OK` to add the schema.
 
 ![Adding a Database Schema](../images/vsc-mrs-add-schema.png "Adding a Database Schema")
 
-### Adding a Schema with the MySQL Shell
+### Adding a Schema with MySQL Shell
 
-To add a database schema to a REST Service call the `mrs.add.schema()` function.
+To add a database schema to a REST service, call the `mrs.add.schema()` function.
 
-When started without parameters, an interactive wizard will ask for the required parameters.
+When started without parameters, an interactive wizard prompts you for the required parameters.
 
 ```bash
  MySQL > localhost:33060+ > JS > mrs.add.schema()
@@ -93,36 +95,38 @@ Execute the following command to get detailed help information about the `mrs.ad
 
 ### REST Schema Properties
 
-Each REST Schema has the following properties.
+Each REST schema has a common set of properties.
 
 | Option | Description |
 | --- | ----- |
-| MRS Service Path | The path of the REST Service this REST Schema belongs to |
-| Comments | Comments to describe this MRS Schema |
-| REST Schema Path | The request path to access the schema, has to start with / |
+| MRS Service Path | The path of the REST service for this REST schema |
+| Comments | Comments to describe this MRS schema |
+| REST Schema Path | The request path to access the schema (must start with /) |
 | Schema Name | The name of the corresponding database schema |
-| Items per Page | The default amount of items to be returned when requesting a REST Objects of this schema |
-| Enabled | Whether or not the REST Objects of this REST Schema are exposed through the REST interface |
-| Requires Authentication | Whether or not authentication is required to access the REST Objects of this REST Schema |
+| Items per Page | The default number of items to be returned when requesting REST objects of this schema |
+| Enabled | Whether or not the REST objects of this REST schema are exposed through the REST interface |
+| Requires Authentication | Whether or not authentication is required to access the REST objects of this REST schema |
 | Options | Additional options in JSON format |
 
 ## Adding a Database Object
 
-MySQL database schema objects (tables, views and stored procedures) can be added either with MySQL Shell for VS Code through convenient UI dialogs or with MySQL Shell directly on the command line or with scripts.
+It is possible to add MySQL database schema objects (tables, views, and stored procedures) by using MySQL Shell for VS Code through dialogs, MySQL Shell directly on the command line, or with scripts.
 
 ### Adding a Database Object with MySQL Shell for VS Code
 
-To add a database schema object to a REST Schema, right click on the database object in the DATABASE CONNECTIONS view and select `Add Database Object to REST Service`.
+To add a database schema object to a REST schema:
 
-This will show a dialog that lets you set all REST Schema parameters. Press `OK` to add the schema.
+1. Right-click on the database object in the DATABASE CONNECTIONS view and select `Add Database Object to REST Service` to open dialog from which you set all REST schema parameters.
+
+2. Press `OK` to add the schema.
 
 ![Adding a Database Object](../images/vsc-mrs-add-db-object.png "Adding a Database Object")
 
-### Adding a Database Object with the MySQL Shell
+### Adding a Database Object with MySQL Shell
 
-To add a database schema to a REST Service call the `mrs.add.dbObject()` function.
+To add a database schema to a REST service call the `mrs.add.dbObject()` function.
 
-When started without parameters, an interactive wizard will ask for the required parameters.
+When started without parameters, an interactive wizard prompts you for the required parameters.
 
 ```bash
 MySQL > localhost:33060+ > JS > mrs.add.dbObject()

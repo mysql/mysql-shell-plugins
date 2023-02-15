@@ -41,7 +41,7 @@ The documentation is written in Markdown syntax. It is converted to HTML with th
 
 A VS Code build tasks has been defined to build the documentation in the docs/dist folder. Press `Cmd + Shift + B` to start the build.
 
-To manually build the documentation execute the following command to generate the index.html page.
+To build the documentation manually, invoke the following command to generate the index.html page:
 
     pandoc index.md -f markdown -t html -s -o index.html --template=templates/mysql_docs.html --toc --toc-depth=3 --metadata title="MRS Developer's Guide" --variable=template_css:style/style.css --filter pandoc-include
 

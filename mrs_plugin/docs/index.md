@@ -15,7 +15,7 @@ __Chapter Overview__
 - [MRS Examples](#mrs-examples)
   - [MRS Notes Examples](#mrs-notes-examples)
 
-To start with a hands on approach, directly go to the [MRS Notes Example](#mrs-notes-examples) and follow the instructions for [Build and Deployment](#build-and-deployment) there.
+To start with a hands-on approach, see the [MRS Notes Example](#mrs-notes-examples) and follow the instructions for [Build and Deployment](#build-and-deployment) there.
 
 !include sections/Introduction.md
 

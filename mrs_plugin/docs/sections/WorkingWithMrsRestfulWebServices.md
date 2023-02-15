@@ -25,19 +25,19 @@ This section provides examples of using the MySQL REST Service queries and other
 
 ## About MRS RESTful Web Services
 
-MRS supports the creation of an unlimited amount of distinct RESTful Web Services. You can also refer to them as MRS Services. Each of those MRS Services usually maps to one (or more) web applications.
+MRS supports the creation of an unlimited amount of distinct RESTful Web Services. You can also refer to them as MRS services. Each of those MRS services usually maps to one (or more) web applications.
 
 After you create a RESTful Web Service, you can access it by entering the following URL in your browser:
 
+Pattern:
+
     https://<HOSTNAME:PORT>/<MRS_SERVICE_PATH>/<MRS_DATABASE_SCHEMA_PATH>/<MRS_DATABASE_OBJECT_PATH>/
 
-Where:
-
-- `HOSTNAME:PORT/MRS_SERVICE_PATH`: Specifies the address at which the given MRS Service is running. You can also refer to it as the MRS Service URI.
+- `HOSTNAME:PORT/MRS_SERVICE_PATH`: Specifies the address at which the given MRS service is running. You can also refer to it as the MRS service URI.
 - `MRS_DATABASE_SCHEMA_PATH`: Specifies the path that you provided while REST-enabling your database schema. By default, it is the name of the schema.
 - `MRS_DATABASE_OBJECT_PATH`: Specifies the path that you provided while REST-enabling your database object (TABLE, VIEW or PROCEDURE).
 
-Together, these values comprise the MRS Endpoint URL.
+Together, these values comprise the MRS endpoint URL.
 
 Example:
 
@@ -63,7 +63,7 @@ These requirements are applied to the URL decoded form of the URL, to prevent at
 
 ### About cURL and Testing RESTful Services
 
-Other sections show the testing of RESTful Services using a web browser. However, another useful way to test RESTful Services is using the command line tool named cURL.
+Other sections show the testing of RESTful services using a web browser. However, another useful way to test RESTful Services is using the command line tool named cURL.
 
 This powerful tool is available for most platforms, and enables you to see and control what data is being sent to and received from a RESTful service.
 

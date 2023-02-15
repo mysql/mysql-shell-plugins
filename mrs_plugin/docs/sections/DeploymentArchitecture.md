@@ -21,20 +21,20 @@ along with this program; if not, write to the Free Software Foundation, Inc.,
 
 # Deployment Architecture
 
-The MySQL REST Service (MRS) can be deployed in many different ways depending on the individual project requirements.
+MySQL REST Service (MRS) can be deployed in many different ways depending on the individual project requirements.
 
 **_Deployments for Development_**
 
-The smallest possible development environment consists of a single MySQL Server and a MySQL Router running on the same machine.
+The smallest possible development environment consists of a single MySQL Server instance and a MySQL Router instance running on the same machine.
 
-The recommended deployment for development consists of an InnoDB Cluster setup with a minimum of three MySQL Server instances and two MySQL Routers.
+The recommended deployment for development consists of an InnoDB Cluster deployed with a minimum of three MySQL Server instances and two MySQL Router instances.
 
-For cloud based development, a MySQL Database Service instance with the high availability feature enabled and two compute instances with MySQL Router deployments should be used.
+For cloud-based development, a MySQL Database Service instance with the high availability feature enabled and two compute instances with MySQL Router deployments should be used.
 
 **_Production Deployments_**
 
-In a production environment an InnoDB Cluster setup with three or more MySQL Router instances should be used. It is recommended to use a load balancer to expose the HTTPS port of the MySQL Routers to the public internet.
+In a production environment, an InnoDB Cluster set up with three or more MySQL Router instances should be used. It is recommended to use a load balancer to expose the HTTPS port of the MySQL Router instances to the public internet.
 
-For cloud based production development, MySQL Database Service instance with the high availability feature enabled and three or more compute instances with MySQL Router deployments should be used. It is recommended to use a load balancer to expose the HTTPS port of the MySQL Routers to the public internet.
+For cloud-based development in production, a MySQL Database Service instance with the high availability feature enabled and three or more compute instances with MySQL Router deployments should be used. It is recommended to use a load balancer to expose the HTTPS port of the MySQL Routers to the public internet.
 
 ![MySQL REST Service Architecture Diagram](../images/mrs-architecture.svg "MySQL REST Service Architecture Diagram")
