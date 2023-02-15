@@ -115,7 +115,8 @@
         "us-ashburn-1",
         "uuidv",
         "webrootpath",
-        "zstd"
+        "zstd",
+        "winx"
     ],
     "ignorePaths": [
         "./.eslintrc.json"

@@ -44,7 +44,7 @@ import { SchemaMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvider/Sc
 import { findExecutable, showMessageWithTimeout, showModalDialog } from "./utilities";
 import { openSqlEditorSessionAndConnection, openSqlEditorConnection } from "./utilitiesShellGui";
 import { DialogWebviewManager } from "./web-views/DialogWebviewProvider";
-import { homedir, platform } from "os";
+import { arch, homedir, platform } from "os";
 import path, { join } from "path";
 import { cpSync, existsSync, readFileSync, renameSync, rmSync } from "fs";
 import { IMySQLConnectionOptions, MySQLConnectionScheme } from "../../frontend/src/communication/MySQL";
@@ -765,7 +765,36 @@ export class MRSCommandHandler {
                     + "Do you want to download and install the MySQL Router now?",
                     "Yes", "No");
                 if (answer === "Yes") {
-                    void env.openExternal(Uri.parse("https://labs.mysql.com"));
+                    const labsUrl = "https://downloads.mysql.com/snapshots/pb/mysql-router-8.0.32-labs-mrs/";
+
+                    switch (platform()) {
+                        case "darwin": {
+                            switch (arch()) {
+                                case "arm":
+                                case "arm64": {
+                                    void env.openExternal(Uri.parse(
+                                        `${labsUrl}mysql-router-8.0.32-labs-mrs-macos13-arm64.dmg`));
+                                    break;
+                                }
+                                default: {
+                                    void env.openExternal(Uri.parse(
+                                        `${labsUrl}mysql-router-8.0.32-labs-mrs-macos13-x86_64.dmg`));
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                        case "win32": {
+                            void env.openExternal(Uri.parse(
+                                `${labsUrl}mysql-router-8.0.32-labs-mrs-winx64.msi`));
+                            break;
+                        }
+                        default: {
+                            // Default to Linux
+                            void env.openExternal(Uri.parse("https://labs.mysql.com"));
+                            break;
+                        }
+                    }
                 }
             }
         }
