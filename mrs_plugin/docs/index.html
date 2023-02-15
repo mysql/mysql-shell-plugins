@@ -108,24 +108,23 @@
                                 class="toc-section-number">2</span>
                                 Deployment Architecture</a></li>
                                 <li><a
-                                href="#configuration-of-the-mysql-rest-service"
-                                id="toc-configuration-of-the-mysql-rest-service"><span
+                                href="#configuring-mysql-rest-service"
+                                id="toc-configuring-mysql-rest-service"><span
                                 class="toc-section-number">3</span>
-                                Configuration of the MySQL REST
-                                Service</a>
+                                Configuring MySQL REST Service</a>
                                 <ul>
                                 <li><a
-                                href="#configuration-of-the-mrs-metadata-schema"
-                                id="toc-configuration-of-the-mrs-metadata-schema"><span
+                                href="#configuring-the-mrs-metadata-schema"
+                                id="toc-configuring-the-mrs-metadata-schema"><span
                                 class="toc-section-number">3.1</span>
-                                Configuration of the MRS metadata
-                                schema</a></li>
+                                Configuring the MRS Metadata
+                                Schema</a></li>
                                 <li><a
                                 href="#bootstrapping-and-running-mysql-routers-with-mrs-support"
                                 id="toc-bootstrapping-and-running-mysql-routers-with-mrs-support"><span
                                 class="toc-section-number">3.2</span>
-                                Bootstrapping and running MySQL Routers
-                                with MRS support</a></li>
+                                Bootstrapping and Running MySQL Routers
+                                with MRS Support</a></li>
                                 </ul></li>
                                 <li><a href="#adding-rest-services"
                                 id="toc-adding-rest-services"><span
@@ -133,16 +132,16 @@
                                 Adding REST Services</a>
                                 <ul>
                                 <li><a
-                                href="#preconditions-to-adding-a-rest-services"
-                                id="toc-preconditions-to-adding-a-rest-services"><span
+                                href="#preconditions-for-adding-a-rest-service"
+                                id="toc-preconditions-for-adding-a-rest-service"><span
                                 class="toc-section-number">4.1</span>
-                                Preconditions to adding a REST
-                                Services</a></li>
+                                Preconditions for Adding a REST
+                                Service</a></li>
                                 <li><a
                                 href="#setting-up-a-new-rest-service"
                                 id="toc-setting-up-a-new-rest-service"><span
                                 class="toc-section-number">4.2</span>
-                                Setting up a new REST Service</a></li>
+                                Setting Up a New REST Service</a></li>
                                 </ul></li>
                                 <li><a
                                 href="#adding-database-schemas-and-objects-to-a-rest-service"
@@ -152,11 +151,11 @@
                                 REST Service</a>
                                 <ul>
                                 <li><a
-                                href="#preconditions-to-adding-database-schemas-and-objects"
-                                id="toc-preconditions-to-adding-database-schemas-and-objects"><span
+                                href="#preconditions-for-adding-database-schemas-and-objects"
+                                id="toc-preconditions-for-adding-database-schemas-and-objects"><span
                                 class="toc-section-number">5.1</span>
-                                Preconditions to adding Database Schemas
-                                and Objects</a></li>
+                                Preconditions for Adding Database
+                                Schemas and Objects</a></li>
                                 <li><a href="#adding-a-database-schema"
                                 id="toc-adding-a-database-schema"><span
                                 class="toc-section-number">5.2</span>
@@ -258,8 +257,8 @@
                 Examples</a></li>
                 </ul></li>
                 </ul>
-                <p>To start with a hands on approach, directly go to the
-                <a href="#mrs-notes-examples">MRS Notes Example</a> and
+                <p>To start with a hands-on approach, see the <a
+                href="#mrs-notes-examples">MRS Notes Example</a> and
                 follow the instructions for <a
                 href="#build-and-deployment">Build and Deployment</a>
                 there.</p>
@@ -295,9 +294,9 @@
                 REST Service</h2>
                 <p>The MySQL REST Service (MRS) offers HTTP REST access
                 to selected MySQL schema objects. It is modelled after
-                and supports a sub-set of the Oracle REST Data Services
+                and supports a subset of the Oracle REST Data Services
                 (ORDS).</p>
-                <p>See here for more details about <a
+                <p>For more information, see <a
                 href="https://docs.oracle.com/en/database/oracle/oracle-rest-data-services/22.2/orddg/introduction-to-Oracle-REST-Data-Services.html#GUID-A16BCCA2-8081-4062-A635-9F7C36FC394F/">ORDS</a></p>
                 <p>MRS consists of the following components:</p>
                 <ul>
@@ -319,7 +318,7 @@
                 <li>Support for managing MRS through a graphical user
                 interface (GUI) embedded inside VS Code</li>
                 <li>MRS plugin to configure and manage the MRS setup on
-                the terminal and via scripts</li>
+                the terminal and using scripts</li>
                 </ul></li>
                 </ul>
                 <h3 data-number="1.1.1" id="about-rest-apis"><span
@@ -341,85 +340,85 @@
                 <li>A resource can have multiple representations (for
                 example, a blog might have an HTML representation and an
                 RSS representation).</li>
-                <li>Services are stateless and since it is likely that
-                the client will want to access related resources, these
-                should be identified in the representation returned,
-                typically by providing hypertext links.</li>
+                <li>Services are stateless and because the client is
+                likely to access related resources, these should be
+                identified in the representation returned, typically by
+                providing hypertext links.</li>
                 </ul>
                 <h2 data-number="1.2" id="feature-overview"><span
                 class="header-section-number">1.2</span> Feature
                 Overview</h2>
-                <p>In contrast to the feature rich Oracle REST Data
-                Services (ORDS) the MySQL REST Service (MRS) is focusing
-                on exposing MySQL schema objects via a CRUD/REST
+                <p>In contrast to the feature-rich Oracle REST Data
+                Services (ORDS), the MySQL REST Service (MRS) focuses on
+                exposing MySQL schema objects using a CRUD/REST
                 interface - in many aspects similar to the AutoREST
                 feature of ORDS.</p>
-                <p>See here for details on ORDS <a
+                <p>For more information, see <a
                 href="https://docs.oracle.com/en/database/oracle/oracle-rest-data-services/22.2/orddg/developing-REST-applications.html#GUID-4CE630AA-2F06-41D9-96F6-DA77AB1E6395">AutoREST</a></p>
                 <p><strong><em>MRS AutoREST</em></strong></p>
-                <p>Enabling REST access to a table, view or procedure
+                <p>Enabling REST access to a table, view, or procedure
                 allows it to be accessed through RESTful services.
                 AutoREST is a quick and easy way to expose database
                 tables as REST resources.</p>
-                <p>Note that enabling a schema is not equivalent to
-                enabling all tables, views and procedures in the schema.
-                It just means making MRS aware that the schema exists
-                and that it may have zero or more resources to expose to
-                HTTP. Those resources may be AutoREST resources or
-                resource module resources.</p>
+                <p>Note: Enabling a schema is not equivalent to enabling
+                all tables, views and procedures in the schema. It just
+                means making MRS aware that the schema exists and that
+                it may have zero or more resources to expose to HTTP.
+                Those resources may be AutoREST resources or resource
+                module resources.</p>
                 <p><strong><em>Serving Static Content</em></strong></p>
-                <p>In addition to serving dynamic content via AutoREST
-                it is possible to upload static content, like HTML, CSS
-                and image files. Note that this feature is not meant to
-                replace dedicated HTTP servers that support features
-                like server side programming. It can aid the quick
-                deployments of prototypes and prove-of-concepts and help
-                brining ideas to life.</p>
+                <p>In addition to serving dynamic content using AutoREST
+                it is possible to upload static content, like HTML, CSS,
+                and image files. This feature is not meant to replace
+                dedicated HTTP servers that support capabilities like
+                server-side programming. It can aid the quick
+                deployments of prototypes and proof-of-concept efforts
+                that help bring ideas to life.</p>
                 <p><strong><em>End User Authentication</em></strong></p>
                 <p>MRS currently supports the following authentication
                 methods.</p>
                 <p><strong><em>Simple MySQL
                 Authentication</em></strong></p>
                 <p>Authentication is performed against MySQL server user
-                accounts. Since this authentication method does not need
-                any external OAuth2 service it is preferred during
-                prototyping.</p>
+                accounts. This authentication method does not need any
+                external OAuth2 service, which makes it the preferred
+                method to use during prototyping.</p>
                 <p><strong><em>OAuth2 Authentication</em></strong></p>
-                <p>Several OAuth2 services from 3rd party vendors are
-                supported by MRS, e.g. Sign in with FaceBook, Twitter
-                and Google. In order for a MRS service to authenticate
-                against those vendors, one needs to be registered as a
-                developer with those vendors and a vendor specific
-                authentication apps need to be created. Then the OAuth2
-                specific settings - like access_token and app_id - need
-                to be configured on the MRS side.</p>
+                <p>Several OAuth2 services from 3rd-party vendors are
+                supported by MRS; for example, sign in with FaceBook,
+                Twitter, and Google. In order for a MRS service to
+                authenticate against those vendors, one needs to be
+                registered as a developer with those vendors and a
+                vendor specific authentication apps need to be created.
+                Then the OAuth2 specific settings - like access_token
+                and app_id - need to be configured on the MRS side.</p>
                 <p><strong><em>End User Authorization</em></strong></p>
                 <p>Access to a given REST resource can have several
-                levels of restrictions when using MRS.</p>
+                levels of restrictions when using MRS:</p>
                 <ul>
                 <li>Public access - no authorization is needed to access
                 the REST resource and its data</li>
                 <li>Full access - after authentication the user has full
                 access to all data of the REST resource</li>
                 <li>Limited access - after authentication the user has
-                only access to a sub-set of the data of the REST
+                only access to a subset of the data of the REST
                 resource</li>
                 </ul>
                 <p>MRS has built-in support for several authorization
                 models. These authorization models define which data of
                 a given REST resource that end users can see and
-                manipulate.</p>
+                manipulate:</p>
                 <ul>
-                <li>User ownership based - users can see their own
+                <li>User-ownership based - users can see their own
                 data</li>
-                <li>Privilege based, managed via roles</li>
-                <li>User hierarchy based</li>
+                <li>Privilege based, managed using roles</li>
+                <li>User-hierarchy based</li>
                 <li>Group based</li>
-                <li>Group hierarchy based</li>
+                <li>Group-hierarchy based</li>
                 </ul>
                 <p>If the use case of a given project matches one of the
-                offered authorization models a custom authorization does
-                not need to be implemented.</p>
+                offered authorization models, then a custom
+                authorization does not need to be implemented.</p>
                 <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
@@ -443,28 +442,29 @@
                 <h1 data-number="2" id="deployment-architecture"><span
                 class="header-section-number">2</span> Deployment
                 Architecture</h1>
-                <p>The MySQL REST Service (MRS) can be deployed in many
+                <p>MySQL REST Service (MRS) can be deployed in many
                 different ways depending on the individual project
                 requirements.</p>
                 <p><strong><em>Deployments for
                 Development</em></strong></p>
                 <p>The smallest possible development environment
-                consists of a single MySQL Server and a MySQL Router
-                running on the same machine.</p>
+                consists of a single MySQL Server instance and a MySQL
+                Router instance running on the same machine.</p>
                 <p>The recommended deployment for development consists
-                of an InnoDB Cluster setup with a minimum of three MySQL
-                Server instances and two MySQL Routers.</p>
-                <p>For cloud based development, a MySQL Database Service
+                of an InnoDB Cluster deployed with a minimum of three
+                MySQL Server instances and two MySQL Router
+                instances.</p>
+                <p>For cloud-based development, a MySQL Database Service
                 instance with the high availability feature enabled and
                 two compute instances with MySQL Router deployments
                 should be used.</p>
                 <p><strong><em>Production Deployments</em></strong></p>
-                <p>In a production environment an InnoDB Cluster setup
+                <p>In a production environment, an InnoDB Cluster set up
                 with three or more MySQL Router instances should be
                 used. It is recommended to use a load balancer to expose
-                the HTTPS port of the MySQL Routers to the public
-                internet.</p>
-                <p>For cloud based production development, MySQL
+                the HTTPS port of the MySQL Router instances to the
+                public internet.</p>
+                <p>For cloud-based development in production, a MySQL
                 Database Service instance with the high availability
                 feature enabled and three or more compute instances with
                 MySQL Router deployments should be used. It is
@@ -498,26 +498,25 @@
                 along with this program; if not, write to the Free Software Foundation, Inc.,
                 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
                 <h1 data-number="3"
-                id="configuration-of-the-mysql-rest-service"><span
-                class="header-section-number">3</span> Configuration of
-                the MySQL REST Service</h1>
-                <p>To configure the MySQL REST Service (MRS), the
-                following steps need to be taken.</p>
+                id="configuring-mysql-rest-service"><span
+                class="header-section-number">3</span> Configuring MySQL
+                REST Service</h1>
+                <p>To configure the MySQL REST Service (MRS), use these
+                steps:</p>
                 <ol type="1">
-                <li>Deployment of a MySQL solution</li>
-                <li>Configuration of the MRS metadata database
-                schema</li>
-                <li>Bootstrapping and running one or more MySQL Router
-                instances for MRS support</li>
+                <li>Deploy a MySQL solution.</li>
+                <li>Configure the MRS metadata database schema.</li>
+                <li>Bootstrap and run one or more MySQL Router instances
+                for MRS support.</li>
                 </ol>
-                <p>After these steps have been performed, the MySQL REST
-                Service is fully configured.</p>
+                <p>After performing these steps, MySQL REST Service is
+                fully configured.</p>
                 <p>The HTTPS endpoints can then be accessed as
                 configured during the MySQL Router bootstrap
                 process.</p>
                 <p><strong><em>Deployment of a MySQL
                 solution</em></strong></p>
-                <p>The following MySQL solutions are supported.</p>
+                <p>The following MySQL solutions are supported:</p>
                 <ul>
                 <li>MySQL HeatWave</li>
                 <li>MySQL InnoDB Cluster</li>
@@ -526,35 +525,37 @@
                 <li>MySQL Operator</li>
                 </ul>
                 <p>For development purposes, a standalone MySQL Server
-                setup is also supported. Please note that this setup
-                should not be used in a production deployment since it
-                does not offer any form of High Availability (HA).</p>
+                instance is also supported. Avoid using a standalone
+                setup in a production deployment because it provides no
+                form of High Availability (HA).</p>
                 <ul>
                 <li>Standalone MySQL Server</li>
                 </ul>
-                <p>Please refer to the corresponding documentation on
-                how to deploy and configure the different MySQL
-                solutions.</p>
+                <p>See the corresponding documentation about how to
+                deploy and configure the different MySQL solutions.</p>
                 <h2 data-number="3.1"
-                id="configuration-of-the-mrs-metadata-schema"><span
-                class="header-section-number">3.1</span> Configuration
-                of the MRS metadata schema</h2>
-                <p>The MySQL REST Service stores its configuration in
-                the <code>mysql_rest_service_metadata</code> database
+                id="configuring-the-mrs-metadata-schema"><span
+                class="header-section-number">3.1</span> Configuring the
+                MRS Metadata Schema</h2>
+                <p>MySQL REST Service stores its configuration in the
+                <code>mysql_rest_service_metadata</code> database
                 schema. To deploy the metadata schema, perform one of
-                the following tasks.</p>
-                <p>Please note that the MySQL user that is used to
-                connect to the MySQL Solution needs to have MySQL
-                privileges to create database schemas and roles.</p>
+                the tasks described in this section.</p>
+                <p>Note: The MySQL user that is used to connect to the
+                MySQL Solution must have MySQL privileges to create
+                database schemas and roles.</p>
                 <h3 data-number="3.1.1"
-                id="mrs-configuration-via-mysql-shell-for-vs-code"><span
+                id="mrs-configuration-using-mysql-shell-for-vs-code"><span
                 class="header-section-number">3.1.1</span> MRS
-                Configuration via MySQL Shell for VS Code</h3>
-                <p>Start VS Code and install the MySQL Shell for VS Code
-                extension, then add a connection to the MySQL setup.</p>
-                <p>Right click on the connection in the DATABASE
+                Configuration Using MySQL Shell for VS Code</h3>
+                <ol type="1">
+                <li><p>Start VS Code, install the MySQL Shell for VS
+                Code extension, and then add a database connection to
+                the MySQL setup.</p></li>
+                <li><p>Right-click the connection in the DATABASE
                 CONNECTIONS view and select Configure Instance for MySQL
-                REST Service Support.</p>
+                REST Service Support.</p></li>
+                </ol>
                 <figure>
                 <img src="sections/../images/vsc-mrs-configure.png"
                 title="Configure Instance for MySQL REST Service Support"
@@ -564,14 +565,14 @@
                 </figure>
                 <p>The MRS metadata schema has now been configured.</p>
                 <h3 data-number="3.1.2"
-                id="mrs-configuration-via-mysql-shell"><span
+                id="mrs-configuration-using-mysql-shell"><span
                 class="header-section-number">3.1.2</span> MRS
-                Configuration via MySQL Shell</h3>
-                <p>Open a terminal, start the MySQL Shell and connect to
+                Configuration Using MySQL Shell</h3>
+                <p>Open a terminal, start MySQL Shell, and connect to
                 the MySQL setup.</p>
                 <div class="sourceCode" id="cb1"><pre
                 class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">mysqlsh</span> dba@localhost</span></code></pre></div>
-                <p>Configure the metadata schema via the MRS plugin by
+                <p>Configure the metadata schema using the MRS plugin by
                 executing <code>mrs.configure()</code>.</p>
                 <div class="sourceCode" id="cb2"><pre
                 class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">MySQL</span><span class="op">&gt;</span> localhost:33060+<span class="op">&gt;</span> JS<span class="op">&gt;</span> mrs.configure<span class="er">(</span><span class="kw">)</span></span>
@@ -584,52 +585,51 @@
                 <h2 data-number="3.2"
                 id="bootstrapping-and-running-mysql-routers-with-mrs-support"><span
                 class="header-section-number">3.2</span> Bootstrapping
-                and running MySQL Routers with MRS support</h2>
-                <p>MySQL Routers are an essential part of any MySQL
+                and Running MySQL Routers with MRS Support</h2>
+                <p>MySQL Router is an essential part of any MySQL
                 solution and therefore often deployed in the same step
-                as the MySQL Servers. Please see the MySQL Router
+                as the MySQL Server instances. See the MySQL Router
                 documentation for more details.</p>
-                <p>A MySQL Router needs to be configured to support MRS.
-                This is usually done by using the
-                <code>mysqlrouter_bootstrap</code> command which will
-                query the user for the necessary information.</p>
+                <p>A MySQL Router instance needs to be configured to
+                support MRS. This is usually done by using the
+                <code>mysqlrouter_bootstrap</code> command, which
+                queries the user account for the necessary
+                information.</p>
                 <h3 data-number="3.2.1"
-                id="using-mysql-shell-for-vs-code-to-bootstrap-and-run-a-mysql-router"><span
+                id="using-mysql-shell-for-vs-code-to-bootstrap-and-run-mysql-router"><span
                 class="header-section-number">3.2.1</span> Using MySQL
-                Shell for VS Code to Bootstrap and Run a MySQL
-                Router</h3>
+                Shell for VS Code to Bootstrap and Run MySQL Router</h3>
                 <p>When working with a local development setup it is
                 common to install the MySQL Router instance on the local
                 development machine.</p>
-                <p>In this case MySQL Shell for VS Code can be used to
+                <p>In this case, MySQL Shell for VS Code can be used to
                 simplify the bootstrap process and to launch the MySQL
-                Router.</p>
+                Router instance as follows:</p>
                 <ol type="1">
                 <li>Download and install the MySQL Router package on
                 your local development machine
                 <ul>
                 <li>When not using the DMG on macOS or MSI package on
-                Windows to install MySQL Router, please make sure that
-                the directory holding the MySQL Router binaries is in
-                the system PATH</li>
+                Windows to install MySQL Router, be sure that the
+                directory containing the MySQL Router binaries is in the
+                system PATH.</li>
                 </ul></li>
-                <li>Inside MySQL Shell for VS Code expand a DB
-                Connection in the DATABASE CONNECTIONS view and right
-                click on the <code>MySQL REST Service</code> tree item
-                and select
-                <code>Start Local MySQL Router Instance</code>.
+                <li>Inside MySQL Shell for VS Code, expand a DB
+                Connection in the DATABASE CONNECTIONS view, right-click
+                the <code>MySQL REST Service</code> tree item, and then
+                select <code>Start Local MySQL Router Instance</code>.
                 <ul>
-                <li>If the MySQL Router has not been configured yet the
-                bootstrap operation will run in an integrated VS Code
-                terminal, then start the MySQL Router</li>
-                <li>The MySQL Router debug output can then be inspected
-                in the VS Code terminal</li>
+                <li>If the MySQL Router has not been configured yet, the
+                bootstrap operation runs in an integrated VS Code
+                terminal and then starts MySQL Router.</li>
+                <li>MySQL Router debug output can then be inspected in
+                the VS Code terminal.</li>
                 </ul></li>
-                <li>To shut down the MySQL Router, set the focus to the
-                VS Code terminal showing the debug output and press
-                <code>Ctrl</code> + <code>C</code></li>
+                <li>To shut down MySQL Router, set the focus to the VS
+                Code terminal showing the debug output and press
+                <code>Ctrl</code> + <code>C.</code></li>
                 </ol>
-                <p>Please note that this only works for classic MySQL
+                <p>Note: The previous task only works for classic MySQL
                 connections that are not using the MySQL SSH tunneling
                 or MDS tunneling feature.</p>
                 <figure>
@@ -641,52 +641,52 @@
                 Router</figcaption>
                 </figure>
                 <p>After the MySQL Router has been bootstrapped and
-                started, the MRS is available at
-                <code>https://localhost:8443/&lt;service-name&gt;</code></p>
+                started, MRS is available at
+                <code>https://localhost:8443/&lt;service-name&gt;</code>.</p>
                 <p>You can then proceed and <a
                 href="#adding-a-rest-service">add a REST
-                Service</a>.</p>
+                service</a>.</p>
                 <h3 data-number="3.2.2"
-                id="bootstrapping-a-mysql-router-on-the-command-line"><span
+                id="bootstrapping-mysql-router-from-the-command-line"><span
                 class="header-section-number">3.2.2</span> Bootstrapping
-                a MySQL Router on the Command Line</h3>
-                <p>When deploying a new MySQL Router it is advised to
-                use the <code>mysqlrouter_bootstrap</code> command to
-                bootstrap and configure the router, including the MRS
-                configuration. This is also true for the reconfiguring
-                of an existing MySQL Router for MRS support.</p>
+                MySQL Router From the Command Line</h3>
+                <p>When deploying a new MySQL Router instance, it is
+                advised to use the <code>mysqlrouter_bootstrap</code>
+                command to bootstrap and configure the router, including
+                the MRS configuration. This is also true for
+                reconfiguring an existing MySQL Router instance for MRS
+                support.</p>
                 <div class="sourceCode" id="cb3"><pre
                 class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">mysqlrouter_bootstrap</span> dba@127.0.0.1:3306 <span class="at">--mrs</span> <span class="at">--directory</span> ~/.mysqlrouter</span></code></pre></div>
-                <p>Please follow the interactive steps on the command
-                line to configure the router.</p>
+                <p>Follow the interactive steps on the command line to
+                configure the router.</p>
                 <p><strong><em>Manual Creation of MySQL User Account for
-                MySQL Router access</em></strong></p>
+                MySQL Router Access</em></strong></p>
                 <p>When using the <code>mysqlrouter_bootstrap</code>
-                command to configure the MySQL Router for MRS access the
+                command to configure MySQL Router for MRS, access the
                 user accounts described in this section can be created
                 automatically.</p>
-                <p>If you want to manually manage the required MySQL
-                accounts for use access the following steps need to be
-                performed.</p>
+                <p>If you want to manage the required MySQL accounts
+                manually, the following steps need to be performed:</p>
                 <ol type="1">
-                <li>Creation of the MySQL user account(s)
+                <li>Create the MySQL user account(or accounts)
                 <ul>
-                <li>If only one account is specified, the MySQL Router
-                will use it to access both the MRS metadata schema and
+                <li>If only one account is specified, MySQL Router uses
+                it to access both the MRS metadata schema and
                 application schema data. This account must have the
                 <code>mysql_rest_service_meta_provider</code> and
                 <code>mysql_rest_service_data_provider</code>
                 roles.</li>
-                <li>If two accounts are used, the MySQL Router will use
-                one for the MRS metadata schema access and the other one
-                for the application schema data. Assign the
+                <li>If two accounts are used, MySQL Router, uses one for
+                the MRS metadata schema access and the other one for the
+                application schema data. Assign the
                 <code>mysql_rest_service_meta_provider</code> role to
                 one user and
                 <code>mysql_rest_service_data_provider</code> to the
                 other.</li>
                 </ul></li>
-                <li>Bootstrapping the MySQL Routers using the created
-                MySQL accounts via the following options
+                <li>Bootstrap the MySQL Routers instance using the
+                created MySQL accounts with the following options:
                 <ul>
                 <li><code>--mrs-mysql-metadata-account</code> used by
                 the router to access the MRS metadata schema</li>
@@ -696,7 +696,7 @@
                 </ol>
                 <p>As part of the MRS metadata schema creation, two SQL
                 ROLEs have been created for MySQL Router to access
-                MySQL.</p>
+                MySQL:</p>
                 <ul>
                 <li>The ‘mysql_rest_service_meta_provider’ ROLE grants
                 access to the required MRS metadata schema tables.</li>
@@ -705,13 +705,13 @@
                 database schemas.</li>
                 </ul>
                 <p>To create the MySQL account, connect to the MySQL
-                setup with the MySQL Shell or MySQL Shell for VS Code
-                and execute the following SQL statements.</p>
+                setup with MySQL Shell or MySQL Shell for VS Code and
+                execute the following SQL statements:</p>
                 <div class="sourceCode" id="cb4"><pre
                 class="sourceCode sql"><code class="sourceCode sql"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="fu">USER</span> <span class="st">&#39;mysqlrouter_mrs_&lt;router_name&gt;&#39;</span>@<span class="st">&#39;&lt;router_host&gt;&#39;</span> <span class="kw">IDENTIFIED</span> <span class="kw">BY</span> <span class="st">&#39;password&#39;</span>;</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> <span class="st">&#39;mysql_rest_service_meta_provider&#39;</span>, <span class="st">&#39;mysql_rest_service_data_provider&#39;</span> <span class="kw">TO</span> <span class="st">&#39;mysqlrouter_mrs_&lt;router_name&gt;&#39;</span>@<span class="st">&#39;&lt;router_host&gt;&#39;</span>;</span></code></pre></div>
-                <p>The user name specified above can then be used when
-                calling the <code>mysqlrouter_bootstrap</code>
+                <p>The user name specified for the account can then be
+                used when calling the <code>mysqlrouter_bootstrap</code>
                 command.</p>
                 <table>
                 <colgroup>
@@ -735,14 +735,14 @@
                 </tr>
                 </tbody>
                 </table>
-                <p><strong><em>Adding a MRS configuration to an existing
-                MySQL Router configuration</em></strong></p>
-                <p>In case your MySQL Routers have already been
-                configured it is possible to add the MRS configuration
+                <p><strong><em>Adding a MRS Configuration to an Existing
+                MySQL Router Configuration</em></strong></p>
+                <p>In case your MySQL Router instances are configured
+                already, it is possible to add the MRS configuration
                 later on.</p>
                 <p>To get the path of the existing configuration file,
-                execute <code>mysqlrouter --help</code>. This will show
-                the exact location of the router config file.</p>
+                execute <code>mysqlrouter --help</code> to show the
+                exact location of the router config file.</p>
                 <p>The following is an example when connecting to a
                 single development server.</p>
                 <pre class="cnf"><code>[DEFAULT]
@@ -767,7 +767,7 @@ protocol=classic</code></pre>
                 the router for MRS.</p>
                 <div class="sourceCode" id="cb6"><pre
                 class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">mysqlrouter_bootstrap</span> dba@127.0.0.1:13000 <span class="at">--mrs</span> <span class="at">--directory</span> /export/mysql/src/mysql-trunk/boot</span></code></pre></div>
-                <p>The following parameters can be used to set the MRS
+                <p>These parameters can be used to set the MRS
                 configuration options.</p>
                 <table>
                 <colgroup>
@@ -795,14 +795,14 @@ protocol=classic</code></pre>
                 </tr>
                 <tr class="even">
                 <td><code>--mrs-global-secret=SECRET</code></td>
-                <td>The global JWT secret that has to be the same for
+                <td>The global JWT secret that must be the same for
                 every MySQL Router installation</td>
                 </tr>
                 </tbody>
                 </table>
-                <p>The following is an example when connecting to a
+                <p>The following example demonstrates connecting to a
                 single development server and serving the REST services
-                via HTTP.</p>
+                using HTTP.</p>
                 <pre class="cnf"><code>[http_server]
 port=8443
 ssl=1
@@ -838,23 +838,23 @@ router_id=16</code></pre>
                 <h1 data-number="4" id="adding-rest-services"><span
                 class="header-section-number">4</span> Adding REST
                 Services</h1>
-                <p>MRS supports the setup up of a large number
-                individual REST Services.</p>
-                <p>Each REST Service has its own settings for URL path,
-                host name, supported protocols, authentication options
-                and other settings. It can expose a selected list of
-                database schemas and objects.</p>
-                <p>This allows to perform an individual setup for each
-                application and it is advised to setup an separate REST
-                Service for each application.</p>
+                <p>MRS supports the setup of a large number individual
+                REST services.</p>
+                <p>Each REST service has its own settings for URL path,
+                host name, supported protocols, authentication options,
+                and other settings. A service can expose a selected list
+                of database schemas and objects.</p>
+                <p>It is possible to perform an individual setup for
+                each application and it is advised to setup an separate
+                REST service for each application.</p>
                 <h2 data-number="4.1"
-                id="preconditions-to-adding-a-rest-services"><span
+                id="preconditions-for-adding-a-rest-service"><span
                 class="header-section-number">4.1</span> Preconditions
-                to adding a REST Services</h2>
-                <p>In order to setup a new REST Services the following
-                preconditions need to be met.</p>
-                <ol type="1">
-                <li>The MySQL REST Service has to be configured on the
+                for Adding a REST Service</h2>
+                <p>Before setting up a new REST service, ensure that the
+                following preconditions are met:</p>
+                <ul>
+                <li>The MySQL REST Service must be configured on the
                 targeting MySQL Solution. Please see the <a
                 href="#configuration-of-the-mysql-rest-service">Configuration</a>
                 section of this manual.</li>
@@ -862,9 +862,9 @@ router_id=16</code></pre>
                 MySQL Solution needs to be granted the
                 <code>mysql_rest_service_admin</code> MySQL role or a
                 superset of privileges.</li>
-                </ol>
+                </ul>
                 <p>To grant the <code>mysql_rest_service_admin</code>
-                MySQL role execute the following SQL statement.</p>
+                MySQL role, execute the following SQL statement.</p>
                 <div class="sourceCode" id="cb8"><pre
                 class="sourceCode sql"><code class="sourceCode sql"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> <span class="st">&#39;mysql_rest_service_admin&#39;</span> <span class="kw">TO</span> <span class="st">&#39;user_account&#39;</span>@<span class="st">&#39;%&#39;</span>;</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -873,35 +873,37 @@ router_id=16</code></pre>
 <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="kw">ALTER</span> <span class="fu">USER</span> <span class="st">&#39;user_account&#39;</span>@<span class="st">&#39;%&#39;</span> <span class="kw">DEFAULT</span> <span class="kw">ROLE</span> <span class="st">&#39;mysql_rest_service_admin&#39;</span>;</span></code></pre></div>
                 <h2 data-number="4.2"
                 id="setting-up-a-new-rest-service"><span
-                class="header-section-number">4.2</span> Setting up a
-                new REST Service</h2>
-                <p>A new REST Service can be added in different ways,
-                depending on the use case.</p>
-                <ol type="1">
+                class="header-section-number">4.2</span> Setting Up a
+                New REST Service</h2>
+                <p>A new REST service can be added in one of the
+                following ways:</p>
+                <ul>
                 <li>MySQL Shell for VS Code provides a GUI dialog to
-                create the REST Service.</li>
+                create the REST service.</li>
                 <li>MySQL Shell offers the MRS plugin that can be used
-                to create a REST Service interactively or via scripts on
-                the terminal.</li>
-                <li>When writing a script or plugin for MySQL Shell the
+                to create a REST service interactively or with scripts
+                in a terminal.</li>
+                <li>When writing a script or plugin for MySQL Shell, the
                 MRS plugin can be used to script the creation in Python
                 or JavaScript.</li>
-                </ol>
+                </ul>
                 <h3 data-number="4.2.1"
                 id="adding-a-rest-service-using-mysql-shell-for-vs-code"><span
                 class="header-section-number">4.2.1</span> Adding a REST
-                Service using MySQL Shell for VS Code</h3>
+                Service Using MySQL Shell for VS Code</h3>
                 <p>After configuring the MySQL REST Service on the
-                target MySQL instance a new tree item
-                <code>MySQL REST Service</code> is displayed when
-                expanding the DB Connection in the DATABASE CONNECTIONS
-                view.</p>
-                <p>Right click the tree item
+                target MySQL instance, the DB Connection in the DATABASE
+                CONNECTIONS view (when expanded) shows a new tree item,
+                <code>MySQL REST Service</code>.</p>
+                <ol type="1">
+                <li><p>Right-click the tree item
                 <code>MySQL REST Service</code> and select
-                <code>Add REST Service...</code> from the popup menu.
-                This will display the MySQL REST Service dialog.</p>
-                <p>Fill in the required parameters and click
-                <code>OK</code> to add the new REST Service.</p>
+                <code>Add REST Service...</code> from the list to
+                display the MySQL REST Service dialog.</p></li>
+                <li><p>Specify values for the required parameters and
+                click <code>OK</code> to add the new REST
+                service.</p></li>
+                </ol>
                 <figure>
                 <img src="sections/../images/vsc-mrs-add-service.png"
                 title="Adding a REST Service"
@@ -912,13 +914,14 @@ router_id=16</code></pre>
                 <h3 data-number="4.2.2"
                 id="adding-a-rest-service-using-mysql-shell"><span
                 class="header-section-number">4.2.2</span> Adding a REST
-                Service using MySQL Shell</h3>
-                <p>When using the MySQL Shell, the <code>mrs</code>
-                plugin is used to work with the MySQL REST Service. The
-                <code>mrs.add.service()</code> function is used to add a
-                new REST Service.</p>
+                Service Using MySQL Shell</h3>
+                <p>For MySQL Shell, the <code>mrs</code> plugin is used
+                to work with the MySQL REST Service. The
+                <code>mrs.add.service()</code> function adds a new REST
+                service.</p>
                 <p>When started without parameters, an interactive
-                wizard will ask for the required parameters.</p>
+                wizard prompt you for the required parameters. For
+                example:</p>
                 <div class="sourceCode" id="cb9"><pre
                 class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">MySQL</span> <span class="op">&gt;</span> localhost:33060+ <span class="op">&gt;</span> Py <span class="op">&gt;</span> mrs.add.service<span class="er">(</span><span class="kw">)</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the context path for this service <span class="pp">[</span><span class="ss">/mrs</span><span class="pp">]</span>: /myservice</span>
@@ -944,7 +947,7 @@ router_id=16</code></pre>
                 id="rest-service-properties"><span
                 class="header-section-number">4.2.3</span> REST Service
                 Properties</h3>
-                <p>Each REST Service has the following properties.</p>
+                <p>Each REST service has a common set of properties.</p>
                 <table>
                 <thead>
                 <tr class="header">
@@ -963,16 +966,16 @@ router_id=16</code></pre>
                 </tr>
                 <tr class="odd">
                 <td>Host Name</td>
-                <td>If specified, only requests for this host will
+                <td>If specified, only requests for this host are
                 served</td>
                 </tr>
                 <tr class="even">
                 <td>Supported Protocols</td>
-                <td>The supported protocols. Default is HTTPS</td>
+                <td>The supported protocols (HTTPS by default)</td>
                 </tr>
                 <tr class="odd">
                 <td>Enabled</td>
-                <td>Specifies if the service is served by the MySQL
+                <td>Specifies if the service is served by MySQL
                 Router</td>
                 </tr>
                 <tr class="even">
@@ -986,58 +989,58 @@ router_id=16</code></pre>
                 class="header-section-number">4.2.4</span> REST Service
                 Advanced Options</h3>
                 <p>The following advanced options can be set in JSON
-                format.</p>
+                format:</p>
                 <ul>
                 <li>headers: Accepts a JSON object with one or more HTTP
-                header names as key and it’s setting as value.</li>
+                header names as key and its setting as value.</li>
                 <li>http:
                 <ul>
-                <li>allowedOrigin: If set to <code>auto</code> the MySQL
-                Router will dynamically set the header
+                <li>allowedOrigin: If set to <code>auto</code>, MySQL
+                Router dynamically sets the header
                 <code>Access-Control-Allow-Origin</code> to the domain
-                the request is coming from. Alternatively this can be
-                set to a specific domain
-                <code>https://mydomain.com</code> or a list of domains,
-                e.g. <code>["https://mydomain.com", "https://myotherdomain.com"]</code>.</li>
+                generating the request. Alternatively, this can be set
+                to a specific domain <code>https://mydomain.com</code>
+                or a list of domains (for example,
+                <code>["https://mydomain.com", "https://myotherdomain.com"]</code>).</li>
                 </ul></li>
                 <li>logging:
                 <ul>
-                <li>exceptions: If set to <code>true</code> exceptions
-                will be logged</li>
+                <li>exceptions: If set to <code>true</code>, exceptions
+                are logged.</li>
                 <li>requests:
                 <ul>
-                <li>body: If set to <code>true</code> the full body of
-                all requests will be logged</li>
-                <li>headers: If set to <code>true</code> only the
-                headers of all requests will be logged</li>
+                <li>body: If set to <code>true</code>, the full body of
+                all requests are logged.</li>
+                <li>headers: If set to <code>true,</code> only the
+                headers of all requests are logged.</li>
                 </ul></li>
                 <li>response:
                 <ul>
-                <li>body: If set to <code>true</code> the full body of
-                all responses will be logged</li>
-                <li>headers: If set to <code>true</code> only the
-                headers of all responses will be logged</li>
+                <li>body: If set to <code>true</code>, the full body of
+                all responses are logged.</li>
+                <li>headers: If set to <code>true</code>, only the
+                headers of all responses are logged.</li>
                 </ul></li>
                 <li>returnInternalErrorDetails: If set to
-                <code>true</code> the reason of errors with code 500
-                will be sent to the client</li>
+                <code>true</code>, the cause errors with code 500 are
+                sent to the client.</li>
                 </ul></li>
                 </ul>
                 <h4 data-number="4.2.4.1"
                 id="default-rest-service-options"><span
                 class="header-section-number">4.2.4.1</span> Default
-                REST Service options</h4>
-                <p>The following options are used as default when
-                deploying a new service.</p>
-                <p>Please note that they are only recommended for
-                development development and must be changed for
-                production usage.</p>
+                REST Service Options</h4>
+                <p>The example that follows shows the options that are
+                used as default when deploying a new service.</p>
+                <p>Note: These options are only recommended for
+                development and must be changed for use in
+                production.</p>
                 <p>By setting <code>allowedOrigin</code> to
-                <code>auto</code> the MySQL Router will dynamically set
-                the header <code>Access-Control-Allow-Origin</code> to
-                the domain the request is coming from. This is done to
-                work around Cross-origin resource sharing (CORS) checks
-                of web browsers during development time.</p>
+                <code>auto</code> MySQL Router dynamically sets the
+                header <code>Access-Control-Allow-Origin</code> to the
+                domain that generates the request. This is done to work
+                around Cross-origin resource sharing (CORS) checks of
+                web browsers during development time.</p>
                 <div class="sourceCode" id="cb11"><pre
                 class="sourceCode json"><code class="sourceCode json"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;headers&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
@@ -1061,17 +1064,17 @@ router_id=16</code></pre>
 <span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
 <span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;returnInternalErrorDetails&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
 <span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
-                <p>When deploying a REST Service in production, the
-                following settings need to be changed.</p>
-                <ul>
-                <li>Change <code>allowedOrigin</code> to the domain(s)
-                the REST service is running on,
-                e.g. <code>"https://mydomain.com"</code> when deploying
-                on a production server.</li>
+                <p>When deploying a REST service in production, the
+                following settings need to be changed:</p>
+                <ol type="1">
+                <li>Change <code>allowedOrigin</code> to the domain, or
+                domains, the REST service is running on (for example,
+                <code>"https://mydomain.com"</code> when deploying on a
+                production server).</li>
                 <li>Set <code>returnInternalErrorDetails</code> to
                 <code>false</code>.</li>
                 <li>Adjust the logging settings as needed.</li>
-                </ul>
+                </ol>
                 <h3 data-number="4.2.5"
                 id="rest-service-definitions"><span
                 class="header-section-number">4.2.5</span> REST Service
@@ -1080,7 +1083,7 @@ router_id=16</code></pre>
                 class="header-section-number">4.2.5.1</span> About MRS
                 AutoREST</h4>
                 <p>AutoREST is a quick and easy way to expose database
-                schema tables, views and procedures as REST
+                schema tables, views, and procedures as REST
                 resources.</p>
                 <h4 data-number="4.2.5.2" id="rest-apis"><span
                 class="header-section-number">4.2.5.2</span> REST
@@ -1092,18 +1095,21 @@ router_id=16</code></pre>
                 a full discussion of REST is outside the scope of this
                 document, a REST API has the following
                 characteristics:</p>
-                <p>Data is modelled as a set of resources. Resources are
-                identified by URIs.</p>
-                <p>A small, uniform set of operations are used to
+                <ul>
+                <li><p>Data is modelled as a set of resources. Resources
+                are identified by URIs.</p></li>
+                <li><p>A small, uniform set of operations are used to
                 manipulate resources (for example, PUT, POST, GET,
-                DELETE).</p>
-                <p>A resource can have multiple representations (for
+                DELETE).</p></li>
+                <li><p>A resource can have multiple representations (for
                 example, a blog might have an HTML representation and an
-                RSS representation).</p>
-                <p>Services are stateless and since it is likely that
-                the client will want to access related resources, these
-                should be identified in the representation returned,
-                typically by providing hypertext links.</p>
+                RSS representation).</p></li>
+                <li><p>Services are stateless and since it is likely
+                that the client will want to access related resources,
+                these should be identified in the representation
+                returned, typically by providing hypertext
+                links.</p></li>
+                </ul>
                 <h4 data-number="4.2.5.3"
                 id="restful-services-terminology"><span
                 class="header-section-number">4.2.5.3</span> RESTful
@@ -1166,14 +1172,14 @@ router_id=16</code></pre>
                 id="adding-database-schemas-and-objects-to-a-rest-service"><span
                 class="header-section-number">5</span> Adding Database
                 Schemas and Objects to a REST Service</h1>
-                <p>Adding database schema objects (tables, views or
-                procedures) to a REST Service allows them to be accessed
-                through RESTful Web services. Before database schema
-                object can be added, the database schema containing
-                those objects has to be added to the REST Service
-                first.</p>
-                <p>The following image shows the a REST Schema and its
-                REST Objects.</p>
+                <p>Adding database schema objects (tables, views, or
+                procedures) to a MySQL REST Service (MRS) allows them to
+                be accessed through RESTful Web services. Before
+                database schema object can be added, the database schema
+                containing those objects has to be added to the REST
+                service first.</p>
+                <p>The following figure shows the a REST schema and its
+                REST objects.</p>
                 <figure>
                 <img
                 src="sections/../images/vsc-mrs-schema-and-objects.png"
@@ -1182,28 +1188,28 @@ router_id=16</code></pre>
                 <figcaption aria-hidden="true">REST Schema and its
                 Objects</figcaption>
                 </figure>
-                <p>Note that adding a database schema is not equivalent
-                to exposing all tables and views in the schema through
-                the RESTful Web service. It just means making the MySQL
-                REST Service aware that the schema exists and that it
-                may have zero or more resources to expose to HTTP/S.</p>
+                <p>Note: Adding a database schema is not equivalent to
+                exposing all tables and views in the schema through the
+                RESTful Web service. It just means making the MySQL REST
+                Service aware that the schema exists and that it may
+                have zero or more resources to expose to HTTP/S.</p>
                 <h2 data-number="5.1"
-                id="preconditions-to-adding-database-schemas-and-objects"><span
+                id="preconditions-for-adding-database-schemas-and-objects"><span
                 class="header-section-number">5.1</span> Preconditions
-                to adding Database Schemas and Objects</h2>
-                <p>In order to add REST Schemas and Objects the
-                following preconditions need to be met.</p>
-                <ol type="1">
-                <li>A REST Service has to be added first. Please see the
-                <a href="#adding-a-rest-service">Adding a REST
-                Service</a> section of this manual.</li>
+                for Adding Database Schemas and Objects</h2>
+                <p>Before adding REST schemas and objects, ensure that
+                the following preconditions are met:</p>
+                <ul>
+                <li>A REST service must be added first (see <a
+                href="#adding-a-rest-service">Adding a REST
+                Service</a>).</li>
                 <li>The MySQL account used to connect to the targeting
                 MySQL Solution needs to be granted the
                 <code>mysql_rest_service_schema_admin</code> MySQL role
                 or a superset of privileges.</li>
-                </ol>
+                </ul>
                 <p>To grant the
-                <code>mysql_rest_service_schema_admin</code> MySQL role
+                <code>mysql_rest_service_schema_admin</code> MySQL role,
                 execute the following SQL statement.</p>
                 <div class="sourceCode" id="cb12"><pre
                 class="sourceCode sql"><code class="sourceCode sql"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> <span class="st">&#39;mysql_rest_service_schema_admin&#39;</span> <span class="kw">TO</span> <span class="st">&#39;user_account&#39;</span>@<span class="st">&#39;%&#39;</span>;</span>
@@ -1215,20 +1221,21 @@ router_id=16</code></pre>
                 id="adding-a-database-schema"><span
                 class="header-section-number">5.2</span> Adding a
                 Database Schema</h2>
-                <p>MySQL database schemas can be added either with MySQL
-                Shell for VS Code through convenient UI dialogs or with
-                MySQL Shell directly on the command line or with
-                scripts.</p>
+                <p>It is possible to add MySQL database schemas by using
+                MySQL Shell for VS Code through dialogs, MySQL Shell
+                directly on the command line, or with scripts.</p>
                 <h3 data-number="5.2.1"
                 id="adding-a-schema-with-mysql-shell-for-vs-code"><span
                 class="header-section-number">5.2.1</span> Adding a
                 Schema with MySQL Shell for VS Code</h3>
-                <p>To add a database schema to a REST Service, right
-                click on the schema in the DATABASE CONNECTIONS view and
-                select <code>Add Schema to REST Service</code>.</p>
-                <p>This will show a dialog that lets you set all REST
-                Schema parameters. Press <code>OK</code> to add the
-                schema.</p>
+                <p>To add a database schema to a REST service:</p>
+                <ol type="1">
+                <li><p>Right-click the schema in the DATABASE
+                CONNECTIONS view and select
+                <code>Add Schema to REST Service</code> to open a dialog
+                from which you set all REST schema parameters.</p></li>
+                <li><p>Click <code>OK</code> to add the schema.</p></li>
+                </ol>
                 <figure>
                 <img src="sections/../images/vsc-mrs-add-schema.png"
                 title="Adding a Database Schema"
@@ -1237,13 +1244,13 @@ router_id=16</code></pre>
                 Schema</figcaption>
                 </figure>
                 <h3 data-number="5.2.2"
-                id="adding-a-schema-with-the-mysql-shell"><span
+                id="adding-a-schema-with-mysql-shell"><span
                 class="header-section-number">5.2.2</span> Adding a
-                Schema with the MySQL Shell</h3>
-                <p>To add a database schema to a REST Service call the
+                Schema with MySQL Shell</h3>
+                <p>To add a database schema to a REST service, call the
                 <code>mrs.add.schema()</code> function.</p>
                 <p>When started without parameters, an interactive
-                wizard will ask for the required parameters.</p>
+                wizard prompts you for the required parameters.</p>
                 <div class="sourceCode" id="cb13"><pre
                 class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a> <span class="ex">MySQL</span> <span class="op">&gt;</span> localhost:33060+ <span class="op">&gt;</span> JS <span class="op">&gt;</span> mrs.add.schema<span class="er">(</span><span class="kw">)</span></span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>   <span class="ex">1</span> information_schema</span>
@@ -1272,7 +1279,7 @@ router_id=16</code></pre>
                 id="rest-schema-properties"><span
                 class="header-section-number">5.2.3</span> REST Schema
                 Properties</h3>
-                <p>Each REST Schema has the following properties.</p>
+                <p>Each REST schema has a common set of properties.</p>
                 <table>
                 <colgroup>
                 <col style="width: 37%" />
@@ -1287,17 +1294,17 @@ router_id=16</code></pre>
                 <tbody>
                 <tr class="odd">
                 <td>MRS Service Path</td>
-                <td>The path of the REST Service this REST Schema
-                belongs to</td>
+                <td>The path of the REST service for this REST
+                schema</td>
                 </tr>
                 <tr class="even">
                 <td>Comments</td>
-                <td>Comments to describe this MRS Schema</td>
+                <td>Comments to describe this MRS schema</td>
                 </tr>
                 <tr class="odd">
                 <td>REST Schema Path</td>
-                <td>The request path to access the schema, has to start
-                with /</td>
+                <td>The request path to access the schema (must start
+                with /)</td>
                 </tr>
                 <tr class="even">
                 <td>Schema Name</td>
@@ -1305,18 +1312,18 @@ router_id=16</code></pre>
                 </tr>
                 <tr class="odd">
                 <td>Items per Page</td>
-                <td>The default amount of items to be returned when
-                requesting a REST Objects of this schema</td>
+                <td>The default number of items to be returned when
+                requesting REST objects of this schema</td>
                 </tr>
                 <tr class="even">
                 <td>Enabled</td>
-                <td>Whether or not the REST Objects of this REST Schema
+                <td>Whether or not the REST objects of this REST schema
                 are exposed through the REST interface</td>
                 </tr>
                 <tr class="odd">
                 <td>Requires Authentication</td>
                 <td>Whether or not authentication is required to access
-                the REST Objects of this REST Schema</td>
+                the REST objects of this REST schema</td>
                 </tr>
                 <tr class="even">
                 <td>Options</td>
@@ -1328,21 +1335,23 @@ router_id=16</code></pre>
                 id="adding-a-database-object"><span
                 class="header-section-number">5.3</span> Adding a
                 Database Object</h2>
-                <p>MySQL database schema objects (tables, views and
-                stored procedures) can be added either with MySQL Shell
-                for VS Code through convenient UI dialogs or with MySQL
-                Shell directly on the command line or with scripts.</p>
+                <p>It is possible to add MySQL database schema objects
+                (tables, views, and stored procedures) by using MySQL
+                Shell for VS Code through dialogs, MySQL Shell directly
+                on the command line, or with scripts.</p>
                 <h3 data-number="5.3.1"
                 id="adding-a-database-object-with-mysql-shell-for-vs-code"><span
                 class="header-section-number">5.3.1</span> Adding a
                 Database Object with MySQL Shell for VS Code</h3>
-                <p>To add a database schema object to a REST Schema,
-                right click on the database object in the DATABASE
-                CONNECTIONS view and select
-                <code>Add Database Object to REST Service</code>.</p>
-                <p>This will show a dialog that lets you set all REST
-                Schema parameters. Press <code>OK</code> to add the
-                schema.</p>
+                <p>To add a database schema object to a REST schema:</p>
+                <ol type="1">
+                <li><p>Right-click on the database object in the
+                DATABASE CONNECTIONS view and select
+                <code>Add Database Object to REST Service</code> to open
+                dialog from which you set all REST schema
+                parameters.</p></li>
+                <li><p>Press <code>OK</code> to add the schema.</p></li>
+                </ol>
                 <figure>
                 <img src="sections/../images/vsc-mrs-add-db-object.png"
                 title="Adding a Database Object"
@@ -1351,13 +1360,13 @@ router_id=16</code></pre>
                 Object</figcaption>
                 </figure>
                 <h3 data-number="5.3.2"
-                id="adding-a-database-object-with-the-mysql-shell"><span
+                id="adding-a-database-object-with-mysql-shell"><span
                 class="header-section-number">5.3.2</span> Adding a
-                Database Object with the MySQL Shell</h3>
-                <p>To add a database schema to a REST Service call the
+                Database Object with MySQL Shell</h3>
+                <p>To add a database schema to a REST service call the
                 <code>mrs.add.dbObject()</code> function.</p>
                 <p>When started without parameters, an interactive
-                wizard will ask for the required parameters.</p>
+                wizard prompts you for the required parameters.</p>
                 <div class="sourceCode" id="cb15"><pre
                 class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ex">MySQL</span> <span class="op">&gt;</span> localhost:33060+ <span class="op">&gt;</span> JS <span class="op">&gt;</span> mrs.add.dbObject<span class="er">(</span><span class="kw">)</span></span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>   <span class="ex">1</span> mrs_notes</span>
@@ -1443,17 +1452,17 @@ router_id=16</code></pre>
                 RESTful Web Services</h2>
                 <p>MRS supports the creation of an unlimited amount of
                 distinct RESTful Web Services. You can also refer to
-                them as MRS Services. Each of those MRS Services usually
+                them as MRS services. Each of those MRS services usually
                 maps to one (or more) web applications.</p>
                 <p>After you create a RESTful Web Service, you can
                 access it by entering the following URL in your
                 browser:</p>
+                <p>Pattern:</p>
                 <pre><code>https://&lt;HOSTNAME:PORT&gt;/&lt;MRS_SERVICE_PATH&gt;/&lt;MRS_DATABASE_SCHEMA_PATH&gt;/&lt;MRS_DATABASE_OBJECT_PATH&gt;/</code></pre>
-                <p>Where:</p>
                 <ul>
                 <li><code>HOSTNAME:PORT/MRS_SERVICE_PATH</code>:
-                Specifies the address at which the given MRS Service is
-                running. You can also refer to it as the MRS Service
+                Specifies the address at which the given MRS service is
+                running. You can also refer to it as the MRS service
                 URI.</li>
                 <li><code>MRS_DATABASE_SCHEMA_PATH</code>: Specifies the
                 path that you provided while REST-enabling your database
@@ -1462,7 +1471,7 @@ router_id=16</code></pre>
                 path that you provided while REST-enabling your database
                 object (TABLE, VIEW or PROCEDURE).</li>
                 </ul>
-                <p>Together, these values comprise the MRS Endpoint
+                <p>Together, these values comprise the MRS endpoint
                 URL.</p>
                 <p>Example:</p>
                 <pre><code>https://localhost:8000/mrs/sakila/actor</code></pre>
@@ -1507,7 +1516,7 @@ router_id=16</code></pre>
                 id="about-curl-and-testing-restful-services"><span
                 class="header-section-number">6.1.2</span> About cURL
                 and Testing RESTful Services</h3>
-                <p>Other sections show the testing of RESTful Services
+                <p>Other sections show the testing of RESTful services
                 using a web browser. However, another useful way to test
                 RESTful Services is using the command line tool named
                 cURL.</p>

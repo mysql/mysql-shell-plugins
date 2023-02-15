@@ -18,6 +18,7 @@
         "InnoDB",
         "mysqlrouter",
         "myservice",
-        "AREST"
+        "AREST",
+        "ORDS"
     ]
 }
