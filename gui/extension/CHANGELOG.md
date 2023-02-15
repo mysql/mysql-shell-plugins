@@ -1,5 +1,15 @@
 # MySQL Shell for VS Code Change Log
 
+## Changes in 1.8.0+8.0.32
+
+### Additions
+
+- Added support for the MySQL REST Service
+
+### Fixes
+
+- Fixed a bug regarding interactive prompts during the opening of a database session
+
 ## Changes in 1.7.2+8.0.32
 
 ### Fixes
