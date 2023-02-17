@@ -773,9 +773,9 @@ export class MRSCommandHandler {
                 if (answer === "Yes") {
                     const labsUrl = "https://downloads.mysql.com/snapshots/pb/mysql-router-8.0.32-labs-mrs/";
 
-                    switch (platform()) {
+                    switch (os.platform()) {
                         case "darwin": {
-                            switch (arch()) {
+                            switch (os.arch()) {
                                 case "arm":
                                 case "arm64": {
                                     void env.openExternal(Uri.parse(
