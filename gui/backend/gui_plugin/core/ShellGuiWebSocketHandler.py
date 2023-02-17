@@ -339,7 +339,6 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
         if self._is_shell_object(json_message):
             json_message = json.loads(str(json_message).replace("\n", "\\n"))
 
-
         self._response_queue.put(json_message)
 
     def send_response_message(self, msg_type, msg, request_id=None,
@@ -636,6 +635,8 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
             lock_session = False
 
             if found_objects[0] == 'gui':
+                # This is the `user_id` that needs to be provided by the user
+                # like for the function `add_profile(user_id, profile)`
                 if "user_id" in f_args:
                     # Return error if user_id does not match self.session_user_id
                     if self.session_user_id is None or "user_id" not in kwargs \
@@ -647,13 +648,16 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
 
                     kwargs.update({"user_id": self.session_user_id})
 
+                # The `_user_id` here is for internal use only
+                # it's not exposed to the user and it's replaced
+                # always by session_user_id
                 if "_user_id" in f_args and not self.is_local_session:
                     kwargs.update({"_user_id": self.session_user_id})
 
                 if "profile_id" in f_args:
                     if "profile_id" not in kwargs:
                         kwargs.update({"profile_id":
-                                    self.session_active_profile_id})
+                                       self.session_active_profile_id})
 
                 if "web_session" in f_args:
                     raise Exception(
