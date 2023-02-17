@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -32,7 +32,7 @@ import {
     IExecuteResultReference, IExecutionResult, IGraphResult, IPresentationOptions, IResponseDataOptions, IResultSets,
     ITextResult, LoadingState,
 } from ".";
-import { EditorLanguage, IExecutionContext } from "../supplement";
+import { EditorLanguage, IExecutionContext, ITextRange } from "../supplement";
 
 /**
  * This class is the base building block for code management in a code editor.
@@ -167,6 +167,21 @@ export class ExecutionContext implements IExecutionContext {
      */
     public get resultIds(): string[] {
         return this.presentation.resultIds;
+    }
+
+    public get fullRange(): ITextRange | undefined {
+        const range = this.model?.getFullModelRange();
+
+        if (range) {
+            return {
+                startLine: range.startLineNumber,
+                startColumn: range.startColumn,
+                endLine: range.endLineNumber,
+                endColumn: range.endColumn,
+            };
+        }
+
+        return undefined;
     }
 
     /**

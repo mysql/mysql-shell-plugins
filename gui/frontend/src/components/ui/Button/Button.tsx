@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,14 +23,14 @@
 
 import "./Button.css";
 
-import React from "react";
+import { ComponentChild, createRef } from "preact";
 
-import { Component, IComponentProperties, MouseEventType } from "../Component/Component";
+import { ComponentBase, IComponentProperties, MouseEventType } from "../Component/ComponentBase";
 import { Orientation } from "../Container/Container";
 import { IRequestTypeMap, requisitions } from "../../../supplement/Requisitions";
 
 export interface IButtonProperties extends IComponentProperties {
-    innerRef?: React.RefObject<HTMLButtonElement>;
+    innerRef?: preact.RefObject<HTMLButtonElement>;
 
     caption?: string;
     round?: boolean;
@@ -48,9 +48,9 @@ export interface IButtonProperties extends IComponentProperties {
     focusOnClick?: boolean;
 }
 
-export class Button extends Component<IButtonProperties> {
+export class Button extends ComponentBase<IButtonProperties> {
 
-    private buttonRef: React.RefObject<HTMLButtonElement>;
+    private buttonRef: preact.RefObject<HTMLButtonElement>;
 
     public constructor(props: IButtonProperties) {
         super(props);
@@ -63,7 +63,7 @@ export class Button extends Component<IButtonProperties> {
         }
         this.connectEvents("onMouseDown");
 
-        this.buttonRef = props.innerRef ?? React.createRef<HTMLButtonElement>();
+        this.buttonRef = props.innerRef ?? createRef<HTMLButtonElement>();
     }
 
     public componentDidMount(): void {
@@ -73,7 +73,7 @@ export class Button extends Component<IButtonProperties> {
         }
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { children, caption, style, orientation, round, imageOnly } = this.mergedProps;
         const className = this.getEffectiveClassNames([
             "button",
@@ -100,7 +100,7 @@ export class Button extends Component<IButtonProperties> {
         );
     }
 
-    protected handleMouseEvent(type: MouseEventType, e: React.MouseEvent): boolean {
+    protected handleMouseEvent(type: MouseEventType, e: MouseEvent): boolean {
         switch (type) {
             case MouseEventType.Down: {
                 const { focusOnClick } = this.mergedProps;

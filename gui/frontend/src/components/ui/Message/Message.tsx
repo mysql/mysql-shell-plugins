@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,16 +23,16 @@
 
 import "./Message.css";
 
-import React from "react";
+import { ComponentChild } from "preact";
 
-import { Component, IComponentProperties } from "../Component/Component";
+import { ComponentBase, IComponentProperties } from "../Component/ComponentBase";
 import { MessageType } from "../../../app-logic/Types";
 
-export interface IMessageProperties extends IComponentProperties {
+interface IMessageProperties extends IComponentProperties {
     type: MessageType;
 }
 
-export class Message extends Component<IMessageProperties> {
+export class Message extends ComponentBase<IMessageProperties> {
 
     public constructor(props: IMessageProperties) {
         super(props);
@@ -40,23 +40,20 @@ export class Message extends Component<IMessageProperties> {
         this.addHandledProperties("type");
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { children, type } = this.mergedProps;
         const className = this.getEffectiveClassNames([
             "message",
             this.classFromProperty(type, ["error", "warning", "info", "response", "interactive"]),
         ]);
 
-        // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-explicit-any
-        const ElementType: any = this.renderAs();
-
         return (
-            <ElementType
+            <div
                 className={className}
                 {...this.unhandledProperties}
             >
                 {children}
-            </ElementType>
+            </div>
         );
     }
 

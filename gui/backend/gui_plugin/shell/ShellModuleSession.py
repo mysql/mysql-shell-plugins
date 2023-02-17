@@ -196,7 +196,6 @@ class ShellModuleSession(ModuleSession):
 
         # TODO: Workaround for Bug #33164726
         env['MYSQLSH_USER_CONFIG_HOME'] = self._subprocess_home + "/"
-        env['MYSQLSH_TERM_COLOR_MODE'] = 'nocolor'
         env["MYSQLSH_JSON_SHELL"] = "1"
 
         if "MYSQLSH_PROMPT_THEME" in env:

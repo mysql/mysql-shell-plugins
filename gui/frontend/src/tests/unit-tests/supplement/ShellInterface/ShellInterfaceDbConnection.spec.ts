@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,7 +22,8 @@
  */
 
 import { IMySQLConnectionOptions, MySQLConnectionScheme } from "../../../../communication/MySQL";
-import { DBType, IConnectionDetails, ShellInterface } from "../../../../supplement/ShellInterface";
+import { DBType, IConnectionDetails } from "../../../../supplement/ShellInterface";
+import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface";
 import { webSession } from "../../../../supplement/WebSession";
 import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher";
 import { getDbCredentials, setupShellForTests } from "../../test-helpers";
@@ -77,6 +78,7 @@ describe("ShellInterfaceDbConnection Tests", () => {
         expect(testConnection.id).toBeGreaterThan(-1);
 
         const connection = await ShellInterface.dbConnections.getDbConnection(testConnection.id);
+        expect(connection).toBeDefined();
         expect(connection).not.toBe(testConnection);
         expect(connection).toEqual(testConnection);
 

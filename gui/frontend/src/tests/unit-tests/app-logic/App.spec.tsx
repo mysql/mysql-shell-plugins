@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,17 +22,16 @@
  */
 
 import { mount } from "enzyme";
-import React from "react";
 
 import { App } from "../../../app-logic/App";
 import { IStatusbarInfo } from "../../../app-logic/Types";
-import { MessageScheduler } from "../../../communication";
+import { MessageScheduler } from "../../../communication/MessageScheduler";
 import { IEditorStatusInfo } from "../../../modules/db-editor";
 import { appParameters, requisitions } from "../../../supplement/Requisitions";
 import { waitFor } from "../../../utilities/helpers";
 import { MySQLShellLauncher } from "../../../utilities/MySQLShellLauncher";
-import { setupShellForTests, snapshotFromWrapper } from "../test-helpers";
-import { eventMock } from "../__mocks__/MockEvents";
+import { setupShellForTests } from "../test-helpers";
+import { mouseEventMock } from "../__mocks__/MockEvents";
 
 describe("Application tests", () => {
     let app: ReturnType<typeof mount>;
@@ -58,9 +57,7 @@ describe("Application tests", () => {
 
         expect(requisitions.registrations("dialogResponse")).toBe(1);
 
-        app = mount(
-            <App />,
-        );
+        app = mount(<App />);
         await started();
 
         expect(requisitions.registrations("dialogResponse")).toBe(2);
@@ -85,14 +82,14 @@ describe("Application tests", () => {
         //       that it was mounted. Need to investigate later.
         expect(app.state("loginInProgress")).toEqual(false);
 
-        expect(snapshotFromWrapper(app)).toMatchSnapshot();
+        expect(app).toMatchSnapshot();
     });
 
     it("Handling status bar click events", async () => {
-        let result = await requisitions.execute("statusBarButtonClick", { type: "dummy", event: eventMock });
+        let result = await requisitions.execute("statusBarButtonClick", { type: "dummy", event: mouseEventMock });
         expect(result).toBe(false);
 
-        result = await requisitions.execute("statusBarButtonClick", { type: "openPopupMenu", event: eventMock });
+        result = await requisitions.execute("statusBarButtonClick", { type: "openPopupMenu", event: mouseEventMock });
         expect(result).toBe(true);
     });
 
@@ -272,6 +269,7 @@ describe("Application tests", () => {
 
         const requisitionPromise = await requisitions.execute("themeChanged", {
             name: "My Theme",
+            safeName: "My-Theme",
             type: "dark",
             values: {
                 name: "Color 1",

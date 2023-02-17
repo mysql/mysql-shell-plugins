@@ -6,44 +6,44 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
   entryOrientation="column"
   id="selector1"
   items={
-    Array [
-      Object {
+    [
+      {
         "caption": "1",
         "icon": "connections.svg",
       },
-      Object {
+      {
         "caption": "2",
         "icon": "connections.svg",
       },
-      Object {
+      {
         "caption": "3",
         "icon": "connections.svg",
       },
-      Object {
+      {
         "caption": "4",
         "icon": "connections.svg",
       },
-      Object {
+      {
         "caption": "5",
         "icon": "connections.svg",
       },
-      Object {
+      {
         "caption": "6",
         "icon": "connections.svg",
       },
-      Object {
+      {
         "caption": "7",
         "icon": "connections.svg",
       },
-      Object {
+      {
         "caption": "8",
         "icon": "connections.svg",
       },
-      Object {
+      {
         "caption": "9",
         "icon": "connections.svg",
       },
-      Object {
+      {
         "caption": "10",
         "icon": "connections.svg",
       },
@@ -57,16 +57,193 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
     className="msg selector vertical smoothScroll"
     id="selector1"
     innerRef={
-      Object {
-        "current": Object {
-          "l": Object {
-            "dragenterfalse": [Function],
-            "dragleavefalse": [Function],
-            "dragoverfalse": [Function],
-            "dragstartfalse": [Function],
-            "dropfalse": [Function],
-          },
-        },
+      {
+        "current": <div
+          class="msg container fixedScrollbar selector vertical smoothScroll"
+          id="selector1"
+          style="flex-direction: column;"
+        >
+          <div
+            class="msg container fixedScrollbar selectorItem stepDown"
+            id="selector1ItemstepDown"
+            style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+          />
+          <div
+            class="msg container fixedScrollbar selectorItem normal"
+            id="selector1Item0"
+            style="flex-direction: column; justify-content: center; align-items: center;"
+          >
+            <span
+              class="msg icon"
+              data-tooltip="inherit"
+              style="mask-image: url(connections.svg);"
+            />
+            <label
+              class="msg label"
+              data-tooltip="inherit"
+            >
+              1
+            </label>
+          </div>
+          <div
+            class="msg container fixedScrollbar selectorItem normal"
+            id="selector1Item1"
+            style="flex-direction: column; justify-content: center; align-items: center;"
+          >
+            <span
+              class="msg icon"
+              data-tooltip="inherit"
+              style="mask-image: url(connections.svg);"
+            />
+            <label
+              class="msg label"
+              data-tooltip="inherit"
+            >
+              2
+            </label>
+          </div>
+          <div
+            class="msg container fixedScrollbar selectorItem normal"
+            id="selector1Item2"
+            style="flex-direction: column; justify-content: center; align-items: center;"
+          >
+            <span
+              class="msg icon"
+              data-tooltip="inherit"
+              style="mask-image: url(connections.svg);"
+            />
+            <label
+              class="msg label"
+              data-tooltip="inherit"
+            >
+              3
+            </label>
+          </div>
+          <div
+            class="msg container fixedScrollbar selectorItem normal"
+            id="selector1Item3"
+            style="flex-direction: column; justify-content: center; align-items: center;"
+          >
+            <span
+              class="msg icon"
+              data-tooltip="inherit"
+              style="mask-image: url(connections.svg);"
+            />
+            <label
+              class="msg label"
+              data-tooltip="inherit"
+            >
+              4
+            </label>
+          </div>
+          <div
+            class="msg container fixedScrollbar selectorItem normal"
+            id="selector1Item4"
+            style="flex-direction: column; justify-content: center; align-items: center;"
+          >
+            <span
+              class="msg icon"
+              data-tooltip="inherit"
+              style="mask-image: url(connections.svg);"
+            />
+            <label
+              class="msg label"
+              data-tooltip="inherit"
+            >
+              5
+            </label>
+          </div>
+          <div
+            class="msg container fixedScrollbar selectorItem normal"
+            id="selector1Item5"
+            style="flex-direction: column; justify-content: center; align-items: center;"
+          >
+            <span
+              class="msg icon"
+              data-tooltip="inherit"
+              style="mask-image: url(connections.svg);"
+            />
+            <label
+              class="msg label"
+              data-tooltip="inherit"
+            >
+              6
+            </label>
+          </div>
+          <div
+            class="msg container fixedScrollbar selectorItem normal"
+            id="selector1Item6"
+            style="flex-direction: column; justify-content: center; align-items: center;"
+          >
+            <span
+              class="msg icon"
+              data-tooltip="inherit"
+              style="mask-image: url(connections.svg);"
+            />
+            <label
+              class="msg label"
+              data-tooltip="inherit"
+            >
+              7
+            </label>
+          </div>
+          <div
+            class="msg container fixedScrollbar selectorItem normal"
+            id="selector1Item7"
+            style="flex-direction: column; justify-content: center; align-items: center;"
+          >
+            <span
+              class="msg icon"
+              data-tooltip="inherit"
+              style="mask-image: url(connections.svg);"
+            />
+            <label
+              class="msg label"
+              data-tooltip="inherit"
+            >
+              8
+            </label>
+          </div>
+          <div
+            class="msg container fixedScrollbar selectorItem normal"
+            id="selector1Item8"
+            style="flex-direction: column; justify-content: center; align-items: center;"
+          >
+            <span
+              class="msg icon"
+              data-tooltip="inherit"
+              style="mask-image: url(connections.svg);"
+            />
+            <label
+              class="msg label"
+              data-tooltip="inherit"
+            >
+              9
+            </label>
+          </div>
+          <div
+            class="msg container fixedScrollbar selectorItem normal"
+            id="selector1Item9"
+            style="flex-direction: column; justify-content: center; align-items: center;"
+          >
+            <span
+              class="msg icon"
+              data-tooltip="inherit"
+              style="mask-image: url(connections.svg);"
+            />
+            <label
+              class="msg label"
+              data-tooltip="inherit"
+            >
+              10
+            </label>
+          </div>
+          <div
+            class="msg container fixedScrollbar selectorItem stepUp"
+            id="selector1ItemstepUp"
+            style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+          />
+        </div>,
       }
     }
     onDragEnter={[Function]}
@@ -74,7 +251,6 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
     onDragOver={[Function]}
     onDragStart={[Function]}
     onDrop={[Function]}
-    onResize={[Function]}
     orientation="column"
   >
     <div
@@ -86,7 +262,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
       onDragStart={[Function]}
       onDrop={[Function]}
       style={
-        Object {
+        {
           "alignItems": undefined,
           "flexDirection": "column",
           "flexWrap": undefined,
@@ -98,12 +274,12 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
         disabled={false}
         id="selector1ItemstepDown"
         innerRef={
-          Object {
-            "current": Object {
-              "l": Object {
-                "clickfalse": [Function],
-              },
-            },
+          {
+            "current": <div
+              class="msg container fixedScrollbar selectorItem stepDown"
+              id="selector1ItemstepDown"
+              style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+            />,
           }
         }
         onClick={[Function]}
@@ -115,12 +291,12 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
           crossAlignment="center"
           id="selector1ItemstepDown"
           innerRef={
-            Object {
-              "current": Object {
-                "l": Object {
-                  "clickfalse": [Function],
-                },
-              },
+            {
+              "current": <div
+                class="msg container fixedScrollbar selectorItem stepDown"
+                id="selector1ItemstepDown"
+                style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+              />,
             }
           }
           mainAlignment="center"
@@ -132,7 +308,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             id="selector1ItemstepDown"
             onClick={[Function]}
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -169,7 +345,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             onClick={[Function]}
             onDrop={[Function]}
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flexDirection": "column",
                 "flexWrap": undefined,
@@ -182,11 +358,11 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
               disabled={false}
               src="connections.svg"
             >
-              <div
+              <span
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
-                  Object {
+                  {
                     "WebkitMaskImage": "url(connections.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
@@ -202,11 +378,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
               <label
                 className="msg label"
                 data-tooltip="inherit"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 1
               </label>
@@ -241,7 +413,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             onClick={[Function]}
             onDrop={[Function]}
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flexDirection": "column",
                 "flexWrap": undefined,
@@ -254,11 +426,11 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
               disabled={false}
               src="connections.svg"
             >
-              <div
+              <span
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
-                  Object {
+                  {
                     "WebkitMaskImage": "url(connections.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
@@ -274,11 +446,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
               <label
                 className="msg label"
                 data-tooltip="inherit"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 2
               </label>
@@ -313,7 +481,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             onClick={[Function]}
             onDrop={[Function]}
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flexDirection": "column",
                 "flexWrap": undefined,
@@ -326,11 +494,11 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
               disabled={false}
               src="connections.svg"
             >
-              <div
+              <span
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
-                  Object {
+                  {
                     "WebkitMaskImage": "url(connections.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
@@ -346,11 +514,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
               <label
                 className="msg label"
                 data-tooltip="inherit"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 3
               </label>
@@ -385,7 +549,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             onClick={[Function]}
             onDrop={[Function]}
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flexDirection": "column",
                 "flexWrap": undefined,
@@ -398,11 +562,11 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
               disabled={false}
               src="connections.svg"
             >
-              <div
+              <span
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
-                  Object {
+                  {
                     "WebkitMaskImage": "url(connections.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
@@ -418,11 +582,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
               <label
                 className="msg label"
                 data-tooltip="inherit"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 4
               </label>
@@ -457,7 +617,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             onClick={[Function]}
             onDrop={[Function]}
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flexDirection": "column",
                 "flexWrap": undefined,
@@ -470,11 +630,11 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
               disabled={false}
               src="connections.svg"
             >
-              <div
+              <span
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
-                  Object {
+                  {
                     "WebkitMaskImage": "url(connections.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
@@ -490,11 +650,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
               <label
                 className="msg label"
                 data-tooltip="inherit"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 5
               </label>
@@ -529,7 +685,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             onClick={[Function]}
             onDrop={[Function]}
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flexDirection": "column",
                 "flexWrap": undefined,
@@ -542,11 +698,11 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
               disabled={false}
               src="connections.svg"
             >
-              <div
+              <span
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
-                  Object {
+                  {
                     "WebkitMaskImage": "url(connections.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
@@ -562,11 +718,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
               <label
                 className="msg label"
                 data-tooltip="inherit"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 6
               </label>
@@ -601,7 +753,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             onClick={[Function]}
             onDrop={[Function]}
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flexDirection": "column",
                 "flexWrap": undefined,
@@ -614,11 +766,11 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
               disabled={false}
               src="connections.svg"
             >
-              <div
+              <span
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
-                  Object {
+                  {
                     "WebkitMaskImage": "url(connections.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
@@ -634,11 +786,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
               <label
                 className="msg label"
                 data-tooltip="inherit"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 7
               </label>
@@ -673,7 +821,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             onClick={[Function]}
             onDrop={[Function]}
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flexDirection": "column",
                 "flexWrap": undefined,
@@ -686,11 +834,11 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
               disabled={false}
               src="connections.svg"
             >
-              <div
+              <span
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
-                  Object {
+                  {
                     "WebkitMaskImage": "url(connections.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
@@ -706,11 +854,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
               <label
                 className="msg label"
                 data-tooltip="inherit"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 8
               </label>
@@ -745,7 +889,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             onClick={[Function]}
             onDrop={[Function]}
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flexDirection": "column",
                 "flexWrap": undefined,
@@ -758,11 +902,11 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
               disabled={false}
               src="connections.svg"
             >
-              <div
+              <span
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
-                  Object {
+                  {
                     "WebkitMaskImage": "url(connections.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
@@ -778,11 +922,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
               <label
                 className="msg label"
                 data-tooltip="inherit"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 9
               </label>
@@ -817,7 +957,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             onClick={[Function]}
             onDrop={[Function]}
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flexDirection": "column",
                 "flexWrap": undefined,
@@ -830,11 +970,11 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
               disabled={false}
               src="connections.svg"
             >
-              <div
+              <span
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
-                  Object {
+                  {
                     "WebkitMaskImage": "url(connections.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
@@ -850,11 +990,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
               <label
                 className="msg label"
                 data-tooltip="inherit"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 10
               </label>
@@ -866,12 +1002,12 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
         disabled={false}
         id="selector1ItemstepUp"
         innerRef={
-          Object {
-            "current": Object {
-              "l": Object {
-                "clickfalse": [Function],
-              },
-            },
+          {
+            "current": <div
+              class="msg container fixedScrollbar selectorItem stepUp"
+              id="selector1ItemstepUp"
+              style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+            />,
           }
         }
         onClick={[Function]}
@@ -883,12 +1019,12 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
           crossAlignment="center"
           id="selector1ItemstepUp"
           innerRef={
-            Object {
-              "current": Object {
-                "l": Object {
-                  "clickfalse": [Function],
-                },
-              },
+            {
+              "current": <div
+                class="msg container fixedScrollbar selectorItem stepUp"
+                id="selector1ItemstepUp"
+                style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+              />,
             }
           }
           mainAlignment="center"
@@ -900,7 +1036,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             id="selector1ItemstepUp"
             onClick={[Function]}
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flexDirection": "row",
                 "flexWrap": undefined,

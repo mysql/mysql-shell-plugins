@@ -36,22 +36,18 @@ import mysqlIcon from "../../assets/images/file-icons/mysql.svg";
 import typescriptIcon from "../../assets/images/file-icons/typescript.svg";
 import notebookIcon from "../../assets/images/file-icons/shell.svg";
 
-import React from "react";
+import { ComponentChild, createRef, toChildArray } from "preact";
 
 import { ModuleBase, IModuleInfo, IModuleState, IModuleProperties } from "../ModuleBase";
 
 import { ConnectionBrowser } from "./ConnectionBrowser";
-import {
-    ITabviewPage, Tabview, Button, Icon, TabPosition, defaultEditorOptions, Divider, Label, Dropdown, Image,
-    ProgressIndicator, IDropdownProperties, Menu, MenuItem, ComponentPlacement, IMenuItemProperties,
-} from "../../components/ui";
 import { DBConnectionTab, IDBConnectionTabPersistentState, IOpenEditorState } from "./DBConnectionTab";
-import { ICodeEditorModel, CodeEditor, CodeEditorMode } from "../../components/ui/CodeEditor/CodeEditor";
-import { Monaco } from "../../components/ui/CodeEditor";
+import { ICodeEditorModel, CodeEditor } from "../../components/ui/CodeEditor/CodeEditor";
+import { CodeEditorMode, Monaco } from "../../components/ui/CodeEditor";
 import { ExecutionContexts } from "../../script-execution/ExecutionContexts";
 import { appParameters, requisitions } from "../../supplement/Requisitions";
-import { settings } from "../../supplement/Settings/Settings";
-import { DBType, IConnectionDetails, ShellInterface } from "../../supplement/ShellInterface";
+import { Settings } from "../../supplement/Settings/Settings";
+import { DBType, IConnectionDetails } from "../../supplement/ShellInterface";
 import { EntityType, IDBDataEntry, IDBEditorScriptState, ISavedGraphData, ISchemaTreeEntry, IToolbarItems } from ".";
 import { documentTypeToIcon, IExplorerSectionState, pageTypeToIcon } from "./Explorer";
 
@@ -68,11 +64,22 @@ import { ShellPromptHandler } from "../common/ShellPromptHandler";
 import { parseVersion } from "../../parsing/mysql/mysql-helpers";
 import { DocumentDropdownItem, IDocumentDropdownItemProperties } from "./DocumentDropdownItem";
 import { uuid } from "../../utilities/helpers";
-import { IOpenConnectionData, IShellPasswordFeedbackRequest } from "../../communication";
+import { defaultEditorOptions } from "../../components/ui";
+import { ComponentPlacement } from "../../components/ui/Component/ComponentBase";
+import { Divider } from "../../components/ui/Divider/Divider";
+import { Dropdown, IDropdownProperties } from "../../components/ui/Dropdown/Dropdown";
+import { Icon } from "../../components/ui/Icon/Icon";
+import { Label } from "../../components/ui/Label/Label";
+import { Menu } from "../../components/ui/Menu/Menu";
+import { Button } from "../../components/ui/Button/Button";
+import { Image } from "../../components/ui/Image/Image";
+import { MenuItem, IMenuItemProperties } from "../../components/ui/Menu/MenuItem";
+import { ProgressIndicator } from "../../components/ui/ProgressIndicator/ProgressIndicator";
+import { ITabviewPage, Tabview, TabPosition } from "../../components/ui/Tabview/Tabview";
+import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface";
+import { IOpenConnectionData, IShellPasswordFeedbackRequest } from "../../communication/ProtocolGui";
 
-/* eslint import/no-webpack-loader-syntax: off */
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const typings = require("!!raw-loader?esModule=false!./assets/typings/scripting-runtime.d.ts");
+import typings from "./assets/typings/scripting-runtime.d.ts?raw";
 
 // Details generated while adding a new tab. These are used in the render method to fill the tab page details.
 interface IDBEditorTabInfo {
@@ -82,7 +89,7 @@ interface IDBEditorTabInfo {
     suppressAbout: boolean;
 }
 
-export type IDBEditorModuleProperties = IModuleProperties;
+type IDBEditorModuleProperties = IModuleProperties;
 
 interface IDBEditorModuleState extends IModuleState {
     editorTabs: IDBEditorTabInfo[];
@@ -121,7 +128,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
     private pendingProgress: ReturnType<typeof setTimeout> | null;
 
-    private actionMenuRef = React.createRef<Menu>();
+    private actionMenuRef = createRef<Menu>();
 
     public static get info(): IModuleInfo {
         return {
@@ -148,7 +155,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             progressMessage: "",
         };
 
-        CodeEditor.addTypings(typings as string, "Runtime");
+        CodeEditor.addTypings(typings, "Runtime");
 
         void this.loadConnections();
         ShellInterface.modules.loadScriptsTree().then((tree) => {
@@ -201,7 +208,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         requisitions.unregister("webSessionStarted", this.webSessionStarted);
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { innerRef } = this.props;
         const {
             connections, connectionsLoaded, selectedPage, editorTabs, showExplorer, showTabs, loading,
@@ -214,7 +221,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         // Generate the main toolbar inset based on the current display mode.
         let toolbarItems: IToolbarItems | undefined;
         if (showEmbeddedContent) {
-            const items: Array<React.ReactElement<typeof Dropdown.Item>> = [
+            const items = [
                 <Dropdown.Item
                     id="connections"
                     key="connections"
@@ -250,7 +257,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                         picture = <Image src={documentTypeToIcon.get(language) || defaultIcon} />;
                     } else {
                         const name = pageTypeToIcon.get(entry.type) || defaultIcon;
-                        picture = <Icon as="span" src={name} width="20px" height="20px" />;
+                        picture = <Icon src={name} width="20px" height="20px" />;
                     }
 
                     items.push((
@@ -337,7 +344,6 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     linear={false}
                 />
                 <Label
-                    as="h4"
                     id="progressMessageId"
                     caption={progressMessage}
                 />
@@ -391,7 +397,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                                         picture = <Image src={documentTypeToIcon.get(language) || defaultIcon} />;
                                     } else {
                                         const name = pageTypeToIcon.get(entry.type) || defaultIcon;
-                                        picture = <Icon as="span" src={name} width="20px" height="20px" />;
+                                        picture = <Icon src={name} width="20px" height="20px" />;
                                     }
 
                                     return (
@@ -794,13 +800,13 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             }
 
             const info = connectionData.info;
-            const sqlMode = info.sqlMode ?? settings.get("editor.sqlMode", "");
-            const serverVersion = info.version ? parseVersion(info.version) : settings.get("editor.dbVersion", 80024);
+            const sqlMode = info.sqlMode ?? Settings.get("editor.sqlMode", "");
+            const serverVersion = info.version ? parseVersion(info.version) : Settings.get("editor.dbVersion", 80024);
             const serverEdition = info.edition ?? "";
             const heatWaveEnabled = info.heatWaveAvailable ?? false;
 
             const entryId = uuid();
-            const useNotebook = settings.get("dbEditor.defaultEditor", "notebook") === "notebook";
+            const useNotebook = Settings.get("dbEditor.defaultEditor", "notebook") === "notebook";
 
             const model = this.createEditorModel(backend, "", useNotebook ? "msg" : "mysql", serverVersion, sqlMode,
                 currentSchema);
@@ -899,7 +905,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
      *
      * @param e The mouse event.
      */
-    private handleCloseTab = (e: React.SyntheticEvent): void => {
+    private handleCloseTab = (e: MouseEvent | KeyboardEvent): void => {
         e.stopPropagation();
 
         const id = (e.currentTarget as HTMLElement).id;
@@ -981,7 +987,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
     }
 
     private handleSelectTabOrEntry = (ids: Set<string>, props: IDropdownProperties): void => {
-        const list = React.Children.toArray(props.children);
+        const list = toChildArray(props.children);
         const id = [...ids][0];
         const item = list.find((entry) => {
             // eslint-disable-next-line dot-notation
@@ -1005,7 +1011,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         }
     };
 
-    private newButtonClick = (e: React.SyntheticEvent): void => {
+    private newButtonClick = (e: MouseEvent | KeyboardEvent): void => {
         e.stopPropagation();
 
         if (e.target instanceof HTMLElement) {
@@ -1023,7 +1029,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
      *
      * @returns Always true (to close the menu after the click).
      */
-    private handleNewScriptClick = (e: React.MouseEvent, props: IMenuItemProperties): boolean => {
+    private handleNewScriptClick = (e: MouseEvent, props: IMenuItemProperties): boolean => {
         const { selectedPage, editorTabs } = this.state;
 
         const page = editorTabs.find((candidate) => {
@@ -1236,7 +1242,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
                 if (connectionState.editors.length === 0) {
                     // Add the default editor, if the user just removed the last editor.
-                    const useNotebook = settings.get("dbEditor.defaultEditor", "notebook") === "notebook";
+                    const useNotebook = Settings.get("dbEditor.defaultEditor", "notebook") === "notebook";
                     const model = this.createEditorModel(connectionState.backend, "", useNotebook ? "msg" : "mysql",
                         connectionState.serverVersion, connectionState.sqlMode, connectionState.currentSchema);
 
@@ -1684,8 +1690,9 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
     private handleSaveExplorerState = (id: string, state: Map<string, IExplorerSectionState>): void => {
         const connectionState = this.connectionState.get(id);
         if (connectionState) {
-            connectionState.explorerState = state;
+            connectionState.explorerState = new Map([...connectionState.explorerState, ...state]);
         }
+        this.forceUpdate();
     };
 
     private handleHelpCommand = (command: string, language: EditorLanguage): string | undefined => {

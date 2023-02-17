@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,18 +23,19 @@
 
 import "./Toolbar.css";
 
-import React from "react";
+import { ComponentChild } from "preact";
 
-import { Component, IComponentProperties, Container, ContentAlignment, Orientation } from "..";
+import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
+import { Container, Orientation, ContentAlignment } from "../Container/Container";
 
-export interface IToolbarProperties extends IComponentProperties {
+interface IToolbarProperties extends IComponentProperties {
     vibrant?: boolean;
     dropShadow?: boolean;
 
-    innerRef?: React.RefObject<HTMLElement>;
+    innerRef?: preact.RefObject<HTMLDivElement>;
 }
 
-export class Toolbar extends Component<IToolbarProperties> {
+export class Toolbar extends ComponentBase<IToolbarProperties> {
 
     public static defaultProps = {
         vibrant: false,
@@ -47,7 +48,7 @@ export class Toolbar extends Component<IToolbarProperties> {
         this.addHandledProperties("vibrant", "dropShadow", "innerRef");
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { children, innerRef, vibrant, dropShadow } = this.mergedProps;
         const className = this.getEffectiveClassNames([
             "toolbar",

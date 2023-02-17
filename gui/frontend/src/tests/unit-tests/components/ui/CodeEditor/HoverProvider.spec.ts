@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,9 +22,10 @@
  */
 
 import { HoverProvider } from "../../../../../components/ui/CodeEditor/HoverProvider";
-import { ExecutionContext, PresentationInterface } from "../../../../../script-execution";
+import { ExecutionContext } from "../../../../../script-execution/ExecutionContext";
+import { PresentationInterface } from "../../../../../script-execution/PresentationInterface";
 import { ScriptingLanguageServices } from "../../../../../script-execution/ScriptingLanguageServices";
-import { models, position } from "../../../__mocks__/CodeEditorMocks";
+import { mockModel, position } from "../../../__mocks__/CodeEditorMocks";
 
 jest.mock("../../../../../script-execution/PresentationInterface");
 
@@ -34,18 +35,18 @@ describe("HoverProvider tests", () => {
         const hoverProvider = new HoverProvider();
         expect(hoverProvider).not.toBeNull();
 
-        let result = hoverProvider.provideHover(models, position);
+        let result = hoverProvider.provideHover(mockModel, position);
         expect(result).toBe(null);
 
         const pi = new (PresentationInterface as unknown as jest.Mock<PresentationInterface>)();
         expect(pi).toBeDefined();
 
         const execContext = new ExecutionContext(pi);
-        models.executionContexts.contextFromPosition = jest.fn().mockReturnValue(
+        mockModel.executionContexts.contextFromPosition = jest.fn().mockReturnValue(
             execContext,
         );
         jest.spyOn(execContext, "isInternal", "get").mockReturnValue(true);
-        result = hoverProvider.provideHover(models, position);
+        result = hoverProvider.provideHover(mockModel, position);
         expect(result).toBe(undefined);
 
         const services = ScriptingLanguageServices.instance;
@@ -56,7 +57,7 @@ describe("HoverProvider tests", () => {
 
         jest.spyOn(execContext, "isInternal", "get").mockReturnValue(false);
         const hover = jest.spyOn(services, "getHover");
-        void hoverProvider.provideHover(models, position);
+        void hoverProvider.provideHover(mockModel, position);
         expect(hover).toBeCalled();
     });
 });

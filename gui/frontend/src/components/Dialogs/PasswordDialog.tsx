@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,23 +23,29 @@
 
 import "./PasswordDialog.css";
 
-import React from "react";
+import { ComponentChild, createRef } from "preact";
 
 import { requisitions } from "../../supplement/Requisitions";
-import {
-    Button, Codicon, Component, ContentAlignment, Dialog, Grid, GridCell, IButtonProperties, IComponentState, Icon,
-    IInputChangeProperties, Input, Label,
-} from "../ui";
 import { IServicePasswordRequest } from "../../app-logic/Types";
+import { Button, IButtonProperties } from "../ui/Button/Button";
+import { Codicon } from "../ui/Codicon";
+import { IComponentState, ComponentBase } from "../ui/Component/ComponentBase";
+import { ContentAlignment } from "../ui/Container/Container";
+import { Dialog } from "../ui/Dialog/Dialog";
+import { Grid } from "../ui/Grid/Grid";
+import { GridCell } from "../ui/Grid/GridCell";
+import { Icon } from "../ui/Icon/Icon";
+import { Input, IInputChangeProperties } from "../ui/Input/Input";
+import { Label } from "../ui/Label/Label";
 
 interface IPasswordDialogState extends IComponentState {
     request?: IServicePasswordRequest;
     password: string;
 }
 
-export class PasswordDialog extends Component<{}, IPasswordDialogState> {
+export class PasswordDialog extends ComponentBase<{}, IPasswordDialogState> {
 
-    private dialogRef = React.createRef<Dialog>();
+    private dialogRef = createRef<Dialog>();
 
     public constructor(props: {}) {
         super(props);
@@ -57,7 +63,7 @@ export class PasswordDialog extends Component<{}, IPasswordDialogState> {
         requisitions.unregister("requestPassword", this.requestPassword);
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { request, password } = this.state;
 
         if (!request) {
@@ -67,7 +73,7 @@ export class PasswordDialog extends Component<{}, IPasswordDialogState> {
         const className = this.getEffectiveClassNames(["passwordDialog"]);
         const caption = request.caption ?? "Enter Password";
 
-        const descriptionCells: React.ReactNode[] = [];
+        const descriptionCells: ComponentChild[] = [];
         request.description?.forEach((value) => {
             descriptionCells.push(
                 <GridCell columnSpan={2} crossAlignment={ContentAlignment.Start}>
@@ -140,7 +146,7 @@ export class PasswordDialog extends Component<{}, IPasswordDialogState> {
         />;
     }
 
-    private handlePasswordChange = (_: React.ChangeEvent<Element>, props: IInputChangeProperties): void => {
+    private handlePasswordChange = (_: InputEvent, props: IInputChangeProperties): void => {
         this.setState({ password: props.value });
     };
 
@@ -157,7 +163,7 @@ export class PasswordDialog extends Component<{}, IPasswordDialogState> {
         });
     };
 
-    private handleButtonClick = (_: React.SyntheticEvent, props: IButtonProperties): void => {
+    private handleButtonClick = (_: MouseEvent | KeyboardEvent, props: IButtonProperties): void => {
         this.dialogRef.current?.close(props.id !== "ok");
     };
 

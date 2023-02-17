@@ -21,23 +21,23 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-.msg.valueEditDialog {
+.msg.dialog.valueEditDialog {
     padding: 0;
     color: var(--foreground);
     min-width: 750px;
 }
 
-.msg.valueEditDialog .gridCell {
+.msg.dialog.valueEditDialog .gridCell {
     align-items: center;
     overflow: hidden;
     display: flexbox;
 }
 
-.msg.valueEditDialog > .content {
+.msg.dialog.valueEditDialog > .content {
     padding: 16px 54px 30px 54px;
 }
 
-.msg.valueEditDialog .sectionTitle {
+.msg.dialog.valueEditDialog .sectionTitle {
     flex: 1 1 auto;
     text-align: left;
     font-size: 0.95em;
@@ -47,17 +47,17 @@
     border-bottom: 1px solid var(--textSeparator-foreground);
 }
 
-.msg.valueEditDialog #dialogHeading {
+.msg.dialog.valueEditDialog #dialogHeading {
     font-size: 1.2em;
     margin-bottom: 20px;
 }
 
-.msg.valueEditDialog #dialogDescription {
+.msg.dialog.valueEditDialog #dialogDescription {
     font-size: 0.95em;
     color: var(--text-dimmedForeground);
 }
 
-.msg.valueEditDialog .dialogDescriptionCell {
+.msg.dialog.valueEditDialog .dialogDescriptionCell {
     padding-top: 10px;
     padding-bottom: 4px;
     border-bottom: 1px solid var(--textSeparator-foreground);
@@ -71,7 +71,7 @@
     white-space: pre-line;
 }
 
-.msg.valueEditDialog .valueEditor {
+.msg.dialog.valueEditDialog .valueEditor {
     flex: 0 0 auto;
 }
 
@@ -80,24 +80,24 @@
     line-height: 1.2em;
 }
 
-.msg.valueEditDialog button.valueEditor {
+.msg.dialog.valueEditDialog button.valueEditor {
     margin-top: 19px;
 }
 
-.msg.valueEditDialog .valueDescription {
+.msg.dialog.valueEditDialog .valueDescription {
     flex: 1 1 auto;
     white-space: normal;
     color: var(--text-dimmedForeground);
 }
 
-.msg.valueEditDialog .gridCell .description {
+.msg.dialog.valueEditDialog .gridCell .description {
     /* Font size of the title plus title bottom margin. */
     margin-top: calc(0.95em + 6px);
     flex: 1 1 auto;
     white-space: initial;
 }
 
-.msg.valueEditDialog .gridCell .cellDescription {
+.msg.dialog.valueEditDialog .gridCell .cellDescription {
     padding-top: 3px;
     padding-bottom: 3px;
     flex: 1 1 auto;
@@ -106,7 +106,7 @@
     color: var(--tag-background);
 }
 
-.msg.valueEditDialog .gridCell .message {
+.msg.dialog.valueEditDialog .gridCell .message {
     border: none;
     padding: 4px;
     margin-top: 6px;
@@ -114,7 +114,7 @@
     white-space: initial;
 }
 
-.msg.valueEditDialog .gridCell .cellDescription {
+.msg.dialog.valueEditDialog .gridCell .cellDescription {
     padding-top: 3px;
     padding-bottom: 3px;
     flex: 1 1 auto;
@@ -123,11 +123,11 @@
     color: var(--tag-background);
 }
 
-.msg.valueEditDialog .tabview > .content {
+.msg.dialog.valueEditDialog .tabview > .content {
     padding: 16px;
 }
 
-.msg.valueEditDialog .relationalList {
+.msg.dialog.valueEditDialog .relationalList {
     min-height: calc(4em);
     max-height: calc(11em);
 
@@ -138,22 +138,22 @@
     padding: 4px;
 }
 
-.msg.valueEditDialog .matrixContainer .tabulator-col-title {
+.msg.dialog.valueEditDialog .matrixContainer .tabulator-col-title {
     font-weight: 400;
     font-size: 0.9em;
 }
 
-.msg.valueEditDialog .matrixContainer #valueGrid {
+.msg.dialog.valueEditDialog .matrixContainer #valueGrid {
     flex: 1;
     margin-right: 4px;
 }
 
-.msg.valueEditDialog #matrixActions .icon {
+.msg.dialog.valueEditDialog #matrixActions .icon {
     width: 12px;
     height: 12px;
 }
 
-.msg.valueEditDialog #matrixActions .button {
+.msg.dialog.valueEditDialog #matrixActions .button {
     padding: 0;
     margin: 0 0 0 3px;
     min-width: 0;
@@ -163,18 +163,18 @@
     height: 24px;
 }
 
-.msg.valueEditDialog .inputWithProgress {
+.msg.dialog.valueEditDialog .inputWithProgress {
     flex-direction: column-reverse !important;
 }
 
-.msg.valueEditDialog .inputWithProgress .progressIndicatorHost {
+.msg.dialog.valueEditDialog .inputWithProgress .progressIndicatorHost {
     flex: 0 0 1px;
     min-width: 0;
     margin-left: 4px;
     margin-right: 4px;
 }
 
-.msg.valueEditDialog .inputWithProgress .progressIndicatorHost .linearBackground {
+.msg.dialog.valueEditDialog .inputWithProgress .progressIndicatorHost .linearBackground {
     border-radius: 0;
     padding: 0;
     margin-left: 4px;
@@ -186,6 +186,6 @@
  * Temporary solution to hide the horizontal scroll bar, which shows up too early currently.
  * This assumes we don't need any horizontal scrolling (which might change in the future).
  */
-.msg.valueEditDialog .tabulator-tableholder {
+.msg.dialog.valueEditDialog .tabulator-tableholder {
     overflow-x: hidden;
 }

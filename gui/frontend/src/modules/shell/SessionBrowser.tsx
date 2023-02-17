@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022 Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -26,24 +26,26 @@ import plusIcon from "../../assets/images/plus.svg";
 
 import "./Shell.css";
 
-import * as React from "react";
+import { ComponentChild, createRef } from "preact";
 
-import {
-    Component, Label, Container, Orientation, FrontPage, ContentWrap, BrowserTileType,
-    SessionTile, ISessionTileProperties, IComponentProperties, IBrowserTileProperties,
-} from "../../components/ui";
 import { requisitions } from "../../supplement/Requisitions";
 
-import { settings } from "../../supplement/Settings/Settings";
+import { Settings } from "../../supplement/Settings/Settings";
 import { IShellSessionDetails } from "../../supplement/ShellInterface";
+import { BrowserTileType, IBrowserTileProperties } from "../../components/ui/BrowserTile/BrowserTile";
+import { IComponentProperties, ComponentBase } from "../../components/ui/Component/ComponentBase";
+import { Container, Orientation, ContentWrap } from "../../components/ui/Container/Container";
+import { FrontPage } from "../../components/ui/FrontPage/FrontPage";
+import { Label } from "../../components/ui/Label/Label";
+import { SessionTile, ISessionTileProperties } from "../../components/ui/SessionTile/SessionTile";
 
 interface ISessionBrowserProperties extends IComponentProperties {
     openSessions: IShellSessionDetails[];
 }
 
-export class SessionBrowser extends Component<ISessionBrowserProperties> {
+export class SessionBrowser extends ComponentBase<ISessionBrowserProperties> {
 
-    private newSessionTileRef = React.createRef<HTMLButtonElement>();
+    private newSessionTileRef = createRef<HTMLButtonElement>();
 
     public componentDidMount(): void {
         requisitions.register("settingsChanged", this.settingsChanged);
@@ -57,7 +59,7 @@ export class SessionBrowser extends Component<ISessionBrowserProperties> {
         requisitions.unregister("settingsChanged", this.settingsChanged);
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { openSessions } = this.props;
 
         const className = this.getEffectiveClassNames(["sessionBrowser"]);
@@ -117,7 +119,7 @@ export class SessionBrowser extends Component<ISessionBrowserProperties> {
                 wrap={ContentWrap.Wrap}
             >
                 <FrontPage
-                    showGreeting={settings.get("shellSession.sessionBrowser.showGreeting", true)}
+                    showGreeting={Settings.get("shellSession.sessionBrowser.showGreeting", true)}
                     caption="MySQL Shell - GUI Console"
                     description={"The GUI Console combines the advantages of MySQL Shell running in a classic " +
                         "terminal with the power of the interactive command editor of the MySQL Shell GUI."
@@ -125,7 +127,7 @@ export class SessionBrowser extends Component<ISessionBrowserProperties> {
                     helpUrls={linkMap}
                     onCloseGreeting={this.handleCloseGreeting}
                 >
-                    <Label as="h2" id="contentTitle" caption="MySQL Shell Sessions" />
+                    <Label id="contentTitle" caption="MySQL Shell Sessions" />
                     <Container
                         id="tilesHost"
                         orientation={Orientation.LeftToRight}
@@ -138,7 +140,7 @@ export class SessionBrowser extends Component<ISessionBrowserProperties> {
         );
     }
 
-    private settingsChanged = (entry?: { key: string; value: unknown }): Promise<boolean> => {
+    private settingsChanged = (entry?: { key: string; value: unknown; }): Promise<boolean> => {
         if (entry?.key === "shellSession.sessionBrowser.showGreeting") {
             this.forceUpdate();
 
@@ -149,7 +151,7 @@ export class SessionBrowser extends Component<ISessionBrowserProperties> {
     };
 
     private handleCloseGreeting = (): void => {
-        settings.set("shellSession.sessionBrowser.showGreeting", false);
+        Settings.set("shellSession.sessionBrowser.showGreeting", false);
     };
 
     private handleTileAction = (action: string, props: IBrowserTileProperties): void => {

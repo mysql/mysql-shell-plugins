@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,17 +23,16 @@
 
 import "./StatusMark.css";
 
-import React from "react";
-import { CheckState } from "..";
-import { Component, IComponentProperties } from "../Component/Component";
-import { Checkbox } from "../Checkbox/Checkbox";
+import { ComponentChild } from "preact";
+import { ComponentBase, IComponentProperties } from "../Component/ComponentBase";
+import { Checkbox, CheckState } from "../Checkbox/Checkbox";
 
-export interface IStatusMarkProperties extends IComponentProperties {
+interface IStatusMarkProperties extends IComponentProperties {
     statusState: CheckState;
     text: string;
 }
 
-export class StatusMark extends Component<IStatusMarkProperties> {
+export class StatusMark extends ComponentBase<IStatusMarkProperties> {
 
     public constructor(props: IStatusMarkProperties) {
         super(props);
@@ -41,7 +40,7 @@ export class StatusMark extends Component<IStatusMarkProperties> {
         this.addHandledProperties("statusState", "text");
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { statusState, text } = this.mergedProps;
 
         const className = this.getEffectiveClassNames([

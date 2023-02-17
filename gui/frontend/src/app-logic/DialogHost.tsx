@@ -21,13 +21,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
+import { ComponentChild, createRef, RefObject } from "preact";
 
-import {
-    ConfirmDialog, CommonDialogValueOption, IDialogSection, IDialogValues, PasswordDialog, ValueDialogBase,
-    ValueEditDialog, IChoiceDialogValue,
-} from "../components/Dialogs";
-import { Component } from "../components/ui";
+import { ComponentBase } from "../components/ui/Component/ComponentBase";
 import { MdsHWClusterDialog } from "../modules/mds/dialogs/MdsHWClusterDialog";
 import { MdsHWLoadDataDialog } from "../modules/mds/dialogs/MdsHWLoadDataDialog";
 import { MrsDbObjectDialog } from "../modules/mrs/dialogs/MrsDbObjectDialog";
@@ -38,22 +34,28 @@ import { MrsAuthenticationAppDialog } from "../modules/mrs/dialogs/MrsAuthentica
 import { MrsUserDialog } from "../modules/mrs/dialogs/MrsUserDialog";
 import { requisitions } from "../supplement/Requisitions";
 import { DialogResponseClosure, DialogType, IDialogRequest, IDialogResponse, IDictionary } from "./Types";
+import { ConfirmDialog } from "../components/Dialogs/ConfirmDialog";
+import { PasswordDialog } from "../components/Dialogs/PasswordDialog";
+import { ValueDialogBase } from "../components/Dialogs/ValueDialogBase";
+import {
+    ValueEditDialog, IDialogSection, CommonDialogValueOption, IDialogValues, IChoiceDialogValue,
+} from "../components/Dialogs/ValueEditDialog";
 
 /**
  * A component to host certain application wide dialogs in a central place.
  * They are all accessible via requisitions.
  */
-export class DialogHost extends Component {
+export class DialogHost extends ComponentBase {
     // Holds the currently running dialog type (only one of each type can run at the same time) and last
     // active HTML element, when this dialog was launched.
     private runningDialogs = new Map<DialogType, Element | null>();
 
-    private dialogRefs = new Map<DialogType, React.RefObject<ValueDialogBase>>();
+    private dialogRefs = new Map<DialogType, RefObject<ValueDialogBase>>();
 
     // The value edit dialog is special, as it uses a different approach for editing complex values.
-    private promptDialogRef = React.createRef<ValueEditDialog>();
+    private promptDialogRef = createRef<ValueEditDialog>();
 
-    private confirmDialogRef = React.createRef<ConfirmDialog>();
+    private confirmDialogRef = createRef<ConfirmDialog>();
 
     public constructor(props: {}) {
         super(props);
@@ -61,8 +63,8 @@ export class DialogHost extends Component {
         requisitions.register("showDialog", this.showDialog);
     }
 
-    public render(): React.ReactNode {
-        const dialogs: React.ReactNode[] = [
+    public render(): ComponentChild {
+        const dialogs: ComponentChild[] = [
             // The password dialog has it's own command handling. Just host it here.
             <PasswordDialog key="passwordDialog" />,
 
@@ -80,7 +82,7 @@ export class DialogHost extends Component {
             />,
         ];
 
-        const refMrs1 = React.createRef<MrsServiceDialog>();
+        const refMrs1 = createRef<MrsServiceDialog>();
         this.dialogRefs.set(DialogType.MrsService, refMrs1);
         dialogs.push(<MrsServiceDialog
             key="mrsServiceDialog"
@@ -88,7 +90,7 @@ export class DialogHost extends Component {
             onClose={this.handleDialogClose.bind(this, DialogType.MrsService)}
         />);
 
-        const refMrs2 = React.createRef<MrsSchemaDialog>();
+        const refMrs2 = createRef<MrsSchemaDialog>();
         this.dialogRefs.set(DialogType.MrsSchema, refMrs2);
         dialogs.push(<MrsSchemaDialog
             key="mrsSchemaDialog"
@@ -96,7 +98,7 @@ export class DialogHost extends Component {
             onClose={this.handleDialogClose.bind(this, DialogType.MrsSchema)}
         />);
 
-        const refMrs3 = React.createRef<MrsDbObjectDialog>();
+        const refMrs3 = createRef<MrsDbObjectDialog>();
         this.dialogRefs.set(DialogType.MrsDbObject, refMrs3);
         dialogs.push(<MrsDbObjectDialog
             key="mrsDbObjectDialog"
@@ -104,7 +106,7 @@ export class DialogHost extends Component {
             onClose={this.handleDialogClose.bind(this, DialogType.MrsDbObject)}
         />);
 
-        const refMrs4 = React.createRef<MrsContentSetDialog>();
+        const refMrs4 = createRef<MrsContentSetDialog>();
         this.dialogRefs.set(DialogType.MrsContentSet, refMrs4);
         dialogs.push(<MrsContentSetDialog
             key="mrsContentSetDialog"
@@ -112,7 +114,7 @@ export class DialogHost extends Component {
             onClose={this.handleDialogClose.bind(this, DialogType.MrsContentSet)}
         />);
 
-        const refMrs5 = React.createRef<MrsAuthenticationAppDialog>();
+        const refMrs5 = createRef<MrsAuthenticationAppDialog>();
         this.dialogRefs.set(DialogType.MrsAuthenticationApp, refMrs5);
         dialogs.push(<MrsAuthenticationAppDialog
             key="mrsAuthenticationAppDialog"
@@ -120,7 +122,7 @@ export class DialogHost extends Component {
             onClose={this.handleDialogClose.bind(this, DialogType.MrsAuthenticationApp)}
         />);
 
-        const refMrs6 = React.createRef<MrsUserDialog>();
+        const refMrs6 = createRef<MrsUserDialog>();
         this.dialogRefs.set(DialogType.MrsUser, refMrs6);
         dialogs.push(<MrsUserDialog
             key="mrsUserDialog"
@@ -128,14 +130,14 @@ export class DialogHost extends Component {
             onClose={this.handleDialogClose.bind(this, DialogType.MrsUser)}
         />);
 
-        const refMds1 = React.createRef<MdsHWClusterDialog>();
+        const refMds1 = createRef<MdsHWClusterDialog>();
         this.dialogRefs.set(DialogType.MdsHeatWaveCluster, refMds1);
         dialogs.push(<MdsHWClusterDialog
             ref={refMds1}
             onClose={this.handleDialogClose.bind(this, DialogType.MdsHeatWaveCluster)}
         />);
 
-        const refMds2 = React.createRef<MdsHWLoadDataDialog>();
+        const refMds2 = createRef<MdsHWLoadDataDialog>();
         this.dialogRefs.set(DialogType.MdsHeatWaveLoadData, refMds2);
         dialogs.push(<MdsHWLoadDataDialog
             ref={refMds2}

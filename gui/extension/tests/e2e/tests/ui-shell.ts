@@ -121,7 +121,7 @@ describe("MYSQL SHELL CONSOLES", () => {
 
             await Misc.switchToWebView();
 
-            expect(await driver.wait(until.elementLocated(By.css("#shellModuleTabview h2")),
+            expect(await driver.wait(until.elementLocated(By.id("title")),
                 explicitWait, "Title was not found").getText())
                 .to.equal("MySQL Shell - GUI Console");
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -56,8 +56,8 @@ declare function print(value: unknown): void;
  * Executes a query and calls a callback for each answer from the server.
  *
  * @param code The query to run.
- * @param params Optional parameters for the query.
  * @param callback A function to call on results.
+ * @param params Optional parameters for the query.
  */
 declare function runSqlIterative(code: string, callback?: (res: IResultSetData) => void, params?: unknown): void;
 
@@ -65,8 +65,8 @@ declare function runSqlIterative(code: string, callback?: (res: IResultSetData) 
  * Executes a query and calls a callback for each answer from the server.
  *
  * @param code The query to run.
- * @param params Optional parameters for the query.
  * @param callback A function to call on results.
+ * @param params Optional parameters for the query.
  */
 declare function runSql(code: string, callback?: (res: IDataRecord[]) => void, params?: unknown): void;
 
@@ -77,7 +77,7 @@ declare interface ITooltipOptions {
     format: (datum: IXYDatum | IPieDatum, index?: number, data?: Array<IXYDatum | IPieDatum>) => string;
 
     /** Pins the tooltip to this position, if given (default: tooltip moves with the mouse). */
-    position?: { left: number; top: number };
+    position?: { left: number; top: number; };
 }
 
 declare interface IBaseGraphEntry {
@@ -329,7 +329,7 @@ declare interface IGraphOptions {
     /** The global color palette. */
     colors?: string[];
 
-    viewport?: { left: number; top: number; width: number; height: number };
+    viewport?: { left: number; top: number; width: number; height: number; };
 }
 
 /** The entry point for general graph rendering. */
@@ -346,5 +346,5 @@ declare enum PieGraphLayout {
 
 /** A simplified graph class specifically for Pie graphs. */
 declare class PieGraph {
-    public static render(data: IDataRecord[], layout?: PieGraphLayout, keys?: { name: string; value: string }): void;
+    public static render(data: IDataRecord[], layout?: PieGraphLayout, keys?: { name: string; value: string; }): void;
 }

@@ -21,7 +21,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IShellProfile, MessageScheduler, Protocol, ShellAPIGui } from "../../communication";
+import { MessageScheduler } from "../../communication/MessageScheduler";
+import { Protocol } from "../../communication/Protocol";
+import { IShellProfile, ShellAPIGui } from "../../communication/ProtocolGui";
 import { webSession } from "../WebSession";
 
 export class ShellInterfaceUser {
@@ -193,7 +195,7 @@ export class ShellInterfaceUser {
      *
      * @returns A promise resolving to the list of profiles.
      */
-    public async listProfiles(userId: number): Promise<Array<{ id: number; name: string }>> {
+    public async listProfiles(userId: number): Promise<Array<{ id: number; name: string; }>> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIGui.GuiUsersListProfiles,
             parameters: { args: { userId } },

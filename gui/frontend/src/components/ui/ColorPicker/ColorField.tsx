@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,13 +23,14 @@
 
 import emptyHatch from "./assets/empty-hatch.svg";
 
-import React from "react";
+import { ComponentChild } from "preact";
+import { CSSProperties } from "preact/compat";
 import _ from "lodash";
 
 import Color from "color";
-import { Component, IComponentProperties, IComponentState, Image, DragEventType } from "..";
 import { ColorPopup } from "./ColorPopup";
-import { IDictionary } from "../../../app-logic/Types";
+import { Image } from "../Image/Image";
+import { IComponentProperties, IComponentState, ComponentBase, DragEventType } from "../Component/ComponentBase";
 
 export interface IColorFieldProperties extends IComponentProperties {
     initialColor?: Color; // The color to show. If not given a hatch pattern is shown instead.
@@ -44,7 +45,7 @@ interface IColorFieldState extends IComponentState {
 
 // A small area showing a single color, which can be dragged around and dropped on other color fields
 // to copy their colors.
-export class ColorField extends Component<IColorFieldProperties, IColorFieldState> {
+export class ColorField extends ComponentBase<IColorFieldProperties, IColorFieldState> {
 
     public constructor(props: IColorFieldProperties) {
         super(props);
@@ -68,7 +69,7 @@ export class ColorField extends Component<IColorFieldProperties, IColorFieldStat
         return {};
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { id } = this.mergedProps;
         const { currentColor } = this.state;
 
@@ -77,7 +78,7 @@ export class ColorField extends Component<IColorFieldProperties, IColorFieldStat
             currentColor ? "" : " invalid",
         ]);
 
-        const style: IDictionary = {
+        const style: CSSProperties = {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             "--current-color": currentColor?.hsl().toString(),
         };
@@ -111,14 +112,15 @@ export class ColorField extends Component<IColorFieldProperties, IColorFieldStat
         );
     }
 
-    protected handleDragEvent(type: DragEventType, e: React.DragEvent<HTMLElement>): boolean {
+    protected handleDragEvent(type: DragEventType, e: DragEvent): boolean {
+        const element = e.currentTarget as HTMLElement;
         switch (type) {
             case DragEventType.Start: {
                 const { currentColor } = this.state;
                 if (currentColor) {
-                    e.dataTransfer.setData("text", currentColor.hsl().toString());
+                    e.dataTransfer?.setData("text", currentColor.hsl().toString());
                 } else {
-                    e.dataTransfer.setData("text", "");
+                    e.dataTransfer?.setData("text", "");
                 }
                 e.stopPropagation();
                 break;
@@ -131,21 +133,21 @@ export class ColorField extends Component<IColorFieldProperties, IColorFieldStat
             }
 
             case DragEventType.Enter: {
-                e.currentTarget.classList.add("dropTarget");
+                element.classList.add("dropTarget");
                 break;
             }
 
             case DragEventType.Leave: {
-                e.currentTarget.classList.remove("dropTarget");
+                element.classList.remove("dropTarget");
                 break;
             }
 
             case DragEventType.Drop: {
                 e.preventDefault();
-                e.currentTarget.classList.remove("dropTarget");
+                element.classList.remove("dropTarget");
 
-                const value = e.dataTransfer.getData("text");
-                if (value.length > 0) {
+                const value = e.dataTransfer?.getData("text");
+                if (value && value.length > 0) {
                     const newColor = new Color(value);
                     this.setState({ currentColor: newColor });
                     this.props.onChange?.(newColor, this.props);
@@ -165,11 +167,11 @@ export class ColorField extends Component<IColorFieldProperties, IColorFieldStat
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    private handleFieldKeyDown = (e: React.KeyboardEvent): void => {
+    private handleFieldKeyDown = (e: KeyboardEvent): void => {
         // TODO: implementation
     };
 
-    private handleClick = (e: React.MouseEvent): void => {
+    private handleClick = (e: MouseEvent): void => {
         if (e.button === 0) {
             const { currentColor, originalColor } = this.state;
             ColorPopup.instance.open(e.currentTarget as HTMLElement, currentColor,

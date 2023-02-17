@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -26,7 +26,7 @@ import { ExecutionContext } from "../../../../../script-execution/ExecutionConte
 import { PresentationInterface } from "../../../../../script-execution/PresentationInterface";
 import { IPosition } from "../../../../../components/ui/CodeEditor";
 import { ScriptingLanguageServices } from "../../../../../script-execution/ScriptingLanguageServices";
-import { models, position } from "../../../__mocks__/CodeEditorMocks";
+import { mockModel, position } from "../../../__mocks__/CodeEditorMocks";
 
 jest.mock("../../../../../script-execution/PresentationInterface");
 
@@ -37,7 +37,7 @@ describe("DefinitionProvider tests", () => {
         const definitionProvider = new DefinitionProvider();
         expect(definitionProvider).not.toBeNull();
 
-        let result = definitionProvider.provideDefinition(models, position);
+        let result = definitionProvider.provideDefinition(mockModel, position);
         expect(result).toBe(undefined);
 
         const pi = new (PresentationInterface as unknown as jest.Mock<PresentationInterface>)();
@@ -48,10 +48,10 @@ describe("DefinitionProvider tests", () => {
             return { lineNumber: 0, column: 0 };
         });
         jest.spyOn(execContext, "isInternal", "get").mockReturnValue(true);
-        models.executionContexts.contextFromPosition = jest.fn().mockReturnValue(
+        mockModel.executionContexts.contextFromPosition = jest.fn().mockReturnValue(
             execContext,
         );
-        result = definitionProvider.provideDefinition(models, position);
+        result = definitionProvider.provideDefinition(mockModel, position);
         expect(result).toBe(undefined);
 
         jest.spyOn(execContext, "isInternal", "get").mockReturnValue(false);
@@ -60,7 +60,7 @@ describe("DefinitionProvider tests", () => {
             uri: "",
             range: null,
         });
-        result = definitionProvider.provideDefinition(models, position);
+        result = definitionProvider.provideDefinition(mockModel, position);
         expect(result).not.toBe(undefined);
     });
 });

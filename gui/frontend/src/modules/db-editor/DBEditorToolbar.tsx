@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -40,27 +40,34 @@ import stopOnErrorInactiveIcon from "../../assets/images/toolbar/toolbar-stop_on
 import wordWrapActiveIcon from "../../assets/images/toolbar/toolbar-word_wrap-active.svg";
 import wordWrapInactiveIcon from "../../assets/images/toolbar/toolbar-word_wrap-inactive.svg";
 
-import React from "react";
+import { ComponentChild } from "preact";
 
-import {
-    Button, Component, Divider, IComponentProperties, IComponentState, Icon, Toolbar,
-} from "../../components/ui";
-import { settings } from "../../supplement/Settings/Settings";
+import { Settings } from "../../supplement/Settings/Settings";
 import { IOpenEditorState } from "./DBConnectionTab";
 import { requisitions } from "../../supplement/Requisitions";
-import { ExecutionContext, LoadingState } from "../../script-execution";
-import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface";
+import { LoadingState } from "../../script-execution";
 import { IToolbarItems } from ".";
+import { IComponentProperties, IComponentState, ComponentBase } from "../../components/ui/Component/ComponentBase";
+import { Divider } from "../../components/ui/Divider/Divider";
+import { Icon } from "../../components/ui/Icon/Icon";
+import { Toolbar } from "../../components/ui/Toolbar/Toolbar";
+import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor";
+import { Button } from "../../components/ui/Button/Button";
+import { ExecutionContext } from "../../script-execution/ExecutionContext";
 
-export interface IDBEditorToolbarProperties extends IComponentProperties {
-    // Items defined by the owner(s) of this toolbar.
-    // They are combined with those created here to form the actual toolbar.
+interface IDBEditorToolbarProperties extends IComponentProperties {
+    /**
+     * Items defined by the owner(s) of this toolbar.
+     * They are combined with those created here to form the actual toolbar.
+     */
     toolbarItems?: IToolbarItems;
 
     activeEditor: string;
     heatWaveEnabled: boolean;
     editors: IOpenEditorState[];
-    language: string;            // The main language of the editor.
+
+    /** The main language of the editor. */
+    language: string;
 
     backend?: ShellInterfaceSqlEditor;
 }
@@ -77,7 +84,7 @@ interface IDBEditorToolbarState extends IComponentState {
     autoCommit: boolean;
 }
 
-export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEditorToolbarState> {
+export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, IDBEditorToolbarState> {
 
     private stateChangeTimer: ReturnType<typeof setTimeout> | null;
 
@@ -107,7 +114,7 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
 
             const contexts = currentEditor?.state?.model.executionContexts;
             if (contexts) {
-                const context = contexts.contextFromPosition(contexts.cursorPosition);
+                const context = contexts.contextFromPosition(contexts.cursorPosition) as ExecutionContext;
                 if (context) {
                     this.setState({
                         currentEditor,
@@ -146,22 +153,22 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
         requisitions.unregister("settingsChanged", this.settingsChanged);
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { toolbarItems, language, heatWaveEnabled } = this.props;
         const { autoCommit, canExecute, canStop, canExecuteSubparts } = this.state;
 
         const area = language === "msg" ? "block" : "script";
         const selectionText = canExecuteSubparts ? "selection or " : "";
 
-        const stopOnErrors = settings.get("editor.stopOnErrors", true);
+        const stopOnErrors = Settings.get("editor.stopOnErrors", true);
         const stopOnErrorIcon = stopOnErrors ? stopOnErrorActiveIcon : stopOnErrorInactiveIcon;
 
         const autoCommitIcon = autoCommit ? autoCommitActiveIcon : autoCommitInactiveIcon;
 
-        const showHidden = settings.get("editor.showHidden", false);
+        const showHidden = Settings.get("editor.showHidden", false);
         const showHiddenIcon = showHidden ? showHiddenActiveIcon : showHiddenInactiveIcon;
 
-        const wordWrap = settings.get("editor.wordWrap", "on");
+        const wordWrap = Settings.get("editor.wordWrap", "off");
         const wordWrapIcon = wordWrap === "on" ? wordWrapActiveIcon : wordWrapInactiveIcon;
 
         const leftItems = [...toolbarItems?.left ?? []];
@@ -344,9 +351,9 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
             </Button>,
             <Button
                 key="editorToggleSoftWrapButton"
-                data-tooltip="Soft wrap lines "
+                data-tooltip="Soft wrap lines"
                 imageOnly={true}
-                onClick={() => { settings.set("editor.wordWrap", wordWrap === "on" ? "off" : "on"); }}
+                onClick={() => { Settings.set("editor.wordWrap", wordWrap === "on" ? "off" : "on"); }}
             >
                 <Icon src={wordWrapIcon} data-tooltip="inherit" />
             </Button>,
@@ -369,17 +376,17 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
     }
 
     private editorInfoUpdated = (): Promise<boolean> => {
-        setImmediate(() => {
+        setTimeout(() => {
             this.updateState();
-        });
+        }, 0);
 
         // Allow other subscribers to get this event too, by returning false.
         return Promise.resolve(false);
     };
 
     private toggleHidden = (): void => {
-        const showHidden = settings.get("editor.showHidden", false);
-        settings.set("editor.showHidden", !showHidden);
+        const showHidden = Settings.get("editor.showHidden", false);
+        Settings.set("editor.showHidden", !showHidden);
     };
 
     private settingsChanged = (entry?: { key: string; value: unknown; }): Promise<boolean> => {
@@ -448,7 +455,7 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
     };
 
     private toggleStopExecutionOnError = (active: boolean): Promise<boolean> => {
-        settings.set("editor.stopOnErrors", !active);
+        Settings.set("editor.stopOnErrors", !active);
         this.forceUpdate();
 
         return Promise.resolve(true);
@@ -483,7 +490,7 @@ export class DBEditorToolbar extends Component<IDBEditorToolbarProperties, IDBEd
 
         if (currentEditor?.state) {
             const context = currentEditor.state.model.executionContexts
-                .contextFromPosition(currentEditor.state.model.executionContexts.cursorPosition);
+                .contextFromPosition(currentEditor.state.model.executionContexts.cursorPosition) as ExecutionContext;
             if (context) {
                 if (context !== currentContext) {
                     this.setState({

@@ -3,7 +3,7 @@
 exports[`ScopeSelector testing Snapshot and properties 1`] = `
 <ScopeSelector
   customScopes={
-    Array [
+    [
       "sit",
       "amet",
       "consectetur",
@@ -11,7 +11,7 @@ exports[`ScopeSelector testing Snapshot and properties 1`] = `
     ]
   }
   defaultScopes={
-    Array [
+    [
       "lorem",
       "ipsum",
       "dolor",

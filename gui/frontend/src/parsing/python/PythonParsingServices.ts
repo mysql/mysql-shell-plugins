@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,12 +23,13 @@
 
 // This file contains the main interface to all language services for Python.
 
-import {
-    CommonTokenStream, BailErrorStrategy, DefaultErrorStrategy, CharStreams,
-} from "antlr4ts";
-import { ParseCancellationException } from "antlr4ts/misc";
-import { ParseTree } from "antlr4ts/tree";
+import { CharStreams } from "antlr4ts/CharStreams";
+import { CommonTokenStream } from "antlr4ts/CommonTokenStream";
+import { ParseTree } from "antlr4ts/tree/ParseTree";
+import { BailErrorStrategy } from "antlr4ts/BailErrorStrategy";
 import { PredictionMode } from "antlr4ts/atn/PredictionMode";
+import { ParseCancellationException } from "antlr4ts/misc/ParseCancellationException";
+import { DefaultErrorStrategy } from "antlr4ts/DefaultErrorStrategy";
 
 import { PythonLexer } from "./generated/PythonLexer";
 import { PythonParser } from "./generated/PythonParser";
@@ -53,7 +54,7 @@ export class PythonParsingServices {
 
     private tree: ParseTree | undefined;
 
-    private errorListener = new PythonErrorListener (
+    private errorListener = new PythonErrorListener(
         (message: string, tokenType: number, startIndex: number, line: number, column: number,
             length: number): void => {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,12 +23,12 @@
 
 import connection from "../../../../assets/images/connections.svg";
 
-import React from "react";
 import { mount, shallow } from "enzyme";
 
-import { Label, Orientation, Selector } from "../../../../components/ui";
 import { act } from "preact/test-utils";
-import { snapshotFromWrapper } from "../../test-helpers";
+import { Orientation } from "../../../../components/ui/Container/Container";
+import { Label } from "../../../../components/ui/Label/Label";
+import { Selector } from "../../../../components/ui/Selector/Selector";
 
 describe("Selector component tests", (): void => {
 
@@ -121,7 +121,7 @@ describe("Selector component tests", (): void => {
                 items={itemArray}
             />,
         );
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
     });
 
 });

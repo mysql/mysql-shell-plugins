@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,12 +23,11 @@
 
 import mysqlIcon from "../../../../../assets/images/file-icons/mysql.svg";
 
-import React from "react";
 import { mount } from "enzyme";
 
-import { BrowserTileType, ConnectionTile } from "../../../../../components/ui";
-import { snapshotFromWrapper } from "../../../test-helpers";
 import { DBType, IConnectionDetails } from "../../../../../supplement/ShellInterface";
+import { BrowserTileType } from "../../../../../components/ui/BrowserTile/BrowserTile";
+import { ConnectionTile } from "../../../../../components/ui/ConnectionTile/ConnectionTile";
 
 describe("ConnectionTile component tests", (): void => {
 
@@ -53,7 +52,7 @@ describe("ConnectionTile component tests", (): void => {
 
             />,
         );
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
 
         component.unmount();
     });

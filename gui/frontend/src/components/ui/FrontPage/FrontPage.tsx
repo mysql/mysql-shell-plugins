@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,15 +24,16 @@
 import "./FrontPage.css";
 import closeButton from "../../../assets/images/close2.svg";
 
-import React from "react";
+import { ComponentChild } from "preact";
 
-import {
-    Component, IComponentProperties, Icon, Label, TextAlignment, ContentAlignment, Container, ContentWrap, Orientation,
-    Button,
-} from "..";
 import { appParameters } from "../../../supplement/Requisitions";
+import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
+import { Container, Orientation, ContentAlignment, ContentWrap } from "../Container/Container";
+import { Icon } from "../Icon/Icon";
+import { Label, TextAlignment } from "../Label/Label";
+import { Button } from "../Button/Button";
 
-export interface IFrontPageProperties extends IComponentProperties {
+interface IFrontPageProperties extends IComponentProperties {
     showGreeting: boolean;
     caption: string;
     description: string;
@@ -42,7 +43,7 @@ export interface IFrontPageProperties extends IComponentProperties {
     onCloseGreeting: () => void;
 }
 
-export class FrontPage extends Component<IFrontPageProperties> {
+export class FrontPage extends ComponentBase<IFrontPageProperties> {
 
     public constructor(props: IFrontPageProperties) {
         super(props);
@@ -52,7 +53,7 @@ export class FrontPage extends Component<IFrontPageProperties> {
         };
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { showGreeting, caption, description, helpUrls, children, logo } = this.mergedProps;
 
         const className = this.getEffectiveClassNames([
@@ -84,7 +85,6 @@ export class FrontPage extends Component<IFrontPageProperties> {
                         {logo}
                         <Label
                             id="title"
-                            as="h2"
                             textAlignment={TextAlignment.Center}
                         >
                             {caption}
@@ -129,7 +129,7 @@ export class FrontPage extends Component<IFrontPageProperties> {
         onCloseGreeting();
     };
 
-    private handleHelpClick = (e: React.SyntheticEvent): void => {
+    private handleHelpClick = (e: MouseEvent | KeyboardEvent): void => {
         //const url = (e.target as Element).attributes[0].value;
         const embedded = appParameters.get("module");
         if (embedded) {

@@ -48,3 +48,5 @@ export type IMySQLDbSystem = mySQLModels.DbSystem & {
 };
 export type IMySQLDbSystemShapeSummary = mySQLModels.ShapeSummary;
 export type ILoadBalancer = loadBalancerModels.LoadBalancer;
+
+export type IPortForwardingSessionTargetResourceDetails = bastionModels.PortForwardingSessionTargetResourceDetails;

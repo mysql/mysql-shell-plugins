@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,25 +21,29 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
+import { ComponentChild, VNode } from "preact";
 import keyboardKey from "keyboard-key";
 
-import { IComponentProperties, Component, Container, Image, Label, Icon, Codicon } from "..";
-import { ContentAlignment } from "../Container/Container";
+import { Container, ContentAlignment } from "../Container/Container";
 import { IDictionary } from "../../../app-logic/Types";
+import { Codicon } from "../Codicon";
+import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
+import { Icon } from "../Icon/Icon";
+import { Label } from "../Label/Label";
+import { Image } from "../Image/Image";
 
 export interface IAccordionItemProperties extends IComponentProperties {
     caption: string;
-    picture?: string | Codicon | React.ReactElement<Icon | Image>;
+    picture?: string | Codicon | VNode<Icon | Image>;
     active?: boolean;
     closable?: boolean;
 
     payload?: IDictionary;
 
-    onClose?: (e: React.SyntheticEvent, itemId?: string) => void;
+    onClose?: (e: MouseEvent | KeyboardEvent, itemId?: string) => void;
 }
 
-export class AccordionItem extends Component<IAccordionItemProperties> {
+export class AccordionItem extends ComponentBase<IAccordionItemProperties> {
 
     public constructor(props: IAccordionItemProperties) {
         super(props);
@@ -51,7 +55,7 @@ export class AccordionItem extends Component<IAccordionItemProperties> {
         this.addHandledProperties("caption", "icon", "active", "closable", "onClose");
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { caption, picture, active, closable } = this.props;
         const className = this.getEffectiveClassNames([
             "accordionItem",
@@ -62,9 +66,9 @@ export class AccordionItem extends Component<IAccordionItemProperties> {
         let actualPicture;
         if (picture) {
             if (typeof picture === "string") {
-                actualPicture = <Image as="span" src={picture} width="20px" height="20px" />;
+                actualPicture = <Image src={picture} width="20px" height="20px" />;
             } else if (typeof picture === "number") {
-                actualPicture = <Icon as="span" src={picture} width="20px" height="20px" />;
+                actualPicture = <Icon src={picture} width="20px" height="20px" />;
             } else {
                 actualPicture = picture;
             }
@@ -88,16 +92,12 @@ export class AccordionItem extends Component<IAccordionItemProperties> {
                     />
                 }
                 {actualPicture}
-                <Label
-                    as="span"
-                >
-                    {caption}
-                </Label>
+                <Label>{caption}</Label>
             </Container>
         );
     }
 
-    private handleCloseKeyPress = (e: React.KeyboardEvent): void => {
+    private handleCloseKeyPress = (e: KeyboardEvent): void => {
         const key = keyboardKey.getCode(e);
         if (key === keyboardKey.Spacebar || key === keyboardKey.Enter) {
             e.stopPropagation();
@@ -107,7 +107,7 @@ export class AccordionItem extends Component<IAccordionItemProperties> {
         }
     };
 
-    private handleCloseClick = (e: React.MouseEvent): void => {
+    private handleCloseClick = (e: MouseEvent): void => {
         e.stopPropagation();
 
         const { onClose } = this.props;

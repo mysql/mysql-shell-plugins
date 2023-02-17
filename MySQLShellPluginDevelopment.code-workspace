@@ -42,7 +42,16 @@
             "/usr/local/mysql-shell/lib/mysqlsh/lib/python3.9/site-packages",
             "${workspaceFolder}\\plugins\\rds_plugin"
         ],
-        "liveServer.settings.multiRootWorkspaceName": "MySQL REST Service Plugin"
+        "liveServer.settings.multiRootWorkspaceName": "MySQL REST Service Plugin",
+        "jest.autoRun": "off",
+        "jest.disabledWorkspaceFolders": [
+            "MRS Examples Notes TS",
+            "MySQL REST Service Plugin",
+            "Shell GUI Backend",
+            "Shell Plugin Tools",
+            "MySQL Database Service Plugin",
+            "VSCode Extension"
+        ]
     },
     "launch": {
         "version": "0.2.0",

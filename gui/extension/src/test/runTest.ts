@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -29,11 +29,11 @@ export const main = async (): Promise<void> => {
     try {
         // The folder containing the Extension Manifest package.json
         // Passed to `--extensionDevelopmentPath`
-        const extensionDevelopmentPath = path.resolve(__dirname, "../../../../");
+        const extensionDevelopmentPath = process.cwd();
 
         // The path to the extension test script
         // Passed to --extensionTestsPath
-        const extensionTestsPath = path.resolve(__dirname, "./suite/index");
+        const extensionTestsPath = path.resolve(__dirname, "./suite");
 
         // Download VS Code, unzip it and run the integration test
         await runTests({

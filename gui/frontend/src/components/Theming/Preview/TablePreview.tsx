@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,11 +23,11 @@
 
 import employees from "./assets/employees.json";
 
-import React from "react";
+import { ComponentChild, createRef } from "preact";
 import { ColumnDefinition } from "tabulator-tables";
 
-import { Component, SelectionType } from "../../ui";
 import { ITreeGridOptions, TreeGrid } from "../../ui/TreeGrid/TreeGrid";
+import { ComponentBase, SelectionType } from "../../ui/Component/ComponentBase";
 
 interface ITablePreviewState {
     data: unknown[];
@@ -35,9 +35,9 @@ interface ITablePreviewState {
 }
 
 // A gallery component showing tables/trees.
-export class TablePreview extends Component<{}, ITablePreviewState> {
+export class TablePreview extends ComponentBase<{}, ITablePreviewState> {
 
-    private ref = React.createRef<TreeGrid>();
+    private ref = createRef<TreeGrid>();
 
     public constructor(props: {}) {
         super(props);
@@ -60,7 +60,7 @@ export class TablePreview extends Component<{}, ITablePreviewState> {
         });
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { data, columnNames } = this.state;
 
         // Get the column names from the first record.

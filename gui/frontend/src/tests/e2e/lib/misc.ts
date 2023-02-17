@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -20,9 +20,12 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-import { promises as fsPromises } from "fs";
+
+import { platform } from "os";
+import fs from "fs/promises";
+
 import { By, until, Key, WebElement, Builder, WebDriver, error } from "selenium-webdriver";
-import { Options, ServiceBuilder, setDefaultService } from "selenium-webdriver/chrome";
+import { Options } from "selenium-webdriver/chrome";
 import { DBConnection } from "./dbConnection";
 
 export let driver: WebDriver;
@@ -58,7 +61,7 @@ export class Misc {
      */
     public static loadDriver = async (): Promise<void> => {
         const prom = async (): Promise<WebDriver> => {
-            return new Promise( (resolve) => {
+            return new Promise((resolve) => {
                 const options: Options = new Options();
 
                 const headless = process.env.HEADLESS ?? "1";
@@ -66,14 +69,8 @@ export class Misc {
                 let driver: WebDriver;
                 options.addArguments("--no-sandbox");
 
-                if (!process.env.CHROMEDRIVER_PATH) {
-                    throw new Error("Please define the chrome driver path environment variable (CHROMEDRIVER_PATH)");
-                }
-
-                setDefaultService(new ServiceBuilder(String(process.env.CHROMEDRIVER_PATH)).build());
-
-                if(headless === String("1")) {
-                    options.headless().windowSize({width: 1024, height: 768});
+                if (headless === String("1")) {
+                    options.headless().windowSize({ width: 1024, height: 768 });
                     driver = new Builder()
                         .forBrowser("chrome")
                         .setChromeOptions(options)
@@ -129,7 +126,7 @@ export class Misc {
      */
     public static getBackgroundColor = async (): Promise<string> => {
         const script =
-        "return window.getComputedStyle(document.documentElement).getPropertyValue('--background'); ";
+            "return window.getComputedStyle(document.getElementById('root')).getPropertyValue('--background'); ";
 
         return driver.executeScript(script);
     };
@@ -139,200 +136,80 @@ export class Misc {
      *
      * @returns Promise resolving when the key combination is pressed
      */
-    public static execOnEditor = async (): Promise<void> => {
-        await driver
-            .actions()
-            .keyDown(Key.CONTROL)
-            .keyDown(Key.ENTER)
-            .keyUp(Key.CONTROL)
-            .keyUp(Key.ENTER)
-            .perform();
+    public static pressEnter = async (): Promise<void> => {
+        if (platform() === "win32") {
+            await driver
+                .actions()
+                .keyDown(Key.CONTROL)
+                .keyDown(Key.ENTER)
+                .keyUp(Key.CONTROL)
+                .keyUp(Key.ENTER)
+                .perform();
+        } else if (platform() === "darwin") {
+            await driver
+                .actions()
+                .keyDown(Key.COMMAND)
+                .keyDown(Key.ENTER)
+                .keyUp(Key.COMMAND)
+                .keyUp(Key.ENTER)
+                .perform();
+        }
     };
 
     /**
-     * Gets the zone host id of the last results block
+     * Writes an SQL query and executes it
      *
-     * @returns Promise resolving with the zone host id
+     * @param textArea text area to send the query
+     * @param cmd command to execute
+     * @param timeout wait for results
+     * @param useBtn use exec button on toolbar
+     * @returns Promise resolving when the command is executed
      */
-    public static getLastResultBlockId = async (): Promise<number> => {
-        await driver.wait(until.elementLocated(By.css("textarea")), explicitWait, "Could not find the text area");
+    public static execCmd = async (textArea: WebElement,
+        cmd: string, timeout?: number, useBtn?: boolean): Promise<void> => {
+        cmd = cmd.replace(/(\r\n|\n|\r)/gm, "");
         const prevBlocks = await driver.findElements(By.css(".zoneHost"));
-        if (prevBlocks.length > 0) {
-            const x = await prevBlocks[prevBlocks.length - 1].getAttribute("monaco-view-zone");
-
-            return parseInt(x.replace("d", ""), 10);
-        }
-
-        return 0;
-    };
-
-
-    /**
-     * Writes a command on the DB Editor or Shell session
-     *
-     * @param cmd command to execute
-     * @param slowWriting true to write in slow mode, false otherwise
-     * @returns Promise resolving when the command is written
-     */
-    public static writeCmd = async (cmd: string, slowWriting?: boolean): Promise<void> => {
-        const textArea = await driver.wait(until.elementLocated(By.css("textarea")),
-            explicitWait, "Could not find the textarea");
-        if (slowWriting) {
-            const items = cmd.split("");
-            for (const item of items) {
-                await textArea.sendKeys(item);
-                await driver.sleep(20);
-            }
-        } else {
-            await textArea.sendKeys(cmd);
-        }
-    };
-
-
-    /**
-     * Writes a command (sql/js/py) and executes it, using CTRL+ENTER or a toolbar button
-     *
-     * @param cmd command to execute
-     * @param button name of the button to use, to perform the command
-     * @param timeout wait for results
-     * @param slowWriting true to write in slow mode, false otherwise
-     * @returns Promise resolving when the command is executed and the results are generated.
-     * The returned array contains 2 positions. First one, has the command result (ex: OK, 1 record retrieved).
-     * The second position has the WebElement which contains the results block (ex: table/string)
-     */
-    public static execCmd = async (
-        cmd: string,
-        button?: string,
-        timeout?: number,
-        slowWriting?: boolean): Promise<Array<string | WebElement | boolean | undefined>> => {
-
-        cmd = cmd.replace(/(\r\n|\n|\r)/gm, "");
-        const count = (cmd.match(/;|select|SELECT/g) || []).length;
-        const hasMultipleQueries = count >= 3 && cmd.toLowerCase().startsWith("select");
-
-        const prevBlockId = await Misc.getLastResultBlockId();
-        const nextBlockId = prevBlockId + 1;
-
-        if (cmd.length > 0) {
-            await Misc.writeCmd(cmd, slowWriting);
-        }
-
-        if (button) {
-            const btn = await DBConnection.getToolbarButton(button);
-            await btn?.click();
-        } else {
-            await Misc.execOnEditor();
-        }
-
-        timeout = timeout ?? 5000;
-
-        return Misc.getCmdResult(cmd, nextBlockId, timeout, hasMultipleQueries);
-    };
-
-    /**
-     * Writes a command (sql/js/py) and executes it, using right-click on context menu
-     *
-     * @param cmd command to execute
-     * @param item name of the button to use, to perform the command
-     * @param timeout wait for results
-     * @param slowWriting true to write in slow mode, false otherwise
-     * @returns Promise resolving when the command is executed and the results are generated.
-     * The returned array contains 2 positions. First one, has the command result (ex: OK, 1 record retrieved).
-     * The second position has the WebElement which contains the results block (ex: table/string)
-     */
-    public static execCmdByContextItem = async (
-        cmd: string,
-        item: string,
-        timeout?: number,
-        slowWriting?: boolean): Promise<Array<string | WebElement | boolean | undefined>> => {
-
-        cmd = cmd.replace(/(\r\n|\n|\r)/gm, "");
-        const count = (cmd.match(/;|select|SELECT/g) || []).length;
-        const hasMultipleQueries = count >= 3 && cmd.toLowerCase().startsWith("select");
-
-        const prevBlockId = await Misc.getLastResultBlockId();
-        const nextBlockId = prevBlockId + 1;
-
-        if (cmd.length > 0) {
-            await Misc.writeCmd(cmd, slowWriting);
-        }
-
-        await DBConnection.clickContextItem(item);
-        timeout = timeout ?? 5000;
-
-        return Misc.getCmdResult(cmd, nextBlockId, timeout, hasMultipleQueries);
-    };
-
-    /**
-     * Returns the result tab names of the result block
-     *
-     * @param resultHost the context block
-     * @returns A promise resolving with the tab names
-     */
-    public static getResultTabs = async (resultHost: WebElement): Promise<string[]> => {
-        const result: string[] = [];
-        const tabs = await resultHost.findElements(By.css(".tabArea div"));
-        for (const tab of tabs) {
-            if (await tab.getAttribute("id") !== "selectorItemstepDown" &&
-                await tab.getAttribute("id") !== "selectorItemstepUp") {
-
-                const label = await tab.findElement(By.css("label"));
-                const tabLabel = await label.getAttribute("innerHTML");
-                result.push(tabLabel);
+        await textArea.sendKeys(cmd);
+        if (cmd.indexOf("\\") !== -1) {
+            const codeMenu = await driver.findElements(By.css("div.contents"));
+            if (codeMenu.length > 0) {
+                await textArea.sendKeys(Key.ENTER);
             }
         }
 
-        return result;
-    };
-
-    /**
-     * Returns the result tab within a results block
-     *
-     * @param resultHost the context block
-     * @param tabName name of the tab
-     * @returns A promise resolving with the tab result
-     */
-    public static getResultTab = async (resultHost: WebElement, tabName: string): Promise <WebElement | undefined> => {
-        const tabs = await resultHost.findElements(By.css(".tabArea div"));
-
-        for (const tab of tabs) {
-            if (await tab.getAttribute("id") !== "selectorItemstepDown" &&
-                await tab.getAttribute("id") !== "selectorItemstepUp") {
-
-                const label = await tab.findElement(By.css("label"));
-                const tabLabel = await label.getAttribute("innerHTML");
-                if (tabName === tabLabel) {
-                    return tab;
+        if (useBtn) {
+            try {
+                await (
+                    await DBConnection.getToolbarButton(
+                        "Execute selection or full block and create a new block",
+                    )
+                )!.click();
+            } catch (e) {
+                if (String(e).includes("Could not find button")) {
+                    await (
+                        await DBConnection.getToolbarButton(
+                            "Execute full block and create a new block",
+                        )
+                    )!.click();
                 }
             }
-        }
-    };
 
-    /**
-     * Returns the result column names of a query within a results block
-     *
-     * @param resultHost the context block
-     * @returns A promise resolving with the column names
-     */
-    public static getResultColumns = async (resultHost: WebElement): Promise<string[]> => {
-
-        const result = [];
-
-        const resultSet = await driver.wait(async () => {
-            return (await resultHost.findElements(By.css(".tabulator-headers")))[0];
-        }, explicitWait, "No tabulator-headers detected");
-
-        const resultHeaderRows = await driver.wait(async () => {
-            return resultSet.findElements(By.css(".tabulator-col-title"));
-        }, explicitWait, "No tabulator-col-title detected");
-
-        for (const row of resultHeaderRows) {
-            const rowText = await row.getAttribute("innerHTML");
-            result.push(rowText);
+        } else {
+            await Misc.pressEnter();
         }
 
-        return result;
 
+        if (!timeout) {
+            timeout = 10000;
+        }
+
+        if (cmd !== "\\q" && cmd !== "\\d") {
+            await driver.wait(async () => {
+                const blocks = await driver.findElements(By.css(".zoneHost"));
+
+                return blocks.length > prevBlocks.length;
+            }, timeout, "Command '" + cmd + "' did not triggered a new results block");
+        }
     };
 
     /**
@@ -363,7 +240,7 @@ export class Misc {
         };
 
         const result = "#" + componentToHex(parseInt(r, 10)) +
-        componentToHex(parseInt(g, 10)) + componentToHex(parseInt(b, 10));
+            componentToHex(parseInt(g, 10)) + componentToHex(parseInt(b, 10));
 
         return result.toUpperCase();
     };
@@ -461,131 +338,17 @@ export class Misc {
     };
 
     /**
-     * Removes all the existing text on the prompt
-     *
-     * @returns A promise resolving when the clean is made
-     */
-    public static cleanPrompt = async (): Promise<void> => {
-        const textArea = await driver.findElement(By.css("textarea"));
-
-        await textArea
-            .sendKeys(Key.chord(Key.CONTROL, "a", "a"));
-
-        await textArea.sendKeys(Key.BACK_SPACE);
-        await driver.wait(async () => {
-            return await Misc.getPromptTextLine("last") === "";
-        }, 3000, "Prompt was not cleaned");
-    };
-
-    /**
-     * Takes a screenshot, and saves it into a file
-     *
-     */
-    public static processFailure = async (): Promise<void> => {
-
-        const img = await driver.takeScreenshot();
-        const testName: string = expect.getState().currentTestName
-            .toLowerCase().replace(/\s/g, "_");
-        try {
-            await fsPromises.access("src/tests/e2e/screenshots");
-        } catch (e) {
-            await fsPromises.mkdir("src/tests/e2e/screenshots");
-        }
-        await fsPromises.writeFile(`src/tests/e2e/screenshots/${testName}_screenshot.png`, img, "base64");
-
-    };
-
-    /**
-     * Gets the last command result message (ex: OK, 1 record retrieved)
-     *
-     * @param zoneHost context
-     * @param timeout time to wait
-     * @returns Promise resolving with the zone host id
-     */
-    public static getCmdResultMsg = async (zoneHost?: WebElement, timeout?: number): Promise<string | undefined> => {
-        let resultToReturn = "";
-        timeout = timeout ?? 5000;
-        await driver.wait(async () => {
-            try {
-                let context;
-                if (zoneHost) {
-                    context = zoneHost;
-                } else {
-                    const blocks = await driver.wait(until.elementsLocated(By.css(".zoneHost")),
-                        explicitWait, "No zone hosts were found");
-                    context = blocks[blocks.length - 1];
-                }
-
-                const resultStatus = await context.findElements(By.css(".resultStatus"));
-                if (resultStatus.length > 0) {
-                    const elements: WebElement[] = await driver.executeScript("return arguments[0].childNodes;",
-                        resultStatus[0]);
-
-                    resultToReturn = await elements[0].getAttribute("innerHTML");
-
-                    return resultToReturn;
-                }
-
-                const resultTexts = await context.findElements(By.css(".resultText"));
-                if (resultTexts.length > 0) {
-                    let result = "";
-                    for (const resultText of resultTexts) {
-                        const span = await resultText.findElement(By.css("code span"));
-                        result += await span.getAttribute("innerHTML");
-                    }
-
-                    resultToReturn = result.trim();
-
-                    return resultToReturn;
-                }
-
-                const actionLabel = await context.findElements(By.css(".actionLabel"));
-                if(actionLabel.length > 0) {
-                    resultToReturn = await actionLabel[0].getAttribute("innerHTML");
-
-                    return resultToReturn;
-                }
-
-                const actionOutput = await context.findElements(By.css(".actionOutput"));
-                if(actionOutput.length > 0) {
-                    resultToReturn = await actionOutput[0].findElement(By.css(".info")).getAttribute("innerHTML");
-
-                    return resultToReturn;
-                }
-
-                const graphHost = await context.findElements(By.css(".graphHost"));
-                if(graphHost.length > 0) {
-                    resultToReturn = "graph";
-
-                    return resultToReturn;
-                }
-
-            } catch (e) {
-                if (!(e instanceof error.StaleElementReferenceError)) {
-                    throw e;
-                } else {
-                    const zoneHosts = await driver.findElements(By.css(".zoneHost"));
-                    zoneHost = zoneHosts[zoneHosts.length -1];
-                }
-            }
-
-        }, timeout, "Could not return the last result command");
-
-        return resultToReturn;
-    };
-
-    /**
      * Returns the prompt text within a line, on the prompt
      *
      * @param prompt last (last line), last-1 (line before the last line), last-2 (line before the 2 last lines)
      * @returns Promise resolving with the text on the selected line
      */
-    private static getPromptTextLine = async (prompt: string): Promise<String> => {
+    public static getPromptTextLine = async (prompt: string): Promise<String> => {
         const context = await driver.findElement(By.css(".monaco-editor-background"));
-        let lines = await context.findElements(By.css(".view-lines.monaco-mouse-cursor-text .view-line"));
+
         let position: number;
         let tags;
-        switch(prompt) {
+        switch (prompt) {
             case "last":
                 position = 1;
                 break;
@@ -600,153 +363,87 @@ export class Misc {
         }
 
         let sentence = "";
-        try {
-            tags = await lines[lines.length - position].findElements(By.css("span > span"));
-            for (const tag of tags) {
-                sentence += (await tag.getText()).replace("&nbsp;", " ");
+        await driver.wait(async () => {
+            try {
+                const lines = await context.findElements(By.css(".view-lines.monaco-mouse-cursor-text .view-line"));
+                tags = await lines[lines.length - position].findElements(By.css("span > span"));
+                for (const tag of tags) {
+                    sentence += (await tag.getText()).replace("&nbsp;", " ");
+                }
+
+                return true;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
             }
-        } catch (e) {
-            lines = await context.findElements(By.css(".view-lines.monaco-mouse-cursor-text .view-line"));
-            tags = await lines[lines.length - position].findElements(By.css("span > span"));
-            for (const tag of tags) {
-                sentence += (await tag.getText()).replace("&nbsp;", " ");
-            }
-        }
+        }, explicitWait, "Elements were stale");
+
 
         return sentence;
     };
 
     /**
-     * Gets the last command result content (ex: result of a SELECT statement)
+     * Removes all the existing text on the prompt
      *
-     * @param multipleQueries true if the result content to be returned reslulted from a multiple query
-     * @param zoneHost context
-     * @param timeout time to wait
-     * @returns Promise resolving with the zone host id
+     * @returns A promise resolving when the clean is made
      */
-    private static getCmdResultContent = async (multipleQueries: boolean,
-        zoneHost: WebElement, timeout?: number): Promise<WebElement | undefined> => {
-        timeout = timeout ?? 5000;
-        let toReturn: WebElement | undefined;
-
+    public static cleanPrompt = async (): Promise<void> => {
+        const textArea = await driver.findElement(By.css("textarea"));
+        if (platform() === "win32") {
+            await textArea
+                .sendKeys(Key.chord(Key.CONTROL, "a", "a"));
+        } else if (platform() === "darwin") {
+            await textArea
+                .sendKeys(Key.chord(Key.COMMAND, "a", "a"));
+        }
+        await textArea.sendKeys(Key.BACK_SPACE);
         await driver.wait(async () => {
-            try {
-                const resultTabview = await zoneHost.findElements(By.css(".resultTabview"));
-                if (resultTabview.length > 0) {
-                    if (multipleQueries) {
-                        const tabArea = await zoneHost.findElements(By.css(".tabArea"));
-                        if (tabArea.length > 0) {
-                            toReturn = resultTabview[resultTabview.length - 1];
-
-                            return true;
-                        } else {
-                            return undefined;
-                        }
-                    } else {
-                        toReturn = resultTabview[resultTabview.length - 1];
-
-                        return true;
-                    }
-                }
-
-                const renderTarget = await zoneHost.findElements(By.css(".renderTarget"));
-                if (renderTarget.length > 0 && !multipleQueries) {
-                    toReturn = renderTarget[renderTarget.length - 1];
-
-                    return true;
-                }
-            } catch (e) {
-                if (e instanceof error.StaleElementReferenceError) {
-                    const zoneHosts = await driver.findElements(By.css(".zoneHost"));
-                    zoneHost = zoneHosts[zoneHosts.length -1];
-                } else {
-                    throw e;
-                }
-            }
-        }, timeout, "Could not return the last result content");
-
-        return toReturn;
+            return await Misc.getPromptTextLine("last") === "";
+        }, 3000, "Prompt was not cleaned");
     };
 
     /**
-     * Gets the last command result content (ex: result of a SELECT statement)
+     * Waits for the blue dot to appear on the editor current line, which indicates that the editor
+     * is ready to receive queries
      *
-     * @param cmd that was executed
-     * @param blockId to search for
-     * @param timeout time to wait
-     * @param hasMultipleQueries cmd has more than one query?
-     * @returns Promise resolving with an array of 2 positions: First one has the cmd result message,
-     * the second one has the WebElement that represents the result
+     * @returns A promise resolving when the blue dot (statement start) is displayed
      */
-    private static getCmdResult = async (
-        cmd: string,
-        blockId: number,
-        timeout: number,
-        hasMultipleQueries: boolean,
-    ): Promise<Array<string | WebElement | boolean | undefined>> => {
+    public static waitForEditorToStart = async (): Promise<void> => {
+        const word = "it";
+        const letters = word.split("").length;
+        const textArea = await driver.findElement(By.css("textarea"));
+        const promptLines = await driver.findElements(By.css("#contentHost .editorHost .view-line"));
+        await promptLines[promptLines.length - 1].click();
 
-        const toReturn: Array<string | WebElement | boolean | undefined> = [];
-        let zoneHost;
-
-        if (!cmd.includes("disconnect")) {
-
-            if (blockId === 1) {
-                const zoneHosts = await driver.wait(until.elementsLocated(By.css(".zoneHost")), timeout,
-                    `zoneHosts not found for '${cmd}'`);
-                zoneHost = zoneHosts[zoneHosts.length - 1];
-            } else {
-                zoneHost = await driver.wait(
-                    until.elementLocated(By.xpath(`//div[@class='zoneHost' and @monaco-view-zone='d${blockId}']`)),
-                    timeout, `Could not get the result block id '${blockId}' for '${cmd}'`);
+        await driver.wait(async () => {
+            await textArea.sendKeys(word);
+            for (let i = 0; i <= letters - 1; i++) {
+                await textArea.sendKeys(Key.BACK_SPACE);
+                await driver.sleep(500);
             }
 
-            await Misc.getCmdResultMsg(zoneHost, timeout)
-                .then ( (result) => {
-                    toReturn.push(result);
-                })
-                .catch ( (e) => {
-                    if (String(e).includes("Could not return")) {
-                        throw new Error(`Could not get result for '${cmd}'`);
-                    } else {
-                        throw e;
-                    }
-                });
+            return (await driver.findElements(By.css(".statementStart"))).length > 1;
+        }, 30000, "Editor did not started");
 
-            await Misc.getCmdResultContent(hasMultipleQueries, zoneHost, timeout)
-                .then ( (result) => {
-                    toReturn.push(result);
-                })
-                .catch ( (e) => {
-                    if (String(e).includes("Could not return")) {
-                        throw new Error(`Could not get content for '${cmd}'`);
-                    } else {
-                        throw e;
-                    }
-                });
-
-        } else {
-            await driver.wait(until.elementLocated(
-                By.xpath(`//div[@class='zoneHost' and @monaco-view-zone='d${blockId}']`)),
-            150, "")
-                .then( async (zoneHost: WebElement) => {
-                    await Misc.getCmdResultMsg(zoneHost, timeout)
-                        .then ( (result) => {
-                            toReturn.push(result);
-                        })
-                        .catch ( (e) => {
-                            if (String(e).includes("Could not return")) {
-                                throw new Error(`Could not get result for '${cmd}'`);
-                            } else {
-                                throw e;
-                            }
-                        });
-                })
-                .catch( () => {
-                    toReturn.push("");
-                } );
-        }
-
-        return toReturn;
     };
 
+    /**
+     * Retrieves the name of the current test and returns it with some transformations applied.
+     *
+     * @returns The adjusted test name.
+     */
+    public static currentTestName(): string | undefined {
+        return expect.getState().currentTestName?.toLowerCase().replace(/\s/g, "_");
+    }
+
+    /**
+     * Takes a screen shot of the current browser window and stores it on disk.
+     */
+    public static async storeScreenShot(): Promise<void> {
+        const img = await driver.takeScreenshot();
+        const testName = Misc.currentTestName() ?? "<unknown test>";
+        await fs.mkdir("src/tests/e2e/screenshots", { recursive: true });
+        await fs.writeFile(`src/tests/e2e/screenshots/${testName}_screenshot.png`, img, "base64");
+    }
 }

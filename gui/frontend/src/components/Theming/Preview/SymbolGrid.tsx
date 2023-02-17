@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,10 +21,15 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
-import { Component, GridCell, Label, Grid, Orientation } from "../../ui";
+import { ComponentChild } from "preact";
 
-export class SymbolGrid extends Component {
+import { ComponentBase } from "../../ui/Component/ComponentBase";
+import { Orientation } from "../../ui/Container/Container";
+import { Grid } from "../../ui/Grid/Grid";
+import { GridCell } from "../../ui/Grid/GridCell";
+import { Label } from "../../ui/Label/Label";
+
+export class SymbolGrid extends ComponentBase {
 
     private static iconNames = [
         "array",
@@ -62,7 +67,7 @@ export class SymbolGrid extends Component {
         "variable",
     ];
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const content = SymbolGrid.iconNames.map((name: string, index: number) => {
             let symbolName = name;
             if (name === "parameter") {
@@ -76,7 +81,7 @@ export class SymbolGrid extends Component {
                     orientation={Orientation.LeftToRight}
                 >
                     <span className={"codicon codicon-symbol-" + symbolName} />
-                    <Label as="span">{name}</Label>
+                    <Label>{name}</Label>
                 </GridCell>
             );
         });

@@ -23,21 +23,26 @@
 
 import mysqlIcon from "../../assets/images/admin/mysql-logo.svg";
 
-import { platform } from "os";
-import React from "react";
+import os from "os";
+import { ComponentChild } from "preact";
 
-import {
-    CheckState, Component, Container, ContentAlignment, ContentWrap, Divider, Grid, GridCell,
-    IComponentProperties, IComponentState, Icon, Label, Orientation, Toolbar,
-} from "../../components/ui";
-import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface";
 
 import { IToolbarItems } from ".";
 import { StatusMark } from "../../components/ui/StatusMark/StatusMark";
+import { CheckState } from "../../components/ui/Checkbox/Checkbox";
+import { IComponentProperties, IComponentState, ComponentBase } from "../../components/ui/Component/ComponentBase";
+import { Container, Orientation, ContentAlignment, ContentWrap } from "../../components/ui/Container/Container";
+import { Divider } from "../../components/ui/Divider/Divider";
+import { Grid } from "../../components/ui/Grid/Grid";
+import { GridCell } from "../../components/ui/Grid/GridCell";
+import { Icon } from "../../components/ui/Icon/Icon";
+import { Label } from "../../components/ui/Label/Label";
+import { Toolbar } from "../../components/ui/Toolbar/Toolbar";
+import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor";
 
 type TriState = true | false | undefined;
 
-export interface IServerStatusProperties extends IComponentProperties {
+interface IServerStatusProperties extends IComponentProperties {
     backend: ShellInterfaceSqlEditor;
     rowGap?: string | number;
 
@@ -108,7 +113,7 @@ interface IServerFirewall {
     accessDenied?: string;
 }
 
-export interface IServerStatusState extends IComponentState {
+interface IServerStatusState extends IComponentState {
     runStatus: string;
     dataVersion: number;
     serverFeatures: IServerFeatures;
@@ -119,11 +124,13 @@ export interface IServerStatusState extends IComponentState {
     firewall: IServerFirewall;
 }
 
-export class ServerStatus extends Component<IServerStatusProperties, IServerStatusState> {
+export class ServerStatus extends ComponentBase<IServerStatusProperties, IServerStatusState> {
 
     public static defaultProps = {
         rowGap: 3,
     };
+
+    private showWindowsAuth = false;
 
     public constructor(props: IServerStatusProperties) {
         super(props);
@@ -139,7 +146,9 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
             firewall: {},
         };
 
-        this.addHandledProperties("backend");
+        this.addHandledProperties("backend", "rowGap", "toolbarItems");
+        this.showWindowsAuth = (typeof os.platform === "function" && os.platform() === "win32"
+            && process.env.JEST_WORKER_ID === undefined);
     }
 
     public componentDidMount(): void {
@@ -155,11 +164,11 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
         }
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { toolbarItems } = this.props;
         const { serverStatus } = this.state;
 
-        const infoCells: React.ReactNode[] = [];
+        const infoCells: ComponentChild[] = [];
 
         const className = this.getEffectiveClassNames(["serverStatus"]);
         infoCells.push(this.serverStatus());
@@ -170,7 +179,7 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
         infoCells.push(this.firewall());
 
         // If toolbar items are given, render a toolbar with them.
-        let toolbar: React.ReactElement | undefined;
+        let toolbar: ComponentChild | undefined;
         if (toolbarItems) {
             toolbar = <Toolbar
                 id="serverStatusToolbar"
@@ -222,7 +231,7 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
         );
     }
 
-    private serverStatus = (): React.ReactNode => {
+    private serverStatus = (): ComponentChild => {
         const { rowGap } = this.props;
         const { serverStatus } = this.state;
 
@@ -271,7 +280,7 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
         );
     };
 
-    private serverFeatures = (): React.ReactNode => {
+    private serverFeatures = (): ComponentChild => {
         const { rowGap } = this.props;
         const { serverFeatures } = this.state;
 
@@ -333,10 +342,10 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
         );
     };
 
-    private authenticationOutput = (): React.ReactNode => {
+    private authenticationOutput = (): ComponentChild => {
         const { serverFeatures } = this.state;
 
-        if (platform() === "win32" && process.env.JEST_WORKER_ID === undefined) {
+        if (this.showWindowsAuth) {
             return <>
                 <GridCell key="cell90" className="left">Windows Authentication:</GridCell>
                 <GridCell key="cell91">
@@ -353,7 +362,7 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
         }
     };
 
-    private serverDirectories = (): React.ReactNode => {
+    private serverDirectories = (): ComponentChild => {
         const { rowGap } = this.props;
         const { serverDirectories } = this.state;
 
@@ -403,7 +412,7 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
             </Grid >);
     };
 
-    private serverAuthentication = (): React.ReactNode => {
+    private serverAuthentication = (): ComponentChild => {
         const { rowGap } = this.props;
         const { serverAuthentication } = this.state;
 
@@ -428,7 +437,7 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
             </Grid>);
     };
 
-    private firewall = (): React.ReactNode => {
+    private firewall = (): ComponentChild => {
         const { rowGap } = this.props;
         const { serverFeatures, firewall } = this.state;
 
@@ -458,7 +467,7 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
         }
     };
 
-    private serverSsl = (): React.ReactNode => {
+    private serverSsl = (): ComponentChild => {
         const { rowGap } = this.props;
         const { serverSsl } = this.state;
 
@@ -493,7 +502,7 @@ export class ServerStatus extends Component<IServerStatusProperties, IServerStat
     };
 
 
-    private drawBoolean = (value: TriState): React.ReactNode => {
+    private drawBoolean = (value: TriState): ComponentChild => {
         if (value === undefined) {
             return (<StatusMark statusState={CheckState.Indeterminate} text={"none"} />);
         } else if (!value) {

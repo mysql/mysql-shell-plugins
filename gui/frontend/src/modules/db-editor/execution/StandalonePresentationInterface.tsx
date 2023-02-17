@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
+import { ComponentChild } from "preact";
 
 import { CodeEditor } from "../../../components/ui/CodeEditor/CodeEditor";
 import { PresentationInterface } from "../../../script-execution/PresentationInterface";
@@ -37,13 +37,13 @@ export class StandalonePresentationInterface extends PresentationInterface {
         private host: ScriptEditor,
         editor: CodeEditor,
         language: EditorLanguage,
-        private target: React.RefObject<HTMLDivElement>) {
+        private target: preact.RefObject<HTMLDivElement>) {
         super(editor, language);
 
         this.alwaysShowTab = true;
     }
 
-    protected get resultDivider(): React.ReactNode {
+    protected get resultDivider(): ComponentChild {
         return undefined;
     }
 

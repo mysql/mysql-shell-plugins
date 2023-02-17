@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,10 +22,8 @@
  */
 
 import { mount } from "enzyme";
-import React from "react";
 
 import { DBEditorToolbar } from "../../../../modules/db-editor/DBEditorToolbar";
-import { snapshotFromWrapper } from "../../test-helpers";
 
 describe("DBEditorToolbar tests", (): void => {
     it("Test DBEditorToolbar instantiation", () => {
@@ -41,7 +39,7 @@ describe("DBEditorToolbar tests", (): void => {
         const props = component.props();
         expect(props.language).toEqual("pl");
         expect(props.activeEditor).toEqual("DbEditor");
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
         component.unmount();
     });
 
@@ -58,7 +56,7 @@ describe("DBEditorToolbar tests", (): void => {
         const props = component.props();
         expect(props.language).toEqual("en");
         expect(props.activeEditor).toEqual("DbEditor");
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
         component.unmount();
     });
 

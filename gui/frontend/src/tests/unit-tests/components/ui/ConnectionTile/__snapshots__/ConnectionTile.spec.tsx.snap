@@ -6,12 +6,12 @@ exports[`ConnectionTile component tests Test ConnectionTile output (Snapshot) 1`
   className="connectionTile"
   description="A description"
   details={
-    Object {
+    {
       "caption": "Tile 1",
       "dbType": "MySQL",
       "description": "A description",
       "id": 1,
-      "options": Object {},
+      "options": {},
     }
   }
   icon="mysql.svg"
@@ -42,7 +42,7 @@ exports[`ConnectionTile component tests Test ConnectionTile output (Snapshot) 1`
       onKeyPress={[Function]}
       onMouseDown={[Function]}
       style={
-        Object {
+        {
           "flexDirection": undefined,
         }
       }
@@ -52,10 +52,10 @@ exports[`ConnectionTile component tests Test ConnectionTile output (Snapshot) 1`
         disabled={false}
         src="mysql.svg"
       >
-        <div
+        <span
           className="msg icon"
           style={
-            Object {
+            {
               "WebkitMaskImage": "url(mysql.svg)",
               "backgroundColor": undefined,
               "height": undefined,
@@ -72,7 +72,7 @@ exports[`ConnectionTile component tests Test ConnectionTile output (Snapshot) 1`
         <div
           className="msg container fixedScrollbar textHost"
           style={
-            Object {
+            {
               "alignItems": undefined,
               "flexDirection": "column",
               "flexWrap": undefined,
@@ -86,11 +86,7 @@ exports[`ConnectionTile component tests Test ConnectionTile output (Snapshot) 1`
             <label
               className="msg label tileCaption"
               data-tooltip="expand"
-              style={
-                Object {
-                  "textAlign": undefined,
-                }
-              }
+              style={{}}
             >
               Tile 1
             </label>
@@ -101,11 +97,7 @@ exports[`ConnectionTile component tests Test ConnectionTile output (Snapshot) 1`
             <label
               className="msg label tileDescription"
               data-tooltip="expand"
-              style={
-                Object {
-                  "textAlign": undefined,
-                }
-              }
+              style={{}}
             >
               A description
             </label>
@@ -116,8 +108,20 @@ exports[`ConnectionTile component tests Test ConnectionTile output (Snapshot) 1`
         crossAlignment="center"
         id="actions"
         innerRef={
-          Object {
-            "current": Object {},
+          {
+            "current": <div
+              class="msg container fixedScrollbar"
+              id="actions"
+              style="flex-direction: row; justify-content: center; align-items: center;"
+            >
+              <label
+                class="msg label"
+                data-tooltip="expand"
+                id="triggerTileAction"
+              >
+                …
+              </label>
+            </div>,
           }
         }
         mainAlignment="center"
@@ -127,7 +131,7 @@ exports[`ConnectionTile component tests Test ConnectionTile output (Snapshot) 1`
           className="msg container fixedScrollbar"
           id="actions"
           style={
-            Object {
+            {
               "alignItems": "center",
               "flexDirection": "row",
               "flexWrap": undefined,
@@ -145,11 +149,7 @@ exports[`ConnectionTile component tests Test ConnectionTile output (Snapshot) 1`
               data-tooltip="expand"
               id="triggerTileAction"
               onClick={[Function]}
-              style={
-                Object {
-                  "textAlign": undefined,
-                }
-              }
+              style={{}}
             >
               …
             </label>

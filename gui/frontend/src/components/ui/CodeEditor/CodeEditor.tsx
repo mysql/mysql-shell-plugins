@@ -24,20 +24,22 @@
 import "./CodeEditor.css";
 
 import { SymbolTable } from "antlr4-c3";
-import React from "react";
+import { ComponentChild, createRef } from "preact";
 import Color from "color";
+
+import "./userWorker";
 
 import {
     ICodeEditorViewState, IDisposable, ICodeEditorOptions, IExecutionContextState, KeyCode, KeyMod,
-    languages, Monaco, Position, Range, IPosition, Selection, IScriptExecutionOptions,
+    languages, Monaco, Position, Range, IPosition, Selection, IScriptExecutionOptions, CodeEditorMode,
+    IProviderEditorModel,
 } from ".";
-import { Component, IComponentProperties } from "..";
-import { ExecutionContext } from "../../../script-execution";
+
 import { ExecutionContexts } from "../../../script-execution/ExecutionContexts";
 import { PresentationInterface } from "../../../script-execution/PresentationInterface";
 import { EditorLanguage, ITextRange } from "../../../supplement";
 import { IEditorExecutionOptions, requisitions } from "../../../supplement/Requisitions";
-import { settings } from "../../../supplement/Settings/Settings";
+import { Settings } from "../../../supplement/Settings/Settings";
 import { editorRangeToTextRange } from "../../../utilities/ts-helpers";
 
 import { IThemeChangeData, IThemeObject, ITokenEntry } from "../../Theming/ThemeManager";
@@ -53,12 +55,10 @@ import { RenameProvider } from "./RenameProvider";
 import { SignatureHelpProvider } from "./SignatureHelpProvider";
 import { MessageType } from "../../../app-logic/Types";
 import { mysqlKeywords, MySQLVersion } from "../../../parsing/mysql/mysql-keywords";
+import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
+import { ExecutionContext } from "../../../script-execution/ExecutionContext";
 
-export interface ICommandData {
-    command: string;
-}
-
-export interface IFontSettings {
+interface IFontSettings {
     fontFamily?: string;
     fontWeight?: string;
     fontSize?: number;
@@ -66,30 +66,19 @@ export interface IFontSettings {
     letterSpacing?: number;
 }
 
-// Determines the behavior of the code editor.
-export enum CodeEditorMode {
-    Standard,
-
-    // Different set of code completion values. No internal commands.
-    Terminal
-}
-
-export interface ICodeEditorModel extends Monaco.ITextModel {
+export interface ICodeEditorModel extends IProviderEditorModel {
     [key: string]: unknown;
 
     executionContexts: ExecutionContexts;
 
-    // Contains symbols that can be used in code assistants like code completion.
+    /** Contains symbols that can be used in code assistants like code completion. */
     symbols: SymbolTable;
-
-    // Functionality differs depending on where the code editor is used.
-    editorMode: CodeEditorMode;
 }
 
-// The presentation class type depends on the place where the editor is used.
+/** The presentation class type depends on the place where the editor is used. */
 export type ResultPresentationFactory = (editor: CodeEditor, language: EditorLanguage) => PresentationInterface;
 
-// Contains data to restore a previous state of a code editor.
+/** Contains data to restore a previous state of a code editor. */
 export interface IEditorPersistentState {
     viewState: ICodeEditorViewState | null;
     model: ICodeEditorModel;
@@ -158,7 +147,7 @@ interface ICodeEditorProperties extends IComponentProperties {
     createResultPresentation?: ResultPresentationFactory;
 }
 
-export class CodeEditor extends Component<ICodeEditorProperties> {
+export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
 
     public static readonly defaultProps = {
         detectLinks: false,
@@ -167,8 +156,6 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
         lineNumbers: "on",
         allowSoftWrap: false,
     };
-
-    public static currentThemeId = "";
 
     // Translates between language IDs and an editor language, when using the MSG language.
     private static languageMap = new Map<string, EditorLanguage>([
@@ -189,7 +176,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
 
     private static monacoConfigured = false;
 
-    private hostRef = React.createRef<HTMLDivElement>();
+    private hostRef = createRef<HTMLDivElement>();
     private editor: Monaco.IStandaloneCodeEditor | undefined;
 
     // Set when a new execution context is being added. Requires special handling in the change event.
@@ -220,9 +207,6 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
         if (typeof ResizeObserver !== "undefined") {
             this.resizeObserver = new ResizeObserver(this.handleEditorResize);
         }
-
-        // If Monaco wasn't initialized on load, do it now.
-        CodeEditor.configureMonaco();
     }
 
     public static addTypings(typings: string, source: string): void {
@@ -235,7 +219,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
     /**
      * Updates the theme used by all code editor instances.
      *
-     * @param theme The theme name.
+     * @param theme The theme name (DOM safe).
      * @param type The base type of the theme.
      * @param values The actual theme values.
      */
@@ -262,15 +246,14 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
             });
         });
 
-        CodeEditor.currentThemeId = theme.replace(/[^a-zA-Z]+/g, "-");
-        Monaco.defineTheme(CodeEditor.currentThemeId, {
+        Monaco.defineTheme(theme, {
             base: type === "light" ? "vs" : "vs-dark",
             inherit: true,
             rules: tokenRules,
             colors: entries,
         });
 
-        Monaco.setTheme(CodeEditor.currentThemeId);
+        Monaco.setTheme(theme);
     }
 
     /**
@@ -334,14 +317,16 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
         if (languages.typescript) { // This field is not set when running under Jest.
             languages.typescript.javascriptDefaults.setCompilerOptions({
                 allowNonTsExtensions: true,
-                target: languages.typescript.ScriptTarget.ES2017,
-                lib: ["es2017"],
+                target: languages.typescript.ScriptTarget.ESNext,
+                lib: ["es2020"],
+                module: languages.typescript.ModuleKind.ESNext,
             });
 
             languages.typescript.typescriptDefaults.setCompilerOptions({
                 allowNonTsExtensions: true,
-                target: languages.typescript.ScriptTarget.ES2017,
-                lib: ["es2017"],
+                target: languages.typescript.ScriptTarget.ESNext,
+                lib: ["es2020"],
+                module: languages.typescript.ModuleKind.ESNext,
             });
         }
     }
@@ -363,21 +348,21 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
 
         const className = this.getEffectiveClassNames([
             "codeEditor",
-            `decorationSet-${settings.get("editor.theming.decorationSet", "standard")}`,
+            `decorationSet-${Settings.get("editor.theming.decorationSet", "standard")}`,
         ]);
 
-        const showHidden = settings.get("editor.showHidden", false);
+        const showHidden = Settings.get("editor.showHidden", false);
         const wordWrap = allowSoftWrap
-            ? settings.get("editor.wordWrap", "off") as ("on" | "off" | "wordWrapColumn" | "bounded")
+            ? Settings.get("editor.wordWrap", "off") as ("on" | "off" | "wordWrapColumn" | "bounded")
             : "off";
-        const wordWrapColumn = settings.get("editor.wordWrapColumn", 120);
+        const wordWrapColumn = Settings.get("editor.wordWrapColumn", 120);
 
         const guides: Monaco.IGuidesOptions = {
             indentation: showIndentGuides,
         };
 
-        const showMinimap = settings.get("editor.showMinimap", true);
-        const useMinimap = settings.get("dbEditor.useMinimap", false);
+        const showMinimap = Settings.get("editor.showMinimap", true);
+        const useMinimap = Settings.get("dbEditor.useMinimap", false);
         const effectiveMinimapSettings = minimap ?? {
             enabled: true,
         };
@@ -400,8 +385,8 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
                 model.setValue(initialContent ?? "");
             }
             model.executionContexts =
-                new ExecutionContexts(undefined, settings.get("editor.dbVersion", 80024),
-                    settings.get("editor.sqlMode", ""), "");
+                new ExecutionContexts(undefined, Settings.get("editor.dbVersion", 80024),
+                    Settings.get("editor.sqlMode", ""), "");
             model.symbols = new SymbolTable("default", { allowDuplicateSymbols: true });
         }
 
@@ -580,7 +565,7 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
         }
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         return (
             <div
                 className="msg editorHost"
@@ -697,15 +682,16 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
             const context = model.executionContexts.addContext(presentation);
 
             editor.setPosition({ lineNumber: startLine, column: 1 });
-            setImmediate(() => {
+            setTimeout(() => {
                 editor.setScrollPosition(
                     { scrollTop: editor.getScrollHeight()/* - editor.getLayoutInfo().height * 1.5*/ },
                     Monaco.ScrollType.Smooth);
-            });
+            }, 0);
 
             return context;
         }
 
+        return undefined;
     }
 
     /**
@@ -832,8 +818,8 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
                 case "editor.showMinimap":
                 case "dbEditor.useMinimap": {
                     const { minimap } = this.mergedProps;
-                    const showMinimap = settings.get("editor.showMinimap", true);
-                    const useMinimap = settings.get("dbEditor.useMinimap", false);
+                    const showMinimap = Settings.get("editor.showMinimap", true);
+                    const useMinimap = Settings.get("dbEditor.useMinimap", false);
                     const effectiveMinimapSettings = minimap ?? {
                         enabled: true,
                     };
@@ -1807,15 +1793,13 @@ export class CodeEditor extends Component<ICodeEditorProperties> {
         }
     };
 
+    static {
+        CodeEditor.configureMonaco();
+
+        requisitions.register("themeChanged", (data: IThemeChangeData): Promise<boolean> => {
+            CodeEditor.updateTheme(data.safeName, data.type, data.values);
+
+            return Promise.resolve(true);
+        });
+    }
 }
-
-requisitions.register("themeChanged", (data: IThemeChangeData): Promise<boolean> => {
-    CodeEditor.updateTheme(data.name, data.type, data.values);
-
-    return Promise.resolve(true);
-});
-
-setImmediate(() => {
-    // Need to delay the configuration call a tad to avoid trouble with Jest tests.
-    CodeEditor.configureMonaco();
-});

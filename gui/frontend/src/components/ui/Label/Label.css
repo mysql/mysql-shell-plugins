@@ -21,11 +21,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-.msg .label {
+.msg.label {
     user-select: text;
 }
 
-.msg .label.quote {
+.msg.label.quote {
     display: block;
     background-color: var(--textBlockQuote-background);
 
@@ -39,20 +39,32 @@
     font-style: oblique;
 }
 
-.msg .label.quote::before {
+.msg.label.quote::before {
     content: "„";
 }
 
-.msg .label.quote::after {
+.msg.label.quote::after {
     content: "“";
 }
 
-.msg .label.code {
+.msg.label.code {
     display: block;
     white-space: pre;
 
     background-color: var(--textCodeBlock-background);
     color: var(--textPreformat-foreground);
+
+    padding: 4px 8px;
+    margin: 0;
+
+    font-family: "SourceCodePro+Powerline+Awesome+MySQL", monospace;
+}
+
+.msg.resultText.code {
+    display: block;
+    white-space: pre;
+
+    background-color: var(--textCodeBlock-background);
 
     padding: 4px 8px;
     margin: 0;
@@ -91,4 +103,14 @@
 .msg.resultText.interactive {
     background-color: hsla(224, 58%, 50%, 0.1);
     color: hsl(207, 61%, 59%);
+}
+
+.msg.resultText span.blink {
+  animation: blinker 1s linear infinite;
+}
+
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
 }

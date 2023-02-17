@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,15 +24,17 @@
 import image from "../../../../assets/images/blob.svg";
 import dummy from "../../../../assets/images/add.svg";
 
-import React from "react";
 import { mount } from "enzyme";
 
-import {
-    Label, List, Image, Container, Orientation, ContentAlignment, Icon, DynamicList,
-} from "../../../../components/ui";
 import { IDictionary } from "../../../../app-logic/Types";
 
-import { loremIpsum, snapshotFromWrapper } from "../../test-helpers";
+import { loremIpsum } from "../../test-helpers";
+import { Container, Orientation, ContentAlignment } from "../../../../components/ui/Container/Container";
+import { Icon } from "../../../../components/ui/Icon/Icon";
+import { Label } from "../../../../components/ui/Label/Label";
+import { DynamicList } from "../../../../components/ui/List/DynamicList";
+import { List } from "../../../../components/ui/List/List";
+import { Image } from "../../../../components/ui/Image/Image";
 
 describe("List component test", (): void => {
     const simpleListEntry = <Label dataId="l" />;
@@ -91,7 +93,7 @@ describe("List component test", (): void => {
                 ]}
             />,
         );
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
 
         component.unmount();
     });
@@ -99,7 +101,6 @@ describe("List component test", (): void => {
     it("Test Static container list output", () => {
         const component = mount<List>(
             <List
-                as={Container}
                 {...{
                     orientation: Orientation.TopDown,
                     crossAlignment: ContentAlignment.Start,
@@ -113,7 +114,7 @@ describe("List component test", (): void => {
                 ]}
             />,
         );
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
 
         component.unmount();
     });
@@ -128,7 +129,7 @@ describe("List component test", (): void => {
                 elements={dynamicItems}
             />,
         );
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
 
         component.unmount();
     });

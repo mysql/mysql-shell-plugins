@@ -28,7 +28,6 @@
     },
     "plugins": [
         "@typescript-eslint",
-        "@typescript-eslint/tslint",
         "react",
         "jsx-a11y",
         "jsdoc",
@@ -305,7 +304,6 @@
             "scrollTo",
             "scrollX",
             "scrollY",
-            "self",
             "status",
             "statusbar",
             "stop",
@@ -408,7 +406,6 @@
         ],
         "id-match": "error",
         "import/order": "off",
-        "import/no-webpack-loader-syntax": "off",
         "max-classes-per-file": [
             "error",
             1
@@ -617,6 +614,7 @@
             }
         ],
         "@typescript-eslint/ban-types": "off",
+        "@typescript-eslint/ban-ts-comment": "off",
         "@typescript-eslint/consistent-type-definitions": "error",
         "@typescript-eslint/explicit-member-accessibility": [
             "error",
@@ -638,7 +636,6 @@
         "@typescript-eslint/member-ordering": [
             "error",
             {
-                // No ordering for getters and setters here, as that conflicts currently with the rule adjacent-overload-signatures.
                 "default": [
                     // Index signature
                     "signature",
@@ -654,7 +651,6 @@
                     "private-instance-field",
                     "public-abstract-field",
                     "protected-abstract-field",
-                    "private-abstract-field",
                     "public-field",
                     "protected-field",
                     "private-field",
@@ -679,8 +675,7 @@
                     "protected-instance-method",
                     "private-instance-method",
                     "public-abstract-method",
-                    "protected-abstract-method",
-                    "private-abstract-method"
+                    "protected-abstract-method"
                 ]
             }
         ],
@@ -708,23 +703,6 @@
             "always"
         ],
         "@typescript-eslint/unified-signatures": "error",
-        "@typescript-eslint/tslint/config": [
-            "error",
-            {
-                "rules": {
-                    "import-spacing": true,
-                    "one-line": [
-                        true,
-                        "check-catch",
-                        "check-else",
-                        "check-finally",
-                        "check-open-brace",
-                        "check-whitespace"
-                    ],
-                    "whitespace": true
-                }
-            }
-        ],
         "@typescript-eslint/prefer-regexp-exec": "off",
         "@typescript-eslint/naming-convention": [
             "error",

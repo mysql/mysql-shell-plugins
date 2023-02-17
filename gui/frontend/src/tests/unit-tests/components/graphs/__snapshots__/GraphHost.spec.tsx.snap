@@ -2,7 +2,7 @@
 
 exports[`GraphHost Tests Base Rendering 1`] = `
 <GraphHost
-  options={Object {}}
+  options={{}}
 >
   <svg
     className="msg graphHost"
@@ -15,15 +15,15 @@ exports[`GraphHost Tests Base Rendering 1`] = `
 exports[`GraphHost Tests Render Combinations 1`] = `
 <GraphHost
   options={
-    Object {
-      "colors": Array [
+    {
+      "colors": [
         "red",
         "green",
         "blue",
       ],
-      "series": Array [
-        Object {
-          "colors": Array [
+      "series": [
+        {
+          "colors": [
             "red",
             "green",
             "blue",
@@ -31,8 +31,8 @@ exports[`GraphHost Tests Render Combinations 1`] = `
           "id": "graph1",
           "type": "bar",
         },
-        Object {
-          "colors": Array [
+        {
+          "colors": [
             "red",
             "green",
             "blue",
@@ -40,8 +40,8 @@ exports[`GraphHost Tests Render Combinations 1`] = `
           "id": "graph2",
           "type": "line",
         },
-        Object {
-          "colors": Array [
+        {
+          "colors": [
             "red",
             "green",
             "blue",

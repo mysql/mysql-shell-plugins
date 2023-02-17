@@ -6,4 +6,11 @@
     "jest.autoRun": "off",
     "jest.jestCommandLine": "npm run unit-tests --",
     "jest.showCoverageOnLoad": true,
+    "jest.monitorLongRun": "off",
+    "files.exclude": {
+        ".rollup.cache/**": true,
+        "build": true,
+        "coverage": true,
+        "src/wrapper/**": true
+    },
 }

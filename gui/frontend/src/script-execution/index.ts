@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,15 +21,15 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { languages } from "monaco-editor";
+import { IPosition, languages } from "monaco-editor";
 import { IColumnInfo, IDictionary, IExecutionInfo, MessageType } from "../app-logic/Types";
-import { ResultTextLanguage } from "../components/ResultView";
 
 import { LanguageCompletionKind } from "../parsing/parser-common";
+import { IExecutionContext } from "../supplement";
 
-export * from "./ExecutionContext";
-export * from "./SQLExecutionContext";
-export * from "./PresentationInterface";
+/** Possible languages used for results. Note: there's a similar type EditorLanguage, but with a few other entries. */
+export type ResultTextLanguage =
+    "ansi" | "typescript" | "javascript" | "mysql" | "sql" | "python" | "json" | "markdown" | "xml" | "ini";
 
 export const mapCompletionKind: Map<LanguageCompletionKind, languages.CompletionItemKind> = new Map([
     [LanguageCompletionKind.Keyword, languages.CompletionItemKind.Keyword],
@@ -84,7 +84,7 @@ export interface ITextResult {
     executionInfo?: IExecutionInfo;
 }
 
-export interface IResultSetContent {
+interface IResultSetContent {
     /** Keys represent column IDs. */
     rows: IDictionary[];
 
@@ -135,7 +135,7 @@ export interface IGraphResult {
     options?: IGraphOptions;
 }
 
-export interface IResultIdentifiers {
+interface IResultIdentifiers {
     type: "resultIds";
 
     list: string[];
@@ -194,4 +194,9 @@ export interface IResponseDataOptions {
 
     /** The index of the query that produced the result data. */
     index?: number;
+}
+
+export interface IContextProvider {
+    contextFromPosition: (position: IPosition | undefined | null) => IExecutionContext | undefined;
+    cursorPosition: IPosition;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,16 +23,17 @@
 
 import "./ActivityBar.css";
 
-import React from "react";
-
-import { Component, IComponentProperties, Selector, Orientation } from "..";
+import { ComponentChild } from "preact";
+import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
+import { Orientation } from "../Container/Container";
+import { Selector } from "../Selector/Selector";
 
 interface IActivityBarProperties extends IComponentProperties {
     borderWidth?: number;
 }
 
-// A very simple wrapper class for a selector. Most of the customization work is done in the activity bar item.
-export class ActivityBar extends Component<IActivityBarProperties> {
+/** A very simple wrapper class for a selector. Most of the customization work is done in the activity bar item. */
+export class ActivityBar extends ComponentBase<IActivityBarProperties> {
 
     public constructor(props: IActivityBarProperties) {
         super(props);
@@ -40,7 +41,7 @@ export class ActivityBar extends Component<IActivityBarProperties> {
         this.addHandledProperties("borderWidth", "style");
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { borderWidth, children, style } = this.mergedProps;
 
         const className = this.getEffectiveClassNames([

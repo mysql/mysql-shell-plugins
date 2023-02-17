@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,13 +21,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
 import { mount } from "enzyme";
 import keyboardKey from "keyboard-key";
 
-import { ErrorPanel } from "../../../../components/Dialogs";
-import { nextProcessTick, sendKeyPress, snapshotFromWrapper } from "../../test-helpers";
+import { nextProcessTick, sendKeyPress } from "../../test-helpers";
 import { requisitions } from "../../../../supplement/Requisitions";
+import { ErrorPanel } from "../../../../components/Dialogs/ErrorPanel";
 
 describe("Error Panel Tests", (): void => {
     it("Render Test", () => {
@@ -35,7 +34,7 @@ describe("Error Panel Tests", (): void => {
             <ErrorPanel />,
         );
 
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
         component.unmount();
     });
 

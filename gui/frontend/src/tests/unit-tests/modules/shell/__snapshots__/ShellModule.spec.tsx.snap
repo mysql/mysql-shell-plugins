@@ -3,8 +3,170 @@
 exports[`Shell module tests Test ShellModule instantiation 1`] = `
 <ShellModule
   innerRef={
-    Object {
-      "current": Object {},
+    {
+      "current": <div
+        class="msg container fixedScrollbar moduleHost"
+        id="shellModuleHost"
+        style="flex-direction: column;"
+      >
+        <div
+          class="msg container fixedScrollbar tabview top"
+          id="shellModuleTabview"
+          style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
+        >
+          <div
+            class="msg container fixedScrollbar selector horizontal tabArea"
+            style="flex-direction: row;"
+          >
+            <div
+              class="msg container fixedScrollbar selectorItem stepDown"
+              id="selectorItemstepDown"
+              style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+            />
+            <div
+              class="msg container fixedScrollbar selectorItem selected normal"
+              draggable="true"
+              id="sessions"
+              style="flex-direction: row; justify-content: center; align-items: center;"
+            >
+              <span
+                class="msg icon"
+                data-tooltip="inherit"
+                style="mask-image: url(module-shell.svg);"
+              />
+              <label
+                class="msg label"
+                data-tooltip="inherit"
+              >
+                GUI Console
+              </label>
+            </div>
+            <div
+              class="msg container fixedScrollbar selectorItem stepUp"
+              id="selectorItemstepUp"
+              style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+            />
+          </div>
+          <div
+            class="msg container fixedScrollbar content"
+            style="flex-direction: column;"
+          >
+            <div
+              class="msg container fixedScrollbar sessionBrowser"
+              style="flex-direction: column; flex-wrap: wrap;"
+            >
+              <div
+                class="msg container fixedScrollbar frontPage"
+                style="flex-direction: column;"
+              >
+                <label
+                  class="msg label"
+                  data-tooltip="expand"
+                  id="title"
+                  style="text-align: center;"
+                >
+                  MySQL Shell - GUI Console
+                </label>
+                <label
+                  class="msg label"
+                  data-tooltip="expand"
+                  id="description"
+                  style="text-align: center;"
+                >
+                  The GUI Console combines the advantages of MySQL Shell running in a classic terminal with the power of the interactive command editor of the MySQL Shell GUI.
+                </label>
+                <div
+                  class="msg container fixedScrollbar"
+                  id="linksHost"
+                  style="flex-direction: row; justify-content: center; flex-wrap: wrap;"
+                >
+                  <a
+                    href="https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code"
+                    rel="noopener noreferrer"
+                    tabindex="0"
+                    target="_blank"
+                  >
+                    Learn More &gt;
+                  </a>
+                  <a
+                    href="https://www.mysql.com"
+                    rel="noopener noreferrer"
+                    tabindex="0"
+                    target="_blank"
+                  >
+                    Browse Tutorial &gt;
+                  </a>
+                  <a
+                    href="https://www.mysql.com"
+                    rel="noopener noreferrer"
+                    tabindex="0"
+                    target="_blank"
+                  >
+                    Read Docs &gt;
+                  </a>
+                </div>
+                <button
+                  class="msg button round"
+                  data-tooltip="Close Greeting"
+                  id="closeButton"
+                  tabindex="0"
+                >
+                  <span
+                    class="msg icon"
+                    data-tooltip="inherit"
+                    style="mask-image: url(close2.svg);"
+                  />
+                </button>
+                <div
+                  class="msg container fixedScrollbar"
+                  style="flex-direction: column;"
+                >
+                  <label
+                    class="msg label"
+                    data-tooltip="expand"
+                    id="contentTitle"
+                  >
+                    MySQL Shell Sessions
+                  </label>
+                  <div
+                    class="msg container fixedScrollbar"
+                    id="tilesHost"
+                    style="flex-direction: row; flex-wrap: wrap;"
+                  >
+                    <button
+                      class="msg button browserTile secondary sessionTile"
+                      id="-1"
+                      tabindex="0"
+                    >
+                      <span
+                        class="msg icon"
+                        style="mask-image: url(plus.svg);"
+                      />
+                      <div
+                        class="msg container fixedScrollbar textHost"
+                        style="flex-direction: column;"
+                      >
+                        <label
+                          class="msg label tileCaption"
+                          data-tooltip="expand"
+                        >
+                          New Shell Session
+                        </label>
+                        <label
+                          class="msg label tileDescription"
+                          data-tooltip="expand"
+                        >
+                          Opens a new Shell instance tab
+                        </label>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>,
     }
   }
 >
@@ -12,8 +174,170 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
     className="msg moduleHost"
     id="shellModuleHost"
     innerRef={
-      Object {
-        "current": Object {},
+      {
+        "current": <div
+          class="msg container fixedScrollbar moduleHost"
+          id="shellModuleHost"
+          style="flex-direction: column;"
+        >
+          <div
+            class="msg container fixedScrollbar tabview top"
+            id="shellModuleTabview"
+            style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
+          >
+            <div
+              class="msg container fixedScrollbar selector horizontal tabArea"
+              style="flex-direction: row;"
+            >
+              <div
+                class="msg container fixedScrollbar selectorItem stepDown"
+                id="selectorItemstepDown"
+                style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+              />
+              <div
+                class="msg container fixedScrollbar selectorItem selected normal"
+                draggable="true"
+                id="sessions"
+                style="flex-direction: row; justify-content: center; align-items: center;"
+              >
+                <span
+                  class="msg icon"
+                  data-tooltip="inherit"
+                  style="mask-image: url(module-shell.svg);"
+                />
+                <label
+                  class="msg label"
+                  data-tooltip="inherit"
+                >
+                  GUI Console
+                </label>
+              </div>
+              <div
+                class="msg container fixedScrollbar selectorItem stepUp"
+                id="selectorItemstepUp"
+                style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+              />
+            </div>
+            <div
+              class="msg container fixedScrollbar content"
+              style="flex-direction: column;"
+            >
+              <div
+                class="msg container fixedScrollbar sessionBrowser"
+                style="flex-direction: column; flex-wrap: wrap;"
+              >
+                <div
+                  class="msg container fixedScrollbar frontPage"
+                  style="flex-direction: column;"
+                >
+                  <label
+                    class="msg label"
+                    data-tooltip="expand"
+                    id="title"
+                    style="text-align: center;"
+                  >
+                    MySQL Shell - GUI Console
+                  </label>
+                  <label
+                    class="msg label"
+                    data-tooltip="expand"
+                    id="description"
+                    style="text-align: center;"
+                  >
+                    The GUI Console combines the advantages of MySQL Shell running in a classic terminal with the power of the interactive command editor of the MySQL Shell GUI.
+                  </label>
+                  <div
+                    class="msg container fixedScrollbar"
+                    id="linksHost"
+                    style="flex-direction: row; justify-content: center; flex-wrap: wrap;"
+                  >
+                    <a
+                      href="https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code"
+                      rel="noopener noreferrer"
+                      tabindex="0"
+                      target="_blank"
+                    >
+                      Learn More &gt;
+                    </a>
+                    <a
+                      href="https://www.mysql.com"
+                      rel="noopener noreferrer"
+                      tabindex="0"
+                      target="_blank"
+                    >
+                      Browse Tutorial &gt;
+                    </a>
+                    <a
+                      href="https://www.mysql.com"
+                      rel="noopener noreferrer"
+                      tabindex="0"
+                      target="_blank"
+                    >
+                      Read Docs &gt;
+                    </a>
+                  </div>
+                  <button
+                    class="msg button round"
+                    data-tooltip="Close Greeting"
+                    id="closeButton"
+                    tabindex="0"
+                  >
+                    <span
+                      class="msg icon"
+                      data-tooltip="inherit"
+                      style="mask-image: url(close2.svg);"
+                    />
+                  </button>
+                  <div
+                    class="msg container fixedScrollbar"
+                    style="flex-direction: column;"
+                  >
+                    <label
+                      class="msg label"
+                      data-tooltip="expand"
+                      id="contentTitle"
+                    >
+                      MySQL Shell Sessions
+                    </label>
+                    <div
+                      class="msg container fixedScrollbar"
+                      id="tilesHost"
+                      style="flex-direction: row; flex-wrap: wrap;"
+                    >
+                      <button
+                        class="msg button browserTile secondary sessionTile"
+                        id="-1"
+                        tabindex="0"
+                      >
+                        <span
+                          class="msg icon"
+                          style="mask-image: url(plus.svg);"
+                        />
+                        <div
+                          class="msg container fixedScrollbar textHost"
+                          style="flex-direction: column;"
+                        >
+                          <label
+                            class="msg label tileCaption"
+                            data-tooltip="expand"
+                          >
+                            New Shell Session
+                          </label>
+                          <label
+                            class="msg label tileDescription"
+                            data-tooltip="expand"
+                          >
+                            Opens a new Shell instance tab
+                          </label>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>,
       }
     }
     orientation="column"
@@ -22,7 +346,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
       className="msg container fixedScrollbar moduleHost"
       id="shellModuleHost"
       style={
-        Object {
+        {
           "alignItems": undefined,
           "flexDirection": "column",
           "flexWrap": undefined,
@@ -36,11 +360,11 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
         id="shellModuleTabview"
         onSelectTab={[Function]}
         pages={
-          Array [
-            Object {
+          [
+            {
               "caption": "GUI Console",
               "content": <SessionBrowser
-                openSessions={Array []}
+                openSessions={[]}
               />,
               "icon": "module-shell.svg",
               "id": "sessions",
@@ -57,7 +381,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
           id="shellModuleTabview"
           orientation="column"
           style={
-            Object {
+            {
               "--content-separator-width": "0px",
               "--tabItem-border-width": "0px",
             }
@@ -67,7 +391,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
             className="msg container fixedScrollbar tabview top"
             id="shellModuleTabview"
             style={
-              Object {
+              {
                 "--content-separator-width": "0px",
                 "--tabItem-border-width": "0px",
                 "alignItems": undefined,
@@ -82,8 +406,8 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
               className="tabArea"
               entryOrientation="row"
               items={
-                Array [
-                  Object {
+                [
+                  {
                     "auxillary": undefined,
                     "canReorder": true,
                     "caption": "GUI Console",
@@ -102,16 +426,40 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
               <Container
                 className="msg selector horizontal tabArea"
                 innerRef={
-                  Object {
-                    "current": Object {
-                      "l": Object {
-                        "dragenterfalse": [Function],
-                        "dragleavefalse": [Function],
-                        "dragoverfalse": [Function],
-                        "dragstartfalse": [Function],
-                        "dropfalse": [Function],
-                      },
-                    },
+                  {
+                    "current": <div
+                      class="msg container fixedScrollbar selector horizontal tabArea"
+                      style="flex-direction: row;"
+                    >
+                      <div
+                        class="msg container fixedScrollbar selectorItem stepDown"
+                        id="selectorItemstepDown"
+                        style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+                      />
+                      <div
+                        class="msg container fixedScrollbar selectorItem selected normal"
+                        draggable="true"
+                        id="sessions"
+                        style="flex-direction: row; justify-content: center; align-items: center;"
+                      >
+                        <span
+                          class="msg icon"
+                          data-tooltip="inherit"
+                          style="mask-image: url(module-shell.svg);"
+                        />
+                        <label
+                          class="msg label"
+                          data-tooltip="inherit"
+                        >
+                          GUI Console
+                        </label>
+                      </div>
+                      <div
+                        class="msg container fixedScrollbar selectorItem stepUp"
+                        id="selectorItemstepUp"
+                        style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+                      />
+                    </div>,
                   }
                 }
                 onDragEnter={[Function]}
@@ -119,7 +467,6 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                 onDragOver={[Function]}
                 onDragStart={[Function]}
                 onDrop={[Function]}
-                onResize={[Function]}
                 orientation="row"
               >
                 <div
@@ -130,7 +477,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                   onDragStart={[Function]}
                   onDrop={[Function]}
                   style={
-                    Object {
+                    {
                       "alignItems": undefined,
                       "flexDirection": "row",
                       "flexWrap": undefined,
@@ -142,12 +489,12 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                     disabled={false}
                     id="selectorItemstepDown"
                     innerRef={
-                      Object {
-                        "current": Object {
-                          "l": Object {
-                            "clickfalse": [Function],
-                          },
-                        },
+                      {
+                        "current": <div
+                          class="msg container fixedScrollbar selectorItem stepDown"
+                          id="selectorItemstepDown"
+                          style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+                        />,
                       }
                     }
                     onClick={[Function]}
@@ -159,12 +506,12 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                       crossAlignment="center"
                       id="selectorItemstepDown"
                       innerRef={
-                        Object {
-                          "current": Object {
-                            "l": Object {
-                              "clickfalse": [Function],
-                            },
-                          },
+                        {
+                          "current": <div
+                            class="msg container fixedScrollbar selectorItem stepDown"
+                            id="selectorItemstepDown"
+                            style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+                          />,
                         }
                       }
                       mainAlignment="center"
@@ -176,7 +523,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                         id="selectorItemstepDown"
                         onClick={[Function]}
                         style={
-                          Object {
+                          {
                             "alignItems": "center",
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -193,17 +540,25 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                     id="sessions"
                     image="module-shell.svg"
                     innerRef={
-                      Object {
-                        "current": Object {
-                          "l": Object {
-                            "clickfalse": [Function],
-                            "dragenterfalse": [Function],
-                            "dragleavefalse": [Function],
-                            "dragoverfalse": [Function],
-                            "dragstartfalse": [Function],
-                            "dropfalse": [Function],
-                          },
-                        },
+                      {
+                        "current": <div
+                          class="msg container fixedScrollbar selectorItem selected normal"
+                          draggable="true"
+                          id="sessions"
+                          style="flex-direction: row; justify-content: center; align-items: center;"
+                        >
+                          <span
+                            class="msg icon"
+                            data-tooltip="inherit"
+                            style="mask-image: url(module-shell.svg);"
+                          />
+                          <label
+                            class="msg label"
+                            data-tooltip="inherit"
+                          >
+                            GUI Console
+                          </label>
+                        </div>,
                       }
                     }
                     key="sessions"
@@ -219,17 +574,25 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                       draggable={true}
                       id="sessions"
                       innerRef={
-                        Object {
-                          "current": Object {
-                            "l": Object {
-                              "clickfalse": [Function],
-                              "dragenterfalse": [Function],
-                              "dragleavefalse": [Function],
-                              "dragoverfalse": [Function],
-                              "dragstartfalse": [Function],
-                              "dropfalse": [Function],
-                            },
-                          },
+                        {
+                          "current": <div
+                            class="msg container fixedScrollbar selectorItem selected normal"
+                            draggable="true"
+                            id="sessions"
+                            style="flex-direction: row; justify-content: center; align-items: center;"
+                          >
+                            <span
+                              class="msg icon"
+                              data-tooltip="inherit"
+                              style="mask-image: url(module-shell.svg);"
+                            />
+                            <label
+                              class="msg label"
+                              data-tooltip="inherit"
+                            >
+                              GUI Console
+                            </label>
+                          </div>,
                         }
                       }
                       mainAlignment="center"
@@ -252,7 +615,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                         onDragStart={[Function]}
                         onDrop={[Function]}
                         style={
-                          Object {
+                          {
                             "alignItems": "center",
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -265,11 +628,11 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                           disabled={false}
                           src="module-shell.svg"
                         >
-                          <div
+                          <span
                             className="msg icon"
                             data-tooltip="inherit"
                             style={
-                              Object {
+                              {
                                 "WebkitMaskImage": "url(module-shell.svg)",
                                 "backgroundColor": undefined,
                                 "height": undefined,
@@ -285,11 +648,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                           <label
                             className="msg label"
                             data-tooltip="inherit"
-                            style={
-                              Object {
-                                "textAlign": undefined,
-                              }
-                            }
+                            style={{}}
                           >
                             GUI Console
                           </label>
@@ -301,12 +660,12 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                     disabled={false}
                     id="selectorItemstepUp"
                     innerRef={
-                      Object {
-                        "current": Object {
-                          "l": Object {
-                            "clickfalse": [Function],
-                          },
-                        },
+                      {
+                        "current": <div
+                          class="msg container fixedScrollbar selectorItem stepUp"
+                          id="selectorItemstepUp"
+                          style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+                        />,
                       }
                     }
                     onClick={[Function]}
@@ -318,12 +677,12 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                       crossAlignment="center"
                       id="selectorItemstepUp"
                       innerRef={
-                        Object {
-                          "current": Object {
-                            "l": Object {
-                              "clickfalse": [Function],
-                            },
-                          },
+                        {
+                          "current": <div
+                            class="msg container fixedScrollbar selectorItem stepUp"
+                            id="selectorItemstepUp"
+                            style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+                          />,
                         }
                       }
                       mainAlignment="center"
@@ -335,7 +694,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                         id="selectorItemstepUp"
                         onClick={[Function]}
                         style={
-                          Object {
+                          {
                             "alignItems": "center",
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -351,15 +710,125 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
             <Container
               className="content"
               innerRef={
-                Object {
-                  "current": Object {
-                    "l": Object {
-                      "dragenterfalse": [Function],
-                      "dragleavefalse": [Function],
-                      "dragoverfalse": [Function],
-                      "dropfalse": [Function],
-                    },
-                  },
+                {
+                  "current": <div
+                    class="msg container fixedScrollbar content"
+                    style="flex-direction: column;"
+                  >
+                    <div
+                      class="msg container fixedScrollbar sessionBrowser"
+                      style="flex-direction: column; flex-wrap: wrap;"
+                    >
+                      <div
+                        class="msg container fixedScrollbar frontPage"
+                        style="flex-direction: column;"
+                      >
+                        <label
+                          class="msg label"
+                          data-tooltip="expand"
+                          id="title"
+                          style="text-align: center;"
+                        >
+                          MySQL Shell - GUI Console
+                        </label>
+                        <label
+                          class="msg label"
+                          data-tooltip="expand"
+                          id="description"
+                          style="text-align: center;"
+                        >
+                          The GUI Console combines the advantages of MySQL Shell running in a classic terminal with the power of the interactive command editor of the MySQL Shell GUI.
+                        </label>
+                        <div
+                          class="msg container fixedScrollbar"
+                          id="linksHost"
+                          style="flex-direction: row; justify-content: center; flex-wrap: wrap;"
+                        >
+                          <a
+                            href="https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code"
+                            rel="noopener noreferrer"
+                            tabindex="0"
+                            target="_blank"
+                          >
+                            Learn More &gt;
+                          </a>
+                          <a
+                            href="https://www.mysql.com"
+                            rel="noopener noreferrer"
+                            tabindex="0"
+                            target="_blank"
+                          >
+                            Browse Tutorial &gt;
+                          </a>
+                          <a
+                            href="https://www.mysql.com"
+                            rel="noopener noreferrer"
+                            tabindex="0"
+                            target="_blank"
+                          >
+                            Read Docs &gt;
+                          </a>
+                        </div>
+                        <button
+                          class="msg button round"
+                          data-tooltip="Close Greeting"
+                          id="closeButton"
+                          tabindex="0"
+                        >
+                          <span
+                            class="msg icon"
+                            data-tooltip="inherit"
+                            style="mask-image: url(close2.svg);"
+                          />
+                        </button>
+                        <div
+                          class="msg container fixedScrollbar"
+                          style="flex-direction: column;"
+                        >
+                          <label
+                            class="msg label"
+                            data-tooltip="expand"
+                            id="contentTitle"
+                          >
+                            MySQL Shell Sessions
+                          </label>
+                          <div
+                            class="msg container fixedScrollbar"
+                            id="tilesHost"
+                            style="flex-direction: row; flex-wrap: wrap;"
+                          >
+                            <button
+                              class="msg button browserTile secondary sessionTile"
+                              id="-1"
+                              tabindex="0"
+                            >
+                              <span
+                                class="msg icon"
+                                style="mask-image: url(plus.svg);"
+                              />
+                              <div
+                                class="msg container fixedScrollbar textHost"
+                                style="flex-direction: column;"
+                              >
+                                <label
+                                  class="msg label tileCaption"
+                                  data-tooltip="expand"
+                                >
+                                  New Shell Session
+                                </label>
+                                <label
+                                  class="msg label tileDescription"
+                                  data-tooltip="expand"
+                                >
+                                  Opens a new Shell instance tab
+                                </label>
+                              </div>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>,
                 }
               }
               onDragEnter={[Function]}
@@ -375,7 +844,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                 onDragOver={[Function]}
                 onDrop={[Function]}
                 style={
-                  Object {
+                  {
                     "alignItems": undefined,
                     "flexDirection": "column",
                     "flexWrap": undefined,
@@ -384,7 +853,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                 }
               >
                 <SessionBrowser
-                  openSessions={Array []}
+                  openSessions={[]}
                 >
                   <Container
                     className="msg sessionBrowser"
@@ -394,7 +863,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                     <div
                       className="msg container fixedScrollbar sessionBrowser"
                       style={
-                        Object {
+                        {
                           "alignItems": undefined,
                           "flexDirection": "column",
                           "flexWrap": "wrap",
@@ -405,7 +874,13 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                       <FrontPage
                         caption="MySQL Shell - GUI Console"
                         description="The GUI Console combines the advantages of MySQL Shell running in a classic terminal with the power of the interactive command editor of the MySQL Shell GUI."
-                        helpUrls={Object {}}
+                        helpUrls={
+                          Map {
+                            "Learn More >" => "https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code",
+                            "Browse Tutorial >" => "https://www.mysql.com",
+                            "Read Docs >" => "https://www.mysql.com",
+                          }
+                        }
                         onCloseGreeting={[Function]}
                         showGreeting={true}
                       >
@@ -416,7 +891,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                           <div
                             className="msg container fixedScrollbar frontPage"
                             style={
-                              Object {
+                              {
                                 "alignItems": undefined,
                                 "flexDirection": "column",
                                 "flexWrap": undefined,
@@ -425,22 +900,21 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                             }
                           >
                             <Label
-                              as="h2"
                               id="title"
                               textAlignment="center"
                             >
-                              <h2
+                              <label
                                 className="msg label"
                                 data-tooltip="expand"
                                 id="title"
                                 style={
-                                  Object {
+                                  {
                                     "textAlign": "center",
                                   }
                                 }
                               >
                                 MySQL Shell - GUI Console
-                              </h2>
+                              </label>
                             </Label>
                             <Label
                               id="description"
@@ -451,7 +925,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                 data-tooltip="expand"
                                 id="description"
                                 style={
-                                  Object {
+                                  {
                                     "textAlign": "center",
                                   }
                                 }
@@ -469,7 +943,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                 className="msg container fixedScrollbar"
                                 id="linksHost"
                                 style={
-                                  Object {
+                                  {
                                     "alignItems": undefined,
                                     "flexDirection": "row",
                                     "flexWrap": "wrap",
@@ -522,7 +996,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                 onClick={[Function]}
                                 onMouseDown={[Function]}
                                 style={
-                                  Object {
+                                  {
                                     "flexDirection": undefined,
                                   }
                                 }
@@ -533,11 +1007,11 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                   disabled={false}
                                   src="close2.svg"
                                 >
-                                  <div
+                                  <span
                                     className="msg icon"
                                     data-tooltip="inherit"
                                     style={
-                                      Object {
+                                      {
                                         "WebkitMaskImage": "url(close2.svg)",
                                         "backgroundColor": undefined,
                                         "height": undefined,
@@ -555,7 +1029,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                               <div
                                 className="msg container fixedScrollbar"
                                 style={
-                                  Object {
+                                  {
                                     "alignItems": undefined,
                                     "flexDirection": "column",
                                     "flexWrap": undefined,
@@ -564,22 +1038,17 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                 }
                               >
                                 <Label
-                                  as="h2"
                                   caption="MySQL Shell Sessions"
                                   id="contentTitle"
                                 >
-                                  <h2
+                                  <label
                                     className="msg label"
                                     data-tooltip="expand"
                                     id="contentTitle"
-                                    style={
-                                      Object {
-                                        "textAlign": undefined,
-                                      }
-                                    }
+                                    style={{}}
                                   >
                                     MySQL Shell Sessions
-                                  </h2>
+                                  </label>
                                 </Label>
                                 <Container
                                   id="tilesHost"
@@ -590,7 +1059,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                     className="msg container fixedScrollbar"
                                     id="tilesHost"
                                     style={
-                                      Object {
+                                      {
                                         "alignItems": undefined,
                                         "flexDirection": "row",
                                         "flexWrap": "wrap",
@@ -603,7 +1072,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                       className="sessionTile"
                                       description="Opens a new Shell instance tab"
                                       details={
-                                        Object {
+                                        {
                                           "caption": "New Shell Session",
                                           "description": "Opens a new Shell instance tab",
                                           "sessionId": -1,
@@ -611,19 +1080,34 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                       }
                                       icon="plus.svg"
                                       innerRef={
-                                        Object {
-                                          "current": Object {
-                                            "l": Object {
-                                              "clickfalse": [Function],
-                                              "dragenterfalse": [Function],
-                                              "dragleavefalse": [Function],
-                                              "dragoverfalse": [Function],
-                                              "dragstartfalse": [Function],
-                                              "dropfalse": [Function],
-                                              "keypressfalse": [Function],
-                                              "mousedownfalse": [Function],
-                                            },
-                                          },
+                                        {
+                                          "current": <button
+                                            class="msg button browserTile secondary sessionTile"
+                                            id="-1"
+                                            tabindex="0"
+                                          >
+                                            <span
+                                              class="msg icon"
+                                              style="mask-image: url(plus.svg);"
+                                            />
+                                            <div
+                                              class="msg container fixedScrollbar textHost"
+                                              style="flex-direction: column;"
+                                            >
+                                              <label
+                                                class="msg label tileCaption"
+                                                data-tooltip="expand"
+                                              >
+                                                New Shell Session
+                                              </label>
+                                              <label
+                                                class="msg label tileDescription"
+                                                data-tooltip="expand"
+                                              >
+                                                Opens a new Shell instance tab
+                                              </label>
+                                            </div>
+                                          </button>,
                                         }
                                       }
                                       key="New Shell Session"
@@ -635,19 +1119,34 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                         className="msg browserTile secondary sessionTile"
                                         id="-1"
                                         innerRef={
-                                          Object {
-                                            "current": Object {
-                                              "l": Object {
-                                                "clickfalse": [Function],
-                                                "dragenterfalse": [Function],
-                                                "dragleavefalse": [Function],
-                                                "dragoverfalse": [Function],
-                                                "dragstartfalse": [Function],
-                                                "dropfalse": [Function],
-                                                "keypressfalse": [Function],
-                                                "mousedownfalse": [Function],
-                                              },
-                                            },
+                                          {
+                                            "current": <button
+                                              class="msg button browserTile secondary sessionTile"
+                                              id="-1"
+                                              tabindex="0"
+                                            >
+                                              <span
+                                                class="msg icon"
+                                                style="mask-image: url(plus.svg);"
+                                              />
+                                              <div
+                                                class="msg container fixedScrollbar textHost"
+                                                style="flex-direction: column;"
+                                              >
+                                                <label
+                                                  class="msg label tileCaption"
+                                                  data-tooltip="expand"
+                                                >
+                                                  New Shell Session
+                                                </label>
+                                                <label
+                                                  class="msg label tileDescription"
+                                                  data-tooltip="expand"
+                                                >
+                                                  Opens a new Shell instance tab
+                                                </label>
+                                              </div>
+                                            </button>,
                                           }
                                         }
                                         onClick={[Function]}
@@ -670,7 +1169,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                           onKeyPress={[Function]}
                                           onMouseDown={[Function]}
                                           style={
-                                            Object {
+                                            {
                                               "flexDirection": undefined,
                                             }
                                           }
@@ -680,10 +1179,10 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                             disabled={false}
                                             src="plus.svg"
                                           >
-                                            <div
+                                            <span
                                               className="msg icon"
                                               style={
-                                                Object {
+                                                {
                                                   "WebkitMaskImage": "url(plus.svg)",
                                                   "backgroundColor": undefined,
                                                   "height": undefined,
@@ -700,7 +1199,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                             <div
                                               className="msg container fixedScrollbar textHost"
                                               style={
-                                                Object {
+                                                {
                                                   "alignItems": undefined,
                                                   "flexDirection": "column",
                                                   "flexWrap": undefined,
@@ -714,11 +1213,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                                 <label
                                                   className="msg label tileCaption"
                                                   data-tooltip="expand"
-                                                  style={
-                                                    Object {
-                                                      "textAlign": undefined,
-                                                    }
-                                                  }
+                                                  style={{}}
                                                 >
                                                   New Shell Session
                                                 </label>
@@ -729,11 +1224,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                                 <label
                                                   className="msg label tileDescription"
                                                   data-tooltip="expand"
-                                                  style={
-                                                    Object {
-                                                      "textAlign": undefined,
-                                                    }
-                                                  }
+                                                  style={{}}
                                                 >
                                                   Opens a new Shell instance tab
                                                 </label>

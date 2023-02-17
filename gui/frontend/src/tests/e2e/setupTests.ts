@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -27,6 +27,11 @@
 import { error } from "console";
 import { exit } from "process";
 
+import Enzyme from "enzyme";
+import Adapter from "enzyme-adapter-preact-pure";
+
+Enzyme.configure({ adapter: new Adapter() });
+
 jest.setTimeout(80000);
 
 // Check required environment variables before any test starts.
@@ -36,15 +41,15 @@ if (!process.env.SHELL_UI_HOSTNAME) {
 } else {
     if (process.env.SHELL_UI_HOSTNAME.indexOf("docker") !== -1) {
         process.env.DBHOSTNAME = "db1";
-        process.env.DBUSERNAME= "root";
+        process.env.DBUSERNAME = "root";
         process.env.DBPASSWORD = "root";
         process.env.DBPORT = "3306";
         process.env.DBPORTX = "33060";
-        process.env.DBUSERNAMESHELL= "clientqa";
+        process.env.DBUSERNAMESHELL = "clientqa";
         process.env.DBPASSWORDSHELL = "clientqa";
-        process.env.DBUSERNAME1= "dbuser1";
-        process.env.DBUSERNAME2= "dbuser2";
-        process.env.DBUSERNAME3= "dbuser3";
+        process.env.DBUSERNAME1 = "dbuser1";
+        process.env.DBUSERNAME2 = "dbuser2";
+        process.env.DBUSERNAME3 = "dbuser3";
         process.env.SSL_ROOT_FOLDER = "/home/clientqa/ssl/db1";
         process.env.SQLITE_PATH_FILE = "/home/clientqa/.mysqlsh/plugin_data/gui_plugin/mysqlsh_gui_backend.sqlite3";
     }
@@ -55,17 +60,20 @@ if (!process.env.SHELL_UI_MU_HOSTNAME) {
 } else {
     if (process.env.SHELL_UI_MU_HOSTNAME.indexOf("docker") !== -1) {
         process.env.MU_USERNAME = "client";
-        process.env.MU_PASSWORD= "client";
+        process.env.MU_PASSWORD = "client";
     }
 }
+
 if (!process.env.MU_USERNAME) {
     error("No value for environment var MU_USERNAME was provided (Multi-user mode)");
     exit(1);
 }
+
 if (!process.env.MU_PASSWORD) {
     error("No value for environment var MU_PASSWORD was provided (Multi-user mode)");
     exit(1);
 }
+
 if (!process.env.DBHOSTNAME) {
     error("No value for environment var DBHOSTNAME was provided");
     exit(1);
@@ -95,10 +103,12 @@ if (!process.env.DBPORT) {
     error("No value for environment var DBPORT was provided");
     exit(1);
 }
+
 if (!process.env.SSL_ROOT_FOLDER) {
     error("No value for environment var SSL_ROOT_FOLDER was provided (path to folder with SSL certificates)");
     exit(1);
 }
+
 if (!process.env.SQLITE_PATH_FILE) {
     error("No value for environment var SQLITE_PATH_FILE was provided (path to a sqlite3 database file)");
     exit(1);

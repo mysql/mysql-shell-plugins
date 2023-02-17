@@ -21,12 +21,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
+import { ComponentChild, createRef } from "preact";
 
 import { Monaco, Range } from "../../../components/ui/CodeEditor";
-import { Divider } from "../../../components/ui";
 import { PresentationInterface } from "../../../script-execution/PresentationInterface";
 import { ICodeEditorModel } from "../../../components/ui/CodeEditor/CodeEditor";
+import { Divider } from "../../../components/ui/Divider/Divider";
 
 /** Handling of UI related tasks in a code editor for embedded contexts. */
 export class EmbeddedPresentationInterface extends PresentationInterface {
@@ -52,7 +52,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
     private resizingZone = false;
     private lastMouseY = 0;
 
-    private dividerRef = React.createRef<HTMLDivElement>();
+    private dividerRef = createRef<HTMLDivElement>();
 
     // Listener for content changes in the render target.
     private resizeObserver?: ResizeObserver;
@@ -212,7 +212,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
         }
     }
 
-    protected get resultDivider(): React.ReactNode {
+    protected get resultDivider(): ComponentChild {
         return <Divider
             innerRef={this.dividerRef}
             thickness={4}
@@ -317,15 +317,15 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
         return result;
     }
 
-    private handleDividerPointerDown = (e: React.PointerEvent): void => {
+    private handleDividerPointerDown = (e: PointerEvent): void => {
         this.resizingZone = true;
         this.lastMouseY = e.screenY;
 
-        e.currentTarget.setPointerCapture(e.pointerId);
+        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     };
 
-    private handleDividerPointerUp = (e: React.PointerEvent): void => {
-        e.currentTarget.releasePointerCapture(e.pointerId);
+    private handleDividerPointerUp = (e: PointerEvent): void => {
+        (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
         if (this.resultInfo) {
             this.manuallyResized = true;
             this.currentHeight = this.resultInfo.zone.heightInPx;
@@ -334,7 +334,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
         this.resizingZone = false;
     };
 
-    private handleDividerPointerMove = (e: React.PointerEvent): void => {
+    private handleDividerPointerMove = (e: PointerEvent): void => {
         if (this.resizingZone) {
             const delta = e.screenY - this.lastMouseY;
 

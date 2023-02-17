@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,9 +21,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
+import { ComponentChild } from "preact";
 
-import { Container, Message, Label, Orientation, IComponentProperties } from "../components/ui";
+import { IComponentProperties, ComponentBase } from "../components/ui/Component/ComponentBase";
+import { Container, Orientation } from "../components/ui/Container/Container";
+import { Label } from "../components/ui/Label/Label";
+import { Message } from "../components/ui/Message/Message";
+
 import { MessageType } from "./Types";
 
 type IErrorBoundaryProperties = IComponentProperties;
@@ -33,10 +37,12 @@ interface IErrorBoundaryState {
     stack: string;
 }
 
-// A component to handle unhandled exceptions in any of the components.
-// Because it catches all errors that aren't handled anywhere else, it's tricky to test.
-// So for now we don't include the error branches in the coverage summary.
-export class ErrorBoundary extends React.Component<IErrorBoundaryProperties, IErrorBoundaryState> {
+/**
+ * A component to handle unhandled exceptions in any of the components.
+ * Because it catches all errors that aren't handled anywhere else, it's tricky to test.
+ * So for now we don't include the error branches in the coverage summary.
+ */
+export class ErrorBoundary extends ComponentBase<IErrorBoundaryProperties, IErrorBoundaryState> {
 
     public constructor(props: {}) {
         super(props);
@@ -62,17 +68,17 @@ export class ErrorBoundary extends React.Component<IErrorBoundaryProperties, IEr
         // log the error errorInfo.componentStack;
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { children } = this.props;
         const { error } = this.state;
 
         /* istanbul ignore next */
         if (error.length > 0) {
             return (
-                <Container style={{ padding: "30px" }} orientation={Orientation.TopDown}>
-                    <Label as="h1">An unexpected error occurred:</Label><br />
+                <Container className="errorBoundary" style={{ padding: "30px" }} orientation={Orientation.TopDown}>
+                    <Label className="heading">An unexpected error occurred:</Label><br />
                     <Message type={MessageType.Error}>{this.state.error}</Message><br />
-                    <Message as="pre" type={MessageType.Info}>{this.state.stack}</Message><br />
+                    <Message className="stack" type={MessageType.Info}>{this.state.stack}</Message><br />
                     <span>
                         If you think this is a bug in the application then please file a bug report at
                         &nbsp;<a href="https://bugs.mysql.com">https://bugs.mysql.com</a>.

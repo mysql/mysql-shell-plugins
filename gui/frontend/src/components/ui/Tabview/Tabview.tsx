@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,11 +23,13 @@
 
 import "./Tabview.css";
 
-import React from "react";
+import { ComponentChild, createRef } from "preact";
 
-import { Component, IComponentProperties, Orientation, Selector, Container, ISelectorDef } from "..";
 import { Codicon } from "../Codicon";
 import { convertPropValue } from "../../../utilities/string-helpers";
+import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
+import { Orientation, Container } from "../Container/Container";
+import { Selector, ISelectorDef } from "../Selector/Selector";
 
 export enum TabPosition {
     Top = "top",
@@ -42,23 +44,34 @@ export interface ITabviewPage {
     icon?: string | Codicon;
     caption: string;
     tooltip?: string;            // Tooltip for the tab.
-    auxillary?: React.ReactNode;
+    auxillary?: ComponentChild;
 
-    content: React.ReactNode;
+    content: ComponentChild;
 }
 
-export interface ITabviewProperties extends IComponentProperties {
-    innerRef?: React.RefObject<HTMLElement>;
+interface ITabviewProperties extends IComponentProperties {
+    innerRef?: preact.RefObject<HTMLElement>;
 
-    tabPosition?: TabPosition; // The positions of the tabs around the content pane.
-    selectedId?: string;       // The tab page to make active initially.
-    stretchTabs?: boolean;     // Make all tabs equal size and fill the entire tabview size.
-    hideSingleTab?: boolean;   // When true and there's only a single (or no) tab then the tab area is not shown.
-    showTabs?: boolean;        // Set to false to disable tabs entirely.
+    /** The positions of the tabs around the content pane. */
+    tabPosition?: TabPosition;
+
+    /** The tab page to make active initially. */
+    selectedId?: string;
+
+    /** Make all tabs equal size and fill the entire tabview size. */
+    stretchTabs?: boolean;
+
+    /** When true and there's only a single (or no) tab then the tab area is not shown. */
+    hideSingleTab?: boolean;
+
+    /** Set to false to disable tabs entirely. */
+    showTabs?: boolean;
 
     // If set to 0 or undefined no border effect will be visible on an item, except for the selection marker.
     tabBorderWidth?: number;
-    contentSeparatorWidth?: number; // If set to 0 or undefined no separator line is shown between content and tabs.
+
+    /** If set to 0 or undefined no separator line is shown between content and tabs. */
+    contentSeparatorWidth?: number;
     canReorderTabs?: boolean;
 
     pages: ITabviewPage[];
@@ -67,10 +80,12 @@ export interface ITabviewProperties extends IComponentProperties {
     onMoveTab?: (id: string, fromIndex: number, toIndex: number) => void;
 }
 
-// A tabview is a collection of containers of which only one is rendered at a given time.
-// Which one is determined by the `active` property.
-// Usually a tabview is combined with a tab bar, to select an active tab.
-export class Tabview extends Component<ITabviewProperties> {
+/**
+ * A tabview is a collection of containers of which only one is rendered at a given time.
+ * Which one is determined by the `active` property.
+ * Usually a tabview is combined with a tab bar, to select an active tab.
+ */
+export class Tabview extends ComponentBase<ITabviewProperties> {
 
     public static defaultProps = {
         tabPosition: TabPosition.Top,
@@ -79,8 +94,8 @@ export class Tabview extends Component<ITabviewProperties> {
         showTabs: true,
     };
 
-    private selectorRef = React.createRef<Selector>();
-    private contentRef = React.createRef<HTMLElement>();
+    private selectorRef = createRef<Selector>();
+    private contentRef = createRef<HTMLDivElement>();
 
     public constructor(props: ITabviewProperties) {
         super(props);
@@ -89,7 +104,7 @@ export class Tabview extends Component<ITabviewProperties> {
             "onSelectTab", "tabBorderWidth", "style", "canReorderTabs", "contentSeparatorWidth", "onMoveTab");
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const {
             tabPosition, stretchTabs, hideSingleTab, pages, tabBorderWidth, style, canReorderTabs,
             contentSeparatorWidth, selectedId, showTabs,
@@ -196,26 +211,26 @@ export class Tabview extends Component<ITabviewProperties> {
         );
     }
 
-    private handleDragEnter = (e: React.DragEvent<HTMLElement>): void => {
+    private handleDragEnter = (e: DragEvent): void => {
         e.stopPropagation();
         e.preventDefault();
 
         //replaceClass(e.currentTarget, "", "dropTarget");
     };
 
-    private handleDragLeave = (e: React.DragEvent<HTMLElement>): void => {
+    private handleDragLeave = (e: DragEvent): void => {
         e.stopPropagation();
         e.preventDefault();
 
         //replaceClass(e.currentTarget, "dropTarget");
     };
 
-    private handleDragOver = (e: React.DragEvent<HTMLElement>): void => {
+    private handleDragOver = (e: DragEvent): void => {
         e.preventDefault();
         e.stopPropagation();
     };
 
-    private handleDrop = (e: React.DragEvent<HTMLElement>, props: IComponentProperties): void => {
+    private handleDrop = (e: DragEvent, props: IComponentProperties): void => {
         e.stopPropagation();
         e.preventDefault();
         //replaceClass(e.currentTarget, "dropTarget");
@@ -238,32 +253,35 @@ export class Tabview extends Component<ITabviewProperties> {
      *
      * @param props The properties of the receiver of the drop operation.
      */
-    private handleSelectorDrop = (e: React.DragEvent<HTMLElement>, props: IComponentProperties): void => {
+    private handleSelectorDrop = (e: DragEvent, props: IComponentProperties): void => {
         // See if that is a request to change the order of the tabs.
-        const items = e.dataTransfer.items;
+        const items = e.dataTransfer?.items;
 
-        // eslint-disable-next-line @typescript-eslint/prefer-for-of
-        for (let i = 0; i < items.length; ++i) {
-            const item = items[i];
-            if (item.kind === "string" && item.type === "sourceid") {
-                const sourceId = e.dataTransfer.getData("sourceid");
+        if (items) {
+            // The data transfer item list has no iterator, so we have to use a plain for loop.
+            // eslint-disable-next-line @typescript-eslint/prefer-for-of
+            for (let i = 0; i < items.length; ++i) {
+                const item = items[i];
+                if (item.kind === "string" && item.type === "sourceid") {
+                    const sourceId = e.dataTransfer.getData("sourceid");
 
-                const { pages, onMoveTab } = this.mergedProps;
-                const sourceIndex = pages.findIndex((page: ITabviewPage) => { return page.id === sourceId; });
-                if (sourceIndex > -1) {
-                    let targetIndex = pages.length - 1;
-                    if (props.id !== "header") {
-                        // Move the item to the position of the target item.
-                        targetIndex = pages.findIndex((page: ITabviewPage) => { return page.id === props.id; });
-                    }
+                    const { pages, onMoveTab } = this.mergedProps;
+                    const sourceIndex = pages.findIndex((page: ITabviewPage) => { return page.id === sourceId; });
+                    if (sourceIndex > -1) {
+                        let targetIndex = pages.length - 1;
+                        if (props.id !== "header") {
+                            // Move the item to the position of the target item.
+                            targetIndex = pages.findIndex((page: ITabviewPage) => { return page.id === props.id; });
+                        }
 
-                    if (targetIndex > -1 && sourceIndex !== targetIndex) {
-                        const page = pages[sourceIndex];
-                        pages.splice(sourceIndex, 1);
-                        pages.splice(targetIndex, 0, page);
+                        if (targetIndex > -1 && sourceIndex !== targetIndex) {
+                            const page = pages[sourceIndex];
+                            pages.splice(sourceIndex, 1);
+                            pages.splice(targetIndex, 0, page);
 
-                        onMoveTab?.(sourceId, sourceIndex, targetIndex);
-                        this.setState({ updated: true });
+                            onMoveTab?.(sourceId, sourceIndex, targetIndex);
+                            this.setState({ updated: true });
+                        }
                     }
                 }
             }

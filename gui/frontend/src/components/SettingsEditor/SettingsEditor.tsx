@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,28 +24,24 @@
 import "./SettingsEditor.css";
 import settingsIcon from "../../assets/images/settings.svg";
 
-import React from "react";
-import { render } from "preact";
+import { ComponentChild, createRef, render } from "preact";
 import { CellComponent, ColumnDefinition, RowComponent } from "tabulator-tables";
 
-import { Component, IComponentProperties, IComponentState, SelectionType } from "../ui/Component/Component";
-import {
-    Orientation, Container, Tabview, ITabviewPage, AboutBox, TreeGrid, ITreeGridOptions, Search, Label,
-    ISearchValues, ISearchProperties, Checkbox, CheckState, ICheckboxProperties, ContentAlignment,
-} from "../ui";
+import { ComponentBase, IComponentProperties, IComponentState, SelectionType } from "../ui/Component/ComponentBase";
 import { requisitions } from "../../supplement/Requisitions";
 import { ThemeEditor } from "../Theming/ThemeEditor";
 import { settingCategories, ISettingCategory } from "../../supplement/Settings/SettingsRegistry";
 import { SettingsEditorList } from "./SettingsEditorList";
 import { IDictionary } from "../../app-logic/Types";
+import { AboutBox } from "../ui/AboutBox/AboutBox";
+import { Checkbox, CheckState, ICheckboxProperties } from "../ui/Checkbox/Checkbox";
+import { Container, Orientation, ContentAlignment } from "../ui/Container/Container";
+import { Label } from "../ui/Label/Label";
+import { ISearchValues, Search, ISearchProperties } from "../ui/Search/Search";
+import { ITabviewPage, Tabview } from "../ui/Tabview/Tabview";
+import { TreeGrid, ITreeGridOptions } from "../ui/TreeGrid/TreeGrid";
 
-export interface ISettingsChangeData {
-    key: string;
-    permanent: boolean;
-    cancelled: boolean;
-}
-
-export interface ISettingsEditorProperties extends IComponentProperties {
+interface ISettingsEditorProperties extends IComponentProperties {
     page: string;
 }
 
@@ -62,10 +58,10 @@ interface ISettingsEditorState extends IComponentState {
 }
 
 // A dialog to edit user and application settings.
-export class SettingsEditor extends Component<ISettingsEditorProperties, ISettingsEditorState> {
+export class SettingsEditor extends ComponentBase<ISettingsEditorProperties, ISettingsEditorState> {
 
-    private treeRef = React.createRef<TreeGrid>();
-    private valueListRef = React.createRef<SettingsEditorList>();
+    private treeRef = createRef<TreeGrid>();
+    private valueListRef = createRef<SettingsEditorList>();
 
     private scrolling: boolean;
     private filterTimer: ReturnType<typeof setTimeout> | null;
@@ -109,7 +105,7 @@ export class SettingsEditor extends Component<ISettingsEditorProperties, ISettin
         }
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { selectedTab } = this.state;
 
         const className = this.getEffectiveClassNames(["settingsEditor"]);
@@ -145,7 +141,7 @@ export class SettingsEditor extends Component<ISettingsEditorProperties, ISettin
 
     }
 
-    private renderSettings = (): React.ReactNode => {
+    private renderSettings = (): ComponentChild => {
         const { selectedTreeEntry, searchValues, filteredTree, foundEntries, showAdvancedSettings } = this.state;
 
         const settingsTreeColumns: ColumnDefinition[] = [{
@@ -263,9 +259,9 @@ export class SettingsEditor extends Component<ISettingsEditorProperties, ISettin
                 const data = row.getData() as IDictionary;
                 this.valueListRef.current.scrollToId(data.id as string);
             } finally {
-                setImmediate(() => {
+                setTimeout(() => {
                     this.scrolling = false;
-                });
+                }, 0);
             }
         }
     };
@@ -320,7 +316,7 @@ export class SettingsEditor extends Component<ISettingsEditorProperties, ISettin
         }
     };
 
-    private handleSearchChange = (e: React.SyntheticEvent, props: ISearchProperties, values: ISearchValues): void => {
+    private handleSearchChange = (e: UIEvent, props: ISearchProperties, values: ISearchValues): void => {
         if (this.filterTimer) {
             clearTimeout(this.filterTimer);
             this.filterTimer = null;
@@ -388,6 +384,8 @@ export class SettingsEditor extends Component<ISettingsEditorProperties, ISettin
             if (result.values.length > 0 || result.children) {
                 return result;
             }
+
+            return undefined;
         };
 
         settingsTree.forEach((child) => {

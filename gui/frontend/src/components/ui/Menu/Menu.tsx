@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,14 +23,15 @@
 
 import "./Menu.css";
 
-import React from "react";
+import { cloneElement, ComponentChild, createRef } from "preact";
 import keyboardKey from "keyboard-key";
 
-import {
-    Popup, IPopupProperties, ComponentPlacement, MenuItem, IMenuItemProperties, Orientation, Component,
-    IComponentState, createSyntheticEvent,
-} from "..";
 import { IPortalOptions } from "../Portal/Portal";
+import { collectVNodes } from "../../../utilities/ts-helpers";
+import { IComponentState, ComponentBase, ComponentPlacement } from "../Component/ComponentBase";
+import { Orientation } from "../Container/Container";
+import { IPopupProperties, Popup } from "../Popup/Popup";
+import { IMenuItemProperties, MenuItem } from "./MenuItem";
 
 export interface IMenuProperties extends IPopupProperties {
     /** Not used in the menu itself, but as the menu item title in a menu bar. */
@@ -43,7 +44,7 @@ export interface IMenuProperties extends IPopupProperties {
     orientation?: Orientation;
 
     /** Called for all menu item clicks (even for nested items). Return true to close this menu afterwards. */
-    onItemClick?: (e: React.MouseEvent, props: IMenuItemProperties, payload: unknown) => boolean;
+    onItemClick?: (e: MouseEvent, props: IMenuItemProperties, payload: unknown) => boolean;
 
     /** Called if the user decided to go back to the previous menu (if there's one). */
     onMenuBack?: () => void;
@@ -54,7 +55,7 @@ interface IMenuState extends IComponentState {
     payload: unknown;        // Data set by owner of the menu for item invocations.
 }
 
-export class Menu extends Component<IMenuProperties, IMenuState> {
+export class Menu extends ComponentBase<IMenuProperties, IMenuState> {
 
     public static defaultProps = {
         placement: ComponentPlacement.RightTop,
@@ -65,7 +66,7 @@ export class Menu extends Component<IMenuProperties, IMenuState> {
     private static menuStack: Menu[] = [];
 
     private itemRefs: Array<React.RefObject<MenuItem>> = [];
-    private popupRef = React.createRef<Popup>();
+    private popupRef = createRef<Popup>();
 
     public constructor(props: IMenuProperties) {
         super(props);
@@ -115,9 +116,9 @@ export class Menu extends Component<IMenuProperties, IMenuState> {
             });
 
             if (!preventClose) {
-                setImmediate((): void => {
+                setTimeout((): void => {
                     Menu.menuStack[0].close();
-                });
+                }, 0);
             }
         }
     };
@@ -134,14 +135,14 @@ export class Menu extends Component<IMenuProperties, IMenuState> {
             });
 
             if (!preventClose) {
-                setImmediate((): void => {
+                setTimeout((): void => {
                     Menu.menuStack[0].close();
-                });
+                }, 0);
             }
         }
     };
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { children } = this.mergedProps;
         const { activeItemIndex } = this.state;
 
@@ -149,32 +150,29 @@ export class Menu extends Component<IMenuProperties, IMenuState> {
 
         this.itemRefs = [];
         let itemIndex = 0;
-        const content = React.Children.map(children, (child: React.ReactNode): React.ReactNode => {
-            if (React.isValidElement(child)) {
-                const { title: childTitle, onClick: childOnClick } = child.props;
+        const elements = collectVNodes<IMenuItemProperties>(children);
+        const content = elements.map((child): ComponentChild => {
+            const { title: childTitle, onClick: childOnClick } = child.props;
 
-                const itemRef = React.createRef<MenuItem>();
-                let active = false;
-                if (child.type === MenuItem && childTitle !== "-") {
-                    // Only keep references for non-separator menu items.
-                    // All other components must be handled by the owner.
-                    this.itemRefs.push(itemRef);
-                    active = itemIndex++ === activeItemIndex;
-                }
-
-                return React.cloneElement(child as React.ReactElement, {
-                    ref: itemRef,
-                    onMouseEnter: this.handleItemMouseEnter,
-                    onClick: (e: React.MouseEvent, props: IMenuItemProperties): void => {
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                        childOnClick?.(e, props);
-                        this.handleItemClick(e, props);
-                    },
-                    active,
-                });
+            const itemRef = createRef<MenuItem>();
+            let active = false;
+            if (child.type === MenuItem && childTitle !== "-") {
+                // Only keep references for non-separator menu items.
+                // All other components must be handled by the owner.
+                this.itemRefs.push(itemRef);
+                active = itemIndex++ === activeItemIndex;
             }
 
-            return undefined;
+            return cloneElement(child, {
+                ref: itemRef,
+                onMouseEnter: this.handleItemMouseEnter,
+                onClick: (e: MouseEvent, props: IMenuItemProperties): void => {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+                    childOnClick?.(e, props);
+                    this.handleItemClick(e, props);
+                },
+                active,
+            });
         });
 
         return (
@@ -269,7 +267,7 @@ export class Menu extends Component<IMenuProperties, IMenuState> {
                 case keyboardKey.Spacebar:
                 case keyboardKey.Enter: {
                     if (activeItemIndex > -1) {
-                        this.itemRefs[activeItemIndex].current?.click(createSyntheticEvent(e));
+                        this.itemRefs[activeItemIndex].current?.click(e);
                     }
 
                     break;
@@ -282,7 +280,7 @@ export class Menu extends Component<IMenuProperties, IMenuState> {
         }
     }
 
-    private handleItemMouseEnter = (e: React.MouseEvent, props: IMenuItemProperties): void => {
+    private handleItemMouseEnter = (e: MouseEvent, props: IMenuItemProperties): void => {
         // Usually sub menus are closed when the user moves the mouse to another item.
         // However, the user can also move the mouse to an open submenu and from there out to the container, then
         // back to an item in the main menu. That would not trigger the auto close (which happens on mouse leave).
@@ -296,13 +294,13 @@ export class Menu extends Component<IMenuProperties, IMenuState> {
         });
     };
 
-    private handleItemClick = (e: React.MouseEvent, props: IMenuItemProperties): void => {
+    private handleItemClick = (e: MouseEvent, props: IMenuItemProperties): void => {
         const { onItemClick } = this.mergedProps;
         const { payload } = this.state;
 
         // Propagate the click up the parent chain.
         if (onItemClick?.(e, props, payload)) {
-            setImmediate(() => { this.close(); });
+            setTimeout(() => { this.close(); }, 0);
         }
     };
 

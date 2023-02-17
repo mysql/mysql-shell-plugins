@@ -21,18 +21,17 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import {
-    MessageScheduler, ShellAPIGui, ShellPromptResponseType, IShellFeedbackRequest, IShellResultType,
-    IShellSimpleResult,
-} from "../communication";
-import { ShellInterfaceShellSession } from "../supplement/ShellInterface";
+import { MessageScheduler } from "../communication/MessageScheduler";
+import { ShellPromptResponseType } from "../communication/Protocol";
+import { IShellResultType, ShellAPIGui, IShellFeedbackRequest, IShellSimpleResult } from "../communication/ProtocolGui";
+import { ShellInterfaceShellSession } from "../supplement/ShellInterface/ShellInterfaceShellSession";
 import { uuid } from "../utilities/helpers";
 
 export type ShellTaskStatusType = "pending" | "running" | "done" | "error";
 
-export type PromptCallback = (text: string, isPassword: boolean) => Promise<string | undefined>;
+type PromptCallback = (text: string, isPassword: boolean) => Promise<string | undefined>;
 export type StatusCallback = (status: ShellTaskStatusType) => void;
-export type MessageCallback = (message: string) => void;
+type MessageCallback = (message: string) => void;
 
 export class ShellTask {
 
@@ -70,7 +69,7 @@ export class ShellTask {
         const requestId = uuid();
         let shellSession: ShellInterfaceShellSession | undefined;
 
-        const handleData = (data: IShellResultType & { moduleSessionId?: string }, final: boolean) => {
+        const handleData = (data: IShellResultType & { moduleSessionId?: string; }, final: boolean) => {
             if (data.moduleSessionId) {
                 shellSession = new ShellInterfaceShellSession(data.moduleSessionId);
             }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ComponentPlacement } from "..";
+import { ComponentPlacement } from "../Component/ComponentBase";
 
 // Helper functions required for direct work with HTML DOM elements.
 
@@ -35,8 +35,8 @@ import { ComponentPlacement } from "..";
  *
  * @returns Left and top values in the coordinate system of the parent of the reference element.
  */
-export const computePositionForPlacement = (placement: ComponentPlacement, content: HTMLElement, reference: DOMRect,
-    offset: number): { left: number; top: number } => {
+const computePositionForPlacement = (placement: ComponentPlacement, content: HTMLElement, reference: DOMRect,
+    offset: number): { left: number; top: number; } => {
 
     const contentBounds = content.getBoundingClientRect();
 
@@ -142,7 +142,7 @@ export const computePositionForPlacement = (placement: ComponentPlacement, conte
  */
 export const computeContentPosition = (placement: ComponentPlacement, content: HTMLElement, reference: DOMRect,
     offset: number, canFlip: boolean,
-    container: HTMLElement = document.body): { left: number; top: number } => {
+    container: HTMLElement = document.body): { left: number; top: number; } => {
     let { left, top } = computePositionForPlacement(placement, content, reference, offset);
     const { width, height } = content.getBoundingClientRect();
     const containerBounds = container.getBoundingClientRect();

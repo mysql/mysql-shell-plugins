@@ -1,3 +1,6 @@
-config-overrides.js
 scripts/copy-oci-typings.js
 src/oci-typings/
+unit-tests.jest.config.ts
+src/tests/cssTransform.cjs
+src/tests/fileTransform.cjs
+e2e.jest.config.ts

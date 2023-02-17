@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -23,12 +23,21 @@
 
 node scripts/copy-oci-typings.js
 
-antlr4ts -no-visitor -Xexact-output-dir -o ./src/parsing/mysql/generated src/parsing/mysql/*.g4
-antlr4ts -no-visitor -Xexact-output-dir -o ./src/parsing/SQLite/generated src/parsing/SQLite/*.g4
-antlr4ts -no-visitor -Xexact-output-dir -o ./src/parsing/python/generated src/parsing/python/*.g4
+# Generate parsers only if something in the source folder changed.
+source=`ls -t src/parsing/mysql/MySQL* | head -1`
+target=`ls -t src/parsing/mysql/generated/MySQL* 2> /dev/null | head -1`
 
-echo "Fixing node module(s)..."
-sed -ibackup "s/^\/\/\/ <reference types=\"react-dom\" \/>/ /" node_modules/react-scripts/lib/react-app.d.ts
-sed -ibackup "s/^export type ArrayKeys<T> = keyof { \[P in keyof T as T\[P] extends any\[] ? P : never]: P };/export type ArrayKeys<T> = { [P in keyof T]: T[P] extends any[] ? P : never }[keyof T];/" node_modules/@types/babel__traverse/index.d.ts
+if [[ $source -nt $target ]]; then
+  printf "\x1b[1m\x1b[34mParser source files changed - regenerating target files..."
+  printf "\x1b[0m\n\n"
 
-NODE_OPTIONS=--max-old-space-size=8192 GENERATE_SOURCEMAP=$1 react-app-rewired build
+  antlr4ts -no-visitor -Xexact-output-dir -o ./src/parsing/mysql/generated src/parsing/mysql/*.g4
+  antlr4ts -no-visitor -Xexact-output-dir -o ./src/parsing/SQLite/generated src/parsing/SQLite/*.g4
+  antlr4ts -no-visitor -Xexact-output-dir -o ./src/parsing/python/generated src/parsing/python/*.g4
+
+  printf "\n"
+fi
+
+# We need lots of RAM when building with source maps. Without them 8GB are enough.
+export NODE_OPTIONS="--max-old-space-size=16000"
+node_modules/.bin/vite build

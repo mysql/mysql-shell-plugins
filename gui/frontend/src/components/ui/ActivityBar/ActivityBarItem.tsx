@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,12 +21,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
+import { ComponentChild } from "preact";
 
-import { Component, IComponentProperties } from "../Component/Component";
-import { Icon, Container, Label } from "..";
-import { Orientation, ContentAlignment } from "../Container/Container";
+import { ComponentBase, IComponentProperties } from "../Component/ComponentBase";
+import { Orientation, ContentAlignment, Container } from "../Container/Container";
 import { Codicon } from "../Codicon";
+import { Icon } from "../Icon/Icon";
+import { Label } from "../Label/Label";
 
 export interface IActivityBarItemProperties extends IComponentProperties {
     active?: boolean;
@@ -35,7 +36,7 @@ export interface IActivityBarItemProperties extends IComponentProperties {
     image?: string | Codicon;
 }
 
-export class ActivityBarItem extends Component<IActivityBarItemProperties> {
+export class ActivityBarItem extends ComponentBase<IActivityBarItemProperties> {
 
     public static defaultProps = {
         active: false,
@@ -49,7 +50,7 @@ export class ActivityBarItem extends Component<IActivityBarItemProperties> {
         this.addHandledProperties("active", "expand", "title", "image");
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { active, expand, caption, image } = this.mergedProps;
         const className = this.getEffectiveClassNames([
             "activityBarItem",

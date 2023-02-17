@@ -3,7 +3,7 @@
 exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`] = `
 <DBEditorToolbar
   activeEditor="DbEditor"
-  editors={Array []}
+  editors={[]}
   heatWaveEnabled={true}
   language="en"
 >
@@ -22,7 +22,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
         className="msg container fixedScrollbar toolbar verticalCenterContent"
         id="dbEditorToolbar"
         style={
-          Object {
+          {
             "alignItems": "center",
             "flexDirection": "row",
             "flexWrap": undefined,
@@ -44,7 +44,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
             onClick={[Function]}
             onMouseDown={[Function]}
             style={
-              Object {
+              {
                 "flexDirection": undefined,
               }
             }
@@ -55,11 +55,11 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
               disabled={false}
               src="toolbar-execute.svg"
             >
-              <div
+              <span
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
-                  Object {
+                  {
                     "WebkitMaskImage": "url(toolbar-execute.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
@@ -81,7 +81,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
             onMouseEnter={[Function]}
             onMouseLeave={[Function]}
             style={
-              Object {
+              {
                 "--thickness": "1px",
               }
             }
@@ -99,7 +99,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
             onClick={[Function]}
             onMouseDown={[Function]}
             style={
-              Object {
+              {
                 "flexDirection": undefined,
               }
             }
@@ -110,11 +110,11 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
               disabled={false}
               src="toolbar-format.svg"
             >
-              <div
+              <span
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
-                  Object {
+                  {
                     "WebkitMaskImage": "url(toolbar-format.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
@@ -136,7 +136,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
             onMouseEnter={[Function]}
             onMouseLeave={[Function]}
             style={
-              Object {
+              {
                 "--thickness": "1px",
               }
             }
@@ -154,7 +154,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
             onClick={[Function]}
             onMouseDown={[Function]}
             style={
-              Object {
+              {
                 "flexDirection": undefined,
               }
             }
@@ -165,11 +165,11 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
               disabled={false}
               src="toolbar-search.svg"
             >
-              <div
+              <span
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
-                  Object {
+                  {
                     "WebkitMaskImage": "url(toolbar-search.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
@@ -193,7 +193,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
             onClick={[Function]}
             onMouseDown={[Function]}
             style={
-              Object {
+              {
                 "flexDirection": undefined,
               }
             }
@@ -204,11 +204,11 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
               disabled={false}
               src="toolbar-show_hidden-inactive.svg"
             >
-              <div
+              <span
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
-                  Object {
+                  {
                     "WebkitMaskImage": "url(toolbar-show_hidden-inactive.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
@@ -221,18 +221,18 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
           </button>
         </Button>
         <Button
-          data-tooltip="Soft wrap lines "
+          data-tooltip="Soft wrap lines"
           imageOnly={true}
           key="editorToggleSoftWrapButton"
           onClick={[Function]}
         >
           <button
             className="msg button imageOnly"
-            data-tooltip="Soft wrap lines "
+            data-tooltip="Soft wrap lines"
             onClick={[Function]}
             onMouseDown={[Function]}
             style={
-              Object {
+              {
                 "flexDirection": undefined,
               }
             }
@@ -241,17 +241,17 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
             <Icon
               data-tooltip="inherit"
               disabled={false}
-              src="toolbar-word_wrap-active.svg"
+              src="toolbar-word_wrap-inactive.svg"
             >
-              <div
+              <span
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
-                  Object {
-                    "WebkitMaskImage": "url(toolbar-word_wrap-active.svg)",
+                  {
+                    "WebkitMaskImage": "url(toolbar-word_wrap-inactive.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(toolbar-word_wrap-active.svg)",
+                    "maskImage": "url(toolbar-word_wrap-inactive.svg)",
                     "width": undefined,
                   }
                 }
@@ -271,7 +271,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
 exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
 <DBEditorToolbar
   activeEditor="DbEditor"
-  editors={Array []}
+  editors={[]}
   heatWaveEnabled={false}
   language="pl"
 >
@@ -290,7 +290,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
         className="msg container fixedScrollbar toolbar verticalCenterContent"
         id="dbEditorToolbar"
         style={
-          Object {
+          {
             "alignItems": "center",
             "flexDirection": "row",
             "flexWrap": undefined,
@@ -312,7 +312,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
             onClick={[Function]}
             onMouseDown={[Function]}
             style={
-              Object {
+              {
                 "flexDirection": undefined,
               }
             }
@@ -323,11 +323,11 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
               disabled={false}
               src="toolbar-execute.svg"
             >
-              <div
+              <span
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
-                  Object {
+                  {
                     "WebkitMaskImage": "url(toolbar-execute.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
@@ -349,7 +349,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
             onMouseEnter={[Function]}
             onMouseLeave={[Function]}
             style={
-              Object {
+              {
                 "--thickness": "1px",
               }
             }
@@ -367,7 +367,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
             onClick={[Function]}
             onMouseDown={[Function]}
             style={
-              Object {
+              {
                 "flexDirection": undefined,
               }
             }
@@ -378,11 +378,11 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
               disabled={false}
               src="toolbar-format.svg"
             >
-              <div
+              <span
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
-                  Object {
+                  {
                     "WebkitMaskImage": "url(toolbar-format.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
@@ -404,7 +404,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
             onMouseEnter={[Function]}
             onMouseLeave={[Function]}
             style={
-              Object {
+              {
                 "--thickness": "1px",
               }
             }
@@ -422,7 +422,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
             onClick={[Function]}
             onMouseDown={[Function]}
             style={
-              Object {
+              {
                 "flexDirection": undefined,
               }
             }
@@ -433,11 +433,11 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
               disabled={false}
               src="toolbar-search.svg"
             >
-              <div
+              <span
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
-                  Object {
+                  {
                     "WebkitMaskImage": "url(toolbar-search.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
@@ -461,7 +461,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
             onClick={[Function]}
             onMouseDown={[Function]}
             style={
-              Object {
+              {
                 "flexDirection": undefined,
               }
             }
@@ -472,11 +472,11 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
               disabled={false}
               src="toolbar-show_hidden-inactive.svg"
             >
-              <div
+              <span
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
-                  Object {
+                  {
                     "WebkitMaskImage": "url(toolbar-show_hidden-inactive.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
@@ -489,18 +489,18 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
           </button>
         </Button>
         <Button
-          data-tooltip="Soft wrap lines "
+          data-tooltip="Soft wrap lines"
           imageOnly={true}
           key="editorToggleSoftWrapButton"
           onClick={[Function]}
         >
           <button
             className="msg button imageOnly"
-            data-tooltip="Soft wrap lines "
+            data-tooltip="Soft wrap lines"
             onClick={[Function]}
             onMouseDown={[Function]}
             style={
-              Object {
+              {
                 "flexDirection": undefined,
               }
             }
@@ -509,17 +509,17 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
             <Icon
               data-tooltip="inherit"
               disabled={false}
-              src="toolbar-word_wrap-active.svg"
+              src="toolbar-word_wrap-inactive.svg"
             >
-              <div
+              <span
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
-                  Object {
-                    "WebkitMaskImage": "url(toolbar-word_wrap-active.svg)",
+                  {
+                    "WebkitMaskImage": "url(toolbar-word_wrap-inactive.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(toolbar-word_wrap-active.svg)",
+                    "maskImage": "url(toolbar-word_wrap-inactive.svg)",
                     "width": undefined,
                   }
                 }

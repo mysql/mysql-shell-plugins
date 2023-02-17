@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,16 +23,18 @@
 
 import "./Dropdown.css";
 
-import React from "react";
+import { cloneElement, ComponentChild, createRef, VNode } from "preact";
 import keyboardKey from "keyboard-key";
-
-import {
-    Container, Label, IComponentProperties, IComponentState, Popup, ComponentPlacement, Divider,
-    Component, TagInput, ITag, Orientation, ContentAlignment,
-} from "..";
 
 import { DropdownItem, IDropdownItemProperties } from "./DropdownItem";
 import { convertPropValue } from "../../../utilities/string-helpers";
+import { collectVNodes } from "../../../utilities/ts-helpers";
+import { IComponentProperties, IComponentState, ComponentBase, ComponentPlacement } from "../Component/ComponentBase";
+import { Container, Orientation, ContentAlignment } from "../Container/Container";
+import { Divider } from "../Divider/Divider";
+import { Label } from "../Label/Label";
+import { Popup } from "../Popup/Popup";
+import { ITag, TagInput } from "../TagInput/TagInput";
 
 export interface IDropdownProperties extends IComponentProperties {
     selection?: string | Set<string>;
@@ -50,11 +52,10 @@ export interface IDropdownProperties extends IComponentProperties {
 interface IDropdownState extends IComponentState {
     hotId?: string;
 
-    childArray: Array<Exclude<React.ReactNode, boolean | null | undefined>>;
+    childArray: Array<VNode<IDropdownItemProperties>>;
 }
 
-export class Dropdown extends Component<IDropdownProperties, IDropdownState> {
-
+export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState> {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     public static Item = DropdownItem;
 
@@ -65,9 +66,9 @@ export class Dropdown extends Component<IDropdownProperties, IDropdownState> {
         withoutArrow: false,
     };
 
-    private containerRef = React.createRef<HTMLElement>();
-    private listRef = React.createRef<HTMLElement>();
-    private popupRef = React.createRef<Popup>();
+    private readonly containerRef = createRef<HTMLDivElement>();
+    private readonly listRef = createRef<HTMLDivElement>();
+    private readonly popupRef = createRef<Popup>();
 
     private currentSelectionIndex = -1; // Tracks the currently selected item index for keyboard based selection.
     private selectionIndexBackup = -1;
@@ -77,17 +78,18 @@ export class Dropdown extends Component<IDropdownProperties, IDropdownState> {
         super(props);
 
         this.state = {
-            childArray: React.Children.toArray(props.children),
+            childArray: collectVNodes<IDropdownItemProperties>(props.children),
         };
 
-        this.addHandledProperties("initialSelection", "defaultId", "optional", "showDescription", "multiSelect",
+        this.addHandledProperties("selection", "defaultId", "optional", "showDescription", "multiSelect",
             "withoutArrow", "autoFocus", "onSelect");
     }
 
     public componentDidMount(): void {
         const { autoFocus } = this.mergedProps;
 
-        if (this.containerRef.current && autoFocus) {
+        this.currentSelectionIndex = this.indexOfFirstSelectedEntry;
+        if ((this.containerRef.current != null) && autoFocus) {
             this.containerRef.current.focus();
         }
     }
@@ -95,7 +97,7 @@ export class Dropdown extends Component<IDropdownProperties, IDropdownState> {
     public componentDidUpdate(prevProps: IDropdownProperties): void {
         const { children } = this.mergedProps;
 
-        if (!this.popupRef.current?.isOpen && this.containerRef.current) {
+        if (!this.popupRef.current?.isOpen && (this.containerRef.current != null)) {
             // Set back the focus to the drop down, once the popup was closed.
             // This is independent of the auto focus property, because for the popup to show
             // the dropdown had to have the focus anyway.
@@ -106,15 +108,16 @@ export class Dropdown extends Component<IDropdownProperties, IDropdownState> {
         }
 
         if (prevProps.children !== children) {
-            this.setState({ childArray: React.Children.toArray(children) });
+            this.setState({ childArray: collectVNodes<IDropdownItemProperties>(children) });
         }
+        this.currentSelectionIndex = this.indexOfFirstSelectedEntry;
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const {
-            id, children, defaultId, selection, optional, showDescription, withoutArrow, multiSelect,
+            id, defaultId, selection, optional, showDescription, withoutArrow, multiSelect,
         } = this.mergedProps;
-        const { hotId } = this.state;
+        const { hotId, childArray } = this.state;
 
         const currentSelection = typeof selection === "string" ? new Set([selection]) : selection;
         const currentDescription = this.descriptionFromId(hotId || currentSelection?.values().next().value as string);
@@ -126,33 +129,30 @@ export class Dropdown extends Component<IDropdownProperties, IDropdownState> {
         ]);
 
         const tags: ITag[] = [];
-        const content = React.Children.map(children, (child): React.ReactNode => {
-            if (React.isValidElement(child)) {
-                let itemClassName = "";
-                let checked = false;
+        let content = null;
+        content = childArray.map((child): ComponentChild => {
+            let itemClassName = "";
+            let checked = false;
 
-                const { id: childId, caption: childCaption, picture } = child.props;
-                if (currentSelection?.has(childId as string)) {
-                    tags.push({ id: childId, caption: childCaption, picture });
-                    checked = true;
-                }
-
-                if (defaultId && childId === defaultId) {
-                    itemClassName = "default";
-                }
-
-                return React.cloneElement(child, {
-                    key: childId,
-                    onMouseEnter: this.handleItemMouseEnter,
-                    onMouseLeave: this.handleItemMouseLeave,
-                    onClick: this.handleItemClick,
-                    className: itemClassName,
-                    selected: !multiSelect && currentSelection?.has(childId as string),
-                    checked: multiSelect ? checked : undefined,
-                } as IComponentProperties);
+            const { id: childId, caption: childCaption, picture } = child.props;
+            if (currentSelection?.has(childId as string)) {
+                tags.push({ id: childId ?? "", caption: childCaption, picture });
+                checked = true;
             }
 
-            return undefined;
+            if (defaultId && childId === defaultId) {
+                itemClassName = "default";
+            }
+
+            return cloneElement(child, {
+                key: childId,
+                onMouseEnter: this.handleItemMouseEnter,
+                onMouseLeave: this.handleItemMouseLeave,
+                onClick: this.handleItemClick,
+                className: itemClassName,
+                selected: !multiSelect && currentSelection?.has(childId as string),
+                checked: multiSelect ? checked : undefined,
+            } as IComponentProperties);
         });
 
         if (optional) {
@@ -210,11 +210,11 @@ export class Dropdown extends Component<IDropdownProperties, IDropdownState> {
                     onClick={this.handleClick}
                     onKeyDown={this.handleKeydown}
                     crossAlignment={ContentAlignment.Center}
+                    onBlur={this.handleBlur}
                     {...this.unhandledProperties}
                 >
                     {inputContent}
                 </Container>;
-
         }
 
         return (
@@ -242,14 +242,16 @@ export class Dropdown extends Component<IDropdownProperties, IDropdownState> {
         );
     }
 
-    private handleClick = (e: React.SyntheticEvent): void => {
-        this.popupRef.current?.open(e.currentTarget.getBoundingClientRect(), { backgroundOpacity: 0 });
+    private readonly handleClick = (e: MouseEvent | KeyboardEvent): void => {
+        const element = e.currentTarget as HTMLElement;
+        this.popupRef.current?.open(element.getBoundingClientRect(), { backgroundOpacity: 0 });
     };
 
-    private handleKeydown = (e: React.KeyboardEvent): void => {
+    private readonly handleKeydown = (e: KeyboardEvent): void => {
         const { childArray } = this.state;
 
         const code = keyboardKey.getCode(e);
+        const element = e.currentTarget as HTMLElement;
         switch (code) {
             case keyboardKey.Enter:
             case keyboardKey.Spacebar: {
@@ -259,14 +261,12 @@ export class Dropdown extends Component<IDropdownProperties, IDropdownState> {
                     this.popupRef.current.close();
 
                     const current = childArray[this.currentSelectionIndex];
-                    if (React.isValidElement(current)) {
-                        const id = current.props.id as string;
-                        if (id) {
-                            this.toggleSelectedItem(id, false);
-                        }
+                    const id = current.props.id;
+                    if (id) {
+                        this.toggleSelectedItem(id, false);
                     }
                 } else {
-                    this.popupRef.current?.open(e.currentTarget.getBoundingClientRect(), { backgroundOpacity: 0 });
+                    this.popupRef.current?.open(element.getBoundingClientRect(), { backgroundOpacity: 0 });
                 }
                 e.stopPropagation();
                 e.preventDefault();
@@ -286,11 +286,9 @@ export class Dropdown extends Component<IDropdownProperties, IDropdownState> {
                 }
 
                 const current = childArray[this.currentSelectionIndex];
-                if (React.isValidElement(current)) {
-                    const id = current.props.id as string;
-                    if (id) {
-                        this.toggleSelectedItem(id, true);
-                    }
+                const id = current.props.id;
+                if (id) {
+                    this.toggleSelectedItem(id, true);
                 }
                 e.stopPropagation();
                 e.preventDefault();
@@ -310,11 +308,9 @@ export class Dropdown extends Component<IDropdownProperties, IDropdownState> {
                 }
 
                 const current = childArray[this.currentSelectionIndex];
-                if (React.isValidElement(current)) {
-                    const id = current.props.id as string;
-                    if (id) {
-                        this.toggleSelectedItem(id, true);
-                    }
+                const id = current.props.id;
+                if (id) {
+                    this.toggleSelectedItem(id, true);
                 }
 
                 e.stopPropagation();
@@ -336,7 +332,11 @@ export class Dropdown extends Component<IDropdownProperties, IDropdownState> {
         }
     };
 
-    private handleItemMouseEnter = (e: React.MouseEvent, props: IDropdownItemProperties): void => {
+    private readonly handleBlur = (): void => {
+        this.containerRef.current?.classList.remove("manualFocus");
+    };
+
+    private readonly handleItemMouseEnter = (e: MouseEvent, props: IDropdownItemProperties): void => {
         const { showDescription } = this.mergedProps;
 
         if (showDescription) {
@@ -350,18 +350,21 @@ export class Dropdown extends Component<IDropdownProperties, IDropdownState> {
             child.classList.remove("selected");
         });
 
-        e.currentTarget.classList.add("selected");
+        const element = e.currentTarget as HTMLElement;
+        element.classList.add("selected");
     };
 
-    private handleItemMouseLeave = (e: React.MouseEvent, props: IDropdownItemProperties): void => {
+    private readonly handleItemMouseLeave = (e: MouseEvent, props: IDropdownItemProperties): void => {
         const { showDescription } = this.mergedProps;
         if (showDescription) {
             this.setState({ hotId: props.id });
         }
-        e.currentTarget.classList.remove("selected");
+
+        const element = e.currentTarget as HTMLElement;
+        element.classList.remove("selected");
     };
 
-    private handleItemClick = (_e: React.SyntheticEvent, props: IDropdownItemProperties): void => {
+    private readonly handleItemClick = (_e: MouseEvent | KeyboardEvent, props: IDropdownItemProperties): void => {
         const { multiSelect } = this.mergedProps;
 
         if (props.id) {
@@ -380,7 +383,7 @@ export class Dropdown extends Component<IDropdownProperties, IDropdownState> {
      * @param id The item to toggle.
      * @param replace If true then the current selection is cleared and the item becomes the only selection entry.
      */
-    private toggleSelectedItem = (id: string, replace: boolean): void => {
+    private readonly toggleSelectedItem = (id: string, replace: boolean): void => {
         const { selection, multiSelect, optional, onSelect } = this.mergedProps;
 
         let newSelection: Set<string>;
@@ -398,10 +401,10 @@ export class Dropdown extends Component<IDropdownProperties, IDropdownState> {
         onSelect?.(newSelection, this.props);
     };
 
-    private handleOpen = (): void => {
+    private readonly handleOpen = (): void => {
         this.saveSelection();
 
-        if (this.containerRef.current && this.listRef.current) {
+        if ((this.containerRef.current != null) && (this.listRef.current != null)) {
             const bounds = this.containerRef.current.getBoundingClientRect();
             this.listRef.current.style.width = convertPropValue(bounds.width)!;
 
@@ -410,7 +413,7 @@ export class Dropdown extends Component<IDropdownProperties, IDropdownState> {
         }
     };
 
-    private handleClose = (cancelled: boolean): void => {
+    private readonly handleClose = (cancelled: boolean): void => {
         const { multiSelect } = this.mergedProps;
 
         // In multi selection mode changes are already saved and cannot be restored here.
@@ -419,17 +422,15 @@ export class Dropdown extends Component<IDropdownProperties, IDropdownState> {
         }
     };
 
-    private handleTagAdd = (value: string): void => {
-        const { children } = this.mergedProps;
+    private readonly handleTagAdd = (value: string): void => {
+        const { childArray } = this.state;
 
         // See if we have a child with the value as caption and add its id to the current selection, if so.
         let id;
-        React.Children.forEach(children, (child): void => {
-            if (React.isValidElement(child)) {
-                const { caption: childCaption, id: childId } = child.props;
-                if (childCaption === value) {
-                    id = childId;
-                }
+        childArray.forEach((child) => {
+            const { caption: childCaption, id: childId } = child.props;
+            if (childCaption === value) {
+                id = childId;
             }
         });
 
@@ -438,19 +439,17 @@ export class Dropdown extends Component<IDropdownProperties, IDropdownState> {
         }
     };
 
-    private handleTagRemove = (id: string): void => {
+    private readonly handleTagRemove = (id: string): void => {
         this.toggleSelectedItem(id, false);
     };
 
     private descriptionFromId(id?: string): string {
         let result = "";
         if (id) {
-            const { children } = this.mergedProps;
-            React.Children.forEach(children, (child): void => {
-                if (React.isValidElement(child)) {
-                    if (child.props.id === id) {
-                        result = child.props.description || "";
-                    }
+            const { childArray } = this.state;
+            childArray.forEach((child): void => {
+                if (child.props.id === id) {
+                    result = child.props.description ?? "";
                 }
             });
         }
@@ -466,15 +465,11 @@ export class Dropdown extends Component<IDropdownProperties, IDropdownState> {
         const { childArray } = this.state;
 
         const currentSelection = typeof selection === "string" ? new Set<string>([selection]) : selection;
-        if (currentSelection && currentSelection.size > 0) {
+        if ((currentSelection != null) && currentSelection.size > 0) {
             const selectedId = currentSelection.keys().next().value;
 
             return childArray.findIndex((element) => {
-                if (React.isValidElement(element)) {
-                    return element.props.id === selectedId;
-                }
-
-                return false;
+                return element.props.id === selectedId;
             });
         } else {
             return -1;
@@ -484,7 +479,7 @@ export class Dropdown extends Component<IDropdownProperties, IDropdownState> {
     /**
      * Keep a copy of the current selection state for later restoration.
      */
-    private saveSelection = (): void => {
+    private readonly saveSelection = (): void => {
         const { selection } = this.mergedProps;
 
         this.selectionIndexBackup = this.currentSelectionIndex;
@@ -494,7 +489,7 @@ export class Dropdown extends Component<IDropdownProperties, IDropdownState> {
     /**
      * Restores the previously saved selection values.
      */
-    private restoreSelection = (): void => {
+    private readonly restoreSelection = (): void => {
         const { onSelect } = this.mergedProps;
 
         this.currentSelectionIndex = this.selectionIndexBackup;

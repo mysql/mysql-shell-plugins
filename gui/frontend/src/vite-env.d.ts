@@ -21,31 +21,10 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-export * from "./AdminSectionTreeItem";
-export * from "./AdminTreeItem";
-export * from "./ConnectionMySQLTreeItem";
-export * from "./ConnectionSqliteTreeItem";
-export * from "./ConnectionsTreeBaseItem";
-export * from "./ConnectionsTreeProvider";
-export * from "./ConnectionTreeItem";
-export * from "./MrsAuthAppTreeItem";
-export * from "./MrsUserTreeItem";
-export * from "./MrsDbObjectTreeItem";
-export * from "./MrsSchemaTreeItem";
-export * from "./MrsServiceTreeItem";
-export * from "./MrsTreeBaseItem";
-export * from "./MrsTreeItem";
-export * from "./SchemaEventTreeItem";
-export * from "./SchemaGroupTreeItem";
-export * from "./SchemaIndex";
-export * from "./SchemaMySQLTreeItem";
-export * from "./SchemaRoutineTreeItem";
-export * from "./SchemaTableColumnTreeItem";
-export * from "./SchemaTableForeignKeyTreeItem";
-export * from "./SchemaTableGroupTreeItem";
-export * from "./SchemaTableIndexTreeItem";
-export * from "./SchemaTableMySQLTreeItem";
-export * from "./SchemaTableTreeItem";
-export * from "./SchemaTableTriggerTreeItem";
-export * from "./SchemaTreeItem";
-export * from "./SchemaViewTreeItem";
+/// <reference types="vite/client" />
+
+declare module "monaco-editor/esm/vs/basic-languages/typescript/typescript";
+declare module "monaco-editor/esm/vs/basic-languages/javascript/javascript";
+declare module "monaco-editor/esm/vs/basic-languages/mysql/mysql";
+declare module "monaco-editor/esm/vs/basic-languages/python/python";
+declare module "monaco-editor/esm/vs/platform/contextkey/common/contextkey";

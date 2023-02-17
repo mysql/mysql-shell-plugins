@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,17 +23,16 @@
 
 import icon from "../../../../assets/images/modules/module-sql.svg";
 
+import { createRef } from "preact";
 import { mount } from "enzyme";
-import React from "react";
 
-import { snapshotFromWrapper } from "../../test-helpers";
 import { DBEditorModuleId } from "../../../../modules/ModuleInfo";
 import { DBEditorModule } from "../../../../modules/db-editor/DBEditorModule";
 
 describe("DBEditor module tests", (): void => {
 
     it("Test DBEditorModule instantiation", () => {
-        const innerRef = React.createRef<HTMLButtonElement>();
+        const innerRef = createRef<HTMLButtonElement>();
         const component = mount<DBEditorModule>(
             <DBEditorModule
                 innerRef={innerRef}
@@ -46,7 +45,7 @@ describe("DBEditor module tests", (): void => {
             caption: "DB Editor",
             icon,
         });
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
         component.unmount();
     });
 

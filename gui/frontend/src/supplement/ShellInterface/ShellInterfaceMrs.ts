@@ -21,14 +21,17 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { MessageScheduler, ShellAPIMrs, IShellDictionary, IMrsUserData, IMrsRouterData } from "../../communication";
+import { MessageScheduler } from "../../communication/MessageScheduler";
+import { IShellDictionary } from "../../communication/Protocol";
 import {
-    IMrsAddContentSetData, IMrsAuthAppData, IMrsAuthVendorData, IMrsContentFileData, IMrsContentSetData,
-    IMrsDbObjectData, IMrsSchemaData, IMrsServiceData, IMrsStatusData, IMrsDbObjectFieldData,
-    IShellMrsUpdateDbObjectKwargsValue,
-    IShellMrsUpdateAuthenticationAppKwargsValue, IShellMrsUpdateUserKwargsValue,
-    IMrsRoleData, IMrsUserRoleData,
-} from "../../communication/";
+    ShellAPIMrs, IMrsStatusData, IMrsServiceData, IMrsAuthAppData, IMrsAuthVendorData, IMrsSchemaData,
+    IMrsDbObjectFieldData, IShellMrsUpdateDbObjectKwargsValue, IMrsDbObjectData, IMrsAddContentSetData,
+    IMrsContentSetData, IMrsContentFileData, IShellMrsUpdateAuthenticationAppKwargsValue, IMrsUserData,
+    IShellMrsUpdateUserKwargsValue,
+    IMrsRoleData,
+    IMrsUserRoleData,
+    IMrsRouterData,
+} from "../../communication/ProtocolMrs";
 import { webSession } from "../WebSession";
 
 export class ShellInterfaceMrs {
@@ -171,7 +174,7 @@ export class ShellInterfaceMrs {
     }
 
 
-    public async addAuthApp(serviceId: string, authApp: IMrsAuthAppData, registerUsers: []) : Promise<IMrsAuthAppData> {
+    public async addAuthApp(serviceId: string, authApp: IMrsAuthAppData, registerUsers: []): Promise<IMrsAuthAppData> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsAddAuthenticationApp,
             parameters: {
@@ -642,7 +645,7 @@ export class ShellInterfaceMrs {
     }
 
     public async dumpSchema(path: string, serviceId?: string | undefined, serviceName?: string | undefined,
-        schemaId?: string| undefined, schemaName?: string| undefined): Promise<void> {
+        schemaId?: string | undefined, schemaName?: string | undefined): Promise<void> {
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsDumpSchema,
             parameters: {
@@ -661,8 +664,8 @@ export class ShellInterfaceMrs {
     }
 
     public async dumpObject(path: string, serviceId?: string | undefined, serviceName?: string | undefined,
-        schemaId?: string| undefined, schemaName?: string| undefined, objectId?: string| undefined,
-        objectName?: string| undefined): Promise<void> {
+        schemaId?: string | undefined, schemaName?: string | undefined, objectId?: string | undefined,
+        objectName?: string | undefined): Promise<void> {
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsDumpObject,
             parameters: {
@@ -700,7 +703,7 @@ export class ShellInterfaceMrs {
     }
 
     public async loadObject(path: string, serviceId?: string | undefined, serviceName?: string | undefined,
-        schemaId?: string| undefined, schemaName?: string| undefined): Promise<void> {
+        schemaId?: string | undefined, schemaName?: string | undefined): Promise<void> {
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsLoadObject,
             parameters: {
@@ -732,7 +735,7 @@ export class ShellInterfaceMrs {
         return response.result;
     }
 
-    public async listUserRoles(userId: string) : Promise<IMrsUserRoleData[]> {
+    public async listUserRoles(userId: string): Promise<IMrsUserRoleData[]> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsListUserRoles,
             parameters: {

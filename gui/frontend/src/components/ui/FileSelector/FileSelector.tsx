@@ -23,22 +23,24 @@
 
 import "./FileSelector.css";
 
-import React from "react";
+import { ComponentChild } from "preact";
 
-import { Button, Component, IComponentProperties, IInputChangeProperties, Input } from "../";
 import { Container, Orientation } from "../Container/Container";
 import { selectFile } from "../../../utilities/helpers";
 import {
     appParameters, IOpenDialogFilters, IOpenFileDialogResult, requisitions,
 } from "../../../supplement/Requisitions";
+import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
+import { Input, IInputChangeProperties } from "../Input/Input";
+import { Button } from "../Button/Button";
 
-export enum FileSelectorEntryType {
+enum FileSelectorEntryType {
     File,
     Folder,
     Link,
 }
 
-export interface IFileSelectorEntry {
+interface IFileSelectorEntry {
     type: FileSelectorEntryType;
     name: string;
     children?: IFileSelectorEntry[]; // For folder entry types.
@@ -83,13 +85,13 @@ export interface IFileSelectorProperties extends IComponentProperties {
 
     // Triggered for any change in the file/path edit
     onChange?: (newValues: string[], props: IFileSelectorProperties) => void;
-    onConfirm?: (e: React.KeyboardEvent, props: IFileSelectorProperties) => void;
-    onCancel?: (e: React.KeyboardEvent, props: IFileSelectorProperties) => void;
+    onConfirm?: (e: KeyboardEvent, props: IFileSelectorProperties) => void;
+    onCancel?: (e: KeyboardEvent, props: IFileSelectorProperties) => void;
 }
 
 // An input field with a button to show/select files and folders. It uses the HTML open dialog in browser mode,
 // otherwise the host provides a native open dialog.
-export class FileSelector extends Component<IFileSelectorProperties> {
+export class FileSelector extends ComponentBase<IFileSelectorProperties> {
 
     public static readonly defaultProps = {
         canSelectFiles: true,
@@ -114,7 +116,7 @@ export class FileSelector extends Component<IFileSelectorProperties> {
         requisitions.unregister("selectFile", this.selectFile);
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { path, placeholder, id } = this.mergedProps;
 
         const className = this.getEffectiveClassNames(["fileSelector"]);
@@ -202,19 +204,19 @@ export class FileSelector extends Component<IFileSelectorProperties> {
         }
     };
 
-    private handleInputChange = (e: React.ChangeEvent<Element>, props: IInputChangeProperties): void => {
+    private handleInputChange = (e: InputEvent, props: IInputChangeProperties): void => {
         const { onChange } = this.mergedProps;
 
         onChange?.([props.value], this.mergedProps);
     };
 
-    private handleInputConfirm = (e: React.KeyboardEvent): void => {
+    private handleInputConfirm = (e: KeyboardEvent): void => {
         const { onConfirm } = this.mergedProps;
 
         onConfirm?.(e, this.mergedProps);
     };
 
-    private handleInputCancel = (e: React.KeyboardEvent): void => {
+    private handleInputCancel = (e: KeyboardEvent): void => {
         const { onCancel } = this.mergedProps;
 
         onCancel?.(e, this.mergedProps);

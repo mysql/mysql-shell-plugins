@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,19 +23,13 @@
 
 import "./Portal.css";
 
-import React, { createRef, ComponentState } from "react";
-import { createPortal } from "preact/compat";
-
+import { ComponentChild, render } from "preact";
 import keyboardKey from "keyboard-key";
 
-import { Component, IComponentProperties } from "../Component/Component";
-import { IDictionary } from "../../../app-logic/Types";
+import { ComponentBase, IComponentProperties, IComponentState } from "../Component/ComponentBase";
 import { Stack } from "../../../supplement";
 
-// The list of currently open portals. Auto close handling applies only to the TOS.
-const portalStack = new Stack<Portal>();
-
-// Options that can change on every show action.
+/** Options that can change on every show action. */
 export interface IPortalOptions {
     /** A value to determine translucency of the background element (0..1, default: 0.5); */
     backgroundOpacity?: number;
@@ -48,26 +42,32 @@ export interface IPortalOptions {
 }
 
 export interface IPortalProperties extends IComponentProperties {
-    // The element which hosts the portal and determines the background size of the portal
-    // background (document.body by default).
+    /**
+     * The element which hosts the portal and determines the background size of the portal
+     * background (document.body by default).
+     */
     container?: HTMLElement;
 
     onOpen?: (props: IPortalProperties) => void;
     onClose?: (cancelled: boolean, props: IPortalProperties) => void;
 }
 
-interface IPortalState extends ComponentState {
+interface IPortalState extends IComponentState {
     open: boolean;
 
     options: IPortalOptions;
 }
 
-// A portal in React is a component that is rendered in an arbitrary parent DOM node, allowing so to render it
-// on top of other nodes (for modal dialogs, tooltips etc.) that could possibly clip it. Event handling, however, stays
-// the same as if the component was rendered locally.
-export class Portal extends Component<IPortalProperties, IPortalState> {
+/**
+ * A portal is a component that is rendered in an arbitrary parent DOM node, allowing so to render it
+ * on top of other nodes (for modal dialogs, tooltips etc.) that could possibly clip it.
+ */
+export class Portal extends ComponentBase<IPortalProperties, IPortalState> {
 
-    private backgroundRef = createRef<HTMLDivElement>();
+    // The list of currently open portals. Auto close handling applies only to the TOS.
+    private static portalStack = new Stack<Portal>();
+
+    private host?: HTMLDivElement;
 
     public constructor(props: IPortalProperties) {
         super(props);
@@ -80,33 +80,37 @@ export class Portal extends Component<IPortalProperties, IPortalState> {
         this.addHandledProperties("container");
     }
 
-    public render(): React.ReactNode {
-        const { children, container = document.body } = this.mergedProps;
+    public componentDidUpdate(): void {
+        const { id, children, container = document.body } = this.mergedProps;
         const { open, options } = this.state;
 
-        const className = this.getEffectiveClassNames(["portal"]);
+        if (open) {
+            if (!this.host) {
+                const className = this.getEffectiveClassNames(["portal"]);
 
-        const style: IDictionary = {
-            /* eslint-disable @typescript-eslint/naming-convention */
-            "--background-opacity": options.backgroundOpacity,
-            /* eslint-enable @typescript-eslint/naming-convention */
-        };
+                this.host = document.createElement("div");
+                if (id) {
+                    this.host.id = id;
+                }
+                this.host.className = className;
+                this.host.style.setProperty("--background-opacity", String(options.backgroundOpacity ?? 0.5));
+                this.host.addEventListener("mousedown", this.handlePortalMouseDown);
+                container.appendChild(this.host);
+            }
+            render(children, this.host);
+        } else {
+            this.host?.remove();
+            this.host = undefined;
+        }
+    }
 
-        return (
-            open && createPortal(
-                // eslint-disable-next-line jsx-a11y/no-static-element-interactions
-                <div
-                    ref={this.backgroundRef}
-                    className={className}
-                    style={style}
-                    onMouseDown={this.handlePortalMouseDown}
-                    {...this.unhandledProperties}
-                >
+    public componentWillUnmount(): void {
+        this.host?.remove();
+        this.host = undefined;
+    }
 
-                    {children}
-                </div>, container,
-            ) as React.ReactNode
-        );
+    public render(): ComponentChild {
+        return null;
     }
 
     public get isOpen(): boolean {
@@ -123,7 +127,7 @@ export class Portal extends Component<IPortalProperties, IPortalState> {
             };
 
             this.setState({ open: true, options: activeOptions }, (): void => {
-                portalStack.push(this);
+                Portal.portalStack.push(this);
 
                 const { onOpen } = this.mergedProps;
                 onOpen?.(this.mergedProps);
@@ -141,11 +145,12 @@ export class Portal extends Component<IPortalProperties, IPortalState> {
             onClose?.(cancelled, this.mergedProps);
 
             this.setState({ open: false, options: {} }, () => {
-                const index = portalStack.findIndex((portal) => {
+                const index = Portal.portalStack.findIndex((portal) => {
                     return portal === this;
                 });
+
                 if (index > -1) {
-                    portalStack.splice(index, 1);
+                    Portal.portalStack.splice(index, 1);
                 }
             });
         }
@@ -156,28 +161,28 @@ export class Portal extends Component<IPortalProperties, IPortalState> {
      *
      * @param event The mouse event generated for the click.
      */
-    private handlePortalMouseDown = (event: React.MouseEvent): void => {
+    private handlePortalMouseDown = (event: MouseEvent): void => {
         const { open, options } = this.state;
 
-        if (open && options.closeOnPortalClick && event.target === this.backgroundRef.current) {
+        if (open && options.closeOnPortalClick && event.target === this.host) {
             this.close(true);
         }
     };
 
-}
-
-// Add a single keydown handler for all portals.
-document.body.addEventListener("keydown", (e: KeyboardEvent): void => {
-    if (portalStack.length > 0 && keyboardKey.getCode(e) === keyboardKey.Escape) {
-        const portal = portalStack.top;
-        if (portal) {
-            const { options } = portal.state;
-            if (options.closeOnEscape) {
-                e.stopImmediatePropagation();
-                e.stopPropagation();
-                portal.close(true);
+    static {
+        // Add a single keydown handler for all portals.
+        document.body.addEventListener("keydown", (e: KeyboardEvent): void => {
+            if (Portal.portalStack.length > 0 && keyboardKey.getCode(e) === keyboardKey.Escape) {
+                const portal = Portal.portalStack.top;
+                if (portal) {
+                    const { options } = portal.state;
+                    if (options.closeOnEscape) {
+                        e.stopImmediatePropagation();
+                        e.stopPropagation();
+                        portal.close(true);
+                    }
+                }
             }
-        }
+        });
     }
-});
-
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,12 +21,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
 import { mount } from "enzyme";
 import Color from "color";
 
-import { nextProcessTick, snapshotFromWrapper } from "../../../test-helpers";
-import { ColorField, ColorPopup, Container } from "../../../../../components/ui";
+import { nextProcessTick } from "../../../test-helpers";
+import { ColorField } from "../../../../../components/ui/ColorPicker/ColorField";
+import { ColorPopup } from "../../../../../components/ui/ColorPicker/ColorPopup";
+import { Container } from "../../../../../components/ui/Container/Container";
 
 describe("ColorField component tests", (): void => {
 
@@ -34,7 +35,7 @@ describe("ColorField component tests", (): void => {
         const component = mount<ColorField>(
             <ColorField />,
         );
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
 
         component.unmount();
     });
@@ -52,13 +53,13 @@ describe("ColorField component tests", (): void => {
 
         await nextProcessTick();
 
-        expect(snapshotFromWrapper(component)).toMatchSnapshot("1");
+        expect(component).toMatchSnapshot("1");
         const field = component.find<ColorField>(ColorField);
         expect(field.state().currentColor?.toString()).toBe("rgb(255, 170, 136)");
 
         // Unsetting the color renders the default hash image.
         field.setState({ currentColor: undefined });
-        expect(snapshotFromWrapper(component)).toMatchSnapshot("2");
+        expect(component).toMatchSnapshot("2");
 
         const div = field.getDOMNode();
         (div as HTMLDivElement).click();

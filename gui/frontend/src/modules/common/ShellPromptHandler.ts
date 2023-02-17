@@ -24,16 +24,12 @@
 import {
     IServicePasswordRequest, IDialogRequest, DialogType, IDictionary, IDialogResponse, DialogResponseClosure,
 } from "../../app-logic/Types";
+import { IPromptReplyBackend, ShellPromptResponseType } from "../../communication/Protocol";
 import {
-    IPromptReplyBackend, IShellFeedbackRequest, IShellPasswordFeedbackRequest, ShellPromptResponseType,
-    IShellResultType,
-} from "../../communication";
-import { requisitions } from "../../supplement/Requisitions";
+    IShellResultType, IShellPasswordFeedbackRequest, IShellFeedbackRequest,
+} from "../../communication/ProtocolGui";
 
-export interface IPromptData {
-    requestId: string;
-    backend: IPromptReplyBackend;
-}
+import { requisitions } from "../../supplement/Requisitions";
 
 /**
  * A class to centrally deal with possible shell prompt requests. It triggers specific dialogs and sends back

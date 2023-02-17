@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -175,7 +175,7 @@ export interface IMySQLConnectionOptions {
     "compression-level"?: number;
 
     /** List of connection attributes to be registered at the PERFORMANCE_SCHEMA connection attributes tables. */
-    "connection-attributes"?: { [key: string]: string };
+    "connection-attributes"?: { [key: string]: string; };
 
     /** Enable/disable LOAD DATA LOCAL INFILE. */
     "local-infile"?: boolean;

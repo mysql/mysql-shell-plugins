@@ -3,13 +3,13 @@
 exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
 <ConnectionBrowser
   connections={
-    Array [
-      Object {
+    [
+      {
         "caption": "",
         "dbType": "MySQL",
         "description": "",
         "id": 0,
-        "options": Object {
+        "options": {
           "type": "unknown",
         },
         "useMDS": false,
@@ -28,7 +28,7 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
     <div
       className="msg container fixedScrollbar connectionBrowser"
       style={
-        Object {
+        {
           "alignItems": undefined,
           "flexDirection": "column",
           "flexWrap": "nowrap",
@@ -42,12 +42,12 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
       >
         <Dialog
           actions={
-            Object {
-              "end": Array [],
+            {
+              "end": [],
             }
           }
           caption={
-            <y>
+            <p>
               <Icon
                 disabled={false}
                 src={275}
@@ -55,10 +55,14 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
               <Label>
                 Confirm
               </Label>
-            </y>
+            </p>
           }
           className="msg confirmDialog"
-          container={Object {}}
+          container={
+            <body
+              theme="dark"
+            />
+          }
           content={
             <Container
               orientation="column"
@@ -73,7 +77,11 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
           onClose={[Function]}
         >
           <Portal
-            container={Object {}}
+            container={
+              <body
+                theme="dark"
+              />
+            }
             onClose={[Function]}
             onOpen={[Function]}
           />
@@ -85,12 +93,12 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
       >
         <Dialog
           actions={
-            Object {
-              "end": Array [],
+            {
+              "end": [],
             }
           }
           caption={
-            <y>
+            <p>
               <Icon
                 disabled={false}
                 src={275}
@@ -98,10 +106,14 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
               <Label>
                 Confirm
               </Label>
-            </y>
+            </p>
           }
           className="msg confirmDialog"
-          container={Object {}}
+          container={
+            <body
+              theme="dark"
+            />
+          }
           content={
             <Container
               orientation="column"
@@ -116,7 +128,11 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
           onClose={[Function]}
         >
           <Portal
-            container={Object {}}
+            container={
+              <body
+                theme="dark"
+              />
+            }
             onClose={[Function]}
             onOpen={[Function]}
           />
@@ -130,9 +146,9 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
       >
         <Dialog
           actions={
-            Object {
-              "begin": Array [],
-              "end": Array [
+            {
+              "begin": [],
+              "end": [
                 <Button
                   caption="OK"
                   disabled={false}
@@ -148,16 +164,20 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
             }
           }
           caption={
-            <y>
+            <p>
               <Icon
                 disabled={false}
                 src={388}
               />
               <Label />
-            </y>
+            </p>
           }
           className="msg valueEditDialog"
-          container={Object {}}
+          container={
+            <body
+              theme="dark"
+            />
+          }
           content={
             <Grid
               columnGap={16}
@@ -170,7 +190,11 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
           onSelectTab={[Function]}
         >
           <Portal
-            container={Object {}}
+            container={
+              <body
+                theme="dark"
+              />
+            }
             id="connectionEditor"
             onClose={[Function]}
             onOpen={[Function]}
@@ -205,12 +229,12 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
       >
         <Dialog
           actions={
-            Object {
-              "end": Array [],
+            {
+              "end": [],
             }
           }
           caption={
-            <y>
+            <p>
               <Icon
                 disabled={false}
                 src={275}
@@ -218,10 +242,14 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
               <Label>
                 Confirm
               </Label>
-            </y>
+            </p>
           }
           className="msg confirmDialog"
-          container={Object {}}
+          container={
+            <body
+              theme="dark"
+            />
+          }
           content={
             <Container
               orientation="column"
@@ -236,7 +264,11 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
           onClose={[Function]}
         >
           <Portal
-            container={Object {}}
+            container={
+              <body
+                theme="dark"
+              />
+            }
             onClose={[Function]}
             onOpen={[Function]}
           />
@@ -272,7 +304,13 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
         description="DB Notebooks are modern editors for working with databases. They can be used to create and manage databases schema objects, write SQL queries and scripts, and work with data.
 
 Click on a Database Connection to open a new DB Notebook."
-        helpUrls={Object {}}
+        helpUrls={
+          Map {
+            "Learn More >" => "https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code",
+            "Browse Tutorial >" => "https://www.mysql.com",
+            "Read Docs >" => "https://www.mysql.com",
+          }
+        }
         onCloseGreeting={[Function]}
         showGreeting={true}
       >
@@ -283,7 +321,7 @@ Click on a Database Connection to open a new DB Notebook."
           <div
             className="msg container fixedScrollbar frontPage"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "column",
                 "flexWrap": undefined,
@@ -292,22 +330,21 @@ Click on a Database Connection to open a new DB Notebook."
             }
           >
             <Label
-              as="h2"
               id="title"
               textAlignment="center"
             >
-              <h2
+              <label
                 className="msg label"
                 data-tooltip="expand"
                 id="title"
                 style={
-                  Object {
+                  {
                     "textAlign": "center",
                   }
                 }
               >
                 MySQL Shell - DB Notebooks
-              </h2>
+              </label>
             </Label>
             <Label
               id="description"
@@ -318,7 +355,7 @@ Click on a Database Connection to open a new DB Notebook."
                 data-tooltip="expand"
                 id="description"
                 style={
-                  Object {
+                  {
                     "textAlign": "center",
                   }
                 }
@@ -338,7 +375,7 @@ Click on a Database Connection to open a new DB Notebook.
                 className="msg container fixedScrollbar"
                 id="linksHost"
                 style={
-                  Object {
+                  {
                     "alignItems": undefined,
                     "flexDirection": "row",
                     "flexWrap": "wrap",
@@ -391,7 +428,7 @@ Click on a Database Connection to open a new DB Notebook.
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -402,11 +439,11 @@ Click on a Database Connection to open a new DB Notebook.
                   disabled={false}
                   src="close2.svg"
                 >
-                  <div
+                  <span
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
-                      Object {
+                      {
                         "WebkitMaskImage": "url(close2.svg)",
                         "backgroundColor": undefined,
                         "height": undefined,
@@ -424,7 +461,7 @@ Click on a Database Connection to open a new DB Notebook.
               <div
                 className="msg container fixedScrollbar"
                 style={
-                  Object {
+                  {
                     "alignItems": undefined,
                     "flexDirection": "column",
                     "flexWrap": undefined,
@@ -433,35 +470,96 @@ Click on a Database Connection to open a new DB Notebook.
                 }
               >
                 <Label
-                  as="h2"
                   caption="Database Connections"
                   id="contentTitle"
                 >
-                  <h2
+                  <label
                     className="msg label"
                     data-tooltip="expand"
                     id="contentTitle"
-                    style={
-                      Object {
-                        "textAlign": undefined,
-                      }
-                    }
+                    style={{}}
                   >
                     Database Connections
-                  </h2>
+                  </label>
                 </Label>
                 <Container
                   id="tilesHost"
                   innerRef={
-                    Object {
-                      "current": Object {
-                        "l": Object {
-                          "dragenterfalse": [Function],
-                          "dragleavefalse": [Function],
-                          "dragoverfalse": [Function],
-                          "dropfalse": [Function],
-                        },
-                      },
+                    {
+                      "current": <div
+                        class="msg container fixedScrollbar"
+                        id="tilesHost"
+                        style="flex-direction: row; flex-wrap: wrap;"
+                      >
+                        <button
+                          class="msg button browserTile connectionTile"
+                          draggable="true"
+                          id="0"
+                          tabindex="0"
+                        >
+                          <span
+                            class="msg icon"
+                            style="mask-image: url(mysql.svg);"
+                          />
+                          <div
+                            class="msg container fixedScrollbar textHost"
+                            style="flex-direction: column;"
+                          >
+                            <label
+                              class="msg label tileCaption"
+                              data-tooltip="expand"
+                            >
+                              
+                            </label>
+                            <label
+                              class="msg label tileDescription"
+                              data-tooltip="expand"
+                            >
+                              
+                            </label>
+                          </div>
+                          <div
+                            class="msg container fixedScrollbar"
+                            id="actions"
+                            style="flex-direction: row; justify-content: center; align-items: center;"
+                          >
+                            <label
+                              class="msg label"
+                              data-tooltip="expand"
+                              id="triggerTileAction"
+                            >
+                              …
+                            </label>
+                          </div>
+                        </button>
+                        <button
+                          class="msg button browserTile secondary connectionTile"
+                          id="-1"
+                          tabindex="0"
+                        >
+                          <span
+                            class="msg icon"
+                            style="mask-image: url(plus.svg);"
+                          />
+                          <div
+                            class="msg container fixedScrollbar textHost"
+                            style="flex-direction: column;"
+                          >
+                            <label
+                              class="msg label tileCaption"
+                              data-tooltip="expand"
+                            >
+                              New Connection
+                            </label>
+                            <label
+                              class="msg label tileDescription"
+                              data-tooltip="expand"
+                            >
+                              Add a new database connection
+                            </label>
+                          </div>
+                        </button>
+                      </div>,
                     }
                   }
                   onDragEnter={[Function]}
@@ -479,7 +577,7 @@ Click on a Database Connection to open a new DB Notebook.
                     onDragOver={[Function]}
                     onDrop={[Function]}
                     style={
-                      Object {
+                      {
                         "alignItems": undefined,
                         "flexDirection": "row",
                         "flexWrap": "wrap",
@@ -492,12 +590,12 @@ Click on a Database Connection to open a new DB Notebook.
                       className="connectionTile"
                       description=""
                       details={
-                        Object {
+                        {
                           "caption": "",
                           "dbType": "MySQL",
                           "description": "",
                           "id": 0,
-                          "options": Object {
+                          "options": {
                             "type": "unknown",
                           },
                           "useMDS": false,
@@ -535,7 +633,7 @@ Click on a Database Connection to open a new DB Notebook.
                           onKeyPress={[Function]}
                           onMouseDown={[Function]}
                           style={
-                            Object {
+                            {
                               "flexDirection": undefined,
                             }
                           }
@@ -545,10 +643,10 @@ Click on a Database Connection to open a new DB Notebook.
                             disabled={false}
                             src="mysql.svg"
                           >
-                            <div
+                            <span
                               className="msg icon"
                               style={
-                                Object {
+                                {
                                   "WebkitMaskImage": "url(mysql.svg)",
                                   "backgroundColor": undefined,
                                   "height": undefined,
@@ -565,7 +663,7 @@ Click on a Database Connection to open a new DB Notebook.
                             <div
                               className="msg container fixedScrollbar textHost"
                               style={
-                                Object {
+                                {
                                   "alignItems": undefined,
                                   "flexDirection": "column",
                                   "flexWrap": undefined,
@@ -579,11 +677,7 @@ Click on a Database Connection to open a new DB Notebook.
                                 <label
                                   className="msg label tileCaption"
                                   data-tooltip="expand"
-                                  style={
-                                    Object {
-                                      "textAlign": undefined,
-                                    }
-                                  }
+                                  style={{}}
                                 />
                               </Label>
                               <Label
@@ -592,11 +686,7 @@ Click on a Database Connection to open a new DB Notebook.
                                 <label
                                   className="msg label tileDescription"
                                   data-tooltip="expand"
-                                  style={
-                                    Object {
-                                      "textAlign": undefined,
-                                    }
-                                  }
+                                  style={{}}
                                 />
                               </Label>
                             </div>
@@ -605,8 +695,20 @@ Click on a Database Connection to open a new DB Notebook.
                             crossAlignment="center"
                             id="actions"
                             innerRef={
-                              Object {
-                                "current": Object {},
+                              {
+                                "current": <div
+                                  class="msg container fixedScrollbar"
+                                  id="actions"
+                                  style="flex-direction: row; justify-content: center; align-items: center;"
+                                >
+                                  <label
+                                    class="msg label"
+                                    data-tooltip="expand"
+                                    id="triggerTileAction"
+                                  >
+                                    …
+                                  </label>
+                                </div>,
                               }
                             }
                             mainAlignment="center"
@@ -616,7 +718,7 @@ Click on a Database Connection to open a new DB Notebook.
                               className="msg container fixedScrollbar"
                               id="actions"
                               style={
-                                Object {
+                                {
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "flexWrap": undefined,
@@ -634,11 +736,7 @@ Click on a Database Connection to open a new DB Notebook.
                                   data-tooltip="expand"
                                   id="triggerTileAction"
                                   onClick={[Function]}
-                                  style={
-                                    Object {
-                                      "textAlign": undefined,
-                                    }
-                                  }
+                                  style={{}}
                                 >
                                   …
                                 </label>
@@ -653,12 +751,12 @@ Click on a Database Connection to open a new DB Notebook.
                       className="connectionTile"
                       description="Add a new database connection"
                       details={
-                        Object {
+                        {
                           "caption": "New Connection",
                           "dbType": "MySQL",
                           "description": "Add a new database connection",
                           "id": -1,
-                          "options": Object {
+                          "options": {
                             "dbFile": "",
                             "dbName": "",
                           },
@@ -695,7 +793,7 @@ Click on a Database Connection to open a new DB Notebook.
                           onKeyPress={[Function]}
                           onMouseDown={[Function]}
                           style={
-                            Object {
+                            {
                               "flexDirection": undefined,
                             }
                           }
@@ -705,10 +803,10 @@ Click on a Database Connection to open a new DB Notebook.
                             disabled={false}
                             src="plus.svg"
                           >
-                            <div
+                            <span
                               className="msg icon"
                               style={
-                                Object {
+                                {
                                   "WebkitMaskImage": "url(plus.svg)",
                                   "backgroundColor": undefined,
                                   "height": undefined,
@@ -725,7 +823,7 @@ Click on a Database Connection to open a new DB Notebook.
                             <div
                               className="msg container fixedScrollbar textHost"
                               style={
-                                Object {
+                                {
                                   "alignItems": undefined,
                                   "flexDirection": "column",
                                   "flexWrap": undefined,
@@ -739,11 +837,7 @@ Click on a Database Connection to open a new DB Notebook.
                                 <label
                                   className="msg label tileCaption"
                                   data-tooltip="expand"
-                                  style={
-                                    Object {
-                                      "textAlign": undefined,
-                                    }
-                                  }
+                                  style={{}}
                                 >
                                   New Connection
                                 </label>
@@ -754,11 +848,7 @@ Click on a Database Connection to open a new DB Notebook.
                                 <label
                                   className="msg label tileDescription"
                                   data-tooltip="expand"
-                                  style={
-                                    Object {
-                                      "textAlign": undefined,
-                                    }
-                                  }
+                                  style={{}}
                                 >
                                   Add a new database connection
                                 </label>

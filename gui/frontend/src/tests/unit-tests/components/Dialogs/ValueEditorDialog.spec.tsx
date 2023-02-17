@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,7 +21,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
 import { mount } from "enzyme";
 import keyboardKey from "keyboard-key";
 
@@ -30,10 +29,11 @@ import {
     IStringInputDialogValue, ValueEditDialog,
 } from "../../../../components/Dialogs/ValueEditDialog";
 import {
-    changeInputValue, nextProcessTick, sendBlurEvent, sendKeyPress, snapshotFromWrapper,
+    changeInputValue, nextProcessTick, sendBlurEvent, sendKeyPress,
 } from "../../test-helpers";
-import { CheckState, ICheckboxProperties, Label } from "../../../../components/ui";
 import { IDictionary } from "../../../../app-logic/Types";
+import { ICheckboxProperties, CheckState } from "../../../../components/ui/Checkbox/Checkbox";
+import { Label } from "../../../../components/ui/Label/Label";
 
 describe("Value Edit Dialog Tests", (): void => {
     const clickButton = jest.fn((_id: string, _values: IDialogValues): void => {
@@ -205,7 +205,7 @@ describe("Value Edit Dialog Tests", (): void => {
         const component = mount<ValueEditDialog>(
             <ValueEditDialog />,
         );
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
 
         component.unmount();
     });

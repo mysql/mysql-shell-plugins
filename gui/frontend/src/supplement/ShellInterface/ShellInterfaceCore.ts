@@ -22,7 +22,8 @@
 */
 
 import { IBackendInformation } from ".";
-import { MessageScheduler, ShellAPIGui } from "../../communication";
+import { MessageScheduler } from "../../communication/MessageScheduler";
+import { ShellAPIGui } from "../../communication/ProtocolGui";
 
 import { filterInt } from "../../utilities/string-helpers";
 

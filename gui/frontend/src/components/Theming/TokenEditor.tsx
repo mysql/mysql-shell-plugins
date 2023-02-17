@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,25 +24,32 @@
 import closeButton from "../../assets/images/close2.svg";
 import cloneButton from "../../assets/images/clone.svg";
 
-import React from "react";
+import { ComponentChild } from "preact";
 import Color from "color";
 
-import {
-    Component, IComponentProperties, Container, ITag, CheckState, Orientation, Button, Icon, Grid, GridCell, Label,
-    Input, TagInput, Checkbox, ICheckboxProperties, IInputChangeProperties, ColorField, IColorFieldProperties,
-} from "../ui";
 import { ITokenEntry } from "./ThemeManager";
+import { CheckState, Checkbox, ICheckboxProperties } from "../ui/Checkbox/Checkbox";
+import { ColorField, IColorFieldProperties } from "../ui/ColorPicker/ColorField";
+import { IComponentProperties, ComponentBase } from "../ui/Component/ComponentBase";
+import { Container, Orientation } from "../ui/Container/Container";
+import { Grid } from "../ui/Grid/Grid";
+import { GridCell } from "../ui/Grid/GridCell";
+import { Icon } from "../ui/Icon/Icon";
+import { Input, IInputChangeProperties } from "../ui/Input/Input";
+import { Label } from "../ui/Label/Label";
+import { ITag, TagInput } from "../ui/TagInput/TagInput";
+import { Button } from "../ui/Button/Button";
 
 export interface ITokenEditorProperties extends IComponentProperties {
     token: ITokenEntry;
 
-    onScopeListClick: (e: React.SyntheticEvent) => void;
+    onScopeListClick: (e: MouseEvent | KeyboardEvent) => void;
     onChange: (id: string, token: ITokenEntry) => void;
     onRemove: (id: string, token: ITokenEntry) => void;
     onDuplicate: (id: string, token: ITokenEntry) => void;
 }
 
-export class TokenEditor extends Component<ITokenEditorProperties> {
+export class TokenEditor extends ComponentBase<ITokenEditorProperties> {
 
     public constructor(props: ITokenEditorProperties) {
         super(props);
@@ -50,7 +57,7 @@ export class TokenEditor extends Component<ITokenEditorProperties> {
         this.addHandledProperties("onScopeListClick", "onRemove");
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { id, token, onScopeListClick } = this.props;
 
         const fontStyles = token.settings.fontStyle?.split(" ") || [];
@@ -251,7 +258,7 @@ export class TokenEditor extends Component<ITokenEditorProperties> {
         onChange(props.id!, token);
     };
 
-    private handleNameChange = (e: React.ChangeEvent, props: IInputChangeProperties): void => {
+    private handleNameChange = (e: InputEvent, props: IInputChangeProperties): void => {
         const { onChange, token } = this.props;
         token.name = props.value;
         this.forceUpdate();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,17 +22,15 @@
  */
 
 import { mount } from "enzyme";
-import React from "react";
-import { ITokenEditorProperties, TokenEditor } from "../../../../components/Theming/TokenEditor";
-import { snapshotFromWrapper } from "../../test-helpers";
 
+import { ITokenEditorProperties, TokenEditor } from "../../../../components/Theming/TokenEditor";
 
 describe("Token editor testing", () => {
 
     it("Token editor properties test", () => {
         const component = mount(
             <TokenEditor
-                token={ { name: "token1", scope: "local", settings: {}} }
+                token={{ name: "token1", scope: "local", settings: {} }}
                 id="tokenEditor1"
                 onScopeListClick={jest.fn}
                 onChange={jest.fn}
@@ -42,14 +40,14 @@ describe("Token editor testing", () => {
         );
         expect(component).toBeTruthy();
         const props = component.props() as ITokenEditorProperties;
-        expect(props.token).toEqual({ name: "token1", scope: "local", settings: {}});
+        expect(props.token).toEqual({ name: "token1", scope: "local", settings: {} });
         component.unmount();
     });
 
     it("Render test", () => {
         const component = mount(
             <TokenEditor
-                token={ { name: "token1", scope: "local", settings: {}} }
+                token={{ name: "token1", scope: "local", settings: {} }}
                 id="tokenEditor1"
                 onScopeListClick={jest.fn}
                 onChange={jest.fn}
@@ -57,7 +55,7 @@ describe("Token editor testing", () => {
                 onDuplicate={jest.fn}
             />,
         );
-        expect (snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
         component.unmount();
     });
 

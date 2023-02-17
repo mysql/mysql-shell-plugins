@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,12 +23,17 @@
 
 /* eslint-disable no-underscore-dangle */
 
-import {
-    ANTLRErrorListener, Recognizer, Token, RecognitionException, InputMismatchException, FailedPredicateException,
-    NoViableAltException, LexerNoViableAltException,
-} from "antlr4ts";
-
 import { Interval } from "antlr4ts/misc";
+import { ANTLRErrorListener } from "antlr4ts/ANTLRErrorListener";
+import { Token } from "antlr4ts/Token";
+import { Recognizer } from "antlr4ts/Recognizer";
+import { RecognitionException } from "antlr4ts/RecognitionException";
+import { InputMismatchException } from "antlr4ts/InputMismatchException";
+import { FailedPredicateException } from "antlr4ts/FailedPredicateException";
+import { NoViableAltException } from "antlr4ts/NoViableAltException";
+import { LexerNoViableAltException } from "antlr4ts/LexerNoViableAltException";
+import { ATNSimulator } from "antlr4ts/atn/ATNSimulator";
+
 import { ErrorReportCallback } from "../parser-common";
 import { SQLiteParser } from "./generated/SQLiteParser";
 import { SQLiteLexer } from "./generated/SQLiteLexer";
@@ -38,9 +43,9 @@ export class SQLiteErrorListener implements ANTLRErrorListener<Token> {
     public constructor(private callback: ErrorReportCallback) {
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    public syntaxError<T extends Token | number>(recognizer: Recognizer<T, any>, offendingSymbol: T | undefined,
-        line: number, charPositionInLine: number, msg: string, e: RecognitionException | undefined): void {
+    public syntaxError<T extends Token | number, R extends ATNSimulator>(recognizer: Recognizer<T, R>,
+        offendingSymbol: T | undefined, line: number, charPositionInLine: number, msg: string,
+        e: RecognitionException | undefined): void {
 
         let message = "";
 
@@ -48,8 +53,7 @@ export class SQLiteErrorListener implements ANTLRErrorListener<Token> {
         if (offendingSymbol) {
             let token = offendingSymbol as Token;
 
-            const parser = recognizer as SQLiteParser;
-            //const lexer = parser.inputStream.tokenSource as SQLiteLexer;
+            const parser = recognizer as unknown as SQLiteParser;
             const isEof = token.type === Token.EOF;
             if (isEof) {
                 token = parser.inputStream.get(token.tokenIndex - 1);
@@ -111,7 +115,7 @@ export class SQLiteErrorListener implements ANTLRErrorListener<Token> {
         } else {
             // No offending symbol, which indicates this is a lexer error.
             if (e instanceof LexerNoViableAltException) {
-                const lexer = recognizer as SQLiteLexer;
+                const lexer = recognizer as unknown as SQLiteLexer;
                 const input = lexer.inputStream;
                 let text = lexer.getErrorDisplay(input.getText(new Interval(lexer._tokenStartCharIndex, input.index)));
                 if (text === "") {

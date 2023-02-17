@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,7 +23,9 @@
 
 /* eslint-disable no-underscore-dangle */
 
-import { Token, Lexer } from "antlr4ts";
+import { Token } from "antlr4ts/Token";
+import { Lexer } from "antlr4ts/Lexer";
+
 import { QueryType } from "../parser-common";
 
 import { MySQLLexer } from "./generated/MySQLLexer";
@@ -1385,10 +1387,9 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
         ++this._tokenStartCharIndex;
     }
 
+    // eslint-disable-next-line jsdoc/require-returns-check
     /**
-     * Returns the next token in the token stream that is on the default channel (not a hidden or other one).
-     *
-     * @returns The next token. Can be EOF to denote the end of input.
+     * @returns the next token in the token stream that is on the default channel (not a hidden or other one).
      */
     private nextDefaultChannelToken(): Token {
         do {
@@ -1398,7 +1399,6 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
             }
 
         } while (true);
-
     }
 
     /**
@@ -1452,4 +1452,3 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
         return false;
     }
 }
-

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,15 +22,15 @@
  */
 
 import { mount, shallow } from "enzyme";
-import React from "react";
+import { ComponentSize } from "../../../../components/ui/Component/ComponentBase";
+import { Label, TextAlignment, ILabelProperties } from "../../../../components/ui/Label/Label";
 
-import { Label, ComponentSize, TextAlignment, ILabelProperties } from "../../../../components/ui";
-import { loremIpsum, snapshotFromWrapper } from "../../test-helpers";
+import { loremIpsum } from "../../test-helpers";
 
 describe("Label component test", (): void => {
 
     it("Test Label elements", () => {
-        const component = shallow(
+        const component = shallow<Label>(
             <Label
                 id="myLabel1"
                 textAlignment={TextAlignment.Center}
@@ -46,9 +46,9 @@ describe("Label component test", (): void => {
 
     it("Test Label output", () => {
         const component = mount<Label>(
-            <Label as="h1">H1 Label</Label>,
+            <Label>A Label</Label>,
         );
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
 
         component.unmount();
     });
@@ -72,10 +72,9 @@ describe("Label component test", (): void => {
                 caption={loremIpsum}
             />,
         );
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
 
         component.unmount();
     });
 
 });
-

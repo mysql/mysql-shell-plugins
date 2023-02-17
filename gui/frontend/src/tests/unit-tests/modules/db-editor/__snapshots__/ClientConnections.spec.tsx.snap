@@ -3,10 +3,10 @@
 exports[`Client connections module tests Test ClientConnections instantiation: ClientConnections1 1`] = `
 <ClientConnections
   backend={
-    Object {
-      "mds": Object {},
+    ShellInterfaceSqlEditor {
+      "mds": ShellInterfaceMds {},
       "moduleSessionLookupId": "",
-      "mrs": Object {
+      "mrs": ShellInterfaceMrs {
         "moduleSessionLookupId": "",
       },
     }
@@ -20,7 +20,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
     <div
       className="msg container fixedScrollbar clientConnections"
       style={
-        Object {
+        {
           "alignItems": undefined,
           "flexDirection": "column",
           "flexWrap": undefined,
@@ -43,7 +43,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
             className="msg container fixedScrollbar toolbar verticalCenterContent"
             id="clientConnectionToolbar"
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -57,11 +57,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 Refresh Rate:
               </label>
@@ -80,19 +76,26 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 crossAlignment="center"
                 id="refreshSelector"
                 innerRef={
-                  Object {
-                    "current": Object {
-                      "l": Object {
-                        "clickfalse": [Function],
-                        "keydownfalse": [Function],
-                      },
-                    },
+                  {
+                    "current": <div
+                      class="msg container fixedScrollbar dropdown"
+                      id="refreshSelector"
+                      style="flex-direction: row; align-items: center;"
+                      tabindex="0"
+                    >
+                      <label
+                        class="msg label ellipsis"
+                        data-tooltip="expand"
+                      >
+                        5 seconds
+                      </label>
+                    </div>,
                   }
                 }
+                onBlur={[Function]}
                 onClick={[Function]}
                 onKeyDown={[Function]}
                 orientation="row"
-                selection="5"
                 tabIndex={0}
               >
                 <div
@@ -100,9 +103,9 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                   id="refreshSelector"
                   onClick={[Function]}
                   onKeyDown={[Function]}
-                  selection="5"
+                  onfocusout={[Function]}
                   style={
-                    Object {
+                    {
                       "alignItems": "center",
                       "flexDirection": "row",
                       "flexWrap": undefined,
@@ -117,11 +120,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                     <label
                       className="msg label ellipsis"
                       data-tooltip="expand"
-                      style={
-                        Object {
-                          "textAlign": undefined,
-                        }
-                      }
+                      style={{}}
                     >
                       5 seconds
                     </label>
@@ -132,7 +131,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 className="dropdownList"
                 id="refreshSelectorPopup"
                 innerRef={
-                  Object {
+                  {
                     "current": null,
                   }
                 }
@@ -160,7 +159,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 onMouseEnter={[Function]}
                 onMouseLeave={[Function]}
                 style={
-                  Object {
+                  {
                     "--thickness": "1px",
                   }
                 }
@@ -178,7 +177,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -189,11 +188,11 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                   disabled={false}
                   src="toolbar-sleeping_conns-active.svg"
                 >
-                  <div
+                  <span
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
-                      Object {
+                      {
                         "WebkitMaskImage": "url(toolbar-sleeping_conns-active.svg)",
                         "backgroundColor": undefined,
                         "height": undefined,
@@ -217,7 +216,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -228,11 +227,11 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                   disabled={false}
                   src="toolbar-background_threads-active.svg"
                 >
-                  <div
+                  <span
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
-                      Object {
+                      {
                         "WebkitMaskImage": "url(toolbar-background_threads-active.svg)",
                         "backgroundColor": undefined,
                         "height": undefined,
@@ -254,7 +253,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 onMouseEnter={[Function]}
                 onMouseLeave={[Function]}
                 style={
-                  Object {
+                  {
                     "--thickness": "1px",
                   }
                 }
@@ -272,7 +271,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -283,11 +282,11 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                   disabled={false}
                   src="toolbar-info-inactive.svg"
                 >
-                  <div
+                  <span
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
-                      Object {
+                      {
                         "WebkitMaskImage": "url(toolbar-info-inactive.svg)",
                         "backgroundColor": undefined,
                         "height": undefined,
@@ -311,7 +310,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -322,11 +321,11 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                   disabled={false}
                   src="toolbar-show_details-inactive.svg"
                 >
-                  <div
+                  <span
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
-                      Object {
+                      {
                         "WebkitMaskImage": "url(toolbar-show_details-inactive.svg)",
                         "backgroundColor": undefined,
                         "height": undefined,
@@ -348,7 +347,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 onMouseEnter={[Function]}
                 onMouseLeave={[Function]}
                 style={
-                  Object {
+                  {
                     "--thickness": "1px",
                   }
                 }
@@ -368,7 +367,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -379,11 +378,11 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                   disabled={false}
                   src="toolbar-kill_query.svg"
                 >
-                  <div
+                  <span
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
-                      Object {
+                      {
                         "WebkitMaskImage": "url(toolbar-kill_query.svg)",
                         "backgroundColor": undefined,
                         "height": undefined,
@@ -409,7 +408,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -420,11 +419,11 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                   disabled={false}
                   src="toolbar-kill_connection.svg"
                 >
-                  <div
+                  <span
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
-                      Object {
+                      {
                         "WebkitMaskImage": "url(toolbar-kill_connection.svg)",
                         "backgroundColor": undefined,
                         "height": undefined,
@@ -450,7 +449,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
           className="msg container fixedScrollbar"
           id="contentHost"
           style={
-            Object {
+            {
               "alignItems": undefined,
               "flexDirection": "column",
               "flexWrap": undefined,
@@ -468,7 +467,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               className="msg container fixedScrollbar"
               id="connectionProps"
               style={
-                Object {
+                {
                   "alignItems": "flex-start",
                   "flexDirection": "row",
                   "flexWrap": "wrap",
@@ -482,11 +481,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <label
                   className="msg label"
                   data-tooltip="expand"
-                  style={
-                    Object {
-                      "textAlign": undefined,
-                    }
-                  }
+                  style={{}}
                 >
                   Threads Connected: 
                 </label>
@@ -497,11 +492,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <label
                   className="msg label"
                   data-tooltip="expand"
-                  style={
-                    Object {
-                      "textAlign": undefined,
-                    }
-                  }
+                  style={{}}
                 >
                   Threads Running: 
                 </label>
@@ -512,11 +503,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <label
                   className="msg label"
                   data-tooltip="expand"
-                  style={
-                    Object {
-                      "textAlign": undefined,
-                    }
-                  }
+                  style={{}}
                 >
                   Threads Created: 
                 </label>
@@ -527,11 +514,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <label
                   className="msg label"
                   data-tooltip="expand"
-                  style={
-                    Object {
-                      "textAlign": undefined,
-                    }
-                  }
+                  style={{}}
                 >
                   Threads Cached: 
                 </label>
@@ -542,11 +525,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <label
                   className="msg label"
                   data-tooltip="expand"
-                  style={
-                    Object {
-                      "textAlign": undefined,
-                    }
-                  }
+                  style={{}}
                 >
                   Rejected (over limit): 
                 </label>
@@ -557,11 +536,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <label
                   className="msg label"
                   data-tooltip="expand"
-                  style={
-                    Object {
-                      "textAlign": undefined,
-                    }
-                  }
+                  style={{}}
                 >
                   Total Connections: 
                 </label>
@@ -572,11 +547,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <label
                   className="msg label"
                   data-tooltip="expand"
-                  style={
-                    Object {
-                      "textAlign": undefined,
-                    }
-                  }
+                  style={{}}
                 >
                   Connection Limit: 
                 </label>
@@ -587,11 +558,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <label
                   className="msg label"
                   data-tooltip="expand"
-                  style={
-                    Object {
-                      "textAlign": undefined,
-                    }
-                  }
+                  style={{}}
                 >
                   Aborted Clients: 
                 </label>
@@ -602,11 +569,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <label
                   className="msg label"
                   data-tooltip="expand"
-                  style={
-                    Object {
-                      "textAlign": undefined,
-                    }
-                  }
+                  style={{}}
                 >
                   Aborted Connections: 
                 </label>
@@ -617,11 +580,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <label
                   className="msg label"
                   data-tooltip="expand"
-                  style={
-                    Object {
-                      "textAlign": undefined,
-                    }
-                  }
+                  style={{}}
                 >
                   Errors: 
                 </label>
@@ -636,7 +595,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               className="msg container fixedScrollbar"
               id="connectionListTitle"
               style={
-                Object {
+                {
                   "alignItems": undefined,
                   "flexDirection": "column",
                   "flexWrap": undefined,
@@ -653,7 +612,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                   onMouseEnter={[Function]}
                   onMouseLeave={[Function]}
                   style={
-                    Object {
+                    {
                       "--thickness": "4px",
                     }
                   }
@@ -663,11 +622,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <label
                   className="msg label"
                   data-tooltip="expand"
-                  style={
-                    Object {
-                      "textAlign": undefined,
-                    }
-                  }
+                  style={{}}
                 >
                   Client Connection List
                 </label>
@@ -682,7 +637,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               className="msg container fixedScrollbar"
               id="connectionList"
               style={
-                Object {
+                {
                   "alignItems": undefined,
                   "flexDirection": "row",
                   "flexWrap": undefined,
@@ -701,10 +656,10 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
 exports[`Client connections module tests Test ClientConnections instantiation: ClientConnections2 1`] = `
 <ClientConnections
   backend={
-    Object {
-      "mds": Object {},
+    ShellInterfaceSqlEditor {
+      "mds": ShellInterfaceMds {},
       "moduleSessionLookupId": "",
-      "mrs": Object {
+      "mrs": ShellInterfaceMrs {
         "moduleSessionLookupId": "",
       },
     }
@@ -718,7 +673,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
     <div
       className="msg container fixedScrollbar clientConnections"
       style={
-        Object {
+        {
           "alignItems": undefined,
           "flexDirection": "column",
           "flexWrap": undefined,
@@ -741,7 +696,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
             className="msg container fixedScrollbar toolbar verticalCenterContent"
             id="clientConnectionToolbar"
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -755,11 +710,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 Refresh Rate:
               </label>
@@ -778,19 +729,26 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 crossAlignment="center"
                 id="refreshSelector"
                 innerRef={
-                  Object {
-                    "current": Object {
-                      "l": Object {
-                        "clickfalse": [Function],
-                        "keydownfalse": [Function],
-                      },
-                    },
+                  {
+                    "current": <div
+                      class="msg container fixedScrollbar dropdown"
+                      id="refreshSelector"
+                      style="flex-direction: row; align-items: center;"
+                      tabindex="0"
+                    >
+                      <label
+                        class="msg label ellipsis"
+                        data-tooltip="expand"
+                      >
+                        5 seconds
+                      </label>
+                    </div>,
                   }
                 }
+                onBlur={[Function]}
                 onClick={[Function]}
                 onKeyDown={[Function]}
                 orientation="row"
-                selection="5"
                 tabIndex={0}
               >
                 <div
@@ -798,9 +756,9 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                   id="refreshSelector"
                   onClick={[Function]}
                   onKeyDown={[Function]}
-                  selection="5"
+                  onfocusout={[Function]}
                   style={
-                    Object {
+                    {
                       "alignItems": "center",
                       "flexDirection": "row",
                       "flexWrap": undefined,
@@ -815,11 +773,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                     <label
                       className="msg label ellipsis"
                       data-tooltip="expand"
-                      style={
-                        Object {
-                          "textAlign": undefined,
-                        }
-                      }
+                      style={{}}
                     >
                       5 seconds
                     </label>
@@ -830,7 +784,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 className="dropdownList"
                 id="refreshSelectorPopup"
                 innerRef={
-                  Object {
+                  {
                     "current": null,
                   }
                 }
@@ -858,7 +812,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 onMouseEnter={[Function]}
                 onMouseLeave={[Function]}
                 style={
-                  Object {
+                  {
                     "--thickness": "1px",
                   }
                 }
@@ -876,7 +830,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -887,11 +841,11 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                   disabled={false}
                   src="toolbar-sleeping_conns-active.svg"
                 >
-                  <div
+                  <span
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
-                      Object {
+                      {
                         "WebkitMaskImage": "url(toolbar-sleeping_conns-active.svg)",
                         "backgroundColor": undefined,
                         "height": undefined,
@@ -915,7 +869,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -926,11 +880,11 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                   disabled={false}
                   src="toolbar-background_threads-active.svg"
                 >
-                  <div
+                  <span
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
-                      Object {
+                      {
                         "WebkitMaskImage": "url(toolbar-background_threads-active.svg)",
                         "backgroundColor": undefined,
                         "height": undefined,
@@ -952,7 +906,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 onMouseEnter={[Function]}
                 onMouseLeave={[Function]}
                 style={
-                  Object {
+                  {
                     "--thickness": "1px",
                   }
                 }
@@ -970,7 +924,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -981,11 +935,11 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                   disabled={false}
                   src="toolbar-info-inactive.svg"
                 >
-                  <div
+                  <span
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
-                      Object {
+                      {
                         "WebkitMaskImage": "url(toolbar-info-inactive.svg)",
                         "backgroundColor": undefined,
                         "height": undefined,
@@ -1009,7 +963,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -1020,11 +974,11 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                   disabled={false}
                   src="toolbar-show_details-inactive.svg"
                 >
-                  <div
+                  <span
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
-                      Object {
+                      {
                         "WebkitMaskImage": "url(toolbar-show_details-inactive.svg)",
                         "backgroundColor": undefined,
                         "height": undefined,
@@ -1046,7 +1000,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 onMouseEnter={[Function]}
                 onMouseLeave={[Function]}
                 style={
-                  Object {
+                  {
                     "--thickness": "1px",
                   }
                 }
@@ -1066,7 +1020,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -1077,11 +1031,11 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                   disabled={false}
                   src="toolbar-kill_query.svg"
                 >
-                  <div
+                  <span
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
-                      Object {
+                      {
                         "WebkitMaskImage": "url(toolbar-kill_query.svg)",
                         "backgroundColor": undefined,
                         "height": undefined,
@@ -1107,7 +1061,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -1118,11 +1072,11 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                   disabled={false}
                   src="toolbar-kill_connection.svg"
                 >
-                  <div
+                  <span
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
-                      Object {
+                      {
                         "WebkitMaskImage": "url(toolbar-kill_connection.svg)",
                         "backgroundColor": undefined,
                         "height": undefined,
@@ -1148,7 +1102,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
           className="msg container fixedScrollbar"
           id="contentHost"
           style={
-            Object {
+            {
               "alignItems": undefined,
               "flexDirection": "column",
               "flexWrap": undefined,
@@ -1166,7 +1120,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               className="msg container fixedScrollbar"
               id="connectionProps"
               style={
-                Object {
+                {
                   "alignItems": "flex-start",
                   "flexDirection": "row",
                   "flexWrap": "wrap",
@@ -1180,11 +1134,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <label
                   className="msg label"
                   data-tooltip="expand"
-                  style={
-                    Object {
-                      "textAlign": undefined,
-                    }
-                  }
+                  style={{}}
                 >
                   Threads Connected: 
                 </label>
@@ -1195,11 +1145,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <label
                   className="msg label"
                   data-tooltip="expand"
-                  style={
-                    Object {
-                      "textAlign": undefined,
-                    }
-                  }
+                  style={{}}
                 >
                   Threads Running: 
                 </label>
@@ -1210,11 +1156,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <label
                   className="msg label"
                   data-tooltip="expand"
-                  style={
-                    Object {
-                      "textAlign": undefined,
-                    }
-                  }
+                  style={{}}
                 >
                   Threads Created: 
                 </label>
@@ -1225,11 +1167,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <label
                   className="msg label"
                   data-tooltip="expand"
-                  style={
-                    Object {
-                      "textAlign": undefined,
-                    }
-                  }
+                  style={{}}
                 >
                   Threads Cached: 
                 </label>
@@ -1240,11 +1178,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <label
                   className="msg label"
                   data-tooltip="expand"
-                  style={
-                    Object {
-                      "textAlign": undefined,
-                    }
-                  }
+                  style={{}}
                 >
                   Rejected (over limit): 
                 </label>
@@ -1255,11 +1189,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <label
                   className="msg label"
                   data-tooltip="expand"
-                  style={
-                    Object {
-                      "textAlign": undefined,
-                    }
-                  }
+                  style={{}}
                 >
                   Total Connections: 
                 </label>
@@ -1270,11 +1200,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <label
                   className="msg label"
                   data-tooltip="expand"
-                  style={
-                    Object {
-                      "textAlign": undefined,
-                    }
-                  }
+                  style={{}}
                 >
                   Connection Limit: 
                 </label>
@@ -1285,11 +1211,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <label
                   className="msg label"
                   data-tooltip="expand"
-                  style={
-                    Object {
-                      "textAlign": undefined,
-                    }
-                  }
+                  style={{}}
                 >
                   Aborted Clients: 
                 </label>
@@ -1300,11 +1222,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <label
                   className="msg label"
                   data-tooltip="expand"
-                  style={
-                    Object {
-                      "textAlign": undefined,
-                    }
-                  }
+                  style={{}}
                 >
                   Aborted Connections: 
                 </label>
@@ -1315,11 +1233,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <label
                   className="msg label"
                   data-tooltip="expand"
-                  style={
-                    Object {
-                      "textAlign": undefined,
-                    }
-                  }
+                  style={{}}
                 >
                   Errors: 
                 </label>
@@ -1334,7 +1248,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               className="msg container fixedScrollbar"
               id="connectionListTitle"
               style={
-                Object {
+                {
                   "alignItems": undefined,
                   "flexDirection": "column",
                   "flexWrap": undefined,
@@ -1351,7 +1265,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                   onMouseEnter={[Function]}
                   onMouseLeave={[Function]}
                   style={
-                    Object {
+                    {
                       "--thickness": "4px",
                     }
                   }
@@ -1361,11 +1275,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <label
                   className="msg label"
                   data-tooltip="expand"
-                  style={
-                    Object {
-                      "textAlign": undefined,
-                    }
-                  }
+                  style={{}}
                 >
                   Client Connection List
                 </label>
@@ -1380,7 +1290,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               className="msg container fixedScrollbar"
               id="connectionList"
               style={
-                Object {
+                {
                   "alignItems": undefined,
                   "flexDirection": "row",
                   "flexWrap": undefined,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,14 +23,13 @@
 
 import "./Calendar.css";
 
-import React from "react";
+import { ComponentChild, createRef } from "preact";
 
-import {
-    IComponentProperties, IComponentState, Popup, ComponentPlacement, Component,
-} from "..";
 import { CalendarView } from "./CalendarView";
+import { IComponentProperties, IComponentState, ComponentBase, ComponentPlacement } from "../Component/ComponentBase";
+import { Popup } from "../Popup/Popup";
 
-export interface ICalendarProperties extends IComponentProperties {
+interface ICalendarProperties extends IComponentProperties {
     initialDate?: Date;
 
     onChange?: (date: Date) => void;
@@ -40,13 +39,13 @@ interface ICalendarState extends IComponentState {
     currentDate: Date; // XXX: convert to controlled component.
 }
 
-export class Calendar extends Component<ICalendarProperties, ICalendarState> {
+export class Calendar extends ComponentBase<ICalendarProperties, ICalendarState> {
 
     public static defaultProps = {
         initialDate: new Date(),
     };
 
-    private popupRef = React.createRef<Popup>();
+    private popupRef = createRef<Popup>();
 
     public constructor(props: ICalendarProperties) {
         super(props);
@@ -58,7 +57,7 @@ export class Calendar extends Component<ICalendarProperties, ICalendarState> {
         this.addHandledProperties("initialDate");
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { currentDate } = this.state;
         const className = this.getEffectiveClassNames(["calendarHost"]);
 

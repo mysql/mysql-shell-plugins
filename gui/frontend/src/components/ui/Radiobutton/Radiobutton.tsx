@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,10 +23,10 @@
 
 import "./Radiobutton.css";
 
-import React, { createRef } from "react";
+import { createRef, ComponentChild } from "preact";
 import keyboardKey from "keyboard-key";
-
-import { Component, IComponentProperties, CheckState, MouseEventType } from "..";
+import { CheckState } from "../Checkbox/Checkbox";
+import { IComponentProperties, ComponentBase, MouseEventType } from "../Component/ComponentBase";
 
 export interface IRadiobuttonProperties extends IComponentProperties {
     checkState?: CheckState;
@@ -37,7 +37,7 @@ export interface IRadiobuttonProperties extends IComponentProperties {
     onChange?: (checkState: CheckState, props: IRadiobuttonProperties) => void;
 }
 
-export class Radiobutton extends Component<IRadiobuttonProperties> {
+export class Radiobutton extends ComponentBase<IRadiobuttonProperties> {
 
     public static defaultProps = {
         checkState: CheckState?.Unchecked,
@@ -63,7 +63,7 @@ export class Radiobutton extends Component<IRadiobuttonProperties> {
         }
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { children, id, caption, name, disabled } = this.mergedProps;
         const className = this.getEffectiveClassNames([
             "radioButton",
@@ -93,7 +93,7 @@ export class Radiobutton extends Component<IRadiobuttonProperties> {
         );
     }
 
-    protected handleMouseEvent(type: MouseEventType, e: React.MouseEvent): boolean {
+    protected handleMouseEvent(type: MouseEventType, e: MouseEvent): boolean {
         const { disabled } = this.mergedProps;
         if (disabled) {
             e.preventDefault();
@@ -108,7 +108,7 @@ export class Radiobutton extends Component<IRadiobuttonProperties> {
         return true;
     }
 
-    private handleKeyPress = (e: React.KeyboardEvent<HTMLLabelElement>): void => {
+    private handleKeyPress = (e: KeyboardEvent): void => {
         const { disabled } = this.mergedProps;
 
         if (disabled) {

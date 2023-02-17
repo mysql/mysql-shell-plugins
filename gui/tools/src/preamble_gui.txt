@@ -1,5 +1,4 @@
+import { IConnectionDetails } from "../supplement/ShellInterface";
+import { IShellDictionary } from "./Protocol";
 
 /* eslint-disable max-len */
-
-import { IConnectionDetails } from "../supplement/ShellInterface";
-import { IShellDictionary } from ".";

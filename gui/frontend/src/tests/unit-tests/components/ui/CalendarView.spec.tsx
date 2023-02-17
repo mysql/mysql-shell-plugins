@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,16 +22,14 @@
  */
 
 import { mount } from "enzyme";
-import React from "react";
-import { CalendarView } from "../../../../components/ui/Calendar/CalendarView";
-import { snapshotFromWrapper } from "../../test-helpers";
 
+import { CalendarView } from "../../../../components/ui/Calendar/CalendarView";
 
 describe("CalendarView testing", () => {
 
     it("Calendar view test properties", () => {
         const currentDate = new Date("2022-05-02");
-        const component = mount(
+        const component = mount<CalendarView>(
             <CalendarView
                 date={currentDate}
                 onChangeMonth={jest.fn}
@@ -52,7 +50,7 @@ describe("CalendarView testing", () => {
                 onSelect={jest.fn}
             />,
         );
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
         component.unmount();
     });
 

@@ -28,18 +28,10 @@ import plusIcon from "../../assets/images/plus.svg";
 import editIcon from "../../assets/images/edit.svg";
 import cloneIcon from "../../assets/images/clone.svg";
 
-import * as React from "react";
 import path from "path";
+import { ComponentChild, createRef } from "preact";
+import { Children } from "preact/compat";
 
-import {
-    DBType, IConnectionDetails, ShellInterface, ShellInterfaceShellSession, ShellInterfaceSqlEditor,
-} from "../../supplement/ShellInterface";
-import {
-    Component, Label, Container, Orientation, ConnectionTile, FrontPage,
-    ContentWrap, IConnectionTileProperties, Menu, ComponentPlacement, MenuItem, IMenuItemProperties,
-    IComponentProperties, BrowserTileType, Toolbar, ICheckboxProperties, CheckState, Grid,
-    GridCell, ContentAlignment, IBrowserTileProperties, IComponentState, ProgressIndicator, IButtonProperties,
-} from "../../components/ui";
 import {
     ValueEditDialog, IDialogValues, IDialogValidations, CommonDialogValueOption, DialogValueType, IDialogSection,
     ICallbackData,
@@ -52,15 +44,36 @@ import {
     IMySQLConnectionOptions, MySQLConnCompression, MySQLConnectionScheme, MySQLSqlMode, MySQLSslMode,
 } from "../../communication/MySQL";
 import { filterInt } from "../../utilities/string-helpers";
-import { settings } from "../../supplement/Settings/Settings";
-import { ConfirmDialog } from "../../components/Dialogs";
-import { IBastionSummary, IMySQLDbSystem, IShellPasswordFeedbackRequest } from "../../communication";
+import { Settings } from "../../supplement/Settings/Settings";
+import { IBastionSummary, IMySQLDbSystem } from "../../communication";
 import {
     DialogResponseClosure, DialogType, IDialogResponse, IDictionary, IServicePasswordRequest,
 } from "../../app-logic/Types";
 import { ShellPromptHandler } from "../common/ShellPromptHandler";
 import { IToolbarItems } from ".";
-import { IMdsProfileData } from "../../communication/";
+import { IMdsProfileData } from "../../communication/ProtocolMds";
+import { BrowserTileType, IBrowserTileProperties } from "../../components/ui/BrowserTile/BrowserTile";
+import { IButtonProperties } from "../../components/ui/Button/Button";
+import { ICheckboxProperties, CheckState } from "../../components/ui/Checkbox/Checkbox";
+import {
+    IComponentProperties, IComponentState, ComponentBase, ComponentPlacement,
+} from "../../components/ui/Component/ComponentBase";
+import { ConnectionTile, IConnectionTileProperties } from "../../components/ui/ConnectionTile/ConnectionTile";
+import { Container, Orientation, ContentWrap, ContentAlignment } from "../../components/ui/Container/Container";
+import { FrontPage } from "../../components/ui/FrontPage/FrontPage";
+import { Grid } from "../../components/ui/Grid/Grid";
+import { GridCell } from "../../components/ui/Grid/GridCell";
+import { Label } from "../../components/ui/Label/Label";
+import { Menu } from "../../components/ui/Menu/Menu";
+import { MenuItem, IMenuItemProperties } from "../../components/ui/Menu/MenuItem";
+import { ProgressIndicator } from "../../components/ui/ProgressIndicator/ProgressIndicator";
+import { Toolbar } from "../../components/ui/Toolbar/Toolbar";
+import { IConnectionDetails, DBType } from "../../supplement/ShellInterface";
+import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface";
+import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/ShellInterfaceShellSession";
+import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor";
+import { ConfirmDialog } from "../../components/Dialogs/ConfirmDialog";
+import { IShellPasswordFeedbackRequest } from "../../communication/ProtocolGui";
 
 interface IConnectionBrowserProperties extends IComponentProperties {
     connections: IConnectionDetails[];
@@ -93,7 +106,7 @@ const editorDescription = [
     "Select a database type and enter database specific connection data.",
 ];
 
-export class ConnectionBrowser extends Component<IConnectionBrowserProperties, IConnectionBrowserState> {
+export class ConnectionBrowser extends ComponentBase<IConnectionBrowserProperties, IConnectionBrowserState> {
 
     private static mysqlSslModeMap = new Map<MySQLSslMode, string>([
         [MySQLSslMode.Disabled, "Disable"],
@@ -108,12 +121,12 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         [DBType.MySQL, mysqlIcon],
     ]);
 
-    private editorRef = React.createRef<ValueEditDialog>();
-    private actionMenuRef = React.createRef<Menu>();
-    private hostRef = React.createRef<HTMLElement>();
-    private confirmNewBastionDialogRef = React.createRef<ConfirmDialog>();
-    private keepConnectionDialogRef = React.createRef<ConfirmDialog>();
-    private confirmClearPasswordDialogRef = React.createRef<ConfirmDialog>();
+    private editorRef = createRef<ValueEditDialog>();
+    private actionMenuRef = createRef<Menu>();
+    private hostRef = createRef<HTMLDivElement>();
+    private confirmNewBastionDialogRef = createRef<ConfirmDialog>();
+    private keepConnectionDialogRef = createRef<ConfirmDialog>();
+    private confirmClearPasswordDialogRef = createRef<ConfirmDialog>();
     private testNotExisting = false;
 
     private shellSession = new ShellInterfaceShellSession();
@@ -172,7 +185,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         requisitions.unregister("dialogResponse", this.dialogResponse);
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { connections, toolbarItems } = this.props;
         const { loading, progressMessage } = this.state;
 
@@ -230,7 +243,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         linkMap.set("Read Docs >", "https://www.mysql.com");
 
         // If toolbar items are given, render a toolbar with them.
-        let toolbar: React.ReactElement | undefined;
+        let toolbar: ComponentChild | undefined;
         if (toolbarItems) {
             toolbar = <Toolbar
                 id="connectionOverviewToolbar"
@@ -317,7 +330,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     <MenuItem id="remove" caption="Remove Connection…" />
                 </Menu>
                 <FrontPage
-                    showGreeting={settings.get("dbEditor.connectionBrowser.showGreeting", true)}
+                    showGreeting={Settings.get("dbEditor.connectionBrowser.showGreeting", true)}
                     caption="MySQL Shell - DB Notebooks"
                     description={"DB Notebooks are modern editors for working with databases. They can be used to " +
                         "create and manage databases schema objects, write SQL queries and scripts, and work with " +
@@ -327,7 +340,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     helpUrls={linkMap}
                     onCloseGreeting={this.handleCloseGreeting}
                 >
-                    <Label as="h2" id="contentTitle" caption="Database Connections" />
+                    <Label id="contentTitle" caption="Database Connections" />
                     <Container
                         innerRef={this.hostRef}
                         id="tilesHost"
@@ -410,7 +423,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
     };
 
     private handleCloseGreeting = (): void => {
-        settings.set("dbEditor.connectionBrowser.showGreeting", false);
+        Settings.set("dbEditor.connectionBrowser.showGreeting", false);
     };
 
     private dbFileDropped = (fileName: string): Promise<boolean> => {
@@ -445,14 +458,14 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
      *
      * @param e The original drag event.
      */
-    private handleDrop = (e: React.DragEvent<HTMLElement>): void => {
+    private handleDrop = (e: DragEvent): void => {
         e.preventDefault();
         e.stopPropagation();
 
-        e.currentTarget.classList.remove("dropTarget");
+        (e.currentTarget as HTMLElement).classList.remove("dropTarget");
     };
 
-    private handleDragOver = (e: React.DragEvent<HTMLElement>): void => {
+    private handleDragOver = (e: DragEvent): void => {
         e.preventDefault();
         e.stopPropagation();
 
@@ -462,7 +475,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
         }
     };
 
-    private handleDragEnter = (e: React.DragEvent<HTMLElement>): void => {
+    private handleDragEnter = (e: DragEvent): void => {
         e.preventDefault();
         e.stopPropagation();
 
@@ -470,20 +483,20 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
             e.dataTransfer.effectAllowed = "linkMove";
             const hasFiles = e.dataTransfer.types.includes("Files");
             if (hasFiles) {
-                e.currentTarget.classList.add("dropTarget");
+                (e.currentTarget as HTMLElement).classList.add("dropTarget");
             }
         }
     };
 
-    private handleDragLeave = (e: React.DragEvent<HTMLElement>): void => {
+    private handleDragLeave = (e: DragEvent): void => {
         e.preventDefault();
         e.stopPropagation();
 
-        e.currentTarget.classList.remove("dropTarget");
+        (e.currentTarget as HTMLElement).classList.remove("dropTarget");
     };
 
-    private handleMenuItemClick = (_e: React.MouseEvent, props: IMenuItemProperties): boolean => {
-        if (!props.children || React.Children.count(props.children) === 0) {
+    private handleMenuItemClick = (_e: MouseEvent, props: IMenuItemProperties): boolean => {
+        if (!props.children || Children.count(props.children) === 0) {
             this.doHandleTileAction(props.id || "", this.currentTileDetails, {});
 
             return true;
@@ -585,7 +598,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
     };
 
     private confirmTileRemoval = (connection: IConnectionDetails): void => {
-        setImmediate(() => {
+        setTimeout(() => {
             void requisitions.execute("showDialog", {
                 type: DialogType.Confirm,
                 id: "deleteConnection",
@@ -597,7 +610,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                 },
                 data: { connection },
             });
-        });
+        }, 0);
     };
 
     private confirmBastionCreation = (connection?: IConnectionDetails): void => {
@@ -1125,7 +1138,7 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                 }
 
                 if (callbackData?.onAddConnection) {
-                    (callbackData?.onAddConnection)(details);
+                    callbackData?.onAddConnection(details);
                 } else if (data?.createNew) {
                     const { onAddConnection } = this.props;
                     onAddConnection(details);
@@ -1263,7 +1276,6 @@ export class ConnectionBrowser extends Component<IConnectionBrowserProperties, I
                     type: "resource",
                     caption: "Database Path:",
                     value: optionsSqlite.dbFile,
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     filters: { "SQLite 3": ["sqlite3", "sqlite"] },
                     placeholder: "<Enter the DB file location>",
                     horizontalSpan: 8,

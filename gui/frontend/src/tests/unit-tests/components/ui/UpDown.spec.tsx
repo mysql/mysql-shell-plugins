@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,11 +23,11 @@
 
 import { act } from "@testing-library/preact";
 import { mount, shallow } from "enzyme";
-import React from "react";
 
-import { IUpDownProperties, IUpDownState, TextAlignment, UpDown } from "../../../../components/ui";
-import { snapshotFromWrapper } from "../../test-helpers";
-import { eventMock } from "../../__mocks__/MockEvents";
+import { TextAlignment } from "../../../../components/ui/Label/Label";
+import { UpDown, IUpDownProperties, IUpDownState } from "../../../../components/ui/UpDown/UpDown";
+
+import { mouseEventMock } from "../../__mocks__/MockEvents";
 
 describe("UpDown render testing", (): void => {
 
@@ -44,7 +44,7 @@ describe("UpDown render testing", (): void => {
         expect(upButton).toBeTruthy();
         let onClick = (upButton.first().props() as IUpDownProperties).onClick;
         await act(() => {
-            onClick?.(eventMock, { id: "up" });
+            onClick?.(mouseEventMock, { id: "up" });
         });
         //upButton.simulate("click", { e: {} }, { props: { id: "up" } });
         expect(spyOnChange).toBeCalled();
@@ -55,7 +55,7 @@ describe("UpDown render testing", (): void => {
         expect(downButton).toBeTruthy();
         onClick = (downButton.first().props() as IUpDownProperties).onClick;
         await act(() => {
-            onClick?.(eventMock, { id: "up" });
+            onClick?.(mouseEventMock, { id: "up" });
         });
         expect(spyOnChange).toBeCalled();
     });
@@ -70,24 +70,24 @@ describe("UpDown render testing", (): void => {
         expect(upButton).toBeTruthy();
         let onClick = (upButton.first().props() as IUpDownProperties).onClick;
         await act(() => {
-            onClick?.(eventMock, { id: "up" });
+            onClick?.(mouseEventMock, { id: "up" });
         });
-        // XXX: don't access internal members!
+
         expect(component.state().currentValue).toBe(11);
 
         const downButton = component.find("#down");
         expect(downButton).toBeTruthy();
         onClick = (downButton.first().props() as IUpDownProperties).onClick;
         await act(() => {
-            onClick?.(eventMock, { id: "down" });
+            onClick?.(mouseEventMock, { id: "down" });
         });
         expect(component.state().currentValue).toBe(10);
         await act(() => {
-            onClick?.(eventMock, { id: "down" });
+            onClick?.(mouseEventMock, { id: "down" });
         });
         expect(component.state().currentValue).toBe(9);
         await act(() => {
-            onClick?.(eventMock, { id: "down" });
+            onClick?.(mouseEventMock, { id: "down" });
         });
         expect(component.state().currentValue).toBe(9);
     });
@@ -124,7 +124,7 @@ describe("UpDown render testing", (): void => {
                 ]}
             />,
         );
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
     });
 
 });

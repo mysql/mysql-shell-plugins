@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -20,3 +20,14 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
+
+/* eslint-disable @typescript-eslint/naming-convention */
+
+import type { Config } from "jest";
+
+export { };
+
+// eslint-disable-next-line @typescript-eslint/require-await
+module.exports = async (_globalConfig: unknown, _projectConfig: Config) => {
+    process.chdir("./src/tests/unit-tests");
+};

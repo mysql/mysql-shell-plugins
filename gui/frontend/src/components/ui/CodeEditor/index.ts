@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,7 +24,7 @@
 import { languages, editor, IPosition } from "monaco-editor/esm/vs/editor/editor.api";
 import { IStatementSpan } from "../../../parsing/parser-common";
 
-import { IExecuteResultReference } from "../../../script-execution";
+import { IContextProvider, IExecuteResultReference } from "../../../script-execution";
 import { EditorLanguage } from "../../../supplement";
 
 export type {
@@ -34,10 +34,6 @@ export type {
 export {
     editor as Monaco, languages, KeyMod, KeyCode, Selection, Range, Position, Uri,
 } from "monaco-editor/esm/vs/editor/editor.api";
-
-export {
-    ContextKeyExpr,
-} from "monaco-editor/esm/vs/platform/contextkey/common/contextkey";
 
 export type ProviderResult<T> = languages.ProviderResult<T>;
 
@@ -68,7 +64,7 @@ export type SelectionRange = languages.SelectionRange;
 
 export type FormattingOptions = languages.FormattingOptions;
 export type TextEdit = languages.TextEdit;
-export type WorkspaceTextEdit = languages.WorkspaceTextEdit;
+export type IWorkspaceTextEdit = languages.IWorkspaceTextEdit;
 
 export type FoldingRange = languages.FoldingRange;
 export type FoldingContext = languages.FoldingContext;
@@ -151,4 +147,20 @@ export interface IScriptExecutionOptions {
      * or all statements, if there's no selection.
      */
     source?: IPosition | string;
+}
+
+/** Determines the behavior of the code editor. */
+export enum CodeEditorMode {
+    Standard,
+
+    /** Different set of code completion values. No internal commands. */
+    Terminal
+}
+
+/** A stripped down model interface for the various code editor providers. */
+export interface IProviderEditorModel extends editor.ITextModel {
+    executionContexts: IContextProvider;
+
+    /** Functionality differs depending on where the code editor is used. */
+    editorMode: CodeEditorMode;
 }

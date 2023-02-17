@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,10 +23,15 @@
 
 /* eslint-disable @typescript-eslint/naming-convention */
 
-import { ParseTree } from "antlr4ts/tree";
-import { CharStreams, BailErrorStrategy, DefaultErrorStrategy, CommonTokenStream, TokenStreamRewriter } from "antlr4ts";
+import { CharStreams } from "antlr4ts/CharStreams";
+import { CommonTokenStream } from "antlr4ts/CommonTokenStream";
+import { TokenStreamRewriter } from "antlr4ts/TokenStreamRewriter";
+import { ParseTree } from "antlr4ts/tree/ParseTree";
+import { BailErrorStrategy } from "antlr4ts/BailErrorStrategy";
 import { PredictionMode } from "antlr4ts/atn/PredictionMode";
-import { ParseCancellationException } from "antlr4ts/misc";
+import { ParseCancellationException } from "antlr4ts/misc/ParseCancellationException";
+import { DefaultErrorStrategy } from "antlr4ts/DefaultErrorStrategy";
+import { XPath } from "antlr4ts/tree/xpath/XPath";
 
 import {
     ICompletionData, IParserErrorInfo, IStatementSpan, ISymbolInfo, QueryType, StatementFinishState, tokenFromPosition,
@@ -40,7 +45,6 @@ import { getCodeCompletionItems } from "./SqliteCodeCompletion";
 import { unquote } from "../../utilities/string-helpers";
 import { DBSymbolTable, SystemFunctionSymbol } from "../DBSymbolTable";
 import { determineQueryType } from "./SQLiteRecognizerCommon";
-import { XPath } from "antlr4ts/tree/xpath";
 
 // This file contains the main interface to all language services for SQLite.
 

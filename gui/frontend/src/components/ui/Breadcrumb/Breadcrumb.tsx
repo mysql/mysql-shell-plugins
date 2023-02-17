@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,21 +23,24 @@
 
 import "./Breadcrumb.css";
 
-import React, { Fragment } from "react";
 import { isNil } from "lodash";
 
-import { Button, Component, Container, IComponentProperties, Orientation, Label } from "..";
+import { ComponentChild, Fragment } from "preact";
+import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
+import { Container, Orientation } from "../Container/Container";
+import { Label } from "../Label/Label";
+import { Button } from "../Button/Button";
 
 // TODO: breadcrumb picker popup for a breadcrumb item.
 export interface IBreadcrumbProperties extends IComponentProperties {
     path?: string[];
-    separator?: string | React.ReactElement;
+    separator?: string | ComponentChild;
     selected?: number;
 
     onSelect?: (path: string[]) => void;
 }
 
-export class Breadcrumb extends Component<IBreadcrumbProperties> {
+export class Breadcrumb extends ComponentBase<IBreadcrumbProperties> {
 
     public static defaultProps = {
         path: [""],
@@ -50,7 +53,7 @@ export class Breadcrumb extends Component<IBreadcrumbProperties> {
         this.addHandledProperties("path", "separator", "selected", "onSelect");
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { id, children, path, separator, selected } = this.mergedProps;
         const className = this.getEffectiveClassNames([
             "breadcrumb",
@@ -66,7 +69,7 @@ export class Breadcrumb extends Component<IBreadcrumbProperties> {
             const separatorItem = typeof separator === "string"
                 ? <Label className="separator" caption={separator} />
                 : separator;
-            content = path?.map((element: string, index: number): React.ReactElement => {
+            content = path?.map((element: string, index: number): ComponentChild => {
                 const elementId = `${baseId}${index}`;
 
                 return (
@@ -103,7 +106,7 @@ export class Breadcrumb extends Component<IBreadcrumbProperties> {
         );
     }
 
-    private handleButtonClick = (e: React.SyntheticEvent, props: IComponentProperties): void => {
+    private handleButtonClick = (e: MouseEvent | KeyboardEvent, props: IComponentProperties): void => {
         const parent = (e.currentTarget as HTMLElement).parentElement;
         if (parent) {
             const path: string[] = [];

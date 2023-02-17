@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,21 +24,24 @@
 import "./AboutBox.css";
 import logo from "../../../assets/images/modules/module-shell.svg";
 
-import React from "react";
+import { ComponentChild } from "preact";
 
-import {
-    Component, IComponentState, Container, Icon, Label, Orientation, ContentAlignment, ContentWrap, Grid, GridCell,
-} from "../";
 import { ShellInterface } from "../../../supplement/ShellInterface/ShellInterface";
 import { Divider } from "../Divider/Divider";
 import { requisitions } from "../../../supplement/Requisitions";
 import { IBackendInformation } from "../../../supplement/ShellInterface";
+import { IComponentState, ComponentBase } from "../Component/ComponentBase";
+import { Orientation, ContentAlignment, Container, ContentWrap } from "../Container/Container";
+import { Grid } from "../Grid/Grid";
+import { GridCell } from "../Grid/GridCell";
+import { Icon } from "../Icon/Icon";
+import { Label } from "../Label/Label";
 
 interface IAboutBoxState extends IComponentState {
     data?: IBackendInformation;
 }
 
-export class AboutBox extends Component<{}, IAboutBoxState> {
+export class AboutBox extends ComponentBase<{}, IAboutBoxState> {
 
     public constructor(props: {}) {
         super(props);
@@ -53,7 +56,7 @@ export class AboutBox extends Component<{}, IAboutBoxState> {
         });
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { data } = this.state;
 
         const className = this.getEffectiveClassNames(["aboutBox"]);
@@ -73,16 +76,16 @@ export class AboutBox extends Component<{}, IAboutBoxState> {
         }
 
         // The version + build numbers will be injected by webpack (see also config-overrides.js).
-        const versionParts: string[] = process.env.versionNumber?.split(".") || ["1", "0", "0"];
+        const versionParts: string[] = process.env.versionNumber?.split(".") ?? [];
         if (versionParts.length === 0) {
-            versionParts.push("1");
+            versionParts.push("1", "0", "0");
         }
 
         if (versionParts.length === 1) {
             versionParts.push("0");
         }
 
-        const infoCells: React.ReactNode[] = [];
+        const infoCells: ComponentChild[] = [];
 
         if (data) {
             infoCells.push(
@@ -126,7 +129,7 @@ export class AboutBox extends Component<{}, IAboutBoxState> {
                 </GridCell>,
                 <GridCell key="cell3" className="left">Version:</GridCell>,
                 <GridCell key="cell4" className="right">
-                    {`${process.env.versionNumber ?? "0.0.0"} (${process.env.buildNumber!})`}
+                    {`${versionParts.join(".")} (${process.env.buildNumber!})`}
                 </GridCell>,
             );
         }
@@ -140,7 +143,7 @@ export class AboutBox extends Component<{}, IAboutBoxState> {
             >
                 <Icon src={logo} id="sakilaLogo" />
                 <Container id="heading" orientation={Orientation.TopDown}>
-                    <Label id="headingLabel" as="h2">
+                    <Label id="headingLabel">
                         About MySQL Shell
                     </Label>
                 </Container>
@@ -162,4 +165,3 @@ export class AboutBox extends Component<{}, IAboutBoxState> {
         );
     }
 }
-

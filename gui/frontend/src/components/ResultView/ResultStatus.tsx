@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,18 +21,21 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
+import { ComponentChild } from "preact";
 import { isNil } from "lodash";
 
-import { Component, Label, Container, Orientation, IComponentProperties, Message } from "../ui";
 import { IExecutionInfo, MessageType } from "../../app-logic/Types";
+import { IComponentProperties, ComponentBase } from "../ui/Component/ComponentBase";
+import { Container, Orientation } from "../ui/Container/Container";
+import { Label } from "../ui/Label/Label";
+import { Message } from "../ui/Message/Message";
 
-export interface IResultStatusProperties extends IComponentProperties {
+interface IResultStatusProperties extends IComponentProperties {
     executionInfo: IExecutionInfo;
 }
 
 // Implements a text output area usually used for execution results (except DB data).
-export class ResultStatus extends Component<IResultStatusProperties> {
+export class ResultStatus extends ComponentBase<IResultStatusProperties> {
 
     public constructor(props: IResultStatusProperties) {
         super(props);
@@ -40,7 +43,7 @@ export class ResultStatus extends Component<IResultStatusProperties> {
         this.addHandledProperties("executionInfo");
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { executionInfo, children } = this.props;
 
         if (!executionInfo.text && !children) {

@@ -6,8 +6,8 @@ exports[`Param Dialog Tests Render Test 1`] = `
 >
   <Dialog
     actions={
-      Object {
-        "end": Array [
+      {
+        "end": [
           <Button
             caption="OK"
             id="ok"
@@ -22,7 +22,7 @@ exports[`Param Dialog Tests Render Test 1`] = `
       }
     }
     caption={
-      <y>
+      <p>
         <Icon
           disabled={false}
           src={255}
@@ -30,15 +30,19 @@ exports[`Param Dialog Tests Render Test 1`] = `
         <Label>
           Parameters
         </Label>
-      </y>
+      </p>
     }
     className="msg paramDialog"
-    container={Object {}}
+    container={
+      <body
+        theme="dark"
+      />
+    }
     content={
       <Grid
         columnGap={8}
         columns={
-          Array [
+          [
             "128px",
             "auto",
             "auto",
@@ -103,7 +107,11 @@ exports[`Param Dialog Tests Render Test 1`] = `
     onClose={[Function]}
   >
     <Portal
-      container={Object {}}
+      container={
+        <body
+          theme="dark"
+        />
+      }
       onClose={[Function]}
       onOpen={[Function]}
     />
@@ -113,81 +121,56 @@ exports[`Param Dialog Tests Render Test 1`] = `
 
 exports[`Param Dialog Tests Show Panel and Escape 1`] = `
 <div
-  __self="[object Object]"
-  __source="[object Object]"
   class="msg portal"
+  style="--background-opacity: 0.5;"
 >
   <div
-    __self="[object Object]"
-    __source="[object Object]"
     class="msg dialog visible paramDialog"
   >
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="title verticalCenterContent"
     >
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
+      <span
         class="msg icon codicon codicon-pass-filled"
       />
       <label
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg label"
         data-tooltip="expand"
       >
         Parameters
       </label>
       <button
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg button imageOnly"
         id="closeButton"
         tabindex="0"
       >
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
+        <span
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
       </button>
     </div>
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="content fixedScrollbar"
     >
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg grid"
         style="grid-template-columns: 128px auto auto; column-gap: 8px;"
       >
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: row; grid-row: span 4;"
         >
-          <div
-            __self="[object Object]"
-            __source="[object Object]"
+          <span
             class="msg icon"
             style="mask-image: url(parameters.svg); width: 128px; height: 128px;"
           />
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: row; align-items: center; grid-column: span 2;"
         >
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label"
             data-tooltip="expand"
             id="caption"
@@ -196,22 +179,16 @@ exports[`Param Dialog Tests Show Panel and Escape 1`] = `
           </label>
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell left"
           style="flex-direction: row; align-items: center;"
         >
           Parameter name:
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell right"
           style="flex-direction: row; align-items: center;"
         >
           <input
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg input"
             id="name"
             spellcheck="true"
@@ -219,22 +196,16 @@ exports[`Param Dialog Tests Show Panel and Escape 1`] = `
           />
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell left"
           style="flex-direction: row; align-items: center;"
         >
           Parameter value:
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell right"
           style="flex-direction: row; align-items: center;"
         >
           <input
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg input"
             id="value"
             spellcheck="true"
@@ -244,25 +215,17 @@ exports[`Param Dialog Tests Show Panel and Escape 1`] = `
       </div>
     </div>
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="footer verticalCenterContent"
     >
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg container fixedScrollbar leftItems"
         style="flex-direction: row;"
       />
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg container fixedScrollbar rightItems"
         style="flex-direction: row-reverse;"
       >
         <button
-          __self="[object Object]"
-          __source="[object Object]"
           caption="OK"
           class="msg button"
           id="ok"
@@ -271,8 +234,6 @@ exports[`Param Dialog Tests Show Panel and Escape 1`] = `
           OK
         </button>
         <button
-          __self="[object Object]"
-          __source="[object Object]"
           caption="Cancel"
           class="msg button"
           id="cancel"
@@ -288,81 +249,56 @@ exports[`Param Dialog Tests Show Panel and Escape 1`] = `
 
 exports[`Param Dialog Tests Show Panel and Escape 2`] = `
 <div
-  __self="[object Object]"
-  __source="[object Object]"
   class="msg portal"
+  style="--background-opacity: 0.5;"
 >
   <div
-    __self="[object Object]"
-    __source="[object Object]"
     class="msg dialog visible paramDialog"
   >
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="title verticalCenterContent"
     >
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
+      <span
         class="msg icon codicon codicon-pass-filled"
       />
       <label
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg label"
         data-tooltip="expand"
       >
         Parameters
       </label>
       <button
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg button imageOnly"
         id="closeButton"
         tabindex="0"
       >
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
+        <span
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
       </button>
     </div>
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="content fixedScrollbar"
     >
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg grid"
         style="grid-template-columns: 128px auto auto; column-gap: 8px;"
       >
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: row; grid-row: span 4;"
         >
-          <div
-            __self="[object Object]"
-            __source="[object Object]"
+          <span
             class="msg icon"
             style="mask-image: url(parameters.svg); width: 128px; height: 128px;"
           />
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: row; align-items: center; grid-column: span 2;"
         >
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label"
             data-tooltip="expand"
             id="caption"
@@ -371,22 +307,16 @@ exports[`Param Dialog Tests Show Panel and Escape 2`] = `
           </label>
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell left"
           style="flex-direction: row; align-items: center;"
         >
           Parameter name:
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell right"
           style="flex-direction: row; align-items: center;"
         >
           <input
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg input"
             id="name"
             spellcheck="true"
@@ -394,22 +324,16 @@ exports[`Param Dialog Tests Show Panel and Escape 2`] = `
           />
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell left"
           style="flex-direction: row; align-items: center;"
         >
           Parameter value:
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell right"
           style="flex-direction: row; align-items: center;"
         >
           <input
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg input"
             id="value"
             spellcheck="true"
@@ -419,25 +343,17 @@ exports[`Param Dialog Tests Show Panel and Escape 2`] = `
       </div>
     </div>
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="footer verticalCenterContent"
     >
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg container fixedScrollbar leftItems"
         style="flex-direction: row;"
       />
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg container fixedScrollbar rightItems"
         style="flex-direction: row-reverse;"
       >
         <button
-          __self="[object Object]"
-          __source="[object Object]"
           caption="OK"
           class="msg button"
           id="ok"
@@ -446,8 +362,6 @@ exports[`Param Dialog Tests Show Panel and Escape 2`] = `
           OK
         </button>
         <button
-          __self="[object Object]"
-          __source="[object Object]"
           caption="Cancel"
           class="msg button"
           id="cancel"

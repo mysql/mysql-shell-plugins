@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,11 +22,9 @@
  */
 
 import { mount } from "enzyme";
-import React from "react";
 
 import { MessageType } from "../../../../../app-logic/Types";
-import { ResultStatus } from "../../../../../components/ResultView";
-import { snapshotFromWrapper } from "../../../test-helpers";
+import { ResultStatus } from "../../../../../components/ResultView/ResultStatus";
 
 describe("Result Status Tests", (): void => {
 
@@ -40,7 +38,7 @@ describe("Result Status Tests", (): void => {
             />,
         );
 
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
 
         component.unmount();
     });

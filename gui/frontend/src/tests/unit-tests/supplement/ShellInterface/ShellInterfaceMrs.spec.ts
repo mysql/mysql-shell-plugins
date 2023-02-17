@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -25,11 +25,11 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 
 import { MessageScheduler } from "../../../../communication/MessageScheduler";
-import { ShellInterfaceMrs } from "../../../../supplement/ShellInterface";
 import { WebSocketServer } from "ws";
 import { createServer, Server } from "http";
 import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher";
-import { ShellAPIMrs } from "../../../../communication";
+import { ShellAPIMrs } from "../../../../communication/ProtocolMrs";
+import { ShellInterfaceMrs } from "../../../../supplement/ShellInterface/ShellInterfaceMrs";
 
 describe("ShellInterfaceMrs Tests", (): void => {
     let webServer: Server;
@@ -112,7 +112,7 @@ describe("ShellInterfaceMrs Tests", (): void => {
         const mrs = new ShellInterfaceMrs();
 
         try {
-            await MessageScheduler.get.connect(new URL(`http://localhost:${webServerPort}`), "");
+            await MessageScheduler.get.connect({ url: new URL(`http://localhost:${webServerPort}`) });
 
             await mrs.configure();
 
@@ -173,7 +173,7 @@ describe("ShellInterfaceMrs Tests", (): void => {
         const mrs = new ShellInterfaceMrs();
 
         try {
-            await MessageScheduler.get.connect(new URL(`http://localhost:${webServerPort}`), "");
+            await MessageScheduler.get.connect({ url: new URL(`http://localhost:${webServerPort}`) });
 
             const services = await mrs.listSchemas("0x02");
             expect(services).toEqual([{

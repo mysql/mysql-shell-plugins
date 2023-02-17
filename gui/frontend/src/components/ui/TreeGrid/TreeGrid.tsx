@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -30,14 +30,12 @@ import {
     RowComponent, ColumnComponent, ColumnDefinition, CellComponent, Options,
 } from "tabulator-tables";
 
-import React from "react";
+import { ComponentChild, createRef } from "preact";
 import { isNil } from "lodash";
 
-import { IComponentProperties, Component, SelectionType } from "..";
 import { waitFor } from "../../../utilities/helpers";
 import { appParameters } from "../../../supplement/Requisitions";
-
-export { Tabulator } from "tabulator-tables";
+import { SelectionType, IComponentProperties, ComponentBase } from "../Component/ComponentBase";
 
 /** This type excludes methods from the Tabulator type, which are implemented in the TreeGrid. */
 export type TabulatorProxy = Omit<Tabulator, "setData" | "setColumns" | "getSelectedRows">;
@@ -56,7 +54,7 @@ export enum SetDataAction {
     Set,
 }
 
-export interface ITreeGridMenuEntry {
+interface ITreeGridMenuEntry {
     label?: string | ((component: RowComponent) => string);
     disabled?: boolean;
     separator?: boolean;
@@ -108,7 +106,7 @@ export interface ITreeGridOptions {
     autoScrollOnSelect?: boolean;
 }
 
-export interface ITreeGridProperties extends IComponentProperties {
+interface ITreeGridProperties extends IComponentProperties {
     height?: string | number;
 
     /**
@@ -155,9 +153,9 @@ export interface ITreeGridProperties extends IComponentProperties {
  * It differs in the way data is added from other controls. Data (columns, rows) can be passed in as properties and
  * can also be added on demand using the methods `setColumns` and `setRows`.
  */
-export class TreeGrid extends Component<ITreeGridProperties> {
+export class TreeGrid extends ComponentBase<ITreeGridProperties> {
 
-    private hostRef = React.createRef<HTMLDivElement>();
+    private hostRef = createRef<HTMLDivElement>();
     private tabulator?: Tabulator;
     private tableReady = false;
     private timeoutId: ReturnType<typeof setTimeout> | null;
@@ -257,7 +255,7 @@ export class TreeGrid extends Component<ITreeGridProperties> {
         }
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { options } = this.mergedProps;
 
         const className = this.getEffectiveClassNames([

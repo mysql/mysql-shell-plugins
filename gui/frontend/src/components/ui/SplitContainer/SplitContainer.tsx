@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,36 +23,46 @@
 
 import "./SplitContainer.css";
 
-import React, { createRef } from "react";
 import { isNil } from "lodash";
+import { ComponentChild, createRef } from "preact";
 
-import { Component, IComponentProperties } from "../Component/Component";
-import { Container, Orientation } from "..";
+import { ComponentBase, IComponentProperties } from "../Component/ComponentBase";
 import { Divider } from "../Divider/Divider";
-import { ContentAlignment } from "../Container/Container";
+import { Container, ContentAlignment, Orientation } from "../Container/Container";
 import { convertPropValue } from "../../../utilities/string-helpers";
 
-// A record for each pane with dynamic size and behavior information.
+/** A record for each pane with dynamic size and behavior information. */
 interface IPanePositionData {
     id: string;
 
     minSize: number;
     maxSize: number;
 
-    startSize: number;   // The size to compute changes against when the user resizes a pane.
-    currentSize: number; // The current size of the pane. Can be clipped at min and max values.
-    initialSize?: number; // If specified then the pane uses this size initially, instead of a computed size.
+    /** The size to compute changes against when the user resizes a pane. */
+    startSize: number;
 
-    snap: boolean;      // Collapse a pane if its size is forced below half of the min size.
-    resizable: boolean; // Determines if a pane can be resized (by mouse or layout).
-    stretch: boolean;   // Determines if a pane always takes any remaining space in the split container.
+    /** The current size of the pane. Can be clipped at min and max values. */
+    currentSize: number;
 
-    className: string;  // Set to a specific CSS class if min or max are reached.
+    /** If specified then the pane uses this size initially, instead of a computed size. */
+    initialSize?: number;
+
+    /** Collapse a pane if its size is forced below half of the min size. */
+    snap: boolean;
+
+    /** Determines if a pane can be resized (by mouse or layout). */
+    resizable: boolean;
+
+    /** Determines if a pane always takes any remaining space in the split container. */
+    stretch: boolean;
+
+    /** Set to a specific CSS class if min or max are reached. */
+    className: string;
 }
 
 export interface ISplitterPane {
     id?: string;
-    content: React.ReactNode;
+    content: ComponentChild;
 
     minSize?: number;
     maxSize?: number;
@@ -60,27 +70,28 @@ export interface ISplitterPane {
     snap?: boolean;
     resizable?: boolean;
     stretch?: boolean;
-    collapsed?: boolean; // If true the pane size is initially set to 0.
+
+    /** If true the pane size is initially set to 0. */
+    collapsed?: boolean;
 }
 
-// Record for pane resizes.
-export interface ISplitterPaneSizeInfo {
-    paneId: string;
-    size: number;
-}
+/** Record for pane resizes. */
+export type ISplitterPaneSizeInfo = Pick<IPanePositionData, "id" | "currentSize">;
 
-export interface ISplitContainerProperties extends IComponentProperties {
+interface ISplitContainerProperties extends IComponentProperties {
     panes: ISplitterPane[];
 
     orientation?: Orientation;
-    splitterSize?: number;     // The thickness of the splitter (separator).
 
-    innerRef?: React.RefObject<HTMLElement>;
+    /** The thickness of the splitter (separator). */
+    splitterSize?: number;
 
-    onPaneResized?: (first: ISplitterPaneSizeInfo, second: ISplitterPaneSizeInfo) => void;
+    innerRef?: preact.RefObject<HTMLElement>;
+
+    onPaneResized?: (info: ISplitterPaneSizeInfo[]) => void;
 }
 
-export class SplitContainer extends Component<ISplitContainerProperties> {
+export class SplitContainer extends ComponentBase<ISplitContainerProperties> {
 
     public static defaultProps = {
         orientation: Orientation.LeftToRight,
@@ -98,13 +109,13 @@ export class SplitContainer extends Component<ISplitContainerProperties> {
     private lastMouseX: number; // Last mouse position when starting resize with a sash.
     private lastMouseY: number;
 
-    private containerRef: React.RefObject<HTMLElement>;
+    private containerRef: preact.RefObject<HTMLElement>;
     private resizeTimer: ReturnType<typeof setTimeout> | null;
 
     public constructor(props: ISplitContainerProperties) {
         super(props);
 
-        this.containerRef = props.innerRef ?? React.createRef<HTMLElement>();
+        this.containerRef = props.innerRef ?? createRef<HTMLElement>();
 
         // Initial pane layout.
         this.updatePaneData();
@@ -168,13 +179,13 @@ export class SplitContainer extends Component<ISplitContainerProperties> {
         }
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { panes, orientation, splitterSize } = this.mergedProps;
 
         const className = this.getEffectiveClassNames(["splitContainer"]);
 
         // The sash container keeps all splitters independently of the panes they act on.
-        const sashes: React.ReactNode[] = [];
+        const sashes: ComponentChild[] = [];
 
         const content = panes.map((pane: ISplitterPane, index: number) => {
             const baseId = pane.id ?? `pane${index}`;
@@ -203,7 +214,7 @@ export class SplitContainer extends Component<ISplitContainerProperties> {
 
         return (
             <div
-                ref={this.containerRef as React.RefObject<HTMLDivElement>}
+                ref={this.containerRef as preact.RefObject<HTMLDivElement>}
                 className={className}
                 {...this.unhandledProperties}
             >
@@ -266,16 +277,8 @@ export class SplitContainer extends Component<ISplitContainerProperties> {
                 paneData.startSize = paneData.currentSize;
             });
 
-            const { onPaneResized, panes } = this.mergedProps;
-            const pane = panes[this.currentSashIndex];
-
-            const data1 = this.paneData[this.currentSashIndex];
-            const data2 = this.paneData[this.currentSashIndex + 1];
-
-            onPaneResized?.(
-                { paneId: pane.id || "", size: data1.currentSize },
-                { paneId: data2.id || "", size: data2.currentSize },
-            );
+            const { onPaneResized } = this.mergedProps;
+            onPaneResized?.(this.paneData);
         }
 
         this.currentSashIndex = -1;

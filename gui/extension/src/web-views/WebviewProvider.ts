@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -32,8 +32,8 @@ import { IDialogResponse } from "../../../frontend/src/app-logic/Types";
 
 import { printChannelOutput } from "../extension";
 
-export type WebviewDisposeHandler = (view: WebviewProvider) => void;
-export type WebviewChangeStateHandler = (view: WebviewProvider, active: boolean) => void;
+type WebviewDisposeHandler = (view: WebviewProvider) => void;
+type WebviewChangeStateHandler = (view: WebviewProvider, active: boolean) => void;
 
 // The base class for our web view providers.
 export class WebviewProvider {

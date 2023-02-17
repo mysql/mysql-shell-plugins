@@ -21,11 +21,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
+import { ComponentChild, createRef } from "preact";
 
-import { Label, Component, IComponentProperties } from "../ui";
 import { ITextResultEntry } from "../../script-execution";
 import { requisitions } from "../../supplement/Requisitions";
+import { IComponentProperties, ComponentBase } from "../ui/Component/ComponentBase";
+import { Label } from "../ui/Label/Label";
 
 interface IActionOutputProperties extends IComponentProperties {
     /** The output to display. */
@@ -43,9 +44,9 @@ interface IActionOutputProperties extends IComponentProperties {
  * If given a line index and execution context ID for a label, this label becomes clickable and wil trigger
  * a callback for further processing this event.
  */
-export class ActionOutput extends Component<IActionOutputProperties> {
+export class ActionOutput extends ComponentBase<IActionOutputProperties> {
 
-    private gridRef = React.createRef<HTMLDivElement>();
+    private gridRef = createRef<HTMLDivElement>();
 
     public constructor(props: IActionOutputProperties) {
         super(props);
@@ -62,21 +63,21 @@ export class ActionOutput extends Component<IActionOutputProperties> {
         }
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { output, showIndexes = false } = this.props;
         const className = this.getEffectiveClassNames(["actionOutput"]);
 
         // Note: no GridCell instance is used, as we always have only one entry per cell.
-        const rows: React.ReactElement[] = [];
+        const rows: ComponentChild[] = [];
         const canShowIndexes = showIndexes && output && output.length > 1;
         output?.forEach((entry) => {
             const index = entry.index !== undefined && entry.index >= 0 ? entry.index : undefined;
-            const cells: React.ReactElement[] = [];
+            const cells: ComponentChild[] = [];
 
             let columnSpan = 1;
             if (index !== undefined && canShowIndexes) {
                 cells.push(
-                    <Label className="commandIndex" caption={`#${index + 1}: `}/>,
+                    <Label className="commandIndex" caption={`#${index + 1}: `} />,
                 );
             } else {
                 columnSpan = 2;
@@ -85,7 +86,7 @@ export class ActionOutput extends Component<IActionOutputProperties> {
             cells.push(<Label
                 className={`actionLabel${index === undefined ? "" : " clickable"}`}
                 id={index?.toString()}
-                language={entry.language}
+                language={entry.language ?? "ansi"}
                 key={entry.resultId}
                 caption={entry.content}
                 type={entry.type}
@@ -95,23 +96,23 @@ export class ActionOutput extends Component<IActionOutputProperties> {
             />);
 
             rows.push(
-                <div style={{display: "flex", gap: "2px", flexDirection: "row"}}>
+                <div style={{ display: "flex", gap: "2px", flexDirection: "row" }}>
                     {cells}
                 </div>);
         });
 
         return (
-            <div className={className} style={{display: "flex", gap: "2px", flexDirection: "column"}}>
+            <div className={className} style={{ display: "flex", gap: "2px", flexDirection: "column" }}>
                 {rows}
             </div>
         );
     }
 
-    private handleLabelClick = (e: React.SyntheticEvent): void => {
+    private handleLabelClick = (e: MouseEvent | KeyboardEvent): void => {
         // The event may be sent from a child element of the label (because of auto generated content, depending
         // on the text language specified in the render call above). That's why we walk up to find the label.
         let label: HTMLLabelElement | undefined;
-        for (const element of e.nativeEvent.composedPath()) {
+        for (const element of e.composedPath()) {
             const target = element as HTMLElement;
             if (target.classList.contains("actionLabel")) {
                 label = target as HTMLLabelElement;

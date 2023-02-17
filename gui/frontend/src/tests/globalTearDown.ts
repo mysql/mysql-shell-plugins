@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,17 +21,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
+/* eslint-disable @typescript-eslint/naming-convention */
 
-import { Component } from "..";
+export { };
 
-export class MessageToast extends Component {
-
-    public addToast(): void {
-        // TODO
-    }
-
-    public render(): React.ReactNode {
-        return <div>TEST</div>;
-    }
-}
+// eslint-disable-next-line @typescript-eslint/require-await
+module.exports = async (_globalConfig: unknown, projectConfig: unknown) => {
+    // @ts-ignore
+    process.chdir(projectConfig.cwd as string);
+};

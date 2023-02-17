@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,17 +23,17 @@
 
 import "./Tooltip.css";
 
-import React from "react";
+import { ComponentChild, createRef } from "preact";
+import { createPortal, CSSProperties } from "preact/compat";
 import keyboardKey from "keyboard-key";
 
-import { Component, IComponentState, IComponentProperties, Container } from "..";
-import { createPortal } from "preact/compat";
 import { computeContentPosition } from "../Tools/HTMLHelpers";
-import { ComponentPlacement } from "../Component/Component";
-import { IDictionary } from "../../../app-logic/Types";
+import { ComponentBase, ComponentPlacement, IComponentProperties, IComponentState } from "../Component/ComponentBase";
+import { Container } from "../Container/Container";
 
-export interface ITooltipProviderProperties extends IComponentProperties {
-    showDelay?: number; // In milliseconds.
+interface ITooltipProviderProperties extends IComponentProperties {
+    /** Time to wait until the tooltip is shown, in milliseconds. */
+    showDelay?: number;
 }
 
 interface ITooltipProviderState extends IComponentState {
@@ -42,15 +42,15 @@ interface ITooltipProviderState extends IComponentState {
     tooltip?: string;
 }
 
-// A component to render a tooltip on other components with a "data-tooltip" attribute.
-export class TooltipProvider extends Component<ITooltipProviderProperties, ITooltipProviderState> {
+/** A component to render a tooltip on other components with a "data-tooltip" attribute. */
+export class TooltipProvider extends ComponentBase<ITooltipProviderProperties, ITooltipProviderState> {
 
     public static defaultProps = {
         showDelay: 200,
     };
 
     private tooltipTimer: ReturnType<typeof setTimeout>;
-    private innerRef = React.createRef<HTMLElement>();
+    private innerRef = createRef<HTMLDivElement>();
 
     public constructor(props: ITooltipProviderProperties) {
         super(props);
@@ -98,7 +98,7 @@ export class TooltipProvider extends Component<ITooltipProviderProperties, ITool
         }
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { style } = this.mergedProps;
         const { target, tooltip } = this.state;
 
@@ -107,7 +107,7 @@ export class TooltipProvider extends Component<ITooltipProviderProperties, ITool
         }
 
         let content = tooltip;
-        const composedStyle: IDictionary = { ...style };
+        const composedStyle: CSSProperties = { ...style };
 
         if (tooltip === "expand") {
             const bounds = target.getBoundingClientRect();
@@ -139,7 +139,7 @@ export class TooltipProvider extends Component<ITooltipProviderProperties, ITool
                 {content}
             </Container>,
             document.body,
-        ) as React.ReactNode;
+        ) as ComponentChild;
 
         return (
             portal

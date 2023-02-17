@@ -29,14 +29,8 @@ import gearIcon from "../../../assets/images/settings.svg";
 import closeIcon from "../../../assets/images/close.svg";
 import imageImage from "../Preview/assets/image.svg";
 
-import React from "react";
+import { ComponentChild } from "preact";
 
-import {
-    Grid, Container, Orientation, Label, Button, Icon, Checkbox, CheckState, Radiobutton, Accordion, Input,
-    Divider, Dropdown, Breadcrumb, Component, ComponentSize, Search, Toolbar, TagInput, GridCell, ConnectionTile,
-    IComponentState, Tabview, TabPosition, MenuBar, MenuItem, ContentAlignment, BrowserTileType, ContentWrap,
-    ProgressIndicator,
-} from "../../ui";
 import { loadTextFile } from "../../../utilities/helpers";
 
 import { TablePreview } from "./TablePreview";
@@ -45,8 +39,8 @@ import { DialogContent } from "../../ui/Dialog/DialogContent";
 import { ActivityBar } from "../../ui/ActivityBar/ActivityBar";
 import { ActivityBarItem } from "../../ui/ActivityBar/ActivityBarItem";
 import { SymbolGrid } from "./SymbolGrid";
-import { CodeEditor, CodeEditorMode, ICodeEditorModel, IEditorPersistentState } from "../../ui/CodeEditor/CodeEditor";
-import { Monaco } from "../../ui/CodeEditor";
+import { CodeEditor, ICodeEditorModel, IEditorPersistentState } from "../../ui/CodeEditor/CodeEditor";
+import { CodeEditorMode, Monaco } from "../../ui/CodeEditor";
 import { Notebook } from "../../../modules/db-editor/Notebook";
 import { ExecutionContexts } from "../../../script-execution/ExecutionContexts";
 import { MySQLConnectionScheme } from "../../../communication/MySQL";
@@ -55,6 +49,29 @@ import { EditorLanguage } from "../../../supplement";
 import { IDictionary } from "../../../app-logic/Types";
 
 import { loremIpsum } from "../../../tests/unit-tests/test-helpers";
+import { Accordion } from "../../ui/Accordion/Accordion";
+import { Breadcrumb } from "../../ui/Breadcrumb/Breadcrumb";
+import { BrowserTileType } from "../../ui/BrowserTile/BrowserTile";
+import { Checkbox, CheckState } from "../../ui/Checkbox/Checkbox";
+import { IComponentState, ComponentBase, ComponentSize } from "../../ui/Component/ComponentBase";
+import { ConnectionTile } from "../../ui/ConnectionTile/ConnectionTile";
+import { Container, Orientation, ContentAlignment, ContentWrap } from "../../ui/Container/Container";
+import { Divider } from "../../ui/Divider/Divider";
+import { Dropdown } from "../../ui/Dropdown/Dropdown";
+import { Grid } from "../../ui/Grid/Grid";
+import { GridCell } from "../../ui/Grid/GridCell";
+import { Icon } from "../../ui/Icon/Icon";
+import { Input } from "../../ui/Input/Input";
+import { Label } from "../../ui/Label/Label";
+import { MenuBar } from "../../ui/Menu/MenuBar";
+import { MenuItem } from "../../ui/Menu/MenuItem";
+import { ProgressIndicator } from "../../ui/ProgressIndicator/ProgressIndicator";
+import { Radiobutton } from "../../ui/Radiobutton/Radiobutton";
+import { Search } from "../../ui/Search/Search";
+import { Tabview, TabPosition } from "../../ui/Tabview/Tabview";
+import { TagInput } from "../../ui/TagInput/TagInput";
+import { Toolbar } from "../../ui/Toolbar/Toolbar";
+import { Button } from "../../ui/Button/Button";
 
 interface IThemePreviewState extends IComponentState {
     editorLanguage: EditorLanguage;
@@ -62,7 +79,7 @@ interface IThemePreviewState extends IComponentState {
 }
 
 // A component that contains UI elements for preview in the theme editor.
-export class ThemePreview extends Component<{}, IThemePreviewState> {
+export class ThemePreview extends ComponentBase<{}, IThemePreviewState> {
 
     private readonly editorState: IEditorPersistentState;
 
@@ -137,7 +154,7 @@ export class ThemePreview extends Component<{}, IThemePreviewState> {
         };
     }
 
-    public render(): React.ReactChild {
+    public render(): ComponentChild {
         const { editorLanguage, codeExamples } = this.state;
         const codeExample = codeExamples[editorLanguage] as string;
 
@@ -187,7 +204,7 @@ export class ThemePreview extends Component<{}, IThemePreviewState> {
                         }
                         header={
                             <>
-                                <Label as="h3">A Standalone Modal Window</Label>
+                                <Label>A Standalone Modal Window</Label>
                                 <Label>The window's sub title goes here and also allows for longer descriptions.</Label>
                             </>
                         }
@@ -615,7 +632,7 @@ export class ThemePreview extends Component<{}, IThemePreviewState> {
                     </MenuBar>
                 </Container>
 
-                <p>Terminal</p>
+                <p>Terminal Colors</p>
                 <Label caption="Foreground" id="terminalPreviewCaption" />
                 <Container
                     id="terminalPreview"
@@ -655,7 +672,21 @@ export class ThemePreview extends Component<{}, IThemePreviewState> {
                     <span className="ansi-blue-bg">blue</span>
                     <span className="ansi-magenta-bg">magenta</span>
                     <span className="ansi-cyan-bg">cyan</span>
-                    <span className="ansi-white-bg  ">white</span>
+                    <span className="ansi-white-bg">white</span>
+                </Container>
+
+                <p>ANSI Escapes Output Rendering</p>
+                <Container
+                    id="ansiPreview"
+                    orientation={Orientation.LeftToRight}
+                    wrap={ContentWrap.Wrap}
+                >
+                    <Label language="ansi" code>{"\u001b[1mBold\u001b[0m \u001b[38;5;201mHello\u001b[39m" +
+                        "\u001b[48;5;214m\u001b[38;5;0mWorld\n" +
+                        "\u001b[38;2;55;155;0mRGB Color\u001b[49m, \u001b[9mStrike Through\u001b[29m, " +
+                        "\u001b[4m\u001b[38;2;155;55;0mUnderline, \u001b[7mInverse\u001b[27m\u001b[24m, " +
+                        "\u001b[38;5;68m\u001b[5mBlinking"
+                    }</Label>
                 </Container>
 
                 <p>Breadcrumb</p>

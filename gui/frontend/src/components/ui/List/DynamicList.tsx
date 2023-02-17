@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,15 +23,15 @@
 
 import "./List.css";
 
-import React from "react";
-import { render } from "preact";
+import { cloneElement, ComponentChild, render, VNode } from "preact";
+
 import { CellComponent, ColumnDefinition } from "tabulator-tables";
 
-import { Component, IComponentProperties, IComponentState, SelectionType } from "../Component/Component";
+import { ComponentBase, IComponentProperties, IComponentState, SelectionType } from "../Component/ComponentBase";
 import { IDictionary } from "../../../app-logic/Types";
 import { ITreeGridOptions, TreeGrid } from "../TreeGrid/TreeGrid";
 
-export interface IDynamicListProperties extends IComponentProperties {
+interface IDynamicListProperties extends IComponentProperties {
     // This control requires a fixed height.
     height: number;
 
@@ -39,7 +39,7 @@ export interface IDynamicListProperties extends IComponentProperties {
     rowHeight?: number;
 
     // The UI structure to render for each element.
-    template: React.ReactElement;
+    template: VNode;
 
     // A list of objects with data to fill in.
     elements: IDictionary[];
@@ -52,7 +52,7 @@ interface IDynamicListState extends IComponentState {
 
 // This list is virtual, which means items are only rendered when in view. That allows for million of entries.
 // However, this list uses absolute positioning for the items and can therefore not be used for ul/ol.
-export class DynamicList extends Component<IDynamicListProperties, IDynamicListState> {
+export class DynamicList extends ComponentBase<IDynamicListProperties, IDynamicListState> {
 
     public constructor(props: IDynamicListProperties) {
         super(props);
@@ -73,7 +73,7 @@ export class DynamicList extends Component<IDynamicListProperties, IDynamicListS
         }
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { height, elements } = this.mergedProps;
         const { columnField } = this.state;
 
@@ -116,7 +116,7 @@ export class DynamicList extends Component<IDynamicListProperties, IDynamicListS
             host.style.height = `${rowHeight}px`;
         }
 
-        const element = React.cloneElement(template, {
+        const element = cloneElement(template, {
             data: { [columnField]: cell.getValue() },
             tabIndex: 0,
         });

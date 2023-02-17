@@ -22,7 +22,6 @@
  */
 
 import { mount } from "enzyme";
-import React from "react";
 
 import { setupShellForTests } from "../../test-helpers";
 import {
@@ -31,12 +30,10 @@ import {
 import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor";
 import { ExecutionWorkerPool } from "../../../../modules/db-editor/execution/ExecutionWorkerPool";
 import { DBType } from "../../../../supplement/ShellInterface";
-import {
-    CodeEditorMode, ICodeEditorModel, IEditorPersistentState,
-} from "../../../../components/ui/CodeEditor/CodeEditor";
+import { ICodeEditorModel, IEditorPersistentState } from "../../../../components/ui/CodeEditor/CodeEditor";
 import { EntityType } from "../../../../modules/db-editor";
 import { ExecutionContexts } from "../../../../script-execution/ExecutionContexts";
-import { Monaco } from "../../../../components/ui/CodeEditor";
+import { CodeEditorMode, Monaco } from "../../../../components/ui/CodeEditor";
 import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher";
 
 jest.mock("../../../../components/ui/CodeEditor/CodeEditor");

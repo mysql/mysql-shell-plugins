@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,22 +23,25 @@
 
 import "./Popup.css";
 
-import React from "react";
+import { ComponentChild, createRef } from "preact";
 
-import {
-    Component, IComponentState, Portal, IPortalProperties, Container, Orientation, ComponentPlacement, IPortalOptions,
-} from "..";
 import { computeContentPosition } from "../Tools/HTMLHelpers";
+import { ComponentPlacement, IComponentState, ComponentBase } from "../Component/ComponentBase";
+import { Orientation, Container } from "../Container/Container";
+import { IPortalProperties, Portal, IPortalOptions } from "../Portal/Portal";
 
 export interface IPopupProperties extends IPortalProperties {
-    header?: React.ReactNode;
+    header?: ComponentChild;
 
     placement?: ComponentPlacement;
-    pinned?: boolean;        // If set no automatic repositioning takes place.
+
+    /** If set no automatic repositioning takes place. */
+    pinned?: boolean;
+
     showArrow?: boolean;
     orientation?: Orientation;
 
-    innerRef?: React.RefObject<HTMLElement>;
+    innerRef?: preact.RefObject<HTMLDivElement>;
 }
 
 interface IPopupStates extends IComponentState {
@@ -46,7 +49,7 @@ interface IPopupStates extends IComponentState {
     currentTarget?: DOMRect; // The area for placement computation.
 }
 
-export class Popup extends Component<IPopupProperties, IPopupStates> {
+export class Popup extends ComponentBase<IPopupProperties, IPopupStates> {
 
     public static defaultProps = {
         placement: ComponentPlacement.TopLeft,
@@ -55,8 +58,8 @@ export class Popup extends Component<IPopupProperties, IPopupStates> {
         orientation: Orientation.TopDown,
     };
 
-    private portalRef = React.createRef<Portal>();
-    private containerRef: React.RefObject<HTMLElement>;
+    private portalRef = createRef<Portal>();
+    private containerRef: preact.RefObject<HTMLDivElement>;
 
     public constructor(props: IPopupProperties) {
         super(props);
@@ -65,12 +68,12 @@ export class Popup extends Component<IPopupProperties, IPopupStates> {
             hidden: false,
         };
 
-        this.containerRef = props.innerRef ?? React.createRef<HTMLElement>();
+        this.containerRef = props.innerRef ?? createRef<HTMLDivElement>();
 
         this.addHandledProperties("header", "placement", "show", "pinned", "showArrow", "orientation", "innerRef");
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { children, header, placement, showArrow, orientation } = this.mergedProps;
         const className = this.getEffectiveClassNames([
             "popup",

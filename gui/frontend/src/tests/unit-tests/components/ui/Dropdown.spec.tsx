@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,11 +21,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mount, shallow } from "enzyme";
-import React from "react";
+import { mount } from "enzyme";
 
-import { Dropdown } from "../../../../components/ui";
-import { snapshotFromWrapper } from "../../test-helpers";
+import { Dropdown } from "../../../../components/ui/Dropdown/Dropdown";
 
 describe("Dropdown render testing", (): void => {
 
@@ -38,14 +36,14 @@ describe("Dropdown render testing", (): void => {
                 <Dropdown.Item id="renault" caption="Renault" />
             </Dropdown>,
         );
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
 
         component.unmount();
     });
 
-    // Temporarily disabled.
+    // TODO: onSelect is not called when changing the selection via props. Fix that.
     xit("Test Dropdown onSelect callback test", () => {
-        const component = shallow<Dropdown>(
+        const component = mount<Dropdown>(
             <Dropdown selection="tesla" optional={false} onSelect={jest.fn()} style={{ maxWidth: "300px" }}>
                 <Dropdown.Item id="tesla" caption="Tesla" />
                 <Dropdown.Item id="volvo" caption="Volvo" />

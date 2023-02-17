@@ -21,57 +21,61 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import * as child_process from "child_process";
-import { existsSync, mkdirSync } from "fs";
-import { join } from "path";
+import child_process from "child_process";
+import fs from "fs";
+import path from "path";
 import * as net from "net";
+import os from "os";
 
-import { platform, homedir } from "os";
 import { appParameters, requisitions } from "../supplement/Requisitions";
 import { uuid } from "./helpers";
-import { MessageScheduler } from "../communication";
+import { MessageScheduler } from "../communication/MessageScheduler";
+import { findExecutable } from "./file-utilities";
+//import { findExecutable } from "./file-utilities";
 
-export type ShellOutputCallback = (output: string) => void;
-export type ShellErrorCallback = (error: Error) => void;
-export type ShellExitCallback = (code: number) => void;
+type ShellOutputCallback = (output: string) => void;
+type ShellErrorCallback = (error: Error) => void;
+type ShellExitCallback = (code: number) => void;
 
 export type LogLevel = "NONE" | "ERROR" | "WARNING" | "INFO" | "DEBUG" | "DEBUG2" | "DEBUG3";
 
-export interface IShellLaunchDetails {
-    // A random port determined while preparing the shell process launch.
+interface IShellLaunchDetails {
+    /** A random port determined while preparing the shell process launch. */
     port: number;
 
-    // The token used for single user mode.
+    /** The token used for single user mode. */
     singleUserToken: string;
 }
 
 export interface IShellLaunchConfiguration {
-    // A path where to look for a shell binary. Can be empty or non-existing.
+    /** A path where to look for a shell binary. Can be empty or non-existing. */
     rootPath: string;
 
-    // Parameter to be passed to the new shell process.
+    /** Parameter to be passed to the new shell process. */
     parameters: string[];
 
-    // Text to send to the process after it was launched (usually to provide hidden input).
+    /** Text to send to the process after it was launched (usually to provide hidden input). */
     processInput?: string;
 
     logLevel: LogLevel;
 
-    // The callback to handle standard output.
+    /** The callback to handle standard output. */
     onStdOutData: ShellOutputCallback;
 
-    // The callback to handle data error output. If not specified onStdOutData will be used.
+    /** The callback to handle data error output. If not specified onStdOutData will be used. */
     onStdErrData?: ShellOutputCallback;
 
-    // The callback to handle other error output. If not specified onStdOutData will be used.
+    /** The callback to handle other error output. If not specified onStdOutData will be used. */
     onError?: ShellErrorCallback;
 
-    // The callback to handle the shell exit.
+    /** The callback to handle the shell exit. */
     onExit?: ShellExitCallback;
 }
 
-// This class can be used to create new MySQL Shell processes which are managed elsewhere and can
-// create one process and manage it. Only usable in a Node.js environment (VS Code extension or tests).
+/**
+ * This class can be used to create new MySQL Shell processes which are managed elsewhere and can
+ * create one process and manage it. Only usable in a Node.js environment (VS Code extension or tests).
+ */
 export class MySQLShellLauncher {
     /**
      * When the extension is deployed with an embedded MySQL Shell, a custom shell user config dir is used, as
@@ -104,25 +108,26 @@ export class MySQLShellLauncher {
         if (process.env.MYSQLSH_GUI_CUSTOM_CONFIG_DIR !== undefined) {
             // If the environment var MYSQLSH_GUI_CUSTOM_CONFIG_DIR is set, use that directory
             shellUserConfigDir = process.env.MYSQLSH_GUI_CUSTOM_CONFIG_DIR;
-        } else if (shellPath !== "mysqlsh" && existsSync(shellPath)) {
+        } else if (shellPath !== "mysqlsh" && fs.existsSync(shellPath)) {
             // Check if MySQL Shell is bundled with the extension. Cannot be tested in unit tests.
             // istanbul ignore next
             // If so, create a dedicated shell user config dir for the shell gui
-            if (platform() === "win32") {
-                shellUserConfigDir = join(homedir(), "AppData", "Roaming", "MySQL",
+            if (os.platform() === "win32") {
+                shellUserConfigDir = path.join(os.homedir(), "AppData", "Roaming", "MySQL",
                     MySQLShellLauncher.extensionShellUserConfigFolderBaseName);
             } else {
-                shellUserConfigDir = join(homedir(), `.${MySQLShellLauncher.extensionShellUserConfigFolderBaseName}`);
+                shellUserConfigDir = path.join(os.homedir(),
+                    `.${MySQLShellLauncher.extensionShellUserConfigFolderBaseName}`);
             }
         } else {
             // Is there an explicit path (e.g. from unit tests)?
             shellUserConfigDir = appParameters.get("shellUserConfigDir") ?? "";
-            if (shellUserConfigDir.length === 0 || !existsSync(shellUserConfigDir)) {
+            if (shellUserConfigDir.length === 0 || !fs.existsSync(shellUserConfigDir)) {
                 // If not, use the regular shell user config dir in this case
-                if (platform() === "win32") {
-                    shellUserConfigDir = join(homedir(), "AppData", "Roaming", "MySQL", "mysqlsh");
+                if (os.platform() === "win32") {
+                    shellUserConfigDir = path.join(os.homedir(), "AppData", "Roaming", "MySQL", "mysqlsh");
                 } else {
-                    shellUserConfigDir = join(homedir(), ".mysqlsh");
+                    shellUserConfigDir = path.join(os.homedir(), ".mysqlsh");
                 }
             }
         }
@@ -152,8 +157,8 @@ export class MySQLShellLauncher {
         // Ensure the shell user config dir exists. Cannot be tested in unit tests, because the folder is always
         // created before entering here.
         // istanbul ignore next
-        if (!existsSync(shellUserConfigDir)) {
-            mkdirSync(shellUserConfigDir, { recursive: true });
+        if (!fs.existsSync(shellUserConfigDir)) {
+            fs.mkdirSync(shellUserConfigDir, { recursive: true });
         }
 
         // Spawn shell process
@@ -261,18 +266,23 @@ export class MySQLShellLauncher {
      * @returns The path to the MySQL Shell as string.
      */
     private static getShellPath = (rootPath: string): string => {
-        let shellPath = join(rootPath, "shell", "bin", "mysqlsh");
+        let shellPath = path.join(rootPath, "shell", "bin", "mysqlsh");
 
         // istanbul ignore next
-        if (platform() === "win32") {
+        if (os.platform() === "win32") {
             shellPath += ".exe";
         }
 
         // Check if MySQL Shell is bundled with the extension.
         // istanbul ignore else
-        if (!existsSync(shellPath)) {
-            // If not, try to use the mysqlsh installed in the system PATH.
-            shellPath = "mysqlsh";
+        if (!fs.existsSync(shellPath)) {
+            // If not, try to use the mysqlsh installed in the system PATH. Mostly used for debugging.
+            if (os.platform() === "win32") {
+                shellPath = findExecutable("mysqlsh");
+                shellPath = "mysqlsh";
+            } else {
+                shellPath = "mysqlsh";
+            }
         }
 
         return shellPath;
@@ -299,7 +309,7 @@ export class MySQLShellLauncher {
                 resolve(true);
             });
 
-            socket.on("error", (error: Error & { code: string }) => {
+            socket.on("error", (error: Error & { code: string; }) => {
                 if (error.code !== "ECONNREFUSED") {
                     reject(error);
                 } else {
@@ -350,7 +360,7 @@ export class MySQLShellLauncher {
             try {
                 // For external targets we don't pass on a shell config dir, as we probably cannot access it
                 // anyway (unless the target is on localhost).
-                MessageScheduler.get.connect(new URL(target), "").then(() => {
+                MessageScheduler.get.connect({ url: new URL(target) }).then(() => {
                     this.launchDetails.port = Number(url.port ?? 8000);
                     this.launchDetails.singleUserToken = url.searchParams.get("token") ?? "";
 
@@ -380,40 +390,45 @@ export class MySQLShellLauncher {
                     // If the MySQL Shell web server is running and indicates Single user mode, connect to it
                     if (output.includes("Mode: Single user")) {
                         const protocol = secure ? "https" : "http";
-                        const url = new URL(`${protocol}://localhost:${port}/` +
+                        let host = "localhost";
+                        if (appParameters.testsRunning && !appParameters.inExtension) {
+                            host = "127.0.0.1";
+                        }
+                        const url = new URL(`${protocol}://${host}:${port}/` +
                             `?token=${this.launchDetails.singleUserToken}`);
+
+                        // Connect with a copy of the URL, because the URL will be modified in the connect() call.
+                        const options = {
+                            url: new URL(url.href),
+                            shellConfigDir: MySQLShellLauncher.getShellUserConfigDir(rootPath),
+                        };
 
                         if (forwardPort) {
                             this.onOutput("Establishing the port forwarding session to remote ssh server...");
                             forwardPort(url).then((redirectUrl) => {
-                                // Connect with a copy of the URL, because the URL will be modified in the connect()
-                                // call.
-                                MessageScheduler.get.connect(new URL(url.href),
-                                    MySQLShellLauncher.getShellUserConfigDir(rootPath))
-                                    .then(() => {
-                                        void requisitions.execute("connectedToUrl", redirectUrl);
-                                    }).catch(/* istanbul ignore next */(reason) => {
-                                        // Errors arriving here are directly reflected in test failures.
-                                        this.onError(
-                                            new Error(`Could not establish websocket connection: ${String(reason)}`));
-                                        void requisitions.execute("connectedToUrl", undefined);
-                                    });
-                            }).catch((reason) => {
-                                this.onError(
-                                    new Error(`Could not establish the port forwarding: ${String(reason)}`));
-                            });
-                        } else {
-                            // Connect with a copy of the URL, because the URL will be modified in the connect() call.
-                            MessageScheduler.get.connect(new URL(url.href),
-                                MySQLShellLauncher.getShellUserConfigDir(rootPath))
-                                .then(() => {
-                                    void requisitions.execute("connectedToUrl", url);
+                                MessageScheduler.get.connect(options).then(() => {
+                                    void requisitions.execute("connectedToUrl", redirectUrl);
                                 }).catch(/* istanbul ignore next */(reason) => {
                                     // Errors arriving here are directly reflected in test failures.
                                     this.onError(
                                         new Error(`Could not establish websocket connection: ${String(reason)}`));
                                     void requisitions.execute("connectedToUrl", undefined);
                                 });
+                            }).catch((reason) => {
+                                this.onError(
+                                    new Error(`Could not establish the port forwarding: ${String(reason)}`));
+                            });
+                        } else {
+                            MessageScheduler.get.connect(options).then(() => {
+                                void requisitions.execute("connectedToUrl", url);
+                            }).catch(/* istanbul ignore next */(reason) => {
+                                // Errors arriving here are directly reflected in test failures.
+                                this.onError(
+                                    new Error(`Could not establish websocket connection: ${String(reason)}`));
+                                void requisitions.execute("connectedToUrl", undefined);
+
+                                setTimeout(() => { void this.exitProcess(); }, 0);
+                            });
                         }
 
                     }
@@ -431,36 +446,39 @@ export class MySQLShellLauncher {
                 });
             };
 
-            let port = 33336;
-            if (process.env.MYSQLSH_GUI_CUSTOM_PORT !== undefined) {
-                const customPort = parseInt(process.env.MYSQLSH_GUI_CUSTOM_PORT, 10);
-                if (!isNaN(customPort)) {
-                    port = customPort;
-                } else {
-                    console.log(`MYSQLSH_GUI_CUSTOM_PORT is not a number, using 33336.`);
+            if (appParameters.testsRunning) {
+                launchShellUsingPort(Math.floor(Math.random() * 20000) + 20000);
+            } else {
+                let port = 33336;
+                if (process.env.MYSQLSH_GUI_CUSTOM_PORT !== undefined) {
+                    const customPort = parseInt(process.env.MYSQLSH_GUI_CUSTOM_PORT, 10);
+                    if (!isNaN(customPort)) {
+                        port = customPort;
+                    } else {
+                        console.log(`MYSQLSH_GUI_CUSTOM_PORT is not a number, using 33336.`);
+                    }
                 }
-            }
 
-            // Check if default port is already in use.
-            void MySQLShellLauncher.checkPort(port).then((inUse) => {
-                if (!inUse) {
-                    launchShellUsingPort(port);
-                } else {
-                    this.onOutput("Finding free port...");
-                    MySQLShellLauncher.findFreePort().then((port) => {
+                // Check if default port is already in use.
+                void MySQLShellLauncher.checkPort(port).then((inUse) => {
+                    if (!inUse) {
                         launchShellUsingPort(port);
-                    }).catch(/* istanbul ignore next */(error) => {
-                        // Errors arriving here are directly reflected in test failures.
-                        if (error instanceof Error) {
-                            this.onError(error);
-                        } else {
-                            this.onError(new Error(String(error)));
-                        }
-                    });
+                    } else {
+                        this.onOutput("Finding free port...");
+                        MySQLShellLauncher.findFreePort().then((port) => {
+                            launchShellUsingPort(port);
+                        }).catch(/* istanbul ignore next */(error) => {
+                            // Errors arriving here are directly reflected in test failures.
+                            if (error instanceof Error) {
+                                this.onError(error);
+                            } else {
+                                this.onError(new Error(String(error)));
+                            }
+                        });
 
-                }
-            });
+                    }
+                });
+            }
         }
     };
-
 }

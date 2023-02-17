@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,21 +23,25 @@
 
 import "./Dropdown.css";
 
-import React from "react";
+import { ComponentChild, VNode } from "preact";
 import { isNil } from "lodash";
 
-import { Component, IComponentProperties, Checkbox, Label, Container, Image, Icon, CheckState } from "..";
-import { ContentAlignment, Orientation } from "../Container/Container";
+import { Container, ContentAlignment, Orientation } from "../Container/Container";
+import { Checkbox, CheckState } from "../Checkbox/Checkbox";
+import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
+import { IIconProperties } from "../Icon/Icon";
+import { IImageProperties } from "../Image/Image";
+import { Label } from "../Label/Label";
 
 export interface IDropdownItemProperties extends IComponentProperties {
     caption?: string;
-    picture?: React.ReactElement<Image | Icon>;
+    picture?: VNode<IImageProperties | IIconProperties>;
     description?: string;
     selected?: boolean;
     checked?: boolean; // If given then a checkbox is shown (and checked/unchecked).
 }
 
-export class DropdownItem<T extends IDropdownItemProperties> extends Component<T> {
+export class DropdownItem<T extends IDropdownItemProperties> extends ComponentBase<T> {
 
     public constructor(props: T) {
         super(props);
@@ -45,7 +49,7 @@ export class DropdownItem<T extends IDropdownItemProperties> extends Component<T
         this.addHandledProperties("caption", "picture", "description", "checked");
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { caption, picture, selected, checked, children } = this.mergedProps;
         const className = this.getEffectiveClassNames([
             "dropdownItem",
@@ -54,7 +58,7 @@ export class DropdownItem<T extends IDropdownItemProperties> extends Component<T
             this.classFromProperty(selected, "selected"),
         ]);
 
-        let content = children as React.ReactNode | React.ReactNode[] | undefined;
+        let content = children as ComponentChild | undefined;
         if (!content) {
             if (!isNil(checked)) {
                 content = <Checkbox

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,19 +23,17 @@
 
 import icon from "../../../../assets/images/modules/module-mds.svg";
 
+import { createRef } from "preact";
 import { mount } from "enzyme";
-import React from "react";
 
 import { IModuleProperties } from "../../../../modules/ModuleBase";
 import { MDSModuleId } from "../../../../modules/ModuleInfo";
-import { snapshotFromWrapper } from "../../test-helpers";
 import { MDSModule } from "../../../../modules/mds/MDSModule";
-
 
 describe("MDS module tests", (): void => {
 
     it("Test MDSModule instantiation", () => {
-        const innerRef = React.createRef<HTMLButtonElement>();
+        const innerRef = createRef<HTMLButtonElement>();
         const component = mount<IModuleProperties>(
             <MDSModule
                 innerRef={innerRef}
@@ -48,7 +46,7 @@ describe("MDS module tests", (): void => {
             caption: "MDS",
             icon,
         });
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
         component.unmount();
     });
 

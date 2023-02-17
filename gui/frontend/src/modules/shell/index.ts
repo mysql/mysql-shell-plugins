@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,8 +22,7 @@
  */
 
 import { ICodeEditorModel } from "../../components/ui/CodeEditor/CodeEditor";
-import { ShellInterfaceShellSession } from "../../supplement/ShellInterface";
-
+import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/ShellInterfaceShellSession";
 
 export interface IShellEditorModel extends ICodeEditorModel {
     session: ShellInterfaceShellSession;

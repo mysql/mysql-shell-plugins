@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -29,34 +29,28 @@ import { IDictionary } from "../../app-logic/Types";
 
 interface IUserSettings extends IDictionary {
     theming: {
-        themes: Array<{ name: string; definition: string }>;
+        themes: Array<{ name: string; definition: string; }>;
         currentTheme: string;
     };
 }
 
-// A class to manage application/user preferences.
-// These are loaded from the user's profile data and possibly other sources.
+/**
+ * A static class to manage application/user preferences.
+ * These are loaded from the user's profile data and possibly other sources.
+ */
 export class Settings {
-
-    private dirty = false;
-    private values: IUserSettings = {
+    private static dirty = false;
+    private static values: IUserSettings = {
         theming: {
             themes: [],
             currentTheme: "Auto",
         },
     };
 
-    private saveTimer: ReturnType<typeof setTimeout> | null;
+    private static saveTimer: ReturnType<typeof setTimeout> | null;
 
     private constructor() {
-        requisitions.register("profileLoaded", this.mergeProfileValues);
-        requisitions.register("applicationWillFinish", this.applicationWillFinish);
-    }
-
-    public static get instance(): Settings {
-        registerSettings();
-
-        return new Settings();
+        // Cannot be instantiated.
     }
 
     /**
@@ -64,7 +58,7 @@ export class Settings {
      *
      * @param force If true then save even if the current set has not changed since last load/save.
      */
-    public saveSettings(force = false): void {
+    public static saveSettings(force = false): void {
         if (!this.dirty && !force) {
             return;
         }
@@ -88,9 +82,9 @@ export class Settings {
      * @returns If a default value is given the return type is the same as that of the default value. Otherwise it's
      *          either undefined or the same as the type found at the given key.
      */
-    public get<T>(key: string, defaultValue: T): ValueType<T>;
-    public get(key: string): unknown;
-    public get<T>(key: string, defaultValue?: T): T | undefined {
+    public static get<T>(key: string, defaultValue: T): ValueType<T>;
+    public static get(key: string): unknown;
+    public static get<T>(key: string, defaultValue?: T): T | undefined {
         const { target, subKey } = this.objectForKey(key, false);
         if (!target || !subKey) {
             return defaultValue;
@@ -99,7 +93,7 @@ export class Settings {
         return target[subKey] as T ?? defaultValue;
     }
 
-    public set(key: string, value: unknown): void {
+    public static set(key: string, value: unknown): void {
         this.dirty = true;
 
         const { target, subKey } = this.objectForKey(key, true);
@@ -120,7 +114,7 @@ export class Settings {
      *
      * @returns An object with the object at the given path (not counting the last part, which is returned as subKey).
      */
-    private objectForKey(key: string, canCreate: boolean): { target?: IDictionary; subKey?: string } {
+    private static objectForKey(key: string, canCreate: boolean): { target?: IDictionary; subKey?: string; } {
         let run: IDictionary = this.values;
         const parts = key.split(".");
 
@@ -148,7 +142,7 @@ export class Settings {
      *
      * @param path The path to check.
      */
-    private validatePath(path: string): void {
+    private static validatePath(path: string): void {
         const [key, category] = categoryFromPath(path);
         if (!category.values.find((value) => {
             return value.key === key;
@@ -157,7 +151,7 @@ export class Settings {
         }
     }
 
-    private mergeProfileValues = (): Promise<boolean> => {
+    private static mergeProfileValues = (): Promise<boolean> => {
         this.values = Object.assign(this.values, webSession.profile.options);
 
         this.restartAutoSaveTimeout();
@@ -165,7 +159,7 @@ export class Settings {
         return requisitions.execute("settingsChanged", undefined);
     };
 
-    private applicationWillFinish = (): Promise<boolean> => {
+    private static applicationWillFinish = (): Promise<boolean> => {
         if (this.saveTimer) {
             clearTimeout(this.saveTimer);
         }
@@ -178,7 +172,7 @@ export class Settings {
         return Promise.resolve(true);
     };
 
-    private restartAutoSaveTimeout(): void {
+    private static restartAutoSaveTimeout(): void {
         if (this.saveTimer) {
             clearInterval(this.saveTimer);
             this.saveTimer = null;
@@ -188,6 +182,13 @@ export class Settings {
             return this.saveSettings();
         }, 3000);
     }
-}
 
-export const settings = Settings.instance;
+    static {
+        registerSettings();
+
+        setTimeout(() => {
+            requisitions.register("profileLoaded", Settings.mergeProfileValues);
+            requisitions.register("applicationWillFinish", Settings.applicationWillFinish);
+        }, 0);
+    }
+}

@@ -3,7 +3,7 @@
 exports[`MDS module tests Test MDSModule instantiation 1`] = `
 <MDSModule
   innerRef={
-    Object {
+    {
       "current": null,
     }
   }

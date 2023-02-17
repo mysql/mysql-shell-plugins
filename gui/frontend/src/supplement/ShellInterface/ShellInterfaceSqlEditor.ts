@@ -21,14 +21,16 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import {
-    ShellAPIGui, ShellPromptResponseType, IPromptReplyBackend, MessageScheduler, Protocol, DataCallback,
-    IShellPasswordFeedbackRequest,
-} from "../../communication";
 import { webSession } from "../WebSession";
-import { settings } from "../Settings/Settings";
-import { ShellInterfaceDb, ShellInterfaceMds, ShellInterfaceMrs } from ".";
-import { IDbEditorResultSetData, IOpenConnectionData } from "../../communication/";
+import { Settings } from "../Settings/Settings";
+import { MessageScheduler, DataCallback } from "../../communication/MessageScheduler";
+import { IPromptReplyBackend, ShellPromptResponseType, Protocol } from "../../communication/Protocol";
+import {
+    ShellAPIGui, IOpenConnectionData, IDbEditorResultSetData, IShellPasswordFeedbackRequest,
+} from "../../communication/ProtocolGui";
+import { ShellInterfaceDb } from "./ShellInterfaceDb";
+import { ShellInterfaceMds } from "./ShellInterfaceMds";
+import { ShellInterfaceMrs } from "./ShellInterfaceMrs";
 
 export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPromptReplyBackend {
 
@@ -157,7 +159,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
                         moduleSessionId,
                         sql,
                         params,
-                        options: { rowPacketSize: settings.get("sql.rowPacketSize", 1000) },
+                        options: { rowPacketSize: Settings.get("sql.rowPacketSize", 1000) },
                     },
                 },
                 onData: callback,
@@ -186,10 +188,6 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
 
                 if (entry.result.totalRowCount) {
                     result.totalRowCount = entry.result.totalRowCount;
-                }
-
-                if (entry.result.rowsAffected) {
-                    result.rowsAffected = entry.result.rowsAffected;
                 }
             });
 

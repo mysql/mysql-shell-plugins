@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,12 +23,12 @@
 
 import "./Grid.css";
 
-import React from "react";
+import { ComponentChild } from "preact";
 
-import { Component, IComponentProperties } from "..";
 import { convertPropValue } from "../../../utilities/string-helpers";
+import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
 
-export interface IGridProperties extends IComponentProperties {
+interface IGridProperties extends IComponentProperties {
     rowGap?: string | number;    // Spacing between rows in the grid.
     columnGap?: string | number; // Ditto for columns;
     equalHeight?: boolean;       // If true, all rows have the same height (that of the largest row).
@@ -36,11 +36,11 @@ export interface IGridProperties extends IComponentProperties {
     // Column definition: a single number means just column count. An array specifies both, count and widths.
     columns: number | Array<number | string>;
 
-    innerRef?: React.RefObject<HTMLElement>;
+    innerRef?: preact.RefObject<HTMLElement>;
 }
 
 // A standard CSS grid container with static cells.
-export class Grid extends Component<IGridProperties> {
+export class Grid extends ComponentBase<IGridProperties> {
 
     public constructor(props: IGridProperties) {
         super(props);
@@ -48,7 +48,7 @@ export class Grid extends Component<IGridProperties> {
         this.addHandledProperties("rowGap", "columnGap", "equalHeight", "columns", "style", "innerRef");
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { children, rowGap, columnGap, equalHeight, columns, style, innerRef } = this.mergedProps;
         const className = this.getEffectiveClassNames([
             "grid",
@@ -75,7 +75,7 @@ export class Grid extends Component<IGridProperties> {
 
         return (
             <div
-                ref={innerRef as React.RefObject<HTMLDivElement>}
+                ref={innerRef as preact.RefObject<HTMLDivElement>}
                 className={className}
                 style={newStyle}
                 {...this.unhandledProperties}

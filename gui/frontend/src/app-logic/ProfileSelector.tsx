@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,38 +21,45 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
+import { ComponentChild, createRef } from "preact";
+import { Children } from "preact/compat";
 import { isNil } from "lodash";
 
-import {
-    CheckState, ComponentPlacement, Container, ICheckboxProperties, IComponentState, ILabelProperties,
-    IMenuItemProperties, Label, List, Menu, MenuItem, Orientation,
-} from "../components/ui";
+
 import editIcon from "../assets/images/edit.svg";
 import deleteIcon from "../assets/images/close2.svg";
 import addIcon from "../assets/images/add.svg";
 import defaultIcon from "../assets/images/chevron-right.svg";
 import currentIcon from "../assets/images/connections.svg";
-import {
-    ConfirmDialog, CommonDialogValueOption, IDialogSection, IDialogValidations, IDialogValues, ValueEditDialog,
-    ICheckListDialogValue,
-} from "../components/Dialogs";
-import { ShellInterface } from "../supplement/ShellInterface";
+
 import { webSession } from "../supplement/WebSession";
 import { requisitions } from "../supplement/Requisitions";
 import { DialogResponseClosure } from "./Types";
-import { IShellProfile } from "../communication";
+import { IShellProfile } from "../communication/ProtocolGui";
+import { ICheckboxProperties, CheckState } from "../components/ui/Checkbox/Checkbox";
+import { IComponentState, ComponentBase, ComponentPlacement } from "../components/ui/Component/ComponentBase";
+import { Container, Orientation } from "../components/ui/Container/Container";
+import { Label, ILabelProperties } from "../components/ui/Label/Label";
+import { List } from "../components/ui/List/List";
+import { Menu } from "../components/ui/Menu/Menu";
+import { MenuItem, IMenuItemProperties } from "../components/ui/Menu/MenuItem";
+import { ShellInterface } from "../supplement/ShellInterface/ShellInterface";
+import {
+    CommonDialogValueOption, ICheckListDialogValue, IDialogSection, IDialogValidations, IDialogValues,
+    ValueEditDialog,
+} from "../components/Dialogs/ValueEditDialog";
+import { ConfirmDialog } from "../components/Dialogs/ConfirmDialog";
 
 interface IProfileSelectorState extends IComponentState {
-    menuItems: React.ReactNode[];
+    menuItems: ComponentChild[];
 }
 
-export class ProfileSelector extends React.Component<{}, IProfileSelectorState> {
+export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
 
-    private profileDialogRef = React.createRef<ValueEditDialog>();
-    private confirmDialogRef = React.createRef<ConfirmDialog>();
+    private profileDialogRef = createRef<ValueEditDialog>();
+    private confirmDialogRef = createRef<ConfirmDialog>();
 
-    private actionMenuRef = React.createRef<Menu>();
+    private actionMenuRef = createRef<Menu>();
     private profileName = "";
 
     private deleteList: IShellProfile[] = [];
@@ -93,7 +100,7 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
         }]);
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { menuItems } = this.state;
 
         return (
@@ -198,7 +205,7 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
     };
 
     private generatePopupMenuEntries = (): void => {
-        const menuItems: React.ReactNode[] = [];
+        const menuItems: ComponentChild[] = [];
         this.activeProfiles?.forEach(
             (value: IShellProfile, index: number) => {
                 let icon;
@@ -269,7 +276,7 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
             messages: {},
         };
 
-        const details = payload as { saveProfile: boolean; section: string };
+        const details = payload as { saveProfile: boolean; section: string; };
         const sectionId = details.section ?? "add";
         const sectionValues = values.sections.get(sectionId)!.values;
         switch (sectionId) {
@@ -358,7 +365,7 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
 
     private handleProfileChanges = (closure: DialogResponseClosure, values: IDialogValues, payload: unknown): void => {
         if (closure === DialogResponseClosure.Accept) {
-            const details = payload as { saveProfile: boolean; section: string };
+            const details = payload as { saveProfile: boolean; section: string; };
 
             if (details.saveProfile) {
                 const sectionId = details.section;
@@ -666,8 +673,8 @@ export class ProfileSelector extends React.Component<{}, IProfileSelectorState> 
         ]);
     };
 
-    private handleMenuItemClick = (e: React.MouseEvent, props: IMenuItemProperties): boolean => {
-        if (!props.children || React.Children.count(props.children) === 0) {
+    private handleMenuItemClick = (e: MouseEvent, props: IMenuItemProperties): boolean => {
+        if (!props.children || Children.count(props.children) === 0) {
             const value = parseInt(props.id ?? "", 10);
             const action = isNaN(value) ? props.id : "current";
             this.handleProfileAction(action || "", props.id || "");

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,9 +22,11 @@
  */
 
 import { ReferencesProvider } from "../../../../../components/ui/CodeEditor/ReferencesProvider";
-import { ExecutionContext, PresentationInterface } from "../../../../../script-execution";
+import { ExecutionContext } from "../../../../../script-execution/ExecutionContext";
+import { PresentationInterface } from "../../../../../script-execution/PresentationInterface";
 import { ScriptingLanguageServices } from "../../../../../script-execution/ScriptingLanguageServices";
-import { models, position } from "../../../__mocks__/CodeEditorMocks";
+
+import { mockModel, position } from "../../../__mocks__/CodeEditorMocks";
 
 jest.mock("../../../../../script-execution/PresentationInterface");
 
@@ -34,18 +36,18 @@ describe("ReferenceProvider tests", () => {
         const referenceProvider = new ReferencesProvider();
         expect(referenceProvider).not.toBeNull();
 
-        let result = referenceProvider.provideReferences(models, position);
+        let result = referenceProvider.provideReferences(mockModel, position);
         expect(result).toBe(undefined);
 
         const pi = new (PresentationInterface as unknown as jest.Mock<PresentationInterface>)();
         expect(pi).toBeDefined();
 
         const execContext = new ExecutionContext(pi);
-        models.executionContexts.contextFromPosition = jest.fn().mockReturnValue(
+        mockModel.executionContexts.contextFromPosition = jest.fn().mockReturnValue(
             execContext,
         );
         jest.spyOn(execContext, "isInternal", "get").mockReturnValue(true);
-        result = referenceProvider.provideReferences(models, position);
+        result = referenceProvider.provideReferences(mockModel, position);
         expect(result).toBe(undefined);
 
         const services = ScriptingLanguageServices.instance;
@@ -56,7 +58,7 @@ describe("ReferenceProvider tests", () => {
 
         jest.spyOn(execContext, "isInternal", "get").mockReturnValue(false);
         const findReferences = jest.spyOn(services, "findReferences");
-        void referenceProvider.provideReferences(models, position);
+        void referenceProvider.provideReferences(mockModel, position);
         expect(findReferences).toBeCalled();
     });
 });

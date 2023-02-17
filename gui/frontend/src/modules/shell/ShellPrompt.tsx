@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,37 +21,38 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
+import { ComponentChild, createRef } from "preact";
+import { IShellPromptValues } from "../../communication/ProtocolGui";
+import { Breadcrumb } from "../../components/ui/Breadcrumb/Breadcrumb";
+import { IComponentProperties, IComponentState, ComponentBase } from "../../components/ui/Component/ComponentBase";
+import { Label } from "../../components/ui/Label/Label";
+import { Menu } from "../../components/ui/Menu/Menu";
+import { MenuItem, IMenuItemProperties } from "../../components/ui/Menu/MenuItem";
 
-import { IShellPromptValues } from "../../communication/";
-
-import {
-    Breadcrumb, Component, IComponentProperties, IComponentState, IMenuItemProperties, Label, Menu, MenuItem,
-} from "../../components/ui";
 import { requisitions } from "../../supplement/Requisitions";
 
-export interface IShellPromptProperties extends IComponentProperties {
+interface IShellPromptProperties extends IComponentProperties {
     values: IShellPromptValues;
 
     getSchemas: () => Promise<string[]>;
     onSelectSchema?: (schema: string) => void;
 }
 
-export interface IShellPromptState extends IComponentState {
+interface IShellPromptState extends IComponentState {
     values: IShellPromptValues;
     schemaNames: string[];
 }
 
-// These values represent a special symbol in the MySQL font.
+/** These values represent a special symbol in the MySQL font. */
 enum TypeSymbol {
     Server = "\ue895",
     Schema = "\ue894",
     SSL = "\ue0a2",
 }
 
-export class ShellPrompt extends Component<IShellPromptProperties, IShellPromptState> {
+export class ShellPrompt extends ComponentBase<IShellPromptProperties, IShellPromptState> {
 
-    private schemaMenuRef = React.createRef<Menu>();
+    private schemaMenuRef = createRef<Menu>();
 
     public constructor(props: IShellPromptProperties) {
         super(props);
@@ -76,12 +77,12 @@ export class ShellPrompt extends Component<IShellPromptProperties, IShellPromptS
         requisitions.unregister("updateShellPrompt", this.updateShellPrompt);
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { values, schemaNames } = this.state;
 
         const className = this.getEffectiveClassNames(["shellPrompt"]);
 
-        const items: React.ReactElement[] = [];
+        const items: ComponentChild[] = [];
         if (values.promptDescriptor) {
             if (!values.promptDescriptor.host) {
                 // Not connected yet.
@@ -167,7 +168,7 @@ export class ShellPrompt extends Component<IShellPromptProperties, IShellPromptS
         });
     };
 
-    private handleSchemaSectionClick = (e: React.SyntheticEvent): void => {
+    private handleSchemaSectionClick = (e: MouseEvent | KeyboardEvent): void => {
         const { getSchemas } = this.props;
 
         e.stopPropagation();
@@ -180,7 +181,7 @@ export class ShellPrompt extends Component<IShellPromptProperties, IShellPromptS
         });
     };
 
-    private handleSchemaItemClick = (e: React.MouseEvent, props: IMenuItemProperties): boolean => {
+    private handleSchemaItemClick = (e: MouseEvent, props: IMenuItemProperties): boolean => {
         const { onSelectSchema } = this.props;
         onSelectSchema?.(props.caption?.substr(2) ?? "");
 

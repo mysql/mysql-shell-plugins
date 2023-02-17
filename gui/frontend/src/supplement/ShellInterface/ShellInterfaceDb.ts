@@ -21,10 +21,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { MessageScheduler, ShellAPIGui, IShellDbConnection } from "../../communication";
+import { MessageScheduler } from "../../communication/MessageScheduler";
+import { IShellDbConnection, ShellAPIGui } from "../../communication/ProtocolGui";
 import { webSession } from "../WebSession";
 
-export type RoutineType = "function" | "procedure";
+type RoutineType = "function" | "procedure";
 
 /**
  * This interface serves as utility for DB related work (DB object retrieval and so on).

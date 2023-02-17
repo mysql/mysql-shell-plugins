@@ -4,12 +4,12 @@ exports[`Confirm Dialog Tests Confirm Dialog Render Test 1`] = `
 <ConfirmDialog>
   <Dialog
     actions={
-      Object {
-        "end": Array [],
+      {
+        "end": [],
       }
     }
     caption={
-      <y>
+      <p>
         <Icon
           disabled={false}
           src={275}
@@ -17,10 +17,14 @@ exports[`Confirm Dialog Tests Confirm Dialog Render Test 1`] = `
         <Label>
           Confirm
         </Label>
-      </y>
+      </p>
     }
     className="msg confirmDialog"
-    container={Object {}}
+    container={
+      <body
+        theme="dark"
+      />
+    }
     content={
       <Container
         orientation="column"
@@ -35,7 +39,11 @@ exports[`Confirm Dialog Tests Confirm Dialog Render Test 1`] = `
     onClose={[Function]}
   >
     <Portal
-      container={Object {}}
+      container={
+        <body
+          theme="dark"
+        />
+      }
       onClose={[Function]}
       onOpen={[Function]}
     />
@@ -45,82 +53,72 @@ exports[`Confirm Dialog Tests Confirm Dialog Render Test 1`] = `
 
 exports[`Confirm Dialog Tests Show Dialog with React Element 1`] = `
 <div
-  __self="[object Object]"
-  __source="[object Object]"
   class="msg portal"
+  style="--background-opacity: 0.5;"
 >
   <div
-    __self="[object Object]"
-    __source="[object Object]"
     class="msg dialog visible confirmDialog"
   >
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="title verticalCenterContent"
     >
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
+      <span
         class="msg icon codicon codicon-question"
       />
       <label
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg label"
         data-tooltip="expand"
       >
         Confirm you are a spy!
       </label>
       <button
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg button imageOnly"
         id="closeButton"
         tabindex="0"
       >
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
+        <span
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
       </button>
     </div>
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="content fixedScrollbar"
     >
-      <label
-        __self="[object Object]"
-        __source="[object Object]"
-        class="msg label"
-        data-tooltip="expand"
+      <div
+        class="msg container fixedScrollbar"
+        style="flex-direction: column;"
       >
-        Time to say goodbye
-      </label>
+        <label
+          class="msg label"
+          data-tooltip="expand"
+          id="dialogMessage"
+        >
+          <label
+            class="msg label"
+            data-tooltip="expand"
+          >
+            Time to say goodbye
+          </label>
+        </label>
+        <div
+          class="msg container fixedScrollbar description"
+          style="flex-direction: column;"
+        />
+      </div>
     </div>
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="footer verticalCenterContent"
     >
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg container fixedScrollbar leftItems"
         style="flex-direction: row;"
       />
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg container fixedScrollbar rightItems"
         style="flex-direction: row-reverse;"
       >
         <button
-          __self="[object Object]"
-          __source="[object Object]"
           caption="Yes, you got me"
           class="msg button"
           id="accept"
@@ -129,8 +127,6 @@ exports[`Confirm Dialog Tests Show Dialog with React Element 1`] = `
           Yes, you got me
         </button>
         <button
-          __self="[object Object]"
-          __source="[object Object]"
           caption="No, I'm not a spy"
           class="msg button"
           id="refuse"
@@ -146,62 +142,43 @@ exports[`Confirm Dialog Tests Show Dialog with React Element 1`] = `
 
 exports[`Confirm Dialog Tests Show Dialog with simple and no message 1`] = `
 <div
-  __self="[object Object]"
-  __source="[object Object]"
   class="msg portal"
+  style="--background-opacity: 0.5;"
 >
   <div
-    __self="[object Object]"
-    __source="[object Object]"
     class="msg dialog visible confirmDialog"
   >
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="title verticalCenterContent"
     >
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
+      <span
         class="msg icon codicon codicon-question"
       />
       <label
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg label"
         data-tooltip="expand"
       >
         Confirm you are a spy!
       </label>
       <button
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg button imageOnly"
         id="closeButton"
         tabindex="0"
       >
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
+        <span
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
       </button>
     </div>
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="content fixedScrollbar"
     >
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg container fixedScrollbar"
         style="flex-direction: column;"
       >
         <label
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg label"
           data-tooltip="expand"
           id="dialogMessage"
@@ -209,33 +186,23 @@ exports[`Confirm Dialog Tests Show Dialog with simple and no message 1`] = `
           Answer The Question
         </label>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar description"
           style="flex-direction: column;"
         />
       </div>
     </div>
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="footer verticalCenterContent"
     >
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg container fixedScrollbar leftItems"
         style="flex-direction: row;"
       />
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg container fixedScrollbar rightItems"
         style="flex-direction: row-reverse;"
       >
         <button
-          __self="[object Object]"
-          __source="[object Object]"
           caption="Yes, you got me"
           class="msg button"
           id="accept"
@@ -244,8 +211,6 @@ exports[`Confirm Dialog Tests Show Dialog with simple and no message 1`] = `
           Yes, you got me
         </button>
         <button
-          __self="[object Object]"
-          __source="[object Object]"
           caption="No, I'm not a spy"
           class="msg button"
           id="refuse"
@@ -261,88 +226,61 @@ exports[`Confirm Dialog Tests Show Dialog with simple and no message 1`] = `
 
 exports[`Confirm Dialog Tests Show Dialog with simple and no message 2`] = `
 <div
-  __self="[object Object]"
-  __source="[object Object]"
   class="msg portal"
+  style="--background-opacity: 0.5;"
 >
   <div
-    __self="[object Object]"
-    __source="[object Object]"
     class="msg dialog visible confirmDialog"
   >
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="title verticalCenterContent"
     >
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
+      <span
         class="msg icon codicon codicon-question"
       />
       <label
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg label"
         data-tooltip="expand"
       >
         Resistance is futile
       </label>
       <button
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg button imageOnly"
         id="closeButton"
         tabindex="0"
       >
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
+        <span
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
       </button>
     </div>
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="content fixedScrollbar"
     >
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg container fixedScrollbar"
         style="flex-direction: column;"
       >
         
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar description"
           style="flex-direction: column;"
         />
       </div>
     </div>
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="footer verticalCenterContent"
     >
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg container fixedScrollbar leftItems"
         style="flex-direction: row;"
       />
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg container fixedScrollbar rightItems"
         style="flex-direction: row-reverse;"
       >
         <button
-          __self="[object Object]"
-          __source="[object Object]"
           caption="Yes, you got me"
           class="msg button"
           id="accept"
@@ -351,8 +289,6 @@ exports[`Confirm Dialog Tests Show Dialog with simple and no message 2`] = `
           Yes, you got me
         </button>
         <button
-          __self="[object Object]"
-          __source="[object Object]"
           caption="No, I'm not a spy"
           class="msg button"
           id="refuse"

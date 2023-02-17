@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -28,7 +28,6 @@ import "fake-indexeddb/auto";
 import "jest-canvas-mock";
 
 Enzyme.configure({ adapter: new Adapter() });
-jest.setTimeout(10000);
 
 Object.defineProperty(window, "matchMedia", {
     writable: true,
@@ -58,6 +57,7 @@ Object.defineProperty(window, "location", {
 
 Object.defineProperty(global.self, "DOMPoint", {
     writable: true,
+    enumerable: true,
     value: jest.fn().mockImplementation((x?: number, y?: number, z?: number, w?: number) => {
         return {
             x: x ?? 0,
@@ -66,12 +66,13 @@ Object.defineProperty(global.self, "DOMPoint", {
             w: w ?? 0,
             matrixTransform: jest.fn(),
             toJSON: jest.fn(),
-        } as DOMPoint;
+        };
     }),
 });
 
 Object.defineProperty(global.self, "DOMRect", {
     writable: true,
+    enumerable: true,
     value: jest.fn().mockImplementation((x?: number, y?: number, width?: number, height?: number) => {
         return {
             x: x ?? 0,
@@ -82,18 +83,6 @@ Object.defineProperty(global.self, "DOMRect", {
             right: (x ?? 0) + (width ?? 0),
             bottom: (y ?? 0) + (height ?? 0),
             left: x ?? 0,
-        } as DOMRect;
+        };
     }),
-});
-
-let originalDir: string;
-
-beforeAll(() => {
-    // Keep the current dir to restore it on exit.
-    originalDir = process.cwd();
-    process.chdir("./src/tests/unit-tests");
-});
-
-afterAll(() => {
-    process.chdir(originalDir);
 });

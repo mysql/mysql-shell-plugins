@@ -22,6 +22,7 @@
  */
 
 import _ from "lodash";
+import Anser from "anser";
 
 import { IDictionary } from "../app-logic/Types";
 
@@ -222,7 +223,7 @@ export const waitFor = async (timeout: number, condition: () => boolean): Promis
     return timeout > 0 ? true : false;
 };
 
-export interface IConversionOptions {
+interface IConversionOptions {
     ignore?: string[];
 }
 
@@ -291,11 +292,8 @@ export const convertTitleToCamelCase = (s: string): string => {
     return s.charAt(0).toLowerCase() + s.slice(1);
 };
 
-// eslint-disable-next-line no-control-regex
-const ansiRegEx = /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g;
-
 export const stripAnsiCode = (s: string): string => {
-    return s.replace(ansiRegEx, "");
+    return Anser.ansiToText(s);
 };
 
 /**

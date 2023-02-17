@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -25,18 +25,22 @@ import clientConnections from "../../assets/images/clientConnections.svg";
 import mysql from "../../assets/images/schemaMySQL.svg";
 import innodb from "../../assets/images/databaseEngine.svg";
 
-import React from "react";
+import { ComponentChild } from "preact";
 
 import { ColorScheme, ISavedGraphData, IToolbarItems } from ".";
 import { GraphHost } from "../../components/graphs/GraphHost";
 
-import {
-    Component, Container, ContentAlignment, Dropdown, Grid, GridCell, IComponentProperties, IComponentState, Icon,
-    Label, Orientation, Toolbar,
-} from "../../components/ui";
-import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface";
 import { DropdownItem } from "../../components/ui/Dropdown/DropdownItem";
 import { formatBytes } from "../../utilities/string-helpers";
+import { IComponentProperties, IComponentState, ComponentBase } from "../../components/ui/Component/ComponentBase";
+import { Container, Orientation, ContentAlignment } from "../../components/ui/Container/Container";
+import { Dropdown } from "../../components/ui/Dropdown/Dropdown";
+import { Grid } from "../../components/ui/Grid/Grid";
+import { GridCell } from "../../components/ui/Grid/GridCell";
+import { Icon } from "../../components/ui/Icon/Icon";
+import { Label } from "../../components/ui/Label/Label";
+import { Toolbar } from "../../components/ui/Toolbar/Toolbar";
+import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor";
 
 enum MarkerType {
     None,
@@ -59,7 +63,7 @@ const colorSchemes = new Map<ColorScheme, string[]>([
 ]);
 
 
-export interface IPerformanceDashboardProperties extends IComponentProperties {
+interface IPerformanceDashboardProperties extends IComponentProperties {
     backend: ShellInterfaceSqlEditor;
 
     // Top level toolbar items, to be integrated with page specific ones.
@@ -88,7 +92,7 @@ const enum Color {
     DDL,
 }
 
-export class PerformanceDashboard extends Component<IPerformanceDashboardProperties, IPerformanceDashboardState> {
+export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardProperties, IPerformanceDashboardState> {
 
     // The interval (in ms) after which new samples are taken.
     private static readonly sampleInterval = 3000;
@@ -300,7 +304,7 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
         });
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { toolbarItems, graphData } = this.props;
 
         const toolbar = <Toolbar id="dashboardToolbar" dropShadow={false} >
@@ -357,7 +361,7 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
         );
     }
 
-    private renderNetworkStatus(gridColumn: number): React.ReactNode[] {
+    private renderNetworkStatus(gridColumn: number): ComponentChild[] {
         const { graphData } = this.state;
 
         const colors = colorSchemes.get(graphData.activeColorScheme)!;
@@ -438,7 +442,7 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
         const currentIncoming = incomingNetworkData[incomingNetworkData.length - 1].yValue ?? 0;
         const currentOutgoing = outgoingNetworkData[outgoingNetworkData.length - 1].yValue ?? 0;
 
-        const cells: React.ReactNode[] = [];
+        const cells: ComponentChild[] = [];
         cells.push(
             <GridCell
                 className="title"
@@ -480,7 +484,7 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
         return cells;
     }
 
-    private renderMySQLStatus(gridColumn: number): React.ReactNode[] {
+    private renderMySQLStatus(gridColumn: number): ComponentChild[] {
         const { graphData } = this.state;
 
         const colors = colorSchemes.get(graphData.activeColorScheme)!;
@@ -607,7 +611,7 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
             ],
         };
 
-        const cells: React.ReactNode[] = [];
+        const cells: ComponentChild[] = [];
         cells.push(
             <GridCell
                 className="title"
@@ -713,7 +717,7 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
         return cells;
     }
 
-    private renderInnoDBStatus(gridColumn: number): React.ReactNode[] {
+    private renderInnoDBStatus(gridColumn: number): ComponentChild[] {
         const { graphData } = this.state;
 
         const colors = colorSchemes.get(graphData.activeColorScheme)!;
@@ -857,7 +861,7 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
 
         };
 
-        const cells: React.ReactNode[] = [];
+        const cells: ComponentChild[] = [];
         cells.push(
             <GridCell
                 className="title"
@@ -930,7 +934,7 @@ export class PerformanceDashboard extends Component<IPerformanceDashboardPropert
         return cells;
     }
 
-    private renderNameValuePair(name: string, value: string, type: MarkerType, tooltip: string): React.ReactNode {
+    private renderNameValuePair(name: string, value: string, type: MarkerType, tooltip: string): ComponentChild {
         const { graphData } = this.props;
 
         const colors = colorSchemes.get(graphData.activeColorScheme)!;

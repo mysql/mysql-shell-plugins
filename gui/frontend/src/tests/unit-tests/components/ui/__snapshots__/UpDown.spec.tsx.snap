@@ -3,7 +3,7 @@
 exports[`UpDown render testing Test UpDown output (Snapshot) 1`] = `
 <UpDown
   items={
-    Array [
+    [
       "January",
       "February",
       "March",
@@ -23,14 +23,129 @@ exports[`UpDown render testing Test UpDown output (Snapshot) 1`] = `
   <Grid
     className="msg upDown"
     columns={
-      Array [
+      [
         "auto",
         16,
       ]
     }
     innerRef={
-      Object {
-        "current": Object {},
+      {
+        "current": <div
+          class="msg grid upDown"
+          style="grid-template-columns: auto 16px; --item-height: 0px;"
+        >
+          <div
+            class="msg container fixedScrollbar gridCell"
+            id="content"
+            style="flex-direction: row; grid-row: span 2;"
+          >
+            <div
+              class="msg container fixedScrollbar"
+              id="outerList"
+              style="flex-direction: row;"
+              tabindex="0"
+            >
+              <div
+                class="msg container fixedScrollbar"
+                id="innerList"
+                style="flex-direction: column;"
+              >
+                <div
+                  class="msg container fixedScrollbar"
+                  style="flex-direction: row; justify-content: center; align-items: center;"
+                >
+                  January
+                </div>
+                <div
+                  class="msg container fixedScrollbar"
+                  style="flex-direction: row; justify-content: center; align-items: center;"
+                >
+                  February
+                </div>
+                <div
+                  class="msg container fixedScrollbar"
+                  style="flex-direction: row; justify-content: center; align-items: center;"
+                >
+                  March
+                </div>
+                <div
+                  class="msg container fixedScrollbar"
+                  style="flex-direction: row; justify-content: center; align-items: center;"
+                >
+                  April
+                </div>
+                <div
+                  class="msg container fixedScrollbar"
+                  style="flex-direction: row; justify-content: center; align-items: center;"
+                >
+                  May
+                </div>
+                <div
+                  class="msg container fixedScrollbar"
+                  style="flex-direction: row; justify-content: center; align-items: center;"
+                >
+                  June
+                </div>
+                <div
+                  class="msg container fixedScrollbar"
+                  style="flex-direction: row; justify-content: center; align-items: center;"
+                >
+                  July
+                </div>
+                <div
+                  class="msg container fixedScrollbar"
+                  style="flex-direction: row; justify-content: center; align-items: center;"
+                >
+                  August
+                </div>
+                <div
+                  class="msg container fixedScrollbar"
+                  style="flex-direction: row; justify-content: center; align-items: center;"
+                >
+                  September
+                </div>
+                <div
+                  class="msg container fixedScrollbar"
+                  style="flex-direction: row; justify-content: center; align-items: center;"
+                >
+                  October
+                </div>
+                <div
+                  class="msg container fixedScrollbar"
+                  style="flex-direction: row; justify-content: center; align-items: center;"
+                >
+                  November
+                </div>
+                <div
+                  class="msg container fixedScrollbar"
+                  style="flex-direction: row; justify-content: center; align-items: center;"
+                >
+                  December
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="msg container fixedScrollbar gridCell"
+            style="flex-direction: row;"
+          >
+            <button
+              class="msg button"
+              id="up"
+              tabindex="-1"
+            />
+          </div>
+          <div
+            class="msg container fixedScrollbar gridCell"
+            style="flex-direction: row;"
+          >
+            <button
+              class="msg button"
+              id="down"
+              tabindex="-1"
+            />
+          </div>
+        </div>,
       }
     }
     key="upDownMain"
@@ -38,7 +153,7 @@ exports[`UpDown render testing Test UpDown output (Snapshot) 1`] = `
     <div
       className="msg grid upDown"
       style={
-        Object {
+        {
           "columnGap": undefined,
           "gridTemplateColumns": "auto 16px",
           "rowGap": undefined,
@@ -55,7 +170,7 @@ exports[`UpDown render testing Test UpDown output (Snapshot) 1`] = `
           id="content"
           orientation="row"
           style={
-            Object {
+            {
               "gridRow": "span 2",
             }
           }
@@ -64,7 +179,7 @@ exports[`UpDown render testing Test UpDown output (Snapshot) 1`] = `
             className="msg container fixedScrollbar gridCell"
             id="content"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -83,7 +198,7 @@ exports[`UpDown render testing Test UpDown output (Snapshot) 1`] = `
                 className="msg container fixedScrollbar"
                 id="outerList"
                 style={
-                  Object {
+                  {
                     "alignItems": undefined,
                     "flexDirection": "row",
                     "flexWrap": undefined,
@@ -95,8 +210,85 @@ exports[`UpDown render testing Test UpDown output (Snapshot) 1`] = `
                 <Container
                   id="innerList"
                   innerRef={
-                    Object {
-                      "current": Object {},
+                    {
+                      "current": <div
+                        class="msg container fixedScrollbar"
+                        id="innerList"
+                        style="flex-direction: column;"
+                      >
+                        <div
+                          class="msg container fixedScrollbar"
+                          style="flex-direction: row; justify-content: center; align-items: center;"
+                        >
+                          January
+                        </div>
+                        <div
+                          class="msg container fixedScrollbar"
+                          style="flex-direction: row; justify-content: center; align-items: center;"
+                        >
+                          February
+                        </div>
+                        <div
+                          class="msg container fixedScrollbar"
+                          style="flex-direction: row; justify-content: center; align-items: center;"
+                        >
+                          March
+                        </div>
+                        <div
+                          class="msg container fixedScrollbar"
+                          style="flex-direction: row; justify-content: center; align-items: center;"
+                        >
+                          April
+                        </div>
+                        <div
+                          class="msg container fixedScrollbar"
+                          style="flex-direction: row; justify-content: center; align-items: center;"
+                        >
+                          May
+                        </div>
+                        <div
+                          class="msg container fixedScrollbar"
+                          style="flex-direction: row; justify-content: center; align-items: center;"
+                        >
+                          June
+                        </div>
+                        <div
+                          class="msg container fixedScrollbar"
+                          style="flex-direction: row; justify-content: center; align-items: center;"
+                        >
+                          July
+                        </div>
+                        <div
+                          class="msg container fixedScrollbar"
+                          style="flex-direction: row; justify-content: center; align-items: center;"
+                        >
+                          August
+                        </div>
+                        <div
+                          class="msg container fixedScrollbar"
+                          style="flex-direction: row; justify-content: center; align-items: center;"
+                        >
+                          September
+                        </div>
+                        <div
+                          class="msg container fixedScrollbar"
+                          style="flex-direction: row; justify-content: center; align-items: center;"
+                        >
+                          October
+                        </div>
+                        <div
+                          class="msg container fixedScrollbar"
+                          style="flex-direction: row; justify-content: center; align-items: center;"
+                        >
+                          November
+                        </div>
+                        <div
+                          class="msg container fixedScrollbar"
+                          style="flex-direction: row; justify-content: center; align-items: center;"
+                        >
+                          December
+                        </div>
+                      </div>,
                     }
                   }
                   key="innerList"
@@ -106,7 +298,7 @@ exports[`UpDown render testing Test UpDown output (Snapshot) 1`] = `
                     className="msg container fixedScrollbar"
                     id="innerList"
                     style={
-                      Object {
+                      {
                         "alignItems": undefined,
                         "flexDirection": "column",
                         "flexWrap": undefined,
@@ -123,7 +315,7 @@ exports[`UpDown render testing Test UpDown output (Snapshot) 1`] = `
                       <div
                         className="msg container fixedScrollbar"
                         style={
-                          Object {
+                          {
                             "alignItems": "center",
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -143,7 +335,7 @@ exports[`UpDown render testing Test UpDown output (Snapshot) 1`] = `
                       <div
                         className="msg container fixedScrollbar"
                         style={
-                          Object {
+                          {
                             "alignItems": "center",
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -163,7 +355,7 @@ exports[`UpDown render testing Test UpDown output (Snapshot) 1`] = `
                       <div
                         className="msg container fixedScrollbar"
                         style={
-                          Object {
+                          {
                             "alignItems": "center",
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -183,7 +375,7 @@ exports[`UpDown render testing Test UpDown output (Snapshot) 1`] = `
                       <div
                         className="msg container fixedScrollbar"
                         style={
-                          Object {
+                          {
                             "alignItems": "center",
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -203,7 +395,7 @@ exports[`UpDown render testing Test UpDown output (Snapshot) 1`] = `
                       <div
                         className="msg container fixedScrollbar"
                         style={
-                          Object {
+                          {
                             "alignItems": "center",
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -223,7 +415,7 @@ exports[`UpDown render testing Test UpDown output (Snapshot) 1`] = `
                       <div
                         className="msg container fixedScrollbar"
                         style={
-                          Object {
+                          {
                             "alignItems": "center",
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -243,7 +435,7 @@ exports[`UpDown render testing Test UpDown output (Snapshot) 1`] = `
                       <div
                         className="msg container fixedScrollbar"
                         style={
-                          Object {
+                          {
                             "alignItems": "center",
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -263,7 +455,7 @@ exports[`UpDown render testing Test UpDown output (Snapshot) 1`] = `
                       <div
                         className="msg container fixedScrollbar"
                         style={
-                          Object {
+                          {
                             "alignItems": "center",
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -283,7 +475,7 @@ exports[`UpDown render testing Test UpDown output (Snapshot) 1`] = `
                       <div
                         className="msg container fixedScrollbar"
                         style={
-                          Object {
+                          {
                             "alignItems": "center",
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -303,7 +495,7 @@ exports[`UpDown render testing Test UpDown output (Snapshot) 1`] = `
                       <div
                         className="msg container fixedScrollbar"
                         style={
-                          Object {
+                          {
                             "alignItems": "center",
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -323,7 +515,7 @@ exports[`UpDown render testing Test UpDown output (Snapshot) 1`] = `
                       <div
                         className="msg container fixedScrollbar"
                         style={
-                          Object {
+                          {
                             "alignItems": "center",
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -343,7 +535,7 @@ exports[`UpDown render testing Test UpDown output (Snapshot) 1`] = `
                       <div
                         className="msg container fixedScrollbar"
                         style={
-                          Object {
+                          {
                             "alignItems": "center",
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -365,12 +557,12 @@ exports[`UpDown render testing Test UpDown output (Snapshot) 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -390,7 +582,7 @@ exports[`UpDown render testing Test UpDown output (Snapshot) 1`] = `
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -404,12 +596,12 @@ exports[`UpDown render testing Test UpDown output (Snapshot) 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -429,7 +621,7 @@ exports[`UpDown render testing Test UpDown output (Snapshot) 1`] = `
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }

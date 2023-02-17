@@ -7,7 +7,7 @@ exports[`ColorField component tests Interaction tests: 1 1`] = `
   <div
     className="msg container fixedScrollbar"
     style={
-      Object {
+      {
         "alignItems": undefined,
         "flexDirection": "row",
         "flexWrap": undefined,
@@ -33,8 +33,8 @@ exports[`ColorField component tests Interaction tests: 1 1`] = `
     <ColorField
       id="testColorButton"
       initialColor={
-        Object {
-          "color": Array [
+        {
+          "color": [
             255,
             170,
             136,
@@ -61,7 +61,7 @@ exports[`ColorField component tests Interaction tests: 1 1`] = `
         <div
           className="inner"
           style={
-            Object {
+            {
               "--current-color": "hsl(17.100000000000023, 100%, 76.7%)",
             }
           }
@@ -80,7 +80,7 @@ exports[`ColorField component tests Interaction tests: 2 1`] = `
   <div
     className="msg container fixedScrollbar"
     style={
-      Object {
+      {
         "alignItems": undefined,
         "flexDirection": "row",
         "flexWrap": undefined,
@@ -106,8 +106,8 @@ exports[`ColorField component tests Interaction tests: 2 1`] = `
     <ColorField
       id="testColorButton"
       initialColor={
-        Object {
-          "color": Array [
+        {
+          "color": [
             255,
             170,
             136,
@@ -134,7 +134,7 @@ exports[`ColorField component tests Interaction tests: 2 1`] = `
         <div
           className="inner"
           style={
-            Object {
+            {
               "--current-color": "hsl(17.100000000000023, 100%, 76.7%)",
             }
           }

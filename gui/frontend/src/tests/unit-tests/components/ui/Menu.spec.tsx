@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,13 +23,14 @@
 
 import cloneIcon from "../../../../assets/images/clone.svg";
 
-import React from "react";
 import { mount, shallow } from "enzyme";
 import { act } from "@testing-library/preact";
 
-import { Menu, ComponentPlacement, MenuItem, MenuBar, IMenuProperties } from "../../../../components/ui";
-import { eventMock } from "../../__mocks__/MockEvents";
-import { snapshotFromWrapper } from "../../test-helpers";
+import { mouseEventMock } from "../../__mocks__/MockEvents";
+import { ComponentPlacement } from "../../../../components/ui/Component/ComponentBase";
+import { Menu, IMenuProperties } from "../../../../components/ui/Menu/Menu";
+import { MenuBar } from "../../../../components/ui/Menu/MenuBar";
+import { MenuItem } from "../../../../components/ui/Menu/MenuItem";
 
 describe("Menu component tests", (): void => {
     it("Test menu callbacks", async () => {
@@ -59,7 +60,7 @@ describe("Menu component tests", (): void => {
         // first simulate click to open menu
         let onClick = (component.props() as IMenuProperties).onClick;
         await act(() => {
-            onClick?.(eventMock, {});
+            onClick?.(mouseEventMock, {});
         });
 
         const instance = component.instance();
@@ -69,7 +70,7 @@ describe("Menu component tests", (): void => {
 
         onClick = (item.props() as IMenuProperties).onClick;
         await act(() => {
-            onClick?.(eventMock, {});
+            onClick?.(mouseEventMock, {});
         });
         expect(spyItemClick).toBeCalled();
     });
@@ -154,7 +155,7 @@ describe("Menu component tests", (): void => {
                 </MenuItem>
             </Menu>,
         );
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
 
         component.unmount();
     });
@@ -214,7 +215,7 @@ describe("Menu component tests", (): void => {
                 </MenuItem>
             </MenuBar>,
         );
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
 
         component.unmount();
     });

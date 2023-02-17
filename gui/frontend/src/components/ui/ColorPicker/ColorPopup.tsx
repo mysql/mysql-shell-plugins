@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -26,21 +26,23 @@
 import "./assets/ColorPicker.css";
 import resetIcon from "./assets/reset.svg";
 
-import React from "react";
+import { ComponentChild, createRef } from "preact";
+import { CSSProperties } from "preact/compat";
 import Color from "color";
 import { isNil } from "lodash";
 
-import {
-    Component, Popup, Container, Slider, Label, IComponentState,
-    ComponentPlacement, Orientation, Icon, ContentAlignment, Input, IInputChangeProperties,
-    IInputProperties,
-} from "..";
 import { Grid } from "../Grid/Grid";
 import { GridCell } from "../Grid/GridCell";
-import { IDictionary } from "../../../app-logic/Types";
+import { IComponentState, ComponentBase, ComponentPlacement } from "../Component/ComponentBase";
+import { Container, Orientation, ContentAlignment } from "../Container/Container";
+import { Icon } from "../Icon/Icon";
+import { Input, IInputChangeProperties, IInputProperties } from "../Input/Input";
+import { Label } from "../Label/Label";
+import { Popup } from "../Popup/Popup";
+import { Slider } from "../Slider/Slider";
 
 /** The color callback passes a color to a listener, which can return an adjusted value to be set in the popup. */
-export type ColorChangeCallback = (color: Color | undefined) => Color | undefined;
+type ColorChangeCallback = (color: Color | undefined) => Color | undefined;
 
 interface IColorPopupState extends IComponentState {
     currentColor: Color;
@@ -50,17 +52,17 @@ interface IColorPopupState extends IComponentState {
     cssColorString?: string; // A temporary copy of the CSS input string.
 }
 
-export class ColorPopup extends Component<{}, IColorPopupState> {
+export class ColorPopup extends ComponentBase<{}, IColorPopupState> {
 
     private static singleton: ColorPopup;
 
-    private popupRef = React.createRef<Popup>();
-    private handleRef = React.createRef<HTMLDivElement>();
-    private hueRingRef = React.createRef<HTMLElement>();
+    private popupRef = createRef<Popup>();
+    private handleRef = createRef<HTMLDivElement>();
+    private hueRingRef = createRef<HTMLDivElement>();
 
-    private saturationSliderRef = React.createRef<Slider>();
-    private luminanceSliderRef = React.createRef<Slider>();
-    private alphaSliderRef = React.createRef<Slider>();
+    private saturationSliderRef = createRef<Slider>();
+    private luminanceSliderRef = createRef<Slider>();
+    private alphaSliderRef = createRef<Slider>();
 
     private updating = false;
 
@@ -80,7 +82,7 @@ export class ColorPopup extends Component<{}, IColorPopupState> {
         return ColorPopup.singleton;
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { currentColor, cssColorString } = this.state;
         const className = this.getEffectiveClassNames(["colorPopup"]);
 
@@ -94,16 +96,16 @@ export class ColorPopup extends Component<{}, IColorPopupState> {
         /* eslint-disable @typescript-eslint/naming-convention */
 
         // All color settings are done using CSS variables.
-        const saturationStyle: IDictionary = {
+        const saturationStyle: CSSProperties = {
             "--start-color": Color.hsl([components[0], 0, components[2]]).hsl().toString(),
             "--end-color": Color.hsl([components[0], 100, components[2]]).hsl().toString(),
         };
 
-        const luminanceStyle: IDictionary = {
+        const luminanceStyle: CSSProperties = {
             "--mid-color": Color.hsl([components[0], components[1], 50]).hsl().toString(),
         };
 
-        const alphaStyle: IDictionary = {
+        const alphaStyle: CSSProperties = {
             "--start-color": Color.hsl([components[0], components[1], components[2], 0]).hsl().toString(),
             "--end-color": Color.hsl([components[0], components[1], components[2], 1]).hsl().toString(),
         };
@@ -268,15 +270,15 @@ export class ColorPopup extends Component<{}, IColorPopupState> {
         this.updateControls();
     };
 
-    private handleHuePointerDown = (e: React.PointerEvent): void => {
-        this.handleHueChange(e.nativeEvent);
+    private handleHuePointerDown = (e: PointerEvent): void => {
+        this.handleHueChange(e);
 
         const target = e.currentTarget as HTMLElement;
         target.onpointermove = this.handleHuePointerMove;
         target.setPointerCapture(e.pointerId);
     };
 
-    private handleHuePointerUp = (e: React.PointerEvent): void => {
+    private handleHuePointerUp = (e: PointerEvent): void => {
         const target = e.currentTarget as HTMLElement;
         target.onpointermove = null;
         target.releasePointerCapture(e.pointerId);
@@ -318,7 +320,7 @@ export class ColorPopup extends Component<{}, IColorPopupState> {
         this.setState({ currentColor: replaceColor || newColor, isValid: true, cssColorString: undefined });
     };
 
-    private handleInputChange = (e: React.ChangeEvent, props: IInputChangeProperties): void => {
+    private handleInputChange = (e: InputEvent, props: IInputChangeProperties): void => {
         let value = parseInt(props.value, 10);
         if (isNaN(value)) {
             value = 0;
@@ -442,11 +444,11 @@ export class ColorPopup extends Component<{}, IColorPopupState> {
         this.updating = false;
     }
 
-    private handleCSSColorInput = (e: React.ChangeEvent, props: IInputChangeProperties): void => {
+    private handleCSSColorInput = (e: InputEvent, props: IInputChangeProperties): void => {
         this.setState({ cssColorString: props.value || "" });
     };
 
-    private onConfirmCSSColorInput = (e: React.SyntheticEvent, props: IInputProperties): void => {
+    private onConfirmCSSColorInput = (_e: unknown, props: IInputProperties): void => {
         this.setColorString(props.value);
     };
 }

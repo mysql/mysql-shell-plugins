@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -27,11 +27,11 @@ import defaultLight from "./assets/default-light-color-theme.json";
 
 import Color from "color";
 
-import { settings } from "../../supplement/Settings/Settings";
+import { Settings } from "../../supplement/Settings/Settings";
 import { appParameters, requisitions } from "../../supplement/Requisitions";
 import { IDictionary } from "../../app-logic/Types";
 
-export interface IColors {
+interface IColors {
     [key: string]: string;
 }
 
@@ -68,6 +68,10 @@ interface IThemeDefinition {
 
 export interface IThemeChangeData {
     name: string;
+
+    /** Same as `name`, but safe as a name in the DOM. */
+    safeName: string;
+
     type: "dark" | "light";
     values: IThemeObject;
 }
@@ -80,6 +84,7 @@ export class ThemeManager {
     private themeDefinitions: Map<string, IThemeDefinition> = new Map();
     private themeStyleElement?: HTMLStyleElement;
     private currentTheme = "";
+    private safeThemeName = "";
 
     private updating = false;
 
@@ -146,6 +151,10 @@ export class ThemeManager {
         return JSON.stringify(this.themeDefinitions.get(this.currentTheme)?.json, undefined, 4);
     }
 
+    public get activeThemeSafe(): string {
+        return this.safeThemeName;
+    }
+
     public get activeTheme(): string {
         return this.currentTheme;
     }
@@ -163,7 +172,7 @@ export class ThemeManager {
                 this.loadTheme(actualTheme);
 
                 // loadTheme changes the current theme name, but in this case we want to keep "Auto".
-                this.currentTheme = "Auto";
+                this.storeThemeName("Auto");
             } else {
                 this.loadTheme(theme);
             }
@@ -326,6 +335,7 @@ export class ThemeManager {
         if (definitions) {
             const data: IThemeChangeData = {
                 name: this.currentTheme,
+                safeName: this.safeThemeName,
                 type: definitions.type,
                 values: definitions.json,
             };
@@ -333,13 +343,13 @@ export class ThemeManager {
         }
     }
 
-    private settingsChanged = (entry?: { key: string; value: unknown }): Promise<boolean> => {
+    private settingsChanged = (entry?: { key: string; value: unknown; }): Promise<boolean> => {
         if (!entry || entry.key === "" || entry.key.startsWith("theming.")) {
-            settings.get("theming.themes", []).forEach((definition: IThemeObject): void => {
+            Settings.get("theming.themes", []).forEach((definition: IThemeObject): void => {
                 this.loadThemeDetails(definition);
             });
 
-            this.activeTheme = settings.get("theming.currentTheme", "Auto");
+            this.activeTheme = Settings.get("theming.currentTheme", "Auto");
 
             return Promise.resolve(true);
         }
@@ -356,7 +366,7 @@ export class ThemeManager {
      *
      * @returns A promise that always resolve to true.
      */
-    private hostThemeChange = (data: { css: string; themeClass: string }): Promise<boolean> => {
+    private hostThemeChange = (data: { css: string; themeClass: string; }): Promise<boolean> => {
         // For the time being we load our light or dark default themes for host theme changes.
         // TODO: enable host theme values here.
 
@@ -364,7 +374,7 @@ export class ThemeManager {
             case "vscode-dark": {
                 document.body.setAttribute("theme", "dark");
                 this.loadTheme("Default Dark");
-                this.currentTheme = "Default Dark";
+                this.storeThemeName("Default Dark");
                 this.sendChangeNotification(this.currentTheme);
 
                 break;
@@ -373,14 +383,14 @@ export class ThemeManager {
             case "vscode-light": {
                 document.body.setAttribute("theme", "light");
                 this.loadTheme("Default Light");
-                this.currentTheme = "Default Light";
+                this.storeThemeName("Default Light");
                 this.sendChangeNotification(this.currentTheme);
 
                 break;
             }
 
             default: {
-                this.currentTheme = "Auto";
+                this.storeThemeName("Auto");
 
                 break;
             }
@@ -406,7 +416,7 @@ export class ThemeManager {
 
             this.sendChangeNotification(actualTheme);
 
-            this.currentTheme = "Auto"; // Revert the theme name change. We still want to stay on auto.
+            this.storeThemeName("Auto"); // Revert the theme name change. We still want to stay on auto.
         }
     };
 
@@ -417,8 +427,13 @@ export class ThemeManager {
             if (this.themeStyleElement) {
                 this.themeStyleElement.innerHTML = values.css;
             }
-            this.currentTheme = name;
+            this.storeThemeName(name);
         }
+    }
+
+    private storeThemeName(name: string): void {
+        this.currentTheme = name;
+        this.safeThemeName = name.replace(/[^a-zA-Z]+/g, "-");
     }
 
     /**
@@ -560,7 +575,7 @@ export class ThemeManager {
             return;
         }
 
-        settings.set("theming.currentTheme", this.currentTheme);
+        Settings.set("theming.currentTheme", this.currentTheme);
 
         const themes: IThemeObject[] = [];
 
@@ -570,8 +585,8 @@ export class ThemeManager {
             }
         });
 
-        settings.set("theming.themes", themes);
-        settings.saveSettings();
+        Settings.set("theming.themes", themes);
+        Settings.saveSettings();
     }
 
 }

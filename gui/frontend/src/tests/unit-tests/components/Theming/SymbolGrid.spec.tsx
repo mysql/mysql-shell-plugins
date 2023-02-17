@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,9 +22,8 @@
  */
 
 import { mount } from "enzyme";
-import React from "react";
+
 import { SymbolGrid } from "../../../../components/Theming/Preview/SymbolGrid";
-import { snapshotFromWrapper } from "../../test-helpers";
 
 
 describe("SymbolGrid testing", () => {
@@ -40,7 +39,7 @@ describe("SymbolGrid testing", () => {
         const component = mount(
             <SymbolGrid />,
         );
-        expect (snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
         component.unmount();
     });
 

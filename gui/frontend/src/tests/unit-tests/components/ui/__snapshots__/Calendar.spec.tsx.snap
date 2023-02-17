@@ -2,7 +2,7 @@
 
 exports[`Calendar render testing Test Calendar (Snapshot) 1`] = `
 <Calendar
-  initialDate={Object {}}
+  initialDate={2023-05-15T00:00:00.000Z}
   onChange={[Function]}
 >
   <Popup

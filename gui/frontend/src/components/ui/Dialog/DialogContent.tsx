@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,22 +23,25 @@
 
 import closeButton from "../../../assets/images/close2.svg";
 
-import React from "react";
+import { ComponentChild } from "preact";
 import { isNil } from "lodash";
+import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
+import { Container, Orientation } from "../Container/Container";
+import { Icon } from "../Icon/Icon";
+import { IDialogActions } from "./Dialog";
+import { Button } from "../Button/Button";
 
-import { Component, IComponentProperties, IDialogActions, Container, Orientation, Icon, Button } from "..";
-
-export interface IDialogContentProperties extends IComponentProperties {
-    content?: React.ReactNode;
-    header?: React.ReactNode;
-    caption?: React.ReactNode;
+interface IDialogContentProperties extends IComponentProperties {
+    content?: ComponentChild;
+    header?: ComponentChild;
+    caption?: ComponentChild;
     actions?: IDialogActions;
 
     onCloseClick?: () => void;
 }
 
 // This component is the separated-out content for a dialog, but can be rendered anywhere.
-export class DialogContent extends Component<IDialogContentProperties> {
+export class DialogContent extends ComponentBase<IDialogContentProperties> {
 
     public constructor(props: IDialogContentProperties) {
         super(props);
@@ -46,7 +49,7 @@ export class DialogContent extends Component<IDialogContentProperties> {
         this.addHandledProperties("content", "header", "caption", "actions", "onCloseClick");
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { children, content, header, caption, actions } = this.mergedProps;
         const className = this.getEffectiveClassNames(["dialog", "visible"]);
 

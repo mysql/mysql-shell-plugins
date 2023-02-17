@@ -5,51 +5,34 @@ exports[`Label component test Label with ansi formatting 1`] = `
   caption="Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua."
   language="ansi"
 >
-  <Container
+  <label
     className="msg resultText"
-    language="ansi"
-    orientation="column"
+    data-tooltip="expand"
+    style={{}}
   >
-    <div
-      className="msg container fixedScrollbar resultText"
-      language="ansi"
+    <span
+      className=""
       style={
-        Object {
-          "alignItems": undefined,
-          "flexDirection": "column",
-          "flexWrap": undefined,
-          "justifyContent": undefined,
+        {
+          "backgroundColor": undefined,
+          "color": undefined,
         }
       }
     >
-      <Ansi
-        useClasses={true}
-      >
-        <code>
-          <span>
-            Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.
-          </span>
-        </code>
-      </Ansi>
-    </div>
-  </Container>
+      Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.
+    </span>
+  </label>
 </Label>
 `;
 
 exports[`Label component test Test Label output 1`] = `
-<Label
-  as="h1"
->
-  <h1
+<Label>
+  <label
     className="msg label"
     data-tooltip="expand"
-    style={
-      Object {
-        "textAlign": undefined,
-      }
-    }
+    style={{}}
   >
-    H1 Label
-  </h1>
+    A Label
+  </label>
 </Label>
 `;

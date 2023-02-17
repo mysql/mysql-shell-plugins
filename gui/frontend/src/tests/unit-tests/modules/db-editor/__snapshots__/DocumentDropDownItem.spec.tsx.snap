@@ -11,7 +11,7 @@ exports[`DocumentDropDownItem tests Standard initialization 1`] = `
     <div
       className="msg container fixedScrollbar dropdownItem ellipsis verticalCenterContent"
       style={
-        Object {
+        {
           "alignItems": undefined,
           "flexDirection": "row",
           "flexWrap": undefined,
@@ -23,11 +23,7 @@ exports[`DocumentDropDownItem tests Standard initialization 1`] = `
         <label
           className="msg label"
           data-tooltip="expand"
-          style={
-            Object {
-              "textAlign": undefined,
-            }
-          }
+          style={{}}
         />
       </Label>
     </div>

@@ -25,7 +25,6 @@
     },
     "plugins": [
         "@typescript-eslint",
-        "@typescript-eslint/tslint",
         "jsdoc",
         "prefer-arrow",
         "eslint-plugin-import"
@@ -36,7 +35,7 @@
     },
     "rules": {
         // Some base rules must be disabled as they return wrong results.
-        // There are specialized rules instead in the tslint rule section.
+        // There are specialized rules instead in the typescript eslint rule section.
         "no-explicit-any": "off",
         "no-use-before-define": "off",
         "no-shadow": "off",
@@ -402,7 +401,6 @@
         ],
         "id-match": "error",
         "import/order": "off",
-        "import/no-webpack-loader-syntax": "off",
         "max-classes-per-file": [
             "error",
             1
@@ -518,7 +516,6 @@
                     "private-instance-field",
                     "public-abstract-field",
                     "protected-abstract-field",
-                    "private-abstract-field",
                     "public-field",
                     "protected-field",
                     "private-field",
@@ -543,8 +540,7 @@
                     "protected-instance-method",
                     "private-instance-method",
                     "public-abstract-method",
-                    "protected-abstract-method",
-                    "private-abstract-method"
+                    "protected-abstract-method"
                 ]
             }
         ],
@@ -572,23 +568,6 @@
             "always"
         ],
         "@typescript-eslint/unified-signatures": "error",
-        "@typescript-eslint/tslint/config": [
-            "error",
-            {
-                "rules": {
-                    "import-spacing": true,
-                    "one-line": [
-                        true,
-                        "check-catch",
-                        "check-else",
-                        "check-finally",
-                        "check-open-brace",
-                        "check-whitespace"
-                    ],
-                    "whitespace": true
-                }
-            }
-        ],
         "@typescript-eslint/prefer-regexp-exec": "off",
         "@typescript-eslint/naming-convention": [
             "error",

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,15 +23,14 @@
 
 import "./Group.css";
 
-import React from "react";
-
-import { Component, IComponentProperties } from "..";
+import { ComponentChild } from "preact";
+import { ComponentBase, IComponentProperties } from "../Component/ComponentBase";
 
 export interface IGroupProperties extends IComponentProperties {
     caption?: string;
 }
 
-export class Group extends Component<IGroupProperties> {
+export class Group extends ComponentBase<IGroupProperties> {
 
     public static defaultProps = {
     };
@@ -42,7 +41,7 @@ export class Group extends Component<IGroupProperties> {
         this.addHandledProperties("caption");
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { children, caption } = this.mergedProps;
         const className = this.getEffectiveClassNames(["group"]);
 

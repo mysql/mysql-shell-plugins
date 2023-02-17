@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,10 +21,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { promises as fsPromises } from "fs";
+
 import { Misc, driver, IDBConnection, explicitWait } from "../../lib/misc";
 import { DBConnection } from "../../lib/dbConnection";
 import { DBNotebooks } from "../../lib/dbNotebooks";
-import { By, WebElement, error } from "selenium-webdriver";
+import { By, WebElement } from "selenium-webdriver";
 
 describe("Scripts", () => {
 
@@ -87,7 +89,14 @@ describe("Scripts", () => {
     afterEach(async () => {
         if (testFailed) {
             testFailed = false;
-            await Misc.processFailure();
+            const img = await driver.takeScreenshot();
+            const testName = Misc.currentTestName() ?? "";
+            try {
+                await fsPromises.access("src/tests/e2e/screenshots");
+            } catch (e) {
+                await fsPromises.mkdir("src/tests/e2e/screenshots");
+            }
+            await fsPromises.writeFile(`src/tests/e2e/screenshots/${testName}_screenshot.png`, img, "base64");
         }
     });
 
@@ -132,10 +141,19 @@ describe("Scripts", () => {
                     .getAttribute("src"),
             ).toContain("javascript");
 
+            const textArea = await driver.findElement(By.id("editorPaneHost")).findElement(By.css("textarea"));
+            await textArea.sendKeys("M");
+            await textArea.sendKeys("ath.random()");
 
-            const result = await DBConnection.execScript("Math.random();");
+            await (
+                await DBConnection.getToolbarButton("Execute full script")
+            )!.click();
 
-            expect(result[0]).toMatch(/(\d+).(\d+)/);
+            await driver.wait(async () => {
+                return (await DBConnection.getScriptResult()) !== "";
+            }, explicitWait, "No results from query were found");
+
+            expect(await DBConnection.getScriptResult()).toMatch(/(\d+).(\d+)/);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -179,9 +197,19 @@ describe("Scripts", () => {
 
             expect(src.indexOf("typescript") !== -1).toBe(true);
 
-            const result = await DBConnection.execScript("Math.random();");
+            const textArea = await driver.findElement(By.id("editorPaneHost")).findElement(By.css("textarea"));
+            await textArea.sendKeys("M");
+            await textArea.sendKeys("ath.random()");
 
-            expect(result[0]).toMatch(/(\d+).(\d+)/);
+            await (
+                await DBConnection.getToolbarButton("Execute full script")
+            )!.click();
+
+            await driver.wait(async () => {
+                return (await DBConnection.getScriptResult()) !== "";
+            }, explicitWait, "No results from query were found");
+
+            expect(await DBConnection.getScriptResult()).toMatch(/(\d+).(\d+)/);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -227,9 +255,18 @@ describe("Scripts", () => {
                     .getAttribute("src"),
             ).toContain("mysql");
 
-            const result = await DBConnection.execScript("select * from sakila.actor limit 1;", explicitWait*3);
-            expect(result[0]).toMatch(/OK, (\d+) record/);
+            const textArea = await driver.findElement(By.id("editorPaneHost")).findElement(By.css("textarea"));
+            await textArea.sendKeys("S");
+            await textArea.sendKeys("ELECT * FROM sakila.actor;");
 
+            const execCaret = await DBConnection.getToolbarButton("Execute the statement at the caret position");
+            await execCaret?.click();
+
+            await driver.wait(async () => {
+                return (await DBConnection.getScriptResult(true)) !== "";
+            }, 15000, "No results from query were found");
+
+            expect(await DBConnection.getScriptResult(true)).toMatch(/OK, (\d+) records/);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -245,50 +282,53 @@ describe("Scripts", () => {
             try {
                 await DBConnection.selectCurrentEditor(script1, "javascript");
             } catch (e) {
-                if (e instanceof error.StaleElementReferenceError) {
+                if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
                     await DBConnection.selectCurrentEditor(script1, "javascript");
                 } else {
                     throw e;
                 }
             }
 
-            await Misc.writeCmd("c");
-            await Misc.writeCmd("onsole.log('Hello JavaScript')");
+            let textArea = await driver.findElement(By.id("editorPaneHost")).findElement(By.css("textarea"));
+            await textArea.sendKeys("c");
+            await textArea.sendKeys("onsole.log('Hello JavaScript')");
 
             const script2 = await DBConnection.addScript("TS");
 
             try {
                 await DBConnection.selectCurrentEditor(script2, "typescript");
             } catch (e) {
-                if (e instanceof error.StaleElementReferenceError) {
+                if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
                     await DBConnection.selectCurrentEditor(script2, "typescript");
                 } else {
                     throw e;
                 }
             }
 
-            await Misc.writeCmd("c");
-            await Misc.writeCmd("onsole.log('Hello TypeScript')");
+            textArea = await driver.findElement(By.id("editorPaneHost")).findElement(By.css("textarea"));
+            await textArea.sendKeys("c");
+            await textArea.sendKeys("onsole.log('Hello Typescript')");
 
             const script3 = await DBConnection.addScript("SQL");
 
             try {
                 await DBConnection.selectCurrentEditor(script3, "mysql");
             } catch (e) {
-                if (e instanceof error.StaleElementReferenceError) {
+                if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
                     await DBConnection.selectCurrentEditor(script3, "mysql");
                 } else {
                     throw e;
                 }
             }
 
-            await Misc.writeCmd("s");
-            await Misc.writeCmd("elect * from sakila.actor;");
+            textArea = await driver.findElement(By.id("editorPaneHost")).findElement(By.css("textarea"));
+            await textArea.sendKeys("S");
+            await textArea.sendKeys("ELECT * FROM sakila.actor;");
 
             try {
                 await DBConnection.selectCurrentEditor(script1, "javascript");
             } catch (e) {
-                if (e instanceof error.StaleElementReferenceError) {
+                if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
                     await DBConnection.selectCurrentEditor(script1, "javascript");
                 } else {
                     throw e;
@@ -306,7 +346,7 @@ describe("Scripts", () => {
             try {
                 await DBConnection.selectCurrentEditor(script2, "typescript");
             } catch (e) {
-                if (e instanceof error.StaleElementReferenceError) {
+                if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
                     await DBConnection.selectCurrentEditor(script2, "typescript");
                 } else {
                     throw e;
@@ -318,12 +358,12 @@ describe("Scripts", () => {
                     .findElement(By.id("editorPaneHost"))
                     .findElement(By.css("textarea"))
                     .getAttribute("value"),
-            ).toBe("console.log('Hello TypeScript')");
+            ).toBe("console.log('Hello Typescript')");
 
             try {
                 await DBConnection.selectCurrentEditor(script3, "mysql");
             } catch (e) {
-                if (e instanceof error.StaleElementReferenceError) {
+                if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
                     await DBConnection.selectCurrentEditor(script3, "mysql");
                 } else {
                     throw e;
@@ -335,7 +375,7 @@ describe("Scripts", () => {
                     .findElement(By.id("editorPaneHost"))
                     .findElement(By.css("textarea"))
                     .getAttribute("value"),
-            ).toBe("select * from sakila.actor;");
+            ).toBe("SELECT * FROM sakila.actor;");
         } catch (e) {
             testFailed = true;
             throw e;

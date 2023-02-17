@@ -21,18 +21,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import fs from "fs";
 import { basename } from "path";
 
 import { window, commands, ExtensionContext, TextEditor, workspace, Uri } from "vscode";
 
 import { requisitions } from "../../frontend/src/supplement/Requisitions";
 
-import {
-    ConnectionMySQLTreeItem,
-    ConnectionsTreeBaseItem,
-    ConnectionsTreeDataProvider, ConnectionTreeItem, SchemaEventTreeItem, SchemaMySQLTreeItem,
-    SchemaRoutineTreeItem, SchemaTableTreeItem, SchemaTableTriggerTreeItem, SchemaViewTreeItem, IConnectionEntry,
-} from "./tree-providers/ConnectionsTreeProvider";
 import { OciDbSystemTreeItem } from "./tree-providers/OCITreeProvider";
 import { ScriptTreeItem } from "./tree-providers/ScriptTreeItem";
 
@@ -45,7 +40,18 @@ import { uuid } from "../../frontend/src/utilities/helpers";
 import { DBType } from "../../frontend/src/supplement/ShellInterface";
 import { WebviewProvider } from "./web-views/WebviewProvider";
 import { ExtensionHost } from "./ExtensionHost";
-import { existsSync } from "fs";
+import { ConnectionMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvider/ConnectionMySQLTreeItem";
+import { ConnectionsTreeBaseItem } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeBaseItem";
+import {
+    ConnectionsTreeDataProvider, IConnectionEntry,
+} from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeProvider";
+import { ConnectionTreeItem } from "./tree-providers/ConnectionsTreeProvider/ConnectionTreeItem";
+import { SchemaEventTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaEventTreeItem";
+import { SchemaMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaMySQLTreeItem";
+import { SchemaRoutineTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaRoutineTreeItem";
+import { SchemaTableTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaTableTreeItem";
+import { SchemaTableTriggerTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaTableTriggerTreeItem";
+import { SchemaViewTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaViewTreeItem";
 
 // A class to handle all DB editor related commands and jobs.
 export class DBEditorCommandHandler {
@@ -232,7 +238,7 @@ export class DBEditorCommandHandler {
 
         context.subscriptions.push(commands.registerCommand("msg.editInScriptEditor", async (uri?: Uri) => {
             if (uri?.scheme === "file") {
-                if (!existsSync(uri.path)) {
+                if (!fs.existsSync(uri.path)) {
                     void window.showErrorMessage(`The file ${uri.path} could not be found.`);
                 } else {
                     const stat = await workspace.fs.stat(uri);

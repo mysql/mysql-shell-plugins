@@ -337,16 +337,16 @@ class ProtocolBuilder:
                     line_args += f"{argument}: {{ "
                     for option in bindings[func_name]['args'][argument]:
                         line_args += f"{option[0]}: {option[1]}; "
-                    line_args = line_args + "}; "
+                    line_args = line_args[:-1] + " }; "
                 else:
                     param_type, required, _, default_none = bindings[func_name]['args'][argument]
                     line_args += f"{argument}{'?' if default_none or not required else ''}: {param_type}; "
                 contains_args = True
 
-            line_args = line_args + "};"
+            line_args = line_args[:-1] + " };"
 
             for argument in bindings[func_name]['kwargs']:
-                line_kwargs += f"{bindings[func_name]['kwargs'][argument][0]}?: {bindings[func_name]['kwargs'][argument][1]}, "
+                line_kwargs += f"{bindings[func_name]['kwargs'][argument][0]}?: {bindings[func_name]['kwargs'][argument][1]}; "
                 contains_kwargs = True
 
             line_kwargs = line_kwargs[:-2] + ";"

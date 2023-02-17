@@ -21,11 +21,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { Monaco } from "../../../components/ui/CodeEditor";
+import { CodeEditorMode, Monaco } from "../../../components/ui/CodeEditor";
 
-import { CodeEditorMode, ICodeEditorModel } from "../../../components/ui/CodeEditor/CodeEditor";
-import { PresentationInterface } from "../../../script-execution";
+import { ICodeEditorModel } from "../../../components/ui/CodeEditor/CodeEditor";
 import { ExecutionContexts } from "../../../script-execution/ExecutionContexts";
+import { PresentationInterface } from "../../../script-execution/PresentationInterface";
 import { ScriptingLanguageServices } from "../../../script-execution/ScriptingLanguageServices";
 import { sleep } from "../../../utilities/helpers";
 

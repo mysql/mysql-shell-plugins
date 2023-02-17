@@ -25,9 +25,8 @@ import { TreeDataProvider, TreeItem, EventEmitter, ProviderResult, Event, window
 
 import { requisitions } from "../../../../frontend/src/supplement/Requisitions";
 
-import { ICompartment, MessageScheduler, IMdsProfileData } from "../../../../frontend/src/communication";
+import { ICompartment } from "../../../../frontend/src/communication";
 
-import { ShellInterfaceShellSession } from "../../../../frontend/src/supplement/ShellInterface";
 import {
     OciConfigProfileTreeItem, OciCompartmentTreeItem, OciDbSystemTreeItem, OciComputeInstanceTreeItem,
     OciBastionTreeItem, OciLoadBalancerTreeItem,
@@ -35,6 +34,11 @@ import {
 import { OciDbSystemHWTreeItem } from "./OciDbSystemHWTreeItem";
 import { OciDbSystemStandaloneTreeItem } from "./OciDbSystemStandaloneTreeItem";
 import { OciHWClusterTreeItem } from "./OciHWClusterTreeItem";
+import { MessageScheduler } from "../../../../frontend/src/communication/MessageScheduler";
+import { IMdsProfileData } from "../../../../frontend/src/communication/ProtocolMds";
+import {
+    ShellInterfaceShellSession,
+} from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceShellSession";
 
 // An interface for the compartment cache
 interface IConfigProfileCompartments {

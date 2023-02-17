@@ -21,12 +21,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { createRef } from "preact";
 import { mount } from "enzyme";
-import React from "react";
+
 import { ScriptEditor } from "../../../../../modules/db-editor/ScriptEditor";
-import { Monaco } from "../../../../../components/ui/CodeEditor";
+import { CodeEditorMode, Monaco } from "../../../../../components/ui/CodeEditor";
 import {
-    CodeEditor, CodeEditorMode, ICodeEditorModel, IEditorPersistentState,
+    CodeEditor, ICodeEditorModel, IEditorPersistentState,
 } from "../../../../../components/ui/CodeEditor/CodeEditor";
 import { ExecutionContexts } from "../../../../../script-execution/ExecutionContexts";
 import {
@@ -46,7 +47,7 @@ describe("Standalone presentation interface tests", (): void => {
     model.setValue(content);
 
     it("Standalone presentation interface instantiation", () => {
-        const innerRef = React.createRef<HTMLDivElement>();
+        const innerRef = createRef<HTMLDivElement>();
         const eps: IEditorPersistentState = {
             viewState: null,
             model,

@@ -61,9 +61,9 @@ export class SQLExecutionContext extends ExecutionContext {
             for (let i = 0; i < this.statementDetails.length; ++i) {
                 this.pendingValidations.add(i);
             }
-            setImmediate(() => {
+            setTimeout(() => {
                 return this.validateNextStatement();
-            });
+            }, 0);
         } else {
             this.scheduleFullValidation();
         }
@@ -449,9 +449,9 @@ export class SQLExecutionContext extends ExecutionContext {
                 diagnosticDecorationIDs: [],
             }];
 
-            setImmediate(() => {
+            setTimeout(() => {
                 this.splitNextStatement();
-            });
+            }, 0);
         }
     }
 
@@ -594,9 +594,9 @@ export class SQLExecutionContext extends ExecutionContext {
                                 }
                                 this.pendingSplitActions.add(next);
 
-                                setImmediate(() => {
+                                setTimeout(() => {
                                     return this.splitNextStatement();
-                                });
+                                }, 0);
                             } else {
                                 // This is a DELIMITER statement with no following code.
                                 storeValuesAndValidate();
@@ -615,9 +615,9 @@ export class SQLExecutionContext extends ExecutionContext {
                                 nextDetails.span.length += temp[0].span.length;
                                 this.pendingSplitActions.add(next);
 
-                                setImmediate(() => {
+                                setTimeout(() => {
                                     return this.splitNextStatement();
-                                });
+                                }, 0);
                             } else {
                                 storeValuesAndValidate();
                             }
@@ -714,9 +714,9 @@ export class SQLExecutionContext extends ExecutionContext {
                 this.updateLineStartMarkers();
 
                 // Trigger validation for the next statement.
-                setImmediate(() => {
+                setTimeout(() => {
                     return this.validateNextStatement();
-                });
+                }, 0);
 
                 return;
             }
@@ -775,9 +775,9 @@ export class SQLExecutionContext extends ExecutionContext {
                 }
 
                 // Trigger validation for the next statement.
-                setImmediate(() => {
+                setTimeout(() => {
                     return this.validateNextStatement();
-                });
+                }, 0);
             });
         }
     }

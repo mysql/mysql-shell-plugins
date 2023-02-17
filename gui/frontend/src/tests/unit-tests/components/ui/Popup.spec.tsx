@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,14 +22,13 @@
  */
 
 import { mount } from "enzyme";
-import React from "react";
+import { createRef } from "preact";
 
-import { IPopupProperties, Popup } from "../../../../components/ui";
-import { nextRunLoop, snapshotFromWrapper } from "../../test-helpers";
-
-const popupRef = React.createRef<Popup>();
+import { IPopupProperties, Popup } from "../../../../components/ui/Popup/Popup";
+import { nextRunLoop } from "../../test-helpers";
 
 describe("Popup component tests", (): void => {
+    const popupRef = createRef<Popup>();
 
     it("Test Popup callbacks", async () => {
         const popup = mount(
@@ -71,7 +70,7 @@ describe("Popup component tests", (): void => {
                 Test content
             </Popup>,
         );
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
 
         component.unmount();
     });

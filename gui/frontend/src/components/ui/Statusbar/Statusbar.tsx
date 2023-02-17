@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,17 +23,18 @@
 
 import "./Statusbar.css";
 
-import React from "react";
+import { ComponentChild } from "preact";
 import { isNil } from "lodash";
 import * as codicon from "../Codicon";
 
-import { Component, IComponentProperties, Container, Button, Orientation, Dropdown } from "..";
 import { ThemeColor } from "../../Theming/ThemeColor";
-import { IComponentState } from "../Component/Component";
-import { ContentAlignment } from "../Container/Container";
+import { ComponentBase, IComponentProperties, IComponentState } from "../Component/ComponentBase";
+import { Container, ContentAlignment, Orientation } from "../Container/Container";
 import { requisitions } from "../../../supplement/Requisitions";
 import { Icon } from "../Icon/Icon";
 import { IDictionary, IStatusbarInfo } from "../../../app-logic/Types";
+import { Dropdown } from "../Dropdown/Dropdown";
+import { Button } from "../Button/Button";
 
 export enum ControlType {
     TextType,
@@ -49,13 +50,13 @@ export interface IStatusbarItem {
     rightAlign?: boolean;        // If true the item is right aligned in the status bar.
     visible?: boolean;
     tooltip?: string;
-    choices?: Array<{ label: string; data: IDictionary }>;
+    choices?: Array<{ label: string; data: IDictionary; }>;
     color?: string | ThemeColor; // Dedicated background color for the item.
     commandId?: string;          // If set the item can be clicked to trigger an action.
     standout?: boolean;          // If true then the item gets a slightly lighter background.
 }
 
-export interface IStatusbarProperties extends IComponentProperties {
+interface IStatusbarProperties extends IComponentProperties {
     items: IStatusbarItem[];
 }
 
@@ -65,7 +66,7 @@ interface IStatusbarState extends IComponentState {
 }
 
 // The status bar is a collection of buttons that show state and/or can trigger commands.
-export class Statusbar extends Component<IStatusbarProperties, IStatusbarState> {
+export class Statusbar extends ComponentBase<IStatusbarProperties, IStatusbarState> {
 
     public constructor(props: IStatusbarProperties) {
         super(props);
@@ -97,7 +98,7 @@ export class Statusbar extends Component<IStatusbarProperties, IStatusbarState> 
         requisitions.unregister("updateStatusbar", this.updateStatusbar);
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { items } = this.mergedProps;
         const { itemDetails } = this.state;
 
@@ -106,8 +107,8 @@ export class Statusbar extends Component<IStatusbarProperties, IStatusbarState> 
             "verticalCenterContent",
         ]);
 
-        const leftItems: React.ReactNode[] = [];
-        const rightItems: React.ReactNode[] = [];
+        const leftItems: ComponentChild[] = [];
+        const rightItems: ComponentChild[] = [];
 
         items.forEach((item: IStatusbarItem, index: number) => {
             const info = itemDetails.get(item.id);
@@ -123,7 +124,7 @@ export class Statusbar extends Component<IStatusbarProperties, IStatusbarState> 
                 switch (item.type) {
                     case ControlType.DropdownType: {
                         let selectedItem = "0";
-                        const dropDownItems: React.ReactNode[] = [];
+                        const dropDownItems: ComponentChild[] = [];
                         info.choices?.forEach((value, i) => {
                             const dropDownItem = (
                                 <Dropdown.Item
@@ -218,7 +219,7 @@ export class Statusbar extends Component<IStatusbarProperties, IStatusbarState> 
         return Promise.resolve(true);
     };
 
-    private handleItemClick = (e: React.SyntheticEvent, props: IComponentProperties): void => {
+    private handleItemClick = (e: MouseEvent | KeyboardEvent, props: IComponentProperties): void => {
         void requisitions.execute("statusBarButtonClick", { type: props["data-command"], event: e });
     };
 

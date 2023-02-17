@@ -3,7 +3,7 @@
 exports[`Result Status Tests Default Rendering 1`] = `
 <ResultStatus
   executionInfo={
-    Object {
+    {
       "text": "Lorem ipsum",
       "type": 2,
     }
@@ -16,7 +16,7 @@ exports[`Result Status Tests Default Rendering 1`] = `
     <div
       className="msg container fixedScrollbar resultStatus containsMessage"
       style={
-        Object {
+        {
           "alignItems": undefined,
           "flexDirection": "row",
           "flexWrap": undefined,

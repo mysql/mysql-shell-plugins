@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,14 +23,14 @@
 
 import "./Icon.css";
 
-import React from "react";
+import { ComponentChild } from "preact";
 
-import { Component, IComponentProperties } from "../Component/Component";
+import { ComponentBase, IComponentProperties } from "../Component/ComponentBase";
 import { convertPropValue } from "../../../utilities/string-helpers";
 import { Codicon, iconNameMap } from "../Codicon";
 
 // Icons are images whose color can be set. Colors in the image itself are ignored.
-interface IIconProperties extends IComponentProperties {
+export interface IIconProperties extends IComponentProperties {
     disabled?: boolean;
     src?: string | Codicon;
     width?: string | number;
@@ -38,7 +38,7 @@ interface IIconProperties extends IComponentProperties {
     color?: string;
 }
 
-export class Icon extends Component<IIconProperties> {
+export class Icon extends ComponentBase<IIconProperties> {
     public static defaultProps = {
         disabled: false,
     };
@@ -49,7 +49,7 @@ export class Icon extends Component<IIconProperties> {
         this.addHandledProperties("disabled", "src", "style", "height", "width", "color");
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { disabled, src, style, height, width, color } = this.mergedProps;
         let className = this.getEffectiveClassNames([
             "icon",
@@ -74,11 +74,8 @@ export class Icon extends Component<IIconProperties> {
             className += " codicon codicon-" + iconNameMap.get(src)!;
         }
 
-        // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-explicit-any
-        const ElementType: any = this.renderAs();
-
         return (
-            <ElementType
+            <span
                 className={className}
                 style={newStyle}
                 {...this.unhandledProperties}

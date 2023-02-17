@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,11 +23,12 @@
 
 import "./Container.css";
 
-import React from "react";
+import { cloneElement, ComponentChild, VNode } from "preact";
 
-import { Component, IComponentProperties, IComponentState } from "../Component/Component";
+import { ComponentBase, IComponentProperties } from "../Component/ComponentBase";
+import { collectVNodes } from "../../../utilities/ts-helpers";
 
-// Content alignment on the main axis and the cross axis.
+/** Content alignment on both the main axis and the cross axis. */
 export enum ContentAlignment {
     Start = "flex-start",
     Center = "center",
@@ -43,8 +44,10 @@ export enum ContentWrap {
     WrapReverse = "wrap-reverse",
 }
 
-// The orientation determines the order and direction of child elements.
-// Not to be confused with e.g. the left-to-right writing system.
+/**
+ * The orientation determines the order and direction of child elements.
+ * Not to be confused with e.g. the left-to-right writing system.
+ */
 export enum Orientation {
     TopDown = "column",
     BottomUp = "column-reverse",
@@ -59,14 +62,11 @@ export interface IContainerProperties extends IComponentProperties {
     wrap?: ContentWrap;
     scrollPosition?: number;
 
-    innerRef?: React.RefObject<HTMLElement>;
+    innerRef?: preact.RefObject<HTMLDivElement>;
 }
 
-// A grouping element with flex layout.
-export class Container<
-    P extends IContainerProperties = {},
-    S extends IComponentState = {},
-    SS = unknown> extends Component<P, S, SS> {
+/** A grouping element with flex layout. */
+export class Container<P extends IContainerProperties> extends ComponentBase<P> {
 
     public static defaultProps = {
         orientation: Orientation.LeftToRight,
@@ -87,12 +87,9 @@ export class Container<
         }
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { children, style, orientation, mainAlignment, crossAlignment, data, wrap, innerRef } = this.mergedProps;
         const className = this.getEffectiveClassNames(["container", "fixedScrollbar"]);
-
-        // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-explicit-any
-        const ElementType: any = this.renderAs();
 
         const newStyle = {
             flexDirection: orientation,
@@ -103,20 +100,17 @@ export class Container<
         };
 
         let content = children;
-        if (data) {
+        if (data && children) {
             // Template data exists. Duplicate all children and forward that data.
             // This way all children share the same data and pick their actual values using their data ID.
-            content = React.Children.map(children, (child: React.ReactNode): React.ReactNode => {
-                if (React.isValidElement(child)) {
-                    return React.cloneElement(child, { data } as IContainerProperties);
-                } else {
-                    return undefined;
-                }
+            const nodes = collectVNodes(children);
+            content = nodes.map((child: VNode): ComponentChild => {
+                return cloneElement(child, { data } as IContainerProperties);
             });
         }
 
         return (
-            <ElementType
+            <div
                 ref={innerRef}
                 style={newStyle}
                 className={className}
@@ -124,7 +118,7 @@ export class Container<
                 {...this.unhandledProperties}
             >
                 {content}
-            </ElementType>
+            </div>
         );
     }
 

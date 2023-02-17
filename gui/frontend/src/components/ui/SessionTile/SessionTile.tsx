@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,11 +24,10 @@
 import "./SessionTile.css";
 import closeIcon from "../../../assets/images/close2.svg";
 
-import * as React from "react";
-
 import { BrowserTile, IBrowserTileProperties } from "../BrowserTile/BrowserTile";
-import { Icon } from "..";
 import { IShellSessionDetails } from "../../../supplement/ShellInterface";
+import { ComponentChild } from "preact";
+import { Icon } from "../Icon/Icon";
 
 export interface ISessionTileProperties extends IBrowserTileProperties {
     details: IShellSessionDetails;
@@ -46,11 +45,11 @@ export class SessionTile extends BrowserTile<ISessionTileProperties> {
         this.addHandledProperties("details");
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         return super.render();
     }
 
-    protected renderTileActionUI = (): React.ReactNode => {
+    protected renderTileActionUI = (): ComponentChild => {
         return (
             <Icon
                 src={closeIcon}
@@ -59,7 +58,7 @@ export class SessionTile extends BrowserTile<ISessionTileProperties> {
         );
     };
 
-    private handleActionClick = (e: React.SyntheticEvent): void => {
+    private handleActionClick = (e: MouseEvent | KeyboardEvent): void => {
         const { onAction } = this.mergedProps;
 
         e.stopPropagation();

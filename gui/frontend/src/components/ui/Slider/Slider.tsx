@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,12 +23,13 @@
 
 import "./Slider.css";
 
-import React from "react";
+import { ComponentChild, createRef } from "preact";
 
-import { Component, IComponentProperties, Container, Orientation, PointerEventType } from "..";
 import { clampValue } from "../../../utilities/helpers";
+import { IComponentProperties, ComponentBase, PointerEventType } from "../Component/ComponentBase";
+import { Container, Orientation } from "../Container/Container";
 
-export interface ISliderProperties extends IComponentProperties {
+interface ISliderProperties extends IComponentProperties {
     value: number;
     vertical?: boolean;
     handleSize?: number;
@@ -36,7 +37,7 @@ export interface ISliderProperties extends IComponentProperties {
     onChange?: (value: number) => void;
 }
 
-export class Slider extends Component<ISliderProperties> {
+export class Slider extends ComponentBase<ISliderProperties> {
 
     public static defaultProps = {
         disabled: false,
@@ -44,7 +45,7 @@ export class Slider extends Component<ISliderProperties> {
         handleSize: 20,
     };
 
-    private sliderRef = React.createRef<HTMLInputElement>();
+    private sliderRef = createRef<HTMLInputElement>();
 
     public constructor(props: ISliderProperties) {
         super(props);
@@ -76,7 +77,7 @@ export class Slider extends Component<ISliderProperties> {
         }
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { vertical } = this.mergedProps;
         const className = this.getEffectiveClassNames([
             "slider",
@@ -101,10 +102,10 @@ export class Slider extends Component<ISliderProperties> {
         );
     }
 
-    protected handlePointerEvent(type: PointerEventType, e: React.PointerEvent): boolean {
+    protected handlePointerEvent(type: PointerEventType, e: PointerEvent): boolean {
         switch (type) {
             case PointerEventType.Down: {
-                this.updateHandlePosition(e);
+                this.handleItemPointerMove(e);
 
                 const target = e.currentTarget as HTMLElement;
                 target.onpointermove = this.handleItemPointerMove;
@@ -146,9 +147,4 @@ export class Slider extends Component<ISliderProperties> {
             onChange?.(value);
         }
     };
-
-    private updateHandlePosition(e: React.PointerEvent): void {
-        this.handleItemPointerMove(e.nativeEvent);
-    }
-
 }

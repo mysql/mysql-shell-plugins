@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,11 +22,10 @@
  */
 
 import { mount } from "enzyme";
-import React from "react";
 
-import { nextRunLoop, snapshotFromWrapper } from "../../test-helpers";
+import { nextRunLoop } from "../../test-helpers";
 import { ServerStatus } from "../../../../modules/db-editor/ServerStatus";
-import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface";
+import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor";
 
 describe("Server status module tests", (): void => {
 
@@ -39,13 +38,13 @@ describe("Server status module tests", (): void => {
         component.setProps({ backend });
         await nextRunLoop();
 
-        expect(snapshotFromWrapper(component)).toMatchSnapshot("ServerStatus1");
+        expect(component).toMatchSnapshot("ServerStatus1");
 
         backend.closeSession().catch(() => {
             throw new Error("Close session failed");
         });
         await nextRunLoop();
-        expect(snapshotFromWrapper(component)).toMatchSnapshot("ServerStatus2");
+        expect(component).toMatchSnapshot("ServerStatus2");
 
         component.unmount();
     });

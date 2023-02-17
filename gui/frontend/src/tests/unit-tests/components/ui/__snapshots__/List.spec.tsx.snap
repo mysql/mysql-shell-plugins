@@ -3,122 +3,122 @@
 exports[`List component test Test Dynamic container list output 1`] = `
 <DynamicList
   elements={
-    Array [
-      Object {
+    [
+      {
         "cl": "(0) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
         "iconImage": "blob.svg",
         "iconImage2": "add.svg",
         "id": "item0",
       },
-      Object {
+      {
         "cl": "(1) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
         "iconImage": "blob.svg",
         "iconImage2": "add.svg",
         "id": "item1",
       },
-      Object {
+      {
         "cl": "(2) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
         "iconImage": "blob.svg",
         "iconImage2": "add.svg",
         "id": "item2",
       },
-      Object {
+      {
         "cl": "(3) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
         "iconImage": "blob.svg",
         "iconImage2": "add.svg",
         "id": "item3",
       },
-      Object {
+      {
         "cl": "(4) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
         "iconImage": "blob.svg",
         "iconImage2": "add.svg",
         "id": "item4",
       },
-      Object {
+      {
         "cl": "(5) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
         "iconImage": "blob.svg",
         "iconImage2": "add.svg",
         "id": "item5",
       },
-      Object {
+      {
         "cl": "(6) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
         "iconImage": "blob.svg",
         "iconImage2": "add.svg",
         "id": "item6",
       },
-      Object {
+      {
         "cl": "(7) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
         "iconImage": "blob.svg",
         "iconImage2": "add.svg",
         "id": "item7",
       },
-      Object {
+      {
         "cl": "(8) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
         "iconImage": "blob.svg",
         "iconImage2": "add.svg",
         "id": "item8",
       },
-      Object {
+      {
         "cl": "(9) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
         "iconImage": "blob.svg",
         "iconImage2": "add.svg",
         "id": "item9",
       },
-      Object {
+      {
         "cl": "(10) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
         "iconImage": "blob.svg",
         "iconImage2": "add.svg",
         "id": "item10",
       },
-      Object {
+      {
         "cl": "(11) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
         "iconImage": "blob.svg",
         "iconImage2": "add.svg",
         "id": "item11",
       },
-      Object {
+      {
         "cl": "(12) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
         "iconImage": "blob.svg",
         "iconImage2": "add.svg",
         "id": "item12",
       },
-      Object {
+      {
         "cl": "(13) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
         "iconImage": "blob.svg",
         "iconImage2": "add.svg",
         "id": "item13",
       },
-      Object {
+      {
         "cl": "(14) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
         "iconImage": "blob.svg",
         "iconImage2": "add.svg",
         "id": "item14",
       },
-      Object {
+      {
         "cl": "(15) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
         "iconImage": "blob.svg",
         "iconImage2": "add.svg",
         "id": "item15",
       },
-      Object {
+      {
         "cl": "(16) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
         "iconImage": "blob.svg",
         "iconImage2": "add.svg",
         "id": "item16",
       },
-      Object {
+      {
         "cl": "(17) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
         "iconImage": "blob.svg",
         "iconImage2": "add.svg",
         "id": "item17",
       },
-      Object {
+      {
         "cl": "(18) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
         "iconImage": "blob.svg",
         "iconImage2": "add.svg",
         "id": "item18",
       },
-      Object {
+      {
         "cl": "(19) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
         "iconImage": "blob.svg",
         "iconImage2": "add.svg",
@@ -160,8 +160,8 @@ exports[`List component test Test Dynamic container list output 1`] = `
   <TreeGrid
     className="msg dynamicList"
     columns={
-      Array [
-        Object {
+      [
+        {
           "field": "id",
           "formatter": [Function],
           "title": "",
@@ -171,7 +171,7 @@ exports[`List component test Test Dynamic container list output 1`] = `
     height={300}
     id="list3"
     options={
-      Object {
+      {
         "alternatingRowBackgrounds": false,
         "horizontalGridLines": false,
         "layout": "fitColumns",
@@ -181,122 +181,122 @@ exports[`List component test Test Dynamic container list output 1`] = `
       }
     }
     tableData={
-      Array [
-        Object {
+      [
+        {
           "cl": "(0) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
           "iconImage": "blob.svg",
           "iconImage2": "add.svg",
           "id": "item0",
         },
-        Object {
+        {
           "cl": "(1) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
           "iconImage": "blob.svg",
           "iconImage2": "add.svg",
           "id": "item1",
         },
-        Object {
+        {
           "cl": "(2) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
           "iconImage": "blob.svg",
           "iconImage2": "add.svg",
           "id": "item2",
         },
-        Object {
+        {
           "cl": "(3) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
           "iconImage": "blob.svg",
           "iconImage2": "add.svg",
           "id": "item3",
         },
-        Object {
+        {
           "cl": "(4) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
           "iconImage": "blob.svg",
           "iconImage2": "add.svg",
           "id": "item4",
         },
-        Object {
+        {
           "cl": "(5) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
           "iconImage": "blob.svg",
           "iconImage2": "add.svg",
           "id": "item5",
         },
-        Object {
+        {
           "cl": "(6) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
           "iconImage": "blob.svg",
           "iconImage2": "add.svg",
           "id": "item6",
         },
-        Object {
+        {
           "cl": "(7) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
           "iconImage": "blob.svg",
           "iconImage2": "add.svg",
           "id": "item7",
         },
-        Object {
+        {
           "cl": "(8) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
           "iconImage": "blob.svg",
           "iconImage2": "add.svg",
           "id": "item8",
         },
-        Object {
+        {
           "cl": "(9) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
           "iconImage": "blob.svg",
           "iconImage2": "add.svg",
           "id": "item9",
         },
-        Object {
+        {
           "cl": "(10) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
           "iconImage": "blob.svg",
           "iconImage2": "add.svg",
           "id": "item10",
         },
-        Object {
+        {
           "cl": "(11) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
           "iconImage": "blob.svg",
           "iconImage2": "add.svg",
           "id": "item11",
         },
-        Object {
+        {
           "cl": "(12) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
           "iconImage": "blob.svg",
           "iconImage2": "add.svg",
           "id": "item12",
         },
-        Object {
+        {
           "cl": "(13) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
           "iconImage": "blob.svg",
           "iconImage2": "add.svg",
           "id": "item13",
         },
-        Object {
+        {
           "cl": "(14) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
           "iconImage": "blob.svg",
           "iconImage2": "add.svg",
           "id": "item14",
         },
-        Object {
+        {
           "cl": "(15) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
           "iconImage": "blob.svg",
           "iconImage2": "add.svg",
           "id": "item15",
         },
-        Object {
+        {
           "cl": "(16) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
           "iconImage": "blob.svg",
           "iconImage2": "add.svg",
           "id": "item16",
         },
-        Object {
+        {
           "cl": "(17) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
           "iconImage": "blob.svg",
           "iconImage2": "add.svg",
           "id": "item17",
         },
-        Object {
+        {
           "cl": "(18) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
           "iconImage": "blob.svg",
           "iconImage2": "add.svg",
           "id": "item18",
         },
-        Object {
+        {
           "cl": "(19) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
           "iconImage": "blob.svg",
           "iconImage2": "add.svg",
@@ -315,20 +315,19 @@ exports[`List component test Test Dynamic container list output 1`] = `
 
 exports[`List component test Test Static container list output 1`] = `
 <List
-  as={[Function]}
   crossAlignment="flex-start"
   elements={
-    Array [
-      Object {
+    [
+      {
         "cl": "Entry 1",
       },
-      Object {
+      {
         "cl": "Entry 2",
       },
-      Object {
+      {
         "cl": "Entry 3",
       },
-      Object {
+      {
         "cl": "Entry 4",
       },
     ]
@@ -353,7 +352,7 @@ exports[`List component test Test Static container list output 1`] = `
         dataId="cl"
         id="containerLabel2"
         style={
-          Object {
+          {
             "color": "yellowgreen",
             "fontWeight": "800",
             "marginLeft": "12px",
@@ -363,26 +362,18 @@ exports[`List component test Test Static container list output 1`] = `
     </Container>
   }
 >
-  <Container
+  <ul
     className="msg list"
     crossAlignment="flex-start"
     orientation="column"
   >
-    <div
-      className="msg container fixedScrollbar list"
-      style={
-        Object {
-          "alignItems": "flex-start",
-          "flexDirection": "column",
-          "flexWrap": undefined,
-          "justifyContent": undefined,
-        }
-      }
+    <li
+      key="list0"
     >
       <Container
         className="verticalCenterContent"
         data={
-          Object {
+          {
             "cl": "Entry 1",
           }
         }
@@ -393,13 +384,13 @@ exports[`List component test Test Static container list output 1`] = `
         <div
           className="msg container fixedScrollbar verticalCenterContent"
           data={
-            Object {
+            {
               "cl": "Entry 1",
             }
           }
           id="list0"
           style={
-            Object {
+            {
               "alignItems": undefined,
               "flexDirection": "row",
               "flexWrap": undefined,
@@ -409,7 +400,7 @@ exports[`List component test Test Static container list output 1`] = `
         >
           <Image
             data={
-              Object {
+              {
                 "cl": "Entry 1",
               }
             }
@@ -420,7 +411,7 @@ exports[`List component test Test Static container list output 1`] = `
             <img
               className="msg image"
               data={
-                Object {
+                {
                   "cl": "Entry 1",
                 }
               }
@@ -430,7 +421,7 @@ exports[`List component test Test Static container list output 1`] = `
           </Image>
           <Label
             data={
-              Object {
+              {
                 "cl": "Entry 1",
               }
             }
@@ -440,30 +431,26 @@ exports[`List component test Test Static container list output 1`] = `
             <label
               className="msg label"
               data={
-                Object {
+                {
                   "cl": "Entry 1",
                 }
               }
               data-tooltip="expand"
               dataId="cl"
               id="containerLabel1"
-              style={
-                Object {
-                  "textAlign": undefined,
-                }
-              }
+              style={{}}
             />
           </Label>
           <Label
             data={
-              Object {
+              {
                 "cl": "Entry 1",
               }
             }
             dataId="cl"
             id="containerLabel2"
             style={
-              Object {
+              {
                 "color": "yellowgreen",
                 "fontWeight": "800",
                 "marginLeft": "12px",
@@ -473,7 +460,7 @@ exports[`List component test Test Static container list output 1`] = `
             <label
               className="msg label"
               data={
-                Object {
+                {
                   "cl": "Entry 1",
                 }
               }
@@ -481,7 +468,7 @@ exports[`List component test Test Static container list output 1`] = `
               dataId="cl"
               id="containerLabel2"
               style={
-                Object {
+                {
                   "color": "yellowgreen",
                   "fontWeight": "800",
                   "marginLeft": "12px",
@@ -491,10 +478,14 @@ exports[`List component test Test Static container list output 1`] = `
           </Label>
         </div>
       </Container>
+    </li>
+    <li
+      key="list1"
+    >
       <Container
         className="verticalCenterContent"
         data={
-          Object {
+          {
             "cl": "Entry 2",
           }
         }
@@ -505,13 +496,13 @@ exports[`List component test Test Static container list output 1`] = `
         <div
           className="msg container fixedScrollbar verticalCenterContent"
           data={
-            Object {
+            {
               "cl": "Entry 2",
             }
           }
           id="list1"
           style={
-            Object {
+            {
               "alignItems": undefined,
               "flexDirection": "row",
               "flexWrap": undefined,
@@ -521,7 +512,7 @@ exports[`List component test Test Static container list output 1`] = `
         >
           <Image
             data={
-              Object {
+              {
                 "cl": "Entry 2",
               }
             }
@@ -532,7 +523,7 @@ exports[`List component test Test Static container list output 1`] = `
             <img
               className="msg image"
               data={
-                Object {
+                {
                   "cl": "Entry 2",
                 }
               }
@@ -542,7 +533,7 @@ exports[`List component test Test Static container list output 1`] = `
           </Image>
           <Label
             data={
-              Object {
+              {
                 "cl": "Entry 2",
               }
             }
@@ -552,30 +543,26 @@ exports[`List component test Test Static container list output 1`] = `
             <label
               className="msg label"
               data={
-                Object {
+                {
                   "cl": "Entry 2",
                 }
               }
               data-tooltip="expand"
               dataId="cl"
               id="containerLabel1"
-              style={
-                Object {
-                  "textAlign": undefined,
-                }
-              }
+              style={{}}
             />
           </Label>
           <Label
             data={
-              Object {
+              {
                 "cl": "Entry 2",
               }
             }
             dataId="cl"
             id="containerLabel2"
             style={
-              Object {
+              {
                 "color": "yellowgreen",
                 "fontWeight": "800",
                 "marginLeft": "12px",
@@ -585,7 +572,7 @@ exports[`List component test Test Static container list output 1`] = `
             <label
               className="msg label"
               data={
-                Object {
+                {
                   "cl": "Entry 2",
                 }
               }
@@ -593,7 +580,7 @@ exports[`List component test Test Static container list output 1`] = `
               dataId="cl"
               id="containerLabel2"
               style={
-                Object {
+                {
                   "color": "yellowgreen",
                   "fontWeight": "800",
                   "marginLeft": "12px",
@@ -603,10 +590,14 @@ exports[`List component test Test Static container list output 1`] = `
           </Label>
         </div>
       </Container>
+    </li>
+    <li
+      key="list2"
+    >
       <Container
         className="verticalCenterContent"
         data={
-          Object {
+          {
             "cl": "Entry 3",
           }
         }
@@ -617,13 +608,13 @@ exports[`List component test Test Static container list output 1`] = `
         <div
           className="msg container fixedScrollbar verticalCenterContent"
           data={
-            Object {
+            {
               "cl": "Entry 3",
             }
           }
           id="list2"
           style={
-            Object {
+            {
               "alignItems": undefined,
               "flexDirection": "row",
               "flexWrap": undefined,
@@ -633,7 +624,7 @@ exports[`List component test Test Static container list output 1`] = `
         >
           <Image
             data={
-              Object {
+              {
                 "cl": "Entry 3",
               }
             }
@@ -644,7 +635,7 @@ exports[`List component test Test Static container list output 1`] = `
             <img
               className="msg image"
               data={
-                Object {
+                {
                   "cl": "Entry 3",
                 }
               }
@@ -654,7 +645,7 @@ exports[`List component test Test Static container list output 1`] = `
           </Image>
           <Label
             data={
-              Object {
+              {
                 "cl": "Entry 3",
               }
             }
@@ -664,30 +655,26 @@ exports[`List component test Test Static container list output 1`] = `
             <label
               className="msg label"
               data={
-                Object {
+                {
                   "cl": "Entry 3",
                 }
               }
               data-tooltip="expand"
               dataId="cl"
               id="containerLabel1"
-              style={
-                Object {
-                  "textAlign": undefined,
-                }
-              }
+              style={{}}
             />
           </Label>
           <Label
             data={
-              Object {
+              {
                 "cl": "Entry 3",
               }
             }
             dataId="cl"
             id="containerLabel2"
             style={
-              Object {
+              {
                 "color": "yellowgreen",
                 "fontWeight": "800",
                 "marginLeft": "12px",
@@ -697,7 +684,7 @@ exports[`List component test Test Static container list output 1`] = `
             <label
               className="msg label"
               data={
-                Object {
+                {
                   "cl": "Entry 3",
                 }
               }
@@ -705,7 +692,7 @@ exports[`List component test Test Static container list output 1`] = `
               dataId="cl"
               id="containerLabel2"
               style={
-                Object {
+                {
                   "color": "yellowgreen",
                   "fontWeight": "800",
                   "marginLeft": "12px",
@@ -715,10 +702,14 @@ exports[`List component test Test Static container list output 1`] = `
           </Label>
         </div>
       </Container>
+    </li>
+    <li
+      key="list3"
+    >
       <Container
         className="verticalCenterContent"
         data={
-          Object {
+          {
             "cl": "Entry 4",
           }
         }
@@ -729,13 +720,13 @@ exports[`List component test Test Static container list output 1`] = `
         <div
           className="msg container fixedScrollbar verticalCenterContent"
           data={
-            Object {
+            {
               "cl": "Entry 4",
             }
           }
           id="list3"
           style={
-            Object {
+            {
               "alignItems": undefined,
               "flexDirection": "row",
               "flexWrap": undefined,
@@ -745,7 +736,7 @@ exports[`List component test Test Static container list output 1`] = `
         >
           <Image
             data={
-              Object {
+              {
                 "cl": "Entry 4",
               }
             }
@@ -756,7 +747,7 @@ exports[`List component test Test Static container list output 1`] = `
             <img
               className="msg image"
               data={
-                Object {
+                {
                   "cl": "Entry 4",
                 }
               }
@@ -766,7 +757,7 @@ exports[`List component test Test Static container list output 1`] = `
           </Image>
           <Label
             data={
-              Object {
+              {
                 "cl": "Entry 4",
               }
             }
@@ -776,30 +767,26 @@ exports[`List component test Test Static container list output 1`] = `
             <label
               className="msg label"
               data={
-                Object {
+                {
                   "cl": "Entry 4",
                 }
               }
               data-tooltip="expand"
               dataId="cl"
               id="containerLabel1"
-              style={
-                Object {
-                  "textAlign": undefined,
-                }
-              }
+              style={{}}
             />
           </Label>
           <Label
             data={
-              Object {
+              {
                 "cl": "Entry 4",
               }
             }
             dataId="cl"
             id="containerLabel2"
             style={
-              Object {
+              {
                 "color": "yellowgreen",
                 "fontWeight": "800",
                 "marginLeft": "12px",
@@ -809,7 +796,7 @@ exports[`List component test Test Static container list output 1`] = `
             <label
               className="msg label"
               data={
-                Object {
+                {
                   "cl": "Entry 4",
                 }
               }
@@ -817,7 +804,7 @@ exports[`List component test Test Static container list output 1`] = `
               dataId="cl"
               id="containerLabel2"
               style={
-                Object {
+                {
                   "color": "yellowgreen",
                   "fontWeight": "800",
                   "marginLeft": "12px",
@@ -827,25 +814,25 @@ exports[`List component test Test Static container list output 1`] = `
           </Label>
         </div>
       </Container>
-    </div>
-  </Container>
+    </li>
+  </ul>
 </List>
 `;
 
 exports[`List component test Test Static unordered list output 1`] = `
 <List
   elements={
-    Array [
-      Object {
+    [
+      {
         "l": "Entry 1",
       },
-      Object {
+      {
         "l": "Entry 2",
       },
-      Object {
+      {
         "l": "Entry 3",
       },
-      Object {
+      {
         "l": "Entry 4",
       },
     ]
@@ -864,7 +851,7 @@ exports[`List component test Test Static unordered list output 1`] = `
     >
       <Label
         data={
-          Object {
+          {
             "l": "Entry 1",
           }
         }
@@ -875,18 +862,14 @@ exports[`List component test Test Static unordered list output 1`] = `
         <label
           className="msg label"
           data={
-            Object {
+            {
               "l": "Entry 1",
             }
           }
           data-tooltip="expand"
           dataId="l"
           id="list0"
-          style={
-            Object {
-              "textAlign": undefined,
-            }
-          }
+          style={{}}
         />
       </Label>
     </li>
@@ -895,7 +878,7 @@ exports[`List component test Test Static unordered list output 1`] = `
     >
       <Label
         data={
-          Object {
+          {
             "l": "Entry 2",
           }
         }
@@ -906,18 +889,14 @@ exports[`List component test Test Static unordered list output 1`] = `
         <label
           className="msg label"
           data={
-            Object {
+            {
               "l": "Entry 2",
             }
           }
           data-tooltip="expand"
           dataId="l"
           id="list1"
-          style={
-            Object {
-              "textAlign": undefined,
-            }
-          }
+          style={{}}
         />
       </Label>
     </li>
@@ -926,7 +905,7 @@ exports[`List component test Test Static unordered list output 1`] = `
     >
       <Label
         data={
-          Object {
+          {
             "l": "Entry 3",
           }
         }
@@ -937,18 +916,14 @@ exports[`List component test Test Static unordered list output 1`] = `
         <label
           className="msg label"
           data={
-            Object {
+            {
               "l": "Entry 3",
             }
           }
           data-tooltip="expand"
           dataId="l"
           id="list2"
-          style={
-            Object {
-              "textAlign": undefined,
-            }
-          }
+          style={{}}
         />
       </Label>
     </li>
@@ -957,7 +932,7 @@ exports[`List component test Test Static unordered list output 1`] = `
     >
       <Label
         data={
-          Object {
+          {
             "l": "Entry 4",
           }
         }
@@ -968,18 +943,14 @@ exports[`List component test Test Static unordered list output 1`] = `
         <label
           className="msg label"
           data={
-            Object {
+            {
               "l": "Entry 4",
             }
           }
           data-tooltip="expand"
           dataId="l"
           id="list3"
-          style={
-            Object {
-              "textAlign": undefined,
-            }
-          }
+          style={{}}
         />
       </Label>
     </li>

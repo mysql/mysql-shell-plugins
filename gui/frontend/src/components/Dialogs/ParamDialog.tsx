@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,14 +24,19 @@
 import paramIcon from "../../assets/images/parameters.svg";
 import "./ParamDialog.css";
 
-import React from "react";
+import { ComponentChild, createRef } from "preact";
+import { Button, IButtonProperties } from "../ui/Button/Button";
+import { Codicon } from "../ui/Codicon";
+import { IComponentProperties, IComponentState, ComponentBase } from "../ui/Component/ComponentBase";
+import { ContentAlignment } from "../ui/Container/Container";
+import { Dialog } from "../ui/Dialog/Dialog";
+import { Grid } from "../ui/Grid/Grid";
+import { GridCell } from "../ui/Grid/GridCell";
+import { Icon } from "../ui/Icon/Icon";
+import { Input, IInputChangeProperties } from "../ui/Input/Input";
+import { Label } from "../ui/Label/Label";
 
-import {
-    Button, Codicon, Component, ContentAlignment, Dialog, Grid, GridCell, IButtonProperties, IComponentProperties,
-    IComponentState, Icon, IInputChangeProperties, Input, Label,
-} from "../ui";
-
-export interface IParamDialogProperties extends IComponentProperties {
+interface IParamDialogProperties extends IComponentProperties {
     caption?: string;
     onClose?: (accepted: boolean, payload?: unknown) => void;
 }
@@ -41,9 +46,9 @@ interface IParamDialogState extends IComponentState {
     value: string;
 }
 
-export class ParamDialog extends Component<IParamDialogProperties, IParamDialogState> {
+export class ParamDialog extends ComponentBase<IParamDialogProperties, IParamDialogState> {
 
-    private dialogRef = React.createRef<Dialog>();
+    private dialogRef = createRef<Dialog>();
 
     public constructor(props: IParamDialogProperties) {
         super(props);
@@ -60,7 +65,7 @@ export class ParamDialog extends Component<IParamDialogProperties, IParamDialogS
         return this.dialogRef.current?.open();
     };
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { caption } = this.props;
         const { name, value } = this.state;
 
@@ -112,15 +117,15 @@ export class ParamDialog extends Component<IParamDialogProperties, IParamDialogS
         />;
     }
 
-    private handleNameChange = (e: React.ChangeEvent<Element>, props: IInputChangeProperties): void => {
+    private handleNameChange = (e: InputEvent, props: IInputChangeProperties): void => {
         this.setState({ name: props.value });
     };
 
-    private handleValueChange = (e: React.ChangeEvent<Element>, props: IInputChangeProperties): void => {
+    private handleValueChange = (e: InputEvent, props: IInputChangeProperties): void => {
         this.setState({ value: props.value });
     };
 
-    private handleButtonClick = (e: React.SyntheticEvent, props: IButtonProperties): void => {
+    private handleButtonClick = (e: MouseEvent | KeyboardEvent, props: IButtonProperties): void => {
         this.dialogRef.current?.close(props.id !== "ok");
     };
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -29,19 +29,27 @@ import menuIcon from "../../assets/images/toolbar/toolbar-menu.svg";
 import previousPageIcon from "../../assets/images/toolbar/toolbar-page_previous.svg";
 import nextPageIcon from "../../assets/images/toolbar/toolbar-page_next.svg";
 
-import React from "react";
+import { ComponentChild, createRef } from "preact";
 
-import {
-    Button, Component, ComponentPlacement, Container, Divider, Dropdown, IComponentProperties, IComponentState, Icon,
-    IMenuItemProperties, ITabviewPage, Menu, MenuItem, Orientation, TabPosition, Tabview, Toolbar,
-} from "../ui";
 import { IResultSet, IResultSetRows, IResultSets } from "../../script-execution";
 import { IColumnInfo, MessageType } from "../../app-logic/Types";
 import { ResultView } from "./ResultView";
-import { ResultStatus } from ".";
 import { ActionOutput } from "./ActionOutput";
+import {
+    IComponentProperties, IComponentState, ComponentBase, ComponentPlacement,
+} from "../ui/Component/ComponentBase";
+import { Container, Orientation } from "../ui/Container/Container";
+import { Divider } from "../ui/Divider/Divider";
+import { Dropdown } from "../ui/Dropdown/Dropdown";
+import { Icon } from "../ui/Icon/Icon";
+import { Menu } from "../ui/Menu/Menu";
+import { MenuItem, IMenuItemProperties } from "../ui/Menu/MenuItem";
+import { ITabviewPage, Tabview, TabPosition } from "../ui/Tabview/Tabview";
+import { Toolbar } from "../ui/Toolbar/Toolbar";
+import { Button } from "../ui/Button/Button";
+import { ResultStatus } from "./ResultStatus";
 
-export interface IResultTabViewProperties extends IComponentProperties {
+interface IResultTabViewProperties extends IComponentProperties {
     /** One set per tab page. */
     resultSets: IResultSets;
 
@@ -68,15 +76,15 @@ interface IResultTabViewState extends IComponentState {
 }
 
 /** Holds a collection of result views and other output in a tabbed interface. */
-export class ResultTabView extends Component<IResultTabViewProperties, IResultTabViewState> {
+export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResultTabViewState> {
 
-    private actionMenuRef = React.createRef<Menu>();
+    private actionMenuRef = createRef<Menu>();
 
     // A set of result IDs for tabs with edited data.
     private edited = new Set<string>();
 
     // React refs to the used ResultView instances, keyed by the result ID for the result set.
-    private viewRefs = new Map<string, React.RefObject<ResultView>>();
+    private viewRefs = new Map<string, preact.RefObject<ResultView>>();
 
     public constructor(props: IResultTabViewProperties) {
         super(props);
@@ -144,7 +152,7 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
         };
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { resultSets, contextId, hideSingleTab } = this.props;
         const { currentResultSet, resultPaneMaximized } = this.state;
 
@@ -169,7 +177,7 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
         }
 
         resultSets.sets.forEach((resultSet: IResultSet, index) => {
-            const ref = React.createRef<ResultView>();
+            const ref = createRef<ResultView>();
             this.viewRefs.set(resultSet.resultId, ref);
 
             pages.push({
@@ -380,17 +388,18 @@ export class ResultTabView extends Component<IResultTabViewProperties, IResultTa
         onSelectTab?.(currentIndex);
     };
 
-    private showActionMenu = (e: React.SyntheticEvent): void => {
-        e.stopPropagation();
+    private showActionMenu = (event: MouseEvent | KeyboardEvent): void => {
+        event.stopPropagation();
 
-        const event = e.nativeEvent as MouseEvent;
-        const targetRect = new DOMRect(event.clientX, event.clientY, 2, 2);
+        if (event instanceof MouseEvent) {
+            const targetRect = new DOMRect(event.clientX, event.clientY, 2, 2);
 
-        this.actionMenuRef.current?.close();
-        this.actionMenuRef.current?.open(targetRect, false);
+            this.actionMenuRef.current?.close();
+            this.actionMenuRef.current?.open(targetRect, false);
+        }
     };
 
-    private handleActionMenuItemClick = (e: React.MouseEvent, props: IMenuItemProperties): boolean => {
+    private handleActionMenuItemClick = (e: MouseEvent, props: IMenuItemProperties): boolean => {
         switch (props.id ?? "") {
             case "exportMenuItem": {
                 break;

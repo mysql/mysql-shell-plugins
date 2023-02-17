@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,8 +23,11 @@
 
 // Common data structures/types used in all parser implementations.
 
-import { Token, CommonTokenStream, BufferedTokenStream } from "antlr4ts";
-import { Interval } from "antlr4ts/misc";
+import { Token } from "antlr4ts/Token";
+import { CommonTokenStream } from "antlr4ts/CommonTokenStream";
+import { BufferedTokenStream } from "antlr4ts/BufferedTokenStream";
+
+import { Interval } from "antlr4ts/misc/Interval";
 import { IDictionary } from "../app-logic/Types";
 
 import { Stack } from "../supplement";
@@ -205,7 +208,7 @@ export enum QueryType {
 }
 
 /**
- * This is the same as typescript.TextSpan (hence the missing leading I), but we cannot include typescript in a
+ * This is the same as in typescript.TextSpan (hence the missing leading I), but we cannot include typescript in a
  * web worker or it will grow tremendously.
  */
 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -425,7 +428,7 @@ export interface ILanguageWorkerParameterData {
     sqlMode: string;
 }
 
-export interface ILanguageWorkerCleanupData {
+interface ILanguageWorkerCleanupData {
     api: "cleanup";
     language: ServiceLanguage;
 }
@@ -486,13 +489,6 @@ export enum LanguageCompletionKind {
     Plugin,
 }
 
-export type Identifier = [number, number];
-export interface IColumnIdentifier {
-    schema: string;
-    table: string;
-    column: string;
-}
-
 export type ErrorReportCallback = (message: string, tokenType: number, startIndex: number, line: number,
     column: number, length: number) => void;
 
@@ -530,6 +526,8 @@ export const tokenFromPosition = (stream: CommonTokenStream, offset: number): To
     if (low > 0) {
         return tokens[low - 1];
     }
+
+    return undefined;
 };
 
 /** A scanner adds some functionality on top of a token stream, for navigation between tokens, token checks and more. */

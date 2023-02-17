@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -35,26 +35,36 @@ import showDetailsInactiveIcon from "../../assets/images/toolbar/toolbar-show_de
 import killConnectionIcon from "../../assets/images/toolbar/toolbar-kill_connection.svg";
 import killQueryIcon from "../../assets/images/toolbar/toolbar-kill_query.svg";
 
-import React from "react";
-import { render } from "preact";
+import { ComponentChild, createRef, render } from "preact";
+
 import { CellComponent, ColumnDefinition, Formatter, RowComponent } from "tabulator-tables";
 
 import { IToolbarItems } from ".";
 import {
     DBDataType, DialogResponseClosure, DialogType, IColumnInfo, IDialogRequest, IDialogResponse, IDictionary,
 } from "../../app-logic/Types";
-import { IPromptReplyBackend } from "../../communication";
 
-import {
-    Component, Container, ContentAlignment, IComponentProperties, IComponentState, Icon, ITreeGridOptions,
-    Orientation, SelectionType, TreeGrid, Toolbar, Button, Label, Dropdown,
-    ContentWrap, Tabview, TabPosition, Grid, GridCell, Divider,
-} from "../../components/ui";
 import { IResultSet } from "../../script-execution";
-import { DBType, ShellInterfaceSqlEditor } from "../../supplement/ShellInterface";
+import { DBType } from "../../supplement/ShellInterface";
 import { convertRows, generateColumnInfo } from "../../supplement";
 import { requisitions } from "../../supplement/Requisitions";
 import { uuid } from "../../utilities/helpers";
+import { IPromptReplyBackend } from "../../communication/Protocol";
+import {
+    IComponentProperties, IComponentState, ComponentBase, SelectionType,
+} from "../../components/ui/Component/ComponentBase";
+import { Container, Orientation, ContentAlignment, ContentWrap } from "../../components/ui/Container/Container";
+import { Divider } from "../../components/ui/Divider/Divider";
+import { Dropdown } from "../../components/ui/Dropdown/Dropdown";
+import { Grid } from "../../components/ui/Grid/Grid";
+import { GridCell } from "../../components/ui/Grid/GridCell";
+import { Icon } from "../../components/ui/Icon/Icon";
+import { Label } from "../../components/ui/Label/Label";
+import { Tabview, TabPosition } from "../../components/ui/Tabview/Tabview";
+import { Toolbar } from "../../components/ui/Toolbar/Toolbar";
+import { TreeGrid, ITreeGridOptions } from "../../components/ui/TreeGrid/TreeGrid";
+import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor";
+import { Button } from "../../components/ui/Button/Button";
 
 interface IGlobalStatus {
     threadConnected?: number;
@@ -69,14 +79,14 @@ interface IGlobalStatus {
     errors?: number;
 }
 
-export interface IClientConnectionsProperties extends IComponentProperties {
+interface IClientConnectionsProperties extends IComponentProperties {
     backend: ShellInterfaceSqlEditor;
 
     // Top level toolbar items, to be integrated with page specific ones.
     toolbarItems?: IToolbarItems;
 }
 
-export interface IClientConnectionsState extends IComponentState {
+interface IClientConnectionsState extends IComponentState {
     resultSet: IResultSet;
     gotError: boolean;
     gotResponse: boolean;
@@ -106,11 +116,11 @@ const columnNameMap = new Map<string, string>([
     ["PROCESSLIST_INFO", "Info"],
 ]);
 
-export class ClientConnections extends Component<IClientConnectionsProperties, IClientConnectionsState> {
+export class ClientConnections extends ComponentBase<IClientConnectionsProperties, IClientConnectionsState> {
 
     private static readonly sampleInterval = 5000;
     private refreshTimer: ReturnType<typeof setInterval>;
-    private gridRef = React.createRef<TreeGrid>();
+    private gridRef = createRef<TreeGrid>();
     private interval = ClientConnections.sampleInterval;
     private selectedRow?: IDictionary;
     private columns: IColumnInfo[] = [];
@@ -175,7 +185,7 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
         requisitions.unregister("dialogResponse", this.handleDialogResponse);
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { toolbarItems } = this.props;
         const { resultSet, gotResponse, showDetails, selectedTab } = this.state;
 
@@ -276,7 +286,7 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
         );
     }
 
-    private getClientConnectionDetails = (): React.ReactNode => {
+    private getClientConnectionDetails = (): ComponentChild => {
 
         return (
             this.selectedRow && <Grid id="clientConnectionDetails" columns={2} rowGap={5} columnGap={12}>
@@ -309,7 +319,7 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
             </Grid>);
     };
 
-    private getClientConnectionLocks = (): React.ReactNode => {
+    private getClientConnectionLocks = (): ComponentChild => {
         const { waitingText, grantedLocks } = this.state;
 
         const columns: ColumnDefinition[] = [
@@ -352,7 +362,7 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
         );
     };
 
-    private getClientConnectionAttributes = (): React.ReactNode => {
+    private getClientConnectionAttributes = (): ComponentChild => {
         const { attributes } = this.state;
 
         const nameField = this.attrColumns.find((x) => { return x.title === "ATTR_NAME"; });
@@ -378,7 +388,7 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
         );
     };
 
-    private getClientConnectionInfo = (): React.ReactNode[] => {
+    private getClientConnectionInfo = (): ComponentChild[] => {
 
         const { globalStatus } = this.state;
 
@@ -396,7 +406,7 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
         ];
     };
 
-    private toolbarContent = (): React.ReactNode[] => {
+    private toolbarContent = (): ComponentChild[] => {
         const { showDetails } = this.state;
 
         const showDetailsIcon = showDetails ? showDetailsActiveIcon : showDetailsInactiveIcon;
@@ -407,7 +417,7 @@ export class ClientConnections extends Component<IClientConnectionsProperties, I
             hideBackgroundThreadsActiveIcon : hideBackgroundThreadsInactiveIcon;
 
         const intervals: number[] = [0.5, 1, 2, 3, 4, 5, 10, 15, 30, 0];
-        const items: React.ReactElement[] = [];
+        const items: ComponentChild[] = [];
 
         intervals.forEach((value: number) => {
             items.push(

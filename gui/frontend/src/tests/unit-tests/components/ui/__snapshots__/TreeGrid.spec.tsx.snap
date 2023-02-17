@@ -3,12 +3,12 @@
 exports[`TreeGrid tests TreeGrid snapshot 1`] = `
 <TreeGrid
   columns={
-    Array [
-      Object {
+    [
+      {
         "field": "field1",
         "title": "col1",
       },
-      Object {
+      {
         "field": "field2",
         "title": "col2",
       },
@@ -16,11 +16,11 @@ exports[`TreeGrid tests TreeGrid snapshot 1`] = `
   }
   onVerticalScroll={[Function]}
   selectedIds={
-    Array [
+    [
       "a",
     ]
   }
-  tableData={Array []}
+  tableData={[]}
 >
   <div
     className="msg treeGrid"

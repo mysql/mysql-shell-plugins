@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -28,7 +28,9 @@ import {
     DecorationRangeBehavior, OverviewRulerLane, workspace, TextDocument, TextDocumentChangeEvent, Range,
 } from "vscode";
 
-import { CharStreams, CommonTokenStream } from "antlr4ts";
+import { CharStreams } from "antlr4ts/CharStreams";
+import { CommonTokenStream } from "antlr4ts/CommonTokenStream";
+
 import { PythonLexer } from "../../frontend/src/parsing/python/generated/PythonLexer";
 
 import { requisitions } from "../../frontend/src/supplement/Requisitions";
@@ -243,16 +245,16 @@ export class CodeBlocks {
             light: {
                 backgroundColor: "#db8f0015",
                 overviewRulerColor: "#db8f00",
-                gutterIconPath: path.join(__dirname, "..", "..", "..", "images", "light", "query-marker.svg"),
+                gutterIconPath: path.join(__dirname, "..", "images", "light", "query-marker.svg"),
                 before: {
-                    contentIconPath: path.join(__dirname, "..", "..", "..", "images", "light", "sqlBlockStart.svg"),
+                    contentIconPath: path.join(__dirname, "..", "images", "light", "sqlBlockStart.svg"),
                     width: "24px",
                     height: "14px",
                     margin: "0px 6px 0px 6px",
                     color: "#db8f00",
                 },
                 after: {
-                    contentIconPath: path.join(__dirname, "..", "..", "..", "images", "light", "sqlBlockEnd.svg"),
+                    contentIconPath: path.join(__dirname, "..", "images", "light", "sqlBlockEnd.svg"),
                     width: "24px",
                     height: "14px",
                     margin: "0px 6px 0px 6px",
@@ -262,16 +264,16 @@ export class CodeBlocks {
             dark: {
                 backgroundColor: "#db8f0015",
                 overviewRulerColor: "#db8f00",
-                gutterIconPath: path.join(__dirname, "..", "..", "..", "images", "dark", "query-marker.svg"),
+                gutterIconPath: path.join(__dirname, "..", "images", "dark", "query-marker.svg"),
                 before: {
-                    contentIconPath: path.join(__dirname, "..", "..", "..", "images", "dark", "sqlBlockStart.svg"),
+                    contentIconPath: path.join(__dirname, "..", "images", "dark", "sqlBlockStart.svg"),
                     width: "24px",
                     height: "14px",
                     margin: "0px 6px 0px 6px",
                     color: "#db8f00",
                 },
                 after: {
-                    contentIconPath: path.join(__dirname, "..", "..", "..", "images", "dark", "sqlBlockEnd.svg"),
+                    contentIconPath: path.join(__dirname, "..", "images", "dark", "sqlBlockEnd.svg"),
                     width: "24px",
                     height: "14px",
                     margin: "0px 6px 0px 6px",
@@ -291,7 +293,7 @@ export class CodeBlocks {
      *
      * @returns A promise which immediately resolves.
      */
-    private codeBlocksUpdate = (data: { linkId: number; code: string }): Promise<boolean> => {
+    private codeBlocksUpdate = (data: { linkId: number; code: string; }): Promise<boolean> => {
         let entry: ILinkedCodeBlock | undefined;
         let documentUri: Uri | undefined;
         this.codeBlocks.forEach((blocks, uri) => {

@@ -21,9 +21,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable max-len */
+import { IShellDictionary } from "./Protocol";
 
-import { IShellDictionary } from ".";
+/* eslint-disable max-len */
 
 export enum ShellAPIMrs {
     /** Returns basic information about this plugin. */
@@ -1261,23 +1261,23 @@ export interface IMrsRouterData {
 }
 
 export interface IProtocolMrsResults {
-    [ShellAPIMrs.MrsAddService]: { result: IMrsServiceData };
+    [ShellAPIMrs.MrsAddService]: { result: IMrsServiceData; };
     [ShellAPIMrs.MrsGetService]: {};
-    [ShellAPIMrs.MrsListServices]: { result: IMrsServiceData[] };
+    [ShellAPIMrs.MrsListServices]: { result: IMrsServiceData[]; };
     [ShellAPIMrs.MrsEnableService]: {};
     [ShellAPIMrs.MrsDisableService]: {};
     [ShellAPIMrs.MrsDeleteService]: {};
     [ShellAPIMrs.MrsSetCurrentServiceId]: {};
-    [ShellAPIMrs.MrsGetCurrentServiceId]: { result: string };
+    [ShellAPIMrs.MrsGetCurrentServiceId]: { result: string; };
     [ShellAPIMrs.MrsSetServiceContextPath]: {};
     [ShellAPIMrs.MrsSetServiceProtocol]: {};
     [ShellAPIMrs.MrsSetServiceComments]: {};
     [ShellAPIMrs.MrsSetServiceOptions]: {};
     [ShellAPIMrs.MrsUpdateService]: {};
-    [ShellAPIMrs.MrsGetServiceRequestPathAvailability]: { result: boolean };
-    [ShellAPIMrs.MrsAddSchema]: { result: string };
+    [ShellAPIMrs.MrsGetServiceRequestPathAvailability]: { result: boolean; };
+    [ShellAPIMrs.MrsAddSchema]: { result: string; };
     [ShellAPIMrs.MrsGetSchema]: {};
-    [ShellAPIMrs.MrsListSchemas]: { result: IMrsSchemaData[] };
+    [ShellAPIMrs.MrsListSchemas]: { result: IMrsSchemaData[]; };
     [ShellAPIMrs.MrsEnableSchema]: {};
     [ShellAPIMrs.MrsDisableSchema]: {};
     [ShellAPIMrs.MrsDeleteSchema]: {};
@@ -1287,25 +1287,25 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsSetSchemaItemsPerPage]: {};
     [ShellAPIMrs.MrsSetSchemaComments]: {};
     [ShellAPIMrs.MrsUpdateSchema]: {};
-    [ShellAPIMrs.MrsAddContentSet]: { result: IMrsAddContentSetData };
-    [ShellAPIMrs.MrsListContentSets]: { result: IMrsContentSetData[] };
+    [ShellAPIMrs.MrsAddContentSet]: { result: IMrsAddContentSetData; };
+    [ShellAPIMrs.MrsListContentSets]: { result: IMrsContentSetData[]; };
     [ShellAPIMrs.MrsGetContentSet]: {};
     [ShellAPIMrs.MrsEnableContentSet]: {};
     [ShellAPIMrs.MrsDisableContentSet]: {};
     [ShellAPIMrs.MrsDeleteContentSet]: {};
-    [ShellAPIMrs.MrsAddDbObject]: { result: string };
+    [ShellAPIMrs.MrsAddDbObject]: { result: string; };
     [ShellAPIMrs.MrsGetDbObject]: {};
-    [ShellAPIMrs.MrsGetDbObjectRowOwnershipFields]: { result: string[] };
-    [ShellAPIMrs.MrsGetDbObjectSelectedFields]: { result: IMrsDbObjectFieldData[] };
-    [ShellAPIMrs.MrsListDbObjects]: { result: IMrsDbObjectData[] };
-    [ShellAPIMrs.MrsGetDbObjectFields]: { result: IMrsDbObjectFieldData[] };
+    [ShellAPIMrs.MrsGetDbObjectRowOwnershipFields]: { result: string[]; };
+    [ShellAPIMrs.MrsGetDbObjectSelectedFields]: { result: IMrsDbObjectFieldData[]; };
+    [ShellAPIMrs.MrsListDbObjects]: { result: IMrsDbObjectData[]; };
+    [ShellAPIMrs.MrsGetDbObjectFields]: { result: IMrsDbObjectFieldData[]; };
     [ShellAPIMrs.MrsSetDbObjectRequestPath]: {};
     [ShellAPIMrs.MrsSetDbObjectCrudOperations]: {};
     [ShellAPIMrs.MrsEnableDbObject]: {};
     [ShellAPIMrs.MrsDisableDbObject]: {};
     [ShellAPIMrs.MrsDeleteDbObject]: {};
     [ShellAPIMrs.MrsUpdateDbObject]: {};
-    [ShellAPIMrs.MrsListContentFiles]: { result: IMrsContentFileData[] };
+    [ShellAPIMrs.MrsListContentFiles]: { result: IMrsContentFileData[]; };
     [ShellAPIMrs.MrsGetAuthenticationVendors]: { result: IMrsAuthVendorData[]; };
     [ShellAPIMrs.MrsAddAuthenticationApp]: { result: IMrsAuthAppData; };
     [ShellAPIMrs.MrsDeleteAuthenticationApp]: {};
@@ -1316,7 +1316,7 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsVersion]: {};
     [ShellAPIMrs.MrsLs]: {};
     [ShellAPIMrs.MrsConfigure]: {};
-    [ShellAPIMrs.MrsStatus]: { result: IMrsStatusData };
+    [ShellAPIMrs.MrsStatus]: { result: IMrsStatusData; };
     [ShellAPIMrs.MrsDumpService]: {};
     [ShellAPIMrs.MrsDumpSchema]: {};
     [ShellAPIMrs.MrsDumpObject]: {};

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,9 +23,11 @@
 
 /* eslint-disable no-underscore-dangle */
 
-import {
-    ANTLRErrorListener, Recognizer, Token, RecognitionException,
-} from "antlr4ts";
+import { ANTLRErrorListener } from "antlr4ts/ANTLRErrorListener";
+import { ATNSimulator } from "antlr4ts/atn/ATNSimulator";
+import { RecognitionException } from "antlr4ts/RecognitionException";
+import { Recognizer } from "antlr4ts/Recognizer";
+import { Token } from "antlr4ts/Token";
 
 import { ErrorReportCallback } from "../parser-common";
 
@@ -34,10 +36,9 @@ export class PythonErrorListener implements ANTLRErrorListener<Token> {
     public constructor(private callback: ErrorReportCallback) {
     }
 
-    /* eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
-    public syntaxError<T extends Token | number>(recognizer: Recognizer<T, any>, offendingSymbol: T | undefined,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        line: number, charPositionInLine: number, msg: string, e: RecognitionException | undefined): void {
+    public syntaxError<T extends Token | number, R extends ATNSimulator>(_recognizer: Recognizer<T, R>,
+        _offendingSymbol: T | undefined, _line: number, _charPositionInLine: number, _msg: string,
+        _e: RecognitionException | undefined): void {
         // Nothing to do here.
     }
 }

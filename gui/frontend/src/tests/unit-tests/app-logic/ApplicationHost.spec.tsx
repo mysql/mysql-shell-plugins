@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,13 +23,11 @@
 
 /* eslint-disable @typescript-eslint/no-empty-function */
 
-import { mount } from "enzyme";
+import { mount, shallow } from "enzyme";
 import { act } from "preact/test-utils";
-import React from "react";
 
 import { ApplicationHost } from "../../../app-logic/ApplicationHost";
 import { DialogResponseClosure, DialogType, IDialogResponse } from "../../../app-logic/Types";
-import { IActivityBarItemProperties, IButtonProperties } from "../../../components/ui";
 import { DBEditorModuleId, ShellModuleId } from "../../../modules/ModuleInfo";
 import { ModuleRegistry } from "../../../modules/ModuleRegistry";
 import { DBEditorModule } from "../../../modules/db-editor/DBEditorModule";
@@ -37,9 +35,11 @@ import { ShellModule } from "../../../modules/shell/ShellModule";
 import { appParameters, requisitions } from "../../../supplement/Requisitions";
 import { webSession } from "../../../supplement/WebSession";
 
-import { eventMock } from "../__mocks__/MockEvents";
-import { nextRunLoop, snapshotFromWrapper, stateChange } from "../test-helpers";
+import { nextRunLoop, stateChange } from "../test-helpers";
 import { CommunicationDebugger } from "../../../components/CommunicationDebugger/CommunicationDebugger";
+import { mouseEventMock } from "../__mocks__/MockEvents";
+import { IActivityBarItemProperties } from "../../../components/ui/ActivityBar/ActivityBarItem";
+import { IButtonProperties } from "../../../components/ui/Button/Button";
 
 const toggleOptions = (): void => { };
 
@@ -120,13 +120,13 @@ describe("Application host tests", () => {
         ModuleRegistry.enableModule(ShellModuleId);
         ModuleRegistry.enableModule(DBEditorModuleId);
 
-        const component = mount<ApplicationHost>(
+        const component = shallow<ApplicationHost>(
             <ApplicationHost
                 toggleOptions={toggleOptions}
             />,
         );
 
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
         expect(component.state()).toEqual({
             activeModule: "gui.shell",
             settingsPage: "settings",
@@ -151,7 +151,7 @@ describe("Application host tests", () => {
         );
 
         await requisitions.execute("showAbout", undefined);
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
         expect(component.state()).toEqual({
             activeModule: "gui.shell",
             settingsPage: "about",
@@ -169,14 +169,14 @@ describe("Application host tests", () => {
         ModuleRegistry.enableModule(ShellModuleId);
         ModuleRegistry.enableModule(DBEditorModuleId);
 
-        const component = mount<ApplicationHost>(
+        const component = shallow<ApplicationHost>(
             <ApplicationHost
                 toggleOptions={toggleOptions}
             />,
         );
 
         await requisitions.execute("showPreferences", undefined);
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
         expect(component.state()).toEqual({
             activeModule: "gui.shell",
             settingsPage: "settings",
@@ -201,7 +201,7 @@ describe("Application host tests", () => {
         );
 
         component.setState({ debuggerVisible: true, debuggerMaximized: false });
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
         expect(component.state()).toEqual({
             activeModule: "gui.shell",
             settingsPage: "settings",
@@ -226,7 +226,7 @@ describe("Application host tests", () => {
         );
 
         await stateChange(component, { debuggerVisible: true, debuggerMaximized: true });
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
         expect(component.state()).toEqual({
             activeModule: "gui.shell",
             settingsPage: "settings",
@@ -269,7 +269,7 @@ describe("Application host tests", () => {
 
         let onClick = (wrapper.at(0).props() as IActivityBarItemProperties).onClick;
         await act(() => {
-            onClick?.(eventMock, {});
+            onClick?.(mouseEventMock, {});
         });
 
         expect(moduleToggleCount).toBe(0);
@@ -281,7 +281,7 @@ describe("Application host tests", () => {
 
         onClick = (wrapper.at(0).props() as IActivityBarItemProperties).onClick;
         await act(() => {
-            onClick?.(eventMock, {});
+            onClick?.(mouseEventMock, {});
         });
 
         expect(moduleToggleCount).toBe(0);
@@ -295,7 +295,7 @@ describe("Application host tests", () => {
 
         onClick = (wrapper.at(0).props() as IActivityBarItemProperties).onClick;
         await act(() => {
-            onClick?.(eventMock, {});
+            onClick?.(mouseEventMock, {});
         });
 
         expect(component.state().debuggerVisible).toBe(false);
@@ -339,7 +339,7 @@ describe("Application host tests", () => {
 
         const onClick = (wrapper.at(0).props() as IButtonProperties).onClick;
         await act(() => {
-            onClick?.(eventMock, {});
+            onClick?.(mouseEventMock, {});
         });
 
         element = debugComponent.getDOMNode();
@@ -380,4 +380,3 @@ describe("Application host tests", () => {
         component.unmount();
     });
 });
-

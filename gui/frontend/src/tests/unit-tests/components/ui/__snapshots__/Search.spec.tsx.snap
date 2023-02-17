@@ -9,7 +9,7 @@ exports[`Search component tests Test Search output (snapshot) 1`] = `
     <div
       className="msg container fixedScrollbar searchContainer"
       style={
-        Object {
+        {
           "alignItems": undefined,
           "flexDirection": "row",
           "flexWrap": undefined,
@@ -28,12 +28,12 @@ exports[`Search component tests Test Search output (snapshot) 1`] = `
         <input
           className="msg input search"
           id="search"
+          onInput={[Function]}
           onKeyDown={[Function]}
-          oninput={[Function]}
           placeholder="Search"
           spellCheck={true}
           style={
-            Object {
+            {
               "textAlign": undefined,
             }
           }

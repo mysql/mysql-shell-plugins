@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,15 +23,15 @@
 
 import "./Label.css";
 
-import React from "react";
-import Ansi from "ansi-to-react";
+import { ComponentChild, ComponentChildren, createRef } from "preact";
+import Anser from "anser";
+import { editor as Monaco } from "monaco-editor/esm/vs/editor/editor.api";
 
-import { IComponentProperties, Component } from "../Component/Component";
-import { Container, Orientation } from "..";
+import { IComponentProperties, ComponentBase, IComponentState } from "../Component/ComponentBase";
 import { EditorLanguage } from "../../../supplement";
-import { Monaco } from "../CodeEditor";
-import { CodeEditor } from "../CodeEditor/CodeEditor";
 import { MessageType } from "../../../app-logic/Types";
+import { ThemeManager } from "../../Theming/ThemeManager";
+import { CSSProperties } from "preact/compat";
 
 /** Semantically the same as ContentAlignment, but needs different values. */
 export enum TextAlignment {
@@ -41,57 +41,87 @@ export enum TextAlignment {
 }
 
 export interface ILabelProperties extends IComponentProperties {
+    /** The content of the label. Can alternatively be set via the children. This property takes precedence, though. */
     caption?: string;
+
+    /** Determines the normal HTML alignment of the text content. Not used for `ansi`. */
     textAlignment?: TextAlignment;
+
+    /** When set this formats the text into a emphasized block, which stands out in normal text flow. */
     quoted?: boolean;
+
+    /**
+     * When set to true then the text is rendered like a block of code (fixed width font with the theme code
+     * text colors).
+     */
     code?: boolean;
 
     /** When set renders the text with larger font and the caption color. */
     heading?: boolean;
 
+    /** Any language supported by Monaco (which is used to colorize the text) or `ansi` for special output. */
     language?: EditorLanguage | "ansi";
+
+    /** When set applies special colors to the text. This should be used only with plain text. */
     type?: MessageType;
 
-    innerRef?: React.RefObject<HTMLLabelElement>;
+    /** An optional reference object to hold the ref to the generated HTML element. */
+    innerRef?: preact.RefObject<HTMLLabelElement>;
 }
 
-export class Label extends Component<ILabelProperties> {
+interface ILabelState extends IComponentState {
+    labelEntries?: ComponentChildren;
+}
 
-    private labelRef: React.RefObject<HTMLLabelElement>;
+export class Label extends ComponentBase<ILabelProperties, ILabelState> {
+
+    private labelRef: preact.RefObject<HTMLLabelElement>;
 
     public constructor(props: ILabelProperties) {
         super(props);
 
-        this.labelRef = props.innerRef ?? React.createRef<HTMLLabelElement>();
-        this.addHandledProperties("caption", "textAlignment", "quoted", "code", "heading", "innerRef");
+        this.state = {};
+        this.labelRef = props.innerRef ?? createRef<HTMLLabelElement>();
+        this.addHandledProperties("caption", "textAlignment", "quoted", "code", "heading", "innerRef", "style");
     }
 
     public componentDidMount(): void {
-        this.colorizeText();
+        this.updateComputedOutput();
     }
 
-    public componentDidUpdate(): void {
-        this.colorizeText();
+    public componentDidUpdate(prevProps: ILabelProperties): void {
+        const { caption, children } = this.mergedProps;
+        if (caption !== prevProps.caption || children !== prevProps.children) {
+            this.updateComputedOutput();
+        }
     }
 
-    public render(): React.ReactNode {
-        const { children, caption, textAlignment, quoted, code, heading, language, type } = this.mergedProps;
+    public render(): ComponentChild {
+        const { children, caption, textAlignment, quoted, code, heading, language, type, style } = this.mergedProps;
+        const { labelEntries } = this.state;
+
+        const actualStyle = { ...style };
+        if (textAlignment) {
+            actualStyle.textAlign = textAlignment;
+        }
 
         const content = caption || children;
-        if (language === "ansi") {
+        if (language === "ansi" && labelEntries) {
             const className = this.getEffectiveClassNames([
                 "resultText",
                 this.classFromProperty(type, ["error", "warning", "info", "interactive", "response"]),
+                this.classFromProperty(quoted, "quote"),
+                this.classFromProperty(code, "code"),
+                this.classFromProperty(heading, "heading"),
             ]);
 
             return (
-                <Container
-                    orientation={Orientation.TopDown}
+                <label
+                    ref={this.labelRef}
                     className={className}
-                    {...this.unhandledProperties}
-                >
-                    <Ansi useClasses>{caption}</Ansi>
-                </Container >
+                    data-tooltip="expand"
+                    style={actualStyle}
+                >{labelEntries}</label>
             );
         } else {
             const className = this.getEffectiveClassNames([
@@ -101,31 +131,110 @@ export class Label extends Component<ILabelProperties> {
                 this.classFromProperty(heading, "heading"),
             ]);
 
-            // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-explicit-any
-            const ElementType: any = this.renderAs("label");
-
             return (
-                <ElementType
+                <label
                     ref={this.labelRef}
                     className={className}
                     data-tooltip="expand"
                     data-lang={language}
-                    style={{ textAlign: textAlignment }}
+                    style={actualStyle}
                     {...this.unhandledProperties}
                 >
                     {content}
-                </ElementType>
+                </label>
             );
         }
     }
 
     /** Lets Monaco apply styling to all text in this label. Only applies to non-ansi text. */
-    private colorizeText() {
-        const { language } = this.props;
+    private updateComputedOutput() {
+        const { caption, children, language } = this.mergedProps;
 
-        if (language && language !== "ansi" && language !== "text" && this.labelRef.current) {
-            void Monaco.colorizeElement(this.labelRef.current as HTMLElement, {
-                theme: CodeEditor.currentThemeId,
+        if (language === "ansi") {
+            const content = caption || children;
+
+            const list = Anser.ansiToJson(String(content));
+            const labelEntries = list.map((value, index) => {
+                const style: CSSProperties = {
+                    color: value.fg ? `rgba(${value.fg})` : undefined,
+                    backgroundColor: value.bg ? `rgba(${value.bg})` : undefined,
+                };
+
+                const fontStyles = new Set<string>();
+                const decorations = new Set<string>();
+                const classNames = new Set<string>();
+                value.decorations.forEach((decoration) => {
+                    switch (decoration) {
+                        case "bold": {
+                            style.fontWeight = "bold";
+                            classNames.add("ansi-bold");
+                            break;
+                        }
+
+                        case "italic": {
+                            fontStyles.add("italic");
+                            break;
+                        }
+
+                        case "underline": {
+                            decorations.add("underline");
+                            break;
+                        }
+
+                        case "hidden": {
+                            style.display = "none";
+                            break;
+                        }
+
+                        case "strikethrough": {
+                            decorations.add("line-through");
+
+                            break;
+                        }
+
+                        case "reverse": {
+                            const temp = style.color;
+                            style.color = style.backgroundColor;
+                            style.backgroundColor = temp;
+                            break;
+                        }
+
+                        case "blink": {
+                            classNames.add("blink");
+                            break;
+                        }
+
+                        default:
+                    }
+                });
+
+                if (fontStyles.size > 0) {
+                    style.fontStyle = [...fontStyles].join(" ");
+                }
+
+                if (decorations.size > 0) {
+                    style.textDecoration = [...decorations].join(" ");
+                }
+
+                let className = "";
+                if (classNames.size > 0) {
+                    className = [...classNames].join(" ");
+                }
+
+                return (
+                    <span
+                        key={index}
+                        className={className}
+                        style={style}
+                    >
+                        {value.content}
+                    </span >
+                );
+            });
+            this.setState({ labelEntries });
+        } else if (language && language !== "text" && this.labelRef.current) {
+            void Monaco.colorizeElement(this.labelRef.current, {
+                theme: ThemeManager.get.activeThemeSafe,
                 tabSize: 4,
             });
         }

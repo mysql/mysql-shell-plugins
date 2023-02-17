@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,20 +23,20 @@
 
 import "./assets/ThemeEditor.css";
 
-import React from "react";
+import { ComponentChild } from "preact";
 
 import { ThemeManager } from "./ThemeManager";
 import { ThemePreview } from "./Preview/ThemePreview";
 import { ThemeEditorCore } from "./ThemeEditorCore";
+import { ComponentBase } from "../ui/Component/ComponentBase";
+import { Container, Orientation } from "../ui/Container/Container";
 
-import { Component, Container, Orientation } from "../ui";
-
-export class ThemeEditor extends Component {
+export class ThemeEditor extends ComponentBase {
 
     private themeHasChanged = false;
     private changeTimer: ReturnType<typeof setTimeout>;
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const className = {
             host: this.getEffectiveClassNames(["themeEditorHost"]),
             editor: this.getEffectiveClassNames(["themeEditor"]),

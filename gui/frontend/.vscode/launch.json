@@ -6,7 +6,7 @@
             "request": "launch",
             "name": "Launch MSG on FF",
             "url": "https://localhost:3001",
-            "webRoot": "${workspaceFolder}",
+            "webRoot": "${workspaceFolder}/src",
             "clearConsoleOnReload": true,
             "preLaunchTask": "tsc: watch",
             "keepProfileChanges": false,
@@ -22,7 +22,7 @@
             "request": "launch",
             "name": "Launch MSG on FF - single user",
             "url": "https://localhost:3001?token=236d84bc-5965-11eb-b3f9-003ee1ce36e8",
-            "webRoot": "${workspaceFolder}",
+            "webRoot": "${workspaceFolder}/src",
             "clearConsoleOnReload": true,
             "preLaunchTask": "tsc: watch",
             "keepProfileChanges": false,
@@ -41,13 +41,11 @@
             "request": "launch",
             "name": "Launch MSG on Chrome",
             "url": "https://localhost:3001",
-            "webRoot": "${workspaceFolder}",
+            "webRoot": "${workspaceFolder}/src",
             "userDataDir": "${workspaceRoot}/.vscode/chrome",
             "sourceMaps": true,
             "preLaunchTask": "tsc: watch",
-            "sourceMapPathOverrides": {
-                "webpack:///build/*": "${webRoot}/*"
-            },
+            "sourceMapPathOverrides": {},
             "runtimeArgs": [
                 "--allow-insecure-localhost"
             ]
@@ -55,33 +53,24 @@
         {
             "type": "chrome",
             "request": "launch",
-            "name": "Launch MSG on Chrome - single user",
-            "url": "https://localhost:3001?token=236d84bc-5965-11eb-b3f9-003ee1ce36e8",
+            "name": "Launch MSG on Chrome - Single user",
+            "url": "http://127.0.0.1:3001?token=1234",
             "webRoot": "${workspaceFolder}/src",
             "userDataDir": "${workspaceRoot}/.vscode/chrome",
-            "sourceMaps": true,
             "preLaunchTask": "tsc: watch",
+            "sourceMaps": true,
+            "runtimeArgs": [
+                "--allow-insecure-localhost"
+            ],
+            "showAsyncStacks": true,
             "smartStep": true,
-            "sourceMapPathOverrides": {
-                "webpack:///build/*": "${webRoot}/*"
-            },
-            "runtimeArgs": [
-                "--allow-insecure-localhost",
-            ]
-        },
-        {
-            "type": "chrome",
-            "request": "launch",
-            "name": "Launch MSG on Brave - single user",
-            "runtimeExecutable": "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
-            "url": "https://localhost:3001?token=236d84bc-5965-11eb-b3f9-003ee1ce36e8",
-            "webRoot": "${workspaceFolder}",
-            "userDataDir": "${workspaceRoot}/.vscode/chrome",
-            "sourceMaps": true,
-            "preLaunchTask": "tsc: watch",
-            "runtimeArgs": [
-                "--allow-insecure-localhost",
-                "--disable-brave-extension"
+            "perScriptSourcemaps": "auto",
+            "resolveSourceMapLocations": [
+                "${workspaceFolder}/**",
+                "!/node_modules/**"
+            ],
+            "skipFiles": [
+                "${workspaceFolder}/node_modules/**/*.js",
             ]
         },
         {
@@ -127,9 +116,7 @@
             "port": 9222,
             "webRoot": "${workspaceFolder}",
             "sourceMaps": true,
-            "sourceMapPathOverrides": {
-                "webpack:///build/*": "${webRoot}/*"
-            },
+            "sourceMapPathOverrides": {},
         },
     ]
 }

@@ -21,19 +21,19 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
+import { ComponentChild, createRef } from "preact";
 import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types";
-import { IMrsAuthAppData, IMrsAuthVendorData } from "../../../communication/";
-
+import { IMrsAuthVendorData, IMrsAuthAppData } from "../../../communication/ProtocolMrs";
+import { ValueDialogBase } from "../../../components/Dialogs/ValueDialogBase";
 import {
-    CommonDialogValueOption, IDialogSection, IDialogValidations, IDialogValues, IRelationDialogValue, ValueDialogBase,
-    ValueEditDialog,
-} from "../../../components/Dialogs";
+    ValueEditDialog, IDialogValues, IDialogSection, CommonDialogValueOption, IDialogValidations,
+    IRelationDialogValue,
+} from "../../../components/Dialogs/ValueEditDialog";
 
 export class MrsServiceDialog extends ValueDialogBase {
-    private dialogRef = React.createRef<ValueEditDialog>();
+    private dialogRef = createRef<ValueEditDialog>();
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         return (
             <ValueEditDialog
                 ref={this.dialogRef}
@@ -346,7 +346,7 @@ export class MrsServiceDialog extends ValueDialogBase {
                 // Detect a change of the <new> entry
                 if (newEntry && (newEntry.authVendorName !== "" || newEntry.name !== "<new>")) {
                     // Update id and position
-                    newEntry.id = (authApps.length * -1).toString();
+                    newEntry.id = `${authApps.length * -1}`;
                     newEntry.position = authApps.length;
 
                     if (newEntry.authVendorName && newEntry.name === "<new>") {

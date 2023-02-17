@@ -21,19 +21,19 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
-import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types";
-import { IMrsAuthAppData, IMrsAuthVendorData, IMrsRoleData } from "../../../communication/";
+import { createRef, ComponentChild } from "preact";
 
+import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types";
+import { IMrsAuthAppData, IMrsAuthVendorData, IMrsRoleData } from "../../../communication/ProtocolMrs";
+import { ValueDialogBase } from "../../../components/Dialogs/ValueDialogBase";
 import {
-    CommonDialogValueOption, IDialogSection, IDialogValidations, IDialogValues, ValueDialogBase,
-    ValueEditDialog,
-} from "../../../components/Dialogs";
+    CommonDialogValueOption, IDialogSection, IDialogValidations, IDialogValues, ValueEditDialog,
+} from "../../../components/Dialogs/ValueEditDialog";
 
 export class MrsAuthenticationAppDialog extends ValueDialogBase {
-    private dialogRef = React.createRef<ValueEditDialog>();
+    private dialogRef = createRef<ValueEditDialog>();
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         return (
             <ValueEditDialog
                 ref={this.dialogRef}
