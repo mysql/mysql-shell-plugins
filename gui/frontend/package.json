@@ -8,6 +8,7 @@
         "launch-shell-web-server-win": "call ./scripts/launch-shell-webserver.cmd",
         "launch-dev-server": "vite",
         "build": "bash ./scripts/production-build.sh",
+        "build-with-maps": "bash ./scripts/production-build.sh true",
         "build-win": "call ./scripts/production-build.cmd",
         "lint": "eslint \"./src/**/*.ts\" \"./src/**/*.tsx\"",
         "unit-tests": "node --no-compilation-cache --expose-gc --max_old_space_size=4096 node_modules/.bin/jest --logHeapUsage -c=unit-tests.jest.config.ts --watchAll=false",
