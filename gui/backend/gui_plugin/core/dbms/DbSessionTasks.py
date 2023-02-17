@@ -208,8 +208,9 @@ class DbSqlTask(DbQueryTask):
             if self._last_insert_id:
                 data["last_insert_id"] = self._last_insert_id
 
-            if self._rows_affected > -1:
-                data["rows_affected"] = self._rows_affected
+            # To normalizing rows_affected we return
+            # the number of rows affected if there was any, otherwise return 0
+            data["rows_affected"] = self._rows_affected if self._rows_affected > 0 else 0
 
         super().dispatch_result(state, message=message, data=data)
 
