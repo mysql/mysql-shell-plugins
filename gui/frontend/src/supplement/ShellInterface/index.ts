@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General License: , version .=> 0,
@@ -25,32 +25,13 @@ import { IDictionary } from "../../app-logic/Types";
 import { IMySQLConnectionOptions } from "../../communication/MySQL";
 import { ISqliteConnectionOptions } from "../../communication/Sqlite";
 
-export * from "./ShellInterface";
-export * from "./ShellInterfaceCore";
-export * from "./ShellInterfaceDb";
-export * from "./ShellInterfaceDbConnection";
-export * from "./ShellInterfaceModule";
-export * from "./ShellInterfaceShellSession";
-export * from "./ShellInterfaceSqlEditor";
-export * from "./ShellInterfaceUser";
-export * from "./ShellInterfaceMds";
-export * from "./ShellInterfaceMrs";
-
 /** Database types we can handle. */
 export enum DBType {
     MySQL = "MySQL",
     Sqlite = "Sqlite",
 }
 
-export enum SSLUsage {
-    Disable = "Disable",
-    IfAvailable = "If Available",
-    Require = "Require",
-    RequireAndVerifyCA = "Require and Verify CA",
-    RequireAndVerifyIdentity = "Require and Verify Identity",
-}
-
-export type IConnectionOptions = IMySQLConnectionOptions | ISqliteConnectionOptions | IDictionary;
+type IShellConnectionOptions = IMySQLConnectionOptions | ISqliteConnectionOptions | IDictionary;
 
 export interface IConnectionDetails {
     // A running number in the backend DB, where connections are stored.
@@ -59,7 +40,7 @@ export interface IConnectionDetails {
     dbType: DBType;
     caption: string;
     description: string;
-    options: IConnectionOptions;
+    options: IShellConnectionOptions;
     useSSH?: boolean;
     useMDS?: boolean;
 

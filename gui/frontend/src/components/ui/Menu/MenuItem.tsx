@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,13 +21,15 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
+import { ComponentChild, createRef, toChildArray } from "preact";
 
-import {
-    Component, IComponentProperties, Label, Container, Icon, Menu, ComponentPlacement, Orientation,
-    Divider,
-} from "..";
 import { Codicon } from "../Codicon";
+import { IComponentProperties, ComponentPlacement, ComponentBase } from "../Component/ComponentBase";
+import { Container, Orientation } from "../Container/Container";
+import { Divider } from "../Divider/Divider";
+import { Icon } from "../Icon/Icon";
+import { Label } from "../Label/Label";
+import { Menu } from "./Menu";
 
 export interface IMenuItemProperties extends IComponentProperties {
     caption?: string;
@@ -36,31 +38,31 @@ export interface IMenuItemProperties extends IComponentProperties {
     subMenuPlacement?: ComponentPlacement;
     subMenuShowOnClick?: boolean;          // If true show the submenu only on item click, otherwise on mouse enter.
 
-    innerRef?: React.RefObject<HTMLElement>;
+    innerRef?: preact.RefObject<HTMLDivElement>;
 
     onSubMenuClose?: (props: IMenuItemProperties) => void;
     onSubMenuOpen?: (props: IMenuItemProperties) => void;
 }
 
-export class MenuItem extends Component<IMenuItemProperties> {
+export class MenuItem extends ComponentBase<IMenuItemProperties> {
 
     public static defaultProps = {
         subMenuPlacement: ComponentPlacement.RightTop,
     };
 
-    private menuRef = React.createRef<Menu>();
-    private itemRef: React.RefObject<HTMLElement>;
+    private menuRef = createRef<Menu>();
+    private itemRef: preact.RefObject<HTMLDivElement>;
 
     public constructor(props: IMenuItemProperties) {
         super(props);
 
-        this.itemRef = props.innerRef ?? React.createRef<HTMLElement>();
+        this.itemRef = props.innerRef ?? createRef<HTMLDivElement>();
 
         this.addHandledProperties("caption", "icon", "active", "subMenuPlacement", "onSubMenuClose",
             "onSubMenuOpen", "subMenuShowOnClick", "innerRef", "title");
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { children, id, caption, icon, disabled, active, subMenuPlacement, title } = this.mergedProps;
 
         const isSeparator = caption === "-";
@@ -71,7 +73,7 @@ export class MenuItem extends Component<IMenuItemProperties> {
             this.classFromProperty(active, "active"),
         ]);
 
-        const isSubMenu = React.Children.count(children) > 0;
+        const isSubMenu = toChildArray(children).length > 0;
         let content;
         if (!isSeparator) {
             content = <Container
@@ -134,7 +136,7 @@ export class MenuItem extends Component<IMenuItemProperties> {
         this.menuRef.current?.close();
     };
 
-    public click = (e: React.SyntheticEvent): void => {
+    public click = (e: MouseEvent | KeyboardEvent): void => {
         this.handleItemClick(e);
     };
 
@@ -148,7 +150,7 @@ export class MenuItem extends Component<IMenuItemProperties> {
         onSubMenuOpen?.(this.mergedProps);
     };
 
-    private handleItemMouseEnter = (e: React.MouseEvent): void => {
+    private handleItemMouseEnter = (e: MouseEvent): void => {
         const { subMenuShowOnClick, disabled, onMouseEnter } = this.mergedProps;
 
         const element = e.currentTarget as HTMLElement;
@@ -162,7 +164,7 @@ export class MenuItem extends Component<IMenuItemProperties> {
         onMouseEnter?.(e, this.mergedProps);
     };
 
-    private handleItemMouseLeave = (e: React.MouseEvent): void => {
+    private handleItemMouseLeave = (e: MouseEvent): void => {
         const { onMouseLeave } = this.mergedProps;
 
         const element = e.currentTarget as HTMLElement;
@@ -171,18 +173,19 @@ export class MenuItem extends Component<IMenuItemProperties> {
         onMouseLeave?.(e, this.mergedProps);
     };
 
-    private handleItemClick = (e: React.SyntheticEvent): void => {
+    private handleItemClick = (e: MouseEvent | KeyboardEvent): void => {
         const { subMenuShowOnClick, onClick } = this.mergedProps;
 
+        const element = e.currentTarget as HTMLElement;
         e.stopPropagation();
         if (subMenuShowOnClick && e) {
-            this.menuRef.current?.open(e.currentTarget.getBoundingClientRect(), false);
+            this.menuRef.current?.open(element.getBoundingClientRect(), false);
         }
 
         onClick?.(e, this.mergedProps);
     };
 
-    private handleSubmenuItemClick = (e: React.MouseEvent, props: IMenuItemProperties): boolean => {
+    private handleSubmenuItemClick = (e: MouseEvent, props: IMenuItemProperties): boolean => {
         const { onClick } = this.mergedProps;
         onClick?.(e, props);
 

@@ -27,10 +27,10 @@ import {
 
 import { isNil } from "lodash";
 
-import { DBType, ShellInterface } from "../../frontend/src/supplement/ShellInterface";
+import { DBType } from "../../frontend/src/supplement/ShellInterface";
 import { webSession } from "../../frontend/src/supplement/WebSession";
 import { ISettingCategory, settingCategories } from "../../frontend/src/supplement/Settings/SettingsRegistry";
-import { settings } from "../../frontend/src/supplement/Settings/Settings";
+import { Settings } from "../../frontend/src/supplement/Settings/Settings";
 import { ShellTask } from "../../frontend/src/shell-tasks/ShellTask";
 
 import { ShellConsolesTreeDataProvider } from "./tree-providers/ShellTreeProvider/ShellConsolesTreeProvider";
@@ -45,8 +45,12 @@ import { ShellConsoleCommandHandler } from "./ShellConsoleCommandHandler";
 import { requisitions } from "../../frontend/src/supplement/Requisitions";
 import { MDSCommandHandler } from "./MDSCommandHandler";
 import { MRSCommandHandler } from "./MRSCommandHandler";
-import { ConnectionsTreeDataProvider, IConnectionEntry } from "./tree-providers/ConnectionsTreeProvider";
-import { IShellModuleDataCategoriesEntry, IShellProfile } from "../../frontend/src/communication/";
+import { NodeMessageScheduler } from "./communication/NodeMessageScheduler";
+import { IShellModuleDataCategoriesEntry, IShellProfile } from "../../frontend/src/communication/ProtocolGui";
+import { ShellInterface } from "../../frontend/src/supplement/ShellInterface/ShellInterface";
+import {
+    ConnectionsTreeDataProvider, IConnectionEntry,
+} from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeProvider";
 
 // This class manages some extension wide things like authentication handling etc.
 export class ExtensionHost {
@@ -188,6 +192,9 @@ export class ExtensionHost {
      * Prepares all VS Code providers for first use.
      */
     private setupEnvironment(): void {
+        // Access the node specific message scheduler once to create the correct version of it.
+        void NodeMessageScheduler.get;
+
         this.dbEditorCommandHandler.setup(this.context, this);
         this.shellConsoleCommandHandler.setup(this.context);
         this.mrsCommandHandler.setup(this.context, this);
@@ -365,7 +372,7 @@ export class ExtensionHost {
                     child.values.forEach((value) => {
                         const configValue = configuration?.get(`${child.key}.${value.key}`);
                         if (!isNil(configValue)) {
-                            settings.set(value.id, configValue);
+                            Settings.set(value.id, configValue);
                         }
                     });
 
@@ -380,7 +387,7 @@ export class ExtensionHost {
                     category.values.forEach((value) => {
                         const configValue = configuration.get(value.key);
                         if (!isNil(configValue)) {
-                            settings.set(value.id, configValue);
+                            Settings.set(value.id, configValue);
                         }
                     });
 
@@ -388,7 +395,7 @@ export class ExtensionHost {
                 });
             }
 
-            settings.saveSettings();
+            Settings.saveSettings();
 
             this.updatingSettings = false;
         }
@@ -403,7 +410,7 @@ export class ExtensionHost {
      *
      * @returns A promise resolving to true.
      */
-    private updateVscodeSettings = async (entry?: { key: string; value: unknown }): Promise<boolean> => {
+    private updateVscodeSettings = async (entry?: { key: string; value: unknown; }): Promise<boolean> => {
         if (!this.updatingSettings) {
             this.updatingSettings = true;
             if (entry) {
@@ -423,7 +430,7 @@ export class ExtensionHost {
                         if (children && configuration) {
                             for await (const child of children) {
                                 for await (const value of child.values) {
-                                    const setting = settings.get(value.id);
+                                    const setting = Settings.get(value.id);
                                     const currentValue = configuration.get(`${child.key}.${value.key}`);
                                     if (setting !== currentValue) {
                                         await configuration.update(`${child.key}.${value.key}`, setting, true);
@@ -439,7 +446,7 @@ export class ExtensionHost {
                         if (category.key !== "theming") {
                             const configuration = workspace.getConfiguration(`msg.${category.key}`);
                             for await (const value of category.values) {
-                                const setting = settings.get(value.id);
+                                const setting = Settings.get(value.id);
                                 const currentValue = configuration.get(value.key);
                                 if (setting !== currentValue) {
                                     await configuration.update(value.key, setting, true);

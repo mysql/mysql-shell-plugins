@@ -3,10 +3,10 @@
 exports[`Server status module tests Test ServerStatus instantiation: ServerStatus1 1`] = `
 <ServerStatus
   backend={
-    Object {
-      "mds": Object {},
+    ShellInterfaceSqlEditor {
+      "mds": ShellInterfaceMds {},
       "moduleSessionLookupId": "",
-      "mrs": Object {
+      "mrs": ShellInterfaceMrs {
         "moduleSessionLookupId": "",
       },
     }
@@ -20,7 +20,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
     <div
       className="msg container fixedScrollbar serverStatusHost"
       style={
-        Object {
+        {
           "alignItems": undefined,
           "flexDirection": "column",
           "flexWrap": undefined,
@@ -37,7 +37,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
         <div
           className="msg container fixedScrollbar serverStatus"
           style={
-            Object {
+            {
               "alignItems": "center",
               "flexDirection": "column",
               "flexWrap": undefined,
@@ -55,7 +55,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
               className="msg grid"
               id="header"
               style={
-                Object {
+                {
                   "columnGap": "12px",
                   "gridTemplateColumns": "repeat(2, 1fr)",
                   "rowGap": "15px",
@@ -69,7 +69,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                   className="msg gridCell"
                   orientation="row"
                   style={
-                    Object {
+                    {
                       "gridRow": "span 2",
                     }
                   }
@@ -77,7 +77,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                   <div
                     className="msg container fixedScrollbar gridCell"
                     style={
-                      Object {
+                      {
                         "alignItems": undefined,
                         "flexDirection": "row",
                         "flexWrap": undefined,
@@ -91,11 +91,11 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       id="mysqlLogo"
                       src="mysql-logo.svg"
                     >
-                      <div
+                      <span
                         className="msg icon"
                         id="mysqlLogo"
                         style={
-                          Object {
+                          {
                             "WebkitMaskImage": "url(mysql-logo.svg)",
                             "backgroundColor": undefined,
                             "height": undefined,
@@ -115,12 +115,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                 <Container
                   className="msg gridCell"
                   orientation="column"
-                  style={Object {}}
+                  style={{}}
                 >
                   <div
                     className="msg container fixedScrollbar gridCell"
                     style={
-                      Object {
+                      {
                         "alignItems": undefined,
                         "flexDirection": "column",
                         "flexWrap": undefined,
@@ -148,7 +148,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
               className="msg container fixedScrollbar"
               id="statusBoxHost"
               style={
-                Object {
+                {
                   "alignItems": "flex-start",
                   "flexDirection": "row",
                   "flexWrap": "wrap",
@@ -159,7 +159,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
               <Grid
                 columnGap={12}
                 columns={
-                  Array [
+                  [
                     "minmax(min-content,max-content)",
                     "1fr",
                   ]
@@ -169,7 +169,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                 <div
                   className="msg grid"
                   style={
-                    Object {
+                    {
                       "columnGap": "12px",
                       "gridTemplateColumns": "minmax(min-content,max-content) 1fr",
                       "rowGap": "3px",
@@ -186,7 +186,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       className="msg gridCell heading"
                       orientation="column"
                       style={
-                        Object {
+                        {
                           "gridColumn": "span 2",
                         }
                       }
@@ -194,7 +194,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       <div
                         className="msg container fixedScrollbar gridCell heading"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "column",
                             "flexWrap": undefined,
@@ -209,11 +209,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                           <label
                             className="msg label"
                             data-tooltip="expand"
-                            style={
-                              Object {
-                                "textAlign": undefined,
-                              }
-                            }
+                            style={{}}
                           >
                             Main Settings
                           </label>
@@ -232,7 +228,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       crossAlignment="center"
                       orientation="column"
                       style={
-                        Object {
+                        {
                           "gridColumn": "span 2",
                         }
                       }
@@ -240,7 +236,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": "center",
                             "flexDirection": "column",
                             "flexWrap": undefined,
@@ -258,7 +254,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                             onMouseEnter={[Function]}
                             onMouseLeave={[Function]}
                             style={
-                              Object {
+                              {
                                 "--thickness": "4px",
                               }
                             }
@@ -274,12 +270,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -297,12 +293,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -321,12 +317,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -344,12 +340,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -368,12 +364,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -391,12 +387,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -415,12 +411,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -438,12 +434,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -462,12 +458,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -485,12 +481,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -509,12 +505,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -532,12 +528,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -556,12 +552,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -579,12 +575,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -603,12 +599,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -626,12 +622,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -648,7 +644,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
               <Grid
                 columnGap={12}
                 columns={
-                  Array [
+                  [
                     "minmax(min-content,max-content)",
                     "1fr",
                   ]
@@ -658,7 +654,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                 <div
                   className="msg grid"
                   style={
-                    Object {
+                    {
                       "columnGap": "12px",
                       "gridTemplateColumns": "minmax(min-content,max-content) 1fr",
                       "rowGap": "3px",
@@ -675,7 +671,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       className="msg gridCell heading"
                       orientation="column"
                       style={
-                        Object {
+                        {
                           "gridColumn": "span 2",
                         }
                       }
@@ -683,7 +679,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       <div
                         className="msg container fixedScrollbar gridCell heading"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "column",
                             "flexWrap": undefined,
@@ -698,11 +694,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                           <label
                             className="msg label"
                             data-tooltip="expand"
-                            style={
-                              Object {
-                                "textAlign": undefined,
-                              }
-                            }
+                            style={{}}
                           >
                             Server Directories
                           </label>
@@ -721,7 +713,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       crossAlignment="center"
                       orientation="column"
                       style={
-                        Object {
+                        {
                           "gridColumn": "span 2",
                         }
                       }
@@ -729,7 +721,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": "center",
                             "flexDirection": "column",
                             "flexWrap": undefined,
@@ -747,7 +739,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                             onMouseEnter={[Function]}
                             onMouseLeave={[Function]}
                             style={
-                              Object {
+                              {
                                 "--thickness": "4px",
                               }
                             }
@@ -763,12 +755,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -786,12 +778,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -808,12 +800,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -831,12 +823,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -853,12 +845,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -876,12 +868,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -898,12 +890,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -921,12 +913,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -943,12 +935,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -966,12 +958,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -1011,12 +1003,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -1034,12 +1026,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -1079,12 +1071,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -1102,12 +1094,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -1145,7 +1137,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
               <Grid
                 columnGap={12}
                 columns={
-                  Array [
+                  [
                     "minmax(min-content,max-content)",
                     "1fr",
                   ]
@@ -1155,7 +1147,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                 <div
                   className="msg grid"
                   style={
-                    Object {
+                    {
                       "columnGap": "12px",
                       "gridTemplateColumns": "minmax(min-content,max-content) 1fr",
                       "rowGap": "3px",
@@ -1172,7 +1164,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       className="msg gridCell heading"
                       orientation="column"
                       style={
-                        Object {
+                        {
                           "gridColumn": "span 2",
                         }
                       }
@@ -1180,7 +1172,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       <div
                         className="msg container fixedScrollbar gridCell heading"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "column",
                             "flexWrap": undefined,
@@ -1195,11 +1187,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                           <label
                             className="msg label"
                             data-tooltip="expand"
-                            style={
-                              Object {
-                                "textAlign": undefined,
-                              }
-                            }
+                            style={{}}
                           >
                             Server Features
                           </label>
@@ -1218,7 +1206,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       crossAlignment="center"
                       orientation="column"
                       style={
-                        Object {
+                        {
                           "gridColumn": "span 2",
                         }
                       }
@@ -1226,7 +1214,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": "center",
                             "flexDirection": "column",
                             "flexWrap": undefined,
@@ -1244,7 +1232,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                             onMouseEnter={[Function]}
                             onMouseLeave={[Function]}
                             style={
-                              Object {
+                              {
                                 "--thickness": "4px",
                               }
                             }
@@ -1260,12 +1248,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -1283,12 +1271,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -1328,12 +1316,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -1351,12 +1339,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -1396,12 +1384,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -1419,12 +1407,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -1443,12 +1431,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -1466,12 +1454,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -1490,12 +1478,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -1513,12 +1501,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -1558,12 +1546,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -1581,12 +1569,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -1626,12 +1614,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -1649,12 +1637,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -1694,12 +1682,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -1717,12 +1705,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -1741,12 +1729,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -1764,12 +1752,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -1786,7 +1774,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
               <Grid
                 columnGap={12}
                 columns={
-                  Array [
+                  [
                     "minmax(min-content,max-content)",
                     "1fr",
                   ]
@@ -1796,7 +1784,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                 <div
                   className="msg grid"
                   style={
-                    Object {
+                    {
                       "columnGap": "12px",
                       "gridTemplateColumns": "minmax(min-content,max-content) 1fr",
                       "rowGap": "3px",
@@ -1813,7 +1801,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       className="msg gridCell heading"
                       orientation="column"
                       style={
-                        Object {
+                        {
                           "gridColumn": "span 2",
                         }
                       }
@@ -1821,7 +1809,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       <div
                         className="msg container fixedScrollbar gridCell heading"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "column",
                             "flexWrap": undefined,
@@ -1836,11 +1824,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                           <label
                             className="msg label"
                             data-tooltip="expand"
-                            style={
-                              Object {
-                                "textAlign": undefined,
-                              }
-                            }
+                            style={{}}
                           >
                             Server SSL
                           </label>
@@ -1859,7 +1843,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       crossAlignment="center"
                       orientation="column"
                       style={
-                        Object {
+                        {
                           "gridColumn": "span 2",
                         }
                       }
@@ -1867,7 +1851,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": "center",
                             "flexDirection": "column",
                             "flexWrap": undefined,
@@ -1885,7 +1869,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                             onMouseEnter={[Function]}
                             onMouseLeave={[Function]}
                             style={
-                              Object {
+                              {
                                 "--thickness": "4px",
                               }
                             }
@@ -1901,12 +1885,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -1924,12 +1908,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -1946,12 +1930,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -1969,12 +1953,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -1991,12 +1975,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -2014,12 +1998,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -2036,12 +2020,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -2059,12 +2043,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -2081,12 +2065,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -2104,12 +2088,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -2126,12 +2110,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -2149,12 +2133,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -2171,12 +2155,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -2194,12 +2178,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -2214,7 +2198,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
               <Grid
                 columnGap={12}
                 columns={
-                  Array [
+                  [
                     "minmax(min-content,max-content)",
                     "1fr",
                   ]
@@ -2224,7 +2208,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                 <div
                   className="msg grid"
                   style={
-                    Object {
+                    {
                       "columnGap": "12px",
                       "gridTemplateColumns": "minmax(min-content,max-content) 1fr",
                       "rowGap": "3px",
@@ -2241,7 +2225,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       className="msg gridCell heading"
                       orientation="column"
                       style={
-                        Object {
+                        {
                           "gridColumn": "span 2",
                         }
                       }
@@ -2249,7 +2233,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       <div
                         className="msg container fixedScrollbar gridCell heading"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "column",
                             "flexWrap": undefined,
@@ -2264,11 +2248,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                           <label
                             className="msg label"
                             data-tooltip="expand"
-                            style={
-                              Object {
-                                "textAlign": undefined,
-                              }
-                            }
+                            style={{}}
                           >
                             Server Authentication
                           </label>
@@ -2287,7 +2267,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       crossAlignment="center"
                       orientation="column"
                       style={
-                        Object {
+                        {
                           "gridColumn": "span 2",
                         }
                       }
@@ -2295,7 +2275,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": "center",
                             "flexDirection": "column",
                             "flexWrap": undefined,
@@ -2313,7 +2293,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                             onMouseEnter={[Function]}
                             onMouseLeave={[Function]}
                             style={
-                              Object {
+                              {
                                 "--thickness": "4px",
                               }
                             }
@@ -2329,12 +2309,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -2352,12 +2332,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -2374,12 +2354,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -2397,12 +2377,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -2426,10 +2406,10 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
 exports[`Server status module tests Test ServerStatus instantiation: ServerStatus2 1`] = `
 <ServerStatus
   backend={
-    Object {
-      "mds": Object {},
+    ShellInterfaceSqlEditor {
+      "mds": ShellInterfaceMds {},
       "moduleSessionLookupId": "",
-      "mrs": Object {
+      "mrs": ShellInterfaceMrs {
         "moduleSessionLookupId": "",
       },
     }
@@ -2443,7 +2423,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
     <div
       className="msg container fixedScrollbar serverStatusHost"
       style={
-        Object {
+        {
           "alignItems": undefined,
           "flexDirection": "column",
           "flexWrap": undefined,
@@ -2460,7 +2440,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
         <div
           className="msg container fixedScrollbar serverStatus"
           style={
-            Object {
+            {
               "alignItems": "center",
               "flexDirection": "column",
               "flexWrap": undefined,
@@ -2478,7 +2458,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
               className="msg grid"
               id="header"
               style={
-                Object {
+                {
                   "columnGap": "12px",
                   "gridTemplateColumns": "repeat(2, 1fr)",
                   "rowGap": "15px",
@@ -2492,7 +2472,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                   className="msg gridCell"
                   orientation="row"
                   style={
-                    Object {
+                    {
                       "gridRow": "span 2",
                     }
                   }
@@ -2500,7 +2480,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                   <div
                     className="msg container fixedScrollbar gridCell"
                     style={
-                      Object {
+                      {
                         "alignItems": undefined,
                         "flexDirection": "row",
                         "flexWrap": undefined,
@@ -2514,11 +2494,11 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       id="mysqlLogo"
                       src="mysql-logo.svg"
                     >
-                      <div
+                      <span
                         className="msg icon"
                         id="mysqlLogo"
                         style={
-                          Object {
+                          {
                             "WebkitMaskImage": "url(mysql-logo.svg)",
                             "backgroundColor": undefined,
                             "height": undefined,
@@ -2538,12 +2518,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                 <Container
                   className="msg gridCell"
                   orientation="column"
-                  style={Object {}}
+                  style={{}}
                 >
                   <div
                     className="msg container fixedScrollbar gridCell"
                     style={
-                      Object {
+                      {
                         "alignItems": undefined,
                         "flexDirection": "column",
                         "flexWrap": undefined,
@@ -2571,7 +2551,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
               className="msg container fixedScrollbar"
               id="statusBoxHost"
               style={
-                Object {
+                {
                   "alignItems": "flex-start",
                   "flexDirection": "row",
                   "flexWrap": "wrap",
@@ -2582,7 +2562,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
               <Grid
                 columnGap={12}
                 columns={
-                  Array [
+                  [
                     "minmax(min-content,max-content)",
                     "1fr",
                   ]
@@ -2592,7 +2572,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                 <div
                   className="msg grid"
                   style={
-                    Object {
+                    {
                       "columnGap": "12px",
                       "gridTemplateColumns": "minmax(min-content,max-content) 1fr",
                       "rowGap": "3px",
@@ -2609,7 +2589,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       className="msg gridCell heading"
                       orientation="column"
                       style={
-                        Object {
+                        {
                           "gridColumn": "span 2",
                         }
                       }
@@ -2617,7 +2597,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       <div
                         className="msg container fixedScrollbar gridCell heading"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "column",
                             "flexWrap": undefined,
@@ -2632,11 +2612,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                           <label
                             className="msg label"
                             data-tooltip="expand"
-                            style={
-                              Object {
-                                "textAlign": undefined,
-                              }
-                            }
+                            style={{}}
                           >
                             Main Settings
                           </label>
@@ -2655,7 +2631,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       crossAlignment="center"
                       orientation="column"
                       style={
-                        Object {
+                        {
                           "gridColumn": "span 2",
                         }
                       }
@@ -2663,7 +2639,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": "center",
                             "flexDirection": "column",
                             "flexWrap": undefined,
@@ -2681,7 +2657,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                             onMouseEnter={[Function]}
                             onMouseLeave={[Function]}
                             style={
-                              Object {
+                              {
                                 "--thickness": "4px",
                               }
                             }
@@ -2697,12 +2673,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -2720,12 +2696,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -2744,12 +2720,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -2767,12 +2743,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -2791,12 +2767,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -2814,12 +2790,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -2838,12 +2814,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -2861,12 +2837,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -2885,12 +2861,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -2908,12 +2884,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -2932,12 +2908,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -2955,12 +2931,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -2979,12 +2955,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -3002,12 +2978,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -3026,12 +3002,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -3049,12 +3025,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -3071,7 +3047,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
               <Grid
                 columnGap={12}
                 columns={
-                  Array [
+                  [
                     "minmax(min-content,max-content)",
                     "1fr",
                   ]
@@ -3081,7 +3057,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                 <div
                   className="msg grid"
                   style={
-                    Object {
+                    {
                       "columnGap": "12px",
                       "gridTemplateColumns": "minmax(min-content,max-content) 1fr",
                       "rowGap": "3px",
@@ -3098,7 +3074,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       className="msg gridCell heading"
                       orientation="column"
                       style={
-                        Object {
+                        {
                           "gridColumn": "span 2",
                         }
                       }
@@ -3106,7 +3082,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       <div
                         className="msg container fixedScrollbar gridCell heading"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "column",
                             "flexWrap": undefined,
@@ -3121,11 +3097,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                           <label
                             className="msg label"
                             data-tooltip="expand"
-                            style={
-                              Object {
-                                "textAlign": undefined,
-                              }
-                            }
+                            style={{}}
                           >
                             Server Directories
                           </label>
@@ -3144,7 +3116,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       crossAlignment="center"
                       orientation="column"
                       style={
-                        Object {
+                        {
                           "gridColumn": "span 2",
                         }
                       }
@@ -3152,7 +3124,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": "center",
                             "flexDirection": "column",
                             "flexWrap": undefined,
@@ -3170,7 +3142,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                             onMouseEnter={[Function]}
                             onMouseLeave={[Function]}
                             style={
-                              Object {
+                              {
                                 "--thickness": "4px",
                               }
                             }
@@ -3186,12 +3158,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -3209,12 +3181,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -3231,12 +3203,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -3254,12 +3226,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -3276,12 +3248,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -3299,12 +3271,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -3321,12 +3293,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -3344,12 +3316,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -3366,12 +3338,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -3389,12 +3361,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -3434,12 +3406,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -3457,12 +3429,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -3502,12 +3474,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -3525,12 +3497,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -3568,7 +3540,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
               <Grid
                 columnGap={12}
                 columns={
-                  Array [
+                  [
                     "minmax(min-content,max-content)",
                     "1fr",
                   ]
@@ -3578,7 +3550,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                 <div
                   className="msg grid"
                   style={
-                    Object {
+                    {
                       "columnGap": "12px",
                       "gridTemplateColumns": "minmax(min-content,max-content) 1fr",
                       "rowGap": "3px",
@@ -3595,7 +3567,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       className="msg gridCell heading"
                       orientation="column"
                       style={
-                        Object {
+                        {
                           "gridColumn": "span 2",
                         }
                       }
@@ -3603,7 +3575,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       <div
                         className="msg container fixedScrollbar gridCell heading"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "column",
                             "flexWrap": undefined,
@@ -3618,11 +3590,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                           <label
                             className="msg label"
                             data-tooltip="expand"
-                            style={
-                              Object {
-                                "textAlign": undefined,
-                              }
-                            }
+                            style={{}}
                           >
                             Server Features
                           </label>
@@ -3641,7 +3609,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       crossAlignment="center"
                       orientation="column"
                       style={
-                        Object {
+                        {
                           "gridColumn": "span 2",
                         }
                       }
@@ -3649,7 +3617,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": "center",
                             "flexDirection": "column",
                             "flexWrap": undefined,
@@ -3667,7 +3635,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                             onMouseEnter={[Function]}
                             onMouseLeave={[Function]}
                             style={
-                              Object {
+                              {
                                 "--thickness": "4px",
                               }
                             }
@@ -3683,12 +3651,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -3706,12 +3674,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -3751,12 +3719,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -3774,12 +3742,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -3819,12 +3787,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -3842,12 +3810,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -3866,12 +3834,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -3889,12 +3857,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -3913,12 +3881,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -3936,12 +3904,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -3981,12 +3949,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -4004,12 +3972,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -4049,12 +4017,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -4072,12 +4040,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -4117,12 +4085,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -4140,12 +4108,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -4164,12 +4132,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -4187,12 +4155,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -4209,7 +4177,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
               <Grid
                 columnGap={12}
                 columns={
-                  Array [
+                  [
                     "minmax(min-content,max-content)",
                     "1fr",
                   ]
@@ -4219,7 +4187,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                 <div
                   className="msg grid"
                   style={
-                    Object {
+                    {
                       "columnGap": "12px",
                       "gridTemplateColumns": "minmax(min-content,max-content) 1fr",
                       "rowGap": "3px",
@@ -4236,7 +4204,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       className="msg gridCell heading"
                       orientation="column"
                       style={
-                        Object {
+                        {
                           "gridColumn": "span 2",
                         }
                       }
@@ -4244,7 +4212,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       <div
                         className="msg container fixedScrollbar gridCell heading"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "column",
                             "flexWrap": undefined,
@@ -4259,11 +4227,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                           <label
                             className="msg label"
                             data-tooltip="expand"
-                            style={
-                              Object {
-                                "textAlign": undefined,
-                              }
-                            }
+                            style={{}}
                           >
                             Server SSL
                           </label>
@@ -4282,7 +4246,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       crossAlignment="center"
                       orientation="column"
                       style={
-                        Object {
+                        {
                           "gridColumn": "span 2",
                         }
                       }
@@ -4290,7 +4254,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": "center",
                             "flexDirection": "column",
                             "flexWrap": undefined,
@@ -4308,7 +4272,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                             onMouseEnter={[Function]}
                             onMouseLeave={[Function]}
                             style={
-                              Object {
+                              {
                                 "--thickness": "4px",
                               }
                             }
@@ -4324,12 +4288,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -4347,12 +4311,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -4369,12 +4333,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -4392,12 +4356,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -4414,12 +4378,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -4437,12 +4401,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -4459,12 +4423,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -4482,12 +4446,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -4504,12 +4468,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -4527,12 +4491,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -4549,12 +4513,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -4572,12 +4536,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -4594,12 +4558,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -4617,12 +4581,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -4637,7 +4601,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
               <Grid
                 columnGap={12}
                 columns={
-                  Array [
+                  [
                     "minmax(min-content,max-content)",
                     "1fr",
                   ]
@@ -4647,7 +4611,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                 <div
                   className="msg grid"
                   style={
-                    Object {
+                    {
                       "columnGap": "12px",
                       "gridTemplateColumns": "minmax(min-content,max-content) 1fr",
                       "rowGap": "3px",
@@ -4664,7 +4628,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       className="msg gridCell heading"
                       orientation="column"
                       style={
-                        Object {
+                        {
                           "gridColumn": "span 2",
                         }
                       }
@@ -4672,7 +4636,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       <div
                         className="msg container fixedScrollbar gridCell heading"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "column",
                             "flexWrap": undefined,
@@ -4687,11 +4651,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                           <label
                             className="msg label"
                             data-tooltip="expand"
-                            style={
-                              Object {
-                                "textAlign": undefined,
-                              }
-                            }
+                            style={{}}
                           >
                             Server Authentication
                           </label>
@@ -4710,7 +4670,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       crossAlignment="center"
                       orientation="column"
                       style={
-                        Object {
+                        {
                           "gridColumn": "span 2",
                         }
                       }
@@ -4718,7 +4678,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": "center",
                             "flexDirection": "column",
                             "flexWrap": undefined,
@@ -4736,7 +4696,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                             onMouseEnter={[Function]}
                             onMouseLeave={[Function]}
                             style={
-                              Object {
+                              {
                                 "--thickness": "4px",
                               }
                             }
@@ -4752,12 +4712,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -4775,12 +4735,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -4797,12 +4757,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell left"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell left"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -4820,12 +4780,12 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     <Container
                       className="msg gridCell"
                       orientation="row"
-                      style={Object {}}
+                      style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
                         style={
-                          Object {
+                          {
                             "alignItems": undefined,
                             "flexDirection": "row",
                             "flexWrap": undefined,

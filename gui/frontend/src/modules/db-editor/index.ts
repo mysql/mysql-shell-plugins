@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -20,6 +20,8 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
+
+import { ComponentChild } from "preact";
 
 import { EditorLanguage } from "../../supplement";
 
@@ -104,24 +106,16 @@ export interface IEditorStatusInfo {
     eol?: string;
 }
 
-export const languageMap: Map<EditorLanguage, string> = new Map([
-    ["msg", "Combined"],
-    ["typescript", "TypeScript"],
-    ["javascript", "JavaScript"],
-    ["mysql", "MySQL"],
-    ["sql", "SQlite"],
-]);
-
 /**
  * Two lists of items to be added to a toolbar. The receiving page can use this as base to add it's own
  * items, before it actually renders the toolbar.
  */
 export interface IToolbarItems {
     /** Left aligned items. */
-    left: React.ReactNode[];
+    left: ComponentChild[];
 
     /** Right aligned items. */
-    right: React.ReactNode[];
+    right: ComponentChild[];
 }
 
 /** Predefined color schemes in graphs. */
@@ -142,7 +136,7 @@ export interface ISavedGraphData {
     currentValues: Map<string, number>;
 
     /** Computed values for labels and pie graphs.  */
-    computedValues: { [key: string]: number };
+    computedValues: { [key: string]: number; };
 
     /** Stored data per line graph. */
     series: Map<string, IXYDatum[]>;

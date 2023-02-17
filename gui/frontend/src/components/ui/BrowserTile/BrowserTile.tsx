@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,14 +23,15 @@
 
 import "./BrowserTile.css";
 
-import * as React from "react";
 import keyboardKey from "keyboard-key";
+import { ComponentChild, createRef } from "preact";
 
-import {
-    Component, IComponentProperties, Button, Label, Icon, Container, Orientation, DragEventType,
-} from "..";
-import { ContentAlignment } from "../Container/Container";
+import { Container, ContentAlignment, Orientation } from "../Container/Container";
 import { filterInt } from "../../../utilities/string-helpers";
+import { IComponentProperties, ComponentBase, DragEventType } from "../Component/ComponentBase";
+import { Icon } from "../Icon/Icon";
+import { Label } from "../Label/Label";
+import { Button } from "../Button/Button";
 
 export enum BrowserTileType {
     Open,
@@ -38,7 +39,7 @@ export enum BrowserTileType {
 }
 
 export interface IBrowserTileProperties extends IComponentProperties {
-    innerRef?: React.RefObject<HTMLButtonElement>;
+    innerRef?: preact.RefObject<HTMLButtonElement>;
 
     tileId: number;
     caption: string;
@@ -50,11 +51,11 @@ export interface IBrowserTileProperties extends IComponentProperties {
     onTileReorder?: (draggedTileId: number, props: unknown) => void;
 }
 
-export abstract class BrowserTile<P extends IBrowserTileProperties> extends Component<P> {
+export abstract class BrowserTile<P extends IBrowserTileProperties> extends ComponentBase<P> {
 
-    private actionsRef = React.createRef<HTMLElement>();
+    private actionsRef = createRef<HTMLDivElement>();
 
-    protected abstract renderTileActionUI: () => React.ReactNode;
+    protected abstract renderTileActionUI: () => ComponentChild;
 
     public constructor(props: P) {
         super(props);
@@ -64,7 +65,7 @@ export abstract class BrowserTile<P extends IBrowserTileProperties> extends Comp
         this.connectDragEvents();
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { innerRef, tileId, type, icon, caption, description } = this.mergedProps;
 
         const className = this.getEffectiveClassNames([
@@ -104,11 +105,16 @@ export abstract class BrowserTile<P extends IBrowserTileProperties> extends Comp
         );
     }
 
-    protected handleDragEvent = (type: DragEventType, e: React.DragEvent<HTMLElement>): boolean => {
+    protected handleDragEvent = (type: DragEventType, e: DragEvent): boolean => {
+        if (!e.dataTransfer) {
+            return false;
+        }
+
+        const element = e.currentTarget as HTMLElement;
         switch (type) {
             case DragEventType.Start: {
                 e.dataTransfer.effectAllowed = "move";
-                e.dataTransfer.setData("browser/tile", e.currentTarget.id);
+                e.dataTransfer.setData("browser/tile", element.id);
 
                 return true;
             }
@@ -117,8 +123,8 @@ export abstract class BrowserTile<P extends IBrowserTileProperties> extends Comp
                 e.stopPropagation();
                 e.preventDefault();
 
-                if (e.currentTarget.contains(e.relatedTarget as Node)) {
-                    e.currentTarget.classList.add("dropTarget");
+                if (element.contains(e.relatedTarget as Node)) {
+                    element.classList.add("dropTarget");
                 }
 
                 return true;
@@ -128,15 +134,15 @@ export abstract class BrowserTile<P extends IBrowserTileProperties> extends Comp
                 e.stopPropagation();
                 e.preventDefault();
 
-                if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-                    e.currentTarget.classList.remove("dropTarget");
+                if (!element.contains(e.relatedTarget as Node)) {
+                    element.classList.remove("dropTarget");
                 }
 
                 return true;
             }
 
             case DragEventType.Drop: {
-                e.currentTarget.classList.remove("dropTarget");
+                element.classList.remove("dropTarget");
 
                 const id = filterInt(e.dataTransfer.getData("browser/tile"));
                 if (!isNaN(id)) {
@@ -154,10 +160,10 @@ export abstract class BrowserTile<P extends IBrowserTileProperties> extends Comp
 
     };
 
-    private handleClick = (e: React.SyntheticEvent): void => {
+    private handleClick = (e: MouseEvent | KeyboardEvent): void => {
         const { onAction, type } = this.mergedProps;
 
-        const event = e as React.MouseEvent;
+        const event = e as MouseEvent;
         const button = event.currentTarget as HTMLButtonElement;
 
         // Have to prevent double clicks on browser tiles. But since everything is async there's no way to know
@@ -176,7 +182,7 @@ export abstract class BrowserTile<P extends IBrowserTileProperties> extends Comp
         }
     };
 
-    private handleKeydown = (e: React.KeyboardEvent): void => {
+    private handleKeydown = (e: KeyboardEvent): void => {
         if (keyboardKey.getCode(e) === 97) { // Unmodified A key.
             e.stopPropagation();
             const { type, onAction } = this.mergedProps;

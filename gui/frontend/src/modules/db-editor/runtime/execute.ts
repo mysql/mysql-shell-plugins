@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,33 +23,35 @@
 
 /* eslint-disable max-classes-per-file */
 
-import { IConsoleWorkerEnvironment } from "../console.worker-types";
-import { runSqlImpl, runSqlIterativeImpl } from "./query";
-import { GraphProxy } from "./GraphProxy";
-import { printImpl } from "./simple-functions";
-import { PieGraphProxy } from "./PieGraphProxy";
+import { PrivateWorker } from "../console.worker-types";
+
+// It's a global var only in the current worker and used for all user-visible APIs.
+export let currentWorker: PrivateWorker;
 
 /**
  * This function is the outer execution environment for JS/TS evaluation in SQL Notebooks.
  *
- * @param env Values that define the environment in which the execution happens.
+ * @param worker The worker details for the execution.
  * @param code The code to execute.
  *
  * @returns whatever the evaluation returned.
  */
-export const execute = async (env: IConsoleWorkerEnvironment, code: string): Promise<unknown> => {
+export const execute = async (worker: PrivateWorker, code: string): Promise<unknown> => {
+    currentWorker = worker;
+
     /* eslint-disable @typescript-eslint/no-unused-vars */
+    // Note: tree-shaking is disabled for this file in vite.config.ts to avoid optimizing out the
+    //       "unused" imports.
 
     // APIs which are directly available in user code.
-    const print = printImpl.bind(undefined, env);
-    const runSqlIterative = runSqlIterativeImpl.bind(undefined, env);
-    const runSql = runSqlImpl.bind(undefined, env);
+    const { runSql, runSqlIterative } = await import("./query");
+    const { print } = await import("./simple-functions");
 
-    class Graph extends GraphProxy { }
-    GraphProxy.env = env;
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    const { GraphProxy: Graph } = await import("./GraphProxy");
 
-    class PieGraph extends PieGraphProxy { }
-    PieGraphProxy.env = env;
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    const { PieGraphProxy: PieGraph } = await import("./PieGraphProxy");
 
     // eslint-disable-next-line @typescript-eslint/naming-convention
     const { PieGraphLayout } = await import("../console.worker-types");

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -30,10 +30,10 @@ import ts, {
 
 import {
     CompletionItem, CompletionList, Definition, DocumentHighlight, FormattingOptions, Hover, IRange,
-    languages, Location, Monaco, ParameterInformation, Range, SignatureHelp,
-    SignatureHelpResult, SignatureInformation, TextEdit, TypeScriptWorker, Uri, WorkspaceEdit, WorkspaceTextEdit,
+    languages, Location, Monaco, ParameterInformation, Range, SignatureHelp, SignatureHelpResult, SignatureInformation,
+    TextEdit, TypeScriptWorker, Uri, WorkspaceEdit, IWorkspaceTextEdit, CodeEditorMode,
 } from "../components/ui/CodeEditor";
-import { CodeEditorMode, ICodeEditorModel } from "../components/ui/CodeEditor/CodeEditor";
+import { ICodeEditorModel } from "../components/ui/CodeEditor/CodeEditor";
 import { ExecutionContext } from "./ExecutionContext";
 import { SQLExecutionContext } from "./SQLExecutionContext";
 import {
@@ -52,6 +52,7 @@ import { isWhitespaceOnly } from "../utilities/string-helpers";
 import { LanguageWorkerPool } from "../parsing/worker/LanguageWorkerPool";
 import { IShellEditorModel } from "../modules/shell";
 import { IDictionary } from "../app-logic/Types";
+import { IExecutionContext } from "../supplement";
 
 /** Provides language services like code completion, by reaching out to built-in or other sources. */
 export class ScriptingLanguageServices {
@@ -89,13 +90,16 @@ export class ScriptingLanguageServices {
     /**
      * Returns a list of suggestion items, depending on the language of the execution block the caret is in.
      *
-     * @param context Provides access to source code specific aspects.
+     * @param block Provides access to source code specific aspects.
      * @param position The caret position (line/column) in the full editor model.
      *
      * @returns A suggestion list.
      */
-    public async getCodeCompletionItems(context: ExecutionContext,
+    public async getCodeCompletionItems(block: IExecutionContext,
         position: IPosition): Promise<CompletionList | undefined> {
+
+        // Promote to full execution context.
+        const context = block as ExecutionContext;
         const localPosition = context.toLocal(position);
         const model = context.model as ICodeEditorModel;
 
@@ -186,12 +190,13 @@ export class ScriptingLanguageServices {
     /**
      * The second step of code completion (if completion items are not fully resolved in the first step).
      *
-     * @param context Provides access to source code specific aspects.
+     * @param block Provides access to source code specific aspects.
      * @param item The item to finish.
      *
      * @returns The updated item.
      */
-    public async resolve(context: ExecutionContext, item: CompletionItem): Promise<CompletionItem | undefined> {
+    public async resolve(block: IExecutionContext, item: CompletionItem): Promise<CompletionItem | undefined> {
+        const context = block as ExecutionContext;
         const model = context.model;
 
         switch (context.language) {
@@ -232,12 +237,13 @@ export class ScriptingLanguageServices {
     /**
      * Returns a hover entry for the item at the current mouse position.
      *
-     * @param  context Provides access to source code specific aspects.
+     * @param  block Provides access to source code specific aspects.
      * @param position The caret position (line/column) in the full editor model.
      *
      * @returns A hover entry with details about the symbol at the cursor position.
      */
-    public async getHover(context: ExecutionContext, position: IPosition): Promise<Hover | undefined> {
+    public async getHover(block: IExecutionContext, position: IPosition): Promise<Hover | undefined> {
+        const context = block as ExecutionContext;
         position = context.toLocal(position);
         const model = context.model;
         if (!model || model.isDisposed()) {
@@ -308,13 +314,14 @@ export class ScriptingLanguageServices {
     /**
      * Runs syntactic and semantic checks for the text in the context.
      *
-     * @param context Provides access to source code specific aspects.
+     * @param block Provides access to source code specific aspects.
      * @param statement Used for SQL-like languages. It's a specific statement within the context.
      * @param callback A function to be triggered for found diagnostics. Can be called more than once.
      */
-    public validate = async (context: ExecutionContext, statement: string,
+    public validate = async (block: IExecutionContext, statement: string,
         callback: (result: IDiagnosticEntry[]) => void): Promise<void> => {
 
+        const context = block as ExecutionContext;
         if (context.isInternal) {
             return;
         }
@@ -404,13 +411,15 @@ export class ScriptingLanguageServices {
     /**
      * Returns information about parameters in a function call.
      *
-     * @param context The context wrapping the relevant editor part for this invocation.
+     * @param block The context wrapping the relevant editor part for this invocation.
      * @param position The caret position (line/column) in the full editor model.
      *
      * @returns A list of diagnostic records each describing a problem in the code (if any).
      */
-    public async getSignatureHelp(context: ExecutionContext,
+    public async getSignatureHelp(block: IExecutionContext,
         position: IPosition): Promise<SignatureHelpResult | undefined> {
+
+        const context = block as ExecutionContext;
         position = context.toLocal(position);
         const model = context.model;
         if (!model || model.isDisposed()) {
@@ -472,13 +481,14 @@ export class ScriptingLanguageServices {
     /**
      * Provides a set of document highlights, like all occurrences of a variable or all exit-points of a function.
      *
-     * @param context The context wrapping the relevant editor part for this invocation.
+     * @param block The context wrapping the relevant editor part for this invocation.
      * @param position The caret position (line/column) in the full editor model.
      *
      * @returns A list of document highlights.
      */
-    public async findDocumentHighlight(context: ExecutionContext,
+    public async findDocumentHighlight(block: IExecutionContext,
         position: IPosition): Promise<DocumentHighlight[] | undefined> {
+        const context = block as ExecutionContext;
         position = context.toLocal(position);
         const model = context.model;
         if (!model || model.isDisposed()) {
@@ -514,14 +524,15 @@ export class ScriptingLanguageServices {
     /**
      * Determines locations for a rename operation
      *
-     * @param context The context wrapping the relevant editor part for this invocation.
+     * @param block The context wrapping the relevant editor part for this invocation.
      * @param position The caret position (line/column) in the full editor model.
      *
      * @param newName The new name of the entity.
      * @returns A workspace edit with a list of edits..
      */
-    public async getRenameLocations(context: ExecutionContext, position: IPosition,
+    public async getRenameLocations(block: IExecutionContext, position: IPosition,
         newName: string): Promise<WorkspaceEdit | undefined> {
+        const context = block as ExecutionContext;
         position = context.toLocal(position);
         const model = context.model;
         if (!model || model.isDisposed()) {
@@ -537,12 +548,12 @@ export class ScriptingLanguageServices {
                 const locations: readonly RenameLocation[] | undefined =
                     await service.findRenameLocations(model.uri.toString(), offset, false, true, false);
 
-                const edits: WorkspaceTextEdit[] = [];
+                const edits: IWorkspaceTextEdit[] = [];
                 for (const entry of locations || []) {
                     edits.push({
                         resource: model.uri,
-                        modelVersionId: model.getVersionId(),
-                        edit: { range: context.fromLocal(entry.textSpan) as Range, text: newName },
+                        versionId: model.getVersionId(),
+                        textEdit: { range: context.fromLocal(entry.textSpan) as Range, text: newName },
                     });
                 }
 
@@ -556,12 +567,13 @@ export class ScriptingLanguageServices {
     /**
      * Provides information for the peek definition feature.
      *
-     * @param context The context wrapping the relevant editor part for this invocation.
+     * @param block The context wrapping the relevant editor part for this invocation.
      * @param position The caret position (line/column) in the full editor model.
      *
      * @returns Definition info.
      */
-    public async findDefinition(context: ExecutionContext, position: IPosition): Promise<Definition | undefined> {
+    public async findDefinition(block: IExecutionContext, position: IPosition): Promise<Definition | undefined> {
+        const context = block as ExecutionContext;
         position = context.toLocal(position);
         const model = context.model;
         if (!model || model.isDisposed()) {
@@ -596,12 +608,13 @@ export class ScriptingLanguageServices {
     /**
      * Provides information for the peek references feature.
      *
-     * @param context The context wrapping the relevant editor part for this invocation.
+     * @param block The context wrapping the relevant editor part for this invocation.
      * @param position The caret position (line/column) in the full editor model.
      *
      * @returns Location info for references.
      */
-    public async findReferences(context: ExecutionContext, position: IPosition): Promise<Location[] | undefined> {
+    public async findReferences(block: IExecutionContext, position: IPosition): Promise<Location[] | undefined> {
+        const context = block as ExecutionContext;
         position = context.toLocal(position);
         const model = context.model;
         if (!model || model.isDisposed()) {
@@ -638,15 +651,16 @@ export class ScriptingLanguageServices {
     /**
      * Generates a list of edit actions to format the current source code.
      *
-     * @param context The context wrapping the relevant editor part for this invocation.
+     * @param block The context wrapping the relevant editor part for this invocation.
      * @param range The range in which to format code.
      * @param formatParams General formatting options.
      * @param formatterSettings Any custom setting.
      *
      * @returns A list of edits.
      */
-    public async format(context: ExecutionContext, range: Range, formatParams: FormattingOptions,
+    public async format(block: IExecutionContext, range: IRange, formatParams: FormattingOptions,
         formatterSettings = {}): Promise<TextEdit[] | undefined> {
+        const context = block as ExecutionContext;
         const model = context.model;
         if (!model || model.isDisposed()) {
             return;
@@ -705,13 +719,14 @@ export class ScriptingLanguageServices {
      * Some languages (namely MySQL + SQLite) require to split multi statements into single ones to execute them.
      * This method determines the ranges of all statements in a source text.
      *
-     * @param context Provides access to source code specific aspects.
+     * @param block Provides access to source code specific aspects.
      * @param delimiter The initial delimiter to use for splitting.
      * @param callback A function to be triggered for found diagnostics. Can be called more than once.
      * @param code If provided then split this code instead of the context content.
      */
-    public determineStatementRanges = (context: ExecutionContext, delimiter: string,
+    public determineStatementRanges = (block: IExecutionContext, delimiter: string,
         callback: (result: IStatementSpan[]) => void, code?: string): void => {
+        const context = block as ExecutionContext;
         switch (context.language) {
             case "javascript":
             case "typescript": {
@@ -752,16 +767,16 @@ export class ScriptingLanguageServices {
     /**
      * Does a very quick scan of the query to identify its type.
      *
-     * @param context Provides access to source code specific aspects.
+     * @param block Provides access to source code specific aspects.
      * @param sql The query to scan.
      *
      * @returns A promise that resolves to the type of the query.
      */
-    public determineQueryType = async (context: ExecutionContext, sql: string): Promise<QueryType> => {
+    public determineQueryType = async (block: IExecutionContext, sql: string): Promise<QueryType> => {
         return new Promise((resolve) => {
-            const sqlContext = context as SQLExecutionContext;
+            const sqlContext = block as SQLExecutionContext;
             const queryTypeData: ILanguageWorkerQueryTypeData = {
-                language: context.language === "sql" ? ServiceLanguage.Sqlite : ServiceLanguage.MySQL,
+                language: sqlContext.language === "sql" ? ServiceLanguage.Sqlite : ServiceLanguage.MySQL,
                 api: "queryType",
                 sql,
                 version: sqlContext.dbVersion,
@@ -779,7 +794,7 @@ export class ScriptingLanguageServices {
      * - If there's no top-level limit clause, then one is added.
      * - If indicated adds an optimizer hint to use the secondary engine (usually HeatWave).
      *
-     * @param context Provides access to source code specific aspects.
+     * @param block Provides access to source code specific aspects.
      * @param sql The query to check and modify.
      * @param offset The limit offset to add.
      * @param count The row count value to add.
@@ -788,12 +803,12 @@ export class ScriptingLanguageServices {
      * @returns The rewritten query if the original query is error free and contained no top-level LIMIT clause.
      *          Otherwise the original query is returned.
      */
-    public preprocessStatement = async (context: ExecutionContext, sql: string, offset: number,
+    public preprocessStatement = async (block: IExecutionContext, sql: string, offset: number,
         count: number, forceSecondaryEngine?: boolean): Promise<[string, boolean]> => {
         return new Promise((resolve, reject) => {
-            const sqlContext = context as SQLExecutionContext;
+            const sqlContext = block as SQLExecutionContext;
             const applyLimitsData: ILanguageWorkerQueryPreprocessData = {
-                language: context.language === "sql" ? ServiceLanguage.Sqlite : ServiceLanguage.MySQL,
+                language: sqlContext.language === "sql" ? ServiceLanguage.Sqlite : ServiceLanguage.MySQL,
                 api: "preprocessStatement",
                 sql,
                 offset,
@@ -815,17 +830,17 @@ export class ScriptingLanguageServices {
      * Parses the query to see if it contains a ending semicolon (keep in mind there can be a trailing comment).
      * If no semicolon exists one is added.
      *
-     * @param context Provides access to source code specific aspects.
+     * @param block Provides access to source code specific aspects.
      * @param sql The query to check and modify.
      *
      * @returns The rewritten query if the original query is error free and contained no final semicolon.
      *          Otherwise the original query is returned.
      */
-    public checkAndAddSemicolon = async (context: ExecutionContext, sql: string): Promise<[string, boolean]> => {
+    public checkAndAddSemicolon = async (block: IExecutionContext, sql: string): Promise<[string, boolean]> => {
         return new Promise((resolve, reject) => {
-            const sqlContext = context as SQLExecutionContext;
+            const sqlContext = block as SQLExecutionContext;
             const applySemicolonData: ILanguageWorkerApplySemicolonData = {
-                language: context.language === "sql" ? ServiceLanguage.Sqlite : ServiceLanguage.MySQL,
+                language: sqlContext.language === "sql" ? ServiceLanguage.Sqlite : ServiceLanguage.MySQL,
                 api: "addSemicolon",
                 sql,
                 version: sqlContext.dbVersion,
@@ -966,7 +981,7 @@ export class ScriptingLanguageServices {
         };
     }
 
-    private computeInitialIndent(model: Monaco.ITextModel, range: Range, options: FormattingOptions): number {
+    private computeInitialIndent(model: Monaco.ITextModel, range: IRange, options: FormattingOptions): number {
         const lineStart = model.getOffsetAt({ lineNumber: range.startLineNumber, column: 0 });
         const content = model.getValue();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,18 +22,37 @@
  */
 
 import { shallow } from "enzyme";
-import React from "react";
+
 import { ThemePreview } from "../../../../components/Theming/Preview/ThemePreview";
-import { snapshotFromWrapper } from "../../test-helpers";
 
 describe("ThemePreview testing", () => {
 
     // Disabled because it runs into max stack depth.
-    xit("Render test", () => {
-        const component = shallow(
+    it("Render test", () => {
+        const component = shallow<ThemePreview>(
             <ThemePreview />,
         );
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        // The snapshot is huge (1.1MB, 23K lines), so instead we just check for a few elements to be rendered.
+        // expect(component).toMatchSnapshot();
+
+        const e = component.find("TagInput");
+        expect(e.length).toBe(1);
+        expect(e.props().tags).toEqual([
+            { id: "tag1", caption: "Einstein" },
+            { id: "tag2", caption: "Boole" },
+            { id: "tag3", caption: "Aristotle" },
+            { id: "tag4", caption: "Archimedes" },
+            { id: "tag5", caption: "Newton" },
+            { id: "tag6", caption: "Plato" },
+            { id: "tag7", caption: "Bohr" },
+            { id: "tag8", caption: "Curie" },
+            { id: "tag9", caption: "Euclid from Alexandria" }],
+        );
+
+        const ed = component.find("CodeEditor");
+        expect(ed.length).toBe(1);
+        expect(ed.props().font.fontFamily).toBe("SourceCodePro+Powerline+Awesome+MySQL");
+        expect(ed.props().language).toBe("javascript");
     });
 });
-

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,9 +22,11 @@
  */
 
 import { RenameProvider } from "../../../../../components/ui/CodeEditor/RenameProvider";
-import { ExecutionContext, PresentationInterface } from "../../../../../script-execution";
+import { ExecutionContext } from "../../../../../script-execution/ExecutionContext";
+import { PresentationInterface } from "../../../../../script-execution/PresentationInterface";
 import { ScriptingLanguageServices } from "../../../../../script-execution/ScriptingLanguageServices";
-import { models, position } from "../../../__mocks__/CodeEditorMocks";
+
+import { mockModel, position } from "../../../__mocks__/CodeEditorMocks";
 
 jest.mock("../../../../../script-execution/PresentationInterface");
 
@@ -34,18 +36,18 @@ describe("RenameProvider tests", () => {
         const renameProvider = new RenameProvider();
         expect(renameProvider).not.toBeNull();
 
-        let result = renameProvider.provideRenameEdits(models, position, "renamed");
+        let result = renameProvider.provideRenameEdits(mockModel, position, "renamed");
         expect(result).toBe(undefined);
 
         const pi = new (PresentationInterface as unknown as jest.Mock<PresentationInterface>)();
         expect(pi).toBeDefined();
 
         const execContext = new ExecutionContext(pi);
-        models.executionContexts.contextFromPosition = jest.fn().mockReturnValue(
+        mockModel.executionContexts.contextFromPosition = jest.fn().mockReturnValue(
             execContext,
         );
         jest.spyOn(execContext, "isInternal", "get").mockReturnValue(true);
-        result = renameProvider.provideRenameEdits(models, position, "renamed");
+        result = renameProvider.provideRenameEdits(mockModel, position, "renamed");
         expect(result).toBe(undefined);
 
         const services = ScriptingLanguageServices.instance;
@@ -56,7 +58,7 @@ describe("RenameProvider tests", () => {
 
         jest.spyOn(execContext, "isInternal", "get").mockReturnValue(false);
         const getRenameLocations = jest.spyOn(services, "getRenameLocations");
-        void renameProvider.provideRenameEdits(models, position, "renamed");
+        void renameProvider.provideRenameEdits(mockModel, position, "renamed");
         expect(getRenameLocations).toBeCalled();
     });
 });

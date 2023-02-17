@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,50 +21,20 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-// eslint-disable-next-line max-classes-per-file
-import { IThenableCallback, WorkerExecutorType } from ".";
+import { IThenableCallback } from ".";
 import { IDictionary } from "../app-logic/Types";
 import { requisitions } from "./Requisitions";
-import { settings } from "./Settings/Settings";
+import { Settings } from "./Settings/Settings";
+import { WorkerCallback } from "./WorkerCallback";
 
-type WebpackWorker = Worker & {
+export type IdentifiedWorker = Worker & {
     id: string;
 };
 
 const debug = false;
 
-// The handler that manages callbacks for results and errors for a scheduled task. Modelled after promises, but
-// with different behavior (no chaining, no state).
-export class WorkerCallback<T> implements IThenableCallback<T> {
-
-    private onResultCallback?: (taskId: number, value: T) => void;
-    private onErrorCallback?: (taskId: number, reason?: unknown) => void;
-
-    public constructor(executor: WorkerExecutorType<T>) {
-        executor(this.onResult, this.onError);
-    }
-
-    public then = (onResult?: (taskId: number, value: T) => void): IThenableCallback<T> => {
-        this.onResultCallback = onResult;
-
-        return this;
-    };
-
-    public catch = (onError?: (taskId: number, reason?: unknown) => void): void => {
-        this.onErrorCallback = onError;
-    };
-
-    private onResult = (taskId: number, value: T): void => {
-        this.onResultCallback?.(taskId, value);
-    };
-
-    private onError = (taskId: number, reason?: unknown): void => {
-        this.onErrorCallback?.(taskId, reason);
-    };
-}
-
-export interface IWorkerTask<WorkerTaskType, WorkerResultType> {
-    assignedWorker?: WebpackWorker; // Assigned as soon as the task is actually scheduled.
+interface IWorkerTask<WorkerTaskType, WorkerResultType> {
+    assignedWorker?: IdentifiedWorker; // Assigned as soon as the task is actually scheduled.
     taskId: number;                 // A running number to find the task in the running list.
     refCount: number;
 
@@ -76,13 +46,15 @@ export interface IWorkerTask<WorkerTaskType, WorkerResultType> {
     data: WorkerTaskType;
 }
 
-// A class to distribute time consuming tasks over a number of web workers.
-// Parameter `WorkerDataType` specifies the type of data handled by a task and returned in the callback.
+/**
+ * A class to distribute time consuming tasks over a number of web workers.
+ * Parameter `WorkerDataType` specifies the type of data handled by a task and returned in the callback.
+ */
 export abstract class WorkerPool<WorkerTaskType, WorkerResultType> {
 
     protected nextTaskId = 0;
 
-    private idleWorkers: WebpackWorker[] = [];
+    private idleWorkers: IdentifiedWorker[] = [];
 
     // Running tasks.
     private readonly runningTasks = new Map<number, IWorkerTask<WorkerTaskType, WorkerResultType>>();
@@ -266,7 +238,7 @@ export abstract class WorkerPool<WorkerTaskType, WorkerResultType> {
         }
     }
 
-    private settingsChanged = (entry?: { key: string; value: unknown }): Promise<boolean> => {
+    private settingsChanged = (entry?: { key: string; value: unknown; }): Promise<boolean> => {
         if (entry) {
             if (this.settingsKeys.has(entry.key)) {
                 this.setup();
@@ -286,7 +258,7 @@ export abstract class WorkerPool<WorkerTaskType, WorkerResultType> {
      * @param event Event data.
      */
     private handleWorkerMessage = (event: MessageEvent): void => {
-        const { taskId, data }: { taskId: number; data: IDictionary } = event.data;
+        const { taskId, data }: { taskId: number; data: IDictionary; } = event.data;
         const task = this.runningTasks.get(taskId);
 
         if (debug) {
@@ -297,7 +269,7 @@ export abstract class WorkerPool<WorkerTaskType, WorkerResultType> {
         // Otherwise run the callback and schedule the next waiting task, if there's any.
         if (task) {
             if (data.error) {
-                task.onError?.(taskId, (data ).error);
+                task.onError?.(taskId, (data).error);
             } else {
                 task.onResult?.(taskId, data as unknown as WorkerResultType);
             }
@@ -313,7 +285,7 @@ export abstract class WorkerPool<WorkerTaskType, WorkerResultType> {
      *
      * @returns The fully set up worker.
      */
-    private setupNewWorker(): WebpackWorker {
+    private setupNewWorker(): IdentifiedWorker {
         const worker = this.createNewWorker();
 
         if (debug) {
@@ -331,10 +303,10 @@ export abstract class WorkerPool<WorkerTaskType, WorkerResultType> {
     }
 
     private setup(): void {
-        this.minWorkerCount = settings.get("workers.minWorkerCount", 3);
-        this.maxWorkerCount = settings.get("workers.maxWorkerCount", 10);
-        this.maxPendingTaskCount = settings.get("workers.maxPendingTaskCount", 1000);
-        this.removeIdleTime = settings.get("workers.removeIdleTime", 60);
+        this.minWorkerCount = Settings.get("workers.minWorkerCount", 3);
+        this.maxWorkerCount = Settings.get("workers.maxWorkerCount", 10);
+        this.maxPendingTaskCount = Settings.get("workers.maxPendingTaskCount", 1000);
+        this.removeIdleTime = Settings.get("workers.removeIdleTime", 60);
 
         // There will always be at least one worker ready for accepting tasks.
         if (this.maxWorkerCount < 1) {
@@ -380,5 +352,5 @@ export abstract class WorkerPool<WorkerTaskType, WorkerResultType> {
      *
      * @returns A new worker instance.
      */
-    protected abstract createNewWorker(): WebpackWorker;
+    protected abstract createNewWorker(): IdentifiedWorker;
 }

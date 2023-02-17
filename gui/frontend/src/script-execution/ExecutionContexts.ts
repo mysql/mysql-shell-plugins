@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,18 +21,20 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ExecutionContext, IResultSet, IResultSets, SQLExecutionContext } from ".";
+import { IResultSets, IResultSet, IContextProvider } from ".";
 import { ApplicationDB, IDbModuleResultData, StoreType } from "../app-logic/ApplicationDB";
 import { IExecutionContextState, IPosition } from "../components/ui/CodeEditor";
 import { CodeEditor, ResultPresentationFactory } from "../components/ui/CodeEditor/CodeEditor";
 import { IStatementSpan } from "../parsing/parser-common";
-import { EditorLanguage, ITextRange } from "../supplement";
+import { EditorLanguage, IExecutionContext, ITextRange } from "../supplement";
+import { ExecutionContext } from "./ExecutionContext";
 import { PresentationInterface } from "./PresentationInterface";
+import { SQLExecutionContext } from "./SQLExecutionContext";
 
 /** A helper class to keep editor blocks that belong to a single text model together. */
-export class ExecutionContexts {
+export class ExecutionContexts implements IContextProvider {
 
-    // Updated from the editor, as models don't have this value.
+    /** Updated from the editor, as models don't have this value. */
     public cursorPosition: IPosition = { lineNumber: 1, column: 1 };
 
     private content: ExecutionContext[] = [];
@@ -200,7 +202,7 @@ export class ExecutionContexts {
      *
      * @returns The context that contains the given position or undefined if nothing was found.
      */
-    public contextFromPosition(position: IPosition | undefined | null): ExecutionContext | undefined {
+    public contextFromPosition(position: IPosition | undefined | null): IExecutionContext | undefined {
         const index = this.contextIndexFromPosition(position);
         if (index > -1) {
             return this.content[index];

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,12 +23,12 @@
 
 import icon from "./../../assets/images/modules/module-mrs.svg";
 
-import React from "react";
+import { ComponentChild } from "preact";
 
 import { ModuleBase, IModuleInfo, IModuleProperties } from "../ModuleBase";
 import { MRSModuleId } from "../ModuleInfo";
 
-export class MRSModule extends ModuleBase<IModuleProperties> {
+export class MRSModule extends ModuleBase<IModuleProperties, {}> {
 
     public static get info(): IModuleInfo {
         return {
@@ -38,7 +38,7 @@ export class MRSModule extends ModuleBase<IModuleProperties> {
         };
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         return (
             <>
             </>

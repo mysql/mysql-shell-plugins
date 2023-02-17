@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -26,22 +26,28 @@ import removeTheme from "../../assets/images/remove.svg";
 import importTheme from "../../assets/images/import.svg";
 import exportTheme from "../../assets/images/export.svg";
 
-import React from "react";
+import { ComponentChild, createRef } from "preact";
+import Color from "color";
 
-import {
-    Component, Container, Orientation, Label, Grid, GridCell, ContentAlignment, Dropdown, Checkbox, CheckState,
-    Button, Icon, ColorField, IColorFieldProperties, IComponentProperties, IComponentState,
-} from "../ui";
 import { IThemeObject, ThemeManager } from "./ThemeManager";
 import { ValueEditDialog, IDialogValues, IDialogValidations, IDialogSection } from "../Dialogs/ValueEditDialog";
-import Color from "color";
 import { selectFile, saveTextAsFile } from "../../utilities/helpers";
-import { settings } from "../../supplement/Settings/Settings";
+import { Settings } from "../../supplement/Settings/Settings";
 import { ThemeEditorLists } from "./ThemeEditorLists";
 import { requisitions } from "../../supplement/Requisitions";
 import { DialogResponseClosure } from "../../app-logic/Types";
+import { Checkbox, CheckState } from "../ui/Checkbox/Checkbox";
+import { ColorField, IColorFieldProperties } from "../ui/ColorPicker/ColorField";
+import { IComponentProperties, IComponentState, ComponentBase } from "../ui/Component/ComponentBase";
+import { Container, Orientation, ContentAlignment } from "../ui/Container/Container";
+import { Dropdown } from "../ui/Dropdown/Dropdown";
+import { Grid } from "../ui/Grid/Grid";
+import { GridCell } from "../ui/Grid/GridCell";
+import { Icon } from "../ui/Icon/Icon";
+import { Label } from "../ui/Label/Label";
+import { Button } from "../ui/Button/Button";
 
-export interface IThemeEditorCoreProperties extends IComponentProperties {
+interface IThemeEditorCoreProperties extends IComponentProperties {
     onThemeChange: () => void;
 }
 
@@ -50,11 +56,11 @@ interface IThemeEditorCoreState extends IComponentState {
     themes: string[];
 }
 
-export class ThemeEditorCore extends Component<IThemeEditorCoreProperties, IThemeEditorCoreState> {
+export class ThemeEditorCore extends ComponentBase<IThemeEditorCoreProperties, IThemeEditorCoreState> {
     private colorPadColors: string[] = [];
 
-    private themeDropdownRef = React.createRef<Dropdown>();
-    private themeNameDialogRef = React.createRef<ValueEditDialog>();
+    private themeDropdownRef = createRef<Dropdown>();
+    private themeNameDialogRef = createRef<ValueEditDialog>();
 
     private themeManager: ThemeManager;
 
@@ -81,7 +87,7 @@ export class ThemeEditorCore extends Component<IThemeEditorCoreProperties, IThem
         requisitions.unregister("themeChanged", this.handleThemeChange);
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { showUnusedColors, themes } = this.state;
 
         const className = this.getEffectiveClassNames(["themeEditor"]);
@@ -110,7 +116,7 @@ export class ThemeEditorCore extends Component<IThemeEditorCoreProperties, IThem
                     rowGap={10}
                 >
                     <GridCell>
-                        <Label as="h2">Theme</Label>
+                        <Label>Theme</Label>
                     </GridCell>
                     <GridCell
                         orientation={Orientation.LeftToRight}
@@ -158,7 +164,7 @@ export class ThemeEditorCore extends Component<IThemeEditorCoreProperties, IThem
      *
      * @returns The React element for the action buttons.
      */
-    private renderThemeActionsCell(): React.ReactElement {
+    private renderThemeActionsCell(): ComponentChild {
         const isDefaultTheme = this.themeManager.activeTheme === "Default Dark"
             || this.themeManager.activeTheme === "Default Light";
 
@@ -226,7 +232,7 @@ export class ThemeEditorCore extends Component<IThemeEditorCoreProperties, IThem
         return Promise.resolve(true);
     };
 
-    private settingsChanged = (entry?: { key: string; value: unknown }): Promise<boolean> => {
+    private settingsChanged = (entry?: { key: string; value: unknown; }): Promise<boolean> => {
         if (!entry || entry.key === "" || entry.key.startsWith("theming.")) {
             this.initializeColorPad();
 
@@ -236,7 +242,7 @@ export class ThemeEditorCore extends Component<IThemeEditorCoreProperties, IThem
         return Promise.resolve(false);
     };
 
-    private renderColorPad(): React.ReactElement {
+    private renderColorPad(): ComponentChild {
         const fields = this.colorPadColors.map((color: string, index: number) => {
             return <ColorField
                 key={`field${index}`}
@@ -248,7 +254,7 @@ export class ThemeEditorCore extends Component<IThemeEditorCoreProperties, IThem
 
         return (
             <>
-                <GridCell><Label as="h2">Color Pad</Label></GridCell>
+                <GridCell><Label>Color Pad</Label></GridCell>
                 <GridCell
                     id="colorPadCell"
                     orientation={Orientation.LeftToRight}
@@ -263,8 +269,8 @@ export class ThemeEditorCore extends Component<IThemeEditorCoreProperties, IThem
         const index = props.id ? parseInt(props.id, 10) : 0;
         this.colorPadColors[index] = color?.hexa() ?? "";
 
-        settings.set("theming.colorPadColors", this.colorPadColors);
-        settings.saveSettings();
+        Settings.set("theming.colorPadColors", this.colorPadColors);
+        Settings.saveSettings();
     };
 
     private handleThemeSwitch = (ids: Set<string>): void => {
@@ -391,7 +397,7 @@ export class ThemeEditorCore extends Component<IThemeEditorCoreProperties, IThem
      * if the settings aren't ready yet or the user hadn't change a color pad color.
      */
     private initializeColorPad(): void {
-        const colors = settings.get("theming.colorPadColors");
+        const colors = Settings.get("theming.colorPadColors");
         if (Array.isArray(colors)) {
             this.colorPadColors = colors;
         } else {

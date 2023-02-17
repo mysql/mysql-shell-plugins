@@ -21,23 +21,22 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
+import { ComponentChild, createRef } from "preact";
+
 import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types";
-import { IMrsUserData, IMrsAuthAppData, IMrsRoleData, IMrsUserRoleData } from "../../../communication/";
-
+import { IMrsAuthAppData, IMrsRoleData, IMrsUserData, IMrsUserRoleData } from "../../../communication/ProtocolMrs";
+import { ValueDialogBase } from "../../../components/Dialogs/ValueDialogBase";
 import {
-    CommonDialogValueOption, IDialogSection, IDialogValidations, IDialogValues, ValueDialogBase,
-    ValueEditDialog,
-} from "../../../components/Dialogs";
+    CommonDialogValueOption, IDialogSection, IDialogValidations, IDialogValues, ValueEditDialog,
+} from "../../../components/Dialogs/ValueEditDialog";
 
-// cSpell:ignore MAAAAAAAAAAAAAAAAAAAAA
 const mrsVendorId = "MAAAAAAAAAAAAAAAAAAAAA==";
 
 export class MrsUserDialog extends ValueDialogBase {
-    private dialogRef = React.createRef<ValueEditDialog>();
+    private dialogRef = createRef<ValueEditDialog>();
     private currentAuthApp: IMrsAuthAppData | null = null;
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         return (
             <ValueEditDialog
                 ref={this.dialogRef}
@@ -54,8 +53,7 @@ export class MrsUserDialog extends ValueDialogBase {
         const userRoles = request.parameters?.userRoles as IMrsUserRoleData[];
 
         this.dialogRef.current?.show(this.dialogValues(request, title, authApps,
-            availableRoles, userRoles),
-        { title: "MySQL REST User" });
+            availableRoles, userRoles), { title: "MySQL REST User" });
     }
 
     private dialogValues(request: IDialogRequest, title: string,
@@ -95,7 +93,7 @@ export class MrsUserDialog extends ValueDialogBase {
                     type: "choice",
                     caption: "Authentication App",
                     choices: authApps ? [""].concat(authApps.map((authApp) => {
-                        return authApp.name ? authApp.name: "";
+                        return authApp.name ? authApp.name : "";
                     })) : [],
                     value: this.currentAuthApp.name,
                     horizontalSpan: 2,

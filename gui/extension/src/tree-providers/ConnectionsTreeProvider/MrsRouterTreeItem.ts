@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IMrsRouterData } from "../../../../frontend/src/communication";
+import { IMrsRouterData } from "../../../../frontend/src/communication/ProtocolMrs";
 import { IConnectionEntry } from "./ConnectionsTreeProvider";
 import { MrsTreeBaseItem } from "./MrsTreeBaseItem";
 

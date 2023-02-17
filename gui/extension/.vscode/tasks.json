@@ -9,8 +9,6 @@
                 "-w",
                 "-p",
                 ".",
-                "--outDir",
-                "output"
             ],
             "presentation": {
                 "echo": true,
@@ -21,7 +19,55 @@
                 "clear": false
             },
             "isBackground": true,
+            "group": "build",
             "problemMatcher": "$tsc-watch"
+        },
+        {
+            "label": "esbuild: extension",
+            "type": "npm",
+            "script": "esbuild-watch",
+            "isBackground": true,
+            "group": "build",
+            "problemMatcher": [
+                {
+                    "owner": "typescript",
+                    "source": "ts",
+                    "applyTo": "closedDocuments",
+                    "fileLocation": "relative",
+                    "severity": "error",
+                    "pattern": [
+                        {
+                            "regexp": "^\\s*✘\\s*\\[ERROR\\]\\s*(.+)$",
+                            "message": 1
+                        },
+                        {
+                            "regexp": "^\\s*$"
+                        },
+                        {
+                            "regexp": "^\\s*(.+):(\\d+):(\\d+):$",
+                            "file": 1,
+                            "line": 2,
+                            "column": 3
+                        }
+                    ],
+                    "background": {
+                        "activeOnStart": true,
+                        "beginsPattern": {
+                            "regexp": "\\s*esbuild"
+                        },
+                        "endsPattern": {
+                            "regexp": "^\\s*\\[watch\\] build finished"
+                        }
+                    }
+                },
+            ]
+        },
+        {
+            "label": "Build Extension",
+            "dependsOn": [
+                "tsc: extension",
+                "esbuild: extension"
+            ]
         },
         {
             "label": "tsc: e2e",
@@ -42,16 +88,6 @@
             },
             "isBackground": true,
             "problemMatcher": "$tsc-watch"
-        },
-        {
-            "type": "typescript",
-            "tsconfig": "tsconfig.json",
-            "option": "watch",
-            "problemMatcher": [
-                "$tsc-watch"
-            ],
-            "group": "build",
-            "label": "tsc: watch"
         }
     ]
 }

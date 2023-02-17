@@ -56,6 +56,9 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
 
     def setup(self):
         super(ShellGuiWebSocketHandler, self).setup()
+        self.extensions_map.update({
+            ".js": "application/javascript"
+        })
         self._db = None
         self._session_user_id = None
         self._session_user_personal_group_id = None

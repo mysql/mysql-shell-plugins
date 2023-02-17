@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -63,24 +63,32 @@ import shellIcon from "../../assets/images/file-icons/shell.svg";
 import typescriptIcon from "../../assets/images/file-icons/typescript.svg";
 import xmlIcon from "../../assets/images/file-icons/xml.svg";
 
-import React from "react";
-import { render } from "preact";
+import { ComponentChild, createRef, render } from "preact";
 import { CellComponent, ColumnDefinition, RowComponent } from "tabulator-tables";
 
 import keyboardKey from "keyboard-key";
 import { isNil } from "lodash";
 
-import {
-    Accordion, Component, IComponentProperties, Label, Icon, IComponentState, Input, SelectionType,
-    IAccordionProperties, Menu, ComponentPlacement, IMenuItemProperties, MenuItem, TreeGrid, ITreeGridOptions, Image,
-    TabulatorProxy, IAccordionItemProperties,
-} from "../../components/ui";
 import { EntityType, IDBDataEntry, IDBEditorScriptState, IEntityBase, ISchemaTreeEntry, SchemaTreeType } from ".";
 import { Codicon } from "../../components/ui/Codicon";
 import { IOpenEditorState } from "./DBConnectionTab";
-import { DBType, ShellInterfaceSqlEditor } from "../../supplement/ShellInterface";
 import { requisitions } from "../../supplement/Requisitions";
 import { EditorLanguage } from "../../supplement";
+import { Accordion, IAccordionProperties } from "../../components/ui/Accordion/Accordion";
+import { IAccordionItemProperties } from "../../components/ui/Accordion/AccordionItem";
+import {
+    IComponentProperties, IComponentState, ComponentBase, SelectionType, ComponentPlacement,
+} from "../../components/ui/Component/ComponentBase";
+import { Icon } from "../../components/ui/Icon/Icon";
+import { Input } from "../../components/ui/Input/Input";
+import { Label } from "../../components/ui/Label/Label";
+import { Menu } from "../../components/ui/Menu/Menu";
+import { Image } from "../../components/ui/Image/Image";
+import { MenuItem, IMenuItemProperties } from "../../components/ui/Menu/MenuItem";
+import { TreeGrid, ITreeGridOptions, TabulatorProxy } from "../../components/ui/TreeGrid/TreeGrid";
+import { DBType } from "../../supplement/ShellInterface";
+import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor";
+import { ISplitterPaneSizeInfo } from "../../components/ui/SplitContainer/SplitContainer";
 
 /** Lookup for icons for a specific document type. */
 export const documentTypeToIcon: Map<EditorLanguage, string> = new Map([
@@ -108,7 +116,7 @@ export interface IExplorerSectionState {
     size?: number;
 }
 
-export interface IExplorerProperties extends IComponentProperties {
+interface IExplorerProperties extends IComponentProperties {
     // The schema tree as loaded so far.
     schemaTree: ISchemaTreeEntry[];
     editors: IOpenEditorState[];
@@ -142,21 +150,21 @@ interface IExplorerState extends IComponentState {
     tempCaption?: string; // Keeps the new caption of an editor while it is being edited.
 }
 
-export class Explorer extends Component<IExplorerProperties, IExplorerState> {
+export class Explorer extends ComponentBase<IExplorerProperties, IExplorerState> {
 
-    private tableRef = React.createRef<TreeGrid>();
-    private schemaContextMenuRef = React.createRef<Menu>();
-    private tableContextMenuRef = React.createRef<Menu>();
-    private columnContextMenuRef = React.createRef<Menu>();
-    private viewContextMenuRef = React.createRef<Menu>();
-    private triggerContextMenuRef = React.createRef<Menu>();
-    private indexContextMenuRef = React.createRef<Menu>();
-    private fkContextMenuRef = React.createRef<Menu>();
-    private eventContextMenuRef = React.createRef<Menu>();
-    private routineContextMenuRef = React.createRef<Menu>();
+    private tableRef = createRef<TreeGrid>();
+    private schemaContextMenuRef = createRef<Menu>();
+    private tableContextMenuRef = createRef<Menu>();
+    private columnContextMenuRef = createRef<Menu>();
+    private viewContextMenuRef = createRef<Menu>();
+    private triggerContextMenuRef = createRef<Menu>();
+    private indexContextMenuRef = createRef<Menu>();
+    private fkContextMenuRef = createRef<Menu>();
+    private eventContextMenuRef = createRef<Menu>();
+    private routineContextMenuRef = createRef<Menu>();
 
-    private folderContextMenuRef = React.createRef<Menu>();
-    private scriptContextMenuRef = React.createRef<Menu>();
+    private folderContextMenuRef = createRef<Menu>();
+    private scriptContextMenuRef = createRef<Menu>();
 
     public constructor(props: IExplorerProperties) {
         super(props);
@@ -177,7 +185,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
         const { id, onSaveSchemaTree } = this.props;
         const { schemaList } = this.state;
 
-        onSaveSchemaTree?.(id!, schemaList || []);
+        onSaveSchemaTree?.(id ?? "", schemaList ?? []);
     }
 
     public componentDidUpdate(prevProps: IExplorerProperties, prevState: IExplorerState): void {
@@ -206,8 +214,8 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
         }
     }
 
-    public render(): React.ReactNode {
-        const { id = "", savedState: state, dbType } = this.props;
+    public render(): ComponentChild {
+        const { id = "", savedState, dbType } = this.props;
         const { editing, schemaList } = this.state;
 
         const className = this.getEffectiveClassNames(["scriptingExplorer"]);
@@ -244,10 +252,10 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                 onRowContext={this.handleSchemaTreeRowContext}
             />;
 
-        const editorSectionState = state?.get("editorSection") ?? {};
-        const schemaSectionState = state?.get("schemaSection") ?? {};
-        const adminSectionState = state?.get("adminSection") ?? {};
-        const scriptSectionState = state?.get("scriptSection") ?? {};
+        const editorSectionState = savedState?.get("editorSection") ?? {};
+        const schemaSectionState = savedState?.get("schemaSection") ?? {};
+        const adminSectionState = savedState?.get("adminSection") ?? {};
+        const scriptSectionState = savedState?.get("scriptSection") ?? {};
 
         const sqlMenuIcon = dbType === DBType.MySQL ? mysqlIcon : sqliteIcon;
 
@@ -298,7 +306,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                                     key="serverStatus"
                                     id={`${id}-${EntityType.Status}`}
                                     caption="Server Status"
-                                    picture={<Icon as="span" src={adminServerStatusIcon} width="20px" height="20px" />}
+                                    picture={<Icon src={adminServerStatusIcon} width="20px" height="20px" />}
                                     payload={{ type: EntityType.Status }}
                                     onClick={this.handleAccordionItemClick}
                                 />,
@@ -306,7 +314,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                                     key="clientConnections"
                                     id={`${id}-${EntityType.Connections}`}
                                     caption="Client Connections"
-                                    picture={<Icon as="span" src={clientConnectionsIcon} width="20px" height="20px" />}
+                                    picture={<Icon src={clientConnectionsIcon} width="20px" height="20px" />}
                                     payload={{ type: EntityType.Connections }}
                                     onClick={this.handleAccordionItemClick}
                                 />,
@@ -315,7 +323,6 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                                     id={`${id}-${EntityType.Dashboard}`}
                                     caption="Performance Dashboard"
                                     picture={<Icon
-                                        as="span"
                                         src={adminPerformanceDashboardIcon}
                                         width="20px"
                                         height="20px"
@@ -655,7 +662,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
         return true;
     };
 
-    private handleSchemaTreeContextMenuItemClick = (e: React.MouseEvent, props: IMenuItemProperties,
+    private handleSchemaTreeContextMenuItemClick = (e: MouseEvent, props: IMenuItemProperties,
         payload: unknown): boolean => {
         const { id, onContextMenuItemClick } = this.props;
 
@@ -668,7 +675,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
             }
 
             default: {
-                onContextMenuItemClick?.(id!, props.id!, data);
+                onContextMenuItemClick?.(id ?? "", props.id!, data);
 
                 break;
             }
@@ -1016,7 +1023,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
         void requisitions.execute("explorerDoubleClick", cell.getData() as ISchemaTreeEntry);
     };
 
-    private handleAccordionItemClick = (e: React.SyntheticEvent, props: IComponentProperties): void => {
+    private handleAccordionItemClick = (e: MouseEvent | KeyboardEvent, props: IComponentProperties): void => {
         const { onSelectItem } = this.props;
 
         if (props.id) {
@@ -1034,7 +1041,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
         }
     };
 
-    private handleKeyPress = (e: React.KeyboardEvent, props: IComponentProperties): void => {
+    private handleKeyPress = (e: KeyboardEvent, props: IComponentProperties): void => {
         if (keyboardKey.getCode(e) === keyboardKey.Enter) {
             // Starting an edit action.
             const { editors } = this.props;
@@ -1048,7 +1055,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
         }
     };
 
-    private handleEditorClose = (e: React.SyntheticEvent, itemId?: string): void => {
+    private handleEditorClose = (e: MouseEvent | KeyboardEvent, itemId?: string): void => {
         const { onCloseItem } = this.props;
         onCloseItem?.(itemId || "");
     };
@@ -1106,27 +1113,29 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
     };
 
     private handleSectionExpand = (props: IAccordionProperties, sectionId: string, expanded: boolean): void => {
-        const { id, onSaveExplorerState, savedState: state } = this.props;
+        const { id, onSaveExplorerState, savedState } = this.props;
 
-        const newMap = state ? new Map(state) : new Map<string, IExplorerSectionState>();
+        const newMap = savedState ? new Map(savedState) : new Map<string, IExplorerSectionState>();
         const sectionState = newMap.get(sectionId) ?? {};
         sectionState.expanded = expanded;
 
         newMap.set(sectionId, sectionState);
 
-        onSaveExplorerState?.(id!, newMap);
+        onSaveExplorerState?.(id ?? "", newMap);
     };
 
-    private handleSectionResize = (props: IAccordionProperties, sectionId: string, size: number): void => {
-        const { id, onSaveExplorerState, savedState: state } = this.props;
+    private handleSectionResize = (_props: IAccordionProperties, info: ISplitterPaneSizeInfo[]): void => {
+        const { id, onSaveExplorerState, savedState } = this.props;
 
-        const newMap = state ? new Map(state) : new Map<string, IExplorerSectionState>();
-        const sectionState = newMap.get(sectionId) ?? {};
-        sectionState.size = size;
+        const newMap = savedState ? new Map(savedState) : new Map<string, IExplorerSectionState>();
+        info.forEach((value) => {
+            const sectionState = newMap.get(value.id) ?? {};
+            sectionState.size = value.currentSize;
 
-        newMap.set(sectionId, sectionState);
+            newMap.set(value.id, sectionState);
+        });
 
-        onSaveExplorerState?.(id!, newMap);
+        onSaveExplorerState?.(id ?? "", newMap);
     };
 
     private handleEditingDone = (): void => {
@@ -1139,7 +1148,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
         this.setState({ editing: undefined, tempCaption: undefined });
     };
 
-    private renderEditorEntries = (): React.ReactNode => {
+    private renderEditorEntries = (): ComponentChild => {
         const { editors, selectedEntry } = this.props;
         const { editing, tempCaption } = this.state;
 
@@ -1170,7 +1179,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
                     icon = documentTypeToIcon.get(language) || defaultIcon;
                 } else {
                     const name = pageTypeToIcon.get(entry.type) || defaultIcon;
-                    icon = <Icon as="span" src={name} width="20px" height="20px" />;
+                    icon = <Icon src={name} width="20px" height="20px" />;
                 }
 
                 return (
@@ -1191,7 +1200,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
         });
     };
 
-    private renderScriptEntries = (): React.ReactNode => {
+    private renderScriptEntries = (): ComponentChild => {
         const { scripts, selectedEntry } = this.props;
 
         if (scripts.length === 0) {
@@ -1270,7 +1279,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
         return true;
     };
 
-    private handleScriptTreeContextMenuItemClick = (e: React.MouseEvent, props: IMenuItemProperties,
+    private handleScriptTreeContextMenuItemClick = (e: MouseEvent, props: IMenuItemProperties,
         payload: unknown): boolean => {
         const { id, onContextMenuItemClick } = this.props;
 
@@ -1283,7 +1292,7 @@ export class Explorer extends Component<IExplorerProperties, IExplorerState> {
             }
 
             default: {
-                onContextMenuItemClick?.(id!, props.id!, data);
+                onContextMenuItemClick?.(id ?? "", props.id!, data);
 
                 break;
             }

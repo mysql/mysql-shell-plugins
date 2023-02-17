@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,8 +21,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
-
 import {
     EditorLanguage, IExecutionContext, INewScriptRequest, IRunQueryRequest, IScriptRequest, ISqlPageRequest,
 } from ".";
@@ -31,8 +29,9 @@ import {
     IDialogRequest, IDialogResponse, IDictionary, IServicePasswordRequest, IStatusbarInfo,
 } from "../app-logic/Types";
 import {
-    IEmbeddedMessage, IEmbeddedSourceType, IMySQLDbSystem, IShellProfile, IShellPromptValues, IWebSessionData,
+    IEmbeddedMessage, IEmbeddedSourceType, IMySQLDbSystem,
 } from "../communication";
+import { IWebSessionData, IShellProfile, IShellPromptValues } from "../communication/ProtocolGui";
 
 import { IThemeChangeData } from "../components/Theming/ThemeManager";
 import { IEditorStatusInfo, IDBDataEntry, ISchemaTreeEntry, EntityType } from "../modules/db-editor";
@@ -81,6 +80,10 @@ const parseAppParameters = (): void => {
         appParameters.testsRunning = true;
     } else if (process.env.NODE_ENV === "development") {
         appParameters.inDevelopment = true;
+    }
+
+    if (process.env.npm_package_name === "mysql-shell-for-vs-code" || process.env.VSCODE_PID !== undefined) {
+        appParameters.inExtension = true;
     }
 };
 
@@ -157,7 +160,7 @@ export interface IRequestTypeMap {
     "updateStatusbar": (items: IStatusbarInfo[]) => Promise<boolean>;
     "profileLoaded": SimpleCallback;
     "changeProfile": (id: string | number) => Promise<boolean>;
-    "statusBarButtonClick": (values: { type: string; event: React.SyntheticEvent; }) => Promise<boolean>;
+    "statusBarButtonClick": (values: { type: string; event: MouseEvent | KeyboardEvent; }) => Promise<boolean>;
     "editorInfoUpdated": (info: IEditorStatusInfo) => Promise<boolean>;
     "themeChanged": (data: IThemeChangeData) => Promise<boolean>;
     "openConnectionTab": (data: { details: IConnectionDetails; force: boolean; }) => Promise<boolean>;

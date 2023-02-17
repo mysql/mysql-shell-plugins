@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,19 +21,19 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+
 import closeButton from "../../../../assets/images/close.svg";
 
 import React from "react";
 import { mount } from "enzyme";
 
-import { Icon } from "../../../../components/ui";
-import { snapshotFromWrapper } from "../../test-helpers";
+import { Icon } from "../../../../components/ui/Icon/Icon";
 
 describe("Icon component tests", (): void => {
 
     it("Test Icon elements", () => {
-        const component = mount(
-            <Icon as="span"
+        const component = mount<Icon>(
+            <Icon
                 id="icon1"
             />,
         );
@@ -46,7 +46,7 @@ describe("Icon component tests", (): void => {
         const component = mount<Icon>(
             <Icon src={closeButton} />,
         );
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
 
         component.unmount();
     });

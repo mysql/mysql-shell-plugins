@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,11 +22,13 @@
  */
 
 import chevronRight from "../../../../assets/images/chevron-right.svg";
-import React from "react";
 import { mount } from "enzyme";
 
-import { Grid, GridCell, Input, Button, Icon } from "../../../../components/ui";
-import { snapshotFromWrapper } from "../../test-helpers";
+import { Grid } from "../../../../components/ui/Grid/Grid";
+import { GridCell } from "../../../../components/ui/Grid/GridCell";
+import { Icon } from "../../../../components/ui/Icon/Icon";
+import { Input } from "../../../../components/ui/Input/Input";
+import { Button } from "../../../../components/ui/Button/Button";
 
 describe("Grid component test", (): void => {
 
@@ -42,7 +44,6 @@ describe("Grid component test", (): void => {
                 <GridCell
                     rowSpan={2}
                     columnSpan={2}
-                    as="div"
                 ></GridCell>
                 <GridCell>
                     <Input
@@ -58,7 +59,7 @@ describe("Grid component test", (): void => {
                 </GridCell>
             </Grid>,
         );
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
 
         component.unmount();
     });

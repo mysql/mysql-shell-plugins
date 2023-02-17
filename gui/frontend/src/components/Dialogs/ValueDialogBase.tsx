@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,21 +21,21 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
+import { ComponentChild } from "preact";
 
 import { DialogResponseClosure, IDictionary } from "../../app-logic/Types";
-import { Component, IComponentProperties, IComponentState } from "../ui";
+import { IComponentProperties, IComponentState, ComponentBase } from "../ui/Component/ComponentBase";
 
-export interface IValueDialogBaseProperties extends IComponentProperties {
+interface IValueDialogBaseProperties extends IComponentProperties {
     onClose: (closure: DialogResponseClosure, values?: IDictionary) => void;
 }
 
 export abstract class ValueDialogBase<
     P extends IValueDialogBaseProperties = IValueDialogBaseProperties,
     S extends IComponentState = {}
-> extends Component<P, S> {
+> extends ComponentBase<P, S> {
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         return null;
     }
 

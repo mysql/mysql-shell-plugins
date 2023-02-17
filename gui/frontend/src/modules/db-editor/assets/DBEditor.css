@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -163,7 +163,7 @@ msg.connectionTabHost #dashboardToolbar .image {
 
 .msg.connectionTabHost .editorHost .resultText,
 .msg.connectionTabHost .editorHost .resultText code {
-    font-family: "SourceCodePro+Powerline+Awesome+MySQL", monospace;
+    font-family: 'SourceCodePro+Powerline+Awesome+MySQL', monospace;
 }
 
 .msg.connectionTabHost .toolbar .divider {
@@ -242,7 +242,7 @@ msg.connectionTabHost #dashboardToolbar .image {
 .msg.serverStatus .grid .left {
     margin-left: auto;
     padding-left: 16px;
-    color: var(--text-dimmedForeground)
+    color: var(--text-dimmedForeground);
 }
 
 .msg.serverStatus .heading {
@@ -288,7 +288,7 @@ msg.connectionTabHost #dashboardToolbar .image {
 }
 
 .msg.serverStatus .statusIndicator > h3 {
-    font-size: .7rem;
+    font-size: 0.7rem;
     font-weight: 300;
 }
 
@@ -371,7 +371,7 @@ msg.connectionTabHost #dashboardToolbar .image {
     overflow: hidden;
     padding-right: 20px;
 
-    font-family: "SourceCodePro+Powerline+Awesome+MySQL Regular";
+    font-family: 'SourceCodePro+Powerline+Awesome+MySQL';
 }
 
 .msg #dashboardGrid .nameValuePair .nameLabel {
@@ -381,7 +381,6 @@ msg.connectionTabHost #dashboardToolbar .image {
 
 .msg #dashboardGrid .nameValuePair .valueLabel {
     margin: 0 0 0 auto;
-
 }
 
 .msg #dashboardGrid .nameValuePair .arrow {
@@ -451,7 +450,7 @@ msg.connectionTabHost #dashboardToolbar .image {
 
 .msg.clientConnections .grid .left {
     justify-content: flex-end;
-    color: var(--text-dimmedForeground)
+    color: var(--text-dimmedForeground);
 }
 
 .msg.clientConnections .grid .right {
@@ -491,7 +490,6 @@ msg.connectionTabHost #dashboardToolbar .image {
 .msg.clientConnections #detailsTabView #clientConnectionDetails {
     padding: 10px;
 }
-
 
 .msg.clientConnections #locksInfoContainer label {
     padding: 5px;

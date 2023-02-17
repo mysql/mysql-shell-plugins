@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,11 +23,12 @@
 
 import { mount } from "enzyme";
 import { act } from "preact/test-utils";
-import React from "react";
 
-import { Breadcrumb, IBreadcrumbProperties, Button, Label, IButtonProperties } from "../../../../components/ui";
-import { snapshotFromWrapper } from "../../test-helpers";
-import { eventMock } from "../../__mocks__/MockEvents";
+import { Breadcrumb, IBreadcrumbProperties } from "../../../../components/ui/Breadcrumb/Breadcrumb";
+import { Button, IButtonProperties } from "../../../../components/ui/Button/Button";
+import { Label } from "../../../../components/ui/Label/Label";
+
+import { mouseEventMock } from "../../__mocks__/MockEvents";
 
 describe("Breadcrumb render testing", (): void => {
 
@@ -48,7 +49,7 @@ describe("Breadcrumb render testing", (): void => {
         const spyOnChange = jest.spyOn(instance.props as IBreadcrumbProperties, "onSelect");
         const onClick = (buttons.first().props() as IButtonProperties).onClick;
         await act(() => {
-            onClick?.(eventMock, {});
+            onClick?.(mouseEventMock, {});
         });
         expect(spyOnChange).toBeCalled();
 
@@ -64,7 +65,7 @@ describe("Breadcrumb render testing", (): void => {
             />,
         );
 
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
 
         component.unmount();
     });
@@ -78,7 +79,7 @@ describe("Breadcrumb render testing", (): void => {
             />,
         );
 
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
 
         component.unmount();
     });
@@ -104,7 +105,7 @@ describe("Breadcrumb render testing", (): void => {
             </Breadcrumb>,
         );
 
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
 
         component.unmount();
     });

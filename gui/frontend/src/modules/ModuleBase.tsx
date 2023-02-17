@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,9 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-// Note: we are not using our own Component from UI, by intention.
-import React, { Component } from "react";
-
+import { Component, ComponentChild, ComponentChildren, Ref } from "preact";
 import { IDictionary } from "../app-logic/Types";
 
 export interface IModuleInfo {
@@ -33,15 +31,19 @@ export interface IModuleInfo {
 }
 
 export interface IModuleProperties {
+    children?: ComponentChildren;
+    ref?: Ref<HTMLDivElement>;
+
     // The reference of the host HTML element for this module.
-    innerRef?: React.RefObject<HTMLElement>;
+    innerRef?: preact.RefObject<HTMLElement>;
 }
 
-export type IModuleState = IDictionary;
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface IModuleState extends IDictionary { }
 
 /** The base class for registerable modules. */
-export class ModuleBase<P extends IModuleProperties, S extends IModuleState = {}, SS = unknown>
-    extends Component<P, S, SS> {
+export class ModuleBase<P extends IModuleProperties = IModuleProperties,
+    S extends IModuleState = IModuleState> extends Component<P, S> {
 
     public static get info(): IModuleInfo { // Will be overridden by custom modules.
         return {
@@ -49,6 +51,10 @@ export class ModuleBase<P extends IModuleProperties, S extends IModuleState = {}
             caption: "Base Module",
             icon: "",
         };
+    }
+
+    public render(): ComponentChild {
+        return null;
     }
 
     /**

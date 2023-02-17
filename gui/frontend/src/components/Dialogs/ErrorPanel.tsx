@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,21 +23,25 @@
 
 import "./ErrorPanel.css";
 
-import React from "react";
+import { ComponentChild, createRef } from "preact";
 
-import {
-    Button, Codicon, Component, Container, Dialog, IComponentState, Icon, Label, Orientation,
-} from "../ui";
 import { requisitions } from "../../supplement/Requisitions";
+import { Codicon } from "../ui/Codicon";
+import { IComponentState, ComponentBase } from "../ui/Component/ComponentBase";
+import { Container, Orientation } from "../ui/Container/Container";
+import { Dialog } from "../ui/Dialog/Dialog";
+import { Icon } from "../ui/Icon/Icon";
+import { Label } from "../ui/Label/Label";
+import { Button } from "../ui/Button/Button";
 
-export interface IErrorPanelState extends IComponentState {
+interface IErrorPanelState extends IComponentState {
     caption: string;
     message: string;
 }
 
-export class ErrorPanel extends Component<{}, IErrorPanelState> {
+export class ErrorPanel extends ComponentBase<{}, IErrorPanelState> {
 
-    private dialogRef = React.createRef<Dialog>();
+    private dialogRef = createRef<Dialog>();
 
     public constructor(props: {}) {
         super(props);
@@ -56,7 +60,7 @@ export class ErrorPanel extends Component<{}, IErrorPanelState> {
         requisitions.unregister("showError", this.show);
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { caption, message } = this.state;
 
         const className = this.getEffectiveClassNames(["errorPanel"]);

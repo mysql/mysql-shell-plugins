@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -263,7 +263,7 @@ describe("Utilities Tests", (): void => {
 
         const tail = "And another text";
         expect(stripAnsiCode(`\u001b[0;90m${loremIpsum}\u001b[0m${tail}`)).toBe(`${loremIpsum}${tail}`);
-        expect(stripAnsiCode(`\u001b[?109h\u001b🖖NO-CODE\u001b[38;2;10;20;30`)).toBe("\u001b🖖NO-CODE");
+        expect(stripAnsiCode(`\u001b[?109h\u001b🖖NO-CODE\u001b[38;2;10;20;30m`)).toBe("\u001b🖖NO-CODE");
     });
 
     it("Convert Cases", () => {

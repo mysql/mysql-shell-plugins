@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,13 +22,13 @@
  */
 
 import { mount } from "enzyme";
-import React from "react";
-import { DBDataType, IColumnInfo, MessageType } from "../../../../../app-logic/Types";
 
-import { ResultView } from "../../../../../components/ResultView";
-import { Menu, TreeGrid } from "../../../../../components/ui";
+import { DBDataType, IColumnInfo, MessageType } from "../../../../../app-logic/Types";
+import { ResultView } from "../../../../../components/ResultView/ResultView";
+import { Menu } from "../../../../../components/ui/Menu/Menu";
+import { TreeGrid } from "../../../../../components/ui/TreeGrid/TreeGrid";
 import { requisitions } from "../../../../../supplement/Requisitions";
-import { nextProcessTick, snapshotFromWrapper } from "../../../test-helpers";
+import { nextProcessTick } from "../../../test-helpers";
 import { MockCellComponent } from "../../../__mocks__/MockCellComponent";
 
 describe("Result View Tests", (): void => {
@@ -49,7 +49,7 @@ describe("Result View Tests", (): void => {
             />,
         );
 
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
 
         component.unmount();
     });
@@ -74,7 +74,7 @@ describe("Result View Tests", (): void => {
             />,
         );
 
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
 
         component.setProps({
             resultSet: {
@@ -372,7 +372,7 @@ describe("Result View Tests", (): void => {
             />,
         );
 
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
 
         // Updating columns does not change the columns property of the component.
         // Instead these changes are directly sent to the underlying grid.
@@ -514,7 +514,7 @@ describe("Result View Tests", (): void => {
                             expect(item.classList.contains("disabled")).toBeFalsy();
                             item.click();
 
-                            expect(clipboardSpy).toHaveBeenLastCalledWith("42, 'abc'\n43, 'def'\n44, 'ghi'\n");
+                            expect(clipboardSpy).toHaveBeenLastCalledWith("'42', 'abc'\n'43', 'def'\n'44', 'ghi'\n");
 
                             break;
                         }
@@ -524,7 +524,7 @@ describe("Result View Tests", (): void => {
                             item.click();
 
                             expect(clipboardSpy)
-                                .toHaveBeenLastCalledWith("# col1, col2\n42, 'abc'\n43, 'def'\n44, 'ghi'\n");
+                                .toHaveBeenLastCalledWith("# col1, col2\n'42', 'abc'\n'43', 'def'\n'44', 'ghi'\n");
 
                             break;
                         }
@@ -552,7 +552,7 @@ describe("Result View Tests", (): void => {
                             item.click();
 
                             expect(clipboardSpy)
-                                .toHaveBeenLastCalledWith("# col1\tcol2\n42\t'abc'\n43\t'def'\n44\t'ghi'\n");
+                                .toHaveBeenLastCalledWith("# col1\tcol2\n'42'\t'abc'\n'43'\t'def'\n'44'\t'ghi'\n");
 
                             break;
                         }
@@ -561,7 +561,7 @@ describe("Result View Tests", (): void => {
                             expect(item.classList.contains("disabled")).toBeFalsy();
                             item.click();
 
-                            expect(clipboardSpy).toHaveBeenLastCalledWith("42\t'abc'\n43\t'def'\n44\t'ghi'\n");
+                            expect(clipboardSpy).toHaveBeenLastCalledWith("'42'\t'abc'\n'43'\t'def'\n'44'\t'ghi'\n");
 
                             break;
                         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,10 +22,12 @@
  */
 
 import { IPosition } from "monaco-editor";
+
 import { DocumentHighlightProvider } from "../../../../../components/ui/CodeEditor/DocumentHighlightProvider";
-import { ExecutionContext, PresentationInterface } from "../../../../../script-execution";
+import { ExecutionContext } from "../../../../../script-execution/ExecutionContext";
+import { PresentationInterface } from "../../../../../script-execution/PresentationInterface";
 import { ScriptingLanguageServices } from "../../../../../script-execution/ScriptingLanguageServices";
-import { models, position } from "../../../__mocks__/CodeEditorMocks";
+import { mockModel, position } from "../../../__mocks__/CodeEditorMocks";
 
 jest.mock("../../../../../script-execution/PresentationInterface");
 
@@ -35,7 +37,7 @@ describe("DocumentHighlightProvider tests", () => {
         const dhp = new DocumentHighlightProvider();
         expect(dhp).not.toBeNull();
 
-        let result = dhp.provideDocumentHighlights(models, position);
+        let result = dhp.provideDocumentHighlights(mockModel, position);
         expect(result).toBe(undefined);
 
         const pi = new (PresentationInterface as unknown as jest.Mock<PresentationInterface>)();
@@ -46,10 +48,10 @@ describe("DocumentHighlightProvider tests", () => {
             return { lineNumber: 0, column: 0 };
         });
         jest.spyOn(execContext, "isInternal", "get").mockReturnValue(true);
-        models.executionContexts.contextFromPosition = jest.fn().mockReturnValue(
+        mockModel.executionContexts.contextFromPosition = jest.fn().mockReturnValue(
             execContext,
         );
-        result = dhp.provideDocumentHighlights(models, position);
+        result = dhp.provideDocumentHighlights(mockModel, position);
         expect(result).toBe(undefined);
 
         jest.spyOn(execContext, "isInternal", "get").mockReturnValue(false);
@@ -58,7 +60,7 @@ describe("DocumentHighlightProvider tests", () => {
             uri: "",
             range: null,
         });
-        result = dhp.provideDocumentHighlights(models, position);
+        result = dhp.provideDocumentHighlights(mockModel, position);
         expect(result).not.toBe(undefined);
     });
 });

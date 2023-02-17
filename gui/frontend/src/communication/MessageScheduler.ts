@@ -23,14 +23,6 @@
 
 /// <reference path="../components/CommunicationDebugger/debugger-runtime.d.ts"/>
 
-import { existsSync, readFileSync } from "fs";
-import { join } from "path";
-import { default as NodeWebSocket } from "ws";
-
-import {
-    EventType, IGenericResponse, IWebSessionData, multiResultAPIs, Protocol, ShellAPIGui, ShellAPIMds, ShellAPIMrs,
-    ResponseError, IErrorResult,
-} from ".";
 import { appParameters, requisitions } from "../supplement/Requisitions";
 import { webSession } from "../supplement/WebSession";
 import { convertCamelToSnakeCase, convertSnakeToCamelCase, uuid } from "../utilities/helpers";
@@ -38,20 +30,26 @@ import { convertCamelToSnakeCase, convertSnakeToCamelCase, uuid } from "../utili
 import { IProtocolParameters } from "./ProtocolParameterMapper";
 import { IProtocolResults } from "./ProtocolResultMapper";
 import { IDictionary } from "../app-logic/Types";
+import { IGenericResponse, Protocol, EventType } from "./Protocol";
+import { multiResultAPIs, ShellAPIGui, IErrorResult, IWebSessionData } from "./ProtocolGui";
+import { ShellAPIMds } from "./ProtocolMds";
+import { ShellAPIMrs } from "./ProtocolMrs";
+import { ResponseError } from "./ResponseError";
 
-export enum ConnectionEventType {
-    Open = 1,
-    Close,
-    Error,
-    Message,
+export interface IConnectionOptions {
+    /** The http(s) URL to connect to. */
+    url: URL,
+
+    /** A path for MySQL shell configuration folder. */
+    shellConfigDir?: string;
 }
 
 /** The type of responses returned by requests. */
-export type ResponseType<K extends keyof IProtocolResults> = K extends typeof multiResultAPIs[number] ?
+type ResponseType<K extends keyof IProtocolResults> = K extends typeof multiResultAPIs[number] ?
     Array<IProtocolResults[K]> : IProtocolResults[K];
 
 /** The type of the promise returned when sending a backend request. */
-export type ResponsePromise<K extends keyof IProtocolResults> = Promise<ResponseType<K>>;
+type ResponsePromise<K extends keyof IProtocolResults> = Promise<ResponseType<K>>;
 
 /**
  * A callback for intermittent results during a request/response process.
@@ -62,7 +60,7 @@ export type ResponsePromise<K extends keyof IProtocolResults> = Promise<Response
 export type DataCallback<K extends keyof IProtocolResults> = (data: IProtocolResults[K], requestId: string) => void;
 
 /** Parameters for sending requests to the backend. */
-export interface ISendRequestParameters<K extends keyof IProtocolParameters> {
+interface ISendRequestParameters<K extends keyof IProtocolParameters> {
     /**
      * If set, this request ID is used instead of an auto generated one.
      */
@@ -101,11 +99,12 @@ type APIListType = Protocol | ShellAPIGui | ShellAPIMds | ShellAPIMrs | "native"
 
 /** Wrapper around a web socket that performs (re)connection and message scheduling. */
 export class MessageScheduler {
-    private static instance?: MessageScheduler;
+    protected static instance?: MessageScheduler;
     private static readonly multiResultList: readonly APIListType[] = multiResultAPIs;
 
+    protected socket?: WebSocket;
+
     private debugging = false;
-    private traceEnabled = false;
 
     private connectionEstablished = false;
     private autoReconnecting = false;
@@ -113,19 +112,24 @@ export class MessageScheduler {
 
     private reconnectTimer: ReturnType<typeof setTimeout> | null;
 
-    private socket?: WebSocket | NodeWebSocket;
     private ongoingRequests = new Map<string, { protocolType: keyof IProtocolResults; }>();
+
+    #traceEnabled = false;
 
     public static get get(): MessageScheduler {
         if (!MessageScheduler.instance) {
-            MessageScheduler.instance = new MessageScheduler();
+            MessageScheduler.instance = this.createInstance();
         }
 
         return MessageScheduler.instance;
     }
 
-    private constructor() {
+    protected constructor() {
         // Singleton pattern.
+    }
+
+    protected static createInstance(): MessageScheduler {
+        return new MessageScheduler();
     }
 
     /**
@@ -143,65 +147,49 @@ export class MessageScheduler {
         this.debugging = value;
     }
 
-    public set traceMessages(value: boolean) {
-        this.traceEnabled = value;
+    public set traceEnabled(value: boolean) {
+        this.#traceEnabled = value;
+    }
+
+    public get traceEnabled(): boolean {
+        return this.#traceEnabled;
     }
 
     /**
      * Opens a web socket connection.
      *
-     * @param url The target to connect to. This is a normal http(s) target from which the websocket address is
-     *            derived.
-     * @param shellConfigDir The current shell configuration folder, which can be different, depending on the
-     *                       current host. Only needed when running from the extension (under Node.js).
+     * @param options Details for the connection.
      *
      * @returns A promise which indicates success or failure.
      */
-    public connect(url: URL, shellConfigDir: string): Promise<void> {
+    public connect(options: IConnectionOptions): Promise<void> {
         this.disconnecting = false;
 
-        return new Promise((resolve, reject) => {
-            // If already open or connecting don't do anything.
-            if (this.socket && (this.socket.readyState === this.socket.OPEN ||
-                this.socket.readyState === this.socket.CONNECTING)) {
-                resolve();
-            } else {
-                url.protocol = url.protocol.replace("http", "ws"); // ws or wss
-                url.pathname = "ws1.ws";
+        // If already open or connecting don't do anything.
+        if (this.socket && (this.socket.readyState === this.socket.OPEN ||
+            this.socket.readyState === this.socket.CONNECTING)) {
+            return Promise.resolve();
+        } else {
+            options.url.protocol = options.url.protocol.replace("http", "ws"); // ws or wss
+            options.url.pathname = "ws1.ws";
 
-                /* istanbul ignore next */
-                if (appParameters.inDevelopment) {
-                    url.port = "8000";
-                }
-
-                if (typeof WebSocket !== "undefined") {
-                    const socket = new WebSocket(url.toString());
-
-                    socket.addEventListener("close", this.onClose);
-                    socket.addEventListener("message", this.onMessage);
-                    socket.addEventListener("open", this.onOpen.bind(this, resolve));
-                    socket.addEventListener("error", this.onError.bind(this, reject));
-
-                    this.socket = socket;
-                } else {
-                    const caFile = join(shellConfigDir, "plugin_data/gui_plugin/web_certs/rootCA.crt");
-
-                    let ca;
-                    if (existsSync(caFile)) {
-                        ca = readFileSync(caFile);
-                    }
-
-                    const socket = new NodeWebSocket(url.toString(), { ca });
-
-                    socket.addEventListener("close", this.onClose);
-                    socket.addEventListener("message", this.onMessage);
-                    socket.addEventListener("open", this.onOpen.bind(this, resolve));
-                    socket.addEventListener("error", this.onError.bind(this, reject));
-
-                    this.socket = socket;
-                }
+            /* istanbul ignore next */
+            if (appParameters.inDevelopment) {
+                options.url.port = "8000";
             }
-        });
+
+            return new Promise((resolve, reject) => {
+                const socket = this.createWebSocket(options);
+
+                socket.addEventListener("close", this.onClose);
+                socket.addEventListener("message", this.onMessage);
+                socket.addEventListener("open", this.onOpen.bind(this, resolve));
+                socket.addEventListener("error", this.onError.bind(this, reject));
+
+                this.socket = socket;
+
+            });
+        }
     }
 
     /**
@@ -209,13 +197,13 @@ export class MessageScheduler {
      */
     public disconnect(): void {
         if (this.socket) {
+            // istanbul ignore catch
             try {
                 this.disconnecting = true;
                 this.socket.close(); // Careful when specifying a code here. It must be valid or the socket will hang.
                 delete this.socket;
                 this.socket = undefined;
             } catch (e) {
-                /* istanbul ignore next */
                 console.error("Internal error while closing websocket: " + String(e));
             }
         }
@@ -271,13 +259,24 @@ export class MessageScheduler {
     }
 
     /**
+     * Creates a web socket for the given options.
+     *
+     * @param options Details for the connection.
+     *
+     * @returns A new websocket instance.
+     */
+    protected createWebSocket(options: IConnectionOptions): WebSocket {
+        return new WebSocket(options.url.toString());
+    }
+
+    /**
      * First entry point for messages sent from the backend. The message is parsed and converted to camel case keys.
      * Depending on the response event type the result of this conversion is then returned in the associated promise
      * or scheduled via the given callback.
      *
      * @param event The event containing the data sent by the backend.
      */
-    private onMessage = (event: MessageEvent | NodeWebSocket.MessageEvent): void => {
+    private onMessage = (event: MessageEvent): void => {
         const response = this.convertDataToResponse(event.data);
 
         if (response) {
@@ -471,9 +470,9 @@ export class MessageScheduler {
      * @param reject The reject function to call to signal that the connection had a failure to open.
      * @param event Event that gives more info about the error.
      */
-    private onError = (reject: (reason?: unknown) => void, event: Event | NodeWebSocket.ErrorEvent): void => {
-        if ((event as NodeWebSocket.ErrorEvent).message) {
-            reject((event as NodeWebSocket.ErrorEvent).message);
+    private onError = (reject: (reason?: string) => void, event: Event): void => {
+        if ("message" in event) {
+            reject(event.message as string);
         } else {
             reject(String(event));
         }

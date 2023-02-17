@@ -23,11 +23,15 @@
 
 // This file contains the main interface to all language services for MySQL.
 
-import { CommonTokenStream, BailErrorStrategy, DefaultErrorStrategy, CharStreams, TokenStreamRewriter } from "antlr4ts";
-import { ParseCancellationException } from "antlr4ts/misc";
-import { ParseTree } from "antlr4ts/tree";
+import { CharStreams } from "antlr4ts/CharStreams";
+import { CommonTokenStream } from "antlr4ts/CommonTokenStream";
+import { ParseTree } from "antlr4ts/tree/ParseTree";
+import { TokenStreamRewriter } from "antlr4ts/TokenStreamRewriter";
+import { XPath } from "antlr4ts/tree/xpath/XPath";
+import { BailErrorStrategy } from "antlr4ts/BailErrorStrategy";
+import { ParseCancellationException } from "antlr4ts/misc/ParseCancellationException";
+import { DefaultErrorStrategy } from "antlr4ts/DefaultErrorStrategy";
 import { PredictionMode } from "antlr4ts/atn/PredictionMode";
-import { XPath } from "antlr4ts/tree/xpath";
 
 import { MySQLLexer } from "./generated/MySQLLexer";
 import {

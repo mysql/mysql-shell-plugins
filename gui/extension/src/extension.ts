@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,8 +23,7 @@
 
 import {
     commands, ExtensionContext, OutputChannel, StatusBarAlignment, StatusBarItem, window, workspace, extensions, env,
-    Uri,
-    ExtensionKind,
+    Uri, ExtensionKind,
 } from "vscode";
 
 import * as child_process from "child_process";
@@ -42,7 +41,7 @@ import { ExtensionHost } from "./ExtensionHost";
 import { webSession } from "../../frontend/src/supplement/WebSession";
 import { setupInitialWelcomeWebview } from "./web-views/WelcomeWebviewProvider";
 import { waitFor } from "../../frontend/src/utilities/helpers";
-import { MessageScheduler } from "../../frontend/src/communication";
+import { MessageScheduler } from "../../frontend/src/communication/MessageScheduler";
 
 export let taskOutputChannel: OutputChannel;
 export let statusBarItem: StatusBarItem;

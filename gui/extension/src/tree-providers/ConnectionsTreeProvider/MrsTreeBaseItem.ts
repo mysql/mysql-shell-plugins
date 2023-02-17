@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -37,13 +37,13 @@ export class MrsTreeBaseItem extends TreeItem {
 
         if (iconName) {
             this.iconPath = {
-                light: path.join(__dirname, "..", "..", "..", "..", "..", "images", "light", iconName),
-                dark: path.join(__dirname, "..", "..", "..", "..", "..", "images", "dark", iconName),
+                light: path.join(__dirname, "..", "images", "light", iconName),
+                dark: path.join(__dirname, "..", "images", "dark", iconName),
             };
         } else {
             this.iconPath = {
-                light: path.join(__dirname, "..", "..", "..", "..", "..", "images", "light", this.iconName),
-                dark: path.join(__dirname, "..", "..", "..", "..", "..", "images", "dark", this.iconName),
+                light: path.join(__dirname, "..", "images", "light", this.iconName),
+                dark: path.join(__dirname, "..", "images", "dark", this.iconName),
             };
         }
     }

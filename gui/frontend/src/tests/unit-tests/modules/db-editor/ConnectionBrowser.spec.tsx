@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,11 +22,9 @@
  */
 
 import { mount } from "enzyme";
-import React from "react";
 
 import { ConnectionBrowser } from "../../../../modules/db-editor/ConnectionBrowser";
 import { DBType, IConnectionDetails } from "../../../../supplement/ShellInterface";
-import { snapshotFromWrapper } from "../../test-helpers";
 
 describe("Connection browser tests", (): void => {
 
@@ -49,7 +47,7 @@ describe("Connection browser tests", (): void => {
         );
         const props = component.props();
         expect(props.connections).toEqual([connection1]);
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
         component.unmount();
     });
 

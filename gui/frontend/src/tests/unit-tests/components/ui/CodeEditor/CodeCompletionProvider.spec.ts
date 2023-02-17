@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,9 +22,9 @@
  */
 import { IPosition } from "../../../../../components/ui/CodeEditor";
 import { CodeCompletionProvider } from "../../../../../components/ui/CodeEditor/CodeCompletionProvider";
-import { ExecutionContext } from "../../../../../script-execution";
+import { ExecutionContext } from "../../../../../script-execution/ExecutionContext";
 import { PresentationInterface } from "../../../../../script-execution/PresentationInterface";
-import { models, position } from "../../../__mocks__/CodeEditorMocks";
+import { mockModel, position } from "../../../__mocks__/CodeEditorMocks";
 
 jest.mock("../../../../../script-execution/PresentationInterface");
 
@@ -36,7 +36,7 @@ describe("CodeCompletionProvider basic test", () => {
         expect(completionProvider.triggerCharacters).toEqual(
             "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.\\@(".split(""),
         );
-        let items = completionProvider.provideCompletionItems(models, position);
+        let items = completionProvider.provideCompletionItems(mockModel, position);
         expect(items).toBeUndefined();
 
         const pi = new (PresentationInterface as unknown as jest.Mock<PresentationInterface>)();
@@ -49,15 +49,15 @@ describe("CodeCompletionProvider basic test", () => {
         execContext.toLocal = jest.fn().mockImplementation((_value: IPosition): IPosition => {
             return { lineNumber: 0, column: 0 };
         });
-        models.executionContexts.contextFromPosition = jest.fn().mockReturnValue(
+        mockModel.executionContexts.contextFromPosition = jest.fn().mockReturnValue(
             execContext,
         );
-        items = completionProvider.provideCompletionItems(models, position);
+        items = completionProvider.provideCompletionItems(mockModel, position);
         expect(items).not.toBeUndefined();
 
         jest.spyOn(execContext, "isInternal", "get").mockReturnValue(true);
-        models.getWordUntilPosition = jest.fn().mockReturnValue({ startColumn: 10, endColumn: 10 });
-        items = completionProvider.provideCompletionItems(models, position);
+        mockModel.getWordUntilPosition = jest.fn().mockReturnValue({ startColumn: 10, endColumn: 10 });
+        items = completionProvider.provideCompletionItems(mockModel, position);
         expect(items).not.toBeUndefined();
 
     });

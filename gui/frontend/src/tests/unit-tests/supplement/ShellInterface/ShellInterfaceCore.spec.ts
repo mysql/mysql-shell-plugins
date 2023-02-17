@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,10 +24,12 @@
 import { existsSync, mkdirSync, rmSync } from "fs";
 import { platform, arch, homedir } from "os";
 
-import { ShellInterface, ShellInterfaceCore } from "../../../../supplement/ShellInterface";
+import { ResponseError } from "../../../../communication/ResponseError";
+import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface";
+import { ShellInterfaceCore } from "../../../../supplement/ShellInterface/ShellInterfaceCore";
+
 import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher";
 import { setupShellForTests } from "../../test-helpers";
-import { ResponseError } from "../../../../communication";
 
 describe("ShellInterfaceCore Tests", () => {
     let launcher: MySQLShellLauncher;
@@ -42,7 +44,9 @@ describe("ShellInterfaceCore Tests", () => {
     });
 
     afterAll(async () => {
-        await launcher.exitProcess();
+        if (launcher) {
+            await launcher.exitProcess();
+        }
     });
 
     it("Backend information", async () => {

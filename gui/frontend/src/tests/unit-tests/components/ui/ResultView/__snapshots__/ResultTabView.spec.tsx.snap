@@ -5,18 +5,18 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
   contextId="ec123"
   hideSingleTab={false}
   resultSets={
-    Object {
-      "output": Array [
-        Object {
+    {
+      "output": [
+        {
           "content": "Message 1",
           "type": 0,
         },
-        Object {
+        {
           "content": "Message 2",
           "type": 4,
         },
       ],
-      "sets": Array [],
+      "sets": [],
       "type": "resultSets",
     }
   }
@@ -28,7 +28,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
     <div
       className="msg container fixedScrollbar resultHost"
       style={
-        Object {
+        {
           "alignItems": undefined,
           "flexDirection": "column",
           "flexWrap": undefined,
@@ -41,18 +41,18 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
         hideSingleTab={false}
         onSelectTab={[Function]}
         pages={
-          Array [
-            Object {
+          [
+            {
               "caption": "Output",
               "content": <ActionOutput
                 contextId="ec123"
                 output={
-                  Array [
-                    Object {
+                  [
+                    {
                       "content": "Message 1",
                       "type": 0,
                     },
-                    Object {
+                    {
                       "content": "Message 2",
                       "type": 4,
                     },
@@ -73,7 +73,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
           className="msg tabview top resultTabview"
           orientation="column"
           style={
-            Object {
+            {
               "--content-separator-width": "0px",
               "--tabItem-border-width": "0px",
             }
@@ -82,7 +82,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
           <div
             className="msg container fixedScrollbar tabview top resultTabview"
             style={
-              Object {
+              {
                 "--content-separator-width": "0px",
                 "--tabItem-border-width": "0px",
                 "alignItems": undefined,
@@ -97,8 +97,8 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
               className="tabArea"
               entryOrientation="row"
               items={
-                Array [
-                  Object {
+                [
+                  {
                     "auxillary": undefined,
                     "canReorder": undefined,
                     "caption": "Output",
@@ -117,16 +117,34 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
               <Container
                 className="msg selector horizontal tabArea"
                 innerRef={
-                  Object {
-                    "current": Object {
-                      "l": Object {
-                        "dragenterfalse": [Function],
-                        "dragleavefalse": [Function],
-                        "dragoverfalse": [Function],
-                        "dragstartfalse": [Function],
-                        "dropfalse": [Function],
-                      },
-                    },
+                  {
+                    "current": <div
+                      class="msg container fixedScrollbar selector horizontal tabArea"
+                      style="flex-direction: row;"
+                    >
+                      <div
+                        class="msg container fixedScrollbar selectorItem stepDown"
+                        id="selectorItemstepDown"
+                        style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+                      />
+                      <div
+                        class="msg container fixedScrollbar selectorItem selected normal"
+                        id="output"
+                        style="flex-direction: row; justify-content: center; align-items: center;"
+                      >
+                        <label
+                          class="msg label"
+                          data-tooltip="inherit"
+                        >
+                          Output
+                        </label>
+                      </div>
+                      <div
+                        class="msg container fixedScrollbar selectorItem stepUp"
+                        id="selectorItemstepUp"
+                        style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+                      />
+                    </div>,
                   }
                 }
                 onDragEnter={[Function]}
@@ -134,7 +152,6 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                 onDragOver={[Function]}
                 onDragStart={[Function]}
                 onDrop={[Function]}
-                onResize={[Function]}
                 orientation="row"
               >
                 <div
@@ -145,7 +162,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                   onDragStart={[Function]}
                   onDrop={[Function]}
                   style={
-                    Object {
+                    {
                       "alignItems": undefined,
                       "flexDirection": "row",
                       "flexWrap": undefined,
@@ -157,12 +174,12 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                     disabled={false}
                     id="selectorItemstepDown"
                     innerRef={
-                      Object {
-                        "current": Object {
-                          "l": Object {
-                            "clickfalse": [Function],
-                          },
-                        },
+                      {
+                        "current": <div
+                          class="msg container fixedScrollbar selectorItem stepDown"
+                          id="selectorItemstepDown"
+                          style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+                        />,
                       }
                     }
                     onClick={[Function]}
@@ -174,12 +191,12 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                       crossAlignment="center"
                       id="selectorItemstepDown"
                       innerRef={
-                        Object {
-                          "current": Object {
-                            "l": Object {
-                              "clickfalse": [Function],
-                            },
-                          },
+                        {
+                          "current": <div
+                            class="msg container fixedScrollbar selectorItem stepDown"
+                            id="selectorItemstepDown"
+                            style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+                          />,
                         }
                       }
                       mainAlignment="center"
@@ -191,7 +208,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                         id="selectorItemstepDown"
                         onClick={[Function]}
                         style={
-                          Object {
+                          {
                             "alignItems": "center",
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -206,13 +223,19 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                     disabled={false}
                     id="output"
                     innerRef={
-                      Object {
-                        "current": Object {
-                          "l": Object {
-                            "clickfalse": [Function],
-                            "dropfalse": [Function],
-                          },
-                        },
+                      {
+                        "current": <div
+                          class="msg container fixedScrollbar selectorItem selected normal"
+                          id="output"
+                          style="flex-direction: row; justify-content: center; align-items: center;"
+                        >
+                          <label
+                            class="msg label"
+                            data-tooltip="inherit"
+                          >
+                            Output
+                          </label>
+                        </div>,
                       }
                     }
                     key="output"
@@ -227,13 +250,19 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                       crossAlignment="center"
                       id="output"
                       innerRef={
-                        Object {
-                          "current": Object {
-                            "l": Object {
-                              "clickfalse": [Function],
-                              "dropfalse": [Function],
-                            },
-                          },
+                        {
+                          "current": <div
+                            class="msg container fixedScrollbar selectorItem selected normal"
+                            id="output"
+                            style="flex-direction: row; justify-content: center; align-items: center;"
+                          >
+                            <label
+                              class="msg label"
+                              data-tooltip="inherit"
+                            >
+                              Output
+                            </label>
+                          </div>,
                         }
                       }
                       mainAlignment="center"
@@ -247,7 +276,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                         onClick={[Function]}
                         onDrop={[Function]}
                         style={
-                          Object {
+                          {
                             "alignItems": "center",
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -261,11 +290,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                           <label
                             className="msg label"
                             data-tooltip="inherit"
-                            style={
-                              Object {
-                                "textAlign": undefined,
-                              }
-                            }
+                            style={{}}
                           >
                             Output
                           </label>
@@ -277,12 +302,12 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                     disabled={false}
                     id="selectorItemstepUp"
                     innerRef={
-                      Object {
-                        "current": Object {
-                          "l": Object {
-                            "clickfalse": [Function],
-                          },
-                        },
+                      {
+                        "current": <div
+                          class="msg container fixedScrollbar selectorItem stepUp"
+                          id="selectorItemstepUp"
+                          style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+                        />,
                       }
                     }
                     onClick={[Function]}
@@ -294,12 +319,12 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                       crossAlignment="center"
                       id="selectorItemstepUp"
                       innerRef={
-                        Object {
-                          "current": Object {
-                            "l": Object {
-                              "clickfalse": [Function],
-                            },
-                          },
+                        {
+                          "current": <div
+                            class="msg container fixedScrollbar selectorItem stepUp"
+                            id="selectorItemstepUp"
+                            style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+                          />,
                         }
                       }
                       mainAlignment="center"
@@ -311,7 +336,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                         id="selectorItemstepUp"
                         onClick={[Function]}
                         style={
-                          Object {
+                          {
                             "alignItems": "center",
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -327,15 +352,49 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
             <Container
               className="content"
               innerRef={
-                Object {
-                  "current": Object {
-                    "l": Object {
-                      "dragenterfalse": [Function],
-                      "dragleavefalse": [Function],
-                      "dragoverfalse": [Function],
-                      "dropfalse": [Function],
-                    },
-                  },
+                {
+                  "current": <div
+                    class="msg container fixedScrollbar content"
+                    style="flex-direction: column;"
+                  >
+                    <div
+                      class="msg actionOutput"
+                      style="display: flex; gap: 2px; flex-direction: column;"
+                    >
+                      <div
+                        style="display: flex; gap: 2px; flex-direction: row;"
+                      >
+                        <label
+                          class="msg resultText error actionLabel"
+                          data-tooltip="expand"
+                          id=""
+                          style="grid-column: span 2;"
+                        >
+                          <span
+                            class=""
+                          >
+                            Message 1
+                          </span>
+                        </label>
+                      </div>
+                      <div
+                        style="display: flex; gap: 2px; flex-direction: row;"
+                      >
+                        <label
+                          class="msg resultText response actionLabel"
+                          data-tooltip="expand"
+                          id=""
+                          style="grid-column: span 2;"
+                        >
+                          <span
+                            class=""
+                          >
+                            Message 2
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>,
                 }
               }
               onDragEnter={[Function]}
@@ -351,7 +410,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                 onDragOver={[Function]}
                 onDrop={[Function]}
                 style={
-                  Object {
+                  {
                     "alignItems": undefined,
                     "flexDirection": "column",
                     "flexWrap": undefined,
@@ -362,12 +421,12 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                 <ActionOutput
                   contextId="ec123"
                   output={
-                    Array [
-                      Object {
+                    [
+                      {
                         "content": "Message 1",
                         "type": 0,
                       },
-                      Object {
+                      {
                         "content": "Message 2",
                         "type": 4,
                       },
@@ -378,7 +437,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                   <div
                     className="msg actionOutput"
                     style={
-                      Object {
+                      {
                         "display": "flex",
                         "flexDirection": "column",
                         "gap": "2px",
@@ -387,7 +446,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                   >
                     <div
                       style={
-                        Object {
+                        {
                           "display": "flex",
                           "flexDirection": "row",
                           "gap": "2px",
@@ -397,9 +456,10 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                       <Label
                         caption="Message 1"
                         className="actionLabel"
+                        language="ansi"
                         onClick={[Function]}
                         style={
-                          Object {
+                          {
                             "gridColumn": "span 2",
                           }
                         }
@@ -407,24 +467,31 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                         type={0}
                       >
                         <label
-                          className="msg label actionLabel"
+                          className="msg resultText error actionLabel"
                           data-tooltip="expand"
-                          onClick={[Function]}
                           style={
-                            Object {
+                            {
                               "gridColumn": "span 2",
                             }
                           }
-                          tabIndex={-1}
-                          type={0}
                         >
-                          Message 1
+                          <span
+                            className=""
+                            style={
+                              {
+                                "backgroundColor": undefined,
+                                "color": undefined,
+                              }
+                            }
+                          >
+                            Message 1
+                          </span>
                         </label>
                       </Label>
                     </div>
                     <div
                       style={
-                        Object {
+                        {
                           "display": "flex",
                           "flexDirection": "row",
                           "gap": "2px",
@@ -434,9 +501,10 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                       <Label
                         caption="Message 2"
                         className="actionLabel"
+                        language="ansi"
                         onClick={[Function]}
                         style={
-                          Object {
+                          {
                             "gridColumn": "span 2",
                           }
                         }
@@ -444,18 +512,25 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                         type={4}
                       >
                         <label
-                          className="msg label actionLabel"
+                          className="msg resultText response actionLabel"
                           data-tooltip="expand"
-                          onClick={[Function]}
                           style={
-                            Object {
+                            {
                               "gridColumn": "span 2",
                             }
                           }
-                          tabIndex={-1}
-                          type={4}
                         >
-                          Message 2
+                          <span
+                            className=""
+                            style={
+                              {
+                                "backgroundColor": undefined,
+                                "color": undefined,
+                              }
+                            }
+                          >
+                            Message 2
+                          </span>
                         </label>
                       </Label>
                     </div>
@@ -501,8 +576,8 @@ exports[`Result Tabview Tests Standard Rendering 1`] = `
   contextId="ec123"
   hideSingleTab={true}
   resultSets={
-    Object {
-      "sets": Array [],
+    {
+      "sets": [],
       "type": "resultSets",
     }
   }
@@ -514,7 +589,7 @@ exports[`Result Tabview Tests Standard Rendering 1`] = `
     <div
       className="msg container fixedScrollbar resultHost"
       style={
-        Object {
+        {
           "alignItems": undefined,
           "flexDirection": "column",
           "flexWrap": undefined,
@@ -526,7 +601,7 @@ exports[`Result Tabview Tests Standard Rendering 1`] = `
         className="resultTabview"
         hideSingleTab={true}
         onSelectTab={[Function]}
-        pages={Array []}
+        pages={[]}
         selectedId="output"
         showTabs={true}
         stretchTabs={false}
@@ -536,7 +611,7 @@ exports[`Result Tabview Tests Standard Rendering 1`] = `
           className="msg tabview top resultTabview"
           orientation="column"
           style={
-            Object {
+            {
               "--content-separator-width": "0px",
               "--tabItem-border-width": "0px",
             }
@@ -545,7 +620,7 @@ exports[`Result Tabview Tests Standard Rendering 1`] = `
           <div
             className="msg container fixedScrollbar tabview top resultTabview"
             style={
-              Object {
+              {
                 "--content-separator-width": "0px",
                 "--tabItem-border-width": "0px",
                 "alignItems": undefined,
@@ -558,15 +633,11 @@ exports[`Result Tabview Tests Standard Rendering 1`] = `
             <Container
               className="content"
               innerRef={
-                Object {
-                  "current": Object {
-                    "l": Object {
-                      "dragenterfalse": [Function],
-                      "dragleavefalse": [Function],
-                      "dragoverfalse": [Function],
-                      "dropfalse": [Function],
-                    },
-                  },
+                {
+                  "current": <div
+                    class="msg container fixedScrollbar content"
+                    style="flex-direction: column;"
+                  />,
                 }
               }
               onDragEnter={[Function]}
@@ -582,7 +653,7 @@ exports[`Result Tabview Tests Standard Rendering 1`] = `
                 onDragOver={[Function]}
                 onDrop={[Function]}
                 style={
-                  Object {
+                  {
                     "alignItems": undefined,
                     "flexDirection": "column",
                     "flexWrap": undefined,
@@ -629,34 +700,34 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
   contextId="ec123"
   hideSingleTab={true}
   resultSets={
-    Object {
-      "output": Array [
-        Object {
+    {
+      "output": [
+        {
           "content": "Lorem ipsum dolor sit amet",
           "language": "ini",
           "type": 2,
         },
       ],
-      "sets": Array [
-        Object {
-          "columns": Array [],
-          "data": Object {
+      "sets": [
+        {
+          "columns": [],
+          "data": {
             "currentPage": 0,
-            "executionInfo": Object {
+            "executionInfo": {
               "text": "All fine",
               "type": 4,
             },
-            "rows": Array [],
+            "rows": [],
           },
           "resultId": "123",
           "sql": "select 1",
           "type": "resultSet",
         },
-        Object {
-          "columns": Array [],
-          "data": Object {
+        {
+          "columns": [],
+          "data": {
             "currentPage": 10,
-            "rows": Array [],
+            "rows": [],
           },
           "resultId": "456",
           "sql": "select 2",
@@ -674,7 +745,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
     <div
       className="msg container fixedScrollbar resultHost"
       style={
-        Object {
+        {
           "alignItems": undefined,
           "flexDirection": "column",
           "flexWrap": undefined,
@@ -687,14 +758,14 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
         hideSingleTab={true}
         onSelectTab={[Function]}
         pages={
-          Array [
-            Object {
+          [
+            {
               "caption": "Output",
               "content": <ActionOutput
                 contextId="ec123"
                 output={
-                  Array [
-                    Object {
+                  [
+                    {
                       "content": "Lorem ipsum dolor sit amet",
                       "language": "ini",
                       "type": 2,
@@ -705,20 +776,20 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
               />,
               "id": "output",
             },
-            Object {
+            {
               "caption": "Result #1",
               "content": <ResultView
                 onEdit={[Function]}
                 resultSet={
-                  Object {
-                    "columns": Array [],
-                    "data": Object {
+                  {
+                    "columns": [],
+                    "data": {
                       "currentPage": 0,
-                      "executionInfo": Object {
+                      "executionInfo": {
                         "text": "All fine",
                         "type": 4,
                       },
-                      "rows": Array [],
+                      "rows": [],
                     },
                     "resultId": "123",
                     "sql": "select 1",
@@ -728,16 +799,16 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
               />,
               "id": "123",
             },
-            Object {
+            {
               "caption": "Result #2",
               "content": <ResultView
                 onEdit={[Function]}
                 resultSet={
-                  Object {
-                    "columns": Array [],
-                    "data": Object {
+                  {
+                    "columns": [],
+                    "data": {
                       "currentPage": 10,
-                      "rows": Array [],
+                      "rows": [],
                     },
                     "resultId": "456",
                     "sql": "select 2",
@@ -758,7 +829,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
           className="msg tabview top resultTabview"
           orientation="column"
           style={
-            Object {
+            {
               "--content-separator-width": "0px",
               "--tabItem-border-width": "0px",
             }
@@ -767,7 +838,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
           <div
             className="msg container fixedScrollbar tabview top resultTabview"
             style={
-              Object {
+              {
                 "--content-separator-width": "0px",
                 "--tabItem-border-width": "0px",
                 "alignItems": undefined,
@@ -782,8 +853,8 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
               className="tabArea"
               entryOrientation="row"
               items={
-                Array [
-                  Object {
+                [
+                  {
                     "auxillary": undefined,
                     "canReorder": undefined,
                     "caption": "Output",
@@ -791,7 +862,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                     "id": "output",
                     "tooltip": undefined,
                   },
-                  Object {
+                  {
                     "auxillary": undefined,
                     "canReorder": undefined,
                     "caption": "Result #1",
@@ -799,7 +870,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                     "id": "123",
                     "tooltip": undefined,
                   },
-                  Object {
+                  {
                     "auxillary": undefined,
                     "canReorder": undefined,
                     "caption": "Result #2",
@@ -818,16 +889,58 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
               <Container
                 className="msg selector horizontal tabArea"
                 innerRef={
-                  Object {
-                    "current": Object {
-                      "l": Object {
-                        "dragenterfalse": [Function],
-                        "dragleavefalse": [Function],
-                        "dragoverfalse": [Function],
-                        "dragstartfalse": [Function],
-                        "dropfalse": [Function],
-                      },
-                    },
+                  {
+                    "current": <div
+                      class="msg container fixedScrollbar selector horizontal tabArea"
+                      style="flex-direction: row;"
+                    >
+                      <div
+                        class="msg container fixedScrollbar selectorItem stepDown"
+                        id="selectorItemstepDown"
+                        style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+                      />
+                      <div
+                        class="msg container fixedScrollbar selectorItem normal"
+                        id="output"
+                        style="flex-direction: row; justify-content: center; align-items: center;"
+                      >
+                        <label
+                          class="msg label"
+                          data-tooltip="inherit"
+                        >
+                          Output
+                        </label>
+                      </div>
+                      <div
+                        class="msg container fixedScrollbar selectorItem selected normal"
+                        id="123"
+                        style="flex-direction: row; justify-content: center; align-items: center;"
+                      >
+                        <label
+                          class="msg label"
+                          data-tooltip="inherit"
+                        >
+                          Result #1
+                        </label>
+                      </div>
+                      <div
+                        class="msg container fixedScrollbar selectorItem normal"
+                        id="456"
+                        style="flex-direction: row; justify-content: center; align-items: center;"
+                      >
+                        <label
+                          class="msg label"
+                          data-tooltip="inherit"
+                        >
+                          Result #2
+                        </label>
+                      </div>
+                      <div
+                        class="msg container fixedScrollbar selectorItem stepUp"
+                        id="selectorItemstepUp"
+                        style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+                      />
+                    </div>,
                   }
                 }
                 onDragEnter={[Function]}
@@ -835,7 +948,6 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                 onDragOver={[Function]}
                 onDragStart={[Function]}
                 onDrop={[Function]}
-                onResize={[Function]}
                 orientation="row"
               >
                 <div
@@ -846,7 +958,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                   onDragStart={[Function]}
                   onDrop={[Function]}
                   style={
-                    Object {
+                    {
                       "alignItems": undefined,
                       "flexDirection": "row",
                       "flexWrap": undefined,
@@ -858,12 +970,12 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                     disabled={false}
                     id="selectorItemstepDown"
                     innerRef={
-                      Object {
-                        "current": Object {
-                          "l": Object {
-                            "clickfalse": [Function],
-                          },
-                        },
+                      {
+                        "current": <div
+                          class="msg container fixedScrollbar selectorItem stepDown"
+                          id="selectorItemstepDown"
+                          style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+                        />,
                       }
                     }
                     onClick={[Function]}
@@ -875,12 +987,12 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                       crossAlignment="center"
                       id="selectorItemstepDown"
                       innerRef={
-                        Object {
-                          "current": Object {
-                            "l": Object {
-                              "clickfalse": [Function],
-                            },
-                          },
+                        {
+                          "current": <div
+                            class="msg container fixedScrollbar selectorItem stepDown"
+                            id="selectorItemstepDown"
+                            style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+                          />,
                         }
                       }
                       mainAlignment="center"
@@ -892,7 +1004,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                         id="selectorItemstepDown"
                         onClick={[Function]}
                         style={
-                          Object {
+                          {
                             "alignItems": "center",
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -928,7 +1040,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                         onClick={[Function]}
                         onDrop={[Function]}
                         style={
-                          Object {
+                          {
                             "alignItems": "center",
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -942,11 +1054,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                           <label
                             className="msg label"
                             data-tooltip="inherit"
-                            style={
-                              Object {
-                                "textAlign": undefined,
-                              }
-                            }
+                            style={{}}
                           >
                             Output
                           </label>
@@ -959,13 +1067,19 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                     disabled={false}
                     id="123"
                     innerRef={
-                      Object {
-                        "current": Object {
-                          "l": Object {
-                            "clickfalse": [Function],
-                            "dropfalse": [Function],
-                          },
-                        },
+                      {
+                        "current": <div
+                          class="msg container fixedScrollbar selectorItem selected normal"
+                          id="123"
+                          style="flex-direction: row; justify-content: center; align-items: center;"
+                        >
+                          <label
+                            class="msg label"
+                            data-tooltip="inherit"
+                          >
+                            Result #1
+                          </label>
+                        </div>,
                       }
                     }
                     key="123"
@@ -980,13 +1094,19 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                       crossAlignment="center"
                       id="123"
                       innerRef={
-                        Object {
-                          "current": Object {
-                            "l": Object {
-                              "clickfalse": [Function],
-                              "dropfalse": [Function],
-                            },
-                          },
+                        {
+                          "current": <div
+                            class="msg container fixedScrollbar selectorItem selected normal"
+                            id="123"
+                            style="flex-direction: row; justify-content: center; align-items: center;"
+                          >
+                            <label
+                              class="msg label"
+                              data-tooltip="inherit"
+                            >
+                              Result #1
+                            </label>
+                          </div>,
                         }
                       }
                       mainAlignment="center"
@@ -1000,7 +1120,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                         onClick={[Function]}
                         onDrop={[Function]}
                         style={
-                          Object {
+                          {
                             "alignItems": "center",
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -1014,11 +1134,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                           <label
                             className="msg label"
                             data-tooltip="inherit"
-                            style={
-                              Object {
-                                "textAlign": undefined,
-                              }
-                            }
+                            style={{}}
                           >
                             Result #1
                           </label>
@@ -1052,7 +1168,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                         onClick={[Function]}
                         onDrop={[Function]}
                         style={
-                          Object {
+                          {
                             "alignItems": "center",
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -1066,11 +1182,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                           <label
                             className="msg label"
                             data-tooltip="inherit"
-                            style={
-                              Object {
-                                "textAlign": undefined,
-                              }
-                            }
+                            style={{}}
                           >
                             Result #2
                           </label>
@@ -1082,12 +1194,12 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                     disabled={false}
                     id="selectorItemstepUp"
                     innerRef={
-                      Object {
-                        "current": Object {
-                          "l": Object {
-                            "clickfalse": [Function],
-                          },
-                        },
+                      {
+                        "current": <div
+                          class="msg container fixedScrollbar selectorItem stepUp"
+                          id="selectorItemstepUp"
+                          style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+                        />,
                       }
                     }
                     onClick={[Function]}
@@ -1099,12 +1211,12 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                       crossAlignment="center"
                       id="selectorItemstepUp"
                       innerRef={
-                        Object {
-                          "current": Object {
-                            "l": Object {
-                              "clickfalse": [Function],
-                            },
-                          },
+                        {
+                          "current": <div
+                            class="msg container fixedScrollbar selectorItem stepUp"
+                            id="selectorItemstepUp"
+                            style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+                          />,
                         }
                       }
                       mainAlignment="center"
@@ -1116,7 +1228,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                         id="selectorItemstepUp"
                         onClick={[Function]}
                         style={
-                          Object {
+                          {
                             "alignItems": "center",
                             "flexDirection": "row",
                             "flexWrap": undefined,
@@ -1132,15 +1244,16 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
             <Container
               className="content"
               innerRef={
-                Object {
-                  "current": Object {
-                    "l": Object {
-                      "dragenterfalse": [Function],
-                      "dragleavefalse": [Function],
-                      "dragoverfalse": [Function],
-                      "dropfalse": [Function],
-                    },
-                  },
+                {
+                  "current": <div
+                    class="msg container fixedScrollbar content"
+                    style="flex-direction: column;"
+                  >
+                    <div
+                      class="msg container fixedScrollbar resultView"
+                      style="flex-direction: column;"
+                    />
+                  </div>,
                 }
               }
               onDragEnter={[Function]}
@@ -1156,7 +1269,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                 onDragOver={[Function]}
                 onDrop={[Function]}
                 style={
-                  Object {
+                  {
                     "alignItems": undefined,
                     "flexDirection": "column",
                     "flexWrap": undefined,
@@ -1167,15 +1280,15 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                 <ResultView
                   onEdit={[Function]}
                   resultSet={
-                    Object {
-                      "columns": Array [],
-                      "data": Object {
+                    {
+                      "columns": [],
+                      "data": {
                         "currentPage": 0,
-                        "executionInfo": Object {
+                        "executionInfo": {
                           "text": "All fine",
                           "type": 4,
                         },
-                        "rows": Array [],
+                        "rows": [],
                       },
                       "resultId": "123",
                       "sql": "select 1",
@@ -1190,7 +1303,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                     <div
                       className="msg container fixedScrollbar resultView"
                       style={
-                        Object {
+                        {
                           "alignItems": undefined,
                           "flexDirection": "column",
                           "flexWrap": undefined,
@@ -1233,7 +1346,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
       </Tabview>
       <ResultStatus
         executionInfo={
-          Object {
+          {
             "text": "All fine",
             "type": 4,
           }
@@ -1246,7 +1359,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
           <div
             className="msg container fixedScrollbar resultStatus"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -1258,11 +1371,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
               <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 All fine
               </label>

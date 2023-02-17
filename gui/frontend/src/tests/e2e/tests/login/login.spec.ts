@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -20,6 +20,8 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
+
+import { promises as fsPromises } from "fs";
 import { Misc, explicitWait, driver } from "../../lib/misc";
 import { By, until } from "selenium-webdriver";
 
@@ -41,7 +43,14 @@ describe("Login", () => {
     afterEach(async () => {
         if (testFailed) {
             testFailed = false;
-            await Misc.processFailure();
+            const img = await driver.takeScreenshot();
+            const testName = Misc.currentTestName() ?? "";
+            try {
+                await fsPromises.access("src/tests/e2e/screenshots");
+            } catch (e) {
+                await fsPromises.mkdir("src/tests/e2e/screenshots");
+            }
+            await fsPromises.writeFile(`src/tests/e2e/screenshots/${testName}_screenshot.png`, img, "base64");
         }
     });
 
@@ -65,7 +74,7 @@ describe("Login", () => {
 
             expect(await driver.findElement(By.id("loginUsername"))).toBeDefined();
             expect(await driver.findElement(By.id("loginPassword"))).toBeDefined();
-        } catch(e) {
+        } catch (e) {
             testFailed = true;
             throw e;
         }
@@ -80,9 +89,9 @@ describe("Login", () => {
             const error = await driver.wait(until.elementLocated(By.css("div.message.error")),
                 explicitWait, "Error was not found");
 
-            expect(await error.getText()).toBe("User could not be authenticated. Incorrect username or password.") ;
+            expect(await error.getText()).toBe("User could not be authenticated. Incorrect username or password.");
 
-        } catch(e) {
+        } catch (e) {
             testFailed = true;
             throw e;
         }
@@ -104,7 +113,7 @@ describe("Login", () => {
             }, 5000, "Login was unsuccessful");
 
             expect(result).toBe(true);
-        } catch(e) {
+        } catch (e) {
             testFailed = true;
             throw e;
         }

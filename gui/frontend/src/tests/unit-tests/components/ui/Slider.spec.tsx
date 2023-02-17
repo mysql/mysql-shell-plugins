@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,11 +21,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
 import { mount } from "enzyme";
 
-import { Slider } from "../../../../components/ui";
-import { snapshotFromWrapper } from "../../test-helpers";
+import { Slider } from "../../../../components/ui/Slider/Slider";
 
 describe("Slider component tests", (): void => {
 
@@ -36,7 +34,7 @@ describe("Slider component tests", (): void => {
                 value={0.3}
             />,
         );
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
 
         component.unmount();
     });
@@ -49,7 +47,7 @@ describe("Slider component tests", (): void => {
                 onChange={jest.fn()}
             />,
         );
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
         const instance = component.instance();
 
         const spyOnChange = jest.spyOn(instance.props, "onChange");

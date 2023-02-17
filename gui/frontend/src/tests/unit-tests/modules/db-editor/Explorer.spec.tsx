@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,10 +22,10 @@
  */
 
 import { mount } from "enzyme";
-import React from "react";
 
 import { Explorer } from "../../../../modules/db-editor/Explorer";
-import { DBType, ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface";
+import { DBType } from "../../../../supplement/ShellInterface";
+import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor";
 
 describe("Explorer tests", (): void => {
 

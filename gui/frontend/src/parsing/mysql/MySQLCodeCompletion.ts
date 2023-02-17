@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,8 +24,11 @@
 // cspell: disable
 
 import { CandidatesCollection, CodeCompletionCore } from "antlr4-c3";
-import { BufferedTokenStream, CommonTokenStream, CharStreams } from "antlr4ts";
-import { ParseTreeWalker, ParseTreeListener } from "antlr4ts/tree";
+import { BufferedTokenStream } from "antlr4ts/BufferedTokenStream";
+import { CommonTokenStream } from "antlr4ts/CommonTokenStream";
+import { CharStreams } from "antlr4ts/CharStreams";
+import { ParseTreeWalker } from "antlr4ts/tree/ParseTreeWalker";
+import { ParseTreeListener } from "antlr4ts/tree/ParseTreeListener";
 
 import { MySQLLexer } from "./generated/MySQLLexer";
 import { MySQLParser } from "./generated/MySQLParser";
@@ -47,13 +50,11 @@ enum ObjectFlags {
     ShowSecond = 1 << 4,
 }
 
-export interface ITableReference {
+interface ITableReference {
     schema: string;
     table: string;
     alias: string;
 }
-
-export type CompletionSortKeys = Map<LanguageCompletionKind, string>;
 
 const synonyms: Map<number, string[]> = new Map([
     [MySQLLexer.CHAR_SYMBOL, ["CHARACTER"]],
@@ -195,7 +196,7 @@ export class AutoCompletionContext {
      *
      * @returns Object containing a set of flags for required elements in code completion and the extracted qualifier.
      */
-    public getQualifierInfo = (): { flags: ObjectFlags; qualifier: string } => {
+    public getQualifierInfo = (): { flags: ObjectFlags; qualifier: string; } => {
         // Five possible positions here:
         //   - In the first id (including the position directly after the last char).
         //   - In the space between first id and a dot.
@@ -252,7 +253,7 @@ export class AutoCompletionContext {
      * @returns An object containing a set of flags for required elements in code completion and the extracted
      * schema and table qualifiers.
      */
-    public determineSchemaTableQualifier = (): { flags: ObjectFlags; schema: string; table: string } => {
+    public determineSchemaTableQualifier = (): { flags: ObjectFlags; schema: string; table: string; } => {
         const position = this.scanner.tokenIndex;
         if (this.scanner.tokenChannel !== 0) {
             this.scanner.next();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -55,10 +55,10 @@ export const rectsAreEqual = (left: DOMRect, right: DOMRect): boolean => {
  * Creates a new rect with change bounds and location, depending on the inflation values.
  *
  * @param r The rectangle to change.
+ * @param dLeft The left delta to apply.
  * @param dTop The top delta to apply.
  * @param dRight The right delta to apply.
  * @param dBottom The bottom delta to apply.
- * @param dLeft The left delta to apply.
  *
  * @returns Undefined, if the given rect was undefined or the changed rectangle.
  */

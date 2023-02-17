@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,8 +23,6 @@
 
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable max-classes-per-file */
-
-import { createSyntheticEvent } from "../../../components/ui";
 
 export class MockEventTarget implements EventTarget {
     public getBoundingClientRect = jest.fn();
@@ -82,4 +80,7 @@ export class MockEvent implements Event {
     public stopPropagation(): void { /**/ }
 }
 
-export const eventMock = createSyntheticEvent(new MockEvent("genericMock"));
+export const genericEventMock = new MockEvent("genericMock");
+export const mouseEventMock = new MockEvent("mouseEventMock") as MouseEvent;
+export const keyboardEventMock = new MockEvent("keyboardEventMock") as KeyboardEvent;
+export const inputEventMock = new MockEvent("inputEventMock") as InputEvent;

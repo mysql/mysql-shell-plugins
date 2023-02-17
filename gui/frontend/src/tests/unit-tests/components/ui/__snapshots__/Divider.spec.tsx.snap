@@ -10,7 +10,7 @@ exports[`Divider render testing Test Divider output 1`] = `
     onMouseEnter={[Function]}
     onMouseLeave={[Function]}
     style={
-      Object {
+      {
         "--thickness": "4px",
       }
     }

@@ -5,7 +5,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 1 1`] = `
   className="dropShadow"
   id="breadcrumb1"
   path={
-    Array [
+    [
       "root",
       "folder",
       "subfolder",
@@ -22,7 +22,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 1 1`] = `
       className="msg container fixedScrollbar breadcrumb verticalCenterContent dropShadow"
       id="breadcrumb1"
       style={
-        Object {
+        {
           "alignItems": undefined,
           "flexDirection": "row",
           "flexWrap": undefined,
@@ -41,7 +41,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 1 1`] = `
           onClick={[Function]}
           onMouseDown={[Function]}
           style={
-            Object {
+            {
               "flexDirection": undefined,
             }
           }
@@ -57,11 +57,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 1 1`] = `
         <label
           className="msg label separator"
           data-tooltip="expand"
-          style={
-            Object {
-              "textAlign": undefined,
-            }
-          }
+          style={{}}
         >
           ❯
         </label>
@@ -77,7 +73,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 1 1`] = `
           onClick={[Function]}
           onMouseDown={[Function]}
           style={
-            Object {
+            {
               "flexDirection": undefined,
             }
           }
@@ -93,11 +89,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 1 1`] = `
         <label
           className="msg label separator"
           data-tooltip="expand"
-          style={
-            Object {
-              "textAlign": undefined,
-            }
-          }
+          style={{}}
         >
           ❯
         </label>
@@ -113,7 +105,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 1 1`] = `
           onClick={[Function]}
           onMouseDown={[Function]}
           style={
-            Object {
+            {
               "flexDirection": undefined,
             }
           }
@@ -129,11 +121,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 1 1`] = `
         <label
           className="msg label separator"
           data-tooltip="expand"
-          style={
-            Object {
-              "textAlign": undefined,
-            }
-          }
+          style={{}}
         >
           ❯
         </label>
@@ -148,7 +136,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 1 1`] = `
           className="msg button picker"
           onMouseDown={[Function]}
           style={
-            Object {
+            {
               "flexDirection": undefined,
             }
           }
@@ -166,7 +154,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
 <Breadcrumb
   id="breadcrumb2"
   path={
-    Array [
+    [
       "root",
       "folder",
       "subfolder",
@@ -184,7 +172,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
       className="msg container fixedScrollbar breadcrumb verticalCenterContent"
       id="breadcrumb2"
       style={
-        Object {
+        {
           "alignItems": undefined,
           "flexDirection": "row",
           "flexWrap": undefined,
@@ -203,7 +191,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
           onClick={[Function]}
           onMouseDown={[Function]}
           style={
-            Object {
+            {
               "flexDirection": undefined,
             }
           }
@@ -219,11 +207,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
         <label
           className="msg label separator"
           data-tooltip="expand"
-          style={
-            Object {
-              "textAlign": undefined,
-            }
-          }
+          style={{}}
         >
           ☞
         </label>
@@ -239,7 +223,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
           onClick={[Function]}
           onMouseDown={[Function]}
           style={
-            Object {
+            {
               "flexDirection": undefined,
             }
           }
@@ -255,11 +239,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
         <label
           className="msg label separator"
           data-tooltip="expand"
-          style={
-            Object {
-              "textAlign": undefined,
-            }
-          }
+          style={{}}
         >
           ☞
         </label>
@@ -275,7 +255,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
           onClick={[Function]}
           onMouseDown={[Function]}
           style={
-            Object {
+            {
               "flexDirection": undefined,
             }
           }
@@ -291,11 +271,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
         <label
           className="msg label separator"
           data-tooltip="expand"
-          style={
-            Object {
-              "textAlign": undefined,
-            }
-          }
+          style={{}}
         >
           ☞
         </label>
@@ -311,7 +287,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
           onClick={[Function]}
           onMouseDown={[Function]}
           style={
-            Object {
+            {
               "flexDirection": undefined,
             }
           }
@@ -327,11 +303,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
         <label
           className="msg label separator"
           data-tooltip="expand"
-          style={
-            Object {
-              "textAlign": undefined,
-            }
-          }
+          style={{}}
         >
           ☞
         </label>
@@ -346,7 +318,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
           className="msg button picker"
           onMouseDown={[Function]}
           style={
-            Object {
+            {
               "flexDirection": undefined,
             }
           }
@@ -364,7 +336,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
 <Breadcrumb
   id="breadcrumb3"
   path={
-    Array [
+    [
       "",
     ]
   }
@@ -379,7 +351,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
       className="msg container fixedScrollbar breadcrumb verticalCenterContent"
       id="breadcrumb3"
       style={
-        Object {
+        {
           "alignItems": undefined,
           "flexDirection": "row",
           "flexWrap": undefined,
@@ -389,7 +361,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
     >
       <Button
         style={
-          Object {
+          {
             "backgroundColor": "white",
             "color": "white",
           }
@@ -399,7 +371,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
           className="msg button"
           onMouseDown={[Function]}
           style={
-            Object {
+            {
               "backgroundColor": "white",
               "color": "white",
             }
@@ -408,7 +380,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
         >
           <span
             style={
-              Object {
+              {
                 "color": "#00758f",
               }
             }
@@ -417,7 +389,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
           </span>
           <span
             style={
-              Object {
+              {
                 "color": "#f29111",
               }
             }
@@ -428,7 +400,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
       </Button>
       <Button
         style={
-          Object {
+          {
             "backgroundColor": "#505050",
           }
         }
@@ -437,7 +409,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
           className="msg button"
           onMouseDown={[Function]}
           style={
-            Object {
+            {
               "backgroundColor": "#505050",
             }
           }
@@ -447,11 +419,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
             <label
               className="msg label"
               data-tooltip="expand"
-              style={
-                Object {
-                  "textAlign": undefined,
-                }
-              }
+              style={{}}
             >
               localhost:3307
             </label>
@@ -461,7 +429,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
       <Button
         caption="mysql"
         style={
-          Object {
+          {
             "backgroundColor": "gray",
           }
         }
@@ -471,7 +439,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
           className="msg button"
           onMouseDown={[Function]}
           style={
-            Object {
+            {
               "backgroundColor": "gray",
             }
           }
@@ -483,7 +451,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
       <Button
         caption="SQL"
         style={
-          Object {
+          {
             "backgroundColor": "darkorange",
             "color": "white",
           }
@@ -494,7 +462,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
           className="msg button"
           onMouseDown={[Function]}
           style={
-            Object {
+            {
               "backgroundColor": "darkorange",
               "color": "white",
             }

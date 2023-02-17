@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,18 +21,18 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
 import { mount } from "enzyme";
 
 import {
-    changeInputValue, nextRunLoop, sendKeyPress, setupShellForTests, snapshotFromWrapper, stateChange,
+    changeInputValue, nextRunLoop, sendKeyPress, setupShellForTests, stateChange,
 } from "../../test-helpers";
 import { LoginPage } from "../../../../components/Login/LoginPage";
 import keyboardKey from "keyboard-key";
 import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher";
-import { ShellInterface } from "../../../../supplement/ShellInterface";
-import { MessageScheduler, ResponseError } from "../../../../communication";
-import { IShellProfile } from "../../../../communication/";
+import { MessageScheduler } from "../../../../communication/MessageScheduler";
+import { IShellProfile } from "../../../../communication/ProtocolGui";
+import { ResponseError } from "../../../../communication/ResponseError";
+import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface";
 
 describe("Login Page Tests", (): void => {
     let launcher: MySQLShellLauncher;
@@ -40,7 +40,7 @@ describe("Login Page Tests", (): void => {
     beforeAll(async () => {
         launcher = await setupShellForTests(false, true, "DEBUG2");
         expect(MessageScheduler.get.isConnected).toBe(true);
-    });
+    }, 20000);
 
     afterAll(async () => {
         await launcher.exitProcess();
@@ -51,7 +51,7 @@ describe("Login Page Tests", (): void => {
             <LoginPage />,
         );
 
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
 
         component.unmount();
     });

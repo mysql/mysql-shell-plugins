@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,11 +23,10 @@
 
 import icon from "../../../../assets/images/modules/module-shell.svg";
 
+import { createRef } from "preact";
 import { mount } from "enzyme";
-import React from "react";
 
 import { IModuleProperties } from "../../../../modules/ModuleBase";
-import { snapshotFromWrapper } from "../../test-helpers";
 import { ShellModule } from "../../../../modules/shell/ShellModule";
 import { ShellModuleId } from "../../../../modules/ModuleInfo";
 
@@ -35,7 +34,7 @@ import { ShellModuleId } from "../../../../modules/ModuleInfo";
 describe("Shell module tests", (): void => {
 
     it("Test ShellModule instantiation", () => {
-        const innerRef = React.createRef<HTMLButtonElement>();
+        const innerRef = createRef<HTMLButtonElement>();
         const component = mount<IModuleProperties>(
             <ShellModule
                 innerRef={innerRef}
@@ -48,7 +47,7 @@ describe("Shell module tests", (): void => {
             caption: "Shell",
             icon,
         });
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
         component.unmount();
     });
 

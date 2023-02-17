@@ -2,81 +2,56 @@
 
 exports[`Value Edit Dialog Tests Footer, Heading, Description and Payload 1`] = `
 <div
-  __self="[object Object]"
-  __source="[object Object]"
   class="msg portal"
   id="testDialog"
+  style="--background-opacity: 0.5;"
 >
   <div
-    __self="[object Object]"
-    __source="[object Object]"
     class="msg dialog visible valueEditDialog"
   >
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="title verticalCenterContent"
     >
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
+      <span
         class="msg icon codicon codicon-terminal"
       />
       <label
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg label"
         data-tooltip="expand"
       >
         Select Value
       </label>
       <button
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg button imageOnly"
         id="closeButton"
         tabindex="0"
       >
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
+        <span
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
       </button>
     </div>
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="content fixedScrollbar"
     >
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg grid"
         style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
       >
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell dialogDescriptionCell"
           style="flex-direction: row; grid-column: span 8;"
         >
           <div
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg container fixedScrollbar"
             style="flex-direction: column;"
           >
             <div
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg container fixedScrollbar dialogDescription"
               style="flex-direction: column;"
             >
               <label
-                __self="[object Object]"
-                __source="[object Object]"
                 class="msg label"
                 data-lang="text"
                 data-tooltip="expand"
@@ -86,8 +61,6 @@ exports[`Value Edit Dialog Tests Footer, Heading, Description and Payload 1`] = 
                 Lorem Ipsum Dolor Sit Amet
               </label>
               <label
-                __self="[object Object]"
-                __source="[object Object]"
                 class="msg label"
                 data-lang="text"
                 data-tooltip="expand"
@@ -100,28 +73,20 @@ exports[`Value Edit Dialog Tests Footer, Heading, Description and Payload 1`] = 
           </div>
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
         >
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label valueTitle"
             data-tooltip="expand"
           >
             input
           </label>
           <div
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg container fixedScrollbar inputWithProgress"
             style="flex-direction: row;"
           >
             <input
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg input valueEditor"
               id="input"
               spellcheck="true"
@@ -132,19 +97,13 @@ exports[`Value Edit Dialog Tests Footer, Heading, Description and Payload 1`] = 
       </div>
     </div>
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="footer verticalCenterContent"
     >
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg container fixedScrollbar leftItems"
         style="flex-direction: row;"
       >
         <label
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg label"
           data-tooltip="expand"
         >
@@ -152,14 +111,10 @@ exports[`Value Edit Dialog Tests Footer, Heading, Description and Payload 1`] = 
         </label>
       </div>
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg container fixedScrollbar rightItems"
         style="flex-direction: row-reverse;"
       >
         <button
-          __self="[object Object]"
-          __source="[object Object]"
           caption="OK"
           class="msg button"
           id="ok"
@@ -168,8 +123,6 @@ exports[`Value Edit Dialog Tests Footer, Heading, Description and Payload 1`] = 
           OK
         </button>
         <button
-          __self="[object Object]"
-          __source="[object Object]"
           caption="Cancel"
           class="msg button"
           id="cancel"
@@ -185,95 +138,66 @@ exports[`Value Edit Dialog Tests Footer, Heading, Description and Payload 1`] = 
 
 exports[`Value Edit Dialog Tests Grouped Sections 1`] = `
 <div
-  __self="[object Object]"
-  __source="[object Object]"
   class="msg portal"
   id="testDialog"
+  style="--background-opacity: 0.5;"
 >
   <div
-    __self="[object Object]"
-    __source="[object Object]"
     class="msg dialog visible valueEditDialog"
   >
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="title verticalCenterContent"
     >
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
+      <span
         class="msg icon codicon codicon-terminal"
       />
       <label
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg label"
         data-tooltip="expand"
       >
         Select Value
       </label>
       <button
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg button imageOnly"
         id="closeButton"
         tabindex="0"
       >
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
+        <span
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
       </button>
     </div>
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="content fixedScrollbar"
     >
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg grid"
         style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
       >
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: row; grid-column: span 8;"
         >
           <div
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg container fixedScrollbar tabview top"
-            style="flex-direction: column;"
+            style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
           >
             <div
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg container fixedScrollbar selector horizontal tabArea stretched"
               style="flex-direction: row;"
             >
               <div
-                __self="[object Object]"
-                __source="[object Object]"
                 class="msg container fixedScrollbar selectorItem stepDown"
                 id="selectorItemstepDown"
                 style="flex-direction: row; justify-content: center; align-items: center; display: none;"
               />
               <div
-                __self="[object Object]"
-                __source="[object Object]"
                 class="msg container fixedScrollbar selectorItem normal"
                 id="page0"
                 style="flex-direction: row; justify-content: center; align-items: center;"
               >
                 <label
-                  __self="[object Object]"
-                  __source="[object Object]"
                   class="msg label"
                   data-tooltip="inherit"
                 >
@@ -281,15 +205,11 @@ exports[`Value Edit Dialog Tests Grouped Sections 1`] = `
                 </label>
               </div>
               <div
-                __self="[object Object]"
-                __source="[object Object]"
                 class="msg container fixedScrollbar selectorItem selected normal"
                 id="page1"
                 style="flex-direction: row; justify-content: center; align-items: center;"
               >
                 <label
-                  __self="[object Object]"
-                  __source="[object Object]"
                   class="msg label"
                   data-tooltip="inherit"
                 >
@@ -297,15 +217,11 @@ exports[`Value Edit Dialog Tests Grouped Sections 1`] = `
                 </label>
               </div>
               <div
-                __self="[object Object]"
-                __source="[object Object]"
                 class="msg container fixedScrollbar selectorItem normal"
                 id="page2"
                 style="flex-direction: row; justify-content: center; align-items: center;"
               >
                 <label
-                  __self="[object Object]"
-                  __source="[object Object]"
                   class="msg label"
                   data-tooltip="inherit"
                 >
@@ -313,48 +229,34 @@ exports[`Value Edit Dialog Tests Grouped Sections 1`] = `
                 </label>
               </div>
               <div
-                __self="[object Object]"
-                __source="[object Object]"
                 class="msg container fixedScrollbar selectorItem stepUp"
                 id="selectorItemstepUp"
                 style="flex-direction: row; justify-content: center; align-items: center; display: none;"
               />
             </div>
             <div
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg container fixedScrollbar content"
               style="flex-direction: column;"
             >
               <div
-                __self="[object Object]"
-                __source="[object Object]"
                 class="msg grid"
                 style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
               >
                 <div
-                  __self="[object Object]"
-                  __source="[object Object]"
                   class="msg container fixedScrollbar gridCell"
                   style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
                 >
                   <label
-                    __self="[object Object]"
-                    __source="[object Object]"
                     class="msg label valueTitle"
                     data-tooltip="expand"
                   >
                     output
                   </label>
                   <div
-                    __self="[object Object]"
-                    __source="[object Object]"
                     class="msg container fixedScrollbar inputWithProgress"
                     style="flex-direction: row;"
                   >
                     <input
-                      __self="[object Object]"
-                      __source="[object Object]"
                       class="msg input valueEditor"
                       id="input"
                       spellcheck="true"
@@ -367,28 +269,20 @@ exports[`Value Edit Dialog Tests Grouped Sections 1`] = `
           </div>
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
         >
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label valueTitle"
             data-tooltip="expand"
           >
             something else
           </label>
           <div
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg container fixedScrollbar inputWithProgress"
             style="flex-direction: row;"
           >
             <input
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg input valueEditor"
               id="input"
               spellcheck="true"
@@ -399,19 +293,13 @@ exports[`Value Edit Dialog Tests Grouped Sections 1`] = `
       </div>
     </div>
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="footer verticalCenterContent"
     >
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg container fixedScrollbar leftItems"
         style="flex-direction: row;"
       >
         <label
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg label"
           data-tooltip="expand"
         >
@@ -419,14 +307,10 @@ exports[`Value Edit Dialog Tests Grouped Sections 1`] = `
         </label>
       </div>
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg container fixedScrollbar rightItems"
         style="flex-direction: row-reverse;"
       >
         <button
-          __self="[object Object]"
-          __source="[object Object]"
           caption="OK"
           class="msg button"
           id="ok"
@@ -435,8 +319,6 @@ exports[`Value Edit Dialog Tests Grouped Sections 1`] = `
           OK
         </button>
         <button
-          __self="[object Object]"
-          __source="[object Object]"
           caption="Cancel"
           class="msg button"
           id="cancel"
@@ -452,95 +334,66 @@ exports[`Value Edit Dialog Tests Grouped Sections 1`] = `
 
 exports[`Value Edit Dialog Tests Grouped Sections 2`] = `
 <div
-  __self="[object Object]"
-  __source="[object Object]"
   class="msg portal"
   id="testDialog"
+  style="--background-opacity: 0.5;"
 >
   <div
-    __self="[object Object]"
-    __source="[object Object]"
     class="msg dialog visible valueEditDialog"
   >
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="title verticalCenterContent"
     >
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
+      <span
         class="msg icon codicon codicon-terminal"
       />
       <label
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg label"
         data-tooltip="expand"
       >
         Select Value
       </label>
       <button
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg button imageOnly"
         id="closeButton"
         tabindex="0"
       >
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
+        <span
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
       </button>
     </div>
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="content fixedScrollbar"
     >
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg grid"
         style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
       >
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: row; grid-column: span 8;"
         >
           <div
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg container fixedScrollbar tabview top"
-            style="flex-direction: column;"
+            style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
           >
             <div
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg container fixedScrollbar selector horizontal tabArea stretched"
               style="flex-direction: row;"
             >
               <div
-                __self="[object Object]"
-                __source="[object Object]"
                 class="msg container fixedScrollbar selectorItem stepDown"
                 id="selectorItemstepDown"
                 style="flex-direction: row; justify-content: center; align-items: center; display: none;"
               />
               <div
-                __self="[object Object]"
-                __source="[object Object]"
                 class="msg container fixedScrollbar selectorItem normal"
                 id="page0"
                 style="flex-direction: row; justify-content: center; align-items: center;"
               >
                 <label
-                  __self="[object Object]"
-                  __source="[object Object]"
                   class="msg label"
                   data-tooltip="inherit"
                 >
@@ -548,15 +401,11 @@ exports[`Value Edit Dialog Tests Grouped Sections 2`] = `
                 </label>
               </div>
               <div
-                __self="[object Object]"
-                __source="[object Object]"
                 class="msg container fixedScrollbar selectorItem selected normal"
                 id="page1"
                 style="flex-direction: row; justify-content: center; align-items: center;"
               >
                 <label
-                  __self="[object Object]"
-                  __source="[object Object]"
                   class="msg label"
                   data-tooltip="inherit"
                 >
@@ -564,15 +413,11 @@ exports[`Value Edit Dialog Tests Grouped Sections 2`] = `
                 </label>
               </div>
               <div
-                __self="[object Object]"
-                __source="[object Object]"
                 class="msg container fixedScrollbar selectorItem normal"
                 id="page2"
                 style="flex-direction: row; justify-content: center; align-items: center;"
               >
                 <label
-                  __self="[object Object]"
-                  __source="[object Object]"
                   class="msg label"
                   data-tooltip="inherit"
                 >
@@ -580,48 +425,34 @@ exports[`Value Edit Dialog Tests Grouped Sections 2`] = `
                 </label>
               </div>
               <div
-                __self="[object Object]"
-                __source="[object Object]"
                 class="msg container fixedScrollbar selectorItem stepUp"
                 id="selectorItemstepUp"
                 style="flex-direction: row; justify-content: center; align-items: center; display: none;"
               />
             </div>
             <div
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg container fixedScrollbar content"
               style="flex-direction: column;"
             >
               <div
-                __self="[object Object]"
-                __source="[object Object]"
                 class="msg grid"
                 style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
               >
                 <div
-                  __self="[object Object]"
-                  __source="[object Object]"
                   class="msg container fixedScrollbar gridCell"
                   style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
                 >
                   <label
-                    __self="[object Object]"
-                    __source="[object Object]"
                     class="msg label valueTitle"
                     data-tooltip="expand"
                   >
                     output
                   </label>
                   <div
-                    __self="[object Object]"
-                    __source="[object Object]"
                     class="msg container fixedScrollbar inputWithProgress"
                     style="flex-direction: row;"
                   >
                     <input
-                      __self="[object Object]"
-                      __source="[object Object]"
                       class="msg input valueEditor"
                       id="input"
                       spellcheck="true"
@@ -634,28 +465,20 @@ exports[`Value Edit Dialog Tests Grouped Sections 2`] = `
           </div>
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
         >
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label valueTitle"
             data-tooltip="expand"
           >
             something else
           </label>
           <div
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg container fixedScrollbar inputWithProgress"
             style="flex-direction: row;"
           >
             <input
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg input valueEditor"
               id="input"
               spellcheck="true"
@@ -666,19 +489,13 @@ exports[`Value Edit Dialog Tests Grouped Sections 2`] = `
       </div>
     </div>
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="footer verticalCenterContent"
     >
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg container fixedScrollbar leftItems"
         style="flex-direction: row;"
       >
         <label
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg label"
           data-tooltip="expand"
         >
@@ -686,14 +503,10 @@ exports[`Value Edit Dialog Tests Grouped Sections 2`] = `
         </label>
       </div>
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg container fixedScrollbar rightItems"
         style="flex-direction: row-reverse;"
       >
         <button
-          __self="[object Object]"
-          __source="[object Object]"
           caption="OK"
           class="msg button"
           id="ok"
@@ -702,8 +515,6 @@ exports[`Value Edit Dialog Tests Grouped Sections 2`] = `
           OK
         </button>
         <button
-          __self="[object Object]"
-          __source="[object Object]"
           caption="Cancel"
           class="msg button"
           id="cancel"
@@ -719,75 +530,52 @@ exports[`Value Edit Dialog Tests Grouped Sections 2`] = `
 
 exports[`Value Edit Dialog Tests Grouped Values 1`] = `
 <div
-  __self="[object Object]"
-  __source="[object Object]"
   class="msg portal"
   id="testDialog"
+  style="--background-opacity: 0.5;"
 >
   <div
-    __self="[object Object]"
-    __source="[object Object]"
     class="msg dialog visible valueEditDialog"
   >
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="title verticalCenterContent"
     >
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
+      <span
         class="msg icon codicon codicon-terminal"
       />
       <label
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg label"
         data-tooltip="expand"
       >
         Select Value
       </label>
       <button
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg button imageOnly"
         id="closeButton"
         tabindex="0"
       >
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
+        <span
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
       </button>
     </div>
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="content fixedScrollbar"
     >
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg grid"
         style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
       >
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
         >
           <div
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg container fixedScrollbar inputWithProgress"
             style="flex-direction: row;"
           >
             <input
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg input valueEditor"
               id="input"
               spellcheck="true"
@@ -795,14 +583,10 @@ exports[`Value Edit Dialog Tests Grouped Values 1`] = `
             />
           </div>
           <div
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg container fixedScrollbar inputWithProgress"
             style="flex-direction: row;"
           >
             <input
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg input valueEditor"
               id="output"
               spellcheck="true"
@@ -811,49 +595,35 @@ exports[`Value Edit Dialog Tests Grouped Values 1`] = `
           </div>
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 5;"
         >
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label valueTitle"
             data-tooltip="expand"
           >
             Print Help
           </label>
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label description"
             data-tooltip="expand"
           />
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
         >
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label valueTitle"
             data-tooltip="expand"
           >
             Helpers
           </label>
           <div
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg container fixedScrollbar inputWithProgress"
             style="flex-direction: row;"
           >
             <input
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg input valueEditor"
               id="note"
               spellcheck="true"
@@ -861,14 +631,10 @@ exports[`Value Edit Dialog Tests Grouped Values 1`] = `
             />
           </div>
           <div
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg container fixedScrollbar inputWithProgress"
             style="flex-direction: row;"
           >
             <input
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg input valueEditor"
               id="debug"
               spellcheck="true"
@@ -879,25 +645,17 @@ exports[`Value Edit Dialog Tests Grouped Values 1`] = `
       </div>
     </div>
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="footer verticalCenterContent"
     >
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg container fixedScrollbar leftItems"
         style="flex-direction: row;"
       />
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg container fixedScrollbar rightItems"
         style="flex-direction: row-reverse;"
       >
         <button
-          __self="[object Object]"
-          __source="[object Object]"
           caption="OK"
           class="msg button"
           id="ok"
@@ -906,8 +664,6 @@ exports[`Value Edit Dialog Tests Grouped Values 1`] = `
           OK
         </button>
         <button
-          __self="[object Object]"
-          __source="[object Object]"
           caption="Cancel"
           class="msg button"
           id="cancel"
@@ -925,9 +681,9 @@ exports[`Value Edit Dialog Tests Render with Defaults Test 1`] = `
 <ValueEditDialog>
   <Dialog
     actions={
-      Object {
-        "begin": Array [],
-        "end": Array [
+      {
+        "begin": [],
+        "end": [
           <Button
             caption="OK"
             disabled={false}
@@ -943,16 +699,20 @@ exports[`Value Edit Dialog Tests Render with Defaults Test 1`] = `
       }
     }
     caption={
-      <y>
+      <p>
         <Icon
           disabled={false}
           src={388}
         />
         <Label />
-      </y>
+      </p>
     }
     className="msg valueEditDialog"
-    container={Object {}}
+    container={
+      <body
+        theme="dark"
+      />
+    }
     content={
       <Grid
         columnGap={16}
@@ -964,7 +724,11 @@ exports[`Value Edit Dialog Tests Render with Defaults Test 1`] = `
     onClose={[Function]}
   >
     <Portal
-      container={Object {}}
+      container={
+        <body
+          theme="dark"
+        />
+      }
       id=""
       onClose={[Function]}
       onOpen={[Function]}
@@ -997,83 +761,58 @@ exports[`Value Edit Dialog Tests Render with Defaults Test 1`] = `
 
 exports[`Value Edit Dialog Tests Simple Dialog 1`] = `
 <div
-  __self="[object Object]"
-  __source="[object Object]"
   class="msg portal"
   id="testDialog"
+  style="--background-opacity: 0.5;"
 >
   <div
-    __self="[object Object]"
-    __source="[object Object]"
     class="msg dialog visible valueEditDialog"
   >
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="title verticalCenterContent"
     >
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
+      <span
         class="msg icon codicon codicon-terminal"
       />
       <label
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg label"
         data-tooltip="expand"
       >
         Enter a name for the new theme
       </label>
       <button
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg button imageOnly"
         id="closeButton"
         tabindex="0"
       >
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
+        <span
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
       </button>
     </div>
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="content fixedScrollbar"
     >
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg grid"
         style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
       >
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
         >
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label valueTitle"
             data-tooltip="expand"
           >
             input
           </label>
           <div
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg container fixedScrollbar inputWithProgress"
             style="flex-direction: row;"
           >
             <input
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg input valueEditor"
               id="input"
               spellcheck="true"
@@ -1084,25 +823,17 @@ exports[`Value Edit Dialog Tests Simple Dialog 1`] = `
       </div>
     </div>
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="footer verticalCenterContent"
     >
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg container fixedScrollbar leftItems"
         style="flex-direction: row;"
       />
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg container fixedScrollbar rightItems"
         style="flex-direction: row-reverse;"
       >
         <button
-          __self="[object Object]"
-          __source="[object Object]"
           caption="OK"
           class="msg button"
           id="ok"
@@ -1111,8 +842,6 @@ exports[`Value Edit Dialog Tests Simple Dialog 1`] = `
           OK
         </button>
         <button
-          __self="[object Object]"
-          __source="[object Object]"
           caption="Cancel"
           class="msg button"
           id="cancel"
@@ -1128,83 +857,58 @@ exports[`Value Edit Dialog Tests Simple Dialog 1`] = `
 
 exports[`Value Edit Dialog Tests Update Contexts 1`] = `
 <div
-  __self="[object Object]"
-  __source="[object Object]"
   class="msg portal"
   id="testDialog"
+  style="--background-opacity: 0.5;"
 >
   <div
-    __self="[object Object]"
-    __source="[object Object]"
     class="msg dialog visible valueEditDialog"
   >
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="title verticalCenterContent"
     >
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
+      <span
         class="msg icon codicon codicon-terminal"
       />
       <label
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg label"
         data-tooltip="expand"
       >
         Select Value
       </label>
       <button
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg button imageOnly"
         id="closeButton"
         tabindex="0"
       >
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
+        <span
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
       </button>
     </div>
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="content fixedScrollbar"
     >
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg grid"
         style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
       >
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
         >
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label valueTitle"
             data-tooltip="expand"
           >
             input
           </label>
           <div
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg container fixedScrollbar inputWithProgress"
             style="flex-direction: row;"
           >
             <input
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg input valueEditor"
               id="input"
               spellcheck="true"
@@ -1215,25 +919,17 @@ exports[`Value Edit Dialog Tests Update Contexts 1`] = `
       </div>
     </div>
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="footer verticalCenterContent"
     >
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg container fixedScrollbar leftItems"
         style="flex-direction: row;"
       />
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg container fixedScrollbar rightItems"
         style="flex-direction: row-reverse;"
       >
         <button
-          __self="[object Object]"
-          __source="[object Object]"
           caption="OK"
           class="msg button"
           id="ok"
@@ -1242,8 +938,6 @@ exports[`Value Edit Dialog Tests Update Contexts 1`] = `
           OK
         </button>
         <button
-          __self="[object Object]"
-          __source="[object Object]"
           caption="Cancel"
           class="msg button"
           id="cancel"
@@ -1259,83 +953,58 @@ exports[`Value Edit Dialog Tests Update Contexts 1`] = `
 
 exports[`Value Edit Dialog Tests Update Contexts 2`] = `
 <div
-  __self="[object Object]"
-  __source="[object Object]"
   class="msg portal"
   id="testDialog"
+  style="--background-opacity: 0.5;"
 >
   <div
-    __self="[object Object]"
-    __source="[object Object]"
     class="msg dialog visible valueEditDialog"
   >
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="title verticalCenterContent"
     >
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
+      <span
         class="msg icon codicon codicon-terminal"
       />
       <label
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg label"
         data-tooltip="expand"
       >
         Select Value
       </label>
       <button
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg button imageOnly"
         id="closeButton"
         tabindex="0"
       >
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
+        <span
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
       </button>
     </div>
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="content fixedScrollbar"
     >
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg grid"
         style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
       >
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
         >
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label valueTitle"
             data-tooltip="expand"
           >
             input
           </label>
           <div
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg container fixedScrollbar inputWithProgress"
             style="flex-direction: row;"
           >
             <input
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg input valueEditor"
               id="input"
               spellcheck="true"
@@ -1344,14 +1013,10 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
           </div>
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: row; grid-column: span 8;"
         >
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label sectionTitle"
             data-tooltip="expand"
           >
@@ -1359,22 +1024,16 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
           </label>
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
         >
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label valueTitle"
             data-tooltip="expand"
           >
             A caption for the section
           </label>
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label description"
             data-tooltip="expand"
           >
@@ -1382,65 +1041,47 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
           </label>
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
         >
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label valueTitle"
             data-tooltip="expand"
           >
             Activate this
           </label>
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg checkbox unchecked valueEditor"
             id="yesNo"
             tabindex="0"
           >
             <span
-              __self="[object Object]"
-              __source="[object Object]"
               class="checkMark"
             />
             Activate this
           </label>
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
         >
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label valueTitle"
             data-tooltip="expand"
           >
             Pick File
           </label>
           <div
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg container fixedScrollbar fileSelector valueEditor"
             style="flex-direction: row;"
           >
             <input
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg input"
               id="file"
               spellcheck="true"
               type="text"
             />
             <button
-              __self="[object Object]"
-              __source="[object Object]"
               caption="..."
               class="msg button"
               id="fileBtn"
@@ -1451,31 +1092,22 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
           </div>
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
         >
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label valueTitle"
             data-tooltip="expand"
           >
             Select One
           </label>
           <div
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg container fixedScrollbar dropdown valueEditor"
             id="selectOne"
-            selection="One"
             style="flex-direction: row; align-items: center;"
             tabindex="0"
           >
             <label
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg label ellipsis"
               data-tooltip="expand"
             >
@@ -1484,22 +1116,16 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
           </div>
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
         >
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label valueTitle"
             data-tooltip="expand"
           >
             Do it!
           </label>
           <button
-            __self="[object Object]"
-            __source="[object Object]"
             caption="Do it!"
             class="msg button valueEditor"
             id="clickMe"
@@ -1509,70 +1135,50 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
           </button>
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
         >
           <div
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg treeGrid dynamicList"
             id="listMe"
           />
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
         >
           <div
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg container fixedScrollbar matrixContainer"
             style="flex-direction: row;"
           >
             <div
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg treeGrid verticalGrid"
               id="valueGrid"
             />
             <div
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg container fixedScrollbar"
               id="matrixActions"
               style="flex-direction: row;"
             >
               <button
-                __self="[object Object]"
-                __source="[object Object]"
                 class="msg button"
                 data-tooltip="Add new property entry"
                 id="buttonAddEntry"
                 tabindex="0"
               >
-                <div
-                  __self="[object Object]"
-                  __source="[object Object]"
+                <span
                   class="msg icon"
                   data-tooltip="inherit"
                   style="mask-image: url(add.svg);"
                 />
               </button>
               <button
-                __self="[object Object]"
-                __source="[object Object]"
                 class="msg button"
                 data-tooltip="Remove selected entries"
                 id="buttonRemoveEntry"
                 tabindex="0"
               >
-                <div
-                  __self="[object Object]"
-                  __source="[object Object]"
+                <span
                   class="msg icon"
                   data-tooltip="inherit"
                   style="mask-image: url(remove.svg);"
@@ -1582,30 +1188,22 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
           </div>
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
         >
           <div
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg grid upDown valueEditor"
             id="upDown"
             step="1"
-            style="grid-template-columns: auto 16px;"
+            style="grid-template-columns: auto 16px; --item-height: 0px;"
             value="12345"
           >
             <div
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg container fixedScrollbar gridCell"
               id="content"
               style="flex-direction: row; grid-row: span 2;"
             >
               <input
-                __self="[object Object]"
-                __source="[object Object]"
                 class="msg input"
                 spellcheck="true"
                 style="text-align: end;"
@@ -1613,28 +1211,20 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
               />
             </div>
             <div
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg container fixedScrollbar gridCell"
               style="flex-direction: row;"
             >
               <button
-                __self="[object Object]"
-                __source="[object Object]"
                 class="msg button"
                 id="up"
                 tabindex="-1"
               />
             </div>
             <div
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg container fixedScrollbar gridCell"
               style="flex-direction: row;"
             >
               <button
-                __self="[object Object]"
-                __source="[object Object]"
                 class="msg button"
                 id="down"
                 tabindex="-1"
@@ -1643,28 +1233,20 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
           </div>
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
         >
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label valueTitle"
             data-tooltip="expand"
           >
             Give Me Text
           </label>
           <div
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg container fixedScrollbar inputWithProgress"
             style="flex-direction: row;"
           >
             <input
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg input valueEditor"
               id="input"
               spellcheck="true"
@@ -1673,47 +1255,33 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
           </div>
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
         >
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label valueTitle"
             data-tooltip="expand"
           >
             Wait For Me
           </label>
           <div
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg container fixedScrollbar inputWithProgress"
             style="flex-direction: row;"
           >
             <input
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg input valueEditor"
               id="loadingInput"
               spellcheck="true"
               type="text"
             />
             <div
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg container fixedScrollbar progressIndicatorHost"
-              style="flex-direction: column; justify-content: center; align-items: center; opacity: 0.95;"
+              style="flex-direction: column; justify-content: center; align-items: center; opacity: 0.95; --position: 0; --width: 40; --height: 7; --strokeWidth: 5;"
             >
               <div
-                __self="[object Object]"
-                __source="[object Object]"
                 class="linearBackground"
               >
                 <div
-                  __self="[object Object]"
-                  __source="[object Object]"
                   class="linear animated"
                 />
               </div>
@@ -1721,48 +1289,34 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
           </div>
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-row: span 6; grid-column: span 4;"
         >
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label valueTitle"
             data-tooltip="expand"
           >
             Routine Parameters:
           </label>
           <div
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg treeGrid verticalGrid relationalList"
           />
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
         >
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label valueTitle"
             data-tooltip="expand"
           >
             Name
           </label>
           <div
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg container fixedScrollbar inputWithProgress"
             style="flex-direction: row;"
           >
             <input
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg input valueEditor"
               id="testRelation.title"
               spellcheck="true"
@@ -1771,28 +1325,20 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
           </div>
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
         >
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label valueTitle"
             data-tooltip="expand"
           >
             Parameter 1
           </label>
           <div
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg container fixedScrollbar inputWithProgress"
             style="flex-direction: row;"
           >
             <input
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg input valueEditor"
               id="testRelation.param1"
               spellcheck="true"
@@ -1801,51 +1347,35 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
           </div>
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
         />
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
         />
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
         />
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
         />
       </div>
     </div>
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="footer verticalCenterContent"
     >
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg container fixedScrollbar leftItems"
         style="flex-direction: row;"
       />
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg container fixedScrollbar rightItems"
         style="flex-direction: row-reverse;"
       >
         <button
-          __self="[object Object]"
-          __source="[object Object]"
           caption="OK"
           class="msg button"
           id="ok"
@@ -1854,8 +1384,6 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
           OK
         </button>
         <button
-          __self="[object Object]"
-          __source="[object Object]"
           caption="Cancel"
           class="msg button"
           id="cancel"
@@ -1871,83 +1399,58 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
 
 exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
 <div
-  __self="[object Object]"
-  __source="[object Object]"
   class="msg portal"
   id="testDialog"
+  style="--background-opacity: 0.5;"
 >
   <div
-    __self="[object Object]"
-    __source="[object Object]"
     class="msg dialog visible valueEditDialog"
   >
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="title verticalCenterContent"
     >
-      <div
-        __self="[object Object]"
-        __source="[object Object]"
+      <span
         class="msg icon codicon codicon-terminal"
       />
       <label
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg label"
         data-tooltip="expand"
       >
         Select Value
       </label>
       <button
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg button imageOnly"
         id="closeButton"
         tabindex="0"
       >
-        <div
-          __self="[object Object]"
-          __source="[object Object]"
+        <span
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
       </button>
     </div>
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="content fixedScrollbar"
     >
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg grid"
         style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
       >
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
         >
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label valueTitle"
             data-tooltip="expand"
           >
             input
           </label>
           <div
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg container fixedScrollbar inputWithProgress"
             style="flex-direction: row;"
           >
             <input
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg input valueEditor"
               id="input"
               spellcheck="true"
@@ -1956,14 +1459,10 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
           </div>
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: row; grid-column: span 8;"
         >
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label sectionTitle"
             data-tooltip="expand"
           >
@@ -1971,22 +1470,16 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
           </label>
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
         >
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label valueTitle"
             data-tooltip="expand"
           >
             A caption for the section
           </label>
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label description"
             data-tooltip="expand"
           >
@@ -1994,65 +1487,47 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
           </label>
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
         >
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label valueTitle"
             data-tooltip="expand"
           >
             Activate this
           </label>
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg checkbox unchecked valueEditor"
             id="yesNo"
             tabindex="0"
           >
             <span
-              __self="[object Object]"
-              __source="[object Object]"
               class="checkMark"
             />
             Activate this
           </label>
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
         >
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label valueTitle"
             data-tooltip="expand"
           >
             Pick File
           </label>
           <div
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg container fixedScrollbar fileSelector valueEditor"
             style="flex-direction: row;"
           >
             <input
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg input"
               id="file"
               spellcheck="true"
               type="text"
             />
             <button
-              __self="[object Object]"
-              __source="[object Object]"
               caption="..."
               class="msg button"
               id="fileBtn"
@@ -2063,31 +1538,22 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
           </div>
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
         >
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label valueTitle"
             data-tooltip="expand"
           >
             Select One
           </label>
           <div
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg container fixedScrollbar dropdown valueEditor"
             id="selectOne"
-            selection="One"
             style="flex-direction: row; align-items: center;"
             tabindex="0"
           >
             <label
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg label ellipsis"
               data-tooltip="expand"
             >
@@ -2096,22 +1562,16 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
           </div>
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
         >
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label valueTitle"
             data-tooltip="expand"
           >
             Do it!
           </label>
           <button
-            __self="[object Object]"
-            __source="[object Object]"
             caption="Do it!"
             class="msg button valueEditor"
             id="clickMe"
@@ -2121,70 +1581,50 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
           </button>
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
         >
           <div
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg treeGrid dynamicList"
             id="listMe"
           />
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
         >
           <div
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg container fixedScrollbar matrixContainer"
             style="flex-direction: row;"
           >
             <div
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg treeGrid verticalGrid"
               id="valueGrid"
             />
             <div
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg container fixedScrollbar"
               id="matrixActions"
               style="flex-direction: row;"
             >
               <button
-                __self="[object Object]"
-                __source="[object Object]"
                 class="msg button"
                 data-tooltip="Add new property entry"
                 id="buttonAddEntry"
                 tabindex="0"
               >
-                <div
-                  __self="[object Object]"
-                  __source="[object Object]"
+                <span
                   class="msg icon"
                   data-tooltip="inherit"
                   style="mask-image: url(add.svg);"
                 />
               </button>
               <button
-                __self="[object Object]"
-                __source="[object Object]"
                 class="msg button"
                 data-tooltip="Remove selected entries"
                 id="buttonRemoveEntry"
                 tabindex="0"
               >
-                <div
-                  __self="[object Object]"
-                  __source="[object Object]"
+                <span
                   class="msg icon"
                   data-tooltip="inherit"
                   style="mask-image: url(remove.svg);"
@@ -2194,30 +1634,22 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
           </div>
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
         >
           <div
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg grid upDown valueEditor"
             id="upDown"
             step="1"
-            style="grid-template-columns: auto 16px;"
+            style="grid-template-columns: auto 16px; --item-height: 0px;"
             value="12345"
           >
             <div
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg container fixedScrollbar gridCell"
               id="content"
               style="flex-direction: row; grid-row: span 2;"
             >
               <input
-                __self="[object Object]"
-                __source="[object Object]"
                 class="msg input"
                 spellcheck="true"
                 style="text-align: end;"
@@ -2225,28 +1657,20 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
               />
             </div>
             <div
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg container fixedScrollbar gridCell"
               style="flex-direction: row;"
             >
               <button
-                __self="[object Object]"
-                __source="[object Object]"
                 class="msg button"
                 id="up"
                 tabindex="-1"
               />
             </div>
             <div
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg container fixedScrollbar gridCell"
               style="flex-direction: row;"
             >
               <button
-                __self="[object Object]"
-                __source="[object Object]"
                 class="msg button"
                 id="down"
                 tabindex="-1"
@@ -2255,28 +1679,20 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
           </div>
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
         >
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label valueTitle"
             data-tooltip="expand"
           >
             Give Me Text
           </label>
           <div
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg container fixedScrollbar inputWithProgress"
             style="flex-direction: row;"
           >
             <input
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg input valueEditor"
               id="input"
               spellcheck="true"
@@ -2285,47 +1701,33 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
           </div>
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
         >
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label valueTitle"
             data-tooltip="expand"
           >
             Wait For Me
           </label>
           <div
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg container fixedScrollbar inputWithProgress"
             style="flex-direction: row;"
           >
             <input
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg input valueEditor"
               id="loadingInput"
               spellcheck="true"
               type="text"
             />
             <div
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg container fixedScrollbar progressIndicatorHost"
-              style="flex-direction: column; justify-content: center; align-items: center; opacity: 0.95;"
+              style="flex-direction: column; justify-content: center; align-items: center; opacity: 0.95; --position: 0; --width: 40; --height: 7; --strokeWidth: 5;"
             >
               <div
-                __self="[object Object]"
-                __source="[object Object]"
                 class="linearBackground"
               >
                 <div
-                  __self="[object Object]"
-                  __source="[object Object]"
                   class="linear animated"
                 />
               </div>
@@ -2333,48 +1735,34 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
           </div>
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-row: span 6; grid-column: span 4;"
         >
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label valueTitle"
             data-tooltip="expand"
           >
             Routine Parameters:
           </label>
           <div
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg treeGrid verticalGrid relationalList"
           />
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
         >
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label valueTitle"
             data-tooltip="expand"
           >
             Name
           </label>
           <div
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg container fixedScrollbar inputWithProgress"
             style="flex-direction: row;"
           >
             <input
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg input valueEditor"
               id="testRelation.title"
               spellcheck="true"
@@ -2383,28 +1771,20 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
           </div>
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
         >
           <label
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg label valueTitle"
             data-tooltip="expand"
           >
             Parameter 1
           </label>
           <div
-            __self="[object Object]"
-            __source="[object Object]"
             class="msg container fixedScrollbar inputWithProgress"
             style="flex-direction: row;"
           >
             <input
-              __self="[object Object]"
-              __source="[object Object]"
               class="msg input valueEditor"
               id="testRelation.param1"
               spellcheck="true"
@@ -2413,51 +1793,35 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
           </div>
         </div>
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
         />
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
         />
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
         />
         <div
-          __self="[object Object]"
-          __source="[object Object]"
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
         />
       </div>
     </div>
     <div
-      __self="[object Object]"
-      __source="[object Object]"
       class="footer verticalCenterContent"
     >
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg container fixedScrollbar leftItems"
         style="flex-direction: row;"
       />
       <div
-        __self="[object Object]"
-        __source="[object Object]"
         class="msg container fixedScrollbar rightItems"
         style="flex-direction: row-reverse;"
       >
         <button
-          __self="[object Object]"
-          __source="[object Object]"
           caption="OK"
           class="msg button"
           id="ok"
@@ -2466,8 +1830,6 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
           OK
         </button>
         <button
-          __self="[object Object]"
-          __source="[object Object]"
           caption="Cancel"
           class="msg button"
           id="cancel"

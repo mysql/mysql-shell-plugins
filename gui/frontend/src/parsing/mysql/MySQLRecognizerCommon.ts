@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,9 +21,15 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { RuleContext, Vocabulary, ParserRuleContext, Token } from "antlr4ts";
-import { ParseTree, TerminalNode, ErrorNode } from "antlr4ts/tree";
+
 import { Interval } from "antlr4ts/misc/Interval";
+import { ParserRuleContext } from "antlr4ts/ParserRuleContext";
+import { RuleContext } from "antlr4ts/RuleContext";
+import { Token } from "antlr4ts/Token";
+import { ErrorNode } from "antlr4ts/tree/ErrorNode";
+import { ParseTree } from "antlr4ts/tree/ParseTree";
+import { TerminalNode } from "antlr4ts/tree/TerminalNode";
+import { Vocabulary } from "antlr4ts/Vocabulary";
 
 import { TextLiteralContext, MySQLParser } from "./generated/MySQLParser";
 import { reservedMySQLKeywords, mysqlKeywords, MySQLVersion } from "./mysql-keywords";

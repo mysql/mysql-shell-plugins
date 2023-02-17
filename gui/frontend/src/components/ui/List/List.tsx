@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,13 +23,13 @@
 
 import "./List.css";
 
-import React from "react";
+import { cloneElement, ComponentChild, VNode } from "preact";
 
-import { Component, IComponentProperties } from "../Component/Component";
+import { ComponentBase, IComponentProperties } from "../Component/ComponentBase";
 
-export interface IListProperties extends IComponentProperties {
+interface IListProperties extends IComponentProperties {
     /** The UI structure to render for each element. */
-    template: React.ReactElement;
+    template: VNode;
 
     /** A list of objects with data to fill in. */
     elements: object[];
@@ -40,7 +40,7 @@ export interface IListProperties extends IComponentProperties {
  * ordered and unordered lists.
  * For a virtual list component see DynamicList.
  */
-export class List extends Component<IListProperties> {
+export class List extends ComponentBase<IListProperties> {
 
     public constructor(props: IListProperties) {
         super(props);
@@ -48,37 +48,32 @@ export class List extends Component<IListProperties> {
         this.addHandledProperties("template", "elements");
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { id, template, elements } = this.props;
 
-        // This type needs to be in pascal case for React to pick it up as custom class.
-        // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-explicit-any
-        const ElementType: any = this.renderAs("ul");
-        const isHTMLList = ElementType === "ul" || ElementType === "ol";
-
-        const content: React.ReactElement[] = [];
+        const content: ComponentChild[] = [];
         const baseId = (id as string) ?? "list";
         let index = 0;
         elements.forEach((element): void => {
             const elementId = `${baseId}${index++}`;
-            const child = React.cloneElement(template, {
+            const child = cloneElement(template, {
                 id: elementId,
                 key: elementId,
                 data: element,
             });
 
-            content.push(isHTMLList ? <li key={elementId}>{child}</li> : child);
+            content.push(<li key={elementId}>{child}</li>);
         });
 
         const className = this.getEffectiveClassNames(["list"]);
 
         return (
-            <ElementType
+            <ul
                 className={className}
                 {...this.unhandledProperties}
             >
                 {content}
-            </ElementType>
+            </ul>
         );
     }
 

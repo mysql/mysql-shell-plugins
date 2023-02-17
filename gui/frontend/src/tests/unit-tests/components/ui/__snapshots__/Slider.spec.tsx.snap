@@ -22,7 +22,7 @@ exports[`Slider component tests Standard Rendering 1`] = `
       <div
         className="msg container fixedScrollbar body"
         style={
-          Object {
+          {
             "alignItems": undefined,
             "flexDirection": "row",
             "flexWrap": undefined,
@@ -62,7 +62,7 @@ exports[`Slider component tests Value Change 1`] = `
       <div
         className="msg container fixedScrollbar body"
         style={
-          Object {
+          {
             "alignItems": undefined,
             "flexDirection": "row",
             "flexWrap": undefined,

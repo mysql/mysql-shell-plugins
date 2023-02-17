@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,26 +21,26 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
-import { render } from "preact";
+import { ComponentChild, createRef, render } from "preact";
 
-import { ResultStatus } from "../components/ResultView";
 import { ResultTabView } from "../components/ResultView/ResultTabView";
 import { CodeEditor } from "../components/ui/CodeEditor/CodeEditor";
 import {
     IExecutionResult, IGraphResult, IPresentationOptions, IResponseDataOptions, IResultSetRows, IResultSets,
-    ITextResult, LoadingState, SQLExecutionContext,
+    ITextResult, LoadingState,
 } from ".";
 import { DiagnosticSeverity, IDiagnosticEntry, TextSpan } from "../parsing/parser-common";
 import { Monaco } from "../components/ui/CodeEditor";
 import { ExecutionContext } from "./ExecutionContext";
 import { requisitions } from "../supplement/Requisitions";
-import { Container, Orientation } from "../components/ui";
 import { EditorLanguage } from "../supplement";
 
 import { GraphHost } from "../components/graphs/GraphHost";
 import { ActionOutput } from "../components/ResultView/ActionOutput";
 import { MessageType } from "../app-logic/Types";
+import { Container, Orientation } from "../components/ui/Container/Container";
+import { SQLExecutionContext } from "./SQLExecutionContext";
+import { ResultStatus } from "../components/ResultView/ResultStatus";
 
 /** Base class for handling of UI related elements like editor decorations and result display. */
 export class PresentationInterface {
@@ -103,7 +103,7 @@ export class PresentationInterface {
     private waitTimer: ReturnType<typeof setTimeout> | null;
 
     // Only set for result set data.
-    private resultRef = React.createRef<ResultTabView>();
+    private resultRef = createRef<ResultTabView>();
 
     public constructor(protected editor: CodeEditor | undefined, public language: EditorLanguage) {
         this.backend = editor?.backend;
@@ -706,7 +706,7 @@ export class PresentationInterface {
      *
      * @returns The separator node or undefined, if not used.
      */
-    protected get resultDivider(): React.ReactNode {
+    protected get resultDivider(): ComponentChild {
         return undefined;
     }
 
@@ -738,7 +738,7 @@ export class PresentationInterface {
             return;
         }
 
-        let element: React.ReactNode | undefined;
+        let element: ComponentChild | undefined;
         const contextId = this.context.id;
         switch (this.resultData.type) {
             case "text": {
@@ -869,4 +869,3 @@ export class PresentationInterface {
         }
     };
 }
-

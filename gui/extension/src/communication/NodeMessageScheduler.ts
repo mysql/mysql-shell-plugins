@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,5 +21,28 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-export * from "./Cookies";
+import { existsSync, readFileSync } from "fs";
+import { join } from "path";
+import { default as NodeWebSocket } from "ws";
 
+import { IConnectionOptions, MessageScheduler } from "../../../frontend/src/communication/MessageScheduler";
+
+/** An extended message scheduler for tasks only used in the extension. */
+export class NodeMessageScheduler extends MessageScheduler {
+    protected static createInstance(): MessageScheduler {
+        return new NodeMessageScheduler();
+    }
+
+    protected createWebSocket(options: IConnectionOptions): WebSocket {
+        let ca;
+        if (options.shellConfigDir) {
+            const caFile = join(options.shellConfigDir, "plugin_data/gui_plugin/web_certs/rootCA.crt");
+
+            if (existsSync(caFile)) {
+                ca = readFileSync(caFile);
+            }
+        }
+
+        return new NodeWebSocket(options.url.toString(), { ca }) as unknown as WebSocket;
+    }
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -20,6 +20,7 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 import { Misc, driver, explicitWait } from "../../lib/misc";
 import { By, until } from "selenium-webdriver";
 import { ThemeEditor } from "../../lib/themeEditor";
@@ -41,7 +42,7 @@ describe("Main pages", () => {
     afterEach(async () => {
         if (testFailed) {
             testFailed = false;
-            await Misc.processFailure();
+            await Misc.storeScreenShot();
         }
     });
 
@@ -364,13 +365,11 @@ describe("Main pages", () => {
                 (await driver.findElements(By.id("themeSelectorContainer"))).length,
             ).toBe(1);
 
-            const themeEditorLabels = await driver.findElements(
-                By.css(".themeEditor .gridCell h2"),
-            );
+            const themeEditorLabels = await driver.findElements(By.css("#themeSelectorContainer .gridCell label"));
 
             expect(await themeEditorLabels[0].getText()).toBe("Theme");
 
-            expect(await themeEditorLabels[1].getText()).toBe("Color Pad");
+            expect(await themeEditorLabels[2].getText()).toBe("Color Pad");
 
             expect((await driver.findElements(By.id("colorPadCell"))).length).toBe(1);
 
@@ -422,11 +421,13 @@ describe("Main pages", () => {
 
             expect(await themePreviewLabels[15].getText()).toBe("Menu + Menubar");
 
-            expect(await themePreviewLabels[16].getText()).toBe("Terminal");
+            expect(await themePreviewLabels[16].getText()).toBe("Terminal Colors");
 
-            expect(await themePreviewLabels[17].getText()).toBe("Breadcrumb");
+            expect(await themePreviewLabels[17].getText()).toBe("ANSI Escapes Output Rendering");
 
-            expect(await themePreviewLabels[18].getText()).toBe("Symbols");
+            expect(await themePreviewLabels[18].getText()).toBe("Breadcrumb");
+
+            expect(await themePreviewLabels[19].getText()).toBe("Symbols");
         } catch (e) {
             testFailed = true;
             throw e;

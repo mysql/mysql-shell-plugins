@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,16 +22,15 @@
  */
 
 import {
-    languages, Position, ProviderResult, CompletionList, CompletionItem, IRange,
+    languages, Position, ProviderResult, CompletionList, CompletionItem, IRange, IProviderEditorModel, CodeEditorMode,
 } from ".";
 import { ScriptingLanguageServices } from "../../../script-execution/ScriptingLanguageServices";
-import { CodeEditorMode, ICodeEditorModel } from "./CodeEditor";
 
 export class CodeCompletionProvider implements languages.CompletionItemProvider {
 
     public readonly triggerCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.\\@(".split("");
 
-    public provideCompletionItems(model: ICodeEditorModel, position: Position): ProviderResult<CompletionList> {
+    public provideCompletionItems(model: IProviderEditorModel, position: Position): ProviderResult<CompletionList> {
 
         const services = ScriptingLanguageServices.instance;
         const sourceContext = model.executionContexts.contextFromPosition(position);

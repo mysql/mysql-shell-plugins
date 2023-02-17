@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,20 +23,17 @@
 
 import icon from "../../../../assets/images/modules/module-cluster.svg";
 
+import { createRef } from "preact";
 import { mount } from "enzyme";
-import React from "react";
 
 import { InnoDBClusterModule } from "../../../../modules/innodb-cluster/InnoDBClusterModule";
-import { IModuleProperties } from "../../../../modules/ModuleBase";
 import { InnoDBClusterModuleId } from "../../../../modules/ModuleInfo";
-import { snapshotFromWrapper } from "../../test-helpers";
-
 
 describe("InnoDb cluster module tests", (): void => {
 
     it("Test InnoDBClusterModule instantiation", () => {
-        const innerRef = React.createRef<HTMLButtonElement>();
-        const component = mount<IModuleProperties>(
+        const innerRef = createRef<HTMLDivElement>();
+        const component = mount<InnoDBClusterModule>(
             <InnoDBClusterModule
                 innerRef={innerRef}
             />,
@@ -48,7 +45,7 @@ describe("InnoDb cluster module tests", (): void => {
             caption: "InnoDB",
             icon,
         });
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
         component.unmount();
     });
 

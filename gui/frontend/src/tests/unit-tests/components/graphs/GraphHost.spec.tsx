@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,10 +22,8 @@
  */
 
 import { mount } from "enzyme";
-import React from "react";
 
 import { GraphHost } from "../../../../components/graphs/GraphHost";
-import { snapshotFromWrapper } from "../../test-helpers";
 
 describe("GraphHost Tests", () => {
     it("Base Rendering", () => {
@@ -35,7 +33,7 @@ describe("GraphHost Tests", () => {
             />,
         );
 
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
         component.unmount();
     });
 
@@ -63,7 +61,7 @@ describe("GraphHost Tests", () => {
             />,
         );
 
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
 
         // Update with local color palettes.
         component.setProps({

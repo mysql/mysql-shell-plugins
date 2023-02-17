@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,21 +24,21 @@
 import settingIcon from "../assets/images/settings.svg";
 import debuggerIcon from "../assets/images/debugger.svg";
 
-import React from "react";
+import { ComponentChild, createElement, createRef } from "preact";
 
 import { webSession } from "../supplement/WebSession";
 import { appParameters, requisitions } from "../supplement/Requisitions";
-
-import {
-    ActivityBar, ActivityBarItem, Component, Container, IActivityBarItemProperties, IComponentProperties,
-    ISplitterPaneSizeInfo, Orientation, SplitContainer,
-} from "../components/ui";
 
 import { ModuleRegistry } from "../modules/ModuleRegistry";
 import { SettingsEditor } from "../components/SettingsEditor/SettingsEditor";
 import { DialogHost } from "./DialogHost";
 
 import { CommunicationDebugger } from "../components/CommunicationDebugger/CommunicationDebugger";
+import { ActivityBar } from "../components/ui/ActivityBar/ActivityBar";
+import { ActivityBarItem, IActivityBarItemProperties } from "../components/ui/ActivityBar/ActivityBarItem";
+import { IComponentProperties, ComponentBase } from "../components/ui/Component/ComponentBase";
+import { Orientation, Container } from "../components/ui/Container/Container";
+import { SplitContainer, ISplitterPaneSizeInfo } from "../components/ui/SplitContainer/SplitContainer";
 
 interface IApplicationHostProperties extends IComponentProperties {
     toggleOptions: () => void;
@@ -54,10 +54,10 @@ interface IApplicationHostState {
     debuggerMaximized: boolean;
 }
 
-export class ApplicationHost extends Component<IApplicationHostProperties, IApplicationHostState> {
+export class ApplicationHost extends ComponentBase<IApplicationHostProperties, IApplicationHostState> {
     private lastEmbeddedDebuggerSplitPosition = 500;
 
-    private loadedModules = new Map<string, [React.ReactElement, React.RefObject<HTMLElement>]>();
+    private loadedModules = new Map<string, [ComponentChild, preact.RefObject<HTMLElement>]>();
 
     public constructor(props: IApplicationHostProperties) {
         super(props);
@@ -101,11 +101,11 @@ export class ApplicationHost extends Component<IApplicationHostProperties, IAppl
         }
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { activeModule, settingsVisible, settingsPage, debuggerVisible, debuggerMaximized } = this.state;
 
         const activityBarEntries: unknown[] = [];
-        const pages: React.ReactNode[] = [];
+        const pages: ComponentChild[] = [];
 
         // Mark an item only if the debugger or the settings are not shown full screen.
         const markModuleItem = !settingsVisible && (!debuggerVisible || !debuggerMaximized);
@@ -129,8 +129,8 @@ export class ApplicationHost extends Component<IApplicationHostProperties, IAppl
                 pages.push(info[0]);
             } else if (isActiveModule) {
                 // Create the page if it doesn't exist yet, but was made the active page.
-                const innerRef = React.createRef<HTMLElement>();
-                const element = React.createElement(module.moduleClass, { innerRef, key: id });
+                const innerRef = createRef<HTMLElement>();
+                const element = createElement(module.moduleClass, { innerRef, key: id });
                 this.loadedModules.set(id, [element, innerRef]);
 
                 pages.push(element);
@@ -296,10 +296,12 @@ export class ApplicationHost extends Component<IApplicationHostProperties, IAppl
         });
     }
 
-    private embeddedDebuggerSplitterResize = (first: ISplitterPaneSizeInfo): void => {
-        if (first.paneId === "appHostPane") {
-            this.lastEmbeddedDebuggerSplitPosition = first.size;
-        }
+    private embeddedDebuggerSplitterResize = (info: ISplitterPaneSizeInfo[]): void => {
+        info.forEach((value) => {
+            if (value.id === "appHostPane") {
+                this.lastEmbeddedDebuggerSplitPosition = value.currentSize;
+            }
+        });
     };
 
     private toggleDebuggerDisplayMode = (): void => {

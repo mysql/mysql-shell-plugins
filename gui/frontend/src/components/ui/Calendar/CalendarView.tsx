@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,19 +21,23 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
+import { ComponentChild } from "preact";
+import { Button } from "../Button/Button";
 
-import { Component, IComponentProperties, Grid, GridCell, Button, Label } from "..";
+import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
 import { ContentAlignment } from "../Container/Container";
+import { Grid } from "../Grid/Grid";
+import { GridCell } from "../Grid/GridCell";
+import { Label } from "../Label/Label";
 
-export interface ICalendarViewProperties extends IComponentProperties {
+interface ICalendarViewProperties extends IComponentProperties {
     date: Date;
 
     onSelect?: (date: Date, props: ICalendarViewProperties) => void;
     onChangeMonth?: (inc: boolean) => void;
 }
 
-export class CalendarView extends Component<ICalendarViewProperties> {
+export class CalendarView extends ComponentBase<ICalendarViewProperties> {
 
     private dayNames: string[] = [];
 
@@ -47,7 +51,7 @@ export class CalendarView extends Component<ICalendarViewProperties> {
         }
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { date } = this.mergedProps;
         const className = this.getEffectiveClassNames(["calendarView"]);
 
@@ -144,12 +148,12 @@ export class CalendarView extends Component<ICalendarViewProperties> {
         );
     }
 
-    private handleMonthSwitch = (e: React.SyntheticEvent, props: IComponentProperties): void => {
+    private handleMonthSwitch = (e: MouseEvent | KeyboardEvent, props: IComponentProperties): void => {
         const { onChangeMonth } = this.mergedProps;
         onChangeMonth?.(props.id === "nextMonthButton");
     };
 
-    private handleDayClick = (e: React.SyntheticEvent): void => {
+    private handleDayClick = (e: MouseEvent | KeyboardEvent): void => {
         const day = parseInt((e.target as HTMLElement).innerText, 10);
         const { date, onSelect } = this.mergedProps;
         onSelect?.(new Date(date.getFullYear(), date.getMonth(), day), this.mergedProps);

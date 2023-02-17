@@ -25,7 +25,8 @@ htmlcov
 frontend/build
 frontend/src/oci-typings
 **/generated
-**/output
+**/out
+frontend/.rollup.cache
 
 # misc
 .env.local
@@ -60,6 +61,7 @@ extension/src/e2e/**/*.js
 extension/mochawesome-report
 extension/tests/e2e/screenshots
 extension/tests/e2e/test-resources
+extension/tests/e2e/output
 
 # frontend testing
 frontend/coverage

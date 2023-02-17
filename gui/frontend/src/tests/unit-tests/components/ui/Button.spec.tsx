@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,14 +23,16 @@
 
 import image from "../../../../assets/images/close.svg";
 
-import React from "react";
 import { mount, shallow } from "enzyme";
 import { act } from "preact/test-utils";
+import { createRef } from "preact";
 
-import { Button, Image, Container, Orientation, ComponentSize, IButtonProperties } from "../../../../components/ui";
 import { requisitions } from "../../../../supplement/Requisitions";
-import { eventMock } from "../../__mocks__/MockEvents";
-import { snapshotFromWrapper } from "../../test-helpers";
+import { mouseEventMock } from "../../__mocks__/MockEvents";
+import { Button, IButtonProperties } from "../../../../components/ui/Button/Button";
+import { ComponentSize } from "../../../../components/ui/Component/ComponentBase";
+import { Image } from "../../../../components/ui/Image/Image";
+import { Container, Orientation } from "../../../../components/ui/Container/Container";
 
 let clicked = false;
 
@@ -44,8 +46,8 @@ const requestButtonClick = (): Promise<boolean> => {
     return Promise.resolve(true);
 };
 
-const sleepAsync = (callback: (flag: boolean) => void): ReturnType<typeof setImmediate> => {
-    return setImmediate(() => { callback(clicked); });
+const sleepAsync = (callback: (flag: boolean) => void): ReturnType<typeof setTimeout> => {
+    return setTimeout(() => { callback(clicked); }, 0);
 };
 
 describe("Button component tests", (): void => {
@@ -69,7 +71,7 @@ describe("Button component tests", (): void => {
 
         const click = (component.props() as IButtonProperties).onClick;
         await act(() => {
-            click?.(eventMock, { id: "1" });
+            click?.(mouseEventMock, { id: "1" });
         });
 
         expect(clicked).toEqual(true);
@@ -87,7 +89,7 @@ describe("Button component tests", (): void => {
         expect(clicked).toEqual(false);
         const click = (component.props() as IButtonProperties).onClick;
         void act(() => {
-            return click?.(eventMock, { id: "1" });
+            return click?.(mouseEventMock, { id: "1" });
         }).then(() => {
             sleepAsync((result: boolean) => {
                 expect(result).toEqual(true);
@@ -97,7 +99,7 @@ describe("Button component tests", (): void => {
     });
 
     it("Test button click", async () => {
-        const innerRef = React.createRef<HTMLButtonElement>();
+        const innerRef = createRef<HTMLButtonElement>();
         const component = mount(
             <Button innerRef={innerRef} onClick={buttonClick}>
                 Test button
@@ -111,13 +113,13 @@ describe("Button component tests", (): void => {
 
         const click = (component.props() as IButtonProperties).onClick;
         await act(() => {
-            click?.(eventMock, { id: "1" });
+            click?.(mouseEventMock, { id: "1" });
         });
         expect(clicked).toEqual(true);
 
         const onMouseDown = (component.props() as IButtonProperties).onMouseDown;
         await act(() => {
-            onMouseDown?.(eventMock as React.MouseEvent, { id: "1" });
+            onMouseDown?.(mouseEventMock, { id: "1" });
         });
         expect(innerRef.current).not.toEqual(document.activeElement);
 
@@ -153,7 +155,8 @@ describe("Button component tests", (): void => {
                 </Container>
             </div>,
         );
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+
+        expect(component).toMatchSnapshot();
 
         component.unmount();
     });

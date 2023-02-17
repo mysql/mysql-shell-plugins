@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,10 +23,10 @@
 
 import { IDictionary } from "../../../../app-logic/Types";
 import { MySQLConnectionScheme } from "../../../../communication/MySQL";
-import { IShellPromptValues } from "../../../../communication/";
-import {
-    DBType, IConnectionDetails, ShellInterface, ShellInterfaceShellSession,
-} from "../../../../supplement/ShellInterface";
+import { IShellPromptValues } from "../../../../communication/ProtocolGui";
+import { DBType, IConnectionDetails } from "../../../../supplement/ShellInterface";
+import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface";
+import { ShellInterfaceShellSession } from "../../../../supplement/ShellInterface/ShellInterfaceShellSession";
 import { webSession } from "../../../../supplement/WebSession";
 import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher";
 import { getDbCredentials, ITestDbCredentials, setupShellForTests } from "../../test-helpers";

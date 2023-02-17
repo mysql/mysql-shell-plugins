@@ -597,7 +597,7 @@ export class Database {
                 }
 
 
-                const content = await resultHost[0].findElements(By.css(".actionOutput .label"));
+                const content = await resultHost[0].findElements(By.css(".actionLabel span"));
                 if (content.length) {
                     toReturn.push(await content[0].getAttribute("innerHTML"));
 

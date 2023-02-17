@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,6 +23,8 @@
 
 import ts from "typescript";
 import { IRange } from "monaco-editor";
+import { toChildArray, VNode } from "preact";
+
 import { ITextRange } from "../supplement";
 
 /**
@@ -52,4 +54,17 @@ export const editorRangeToTextRange = (value: IRange): ITextRange => {
         endLine: value.endLineNumber,
         endColumn: value.endColumn,
     };
+};
+
+/**
+ * Examines a preact `children` structure and returns a list of only VNode elements.
+ *
+ * @param children The `children` field of a preact component.
+ *
+ * @returns The list of found VNodes.
+ */
+export const collectVNodes = <T>(children: preact.ComponentChildren): Array<VNode<T>> => {
+    return toChildArray(children).filter((child) => {
+        return (child as VNode).type !== undefined;
+    }) as Array<VNode<T>>;
 };

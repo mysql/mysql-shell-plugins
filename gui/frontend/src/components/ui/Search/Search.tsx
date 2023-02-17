@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,10 +23,15 @@
 
 import "./Search.css";
 
-import * as React from "react";
+import { ComponentChild, createRef } from "preact";
 
-import { Component, IComponentProperties } from "../Component/Component";
-import { Input, Container, Orientation, Button, Label, Codicon, Icon } from "..";
+import { ComponentBase, IComponentProperties } from "../Component/ComponentBase";
+import { Codicon } from "../Codicon";
+import { Container, Orientation } from "../Container/Container";
+import { Icon } from "../Icon/Icon";
+import { Input } from "../Input/Input";
+import { Label } from "../Label/Label";
+import { Button } from "../Button/Button";
 
 // Input and output structure for search data.
 export interface ISearchValues {
@@ -50,13 +55,13 @@ export interface ISearchProperties extends IComponentProperties {
 
     values?: ISearchValues;
 
-    onChange?: (e: React.SyntheticEvent, props: ISearchProperties, result: ISearchValues) => void;
-    onConfirm?: (e: React.SyntheticEvent, props: ISearchProperties, result: ISearchValues) => void;
+    onChange?: (e: UIEvent, props: ISearchProperties, result: ISearchValues) => void;
+    onConfirm?: (e: UIEvent, props: ISearchProperties, result: ISearchValues) => void;
 }
 
-export class Search extends Component<ISearchProperties> {
+export class Search extends ComponentBase<ISearchProperties> {
 
-    private inputRef = React.createRef<HTMLInputElement>();
+    private inputRef = createRef<HTMLInputElement>();
 
     public constructor(props: ISearchProperties) {
         super(props);
@@ -71,7 +76,7 @@ export class Search extends Component<ISearchProperties> {
         }
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { placeholder = "Search", values, autoFocus, result, buttons } = this.mergedProps;
         const className = this.getEffectiveClassNames(["search"]);
 
@@ -146,7 +151,7 @@ export class Search extends Component<ISearchProperties> {
         );
     }
 
-    private handleChange = (e: React.SyntheticEvent): void => {
+    private handleChange = (e: InputEvent): void => {
         const { values } = this.mergedProps;
 
         const value = (e.target as HTMLInputElement).value;
@@ -158,42 +163,44 @@ export class Search extends Component<ISearchProperties> {
         });
     };
 
-    private handleConfirm = (e: React.SyntheticEvent): void => {
+    private handleConfirm = (e: KeyboardEvent): void => {
         this.sendChange(e);
     };
 
-    private handleButtonClick = (e: React.SyntheticEvent): void => {
+    private handleButtonClick = (e: MouseEvent | KeyboardEvent): void => {
         const { values } = this.mergedProps;
 
-        switch (e.currentTarget.id) {
-            case "toggleCase": {
-                this.sendChange(e, { matchCase: !(values?.matchCase ?? false) });
-                break;
-            }
+        if (e.currentTarget && "id" in e.currentTarget) {
+            switch (e.currentTarget?.id) {
+                case "toggleCase": {
+                    this.sendChange(e, { matchCase: !(values?.matchCase ?? false) });
+                    break;
+                }
 
-            case "toggleWhole": {
-                this.sendChange(e, { matchWholeWord: !(values?.matchWholeWord ?? false) });
-                break;
-            }
+                case "toggleWhole": {
+                    this.sendChange(e, { matchWholeWord: !(values?.matchWholeWord ?? false) });
+                    break;
+                }
 
-            case "toggleRegExp": {
-                this.sendChange(e, { useRegExp: !(values?.useRegExp ?? false) });
-                break;
-            }
+                case "toggleRegExp": {
+                    this.sendChange(e, { useRegExp: !(values?.useRegExp ?? false) });
+                    break;
+                }
 
-            case "clearAll": {
-                this.sendChange(e, { value: "" });
+                case "clearAll": {
+                    this.sendChange(e, { value: "" });
 
-                break;
-            }
+                    break;
+                }
 
-            default: {
-                break;
+                default: {
+                    break;
+                }
             }
         }
     };
 
-    private sendChange = (e: React.SyntheticEvent, change?: ISearchValues): void => {
+    private sendChange = (e: UIEvent, change?: ISearchValues): void => {
         const { values, onChange, onConfirm } = this.mergedProps;
 
         if (change) {

@@ -11,9 +11,9 @@
             ],
             "sourceMaps": true,
             "outFiles": [
-                "${workspaceRoot}/extension/output/**/*.js"
+                "${workspaceFolder}/out/**/*.js"
             ],
-            "preLaunchTask": "tsc: extension",
+            "preLaunchTask": "Build Extension",
             "trace": false,
             "smartStep": true,
         },
@@ -46,12 +46,12 @@
             "runtimeExecutable": "${execPath}",
             "args": [
                 "--extensionDevelopmentPath=${workspaceFolder}",
-                "--extensionTestsPath=${workspaceFolder}/output/extension/src/test/suite/index"
+                "--extensionTestsPath=${workspaceFolder}/out/extension/src/test/suite/index"
             ],
             "outFiles": [
-                "${workspaceFolder}/output/extension/src/test/**/*.js"
+                "${workspaceFolder}/out/extension/src/test/**/*.js"
             ],
-            "preLaunchTask": "tsc: watch",
+            "preLaunchTask": "Build Extension",
             "env": {
                 "NODE_ENV": "test"
             }

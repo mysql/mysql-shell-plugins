@@ -3,8 +3,75 @@
 exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
 <DBEditorModule
   innerRef={
-    Object {
-      "current": Object {},
+    {
+      "current": <div
+        class="msg container fixedScrollbar tabview top dbModuleTabview moduleHost"
+        style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
+      >
+        <div
+          class="msg container fixedScrollbar selector horizontal tabArea"
+          style="flex-direction: row;"
+        >
+          <div
+            class="msg container fixedScrollbar selectorItem stepDown"
+            id="selectorItemstepDown"
+            style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+          />
+          <div
+            class="msg container fixedScrollbar selectorItem selected normal"
+            draggable="true"
+            id="progress"
+            style="flex-direction: row; justify-content: center; align-items: center;"
+          >
+            <span
+              class="msg icon"
+              data-tooltip="inherit"
+              style="mask-image: url(connections.svg);"
+            />
+            <label
+              class="msg label"
+              data-tooltip="inherit"
+            >
+              Open Connection
+            </label>
+          </div>
+          <div
+            class="msg container fixedScrollbar selectorItem stepUp"
+            id="selectorItemstepUp"
+            style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+          />
+        </div>
+        <div
+          class="msg container fixedScrollbar content"
+          style="flex-direction: column;"
+        >
+          <div
+            class="msg container fixedScrollbar progressIndicatorHost"
+            id="loadingProgressIndicator"
+            style="flex-direction: column; justify-content: center; align-items: center; opacity: 0.95; --position: 0; --width: 80; --height: 80; --strokeWidth: 5;"
+          >
+            <svg
+              class="circleBackground animated"
+            >
+              <circle
+                cx="37.5"
+                cy="37.5"
+                r="35"
+              />
+              <circle
+                cx="37.5"
+                cy="37.5"
+                r="35"
+              />
+            </svg>
+          </div>
+          <label
+            class="msg label"
+            data-tooltip="expand"
+            id="progressMessageId"
+          />
+        </div>
+      </div>,
     }
   }
 >
@@ -13,27 +80,93 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
     className="dbModuleTabview moduleHost"
     hideSingleTab={false}
     innerRef={
-      Object {
-        "current": Object {},
+      {
+        "current": <div
+          class="msg container fixedScrollbar tabview top dbModuleTabview moduleHost"
+          style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
+        >
+          <div
+            class="msg container fixedScrollbar selector horizontal tabArea"
+            style="flex-direction: row;"
+          >
+            <div
+              class="msg container fixedScrollbar selectorItem stepDown"
+              id="selectorItemstepDown"
+              style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+            />
+            <div
+              class="msg container fixedScrollbar selectorItem selected normal"
+              draggable="true"
+              id="progress"
+              style="flex-direction: row; justify-content: center; align-items: center;"
+            >
+              <span
+                class="msg icon"
+                data-tooltip="inherit"
+                style="mask-image: url(connections.svg);"
+              />
+              <label
+                class="msg label"
+                data-tooltip="inherit"
+              >
+                Open Connection
+              </label>
+            </div>
+            <div
+              class="msg container fixedScrollbar selectorItem stepUp"
+              id="selectorItemstepUp"
+              style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+            />
+          </div>
+          <div
+            class="msg container fixedScrollbar content"
+            style="flex-direction: column;"
+          >
+            <div
+              class="msg container fixedScrollbar progressIndicatorHost"
+              id="loadingProgressIndicator"
+              style="flex-direction: column; justify-content: center; align-items: center; opacity: 0.95; --position: 0; --width: 80; --height: 80; --strokeWidth: 5;"
+            >
+              <svg
+                class="circleBackground animated"
+              >
+                <circle
+                  cx="37.5"
+                  cy="37.5"
+                  r="35"
+                />
+                <circle
+                  cx="37.5"
+                  cy="37.5"
+                  r="35"
+                />
+              </svg>
+            </div>
+            <label
+              class="msg label"
+              data-tooltip="expand"
+              id="progressMessageId"
+            />
+          </div>
+        </div>,
       }
     }
     onSelectTab={[Function]}
     pages={
-      Array [
-        Object {
+      [
+        {
           "caption": "Open Connection",
-          "content": <y>
+          "content": <p>
             <ProgressIndicator
               backgroundOpacity={0.95}
               id="loadingProgressIndicator"
               linear={false}
             />
             <Label
-              as="h4"
               caption=""
               id="progressMessageId"
             />
-          </y>,
+          </p>,
           "icon": "connections.svg",
           "id": "progress",
         },
@@ -47,13 +180,80 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
     <Container
       className="msg tabview top dbModuleTabview moduleHost"
       innerRef={
-        Object {
-          "current": Object {},
+        {
+          "current": <div
+            class="msg container fixedScrollbar tabview top dbModuleTabview moduleHost"
+            style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
+          >
+            <div
+              class="msg container fixedScrollbar selector horizontal tabArea"
+              style="flex-direction: row;"
+            >
+              <div
+                class="msg container fixedScrollbar selectorItem stepDown"
+                id="selectorItemstepDown"
+                style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+              />
+              <div
+                class="msg container fixedScrollbar selectorItem selected normal"
+                draggable="true"
+                id="progress"
+                style="flex-direction: row; justify-content: center; align-items: center;"
+              >
+                <span
+                  class="msg icon"
+                  data-tooltip="inherit"
+                  style="mask-image: url(connections.svg);"
+                />
+                <label
+                  class="msg label"
+                  data-tooltip="inherit"
+                >
+                  Open Connection
+                </label>
+              </div>
+              <div
+                class="msg container fixedScrollbar selectorItem stepUp"
+                id="selectorItemstepUp"
+                style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+              />
+            </div>
+            <div
+              class="msg container fixedScrollbar content"
+              style="flex-direction: column;"
+            >
+              <div
+                class="msg container fixedScrollbar progressIndicatorHost"
+                id="loadingProgressIndicator"
+                style="flex-direction: column; justify-content: center; align-items: center; opacity: 0.95; --position: 0; --width: 80; --height: 80; --strokeWidth: 5;"
+              >
+                <svg
+                  class="circleBackground animated"
+                >
+                  <circle
+                    cx="37.5"
+                    cy="37.5"
+                    r="35"
+                  />
+                  <circle
+                    cx="37.5"
+                    cy="37.5"
+                    r="35"
+                  />
+                </svg>
+              </div>
+              <label
+                class="msg label"
+                data-tooltip="expand"
+                id="progressMessageId"
+              />
+            </div>
+          </div>,
         }
       }
       orientation="column"
       style={
-        Object {
+        {
           "--content-separator-width": "0px",
           "--tabItem-border-width": "0px",
         }
@@ -62,7 +262,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
       <div
         className="msg container fixedScrollbar tabview top dbModuleTabview moduleHost"
         style={
-          Object {
+          {
             "--content-separator-width": "0px",
             "--tabItem-border-width": "0px",
             "alignItems": undefined,
@@ -77,8 +277,8 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
           className="tabArea"
           entryOrientation="row"
           items={
-            Array [
-              Object {
+            [
+              {
                 "auxillary": undefined,
                 "canReorder": true,
                 "caption": "Open Connection",
@@ -97,16 +297,40 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
           <Container
             className="msg selector horizontal tabArea"
             innerRef={
-              Object {
-                "current": Object {
-                  "l": Object {
-                    "dragenterfalse": [Function],
-                    "dragleavefalse": [Function],
-                    "dragoverfalse": [Function],
-                    "dragstartfalse": [Function],
-                    "dropfalse": [Function],
-                  },
-                },
+              {
+                "current": <div
+                  class="msg container fixedScrollbar selector horizontal tabArea"
+                  style="flex-direction: row;"
+                >
+                  <div
+                    class="msg container fixedScrollbar selectorItem stepDown"
+                    id="selectorItemstepDown"
+                    style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+                  />
+                  <div
+                    class="msg container fixedScrollbar selectorItem selected normal"
+                    draggable="true"
+                    id="progress"
+                    style="flex-direction: row; justify-content: center; align-items: center;"
+                  >
+                    <span
+                      class="msg icon"
+                      data-tooltip="inherit"
+                      style="mask-image: url(connections.svg);"
+                    />
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      Open Connection
+                    </label>
+                  </div>
+                  <div
+                    class="msg container fixedScrollbar selectorItem stepUp"
+                    id="selectorItemstepUp"
+                    style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+                  />
+                </div>,
               }
             }
             onDragEnter={[Function]}
@@ -114,7 +338,6 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
             onDragOver={[Function]}
             onDragStart={[Function]}
             onDrop={[Function]}
-            onResize={[Function]}
             orientation="row"
           >
             <div
@@ -125,7 +348,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
               onDragStart={[Function]}
               onDrop={[Function]}
               style={
-                Object {
+                {
                   "alignItems": undefined,
                   "flexDirection": "row",
                   "flexWrap": undefined,
@@ -137,12 +360,12 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
                 disabled={false}
                 id="selectorItemstepDown"
                 innerRef={
-                  Object {
-                    "current": Object {
-                      "l": Object {
-                        "clickfalse": [Function],
-                      },
-                    },
+                  {
+                    "current": <div
+                      class="msg container fixedScrollbar selectorItem stepDown"
+                      id="selectorItemstepDown"
+                      style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+                    />,
                   }
                 }
                 onClick={[Function]}
@@ -154,12 +377,12 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
                   crossAlignment="center"
                   id="selectorItemstepDown"
                   innerRef={
-                    Object {
-                      "current": Object {
-                        "l": Object {
-                          "clickfalse": [Function],
-                        },
-                      },
+                    {
+                      "current": <div
+                        class="msg container fixedScrollbar selectorItem stepDown"
+                        id="selectorItemstepDown"
+                        style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+                      />,
                     }
                   }
                   mainAlignment="center"
@@ -171,7 +394,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
                     id="selectorItemstepDown"
                     onClick={[Function]}
                     style={
-                      Object {
+                      {
                         "alignItems": "center",
                         "flexDirection": "row",
                         "flexWrap": undefined,
@@ -188,17 +411,25 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
                 id="progress"
                 image="connections.svg"
                 innerRef={
-                  Object {
-                    "current": Object {
-                      "l": Object {
-                        "clickfalse": [Function],
-                        "dragenterfalse": [Function],
-                        "dragleavefalse": [Function],
-                        "dragoverfalse": [Function],
-                        "dragstartfalse": [Function],
-                        "dropfalse": [Function],
-                      },
-                    },
+                  {
+                    "current": <div
+                      class="msg container fixedScrollbar selectorItem selected normal"
+                      draggable="true"
+                      id="progress"
+                      style="flex-direction: row; justify-content: center; align-items: center;"
+                    >
+                      <span
+                        class="msg icon"
+                        data-tooltip="inherit"
+                        style="mask-image: url(connections.svg);"
+                      />
+                      <label
+                        class="msg label"
+                        data-tooltip="inherit"
+                      >
+                        Open Connection
+                      </label>
+                    </div>,
                   }
                 }
                 key="progress"
@@ -214,17 +445,25 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
                   draggable={true}
                   id="progress"
                   innerRef={
-                    Object {
-                      "current": Object {
-                        "l": Object {
-                          "clickfalse": [Function],
-                          "dragenterfalse": [Function],
-                          "dragleavefalse": [Function],
-                          "dragoverfalse": [Function],
-                          "dragstartfalse": [Function],
-                          "dropfalse": [Function],
-                        },
-                      },
+                    {
+                      "current": <div
+                        class="msg container fixedScrollbar selectorItem selected normal"
+                        draggable="true"
+                        id="progress"
+                        style="flex-direction: row; justify-content: center; align-items: center;"
+                      >
+                        <span
+                          class="msg icon"
+                          data-tooltip="inherit"
+                          style="mask-image: url(connections.svg);"
+                        />
+                        <label
+                          class="msg label"
+                          data-tooltip="inherit"
+                        >
+                          Open Connection
+                        </label>
+                      </div>,
                     }
                   }
                   mainAlignment="center"
@@ -247,7 +486,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
                     onDragStart={[Function]}
                     onDrop={[Function]}
                     style={
-                      Object {
+                      {
                         "alignItems": "center",
                         "flexDirection": "row",
                         "flexWrap": undefined,
@@ -260,11 +499,11 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
                       disabled={false}
                       src="connections.svg"
                     >
-                      <div
+                      <span
                         className="msg icon"
                         data-tooltip="inherit"
                         style={
-                          Object {
+                          {
                             "WebkitMaskImage": "url(connections.svg)",
                             "backgroundColor": undefined,
                             "height": undefined,
@@ -280,11 +519,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
                       <label
                         className="msg label"
                         data-tooltip="inherit"
-                        style={
-                          Object {
-                            "textAlign": undefined,
-                          }
-                        }
+                        style={{}}
                       >
                         Open Connection
                       </label>
@@ -296,12 +531,12 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
                 disabled={false}
                 id="selectorItemstepUp"
                 innerRef={
-                  Object {
-                    "current": Object {
-                      "l": Object {
-                        "clickfalse": [Function],
-                      },
-                    },
+                  {
+                    "current": <div
+                      class="msg container fixedScrollbar selectorItem stepUp"
+                      id="selectorItemstepUp"
+                      style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+                    />,
                   }
                 }
                 onClick={[Function]}
@@ -313,12 +548,12 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
                   crossAlignment="center"
                   id="selectorItemstepUp"
                   innerRef={
-                    Object {
-                      "current": Object {
-                        "l": Object {
-                          "clickfalse": [Function],
-                        },
-                      },
+                    {
+                      "current": <div
+                        class="msg container fixedScrollbar selectorItem stepUp"
+                        id="selectorItemstepUp"
+                        style="flex-direction: row; justify-content: center; align-items: center; display: none;"
+                      />,
                     }
                   }
                   mainAlignment="center"
@@ -330,7 +565,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
                     id="selectorItemstepUp"
                     onClick={[Function]}
                     style={
-                      Object {
+                      {
                         "alignItems": "center",
                         "flexDirection": "row",
                         "flexWrap": undefined,
@@ -346,15 +581,37 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
         <Container
           className="content"
           innerRef={
-            Object {
-              "current": Object {
-                "l": Object {
-                  "dragenterfalse": [Function],
-                  "dragleavefalse": [Function],
-                  "dragoverfalse": [Function],
-                  "dropfalse": [Function],
-                },
-              },
+            {
+              "current": <div
+                class="msg container fixedScrollbar content"
+                style="flex-direction: column;"
+              >
+                <div
+                  class="msg container fixedScrollbar progressIndicatorHost"
+                  id="loadingProgressIndicator"
+                  style="flex-direction: column; justify-content: center; align-items: center; opacity: 0.95; --position: 0; --width: 80; --height: 80; --strokeWidth: 5;"
+                >
+                  <svg
+                    class="circleBackground animated"
+                  >
+                    <circle
+                      cx="37.5"
+                      cy="37.5"
+                      r="35"
+                    />
+                    <circle
+                      cx="37.5"
+                      cy="37.5"
+                      r="35"
+                    />
+                  </svg>
+                </div>
+                <label
+                  class="msg label"
+                  data-tooltip="expand"
+                  id="progressMessageId"
+                />
+              </div>,
             }
           }
           onDragEnter={[Function]}
@@ -370,7 +627,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
             onDragOver={[Function]}
             onDrop={[Function]}
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "column",
                 "flexWrap": undefined,
@@ -390,7 +647,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
                 mainAlignment="center"
                 orientation="column"
                 style={
-                  Object {
+                  {
                     "--height": 80,
                     "--position": 0,
                     "--strokeWidth": 5,
@@ -403,7 +660,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
                   className="msg container fixedScrollbar progressIndicatorHost"
                   id="loadingProgressIndicator"
                   style={
-                    Object {
+                    {
                       "--height": 80,
                       "--position": 0,
                       "--strokeWidth": 5,
@@ -434,19 +691,14 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
               </Container>
             </ProgressIndicator>
             <Label
-              as="h4"
               caption=""
               id="progressMessageId"
             >
-              <h4
+              <label
                 className="msg label"
                 data-tooltip="expand"
                 id="progressMessageId"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               />
             </Label>
           </div>

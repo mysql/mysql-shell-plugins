@@ -5,8 +5,8 @@ exports[`Action Output Tests Action Full Rendering 1`] = `
   contextId="ec123"
   id="actionOutput1"
   output={
-    Array [
-      Object {
+    [
+      {
         "content": "Lorem ipsum dolor sit amet",
         "type": 0,
       },
@@ -17,7 +17,7 @@ exports[`Action Output Tests Action Full Rendering 1`] = `
   <div
     className="msg actionOutput"
     style={
-      Object {
+      {
         "display": "flex",
         "flexDirection": "column",
         "gap": "2px",
@@ -26,7 +26,7 @@ exports[`Action Output Tests Action Full Rendering 1`] = `
   >
     <div
       style={
-        Object {
+        {
           "display": "flex",
           "flexDirection": "row",
           "gap": "2px",
@@ -36,9 +36,10 @@ exports[`Action Output Tests Action Full Rendering 1`] = `
       <Label
         caption="Lorem ipsum dolor sit amet"
         className="actionLabel"
+        language="ansi"
         onClick={[Function]}
         style={
-          Object {
+          {
             "gridColumn": "span 2",
           }
         }
@@ -46,18 +47,25 @@ exports[`Action Output Tests Action Full Rendering 1`] = `
         type={0}
       >
         <label
-          className="msg label actionLabel"
+          className="msg resultText error actionLabel"
           data-tooltip="expand"
-          onClick={[Function]}
           style={
-            Object {
+            {
               "gridColumn": "span 2",
             }
           }
-          tabIndex={-1}
-          type={0}
         >
-          Lorem ipsum dolor sit amet
+          <span
+            className=""
+            style={
+              {
+                "backgroundColor": undefined,
+                "color": undefined,
+              }
+            }
+          >
+            Lorem ipsum dolor sit amet
+          </span>
         </label>
       </Label>
     </div>
@@ -68,15 +76,16 @@ exports[`Action Output Tests Action Full Rendering 1`] = `
 exports[`Action Output Tests Action Full Rendering 2`] = `
 HTMLCollection [
   <label
-    __self="[object Object]"
-    __source="[object Object]"
-    class="msg label actionLabel"
+    class="msg resultText response actionLabel"
     data-tooltip="expand"
+    id=""
     style="grid-column: span 2;"
-    tabindex="-1"
-    type="4"
   >
-    A simple response
+    <span
+      class=""
+    >
+      A simple response
+    </span>
   </label>,
 ]
 `;
@@ -84,13 +93,13 @@ HTMLCollection [
 exports[`Action Output Tests Standard Rendering 1`] = `
 <ActionOutput
   contextId="ec123"
-  output={Array []}
+  output={[]}
   showIndexes={false}
 >
   <div
     className="msg actionOutput"
     style={
-      Object {
+      {
         "display": "flex",
         "flexDirection": "column",
         "gap": "2px",

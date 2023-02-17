@@ -29,8 +29,7 @@ import {
 import { homedir } from "os";
 import { existsSync } from "fs";
 
-import { ICompartment } from "../../frontend/src/communication";
-import { ShellInterfaceShellSession } from "../../frontend/src/supplement/ShellInterface";
+import { ICompartment, IPortForwardingSessionTargetResourceDetails } from "../../frontend/src/communication";
 import { taskOutputChannel } from "./extension";
 
 import { ExtensionHost } from "./ExtensionHost";
@@ -47,7 +46,8 @@ import { DialogResponseClosure, DialogType, IDictionary } from "../../frontend/s
 import { DialogWebviewManager } from "./web-views/DialogWebviewProvider";
 import { ConnectionsTreeBaseItem } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeBaseItem";
 import { SchemaMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaMySQLTreeItem";
-import { IMdsProfileData } from "../../frontend/src/communication/";
+import { IMdsProfileData } from "../../frontend/src/communication/ProtocolMds";
+import { ShellInterfaceShellSession } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceShellSession";
 
 export class MDSCommandHandler {
     private dialogManager = new DialogWebviewManager();
@@ -489,16 +489,18 @@ export class MDSCommandHandler {
                             });
 
                         window.setStatusBarMessage("Bastion Session available, opening Terminal ...", 5000);
-                        if (session?.bastionId) {
+                        if (session?.bastionId && this.isPortForwardingData(session.targetResourceDetails)) {
                             const terminal = window.createTerminal(`Terminal ${item.name}`);
                             const sshHost = `${session.id}@host.bastion. ${item.profile.region}.oci.oraclecloud.com`;
                             const sshTargetIp = session.targetResourceDetails.targetResourcePrivateIpAddress;
                             if (sshTargetIp) {
                                 const sshTargetPort = session.targetResourceDetails.targetResourcePort;
-                                terminal.sendText(`ssh -o ProxyCommand="ssh -W %h:%p -p 22 ${sshHost}"` +
-                                    ` -p ${sshTargetPort} opc@${sshTargetIp}`);
-                                terminal.sendText("clear");
-                                terminal.show();
+                                if (sshTargetPort) {
+                                    terminal.sendText(`ssh -o ProxyCommand="ssh -W %h:%p -p 22 ${sshHost}"` +
+                                        ` -p ${sshTargetPort} opc@${sshTargetIp}`);
+                                    terminal.sendText("clear");
+                                    terminal.show();
+                                }
                             }
                         }
                     } catch (reason) {
@@ -719,5 +721,9 @@ export class MDSCommandHandler {
             await host.addNewShellTask("Load Data to HeatWave Cluster", shellArgs, connectionId);
             await window.showInformationMessage("The data load to the HeatWave cluster operation has finished.");
         }
+    }
+
+    private isPortForwardingData(candidate: unknown): candidate is IPortForwardingSessionTargetResourceDetails {
+        return (candidate as IPortForwardingSessionTargetResourceDetails).targetResourcePrivateIpAddress !== undefined;
     }
 }

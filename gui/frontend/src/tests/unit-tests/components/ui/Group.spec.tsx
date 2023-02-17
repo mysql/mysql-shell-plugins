@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,10 +22,8 @@
  */
 
 import { mount } from "enzyme";
-import React from "react";
 
-import { Group, IGroupProperties } from "../../../../components/ui";
-import { snapshotFromWrapper } from "../../test-helpers";
+import { Group, IGroupProperties } from "../../../../components/ui/Group/Group";
 
 describe("Group component tests", (): void => {
 
@@ -42,7 +40,7 @@ describe("Group component tests", (): void => {
         const component = mount<Group>(
             <Group id="group2" caption="Group with Title"></Group>,
         );
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
 
         component.unmount();
     });

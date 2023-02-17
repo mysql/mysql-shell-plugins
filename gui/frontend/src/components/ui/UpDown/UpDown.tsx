@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,17 +23,18 @@
 
 import "./UpDown.css";
 
-import React from "react";
+import { ComponentChild, createRef } from "preact";
 import { isNil } from "lodash";
 
-import {
-    Component, IComponentProperties, IComponentState, Input, Grid, GridCell, Button, TextAlignment,
-    Container,
-} from "..";
 import { convertPropValue } from "../../../utilities/string-helpers";
-import { ContentAlignment, Orientation } from "../Container/Container";
-import { IInputChangeProperties } from "../Input/Input";
+import { Container, ContentAlignment, Orientation } from "../Container/Container";
+import { IInputChangeProperties, Input } from "../Input/Input";
 import { clampValue } from "../../../utilities/helpers";
+import { IComponentProperties, IComponentState, ComponentBase } from "../Component/ComponentBase";
+import { Grid } from "../Grid/Grid";
+import { GridCell } from "../Grid/GridCell";
+import { TextAlignment } from "../Label/Label";
+import { Button } from "../Button/Button";
 
 export interface IUpDownProperties extends IComponentProperties {
     items?: string[];    // For any type of values, but limited to only those given here.
@@ -45,7 +46,7 @@ export interface IUpDownProperties extends IComponentProperties {
     value?: string | number;
     textAlignment?: TextAlignment;
 
-    innerRef?: React.RefObject<HTMLElement>;
+    innerRef?: preact.RefObject<HTMLDivElement>;
 
     // The value is either the numeric directly or the index into `items`, if that was given.
     onChange?: (value: number, props: IUpDownProperties) => void;
@@ -61,19 +62,19 @@ export interface IUpDownState extends IComponentState {
     step: number;
 }
 
-export class UpDown extends Component<IUpDownProperties, IUpDownState> {
+export class UpDown extends ComponentBase<IUpDownProperties, IUpDownState> {
 
     public static defaultProps = {
         textAlignment: TextAlignment.End,
     };
 
-    private innerListRef = React.createRef<HTMLElement>();
-    private containerRef: React.RefObject<HTMLElement>;
+    private innerListRef = createRef<HTMLDivElement>();
+    private containerRef: preact.RefObject<HTMLDivElement>;
 
     public constructor(props: IUpDownProperties) {
         super(props);
 
-        this.containerRef = props.innerRef ?? React.createRef<HTMLElement>();
+        this.containerRef = props.innerRef ?? createRef<HTMLDivElement>();
 
         const useNumeric = !isNil(props.min) || !isNil(props.max) || !isNil(props.step);
         let min = props.min;
@@ -119,7 +120,7 @@ export class UpDown extends Component<IUpDownProperties, IUpDownState> {
         }
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { items = [], textAlignment } = this.mergedProps;
         const { currentValue, useNumeric } = this.state;
 
@@ -136,7 +137,7 @@ export class UpDown extends Component<IUpDownProperties, IUpDownState> {
                 textAlignment={textAlignment}
             />;
         } else {
-            const entries = items.map((item: string): React.ReactElement => {
+            const entries = items.map((item: string): ComponentChild => {
                 return <Container
                     key={item}
                     mainAlignment={ContentAlignment.Center}
@@ -197,7 +198,7 @@ export class UpDown extends Component<IUpDownProperties, IUpDownState> {
         );
     }
 
-    private handleButtonClick = (e: React.SyntheticEvent, props: IComponentProperties): void => {
+    private handleButtonClick = (e: MouseEvent | KeyboardEvent, props: IComponentProperties): void => {
         const { step } = this.state;
         this.stepValue(props.id === "up" ? step : -step);
     };
@@ -218,7 +219,7 @@ export class UpDown extends Component<IUpDownProperties, IUpDownState> {
         }
     };
 
-    private handleInputChange = (e: React.ChangeEvent, props: IInputChangeProperties): void => {
+    private handleInputChange = (e: InputEvent, props: IInputChangeProperties): void => {
         const { onChange } = this.mergedProps;
         const { min, max } = this.state;
 

@@ -12,7 +12,7 @@ exports[`Application tests Application readiness 1`] = `
           className="msg container fixedScrollbar"
           id="loginDialog"
           style={
-            Object {
+            {
               "alignItems": undefined,
               "flexDirection": "column",
               "flexWrap": undefined,
@@ -25,11 +25,11 @@ exports[`Application tests Application readiness 1`] = `
             id="loginDialogSakilaLogo"
             src="module-shell.svg"
           >
-            <div
+            <span
               className="msg icon"
               id="loginDialogSakilaLogo"
               style={
-                Object {
+                {
                   "WebkitMaskImage": "url(module-shell.svg)",
                   "backgroundColor": undefined,
                   "height": undefined,
@@ -47,7 +47,7 @@ exports[`Application tests Application readiness 1`] = `
               className="msg container fixedScrollbar"
               id="heading"
               style={
-                Object {
+                {
                   "alignItems": undefined,
                   "flexDirection": "column",
                   "flexWrap": undefined,
@@ -56,21 +56,16 @@ exports[`Application tests Application readiness 1`] = `
               }
             >
               <Label
-                as="h2"
                 id="headingLabel"
               >
-                <h2
+                <label
                   className="msg label"
                   data-tooltip="expand"
                   id="headingLabel"
-                  style={
-                    Object {
-                      "textAlign": undefined,
-                    }
-                  }
+                  style={{}}
                 >
                   MySQL Shell
-                </h2>
+                </label>
               </Label>
               <Label
                 id="headingSubLabel"
@@ -79,11 +74,7 @@ exports[`Application tests Application readiness 1`] = `
                   className="msg label"
                   data-tooltip="expand"
                   id="headingSubLabel"
-                  style={
-                    Object {
-                      "textAlign": undefined,
-                    }
-                  }
+                  style={{}}
                 >
                   Welcome to the MySQL Shell GUI.
                   <br />
@@ -102,7 +93,7 @@ exports[`Application tests Application readiness 1`] = `
               className="msg container fixedScrollbar"
               id="loginDialogLinks"
               style={
-                Object {
+                {
                   "alignItems": undefined,
                   "flexDirection": "row",
                   "flexWrap": "wrap",
@@ -133,7 +124,7 @@ exports[`Application tests Application readiness 1`] = `
           <Grid
             columnGap={8}
             columns={
-              Array [
+              [
                 220,
                 40,
               ]
@@ -144,7 +135,7 @@ exports[`Application tests Application readiness 1`] = `
               className="msg grid"
               id="loginDialogControls"
               style={
-                Object {
+                {
                   "columnGap": "8px",
                   "gridTemplateColumns": "220px 40px",
                   "rowGap": undefined,
@@ -157,12 +148,12 @@ exports[`Application tests Application readiness 1`] = `
                 <Container
                   className="msg gridCell"
                   orientation="column"
-                  style={Object {}}
+                  style={{}}
                 >
                   <div
                     className="msg container fixedScrollbar gridCell"
                     style={
-                      Object {
+                      {
                         "alignItems": undefined,
                         "flexDirection": "column",
                         "flexWrap": undefined,
@@ -186,7 +177,7 @@ exports[`Application tests Application readiness 1`] = `
                         placeholder="Username"
                         spellCheck={false}
                         style={
-                          Object {
+                          {
                             "textAlign": undefined,
                           }
                         }
@@ -201,12 +192,12 @@ exports[`Application tests Application readiness 1`] = `
                 <Container
                   className="msg gridCell"
                   orientation="row"
-                  style={Object {}}
+                  style={{}}
                 >
                   <div
                     className="msg container fixedScrollbar gridCell"
                     style={
-                      Object {
+                      {
                         "alignItems": undefined,
                         "flexDirection": "row",
                         "flexWrap": undefined,
@@ -222,12 +213,12 @@ exports[`Application tests Application readiness 1`] = `
                 <Container
                   className="msg gridCell"
                   orientation="column"
-                  style={Object {}}
+                  style={{}}
                 >
                   <div
                     className="msg container fixedScrollbar gridCell"
                     style={
-                      Object {
+                      {
                         "alignItems": undefined,
                         "flexDirection": "column",
                         "flexWrap": undefined,
@@ -252,7 +243,7 @@ exports[`Application tests Application readiness 1`] = `
                         placeholder="Password"
                         spellCheck={true}
                         style={
-                          Object {
+                          {
                             "textAlign": undefined,
                           }
                         }
@@ -271,12 +262,12 @@ exports[`Application tests Application readiness 1`] = `
                   className="msg gridCell"
                   mainAlignment="center"
                   orientation="column"
-                  style={Object {}}
+                  style={{}}
                 >
                   <div
                     className="msg container fixedScrollbar gridCell"
                     style={
-                      Object {
+                      {
                         "alignItems": undefined,
                         "flexDirection": "column",
                         "flexWrap": undefined,
@@ -295,7 +286,7 @@ exports[`Application tests Application readiness 1`] = `
                         onClick={[Function]}
                         onMouseDown={[Function]}
                         style={
-                          Object {
+                          {
                             "flexDirection": undefined,
                           }
                         }
@@ -305,10 +296,10 @@ exports[`Application tests Application readiness 1`] = `
                           disabled={false}
                           src="chevron-right.svg"
                         >
-                          <div
+                          <span
                             className="msg icon"
                             style={
-                              Object {
+                              {
                                 "WebkitMaskImage": "url(chevron-right.svg)",
                                 "backgroundColor": undefined,
                                 "height": undefined,
@@ -332,11 +323,7 @@ exports[`Application tests Application readiness 1`] = `
               className="msg label"
               data-tooltip="expand"
               id="loginDialogSubtext"
-              style={
-                Object {
-                  "textAlign": undefined,
-                }
-              }
+              style={{}}
             >
               If you do not have an MySQL Shell GUI account yet, please
               <br />
@@ -352,8 +339,8 @@ exports[`Application tests Application readiness 1`] = `
     <ErrorPanel>
       <Dialog
         actions={
-          Object {
-            "end": Array [
+          {
+            "end": [
               <Button
                 caption="Close"
                 onClick={[Function]}
@@ -362,7 +349,7 @@ exports[`Application tests Application readiness 1`] = `
           }
         }
         caption={
-          <y>
+          <p>
             <Icon
               disabled={false}
               src={123}
@@ -370,10 +357,14 @@ exports[`Application tests Application readiness 1`] = `
             <Label>
               
             </Label>
-          </y>
+          </p>
         }
         className="msg errorPanel"
-        container={Object {}}
+        container={
+          <body
+            theme="dark"
+          />
+        }
         content={
           <Container
             orientation="column"
@@ -383,7 +374,11 @@ exports[`Application tests Application readiness 1`] = `
         }
       >
         <Portal
-          container={Object {}}
+          container={
+            <body
+              theme="dark"
+            />
+          }
           onClose={[Function]}
           onOpen={[Function]}
         />
@@ -394,46 +389,46 @@ exports[`Application tests Application readiness 1`] = `
     />
     <Statusbar
       items={
-        Array [
-          Object {
+        [
+          {
             "id": "profileTitle",
             "text": "Profile:",
             "type": 0,
             "visible": false,
           },
-          Object {
-            "choices": Array [],
+          {
+            "choices": [],
             "commandId": "openPopupMenu",
             "id": "profileChoice",
             "tooltip": "Change profile",
             "type": 1,
             "visible": false,
           },
-          Object {
+          {
             "id": "details",
             "rightAlign": true,
             "standout": false,
             "type": 0,
           },
-          Object {
+          {
             "id": "editorLanguage",
             "rightAlign": true,
             "type": 0,
             "visible": false,
           },
-          Object {
+          {
             "id": "editorEOL",
             "rightAlign": true,
             "type": 0,
             "visible": false,
           },
-          Object {
+          {
             "id": "editorIndent",
             "rightAlign": true,
             "type": 0,
             "visible": false,
           },
-          Object {
+          {
             "commandId": "scripting:editor.action.gotoLine",
             "id": "editorPosition",
             "rightAlign": true,
@@ -450,7 +445,7 @@ exports[`Application tests Application readiness 1`] = `
         <div
           className="msg container fixedScrollbar statusbar verticalCenterContent"
           style={
-            Object {
+            {
               "alignItems": undefined,
               "flexDirection": "row",
               "flexWrap": undefined,
@@ -466,7 +461,7 @@ exports[`Application tests Application readiness 1`] = `
             <div
               className="msg container fixedScrollbar leftItems"
               style={
-                Object {
+                {
                   "alignItems": "stretch",
                   "flexDirection": "row",
                   "flexWrap": undefined,
@@ -483,7 +478,7 @@ exports[`Application tests Application readiness 1`] = `
             <div
               className="msg container fixedScrollbar rightItems"
               style={
-                Object {
+                {
                   "alignItems": "stretch",
                   "flexDirection": "row-reverse",
                   "flexWrap": undefined,
@@ -503,9 +498,9 @@ exports[`Application tests Application readiness 1`] = `
       >
         <Dialog
           actions={
-            Object {
-              "begin": Array [],
-              "end": Array [
+            {
+              "begin": [],
+              "end": [
                 <Button
                   caption="OK"
                   disabled={false}
@@ -521,16 +516,20 @@ exports[`Application tests Application readiness 1`] = `
             }
           }
           caption={
-            <y>
+            <p>
               <Icon
                 disabled={false}
                 src={388}
               />
               <Label />
-            </y>
+            </p>
           }
           className="msg valueEditDialog"
-          container={Object {}}
+          container={
+            <body
+              theme="dark"
+            />
+          }
           content={
             <Grid
               columnGap={16}
@@ -542,7 +541,11 @@ exports[`Application tests Application readiness 1`] = `
           onClose={[Function]}
         >
           <Portal
-            container={Object {}}
+            container={
+              <body
+                theme="dark"
+              />
+            }
             id="profileCreating"
             onClose={[Function]}
             onOpen={[Function]}
@@ -577,12 +580,12 @@ exports[`Application tests Application readiness 1`] = `
       >
         <Dialog
           actions={
-            Object {
-              "end": Array [],
+            {
+              "end": [],
             }
           }
           caption={
-            <y>
+            <p>
               <Icon
                 disabled={false}
                 src={275}
@@ -590,10 +593,14 @@ exports[`Application tests Application readiness 1`] = `
               <Label>
                 Confirm
               </Label>
-            </y>
+            </p>
           }
           className="msg confirmDialog"
-          container={Object {}}
+          container={
+            <body
+              theme="dark"
+            />
+          }
           content={
             <Container
               orientation="column"
@@ -608,7 +615,11 @@ exports[`Application tests Application readiness 1`] = `
           onClose={[Function]}
         >
           <Portal
-            container={Object {}}
+            container={
+              <body
+                theme="dark"
+              />
+            }
             onClose={[Function]}
             onOpen={[Function]}
           />

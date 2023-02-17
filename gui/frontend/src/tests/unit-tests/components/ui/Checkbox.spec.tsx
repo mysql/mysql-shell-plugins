@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,13 +21,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
 import { mount, shallow } from "enzyme";
 import { act } from "@testing-library/preact";
 
-import { Checkbox, CheckState, ICheckboxProperties } from "../../../../components/ui";
-import { eventMock } from "../../__mocks__/MockEvents";
-import { snapshotFromWrapper } from "../../test-helpers";
+import { Checkbox, CheckState, ICheckboxProperties } from "../../../../components/ui/Checkbox/Checkbox";
+import { mouseEventMock } from "../../__mocks__/MockEvents";
 
 describe("Checkbox component tests", (): void => {
     it("Test checkbox click", async () => {
@@ -35,7 +33,6 @@ describe("Checkbox component tests", (): void => {
             <Checkbox
                 id="cb1"
                 checkState={CheckState.Unchecked}
-                name="cb"
                 onChange={jest.fn()}
             >
                 Off
@@ -50,7 +47,7 @@ describe("Checkbox component tests", (): void => {
         const spyOnChange = jest.spyOn(instance.props as ICheckboxProperties, "onChange");
         const click = (checkbox.props() as ICheckboxProperties).onClick;
         await act(() => {
-            click?.(eventMock, { id: "1" });
+            click?.(mouseEventMock, { id: "1" });
         });
         expect(spyOnChange).toBeCalled();
     });
@@ -58,22 +55,20 @@ describe("Checkbox component tests", (): void => {
     it("Test checkbox output (Snapshot)", () => {
         const component = mount(
             <div>
-                <Checkbox id="cb1" name="cb">
+                <Checkbox id="cb1">
                     Unchecked checkbox
                 </Checkbox>
                 <Checkbox
                     id="cb2"
-                    name="cb"
                     checkState={CheckState.Indeterminate}
                 >
                     Indeterminate checkbox
                 </Checkbox>
-                <Checkbox id="cb3" name="cb" checkState={CheckState.Checked}>
+                <Checkbox id="cb3" checkState={CheckState.Checked}>
                     Checked checkbox
                 </Checkbox>
                 <Checkbox
                     id="cb4"
-                    name="cb"
                     disabled
                     checkState={CheckState.Indeterminate}
                 >
@@ -81,7 +76,7 @@ describe("Checkbox component tests", (): void => {
                 </Checkbox>
             </div>,
         );
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
 
         component.unmount();
     });

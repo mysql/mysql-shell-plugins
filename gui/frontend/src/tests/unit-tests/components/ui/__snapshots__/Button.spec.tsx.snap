@@ -8,7 +8,7 @@ exports[`Button component tests Test button output (Snapshot) 1`] = `
     <div
       className="msg container fixedScrollbar"
       style={
-        Object {
+        {
           "alignItems": undefined,
           "flexDirection": "row",
           "flexWrap": undefined,
@@ -26,7 +26,7 @@ exports[`Button component tests Test button output (Snapshot) 1`] = `
           id="button1"
           onMouseDown={[Function]}
           style={
-            Object {
+            {
               "flexDirection": undefined,
             }
           }
@@ -47,7 +47,7 @@ exports[`Button component tests Test button output (Snapshot) 1`] = `
           id="button2"
           onMouseDown={[Function]}
           style={
-            Object {
+            {
               "flexDirection": undefined,
             }
           }
@@ -64,7 +64,7 @@ exports[`Button component tests Test button output (Snapshot) 1`] = `
     <div
       className="msg container fixedScrollbar"
       style={
-        Object {
+        {
           "alignItems": undefined,
           "flexDirection": "row",
           "flexWrap": undefined,
@@ -81,7 +81,7 @@ exports[`Button component tests Test button output (Snapshot) 1`] = `
           id="button3"
           onMouseDown={[Function]}
           style={
-            Object {
+            {
               "flexDirection": "column",
             }
           }
@@ -101,7 +101,7 @@ exports[`Button component tests Test button output (Snapshot) 1`] = `
           id="button4"
           onMouseDown={[Function]}
           style={
-            Object {
+            {
               "flexDirection": undefined,
             }
           }
@@ -132,7 +132,7 @@ exports[`Button component tests Test button output (Snapshot) 1`] = `
       id="button5"
       onMouseDown={[Function]}
       style={
-        Object {
+        {
           "flexDirection": undefined,
         }
       }
@@ -147,7 +147,7 @@ exports[`Button component tests Test button output (Snapshot) 1`] = `
     <div
       className="msg container fixedScrollbar"
       style={
-        Object {
+        {
           "alignItems": undefined,
           "flexDirection": "row",
           "flexWrap": undefined,
@@ -162,7 +162,7 @@ exports[`Button component tests Test button output (Snapshot) 1`] = `
           className="msg button round"
           onMouseDown={[Function]}
           style={
-            Object {
+            {
               "flexDirection": undefined,
             }
           }
@@ -178,7 +178,7 @@ exports[`Button component tests Test button output (Snapshot) 1`] = `
           className="msg button round"
           onMouseDown={[Function]}
           style={
-            Object {
+            {
               "flexDirection": undefined,
             }
           }

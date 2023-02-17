@@ -2,7 +2,7 @@
 
 exports[`CalendarView testing Render test 1`] = `
 <CalendarView
-  date={Object {}}
+  date={2022-05-02T00:00:00.000Z}
   onChangeMonth={[Function]}
   onSelect={[Function]}
 >
@@ -13,7 +13,7 @@ exports[`CalendarView testing Render test 1`] = `
     <div
       className="msg grid calendarView"
       style={
-        Object {
+        {
           "columnGap": undefined,
           "gridTemplateColumns": "repeat(7, 1fr)",
           "rowGap": undefined,
@@ -26,12 +26,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell header"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell header"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -49,7 +49,7 @@ exports[`CalendarView testing Render test 1`] = `
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -69,7 +69,7 @@ exports[`CalendarView testing Render test 1`] = `
           crossAlignment="center"
           orientation="row"
           style={
-            Object {
+            {
               "gridColumn": "span 5",
             }
           }
@@ -77,7 +77,7 @@ exports[`CalendarView testing Render test 1`] = `
           <div
             className="msg container fixedScrollbar gridCell header"
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -94,11 +94,7 @@ exports[`CalendarView testing Render test 1`] = `
                 className="msg label"
                 data-tooltip="expand"
                 id="title"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 May 2022
               </label>
@@ -112,12 +108,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell header"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell header"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -135,7 +131,7 @@ exports[`CalendarView testing Render test 1`] = `
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -152,12 +148,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell header"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell header"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -176,12 +172,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell header"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell header"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -200,12 +196,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell header"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell header"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -224,12 +220,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell header"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell header"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -248,12 +244,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell header"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell header"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -272,12 +268,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell header"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell header"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -296,12 +292,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell header"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell header"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -319,12 +315,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -340,12 +336,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -361,12 +357,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -382,12 +378,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -403,12 +399,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -424,12 +420,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -445,12 +441,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -468,7 +464,7 @@ exports[`CalendarView testing Render test 1`] = `
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -486,12 +482,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -509,7 +505,7 @@ exports[`CalendarView testing Render test 1`] = `
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -527,12 +523,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -550,7 +546,7 @@ exports[`CalendarView testing Render test 1`] = `
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -568,12 +564,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -591,7 +587,7 @@ exports[`CalendarView testing Render test 1`] = `
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -609,12 +605,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -632,7 +628,7 @@ exports[`CalendarView testing Render test 1`] = `
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -650,12 +646,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -673,7 +669,7 @@ exports[`CalendarView testing Render test 1`] = `
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -691,12 +687,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -714,7 +710,7 @@ exports[`CalendarView testing Render test 1`] = `
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -732,12 +728,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -755,7 +751,7 @@ exports[`CalendarView testing Render test 1`] = `
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -773,12 +769,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -796,7 +792,7 @@ exports[`CalendarView testing Render test 1`] = `
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -814,12 +810,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -837,7 +833,7 @@ exports[`CalendarView testing Render test 1`] = `
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -855,12 +851,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -878,7 +874,7 @@ exports[`CalendarView testing Render test 1`] = `
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -896,12 +892,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -919,7 +915,7 @@ exports[`CalendarView testing Render test 1`] = `
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -937,12 +933,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -960,7 +956,7 @@ exports[`CalendarView testing Render test 1`] = `
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -978,12 +974,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -1001,7 +997,7 @@ exports[`CalendarView testing Render test 1`] = `
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -1019,12 +1015,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -1042,7 +1038,7 @@ exports[`CalendarView testing Render test 1`] = `
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -1060,12 +1056,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -1083,7 +1079,7 @@ exports[`CalendarView testing Render test 1`] = `
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -1101,12 +1097,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -1124,7 +1120,7 @@ exports[`CalendarView testing Render test 1`] = `
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -1142,12 +1138,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -1165,7 +1161,7 @@ exports[`CalendarView testing Render test 1`] = `
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -1183,12 +1179,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -1206,7 +1202,7 @@ exports[`CalendarView testing Render test 1`] = `
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -1224,12 +1220,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -1247,7 +1243,7 @@ exports[`CalendarView testing Render test 1`] = `
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -1265,12 +1261,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -1288,7 +1284,7 @@ exports[`CalendarView testing Render test 1`] = `
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -1306,12 +1302,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -1329,7 +1325,7 @@ exports[`CalendarView testing Render test 1`] = `
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -1347,12 +1343,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -1370,7 +1366,7 @@ exports[`CalendarView testing Render test 1`] = `
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -1388,12 +1384,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -1411,7 +1407,7 @@ exports[`CalendarView testing Render test 1`] = `
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -1429,12 +1425,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -1452,7 +1448,7 @@ exports[`CalendarView testing Render test 1`] = `
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -1470,12 +1466,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -1493,7 +1489,7 @@ exports[`CalendarView testing Render test 1`] = `
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -1511,12 +1507,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -1534,7 +1530,7 @@ exports[`CalendarView testing Render test 1`] = `
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -1552,12 +1548,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -1575,7 +1571,7 @@ exports[`CalendarView testing Render test 1`] = `
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -1593,12 +1589,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -1616,7 +1612,7 @@ exports[`CalendarView testing Render test 1`] = `
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -1634,12 +1630,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -1657,7 +1653,7 @@ exports[`CalendarView testing Render test 1`] = `
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }
@@ -1675,12 +1671,12 @@ exports[`CalendarView testing Render test 1`] = `
         <Container
           className="msg gridCell"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -1698,7 +1694,7 @@ exports[`CalendarView testing Render test 1`] = `
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 style={
-                  Object {
+                  {
                     "flexDirection": undefined,
                   }
                 }

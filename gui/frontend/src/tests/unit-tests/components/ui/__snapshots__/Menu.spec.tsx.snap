@@ -44,7 +44,7 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
       onMouseEnter={[Function]}
       onMouseLeave={[Function]}
       style={
-        Object {
+        {
           "alignItems": "center",
           "flexDirection": "row",
           "flexWrap": undefined,
@@ -67,14 +67,19 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
           className="msg menuItem nohover submenu"
           id="fileMenu"
           innerRef={
-            Object {
-              "current": Object {
-                "l": Object {
-                  "clickfalse": [Function],
-                  "mouseenterfalse": [Function],
-                  "mouseleavefalse": [Function],
-                },
-              },
+            {
+              "current": <div
+                class="msg container fixedScrollbar menuItem nohover submenu"
+                id="fileMenu"
+                style="flex-direction: row;"
+              >
+                <label
+                  class="msg label"
+                  data-tooltip="expand"
+                >
+                  File
+                </label>
+              </div>,
             }
           }
           onClick={[Function]}
@@ -89,7 +94,7 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
             onMouseEnter={[Function]}
             onMouseLeave={[Function]}
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -101,11 +106,7 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
               <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 File
               </label>
@@ -162,14 +163,19 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
           className="msg menuItem nohover submenu"
           id="editMenu"
           innerRef={
-            Object {
-              "current": Object {
-                "l": Object {
-                  "clickfalse": [Function],
-                  "mouseenterfalse": [Function],
-                  "mouseleavefalse": [Function],
-                },
-              },
+            {
+              "current": <div
+                class="msg container fixedScrollbar menuItem nohover submenu"
+                id="editMenu"
+                style="flex-direction: row;"
+              >
+                <label
+                  class="msg label"
+                  data-tooltip="expand"
+                >
+                  Edit
+                </label>
+              </div>,
             }
           }
           onClick={[Function]}
@@ -184,7 +190,7 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
             onMouseEnter={[Function]}
             onMouseLeave={[Function]}
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -196,11 +202,7 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
               <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 Edit
               </label>
@@ -257,14 +259,19 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
           className="msg menuItem nohover submenu"
           id="selectionMenu"
           innerRef={
-            Object {
-              "current": Object {
-                "l": Object {
-                  "clickfalse": [Function],
-                  "mouseenterfalse": [Function],
-                  "mouseleavefalse": [Function],
-                },
-              },
+            {
+              "current": <div
+                class="msg container fixedScrollbar menuItem nohover submenu"
+                id="selectionMenu"
+                style="flex-direction: row;"
+              >
+                <label
+                  class="msg label"
+                  data-tooltip="expand"
+                >
+                  Selection
+                </label>
+              </div>,
             }
           }
           onClick={[Function]}
@@ -279,7 +286,7 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
             onMouseEnter={[Function]}
             onMouseLeave={[Function]}
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -291,11 +298,7 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
               <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 Selection
               </label>
@@ -352,14 +355,19 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
           className="msg menuItem nohover submenu"
           id="viewMenu"
           innerRef={
-            Object {
-              "current": Object {
-                "l": Object {
-                  "clickfalse": [Function],
-                  "mouseenterfalse": [Function],
-                  "mouseleavefalse": [Function],
-                },
-              },
+            {
+              "current": <div
+                class="msg container fixedScrollbar menuItem nohover submenu"
+                id="viewMenu"
+                style="flex-direction: row;"
+              >
+                <label
+                  class="msg label"
+                  data-tooltip="expand"
+                >
+                  View
+                </label>
+              </div>,
             }
           }
           onClick={[Function]}
@@ -374,7 +382,7 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
             onMouseEnter={[Function]}
             onMouseLeave={[Function]}
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -386,11 +394,7 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
               <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 View
               </label>
@@ -447,14 +451,19 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
           className="msg menuItem nohover submenu"
           id="goMenu"
           innerRef={
-            Object {
-              "current": Object {
-                "l": Object {
-                  "clickfalse": [Function],
-                  "mouseenterfalse": [Function],
-                  "mouseleavefalse": [Function],
-                },
-              },
+            {
+              "current": <div
+                class="msg container fixedScrollbar menuItem nohover submenu"
+                id="goMenu"
+                style="flex-direction: row;"
+              >
+                <label
+                  class="msg label"
+                  data-tooltip="expand"
+                >
+                  Go
+                </label>
+              </div>,
             }
           }
           onClick={[Function]}
@@ -469,7 +478,7 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
             onMouseEnter={[Function]}
             onMouseLeave={[Function]}
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -481,11 +490,7 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
               <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 Go
               </label>

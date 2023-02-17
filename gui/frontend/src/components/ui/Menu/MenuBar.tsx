@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,12 +23,13 @@
 
 import "./Menu.css";
 
-import React from "react";
+import { cloneElement, ComponentChild, createRef } from "preact";
 
-import {
-    IPopupProperties, IMenuItemProperties, Orientation, Container, MenuItem, IComponentState,
-    ComponentPlacement, Component, MouseEventType, ContentAlignment,
-} from "..";
+import { collectVNodes } from "../../../utilities/ts-helpers";
+import { IComponentState, ComponentBase, ComponentPlacement, MouseEventType } from "../Component/ComponentBase";
+import { Orientation, Container, ContentAlignment } from "../Container/Container";
+import { IPopupProperties } from "../Popup/Popup";
+import { IMenuItemProperties, MenuItem } from "./MenuItem";
 
 interface IMenuBarProperties extends IPopupProperties {
     // Called for all menu item clicks (even for nested items).
@@ -40,7 +41,7 @@ interface IMenuBarState extends IComponentState {
     trackItems: boolean;
 }
 
-export class MenuBar extends Component<IMenuBarProperties, IMenuBarState> {
+export class MenuBar extends ComponentBase<IMenuBarProperties, IMenuBarState> {
 
     public static defaultProps = {
         orientation: Orientation.LeftToRight,
@@ -59,42 +60,39 @@ export class MenuBar extends Component<IMenuBarProperties, IMenuBarState> {
         this.connectEvents("onMouseEnter", "onMouseLeave");
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { children } = this.mergedProps;
         const { activeMenuId, trackItems } = this.state;
 
         const className = this.getEffectiveClassNames(["menubar"]);
 
-        const items = React.Children.map(children, (child: React.ReactNode): React.ReactNode => {
-            if (React.isValidElement(child)) {
-                const itemRef = React.createRef<MenuItem>();
-                if (child.type === MenuItem) {
-                    // Only keep references for menu items. All other components must be handled by the owner.
-                    this.itemRefs.push(itemRef);
-                }
-
-                const { id: childId } = child.props;
-
-                let itemClassName = "";
-                if (activeMenuId === "") {
-                    itemClassName = "nohover";
-                } else if (activeMenuId === childId) {
-                    itemClassName = "active";
-                }
-
-                return React.cloneElement(child, {
-                    ref: itemRef,
-                    subMenuPlacement: ComponentPlacement.BottomLeft,
-                    subMenuShowOnClick: !trackItems,
-                    className: itemClassName,
-                    onMouseEnter: this.handleItemMouseEnter,
-                    onSubMenuClose: this.handleSubMenuClose,
-                    onSubMenuOpen: this.handleSubMenuOpen,
-                    onClick: this.handleItemClick,
-                } as never); // Cast to never to allow assigning the itemRef.
+        const elements = collectVNodes<IMenuItemProperties>(children);
+        const items = elements.map((child): ComponentChild => {
+            const itemRef = createRef<MenuItem>();
+            if (child.type === MenuItem) {
+                // Only keep references for menu items. All other components must be handled by the owner.
+                this.itemRefs.push(itemRef);
             }
 
-            return undefined;
+            const { id: childId } = child.props;
+
+            let itemClassName = "";
+            if (activeMenuId === "") {
+                itemClassName = "nohover";
+            } else if (activeMenuId === childId) {
+                itemClassName = "active";
+            }
+
+            return cloneElement(child, {
+                ref: itemRef,
+                subMenuPlacement: ComponentPlacement.BottomLeft,
+                subMenuShowOnClick: !trackItems,
+                className: itemClassName,
+                onMouseEnter: this.handleItemMouseEnter,
+                onSubMenuClose: this.handleSubMenuClose,
+                onSubMenuOpen: this.handleSubMenuOpen,
+                onClick: this.handleItemClick,
+            } as never); // Cast to never to allow assigning the itemRef.
         });
 
         return (

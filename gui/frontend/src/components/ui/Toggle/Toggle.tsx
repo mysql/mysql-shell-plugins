@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,12 +23,13 @@
 
 import "./Toggle.css";
 
-import React from "react";
+import { ComponentChild, createRef } from "preact";
 import Color from "color";
 import { isNil } from "lodash";
 
-import { Component, IComponentProperties, CheckState, MouseEventType } from "..";
 import { convertPropValue } from "../../../utilities/string-helpers";
+import { CheckState } from "../Checkbox/Checkbox";
+import { IComponentProperties, ComponentBase, MouseEventType } from "../Component/ComponentBase";
 
 export interface IToggleProperties extends IComponentProperties {
     checkState?: CheckState;
@@ -42,10 +43,10 @@ export interface IToggleProperties extends IComponentProperties {
     color?: Color;
     checkedColor?: Color;
 
-    onChange?: (e: React.ChangeEvent<HTMLInputElement>, checkState: CheckState) => void;
+    onChange?: (e: InputEvent, checkState: CheckState) => void;
 }
 
-export class Toggle extends Component<IToggleProperties> {
+export class Toggle extends ComponentBase<IToggleProperties> {
 
     public static defaultProps = {
         checkState: CheckState?.Unchecked,
@@ -53,7 +54,7 @@ export class Toggle extends Component<IToggleProperties> {
         round: true,
     };
 
-    private toggleRef = React.createRef<HTMLInputElement>();
+    private toggleRef = createRef<HTMLInputElement>();
 
     public constructor(props: IToggleProperties) {
         super(props);
@@ -85,8 +86,8 @@ export class Toggle extends Component<IToggleProperties> {
         }
     }
 
-    public render(): React.ReactNode {
-        const { children, id, disabled, round, caption, value, name } = this.mergedProps;
+    public render(): ComponentChild {
+        const { children, id = "", disabled, round, caption, value, name } = this.mergedProps;
         const className = this.getEffectiveClassNames([
             "toggle",
             this.classFromProperty(round, "round"),
@@ -108,13 +109,13 @@ export class Toggle extends Component<IToggleProperties> {
                     readOnly
                     disabled={disabled}
 
-                    onChange={this.handleChange}
+                    onInput={this.handleInput}
 
                     {...this.unhandledProperties}
                 />
 
                 <label
-                    htmlFor={id as string}
+                    htmlFor={id}
                     className={className}
                 >
                     {content}
@@ -123,7 +124,7 @@ export class Toggle extends Component<IToggleProperties> {
         );
     }
 
-    protected handleMouseEvent(type: MouseEventType, e: React.MouseEvent): boolean {
+    protected handleMouseEvent(type: MouseEventType, e: MouseEvent): boolean {
         const { disabled } = this.mergedProps;
 
         if (disabled) {
@@ -135,14 +136,17 @@ export class Toggle extends Component<IToggleProperties> {
         return true;
     }
 
-    private handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-        const { onChange } = this.mergedProps;
+    private handleInput = (e: Event): void => {
+        if (e.target) {
+            const { onChange } = this.mergedProps;
 
-        onChange?.(e,
-            e.target.indeterminate
-                ? CheckState.Indeterminate
-                : (e.target.checked ? CheckState.Checked : CheckState.Unchecked),
-        );
+            const element = e.target as HTMLInputElement;
+            onChange?.(e as InputEvent,
+                element.indeterminate
+                    ? CheckState.Indeterminate
+                    : (element.checked ? CheckState.Checked : CheckState.Unchecked),
+            );
+        }
     };
 
 }

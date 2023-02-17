@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -26,21 +26,22 @@ import "./ResultView.css";
 import blobIcon from "../../assets/images/blob.svg";
 import nullIcon from "../../assets/images/null.svg";
 
-import React from "react";
-import { render } from "preact";
-import { CellComponent, ColumnComponent, ColumnDefinition, Formatter, FormatterParams } from "tabulator-tables";
+import { ComponentChild, createRef, render } from "preact";
+import { CellComponent, ColumnComponent, ColumnDefinition, Formatter } from "tabulator-tables";
 
-import {
-    Component, Container, Orientation, IComponentProperties, SelectionType, Icon, Checkbox, CheckState, Menu, MenuItem,
-    ComponentPlacement, IMenuItemProperties,
-} from "../ui";
 import { ITreeGridOptions, SetDataAction, TreeGrid } from "../ui/TreeGrid/TreeGrid";
 import { IResultSet, IResultSetRows } from "../../script-execution";
 import { convertCamelToTitleCase } from "../../utilities/helpers";
 import { DBDataType, IColumnInfo, MessageType } from "../../app-logic/Types";
 import { requisitions } from "../../supplement/Requisitions";
+import { Checkbox, CheckState } from "../ui/Checkbox/Checkbox";
+import { IComponentProperties, ComponentBase, SelectionType, ComponentPlacement } from "../ui/Component/ComponentBase";
+import { Container, Orientation } from "../ui/Container/Container";
+import { Icon } from "../ui/Icon/Icon";
+import { Menu } from "../ui/Menu/Menu";
+import { MenuItem, IMenuItemProperties } from "../ui/Menu/MenuItem";
 
-export interface IResultViewProperties extends IComponentProperties {
+interface IResultViewProperties extends IComponentProperties {
     resultSet: IResultSet;
 
     // Triggered when the user edited data.
@@ -48,14 +49,14 @@ export interface IResultViewProperties extends IComponentProperties {
 }
 
 // Implements a table for result data.
-export class ResultView extends Component<IResultViewProperties> {
+export class ResultView extends ComponentBase<IResultViewProperties> {
 
-    private gridRef = React.createRef<TreeGrid>();
+    private gridRef = createRef<TreeGrid>();
 
     // Keeps user defined (or computed) column widths across result set updates.
     private columnWidthCache = new Map<string, number>();
 
-    private cellContextMenuRef = React.createRef<Menu>();
+    private cellContextMenuRef = createRef<Menu>();
     private currentCell?: CellComponent;
 
     public constructor(props: IResultViewProperties) {
@@ -71,7 +72,7 @@ export class ResultView extends Component<IResultViewProperties> {
         this.currentCell = undefined;
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { resultSet } = this.mergedProps;
 
         const className = this.getEffectiveClassNames(["resultView"]);
@@ -267,7 +268,7 @@ export class ResultView extends Component<IResultViewProperties> {
         // Map column info from the backend to column definitions for Tabulator.
         return columns.map((info): ColumnDefinition => {
             let formatter: Formatter | undefined;
-            let formatterParams: FormatterParams = { dbDataType: info.dataType.type };
+            let formatterParams = {};
             let minWidth = 50;
 
             // TODO: Enable editing related functionality again.
@@ -341,8 +342,10 @@ export class ResultView extends Component<IResultViewProperties> {
                 case DBDataType.Time:
                 case DBDataType.Time_f: {
                     formatter = "datetime";
-                    // TODO: make this locale dependent.
-                    formatterParams.outputFormat = "HH:mm:ss";
+                    formatterParams = {
+                        // TODO: make this locale dependent.
+                        outputFormat: "HH:mm:ss",
+                    };
                     //editor = true;
 
                     break;
@@ -388,7 +391,6 @@ export class ResultView extends Component<IResultViewProperties> {
                 field: info.field,
                 formatter,
                 formatterParams,
-                formatterClipboard: formatter,
                 //editor,
                 //editorParams,
                 width,
@@ -535,62 +537,7 @@ export class ResultView extends Component<IResultViewProperties> {
         this.cellContextMenuRef.current?.open(targetRect, false, {});
     };
 
-    /**
-     * Formats a cell as string, either quoted or not
-     *
-     * @param cell The cell to format
-     * @param unquoted Wether the cell value should be quoted (if valid in SQL) or not
-     * @returns The cell value formatted as string
-     */
-    private formatCell = (cell: CellComponent, unquoted = false): string => {
-        if (cell.getValue() === null) {
-            // NULL, never gets quoted
-            return "NULL";
-        } else {
-            const formatterParams = cell.getColumn().getDefinition().formatterParams;
-            if (formatterParams && "dbDataType" in formatterParams) {
-                switch (formatterParams.dbDataType) {
-                    // Binary data
-                    case DBDataType.TinyBlob:
-                    case DBDataType.Blob:
-                    case DBDataType.MediumBlob:
-                    case DBDataType.LongBlob:
-                    case DBDataType.Binary:
-                    case DBDataType.Varbinary: {
-                        const buffer = Buffer.from(String(cell.getValue()), "base64");
-                        // Convert to a HEX string
-                        const bufString = buffer.toString("hex");
-
-                        return "0x" + bufString;
-                    }
-
-
-                    // Integer variants and Boolean, never get quoted
-                    case DBDataType.TinyInt:
-                    case DBDataType.SmallInt:
-                    case DBDataType.MediumInt:
-                    case DBDataType.Int:
-                    case DBDataType.Bigint:
-                    case DBDataType.Boolean: {
-                        return String(cell.getValue());
-                    }
-
-                    default: {
-                        if (unquoted) {
-                            return String(cell.getValue());
-                        } else {
-                            return "'" + String(cell.getValue()) + "'";
-                        }
-                    }
-
-                }
-            } else {
-                return String(cell.getValue());
-            }
-        }
-    };
-
-    private handleCellContextMenuItemClick = (e: React.MouseEvent, props: IMenuItemProperties): boolean => {
+    private handleCellContextMenuItemClick = (e: MouseEvent, props: IMenuItemProperties): boolean => {
         if (this.currentCell) {
             /*const editorParams = this.currentCell.getColumn().getDefinition().editorParams;
             if (editorParams && editorParams instanceof Function) {
@@ -653,12 +600,12 @@ export class ResultView extends Component<IResultViewProperties> {
                 }
 
                 case "copyFieldMenuItem": {
-                    void requisitions.writeToClipboard(this.formatCell(this.currentCell));
+                    void requisitions.writeToClipboard(`'${this.currentCell.getValue() as string}'`);
                     break;
                 }
 
                 case "copyFieldUnquotedMenuItem": {
-                    void requisitions.writeToClipboard(this.formatCell(this.currentCell, true));
+                    void requisitions.writeToClipboard(String(this.currentCell.getValue()));
 
                     break;
                 }
@@ -706,6 +653,7 @@ export class ResultView extends Component<IResultViewProperties> {
             rows = [this.currentCell.getRow()];
         }
 
+        const quoteChar = unquoted ? "" : "'";
         let content = "";
 
         if (withNames && rows.length > 0) {
@@ -722,7 +670,7 @@ export class ResultView extends Component<IResultViewProperties> {
 
         rows.forEach((row) => {
             row.getCells().forEach((cell) => {
-                content += this.formatCell(cell, unquoted) + separator;
+                content += `${quoteChar}${cell.getValue() as string}${quoteChar}${separator}`;
             });
 
             if (content.endsWith(separator)) {
@@ -857,7 +805,7 @@ export class ResultView extends Component<IResultViewProperties> {
                 element = <Input
                     value={value as string ?? ""}
                     multiLine
-                    onChange={(e: React.ChangeEvent<Element>, props: IInputChangeProperties): void => {
+                    onChange={(e: InputEvent<Element>, props: IInputChangeProperties): void => {
                         // Auto grow the input field (limited by a max height CSS setting).
                         const element = e.target as HTMLElement;
                         element.style.height = "0";
@@ -980,7 +928,7 @@ export class ResultView extends Component<IResultViewProperties> {
                 // Convert to a HEX string and truncate at 32 bytes
                 const bufString = buffer.toString("hex");
 
-                return "0x" + ((bufString.length > 64) ? bufString.substring(0, 63) + "&hellip;" : bufString);
+                return (bufString.length > 64) ? bufString.substring(0, 63) + "&hellip;" : bufString;
             } else {
                 return "";
             }

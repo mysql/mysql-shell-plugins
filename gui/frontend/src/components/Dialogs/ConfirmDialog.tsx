@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,35 +23,39 @@
 
 import "./ConfirmDialog.css";
 
-import React from "react";
+import { ComponentChild, createRef, VNode } from "preact";
 
-import {
-    Button, Codicon, Component, Container, Dialog, IComponentProperties, IComponentState, Icon, Label, Orientation,
-} from "../ui";
 import { DialogResponseClosure, IDictionary } from "../../app-logic/Types";
+import { Codicon } from "../ui/Codicon";
+import { IComponentProperties, IComponentState, ComponentBase } from "../ui/Component/ComponentBase";
+import { Container, Orientation } from "../ui/Container/Container";
+import { Dialog } from "../ui/Dialog/Dialog";
+import { Icon } from "../ui/Icon/Icon";
+import { Label } from "../ui/Label/Label";
+import { Button } from "../ui/Button/Button";
 
-export interface IConfirmDialogButtons {
+interface IConfirmDialogButtons {
     accept?: string;      // Default: "Yes".
     refuse?: string;      // Default: "No".
     alternative?: string; // Default: nothing.
     default?: string;     // Default: nothing.
 }
 
-export interface IConfirmDialogProperties extends IComponentProperties {
+interface IConfirmDialogProperties extends IComponentProperties {
     onClose?: (closure: DialogResponseClosure, values?: IDictionary) => void;
 }
 
-export interface IConfirmDialogState extends IComponentState {
+interface IConfirmDialogState extends IComponentState {
     title?: string;
-    message: React.ReactNode;
+    message: ComponentChild;
     buttons: IConfirmDialogButtons;
     values?: IDictionary;
     description?: string[];
 }
 
-export class ConfirmDialog extends Component<IConfirmDialogProperties, IConfirmDialogState> {
+export class ConfirmDialog extends ComponentBase<IConfirmDialogProperties, IConfirmDialogState> {
 
-    private dialogRef = React.createRef<Dialog>();
+    private dialogRef = createRef<Dialog>();
 
     public constructor(props: IConfirmDialogProperties) {
         super(props);
@@ -62,23 +66,23 @@ export class ConfirmDialog extends Component<IConfirmDialogProperties, IConfirmD
         this.addHandledProperties("onClose");
     }
 
-    public show = (message: React.ReactNode, buttons: IConfirmDialogButtons, title?: string, description?: string[],
+    public show = (message: ComponentChild, buttons: IConfirmDialogButtons, title?: string, description?: string[],
         values?: IDictionary): void => {
         this.setState({ title, message, buttons, values, description }, () => {
             return this.dialogRef.current?.open({ closeOnEscape: true });
         });
     };
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { title, message, buttons, description } = this.state;
 
         const className = this.getEffectiveClassNames(["confirmDialog"]);
         let dialogContent = null;
-        if (React.isValidElement(message)) {
+        if ((message as VNode).key !== undefined) {
             dialogContent = message;
         } else {
             // If no explicit content is specified, use the description list for additional content.
-            const descriptionLabels: React.ReactNode[] = [];
+            const descriptionLabels: ComponentChild[] = [];
             description?.forEach((value, index) => {
                 descriptionLabels.push(
                     <Label
@@ -101,7 +105,7 @@ export class ConfirmDialog extends Component<IConfirmDialogProperties, IConfirmD
         }
 
         // TODO: consider the different order of the buttons based on the OS.
-        const actions: React.ReactNode[] = [];
+        const actions: ComponentChild[] = [];
         if (buttons.alternative) {
             actions.push(<Button
                 caption={buttons.alternative.replace(/&/g, "")} // Remove hot key indicator. We cannot show them.
@@ -152,7 +156,7 @@ export class ConfirmDialog extends Component<IConfirmDialogProperties, IConfirmD
         );
     }
 
-    private handleActionClick = (e: React.SyntheticEvent, props: Readonly<IComponentProperties>): void => {
+    private handleActionClick = (e: MouseEvent | KeyboardEvent, props: Readonly<IComponentProperties>): void => {
         const { onClose } = this.props;
         const { values } = this.state;
 

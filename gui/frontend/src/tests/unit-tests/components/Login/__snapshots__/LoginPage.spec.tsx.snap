@@ -10,7 +10,7 @@ exports[`Login Page Tests Render Test 1`] = `
       className="msg container fixedScrollbar"
       id="loginDialog"
       style={
-        Object {
+        {
           "alignItems": undefined,
           "flexDirection": "column",
           "flexWrap": undefined,
@@ -23,11 +23,11 @@ exports[`Login Page Tests Render Test 1`] = `
         id="loginDialogSakilaLogo"
         src="module-shell.svg"
       >
-        <div
+        <span
           className="msg icon"
           id="loginDialogSakilaLogo"
           style={
-            Object {
+            {
               "WebkitMaskImage": "url(module-shell.svg)",
               "backgroundColor": undefined,
               "height": undefined,
@@ -45,7 +45,7 @@ exports[`Login Page Tests Render Test 1`] = `
           className="msg container fixedScrollbar"
           id="heading"
           style={
-            Object {
+            {
               "alignItems": undefined,
               "flexDirection": "column",
               "flexWrap": undefined,
@@ -54,21 +54,16 @@ exports[`Login Page Tests Render Test 1`] = `
           }
         >
           <Label
-            as="h2"
             id="headingLabel"
           >
-            <h2
+            <label
               className="msg label"
               data-tooltip="expand"
               id="headingLabel"
-              style={
-                Object {
-                  "textAlign": undefined,
-                }
-              }
+              style={{}}
             >
               MySQL Shell
-            </h2>
+            </label>
           </Label>
           <Label
             id="headingSubLabel"
@@ -77,11 +72,7 @@ exports[`Login Page Tests Render Test 1`] = `
               className="msg label"
               data-tooltip="expand"
               id="headingSubLabel"
-              style={
-                Object {
-                  "textAlign": undefined,
-                }
-              }
+              style={{}}
             >
               Welcome to the MySQL Shell GUI.
               <br />
@@ -100,7 +91,7 @@ exports[`Login Page Tests Render Test 1`] = `
           className="msg container fixedScrollbar"
           id="loginDialogLinks"
           style={
-            Object {
+            {
               "alignItems": undefined,
               "flexDirection": "row",
               "flexWrap": "wrap",
@@ -131,7 +122,7 @@ exports[`Login Page Tests Render Test 1`] = `
       <Grid
         columnGap={8}
         columns={
-          Array [
+          [
             220,
             40,
           ]
@@ -142,7 +133,7 @@ exports[`Login Page Tests Render Test 1`] = `
           className="msg grid"
           id="loginDialogControls"
           style={
-            Object {
+            {
               "columnGap": "8px",
               "gridTemplateColumns": "220px 40px",
               "rowGap": undefined,
@@ -155,12 +146,12 @@ exports[`Login Page Tests Render Test 1`] = `
             <Container
               className="msg gridCell"
               orientation="column"
-              style={Object {}}
+              style={{}}
             >
               <div
                 className="msg container fixedScrollbar gridCell"
                 style={
-                  Object {
+                  {
                     "alignItems": undefined,
                     "flexDirection": "column",
                     "flexWrap": undefined,
@@ -184,7 +175,7 @@ exports[`Login Page Tests Render Test 1`] = `
                     placeholder="Username"
                     spellCheck={false}
                     style={
-                      Object {
+                      {
                         "textAlign": undefined,
                       }
                     }
@@ -199,12 +190,12 @@ exports[`Login Page Tests Render Test 1`] = `
             <Container
               className="msg gridCell"
               orientation="row"
-              style={Object {}}
+              style={{}}
             >
               <div
                 className="msg container fixedScrollbar gridCell"
                 style={
-                  Object {
+                  {
                     "alignItems": undefined,
                     "flexDirection": "row",
                     "flexWrap": undefined,
@@ -220,12 +211,12 @@ exports[`Login Page Tests Render Test 1`] = `
             <Container
               className="msg gridCell"
               orientation="column"
-              style={Object {}}
+              style={{}}
             >
               <div
                 className="msg container fixedScrollbar gridCell"
                 style={
-                  Object {
+                  {
                     "alignItems": undefined,
                     "flexDirection": "column",
                     "flexWrap": undefined,
@@ -250,7 +241,7 @@ exports[`Login Page Tests Render Test 1`] = `
                     placeholder="Password"
                     spellCheck={true}
                     style={
-                      Object {
+                      {
                         "textAlign": undefined,
                       }
                     }
@@ -269,12 +260,12 @@ exports[`Login Page Tests Render Test 1`] = `
               className="msg gridCell"
               mainAlignment="center"
               orientation="column"
-              style={Object {}}
+              style={{}}
             >
               <div
                 className="msg container fixedScrollbar gridCell"
                 style={
-                  Object {
+                  {
                     "alignItems": undefined,
                     "flexDirection": "column",
                     "flexWrap": undefined,
@@ -293,7 +284,7 @@ exports[`Login Page Tests Render Test 1`] = `
                     onClick={[Function]}
                     onMouseDown={[Function]}
                     style={
-                      Object {
+                      {
                         "flexDirection": undefined,
                       }
                     }
@@ -303,10 +294,10 @@ exports[`Login Page Tests Render Test 1`] = `
                       disabled={false}
                       src="chevron-right.svg"
                     >
-                      <div
+                      <span
                         className="msg icon"
                         style={
-                          Object {
+                          {
                             "WebkitMaskImage": "url(chevron-right.svg)",
                             "backgroundColor": undefined,
                             "height": undefined,
@@ -330,11 +321,7 @@ exports[`Login Page Tests Render Test 1`] = `
           className="msg label"
           data-tooltip="expand"
           id="loginDialogSubtext"
-          style={
-            Object {
-              "textAlign": undefined,
-            }
-          }
+          style={{}}
         >
           If you do not have an MySQL Shell GUI account yet, please
           <br />

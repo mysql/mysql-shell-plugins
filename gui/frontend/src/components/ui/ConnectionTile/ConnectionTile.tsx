@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,11 +21,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import * as React from "react";
+import { ComponentChild } from "preact";
 
 import { IConnectionDetails } from "../../../supplement/ShellInterface";
 import { BrowserTile, IBrowserTileProperties } from "../BrowserTile/BrowserTile";
-import { Label } from "..";
+import { Label } from "../Label/Label";
 
 export interface IConnectionTileProperties extends IBrowserTileProperties {
     details: IConnectionDetails;
@@ -43,11 +43,11 @@ export class ConnectionTile extends BrowserTile<IConnectionTileProperties> {
         this.addHandledProperties("details");
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         return super.render();
     }
 
-    protected renderTileActionUI = (): React.ReactNode => {
+    protected renderTileActionUI = (): ComponentChild => {
         return (
             <Label
                 id="triggerTileAction"
@@ -57,7 +57,7 @@ export class ConnectionTile extends BrowserTile<IConnectionTileProperties> {
         );
     };
 
-    private handleActionClick = (e: React.SyntheticEvent): void => {
+    private handleActionClick = (e: MouseEvent | KeyboardEvent): void => {
         const { onAction } = this.mergedProps;
 
         e.stopPropagation();

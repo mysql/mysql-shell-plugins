@@ -21,21 +21,21 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
+import { ComponentChild, createRef } from "preact";
 
 import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types";
-import { IMrsDbObjectFieldData, IMrsSchemaData, IMrsServiceData } from "../../../communication/";
-
+import { IMrsServiceData, IMrsSchemaData, IMrsDbObjectFieldData } from "../../../communication/ProtocolMrs";
+import { ValueDialogBase } from "../../../components/Dialogs/ValueDialogBase";
 import {
-    IDialogSection, IDialogValidations, IDialogValues, ValueDialogBase, ValueEditDialog,
-    CommonDialogValueOption, IRelationDialogValue,
-} from "../../../components/Dialogs";
+    ValueEditDialog, IDialogValues, IDialogSection, CommonDialogValueOption, IDialogValidations,
+    IRelationDialogValue,
+} from "../../../components/Dialogs/ValueEditDialog";
 
 export class MrsDbObjectDialog extends ValueDialogBase {
-    private dialogRef = React.createRef<ValueEditDialog>();
+    private dialogRef = createRef<ValueEditDialog>();
     private objectType: string;
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         return (
             <ValueEditDialog
                 ref={this.dialogRef}
@@ -401,7 +401,7 @@ export class MrsDbObjectDialog extends ValueDialogBase {
                 // Detect a change of the <new> entry
                 if (newEntry && newEntry.name !== "<new>") {
                     // Update id and position
-                    newEntry.id = (parameters.length * -1).toString();
+                    newEntry.id = `${parameters.length * -1}`;
                     newEntry.position = parameters.length;
 
                     paramDlgValue.active = newEntry.id;

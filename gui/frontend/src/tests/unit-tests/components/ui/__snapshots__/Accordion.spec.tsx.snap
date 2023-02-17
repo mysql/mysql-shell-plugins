@@ -6,10 +6,10 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
   footer="Lorem ipsum dolor sit amen, consenter"
   id="sidebar1"
   sections={
-    Array [
-      Object {
+    [
+      {
         "caption": "FIRST SECTION",
-        "content": Array [
+        "content": [
           <AccordionItem
             caption="Item 1"
             id="item1"
@@ -26,9 +26,9 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
         "expanded": false,
         "id": "first",
       },
-      Object {
+      {
         "caption": "SECOND SECTION",
-        "content": Array [
+        "content": [
           <AccordionItem
             caption="Item 5"
             id="item5"
@@ -47,9 +47,9 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
         ],
         "id": "second",
       },
-      Object {
+      {
         "caption": "THIRD SECTION",
-        "content": Array [
+        "content": [
           <AccordionItem
             caption="Item 9"
             id="item9"
@@ -69,7 +69,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
   }
   singleExpand={true}
   style={
-    Object {
+    {
       "borderStyle": "solid",
       "borderWidth": "1px",
     }
@@ -81,7 +81,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
     mainAlignment="flex-start"
     orientation="column"
     style={
-      Object {
+      {
         "borderStyle": "solid",
         "borderWidth": "1px",
       }
@@ -91,7 +91,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
       className="msg container fixedScrollbar accordion"
       id="sidebar1"
       style={
-        Object {
+        {
           "alignItems": undefined,
           "borderStyle": "solid",
           "borderWidth": "1px",
@@ -107,11 +107,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
         <label
           className="msg label title"
           data-tooltip="expand"
-          style={
-            Object {
-              "textAlign": undefined,
-            }
-          }
+          style={{}}
         >
           SIDEBAR TITLE
         </label>
@@ -121,8 +117,8 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
         onPaneResized={[Function]}
         orientation="column"
         panes={
-          Array [
-            Object {
+          [
+            {
               "content": <AccordionSection
                 caption="FIRST SECTION"
                 dimmed={false}
@@ -148,15 +144,12 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
               "id": "first",
               "initialSize": undefined,
               "maxSize": 28,
-              "maxSizeBackup": undefined,
               "minSize": 28,
-              "minSizeBackup": 28,
               "resizable": false,
-              "resizableBackup": false,
               "snap": true,
               "stretch": false,
             },
-            Object {
+            {
               "content": <AccordionSection
                 caption="SECOND SECTION"
                 dimmed={false}
@@ -185,15 +178,12 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
               "id": "second",
               "initialSize": undefined,
               "maxSize": undefined,
-              "maxSizeBackup": undefined,
               "minSize": 28,
-              "minSizeBackup": 28,
               "resizable": false,
-              "resizableBackup": false,
               "snap": true,
               "stretch": false,
             },
-            Object {
+            {
               "content": <AccordionSection
                 caption="THIRD SECTION"
                 dimmed={false}
@@ -219,11 +209,8 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
               "id": "third",
               "initialSize": undefined,
               "maxSize": undefined,
-              "maxSizeBackup": undefined,
               "minSize": 28,
-              "minSizeBackup": 28,
               "resizable": false,
-              "resizableBackup": false,
               "snap": true,
               "stretch": false,
             },
@@ -250,7 +237,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                 onMouseEnter={[Function]}
                 onMouseLeave={[Function]}
                 style={
-                  Object {
+                  {
                     "--thickness": "4px",
                   }
                 }
@@ -269,7 +256,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                 onMouseEnter={[Function]}
                 onMouseLeave={[Function]}
                 style={
-                  Object {
+                  {
                     "--thickness": "4px",
                   }
                 }
@@ -290,7 +277,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                 className="msg container fixedScrollbar splitHost"
                 id="firstHost"
                 style={
-                  Object {
+                  {
                     "alignItems": undefined,
                     "flexDirection": "column",
                     "flexWrap": undefined,
@@ -309,8 +296,73 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                   <Container
                     className="msg section"
                     innerRef={
-                      Object {
-                        "current": Object {},
+                      {
+                        "current": <div
+                          class="msg container fixedScrollbar section"
+                          style="flex-direction: column;"
+                        >
+                          <div
+                            class="msg container fixedScrollbar title"
+                            style="flex-direction: row; align-items: center;"
+                            tabindex="0"
+                          >
+                            <label
+                              class="msg label"
+                              data-tooltip="expand"
+                            >
+                              FIRST SECTION
+                            </label>
+                            <div
+                              class="msg container fixedScrollbar actions"
+                              style="flex-direction: row; justify-content: flex-end; align-items: center;"
+                            />
+                          </div>
+                          <div
+                            class="msg container fixedScrollbar content"
+                            style="flex-direction: column;"
+                            tabindex="0"
+                          >
+                            <div
+                              class="msg container fixedScrollbar accordionItem"
+                              id="item1"
+                              style="flex-direction: row; align-items: center;"
+                              tabindex="0"
+                            >
+                              <label
+                                class="msg label"
+                                data-tooltip="expand"
+                              >
+                                Item 1
+                              </label>
+                            </div>
+                            <div
+                              class="msg container fixedScrollbar accordionItem"
+                              id="item2"
+                              style="flex-direction: row; align-items: center;"
+                              tabindex="0"
+                            >
+                              <label
+                                class="msg label"
+                                data-tooltip="expand"
+                              >
+                                Item 2
+                              </label>
+                            </div>
+                            <div
+                              class="msg container fixedScrollbar accordionItem"
+                              id="item3"
+                              style="flex-direction: row; align-items: center;"
+                              tabindex="0"
+                            >
+                              <label
+                                class="msg label"
+                                data-tooltip="expand"
+                              >
+                                Item 3
+                              </label>
+                            </div>
+                          </div>
+                        </div>,
                       }
                     }
                     orientation="column"
@@ -318,7 +370,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                     <div
                       className="msg container fixedScrollbar section"
                       style={
-                        Object {
+                        {
                           "alignItems": undefined,
                           "flexDirection": "column",
                           "flexWrap": undefined,
@@ -339,7 +391,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                           onClick={[Function]}
                           onKeyPress={[Function]}
                           style={
-                            Object {
+                            {
                               "alignItems": "center",
                               "flexDirection": "row",
                               "flexWrap": undefined,
@@ -354,11 +406,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                             <label
                               className="msg label"
                               data-tooltip="expand"
-                              style={
-                                Object {
-                                  "textAlign": undefined,
-                                }
-                              }
+                              style={{}}
                             >
                               FIRST SECTION
                             </label>
@@ -372,7 +420,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                             <div
                               className="msg container fixedScrollbar actions"
                               style={
-                                Object {
+                                {
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "flexWrap": undefined,
@@ -391,7 +439,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                         <div
                           className="msg container fixedScrollbar content"
                           style={
-                            Object {
+                            {
                               "alignItems": undefined,
                               "flexDirection": "column",
                               "flexWrap": undefined,
@@ -416,7 +464,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                                 className="msg container fixedScrollbar accordionItem"
                                 id="item1"
                                 style={
-                                  Object {
+                                  {
                                     "alignItems": "center",
                                     "flexDirection": "row",
                                     "flexWrap": undefined,
@@ -425,20 +473,14 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                                 }
                                 tabIndex={0}
                               >
-                                <Label
-                                  as="span"
-                                >
-                                  <span
+                                <Label>
+                                  <label
                                     className="msg label"
                                     data-tooltip="expand"
-                                    style={
-                                      Object {
-                                        "textAlign": undefined,
-                                      }
-                                    }
+                                    style={{}}
                                   >
                                     Item 1
-                                  </span>
+                                  </label>
                                 </Label>
                               </div>
                             </Container>
@@ -459,7 +501,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                                 className="msg container fixedScrollbar accordionItem"
                                 id="item2"
                                 style={
-                                  Object {
+                                  {
                                     "alignItems": "center",
                                     "flexDirection": "row",
                                     "flexWrap": undefined,
@@ -468,20 +510,14 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                                 }
                                 tabIndex={0}
                               >
-                                <Label
-                                  as="span"
-                                >
-                                  <span
+                                <Label>
+                                  <label
                                     className="msg label"
                                     data-tooltip="expand"
-                                    style={
-                                      Object {
-                                        "textAlign": undefined,
-                                      }
-                                    }
+                                    style={{}}
                                   >
                                     Item 2
-                                  </span>
+                                  </label>
                                 </Label>
                               </div>
                             </Container>
@@ -502,7 +538,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                                 className="msg container fixedScrollbar accordionItem"
                                 id="item3"
                                 style={
-                                  Object {
+                                  {
                                     "alignItems": "center",
                                     "flexDirection": "row",
                                     "flexWrap": undefined,
@@ -511,20 +547,14 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                                 }
                                 tabIndex={0}
                               >
-                                <Label
-                                  as="span"
-                                >
-                                  <span
+                                <Label>
+                                  <label
                                     className="msg label"
                                     data-tooltip="expand"
-                                    style={
-                                      Object {
-                                        "textAlign": undefined,
-                                      }
-                                    }
+                                    style={{}}
                                   >
                                     Item 3
-                                  </span>
+                                  </label>
                                 </Label>
                               </div>
                             </Container>
@@ -547,7 +577,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                 className="msg container fixedScrollbar splitHost"
                 id="secondHost"
                 style={
-                  Object {
+                  {
                     "alignItems": undefined,
                     "flexDirection": "column",
                     "flexWrap": undefined,
@@ -566,8 +596,94 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                   <Container
                     className="msg section expanded"
                     innerRef={
-                      Object {
-                        "current": Object {},
+                      {
+                        "current": <div
+                          class="msg container fixedScrollbar section expanded"
+                          style="flex-direction: column;"
+                        >
+                          <div
+                            class="msg container fixedScrollbar title"
+                            style="flex-direction: row; align-items: center;"
+                            tabindex="0"
+                          >
+                            <label
+                              class="msg label"
+                              data-tooltip="expand"
+                            >
+                              SECOND SECTION
+                            </label>
+                            <div
+                              class="msg container fixedScrollbar actions"
+                              style="flex-direction: row; justify-content: flex-end; align-items: center;"
+                            />
+                          </div>
+                          <div
+                            class="msg container fixedScrollbar content"
+                            style="flex-direction: column;"
+                            tabindex="0"
+                          >
+                            <div
+                              class="msg container fixedScrollbar accordionItem"
+                              id="item5"
+                              picture="connections.svg"
+                              style="flex-direction: row; align-items: center;"
+                              tabindex="0"
+                            >
+                              <img
+                                class="msg image"
+                                height="0"
+                                src="connections.svg"
+                                width="0"
+                              />
+                              <label
+                                class="msg label"
+                                data-tooltip="expand"
+                              >
+                                Item 5
+                              </label>
+                            </div>
+                            <div
+                              class="msg container fixedScrollbar accordionItem"
+                              id="item6"
+                              picture="connections.svg"
+                              style="flex-direction: row; align-items: center;"
+                              tabindex="0"
+                            >
+                              <img
+                                class="msg image"
+                                height="0"
+                                src="connections.svg"
+                                width="0"
+                              />
+                              <label
+                                class="msg label"
+                                data-tooltip="expand"
+                              >
+                                Item 6
+                              </label>
+                            </div>
+                            <div
+                              class="msg container fixedScrollbar accordionItem"
+                              id="item7"
+                              picture="connections.svg"
+                              style="flex-direction: row; align-items: center;"
+                              tabindex="0"
+                            >
+                              <img
+                                class="msg image"
+                                height="0"
+                                src="connections.svg"
+                                width="0"
+                              />
+                              <label
+                                class="msg label"
+                                data-tooltip="expand"
+                              >
+                                Item 7
+                              </label>
+                            </div>
+                          </div>
+                        </div>,
                       }
                     }
                     orientation="column"
@@ -575,7 +691,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                     <div
                       className="msg container fixedScrollbar section expanded"
                       style={
-                        Object {
+                        {
                           "alignItems": undefined,
                           "flexDirection": "column",
                           "flexWrap": undefined,
@@ -596,7 +712,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                           onClick={[Function]}
                           onKeyPress={[Function]}
                           style={
-                            Object {
+                            {
                               "alignItems": "center",
                               "flexDirection": "row",
                               "flexWrap": undefined,
@@ -611,11 +727,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                             <label
                               className="msg label"
                               data-tooltip="expand"
-                              style={
-                                Object {
-                                  "textAlign": undefined,
-                                }
-                              }
+                              style={{}}
                             >
                               SECOND SECTION
                             </label>
@@ -629,7 +741,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                             <div
                               className="msg container fixedScrollbar actions"
                               style={
-                                Object {
+                                {
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "flexWrap": undefined,
@@ -648,7 +760,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                         <div
                           className="msg container fixedScrollbar content"
                           style={
-                            Object {
+                            {
                               "alignItems": undefined,
                               "flexDirection": "column",
                               "flexWrap": undefined,
@@ -676,7 +788,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                                 id="item5"
                                 picture="connections.svg"
                                 style={
-                                  Object {
+                                  {
                                     "alignItems": "center",
                                     "flexDirection": "row",
                                     "flexWrap": undefined,
@@ -686,7 +798,6 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                                 tabIndex={0}
                               >
                                 <Image
-                                  as="span"
                                   disabled={false}
                                   height="20px"
                                   src="connections.svg"
@@ -699,20 +810,14 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                                     width="20px"
                                   />
                                 </Image>
-                                <Label
-                                  as="span"
-                                >
-                                  <span
+                                <Label>
+                                  <label
                                     className="msg label"
                                     data-tooltip="expand"
-                                    style={
-                                      Object {
-                                        "textAlign": undefined,
-                                      }
-                                    }
+                                    style={{}}
                                   >
                                     Item 5
-                                  </span>
+                                  </label>
                                 </Label>
                               </div>
                             </Container>
@@ -736,7 +841,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                                 id="item6"
                                 picture="connections.svg"
                                 style={
-                                  Object {
+                                  {
                                     "alignItems": "center",
                                     "flexDirection": "row",
                                     "flexWrap": undefined,
@@ -746,7 +851,6 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                                 tabIndex={0}
                               >
                                 <Image
-                                  as="span"
                                   disabled={false}
                                   height="20px"
                                   src="connections.svg"
@@ -759,20 +863,14 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                                     width="20px"
                                   />
                                 </Image>
-                                <Label
-                                  as="span"
-                                >
-                                  <span
+                                <Label>
+                                  <label
                                     className="msg label"
                                     data-tooltip="expand"
-                                    style={
-                                      Object {
-                                        "textAlign": undefined,
-                                      }
-                                    }
+                                    style={{}}
                                   >
                                     Item 6
-                                  </span>
+                                  </label>
                                 </Label>
                               </div>
                             </Container>
@@ -796,7 +894,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                                 id="item7"
                                 picture="connections.svg"
                                 style={
-                                  Object {
+                                  {
                                     "alignItems": "center",
                                     "flexDirection": "row",
                                     "flexWrap": undefined,
@@ -806,7 +904,6 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                                 tabIndex={0}
                               >
                                 <Image
-                                  as="span"
                                   disabled={false}
                                   height="20px"
                                   src="connections.svg"
@@ -819,20 +916,14 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                                     width="20px"
                                   />
                                 </Image>
-                                <Label
-                                  as="span"
-                                >
-                                  <span
+                                <Label>
+                                  <label
                                     className="msg label"
                                     data-tooltip="expand"
-                                    style={
-                                      Object {
-                                        "textAlign": undefined,
-                                      }
-                                    }
+                                    style={{}}
                                   >
                                     Item 7
-                                  </span>
+                                  </label>
                                 </Label>
                               </div>
                             </Container>
@@ -855,7 +946,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                 className="msg container fixedScrollbar splitHost"
                 id="thirdHost"
                 style={
-                  Object {
+                  {
                     "alignItems": undefined,
                     "flexDirection": "column",
                     "flexWrap": undefined,
@@ -874,8 +965,73 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                   <Container
                     className="msg section expanded"
                     innerRef={
-                      Object {
-                        "current": Object {},
+                      {
+                        "current": <div
+                          class="msg container fixedScrollbar section expanded"
+                          style="flex-direction: column;"
+                        >
+                          <div
+                            class="msg container fixedScrollbar title"
+                            style="flex-direction: row; align-items: center;"
+                            tabindex="0"
+                          >
+                            <label
+                              class="msg label"
+                              data-tooltip="expand"
+                            >
+                              THIRD SECTION
+                            </label>
+                            <div
+                              class="msg container fixedScrollbar actions"
+                              style="flex-direction: row; justify-content: flex-end; align-items: center;"
+                            />
+                          </div>
+                          <div
+                            class="msg container fixedScrollbar content"
+                            style="flex-direction: column;"
+                            tabindex="0"
+                          >
+                            <div
+                              class="msg container fixedScrollbar accordionItem"
+                              id="item9"
+                              style="flex-direction: row; align-items: center;"
+                              tabindex="0"
+                            >
+                              <label
+                                class="msg label"
+                                data-tooltip="expand"
+                              >
+                                Item 9
+                              </label>
+                            </div>
+                            <div
+                              class="msg container fixedScrollbar accordionItem"
+                              id="item10"
+                              style="flex-direction: row; align-items: center;"
+                              tabindex="0"
+                            >
+                              <label
+                                class="msg label"
+                                data-tooltip="expand"
+                              >
+                                Item 10
+                              </label>
+                            </div>
+                            <div
+                              class="msg container fixedScrollbar accordionItem"
+                              id="item11"
+                              style="flex-direction: row; align-items: center;"
+                              tabindex="0"
+                            >
+                              <label
+                                class="msg label"
+                                data-tooltip="expand"
+                              >
+                                Item 11
+                              </label>
+                            </div>
+                          </div>
+                        </div>,
                       }
                     }
                     orientation="column"
@@ -883,7 +1039,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                     <div
                       className="msg container fixedScrollbar section expanded"
                       style={
-                        Object {
+                        {
                           "alignItems": undefined,
                           "flexDirection": "column",
                           "flexWrap": undefined,
@@ -904,7 +1060,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                           onClick={[Function]}
                           onKeyPress={[Function]}
                           style={
-                            Object {
+                            {
                               "alignItems": "center",
                               "flexDirection": "row",
                               "flexWrap": undefined,
@@ -919,11 +1075,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                             <label
                               className="msg label"
                               data-tooltip="expand"
-                              style={
-                                Object {
-                                  "textAlign": undefined,
-                                }
-                              }
+                              style={{}}
                             >
                               THIRD SECTION
                             </label>
@@ -937,7 +1089,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                             <div
                               className="msg container fixedScrollbar actions"
                               style={
-                                Object {
+                                {
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "flexWrap": undefined,
@@ -956,7 +1108,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                         <div
                           className="msg container fixedScrollbar content"
                           style={
-                            Object {
+                            {
                               "alignItems": undefined,
                               "flexDirection": "column",
                               "flexWrap": undefined,
@@ -981,7 +1133,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                                 className="msg container fixedScrollbar accordionItem"
                                 id="item9"
                                 style={
-                                  Object {
+                                  {
                                     "alignItems": "center",
                                     "flexDirection": "row",
                                     "flexWrap": undefined,
@@ -990,20 +1142,14 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                                 }
                                 tabIndex={0}
                               >
-                                <Label
-                                  as="span"
-                                >
-                                  <span
+                                <Label>
+                                  <label
                                     className="msg label"
                                     data-tooltip="expand"
-                                    style={
-                                      Object {
-                                        "textAlign": undefined,
-                                      }
-                                    }
+                                    style={{}}
                                   >
                                     Item 9
-                                  </span>
+                                  </label>
                                 </Label>
                               </div>
                             </Container>
@@ -1024,7 +1170,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                                 className="msg container fixedScrollbar accordionItem"
                                 id="item10"
                                 style={
-                                  Object {
+                                  {
                                     "alignItems": "center",
                                     "flexDirection": "row",
                                     "flexWrap": undefined,
@@ -1033,20 +1179,14 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                                 }
                                 tabIndex={0}
                               >
-                                <Label
-                                  as="span"
-                                >
-                                  <span
+                                <Label>
+                                  <label
                                     className="msg label"
                                     data-tooltip="expand"
-                                    style={
-                                      Object {
-                                        "textAlign": undefined,
-                                      }
-                                    }
+                                    style={{}}
                                   >
                                     Item 10
-                                  </span>
+                                  </label>
                                 </Label>
                               </div>
                             </Container>
@@ -1067,7 +1207,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                                 className="msg container fixedScrollbar accordionItem"
                                 id="item11"
                                 style={
-                                  Object {
+                                  {
                                     "alignItems": "center",
                                     "flexDirection": "row",
                                     "flexWrap": undefined,
@@ -1076,20 +1216,14 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                                 }
                                 tabIndex={0}
                               >
-                                <Label
-                                  as="span"
-                                >
-                                  <span
+                                <Label>
+                                  <label
                                     className="msg label"
                                     data-tooltip="expand"
-                                    style={
-                                      Object {
-                                        "textAlign": undefined,
-                                      }
-                                    }
+                                    style={{}}
                                   >
                                     Item 11
-                                  </span>
+                                  </label>
                                 </Label>
                               </div>
                             </Container>
@@ -1110,11 +1244,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
         <label
           className="msg label footer"
           data-tooltip="expand"
-          style={
-            Object {
-              "textAlign": undefined,
-            }
-          }
+          style={{}}
         >
           Lorem ipsum dolor sit amen, consenter
         </label>

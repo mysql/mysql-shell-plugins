@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,13 +23,13 @@
 
 import { Symbol, ScopedSymbol, SymbolTableOptions } from "antlr4-c3";
 
-import { ShellInterfaceDb } from "../supplement/ShellInterface";
 import {
     CharsetSymbol, CollationSymbol, ColumnSymbol, DBSymbolTable, EngineSymbol, ForeignKeySymbol, IndexSymbol,
     LogfileGroupSymbol, PluginSymbol, SchemaSymbol, StoredFunctionSymbol, StoredProcedureSymbol, TableSymbol,
     TriggerSymbol, UdfSymbol, UserSymbol, UserVariableSymbol, ViewSymbol,
 } from "../parsing/DBSymbolTable";
 import { SymbolKind } from "../parsing/parser-common";
+import { ShellInterfaceDb } from "../supplement/ShellInterface/ShellInterfaceDb";
 
 // An enhanced database symbol table, which is able to retrieve their content from a shell DB connection on demand.
 export class DynamicSymbolTable extends DBSymbolTable {

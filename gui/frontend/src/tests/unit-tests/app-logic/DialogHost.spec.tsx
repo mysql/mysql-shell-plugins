@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,16 +21,15 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
 import keyboardKey from "keyboard-key";
 
 import { mount } from "enzyme";
 
 import { DialogHost } from "./../../../app-logic/DialogHost";
-import { JestReactWrapper, nextProcessTick, sendKeyPress, snapshotFromWrapper } from "../test-helpers";
+import { JestReactWrapper, nextProcessTick, sendKeyPress } from "../test-helpers";
 import { DialogType, IDialogRequest } from "../../../app-logic/Types";
 import { requisitions } from "../../../supplement/Requisitions";
-import { IMrsDbObjectData, IMrsSchemaData, IMrsServiceData } from "../../../communication/";
+import { IMrsServiceData, IMrsSchemaData, IMrsDbObjectData } from "../../../communication/ProtocolMrs";
 
 describe("DialogHost Tests", () => {
     let host: JestReactWrapper;
@@ -46,7 +45,7 @@ describe("DialogHost Tests", () => {
     it("Standard Rendering (snapshot)", () => {
         // The host itself has no properties, but implicit children (the different dialogs).
         expect(host.props().children).toEqual([]);
-        expect(snapshotFromWrapper(host)).toMatchSnapshot();
+        expect(host).toMatchSnapshot();
     });
 
     it("Show Prompt Dialog (snapshot)", async () => {
@@ -169,10 +168,10 @@ describe("DialogHost Tests", () => {
             comments: "",
             options: {
                 header: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* eslint-disable @typescript-eslint/naming-convention */
                     "Access-Control-Allow-Origin": "*",
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+                    /* eslint-enable @typescript-eslint/naming-convention */
                 },
             },
             authPath: "",

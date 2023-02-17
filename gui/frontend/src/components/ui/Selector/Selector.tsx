@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,14 +23,17 @@
 
 import "./Selector.css";
 
-import React from "react";
+import { cloneElement, ComponentChild, createRef, VNode } from "preact";
 import { isNil } from "lodash";
 
-import { Component, IComponentProperties, DragEventType } from "../Component/Component";
+import {
+    ComponentBase, IComponentProperties, DragEventType, ClickEventCallback, DragEventCallback,
+} from "../Component/ComponentBase";
 
-import { Container, Orientation } from "..";
 import { ISelectorItemProperties, SelectorItem } from "./SelectorItem";
 import { Codicon } from "../Codicon";
+import { collectVNodes } from "../../../utilities/ts-helpers";
+import { Orientation, Container } from "../Container/Container";
 
 export interface ISelectorDef {
     id?: string;
@@ -40,10 +43,10 @@ export interface ISelectorDef {
     tooltip?: string;
     canReorder?: boolean;        // Can items be reordered using drag and drop?
 
-    auxillary?: React.ReactNode;
+    auxillary?: ComponentChild;
 }
 
-export interface ISelectorProperties extends IComponentProperties {
+interface ISelectorProperties extends IComponentProperties {
     orientation?: Orientation;
     entryOrientation?: Orientation;
     smoothScroll?: boolean;
@@ -55,10 +58,11 @@ export interface ISelectorProperties extends IComponentProperties {
     onSelect?: (id: string) => void;
 }
 
-
-// A selector is a collection of button-like elements, of which only one can be active.
-// Typical use of this component includes activity bars and tabview switchers.
-export class Selector extends Component<ISelectorProperties> {
+/**
+ * A selector is a collection of button-like elements, of which only one can be active.
+ * Typical use of this component includes activity bars and tabview switchers.
+ */
+export class Selector extends ComponentBase<ISelectorProperties> {
     public static defaultProps = {
         orientation: Orientation.LeftToRight,
         entryOrientation: Orientation.TopDown,
@@ -67,10 +71,10 @@ export class Selector extends Component<ISelectorProperties> {
         activeItemId: "",
     };
 
-    private containerRef = React.createRef<HTMLElement>();
-    private stepUpRef = React.createRef<HTMLElement>();
-    private stepDownRef = React.createRef<HTMLElement>();
-    private activeItemRef = React.createRef<HTMLElement>();
+    private containerRef = createRef<HTMLDivElement>();
+    private stepUpRef = createRef<HTMLDivElement>();
+    private stepDownRef = createRef<HTMLDivElement>();
+    private activeItemRef = createRef<HTMLDivElement>();
 
     private dragInsideCounter = 0;
 
@@ -91,7 +95,7 @@ export class Selector extends Component<ISelectorProperties> {
         this.autoHideNavButtons();
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { id, children, smoothScroll, items, orientation, entryOrientation, activeItemId } = this.mergedProps;
 
         const className = this.getEffectiveClassNames([
@@ -104,7 +108,7 @@ export class Selector extends Component<ISelectorProperties> {
 
         let content = children;
         if (isNil(content)) {
-            content = items?.map((item: ISelectorDef, index: number): React.ReactElement => {
+            content = items?.map((item: ISelectorDef, index: number): ComponentChild => {
                 const selectorId = item.id ?? `${baseId}${index}`;
                 const active = activeItemId === selectorId;
 
@@ -120,35 +124,24 @@ export class Selector extends Component<ISelectorProperties> {
                         selected={active}
                         orientation={entryOrientation}
                         draggable={item.canReorder}
-                        onClick={this.handleItemClick}
-                        onDrop={this.handleItemDrop}
+                        onClick={this.handleItemClick.bind(this, undefined)}
+                        onDrop={this.handleItemDrop.bind(this, undefined)}
                     />
                 );
             });
         } else {
-            content = React.Children.map(content, (item: React.ReactNode, index: number): React.ReactNode => {
-                if (React.isValidElement(item)) {
-                    const {
-                        id: childId = `${baseId}${index}`, onClick: childOnClick, onDrop: childOnDrop,
-                    } = item.props;
+            const elements = collectVNodes<IComponentProperties>(children);
+            content = elements.map((item: VNode<IComponentProperties>, index: number): ComponentChild => {
+                const {
+                    id: childId = `${baseId}${index}`, onClick: childOnClick, onDrop: childOnDrop,
+                } = item.props;
 
-                    return React.cloneElement(item, {
-                        id: childId,
-                        key: childId,
-                        onClick: (e: React.MouseEvent, props: IComponentProperties): void => {
-                            this.handleItemClick(e, props); // The selector's click callback.
-                            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                            childOnClick?.(e, props); // The item's click callback.
-                        },
-                        onDrop: (e: React.DragEvent<HTMLElement>, props: IComponentProperties): void => {
-                            this.handleItemDrop(e, props);
-                            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                            childOnDrop?.(e, props);
-                        },
-                    } as never); // Cast to never to allow assigning the id field.
-                }
-
-                return undefined;
+                return cloneElement(item, {
+                    id: childId,
+                    key: childId,
+                    onClick: this.handleItemClick.bind(this, childOnClick),
+                    onDrop: this.handleItemDrop.bind(this, childOnDrop),
+                });
             });
         }
 
@@ -157,7 +150,6 @@ export class Selector extends Component<ISelectorProperties> {
                 innerRef={this.containerRef}
                 orientation={orientation}
                 className={className}
-                onResize={this.handleResize}
                 {...this.unhandledProperties}
             >
                 <SelectorItem
@@ -177,7 +169,8 @@ export class Selector extends Component<ISelectorProperties> {
         );
     }
 
-    protected handleDragEvent(type: DragEventType, e: React.DragEvent<HTMLElement>): boolean {
+    protected handleDragEvent(type: DragEventType, e: DragEvent): boolean {
+        const element = e.currentTarget as HTMLElement;
         switch (type) {
             case DragEventType.Over: {
                 e.preventDefault(); // Required or we get no drop event.
@@ -186,7 +179,7 @@ export class Selector extends Component<ISelectorProperties> {
 
             case DragEventType.Enter: {
                 if (this.dragInsideCounter === 0) {
-                    e.currentTarget.classList.add("dropTarget");
+                    element.classList.add("dropTarget");
                 }
                 ++this.dragInsideCounter;
                 e.stopPropagation(); // Required or parent elements will also get the drag events.
@@ -197,7 +190,7 @@ export class Selector extends Component<ISelectorProperties> {
             case DragEventType.Leave: {
                 --this.dragInsideCounter;
                 if (this.dragInsideCounter === 0) {
-                    e.currentTarget.classList.remove("dropTarget");
+                    element.classList.remove("dropTarget");
                 }
                 e.stopPropagation();
 
@@ -206,7 +199,7 @@ export class Selector extends Component<ISelectorProperties> {
 
             case DragEventType.Drop: {
                 this.dragInsideCounter = 0;
-                e.currentTarget.classList.remove("dropTarget");
+                element.classList.remove("dropTarget");
                 e.preventDefault();
 
                 break;
@@ -218,17 +211,23 @@ export class Selector extends Component<ISelectorProperties> {
         return true;
     }
 
-    private handleItemClick = (e: React.SyntheticEvent, props: Readonly<IComponentProperties>): void => {
+    private handleItemClick = (childOnClick: ClickEventCallback | undefined, e: MouseEvent | KeyboardEvent,
+        props: Readonly<IComponentProperties>): void => {
         const { onSelect } = this.mergedProps;
         onSelect?.(props.id ?? "");
+
+        childOnClick?.(e, props);
     };
 
-    private handleItemDrop = (e: React.DragEvent<HTMLElement>, props: IComponentProperties): void => {
+    private handleItemDrop = (childOnDrop: DragEventCallback | undefined, e: DragEvent,
+        props: IComponentProperties): void => {
         const { onDrop } = this.mergedProps;
         onDrop?.(e, props);
+
+        childOnDrop?.(e, props);
     };
 
-    private handleNavigationClick = (e: React.SyntheticEvent, props: Readonly<IComponentProperties>): void => {
+    private handleNavigationClick = (e: MouseEvent | KeyboardEvent, props: Readonly<IComponentProperties>): void => {
         const { wrapNavigation, onSelect } = this.mergedProps;
 
         let element: HTMLElement | undefined | null = e.currentTarget as HTMLElement;
@@ -256,6 +255,7 @@ export class Selector extends Component<ISelectorProperties> {
         }
     };
 
+    // XXX: implement resize handling
     private handleResize = (): void => {
         this.scrollActiveItemIntoView();
         this.autoHideNavButtons();

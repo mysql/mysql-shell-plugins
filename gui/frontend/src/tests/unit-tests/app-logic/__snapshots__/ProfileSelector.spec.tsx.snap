@@ -10,7 +10,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
       onClick={[Function]}
       onMouseDown={[Function]}
       style={
-        Object {
+        {
           "flexDirection": undefined,
         }
       }
@@ -27,9 +27,9 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
     >
       <Dialog
         actions={
-          Object {
-            "begin": Array [],
-            "end": Array [
+          {
+            "begin": [],
+            "end": [
               <Button
                 caption="OK"
                 disabled={false}
@@ -45,16 +45,85 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
           }
         }
         caption={
-          <y>
+          <p>
             <Icon
               disabled={false}
               src={388}
             />
             <Label />
-          </y>
+          </p>
         }
         className="msg valueEditDialog"
-        container={Object {}}
+        container={
+          <body
+            theme="dark"
+          >
+            <div
+              class="msg portal"
+              id="tileActionMenu"
+              style="--background-opacity: 0;"
+            >
+              <div
+                class="msg container fixedScrollbar popup visible top-start noArrow menu"
+                style="flex-direction: column; left: 0px; top: 0px;"
+              >
+                <div
+                  class="msg divider horizontal menuItem disabled separator"
+                  id="-"
+                  style="--thickness: 4px;"
+                />
+                <div
+                  class="msg container fixedScrollbar menuItem"
+                  id="add"
+                  style="flex-direction: row;"
+                >
+                  <span
+                    class="msg icon"
+                    style="mask-image: url(add.svg);"
+                  />
+                  <label
+                    class="msg label"
+                    data-tooltip="expand"
+                  >
+                    Add Profile
+                  </label>
+                </div>
+                <div
+                  class="msg container fixedScrollbar menuItem"
+                  id="edit"
+                  style="flex-direction: row;"
+                >
+                  <span
+                    class="msg icon"
+                    style="mask-image: url(edit.svg);"
+                  />
+                  <label
+                    class="msg label"
+                    data-tooltip="expand"
+                  >
+                    Edit Profile
+                  </label>
+                </div>
+                <div
+                  class="msg container fixedScrollbar menuItem"
+                  id="delete"
+                  style="flex-direction: row;"
+                >
+                  <span
+                    class="msg icon"
+                    style="mask-image: url(close2.svg);"
+                  />
+                  <label
+                    class="msg label"
+                    data-tooltip="expand"
+                  >
+                    Delete Profile
+                  </label>
+                </div>
+              </div>
+            </div>
+          </body>
+        }
         content={
           <Grid
             columnGap={16}
@@ -66,7 +135,76 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
         onClose={[Function]}
       >
         <Portal
-          container={Object {}}
+          container={
+            <body
+              theme="dark"
+            >
+              <div
+                class="msg portal"
+                id="tileActionMenu"
+                style="--background-opacity: 0;"
+              >
+                <div
+                  class="msg container fixedScrollbar popup visible top-start noArrow menu"
+                  style="flex-direction: column; left: 0px; top: 0px;"
+                >
+                  <div
+                    class="msg divider horizontal menuItem disabled separator"
+                    id="-"
+                    style="--thickness: 4px;"
+                  />
+                  <div
+                    class="msg container fixedScrollbar menuItem"
+                    id="add"
+                    style="flex-direction: row;"
+                  >
+                    <span
+                      class="msg icon"
+                      style="mask-image: url(add.svg);"
+                    />
+                    <label
+                      class="msg label"
+                      data-tooltip="expand"
+                    >
+                      Add Profile
+                    </label>
+                  </div>
+                  <div
+                    class="msg container fixedScrollbar menuItem"
+                    id="edit"
+                    style="flex-direction: row;"
+                  >
+                    <span
+                      class="msg icon"
+                      style="mask-image: url(edit.svg);"
+                    />
+                    <label
+                      class="msg label"
+                      data-tooltip="expand"
+                    >
+                      Edit Profile
+                    </label>
+                  </div>
+                  <div
+                    class="msg container fixedScrollbar menuItem"
+                    id="delete"
+                    style="flex-direction: row;"
+                  >
+                    <span
+                      class="msg icon"
+                      style="mask-image: url(close2.svg);"
+                    />
+                    <label
+                      class="msg label"
+                      data-tooltip="expand"
+                    >
+                      Delete Profile
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </body>
+          }
           id="profileCreating"
           onClose={[Function]}
           onOpen={[Function]}
@@ -101,12 +239,12 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
     >
       <Dialog
         actions={
-          Object {
-            "end": Array [],
+          {
+            "end": [],
           }
         }
         caption={
-          <y>
+          <p>
             <Icon
               disabled={false}
               src={275}
@@ -114,10 +252,79 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
             <Label>
               Confirm
             </Label>
-          </y>
+          </p>
         }
         className="msg confirmDialog"
-        container={Object {}}
+        container={
+          <body
+            theme="dark"
+          >
+            <div
+              class="msg portal"
+              id="tileActionMenu"
+              style="--background-opacity: 0;"
+            >
+              <div
+                class="msg container fixedScrollbar popup visible top-start noArrow menu"
+                style="flex-direction: column; left: 0px; top: 0px;"
+              >
+                <div
+                  class="msg divider horizontal menuItem disabled separator"
+                  id="-"
+                  style="--thickness: 4px;"
+                />
+                <div
+                  class="msg container fixedScrollbar menuItem"
+                  id="add"
+                  style="flex-direction: row;"
+                >
+                  <span
+                    class="msg icon"
+                    style="mask-image: url(add.svg);"
+                  />
+                  <label
+                    class="msg label"
+                    data-tooltip="expand"
+                  >
+                    Add Profile
+                  </label>
+                </div>
+                <div
+                  class="msg container fixedScrollbar menuItem"
+                  id="edit"
+                  style="flex-direction: row;"
+                >
+                  <span
+                    class="msg icon"
+                    style="mask-image: url(edit.svg);"
+                  />
+                  <label
+                    class="msg label"
+                    data-tooltip="expand"
+                  >
+                    Edit Profile
+                  </label>
+                </div>
+                <div
+                  class="msg container fixedScrollbar menuItem"
+                  id="delete"
+                  style="flex-direction: row;"
+                >
+                  <span
+                    class="msg icon"
+                    style="mask-image: url(close2.svg);"
+                  />
+                  <label
+                    class="msg label"
+                    data-tooltip="expand"
+                  >
+                    Delete Profile
+                  </label>
+                </div>
+              </div>
+            </div>
+          </body>
+        }
         content={
           <Container
             orientation="column"
@@ -132,7 +339,76 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
         onClose={[Function]}
       >
         <Portal
-          container={Object {}}
+          container={
+            <body
+              theme="dark"
+            >
+              <div
+                class="msg portal"
+                id="tileActionMenu"
+                style="--background-opacity: 0;"
+              >
+                <div
+                  class="msg container fixedScrollbar popup visible top-start noArrow menu"
+                  style="flex-direction: column; left: 0px; top: 0px;"
+                >
+                  <div
+                    class="msg divider horizontal menuItem disabled separator"
+                    id="-"
+                    style="--thickness: 4px;"
+                  />
+                  <div
+                    class="msg container fixedScrollbar menuItem"
+                    id="add"
+                    style="flex-direction: row;"
+                  >
+                    <span
+                      class="msg icon"
+                      style="mask-image: url(add.svg);"
+                    />
+                    <label
+                      class="msg label"
+                      data-tooltip="expand"
+                    >
+                      Add Profile
+                    </label>
+                  </div>
+                  <div
+                    class="msg container fixedScrollbar menuItem"
+                    id="edit"
+                    style="flex-direction: row;"
+                  >
+                    <span
+                      class="msg icon"
+                      style="mask-image: url(edit.svg);"
+                    />
+                    <label
+                      class="msg label"
+                      data-tooltip="expand"
+                    >
+                      Edit Profile
+                    </label>
+                  </div>
+                  <div
+                    class="msg container fixedScrollbar menuItem"
+                    id="delete"
+                    style="flex-direction: row;"
+                  >
+                    <span
+                      class="msg icon"
+                      style="mask-image: url(close2.svg);"
+                    />
+                    <label
+                      class="msg label"
+                      data-tooltip="expand"
+                    >
+                      Delete Profile
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </body>
+          }
           onClose={[Function]}
           onOpen={[Function]}
         />

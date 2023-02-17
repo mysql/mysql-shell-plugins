@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,22 +23,23 @@
 
 import "./Dialog.css";
 
-import React from "react";
+import { ComponentChild, createRef } from "preact";
 
-import { Component, IComponentProperties, IPortalOptions, Portal } from "..";
 import { DialogContent } from "./DialogContent";
+import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
+import { Portal, IPortalOptions } from "../Portal/Portal";
 
 // Describes a collection of react nodes that should be rendered in an action area, separated
 // by their alignment.
 export interface IDialogActions {
-    begin?: React.ReactNode[]; // Top/Left aligned content.
-    end?: React.ReactNode[];   // Ditto for right/bottom.
+    begin?: ComponentChild[]; // Top/Left aligned content.
+    end?: ComponentChild[];   // Ditto for right/bottom.
 }
 
-export interface IDialogProperties extends IComponentProperties {
-    content?: React.ReactNode;
-    header?: React.ReactNode;
-    caption?: React.ReactNode;
+interface IDialogProperties extends IComponentProperties {
+    content?: ComponentChild;
+    header?: ComponentChild;
+    caption?: ComponentChild;
     container?: HTMLElement; // A node where to mount the dialog to.
 
     actions?: IDialogActions;
@@ -49,13 +50,13 @@ export interface IDialogProperties extends IComponentProperties {
 
 // A modal popup component to interact with the user (e.g. in wizards or task lists).
 // For value editing with input validation see ValueEditDialog instead.
-export class Dialog extends Component<IDialogProperties> {
+export class Dialog extends ComponentBase<IDialogProperties> {
 
     public static defaultProps = {
         container: document.body,
     };
 
-    private portalRef = React.createRef<Portal>();
+    private portalRef = createRef<Portal>();
 
     public constructor(props: IDialogProperties) {
         super(props);
@@ -63,7 +64,7 @@ export class Dialog extends Component<IDialogProperties> {
         this.addHandledProperties("content", "header", "caption", "container", "actions");
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { children, caption, header, content, actions, container } = this.mergedProps;
 
         const className = this.getEffectiveClassNames([]); // Dialog class name is handled in the DialogContent class.

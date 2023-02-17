@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,13 +23,16 @@
 
 /// <reference path="../components/CommunicationDebugger/debugger-runtime.d.ts"/>
 
-import { Protocol, IProtocolGuiResults, IShellProfile, IProtocolMdsResults, IProtocolMrsResults } from ".";
+import { Protocol } from "./Protocol";
+import { IProtocolGuiResults, IShellProfile } from "./ProtocolGui";
+import { IProtocolMdsResults } from "./ProtocolMds";
+import { IProtocolMrsResults } from "./ProtocolMrs";
 
 /** The mapping between an API name and the results sent by it (held in the `event.data` member). */
 export interface IProtocolResults extends IProtocolGuiResults, IProtocolMdsResults, IProtocolMrsResults {
     // For debugging only.
     "native": INativeShellResponse;
 
-    [Protocol.UserAuthenticate]: { activeProfile: IShellProfile };
+    [Protocol.UserAuthenticate]: { activeProfile: IShellProfile; };
     [Protocol.PromptReply]: {};
 }

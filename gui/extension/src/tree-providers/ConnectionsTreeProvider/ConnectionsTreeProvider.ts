@@ -27,9 +27,8 @@ import {
 
 import { requisitions } from "../../../../frontend/src/supplement/Requisitions";
 
-import {
-    DBType, IConnectionDetails, ShellInterface, ShellInterfaceSqlEditor,
-} from "../../../../frontend/src/supplement/ShellInterface";
+import { DBType, IConnectionDetails } from "../../../../frontend/src/supplement/ShellInterface";
+import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
 import { webSession } from "../../../../frontend/src/supplement/WebSession";
 
 import { ConnectionTreeItem } from "./ConnectionTreeItem";
@@ -41,13 +40,6 @@ import { SchemaItemGroupType } from "./SchemaIndex";
 
 import { showStatusText } from "../../extension";
 import { IDictionary } from "../../../../frontend/src/app-logic/Types";
-import {
-    AdminSectionTreeItem, AdminTreeItem, ConnectionMySQLTreeItem, ConnectionSqliteTreeItem,
-    MrsAuthAppTreeItem, MrsDbObjectTreeItem, MrsSchemaTreeItem, MrsServiceTreeItem,
-    MrsTreeItem, SchemaEventTreeItem, SchemaRoutineTreeItem,
-    SchemaTableColumnTreeItem, SchemaTableForeignKeyTreeItem, SchemaTableIndexTreeItem, SchemaTableMySQLTreeItem,
-    SchemaTableTreeItem, SchemaTableTriggerTreeItem, SchemaViewTreeItem, TableGroupTreeItem,
-} from ".";
 import { SchemaListTreeItem } from "./SchemaListTreeItem";
 import { SchemaViewMySQLTreeItem } from "./SchemaViewMySQLTreeItem";
 import { SchemaRoutineMySQLTreeItem } from "./SchemaRoutineMySQLTreeItem";
@@ -55,6 +47,26 @@ import { MrsContentSetTreeItem } from "./MrsContentSetTreeItem";
 import { openSqlEditorConnection } from "../../utilitiesShellGui";
 import { MrsContentFileTreeItem } from "./MrsContentFileTreeItem";
 import { formatBytes } from "../../../../frontend/src/utilities/string-helpers";
+import { ShellInterface } from "../../../../frontend/src/supplement/ShellInterface/ShellInterface";
+import { AdminSectionTreeItem } from "./AdminSectionTreeItem";
+import { AdminTreeItem } from "./AdminTreeItem";
+import { ConnectionMySQLTreeItem } from "./ConnectionMySQLTreeItem";
+import { ConnectionSqliteTreeItem } from "./ConnectionSqliteTreeItem";
+import { MrsDbObjectTreeItem } from "./MrsDbObjectTreeItem";
+import { MrsSchemaTreeItem } from "./MrsSchemaTreeItem";
+import { MrsServiceTreeItem } from "./MrsServiceTreeItem";
+import { MrsTreeItem } from "./MrsTreeItem";
+import { SchemaEventTreeItem } from "./SchemaEventTreeItem";
+import { SchemaRoutineTreeItem } from "./SchemaRoutineTreeItem";
+import { SchemaTableColumnTreeItem } from "./SchemaTableColumnTreeItem";
+import { SchemaTableForeignKeyTreeItem } from "./SchemaTableForeignKeyTreeItem";
+import { TableGroupTreeItem } from "./SchemaTableGroupTreeItem";
+import { SchemaTableIndexTreeItem } from "./SchemaTableIndexTreeItem";
+import { SchemaTableMySQLTreeItem } from "./SchemaTableMySQLTreeItem";
+import { SchemaTableTreeItem } from "./SchemaTableTreeItem";
+import { SchemaTableTriggerTreeItem } from "./SchemaTableTriggerTreeItem";
+import { SchemaViewTreeItem } from "./SchemaViewTreeItem";
+import { MrsAuthAppTreeItem } from "./MrsAuthAppTreeItem";
 import { MrsUserTreeItem } from "./MrsUserTreeItem";
 import { MrsRouterTreeItem } from "./MrsRouterTreeItem";
 

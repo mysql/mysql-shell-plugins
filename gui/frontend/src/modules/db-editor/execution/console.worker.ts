@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -43,9 +43,9 @@ worker.postContextMessage = (taskId: number, data: IConsoleWorkerResultData): vo
 };
 
 worker.addEventListener("message", (event: MessageEvent) => {
-    const { taskId, data }: { taskId: number; data: IConsoleWorkerTaskData } = event.data;
+    const { taskId, data }: { taskId: number; data: IConsoleWorkerTaskData; } = event.data;
 
-    worker.currentContext = data.contextId;
+    worker.currentContext = data.contextId ?? "";
     worker.currentTaskId = taskId;
 
     if (data.code) {
@@ -59,7 +59,7 @@ worker.addEventListener("message", (event: MessageEvent) => {
 
         worker.sourceMap = sourceMap;
 
-        execute({ worker, taskId, contextId: data.contextId ?? "" }, code).then((result) => {
+        execute(worker, code).then((result) => {
             if (typeof result === "object" || typeof result === "function" || Array.isArray(result)) {
                 result = String(result);
             }
@@ -112,9 +112,9 @@ worker.addEventListener("message", (event: MessageEvent) => {
 
 // Handling for source maps.
 
-export type SourceMappingPosition = number[];
-export type SourceMappingLine = SourceMappingPosition[];
-export type SourceMappings = SourceMappingLine[];
+type SourceMappingPosition = number[];
+type SourceMappingLine = SourceMappingPosition[];
+type SourceMappings = SourceMappingLine[];
 
 const codePointMap = new Map<number, number>();
 
@@ -252,9 +252,9 @@ worker.addEventListener("error", (event: ErrorEvent) => {
         }
     }
 
-    worker.postContextMessage(worker.currentTaskId!, {
+    worker.postContextMessage(worker.currentTaskId, {
         api: ScriptingApi.Result,
-        contextId: worker.currentContext!,
+        contextId: worker.currentContext,
         result: `${event.message}${lineInfo}`,
         isError: true,
         final: true,

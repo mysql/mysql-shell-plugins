@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,17 +22,16 @@
  */
 
 import { mount } from "enzyme";
-import React from "react";
-import { ITagInputProperties, Orientation, TagInput } from "../../../../components/ui";
-import { snapshotFromWrapper } from "../../test-helpers";
 
+import { Orientation } from "../../../../components/ui/Container/Container";
+import { TagInput, ITagInputProperties } from "../../../../components/ui/TagInput/TagInput";
 
 describe("TagInput testing", () => {
 
     it("TagInput test properties", () => {
         const component = mount(
             <TagInput
-                tags={[ { id: "1", caption: "tag 1" }, { id: "2", caption: "tag 2" }]}
+                tags={[{ id: "1", caption: "tag 1" }, { id: "2", caption: "tag 2" }]}
                 removable={false}
                 orientation={Orientation.BottomUp}
             />,
@@ -47,12 +46,12 @@ describe("TagInput testing", () => {
     it("Render test", () => {
         const component = mount(
             <TagInput
-                tags={[ { id: "1", caption: "tag 1" }, { id: "2", caption: "tag 2" }]}
+                tags={[{ id: "1", caption: "tag 1" }, { id: "2", caption: "tag 2" }]}
                 removable={false}
                 orientation={Orientation.BottomUp}
             />,
         );
-        expect (snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
         component.unmount();
     });
 

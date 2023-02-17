@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,19 +21,18 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { WorkerPool } from "../../../supplement/WorkerPool";
+import { IdentifiedWorker, WorkerPool } from "../../../supplement/WorkerPool";
 import { IConsoleWorkerTaskData, IConsoleWorkerResultData } from "../console.worker-types";
 
-/* eslint import/no-webpack-loader-syntax: off */
-import ConsoleWorker from "worker-loader?filename=static/workers/[name].[contenthash].js!./console.worker";
+import ConsoleWorker from "./console.worker?worker";
 
 /** A specialized worker pool for interactive console tasks. */
 export class ExecutionWorkerPool extends WorkerPool<IConsoleWorkerTaskData, IConsoleWorkerResultData> {
 
     private static nextId = 0;
 
-    protected createNewWorker(): ConsoleWorker {
-        const worker = new ConsoleWorker();
+    protected createNewWorker(): IdentifiedWorker {
+        const worker = new ConsoleWorker() as IdentifiedWorker;
         worker.id = "ew" + String(ExecutionWorkerPool.nextId++);
 
         return worker;

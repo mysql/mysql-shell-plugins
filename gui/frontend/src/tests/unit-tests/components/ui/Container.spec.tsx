@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,15 +23,16 @@
 
 import connection from "../../../../assets/images/connections.svg";
 
-import React from "react";
-import { Container, Orientation, Icon, Button } from "../../../../components/ui";
-import { snapshotFromWrapper } from "../../test-helpers";
 import { mount } from "enzyme";
+
+import { Container, IContainerProperties, Orientation } from "../../../../components/ui/Container/Container";
+import { Icon } from "../../../../components/ui/Icon/Icon";
+import { Button } from "../../../../components/ui/Button/Button";
 
 describe("Container component tests", (): void => {
 
     it("Test Container output (snapshot)", () => {
-        const component = mount<Container>(
+        const component = mount<Container<IContainerProperties>>(
             <Container className="demoContainer">
                 <Container
                     orientation={Orientation.TopDown}
@@ -56,7 +57,7 @@ describe("Container component tests", (): void => {
                 </Container>
             </Container>,
         );
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
 
         component.unmount();
     });

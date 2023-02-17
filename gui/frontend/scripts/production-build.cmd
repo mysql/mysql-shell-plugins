@@ -1,4 +1,4 @@
-rem Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+rem Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 
 rem This program is free software; you can redistribute it and/or modify
 rem it under the terms of the GNU General Public License, version 2.0,
@@ -25,11 +25,5 @@ call antlr4ts -no-visitor -Xexact-output-dir -o src/parsing/mysql/generated src/
 call antlr4ts -no-visitor -Xexact-output-dir -o src/parsing/SQLite/generated src/parsing/SQLite/*.g4
 call antlr4ts -no-visitor -Xexact-output-dir -o src/parsing/python/generated src/parsing/python/*.g4
 
-echo "Fixing node module(s)..."
-call powershell.exe -command "(Get-Content node_modules/react-scripts/lib/react-app.d.ts).Replace('/// <reference types=\"react-dom\" />', '') | Set-Content node_modules/react-scripts/lib/react-app.d.ts"
-call powershell.exe -command "(Get-Content node_modules/@types/babel__traverse/index.d.ts).Replace('export type ArrayKeys<T> = keyof { [P in keyof T as T[P] extends any[] ? P : never]: P };', 'export type ArrayKeys<T> = { [P in keyof T]: T[P] extends any[] ? P : never }[keyof T];') | Set-Content node_modules/@types/babel__traverse/index.d.ts"
-
-SET NODE_OPTIONS=--max-old-space-size=8192
-SET GENERATE_SOURCEMAP=%1
-react-app-rewired build
-
+SET NODE_OPTIONS=--max-old-space-size=16000
+node_modules/.bin/vite build

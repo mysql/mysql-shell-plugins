@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,21 +23,22 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import React from "react";
+import { ComponentChild, createRef } from "preact";
 
-import { Component, IComponentProperties } from "../ui";
+import { IComponentProperties, ComponentBase } from "../ui/Component/ComponentBase";
+
 import { BarGraphRenderer } from "./BarGraphRenderer";
 import { LineGraphRenderer } from "./LineGraphRenderer";
 import { PieGraphRenderer } from "./PieGraphRenderer";
 
-export interface IGraphHostProps extends IComponentProperties {
+interface IGraphHostProps extends IComponentProperties {
     options: IGraphOptions;
 }
 
 // This is the actual component to render a Pie graph.
-export class GraphHost extends Component<IGraphHostProps> {
+export class GraphHost extends ComponentBase<IGraphHostProps> {
 
-    private svgRef = React.createRef<SVGSVGElement>();
+    private svgRef = createRef<SVGSVGElement>();
 
     public constructor(props: IGraphHostProps) {
         super(props);
@@ -53,7 +54,7 @@ export class GraphHost extends Component<IGraphHostProps> {
         this.update();
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { id, options } = this.mergedProps;
 
         const className = this.getEffectiveClassNames(["graphHost"]);

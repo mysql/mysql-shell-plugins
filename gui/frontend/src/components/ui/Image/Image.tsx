@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,18 +23,18 @@
 
 import "./Image.css";
 
-import React from "react";
+import { ComponentChild } from "preact";
 
-import { Component, IComponentProperties, IComponentState } from "../Component/Component";
+import { ComponentBase, IComponentProperties, IComponentState } from "../Component/ComponentBase";
 
-interface IImageProperties extends IComponentProperties {
+export interface IImageProperties extends IComponentProperties {
     disabled?: boolean;
     src?: string;
     alt?: string;
     width?: string | number;
     height?: string | number;
 
-    innerRef?: React.RefObject<HTMLImageElement>;
+    innerRef?: preact.RefObject<HTMLImageElement>;
 }
 
 interface IImageState extends IComponentState {
@@ -42,7 +42,7 @@ interface IImageState extends IComponentState {
     height: number;
 }
 
-export class Image extends Component<IImageProperties, IImageState> {
+export class Image extends ComponentBase<IImageProperties, IImageState> {
 
     public static defaultProps = {
         disabled: false,
@@ -54,7 +54,7 @@ export class Image extends Component<IImageProperties, IImageState> {
         this.addHandledProperties("disabled", "src", "alt", "width", "height", "innerRef");
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { disabled, src, alt, width, height, innerRef } = this.mergedProps;
         const className = this.getEffectiveClassNames([
             "image",

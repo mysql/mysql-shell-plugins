@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,26 +21,20 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { Cookies } from "./Storage";
-import { ShellInterface } from "./ShellInterface";
 import { requisitions } from "./Requisitions";
-import { IShellProfile } from "../communication/";
+import { IShellProfile } from "../communication/ProtocolGui";
+import { ShellInterface } from "./ShellInterface/ShellInterface";
+import { Cookies } from "./Storage/Cookies";
 
-// Data specific to a module. This is the base structure which will be extended for individual modules.
-export interface IModuleData {
-    moduleName: string;
-    sessionId: string;
-}
-
-export interface IWebSession {
+interface IWebSessionData {
     sessionId?: string;
     userId: number;
     userName: string;
     profileId: number;
-    moduleSessionId: { [key: string]: string };
+    moduleSessionId: { [key: string]: string; };
 }
 
-export class WebSession {
+class WebSession {
     public localUserMode = false;
 
     private cookies = new Cookies();
@@ -52,7 +46,7 @@ export class WebSession {
         options: {},
     };
 
-    private sessionData: IWebSession;
+    private sessionData: IWebSessionData;
 
     private constructor() {
         this.clearSessionData();

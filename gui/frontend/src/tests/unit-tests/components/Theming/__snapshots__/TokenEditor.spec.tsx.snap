@@ -8,10 +8,10 @@ exports[`Token editor testing Render test 1`] = `
   onRemove={[Function]}
   onScopeListClick={[Function]}
   token={
-    Object {
+    {
       "name": "token1",
       "scope": "local",
-      "settings": Object {},
+      "settings": {},
     }
   }
 >
@@ -22,7 +22,7 @@ exports[`Token editor testing Render test 1`] = `
     <div
       className="msg container fixedScrollbar syntaxStyleEntry"
       style={
-        Object {
+        {
           "alignItems": undefined,
           "flexDirection": "column",
           "flexWrap": undefined,
@@ -44,7 +44,7 @@ exports[`Token editor testing Render test 1`] = `
           onClick={[Function]}
           onMouseDown={[Function]}
           style={
-            Object {
+            {
               "flexDirection": undefined,
             }
           }
@@ -55,11 +55,11 @@ exports[`Token editor testing Render test 1`] = `
             disabled={false}
             src="close2.svg"
           >
-            <div
+            <span
               className="msg icon"
               data-tooltip="inherit"
               style={
-                Object {
+                {
                   "WebkitMaskImage": "url(close2.svg)",
                   "backgroundColor": undefined,
                   "height": undefined,
@@ -85,7 +85,7 @@ exports[`Token editor testing Render test 1`] = `
           onClick={[Function]}
           onMouseDown={[Function]}
           style={
-            Object {
+            {
               "flexDirection": undefined,
             }
           }
@@ -96,11 +96,11 @@ exports[`Token editor testing Render test 1`] = `
             disabled={false}
             src="clone.svg"
           >
-            <div
+            <span
               className="msg icon"
               data-tooltip="inherit"
               style={
-                Object {
+                {
                   "WebkitMaskImage": "url(clone.svg)",
                   "backgroundColor": undefined,
                   "height": undefined,
@@ -120,7 +120,7 @@ exports[`Token editor testing Render test 1`] = `
         <div
           className="msg grid"
           style={
-            Object {
+            {
               "columnGap": "16px",
               "gridTemplateColumns": "repeat(2, 1fr)",
               "rowGap": "4px",
@@ -131,12 +131,12 @@ exports[`Token editor testing Render test 1`] = `
             <Container
               className="msg gridCell"
               orientation="row"
-              style={Object {}}
+              style={{}}
             >
               <div
                 className="msg container fixedScrollbar gridCell"
                 style={
-                  Object {
+                  {
                     "alignItems": undefined,
                     "flexDirection": "row",
                     "flexWrap": undefined,
@@ -150,11 +150,7 @@ exports[`Token editor testing Render test 1`] = `
                   <label
                     className="msg label"
                     data-tooltip="expand"
-                    style={
-                      Object {
-                        "textAlign": undefined,
-                      }
-                    }
+                    style={{}}
                   >
                     Name:
                   </label>
@@ -166,12 +162,12 @@ exports[`Token editor testing Render test 1`] = `
             <Container
               className="msg gridCell"
               orientation="row"
-              style={Object {}}
+              style={{}}
             >
               <div
                 className="msg container fixedScrollbar gridCell"
                 style={
-                  Object {
+                  {
                     "alignItems": undefined,
                     "flexDirection": "row",
                     "flexWrap": undefined,
@@ -194,7 +190,7 @@ exports[`Token editor testing Render test 1`] = `
                     placeholder="<no name assigned>"
                     spellCheck={true}
                     style={
-                      Object {
+                      {
                         "textAlign": undefined,
                       }
                     }
@@ -212,7 +208,7 @@ exports[`Token editor testing Render test 1`] = `
               className="msg gridCell"
               orientation="row"
               style={
-                Object {
+                {
                   "gridColumn": "span 2",
                 }
               }
@@ -220,7 +216,7 @@ exports[`Token editor testing Render test 1`] = `
               <div
                 className="msg container fixedScrollbar gridCell"
                 style={
-                  Object {
+                  {
                     "alignItems": undefined,
                     "flexDirection": "row",
                     "flexWrap": undefined,
@@ -239,13 +235,13 @@ exports[`Token editor testing Render test 1`] = `
                   orientation="row"
                   removable={true}
                   style={
-                    Object {
+                    {
                       "flex": "1 1 auto",
                     }
                   }
                   tags={
-                    Array [
-                      Object {
+                    [
+                      {
                         "caption": "local",
                         "id": "local",
                       },
@@ -264,7 +260,7 @@ exports[`Token editor testing Render test 1`] = `
                     onDrop={[Function]}
                     orientation="row"
                     style={
-                      Object {
+                      {
                         "flex": "1 1 auto",
                       }
                     }
@@ -281,7 +277,7 @@ exports[`Token editor testing Render test 1`] = `
                       onDragStart={[Function]}
                       onDrop={[Function]}
                       style={
-                        Object {
+                        {
                           "alignItems": undefined,
                           "flex": "1 1 auto",
                           "flexDirection": "row",
@@ -299,11 +295,7 @@ exports[`Token editor testing Render test 1`] = `
                           className="msg label tag"
                           data-tooltip="expand"
                           draggable={true}
-                          style={
-                            Object {
-                              "textAlign": undefined,
-                            }
-                          }
+                          style={{}}
                         >
                           local
                           <Button
@@ -316,21 +308,20 @@ exports[`Token editor testing Render test 1`] = `
                               onClick={[Function]}
                               onMouseDown={[Function]}
                               style={
-                                Object {
+                                {
                                   "flexDirection": undefined,
                                 }
                               }
                               tabIndex={0}
                             >
                               <Icon
-                                as="span"
                                 disabled={false}
                                 src="close.svg"
                               >
                                 <span
                                   className="msg icon"
                                   style={
-                                    Object {
+                                    {
                                       "WebkitMaskImage": "url(close.svg)",
                                       "backgroundColor": undefined,
                                       "height": undefined,
@@ -353,7 +344,7 @@ exports[`Token editor testing Render test 1`] = `
           <GridCell
             orientation="column"
             style={
-              Object {
+              {
                 "overflow": "visible",
               }
             }
@@ -362,7 +353,7 @@ exports[`Token editor testing Render test 1`] = `
               className="msg gridCell"
               orientation="column"
               style={
-                Object {
+                {
                   "overflow": "visible",
                 }
               }
@@ -370,7 +361,7 @@ exports[`Token editor testing Render test 1`] = `
               <div
                 className="msg container fixedScrollbar gridCell"
                 style={
-                  Object {
+                  {
                     "alignItems": undefined,
                     "flexDirection": "column",
                     "flexWrap": undefined,
@@ -386,7 +377,7 @@ exports[`Token editor testing Render test 1`] = `
                   <div
                     className="msg container fixedScrollbar syntaxColor"
                     style={
-                      Object {
+                      {
                         "alignItems": undefined,
                         "flexDirection": "row",
                         "flexWrap": undefined,
@@ -397,7 +388,7 @@ exports[`Token editor testing Render test 1`] = `
                     <Label
                       caption="Foreground"
                       style={
-                        Object {
+                        {
                           "flexGrow": 1,
                         }
                       }
@@ -406,7 +397,7 @@ exports[`Token editor testing Render test 1`] = `
                         className="msg label"
                         data-tooltip="expand"
                         style={
-                          Object {
+                          {
                             "flexGrow": 1,
                           }
                         }
@@ -453,7 +444,7 @@ exports[`Token editor testing Render test 1`] = `
                   <div
                     className="msg container fixedScrollbar syntaxColor"
                     style={
-                      Object {
+                      {
                         "alignItems": undefined,
                         "flexDirection": "row",
                         "flexWrap": undefined,
@@ -464,7 +455,7 @@ exports[`Token editor testing Render test 1`] = `
                     <Label
                       caption="Background"
                       style={
-                        Object {
+                        {
                           "flexGrow": 1,
                         }
                       }
@@ -473,7 +464,7 @@ exports[`Token editor testing Render test 1`] = `
                         className="msg label"
                         data-tooltip="expand"
                         style={
-                          Object {
+                          {
                             "flexGrow": 1,
                           }
                         }
@@ -522,12 +513,12 @@ exports[`Token editor testing Render test 1`] = `
             <Container
               className="msg gridCell"
               orientation="column"
-              style={Object {}}
+              style={{}}
             >
               <div
                 className="msg container fixedScrollbar gridCell"
                 style={
-                  Object {
+                  {
                     "alignItems": undefined,
                     "flexDirection": "column",
                     "flexWrap": undefined,

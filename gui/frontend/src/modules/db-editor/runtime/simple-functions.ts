@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,24 +21,23 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IConsoleWorkerEnvironment, ScriptingApi } from "../console.worker-types";
+import { ScriptingApi } from "../console.worker-types";
+
+import { currentWorker } from "./execute";
 
 /**
  * Converts a given value to a string and triggers an output action in the execution block.
  *
- * @param env The environment for this call.
  * @param value The value to print.
  */
-export const printImpl = (env: IConsoleWorkerEnvironment, value: unknown): void => {
+export const print = (value: unknown): void => {
     if (typeof value !== "string") {
         value = JSON.stringify(value, null, "\t");
     }
 
-    env.worker.postContextMessage(env.taskId, {
+    currentWorker.postContextMessage(currentWorker.currentTaskId, {
         api: ScriptingApi.Print,
-        contextId: env.contextId,
+        contextId: currentWorker.currentContext,
         value,
     });
 };
-
-

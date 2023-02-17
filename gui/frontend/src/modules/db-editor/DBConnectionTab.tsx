@@ -23,15 +23,10 @@
 
 import "./assets/DBEditor.css";
 
-import React from "react";
+import { ComponentChild, createRef } from "preact";
 import ts, { ScriptTarget } from "typescript";
 import { clearIntervalAsync, setIntervalAsync, SetIntervalAsyncTimer } from "set-interval-async/dynamic";
 
-import {
-    Component, SplitContainer, IComponentProperties, IComponentState, Orientation, Container, ContentAlignment,
-    ISplitterPaneSizeInfo,
-} from "../../components/ui";
-import { DBType, ShellInterface, ShellInterfaceSqlEditor } from "../../supplement/ShellInterface";
 import { Explorer, IExplorerSectionState } from "./Explorer";
 import { IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor";
 import { formatTime, formatWithNumber } from "../../utilities/string-helpers";
@@ -41,9 +36,6 @@ import {
 } from ".";
 import { ScriptEditor } from "./ScriptEditor";
 import { IScriptExecutionOptions } from "../../components/ui/CodeEditor";
-import {
-    ExecutionContext, IExecutionResult, SQLExecutionContext, IResponseDataOptions, ITextResultEntry,
-} from "../../script-execution";
 import { requisitions } from "../../supplement/Requisitions";
 import { IConsoleWorkerResultData, ScriptingApi } from "./console.worker-types";
 import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool";
@@ -51,7 +43,7 @@ import { ScriptingLanguageServices } from "../../script-execution/ScriptingLangu
 import { QueryType } from "../../parsing/parser-common";
 import { DBEditorToolbar } from "./DBEditorToolbar";
 import { IColumnInfo, IExecutionInfo, MessageType } from "../../app-logic/Types";
-import { settings } from "../../supplement/Settings/Settings";
+import { Settings } from "../../supplement/Settings/Settings";
 import { ApplicationDB } from "../../app-logic/ApplicationDB";
 import {
     convertRows, EditorLanguage, generateColumnInfo, IRunQueryRequest, ISqlPageRequest, IScriptRequest,
@@ -60,10 +52,20 @@ import { ServerStatus } from "./ServerStatus";
 import { ClientConnections } from "./ClientConnections";
 import { PerformanceDashboard } from "./PerformanceDashboard";
 import { uuid } from "../../utilities/helpers";
-import { IDbEditorResultSetData, ResponseError } from "../../communication/";
+import { IDbEditorResultSetData } from "../../communication/ProtocolGui";
+import { ResponseError } from "../../communication/ResponseError";
+import { IComponentProperties, IComponentState, ComponentBase } from "../../components/ui/Component/ComponentBase";
+import { Container, Orientation, ContentAlignment } from "../../components/ui/Container/Container";
+import { SplitContainer, ISplitterPaneSizeInfo } from "../../components/ui/SplitContainer/SplitContainer";
+import { DBType } from "../../supplement/ShellInterface";
+import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface";
+import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor";
+import { IExecutionResult, IResponseDataOptions, ITextResultEntry } from "../../script-execution";
+import { ExecutionContext } from "../../script-execution/ExecutionContext";
+import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext";
 
 interface IResultTimer {
-    timer: SetIntervalAsyncTimer;
+    timer: SetIntervalAsyncTimer<unknown[]>;
     results: Array<[IExecutionResult, IResponseDataOptions]>;
 }
 
@@ -101,7 +103,7 @@ export interface IDBConnectionTabPersistentState {
     graphData: ISavedGraphData;
 }
 
-export interface IDBConnectionTabProperties extends IComponentProperties {
+interface IDBConnectionTabProperties extends IComponentProperties {
     connectionId: number;
     dbType: DBType;
     savedState: IDBConnectionTabPersistentState;
@@ -173,7 +175,7 @@ interface IQueryExecutionOptions {
 }
 
 // A tab page for a single connection (managed by the scripting module).
-export class DBConnectionTab extends Component<IDBConnectionTabProperties, IDBConnectionTabState> {
+export class DBConnectionTab extends ComponentBase<IDBConnectionTabProperties, IDBConnectionTabState> {
 
     private static aboutMessage = `Welcome to the MySQL Shell - DB Notebook.
 
@@ -188,8 +190,8 @@ Execute \\help or \\? for help;`;
     // Timers to serialize asynchronously incoming results.
     private resultTimers = new Map<string, IResultTimer>();
 
-    private consoleRef = React.createRef<Notebook>();
-    private standaloneRef = React.createRef<ScriptEditor>();
+    private consoleRef = createRef<Notebook>();
+    private standaloneRef = createRef<ScriptEditor>();
 
     public constructor(props: IDBConnectionTabProperties) {
         super(props);
@@ -248,7 +250,7 @@ Execute \\help or \\? for help;`;
         }
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { toolbarItems, id, savedState, dbType, showExplorer = true, onHelpCommand, showAbout } = this.props;
         const { backend } = this.state;
 
@@ -437,7 +439,7 @@ Execute \\help or \\? for help;`;
     };
 
     private sqlShowDataAtPage = async (data: ISqlPageRequest): Promise<boolean> => {
-        const pageSize = settings.get("sql.limitRowCount", 1000);
+        const pageSize = Settings.get("sql.limitRowCount", 1000);
         await this.executeQuery(data.context as SQLExecutionContext, 0, data.page, pageSize,
             { source: data.sql }, data.oldResultId);
 
@@ -498,7 +500,7 @@ Execute \\help or \\? for help;`;
     private editorEditScript = (details: IScriptRequest): Promise<boolean> => {
         const { id, onSelectItem } = this.props;
 
-        onSelectItem?.(id!, details.scriptId, details.language, details.name, details.content);
+        onSelectItem?.(id ?? "", details.scriptId, details.language, details.name, details.content);
 
         return Promise.resolve(true);
     };
@@ -506,7 +508,7 @@ Execute \\help or \\? for help;`;
     private editorRenameScript = (details: IScriptRequest): Promise<boolean> => {
         const { id, onEditorRename } = this.props;
 
-        onEditorRename?.(id!, details.scriptId, details.name ?? "<untitled>");
+        onEditorRename?.(id ?? "", details.scriptId, details.name ?? "<untitled>");
 
         return Promise.resolve(true);
     };
@@ -518,7 +520,7 @@ Execute \\help or \\? for help;`;
      * @param options Content and details for script execution.
      */
     private runSQLCode = async (context: SQLExecutionContext, options: IScriptExecutionOptions): Promise<void> => {
-        const pageSize = settings.get("sql.limitRowCount", 1000);
+        const pageSize = Settings.get("sql.limitRowCount", 1000);
 
         context.clearResult();
         if (options.source) {
@@ -533,7 +535,7 @@ Execute \\help or \\? for help;`;
             const statements = context.statements;
             while (true) {
                 // Allow toggling the stop-on-error during execution.
-                const stopOnErrors = settings.get("editor.stopOnErrors", true);
+                const stopOnErrors = Settings.get("editor.stopOnErrors", true);
                 const statement = statements.shift();
                 if (!statement) {
                     break;
@@ -721,7 +723,7 @@ Execute \\help or \\? for help;`;
                 if (options.explicitPaging) {
                     // We added 1 to the total count for the LIMIT clause to allow determining if
                     // more pages are available. That's why we have to decrement the row count for display.
-                    const pageSize = settings.get("sql.limitRowCount", 1000);
+                    const pageSize = Settings.get("sql.limitRowCount", 1000);
                     if (pageSize < rowCount) {
                         --rowCount;
                         finalData.rows?.pop();
@@ -731,10 +733,7 @@ Execute \\help or \\? for help;`;
                 }
 
                 const status: IExecutionInfo = {
-                    text: finalData.rowsAffected
-                        ? `OK, ${formatWithNumber("row", finalData.rowsAffected)} affected. Executed in ` +
-                        `${formatTime(finalData.executionTime)}`
-                        : `OK, ${formatWithNumber("record", rowCount)} retrieved in ` +
+                    text: `OK, ${formatWithNumber("record", rowCount)} retrieved in ` +
                         `${formatTime(finalData.executionTime)}`,
                 };
 
@@ -1006,7 +1005,7 @@ Execute \\help or \\? for help;`;
                     code: ts.transpile(context.code,
                         {
                             alwaysStrict: true,
-                            target: ScriptTarget.ES2020,
+                            target: ScriptTarget.ES2022,
                             inlineSourceMap: true,
                         }),
                     contextId: context.id,
@@ -1106,6 +1105,7 @@ Execute \\help or \\? for help;`;
                 type: "text",
                 text: [info],
             }, { resultId: "" });
+
         }
     }
 
@@ -1364,25 +1364,25 @@ Execute \\help or \\? for help;`;
     private handleCloseEditor = (editorId: string): void => {
         const { id, onRemoveEditor } = this.props;
 
-        onRemoveEditor?.(id!, editorId);
+        onRemoveEditor?.(id ?? "", editorId);
     };
 
     private handleAddEditor = (): string | undefined => {
         const { id, onAddEditor } = this.props;
 
-        return onAddEditor?.(id!);
+        return onAddEditor?.(id ?? "");
     };
 
     private handleEditorRename = (editorId: string, newCaption: string): void => {
         const { id, onEditorRename } = this.props;
 
-        onEditorRename?.(id!, editorId, newCaption);
+        onEditorRename?.(id ?? "", editorId, newCaption);
     };
 
     private handleAddScript = (language: EditorLanguage): void => {
         const { id, onAddScript, dbType } = this.props;
 
-        onAddScript?.(id!, language, dbType);
+        onAddScript?.(id ?? "", language, dbType);
     };
 
     private saveSchemaTree = (id: string, schemaTree: ISchemaTreeEntry[]): void => {
@@ -1521,25 +1521,27 @@ Execute \\help or \\? for help;`;
             default: {
                 // Forward any other menu action to the module.
                 const { id, onExplorerMenuAction } = this.props;
-                onExplorerMenuAction?.(id!, actionId, params);
+                onExplorerMenuAction?.(id ?? "", actionId, params);
 
                 break;
             }
         }
     };
 
-    private handlePaneResize = (first: ISplitterPaneSizeInfo): void => {
-        if (first.paneId === "explorer") {
-            const { id = "", onExplorerResize } = this.props;
+    private handlePaneResize = (info: ISplitterPaneSizeInfo[]): void => {
+        info.forEach((value) => {
+            if (value.id === "explorer") {
+                const { id = "", onExplorerResize } = this.props;
 
-            onExplorerResize?.(id, first.size);
-        }
+                onExplorerResize?.(id, value.currentSize);
+            }
+        });
     };
 
     private handleGraphDataChange = (data: ISavedGraphData): void => {
         const { id, onGraphDataChange } = this.props;
 
-        onGraphDataChange?.(id!, data);
+        onGraphDataChange?.(id ?? "", data);
     };
 
 }

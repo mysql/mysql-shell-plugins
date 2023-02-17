@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,16 +21,19 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import "./Component.css";
+import "./ComponentBase.css";
 
-import React from "react";
-
+import { Component, ComponentChildren } from "preact";
 import cx from "classnames";
 import { isNil } from "lodash";
-import { IDictionary } from "../../../app-logic/Types";
 
-// Not all components support different sizes, but many do.
-// This mostly affects text sizes and properties that depend on them (e.g. parent size).
+import { IDictionary } from "../../../app-logic/Types";
+import { CSSProperties } from "preact/compat";
+
+/**
+ * Not all components support different sizes, but many do.
+ * This mostly affects text sizes and properties that depend on them (e.g. parent size).
+ */
 export enum ComponentSize {
     Tiny = "tiny",
     Small = "small",
@@ -39,28 +42,30 @@ export enum ComponentSize {
     Huge = "huge",
 }
 
-// The component placement determines at which of the 12 places relative to a given target rectangle or position
-// a floating HTML element is located.
-//
-//                      ┌───────────────┐ ┌───────────────┐ ┌───────────────┐
-//                      │   Top Left    │ │  Top Center   │ │   Top Right   │
-//                      └───────────────┘ └───────────────┘ └───────────────┘
-//   ┌───────────────┐  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓  ┌───────────────┐
-//   │   Left Top    │  ┃                                                   ┃  │  Right Top    │
-//   └───────────────┘  ┃                                                   ┃  └───────────────┘
-//   ┌───────────────┐  ┃                                                   ┃  ┌───────────────┐
-//   │  Left Center  │  ┃                    target rect                    ┃  │  Right Center │
-//   └───────────────┘  ┃                                                   ┃  └───────────────┘
-//   ┌───────────────┐  ┃                                                   ┃  ┌───────────────┐
-//   │  Left Bottom  │  ┃                                                   ┃  │  Right Bottom │
-//   └───────────────┘  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛  └───────────────┘
-//                      ┌───────────────┐ ┌───────────────┐ ┌───────────────┐
-//                      │  Bottom Left  │ │ Bottom Center │ │ Bottom Right  │
-//                      └───────────────┘ └───────────────┘ └───────────────┘
-//
-// Additionally, content is also aligned depending on the target place, like shown in the ASCII art. That means it is
-// not possible to get mixed positions, like content element in the bottom right corner, but with its center instead
-// of the right side.
+/**
+ * The component placement determines at which of the 12 places relative to a given target rectangle or position
+ * a floating HTML element is located.
+ *```
+ *                      ┌───────────────┐ ┌───────────────┐ ┌───────────────┐
+ *                      │   Top Left    │ │  Top Center   │ │   Top Right   │
+ *                      └───────────────┘ └───────────────┘ └───────────────┘
+ *   ┌───────────────┐  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓  ┌───────────────┐
+ *   │   Left Top    │  ┃                                                   ┃  │  Right Top    │
+ *   └───────────────┘  ┃                                                   ┃  └───────────────┘
+ *   ┌───────────────┐  ┃                                                   ┃  ┌───────────────┐
+ *   │  Left Center  │  ┃                    target rect                    ┃  │  Right Center │
+ *   └───────────────┘  ┃                                                   ┃  └───────────────┘
+ *   ┌───────────────┐  ┃                                                   ┃  ┌───────────────┐
+ *   │  Left Bottom  │  ┃                                                   ┃  │  Right Bottom │
+ *   └───────────────┘  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛  └───────────────┘
+ *                      ┌───────────────┐ ┌───────────────┐ ┌───────────────┐
+ *                      │  Bottom Left  │ │ Bottom Center │ │ Bottom Right  │
+ *                      └───────────────┘ └───────────────┘ └───────────────┘
+ *```
+ * Additionally, content is also aligned depending on the target place, like shown in the ASCII art. That means it is
+ * not possible to get mixed positions, like content element in the bottom right corner, but with its center instead
+ * of the right side.
+ */
 export enum ComponentPlacement {
     TopLeft = "top-start",
     TopCenter = "top",
@@ -128,18 +133,21 @@ export enum SelectionType {
     Multi,
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Constructor<T> = new (...args: any) => T;
+// Click events can also be triggered using the keyboard.
+export type ClickEventCallback = (e: MouseEvent | KeyboardEvent, props: Readonly<IComponentProperties>) => void;
+export type MouseEventCallback = (e: MouseEvent, props: Readonly<IComponentProperties>) => void;
+export type KeyboardEventCallback = (e: KeyboardEvent, props: Readonly<IComponentProperties>) => void;
+export type PointerEventCallback = (e: PointerEvent, props: Readonly<IComponentProperties>) => void;
+export type DragEventCallback = (e: DragEvent, props: Readonly<IComponentProperties>) => void;
 
 export interface IComponentProperties {
-    children?: React.ReactNode | React.ReactNode[];
+    children?: ComponentChildren;
 
     /** Additional class names to apply for this component. */
     className?: string;
     id?: string;
     size?: ComponentSize;
-    as?: Constructor<Component> | string;
-    style?: React.CSSProperties;
+    style?: CSSProperties;
     tabIndex?: number;
     draggable?: boolean;
     disabled?: boolean | ((props: IComponentProperties) => boolean);
@@ -156,34 +164,33 @@ export interface IComponentProperties {
      * has got a data ID. Multiple elements can use the same data ID.
      */
     dataId?: string;
-    data?: { [key: string]: IComponentProperties };
+    data?: { [key: string]: IComponentProperties; };
 
-    /** Clicks can be triggered by both mouse and keyboard events, hence we to use a common ancestor as event type. */
-    onClick?: (e: React.SyntheticEvent, props: Readonly<IComponentProperties>) => void;
-    onDoubleClick?: (e: React.MouseEvent, props: Readonly<IComponentProperties>) => void;
-    onKeyDown?: (e: React.KeyboardEvent, props: Readonly<IComponentProperties>) => void;
-    onKeyUp?: (e: React.KeyboardEvent, props: Readonly<IComponentProperties>) => void;
-    onKeyPress?: (e: React.KeyboardEvent, props: Readonly<IComponentProperties>) => void;
+    /** Clicks can be triggered by both mouse and keyboard events. */
+    onClick?: ClickEventCallback;
+    onDoubleClick?: MouseEventCallback;
+    onKeyDown?: KeyboardEventCallback;
+    onKeyUp?: KeyboardEventCallback;
+    onKeyPress?: KeyboardEventCallback;
 
-    onFocus?: (e: React.SyntheticEvent, props: Readonly<IComponentProperties>) => void;
-    onBlur?: (e: React.SyntheticEvent, props: Readonly<IComponentProperties>) => void;
+    onFocus?: (e: FocusEvent, props: Readonly<IComponentProperties>) => void;
+    onBlur?: (e: FocusEvent, props: Readonly<IComponentProperties>) => void;
 
-    onMouseEnter?: (e: React.MouseEvent, props: Readonly<IComponentProperties>) => void;
-    onMouseLeave?: (e: React.MouseEvent, props: Readonly<IComponentProperties>) => void;
+    onMouseEnter?: MouseEventCallback;
+    onMouseLeave?: MouseEventCallback;
 
-    onMouseDown?: (e: React.MouseEvent, props: Readonly<IComponentProperties>) => void;
-    onMouseUp?: (e: React.MouseEvent, props: Readonly<IComponentProperties>) => void;
-    onMouseMove?: (e: React.MouseEvent, props: Readonly<IComponentProperties>) => void;
-    onPointerDown?: (e: React.PointerEvent, props: Readonly<IComponentProperties>) => void;
-    onPointerUp?: (e: React.PointerEvent, props: Readonly<IComponentProperties>) => void;
-    onPointerMove?: (e: React.PointerEvent, props: Readonly<IComponentProperties>) => void;
+    onMouseDown?: MouseEventCallback;
+    onMouseUp?: MouseEventCallback;
+    onMouseMove?: MouseEventCallback;
+    onPointerDown?: PointerEventCallback;
+    onPointerUp?: PointerEventCallback;
+    onPointerMove?: PointerEventCallback;
 
-    onDragStart?: (e: React.DragEvent<HTMLElement>, props: Readonly<IComponentProperties>) => void;
-    onDragOver?: (e: React.DragEvent<HTMLElement>, props: Readonly<IComponentProperties>) => void;
-    onDragEnter?: (e: React.DragEvent<HTMLElement>, props: Readonly<IComponentProperties>) => void;
-    onDragLeave?: (e: React.DragEvent<HTMLElement>, props: Readonly<IComponentProperties>) => void;
-    onDrop?: (e: React.DragEvent<HTMLElement>, props: Readonly<IComponentProperties>) => void;
-
+    onDragStart?: DragEventCallback;
+    onDragOver?: DragEventCallback;
+    onDragEnter?: DragEventCallback;
+    onDragLeave?: DragEventCallback;
+    onDrop?: DragEventCallback;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -191,9 +198,9 @@ export interface IComponentState {
     // Nothing in this base component.
 }
 
-// The base of all our components. Provides some common functionality.
-export class Component<P extends IComponentProperties = {}, S extends IComponentState = {}, SS = unknown>
-    extends React.Component<P, S, SS> {
+/** The base of all our components. Provides some common functionality. */
+export abstract class ComponentBase<P extends IComponentProperties = {}, S extends IComponentState = {}>
+    extends Component<P, S> {
 
     // Properties that are implicitly handled by this class and should not be forwarded to
     // an HTML element during rendering.
@@ -210,7 +217,6 @@ export class Component<P extends IComponentProperties = {}, S extends IComponent
             "class",
             "className",
             "size",
-            "as",
             "children",
 
             "onChange",
@@ -259,7 +265,7 @@ export class Component<P extends IComponentProperties = {}, S extends IComponent
         const { dataId, data } = this.props;
 
         if (dataId && data) {
-            return Object.assign({}, this.props, data[dataId as string]) as P;
+            return Object.assign({}, this.props, data[dataId]) as P;
         }
 
         return this.props;
@@ -318,10 +324,6 @@ export class Component<P extends IComponentProperties = {}, S extends IComponent
         }
 
         return c;
-    }
-
-    protected renderAs<T extends Component>(defaultType: Constructor<T> | string = "div"): unknown {
-        return this.props.as ?? defaultType;
     }
 
     /**
@@ -460,7 +462,7 @@ export class Component<P extends IComponentProperties = {}, S extends IComponent
      * @returns True if the associated callback function should be called.
      */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected handleMouseEvent(type: MouseEventType, e: React.MouseEvent): boolean {
+    protected handleMouseEvent(type: MouseEventType, e: MouseEvent): boolean {
         return true;
     }
 
@@ -473,7 +475,7 @@ export class Component<P extends IComponentProperties = {}, S extends IComponent
      * @returns True if the associated callback function should be called.
      */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected handleKeyboardEvent(type: KeyboardEventType, e: React.KeyboardEvent): boolean {
+    protected handleKeyboardEvent(type: KeyboardEventType, e: KeyboardEvent): boolean {
         return true;
     }
 
@@ -486,7 +488,7 @@ export class Component<P extends IComponentProperties = {}, S extends IComponent
      * @returns True if the associated callback function should be called.
      */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected handlePointerEvent(type: PointerEventType, e: React.PointerEvent): boolean {
+    protected handlePointerEvent(type: PointerEventType, e: PointerEvent): boolean {
         return true;
     }
 
@@ -499,147 +501,147 @@ export class Component<P extends IComponentProperties = {}, S extends IComponent
      * @returns True if the associated callback function should be called.
      */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected handleDragEvent(type: DragEventType, e: React.DragEvent<HTMLElement>): boolean {
+    protected handleDragEvent(type: DragEventType, e: DragEvent): boolean {
         return true;
     }
 
-    private internalHandleMouseClick = (e: React.MouseEvent): void => {
+    private internalHandleMouseClick = (e: MouseEvent): void => {
         if (!this.isDisabled(e) && this.handleMouseEvent(MouseEventType.Click, e)) {
             const props = this.mergedProps;
             props.onClick?.(e, props);
         }
     };
 
-    private internalHandleMouseDoubleClick = (e: React.MouseEvent): void => {
+    private internalHandleMouseDoubleClick = (e: MouseEvent): void => {
         if (!this.isDisabled(e) && this.handleMouseEvent(MouseEventType.DoubleClick, e)) {
             const props = this.mergedProps;
             props.onDoubleClick?.(e, props);
         }
     };
 
-    private internalHandleKeyDown = (e: React.KeyboardEvent): void => {
+    private internalHandleKeyDown = (e: KeyboardEvent): void => {
         if (!this.isDisabled(e) && this.handleKeyboardEvent(KeyboardEventType.Down, e)) {
             const props = this.mergedProps;
             props.onKeyDown?.(e, props);
         }
     };
 
-    private internalHandleKeyUp = (e: React.KeyboardEvent): void => {
+    private internalHandleKeyUp = (e: KeyboardEvent): void => {
         if (!this.isDisabled(e) && this.handleKeyboardEvent(KeyboardEventType.Up, e)) {
             const props = this.mergedProps;
             props.onKeyUp?.(e, props);
         }
     };
 
-    private internalHandleKeyPress = (e: React.KeyboardEvent): void => {
+    private internalHandleKeyPress = (e: KeyboardEvent): void => {
         if (!this.isDisabled(e) && this.handleKeyboardEvent(KeyboardEventType.Press, e)) {
             const props = this.mergedProps;
             props.onKeyPress?.(e, props);
         }
     };
 
-    private internalHandleFocus = (e: React.SyntheticEvent): void => {
+    private internalHandleFocus = (e: FocusEvent): void => {
         const props = this.mergedProps;
         props.onFocus?.(e, props);
     };
 
-    private internalHandleBlur = (e: React.SyntheticEvent): void => {
+    private internalHandleBlur = (e: FocusEvent): void => {
         const props = this.mergedProps;
         props.onBlur?.(e, props);
     };
 
-    private internalHandleMouseEnter = (e: React.MouseEvent): void => {
+    private internalHandleMouseEnter = (e: MouseEvent): void => {
         if (!this.isDisabled(e) && this.handleMouseEvent(MouseEventType.Enter, e)) {
             const props = this.mergedProps;
             props.onMouseEnter?.(e, props);
         }
     };
 
-    private internalHandleMouseLeave = (e: React.MouseEvent): void => {
+    private internalHandleMouseLeave = (e: MouseEvent): void => {
         if (!this.isDisabled(e) && this.handleMouseEvent(MouseEventType.Leave, e)) {
             const props = this.mergedProps;
             props.onMouseLeave?.(e, props);
         }
     };
 
-    private internalHandleMouseDown = (e: React.MouseEvent): void => {
+    private internalHandleMouseDown = (e: MouseEvent): void => {
         if (!this.isDisabled(e) && this.handleMouseEvent(MouseEventType.Down, e)) {
             const props = this.mergedProps;
             props.onMouseDown?.(e, props);
         }
     };
 
-    private internalHandleMouseUp = (e: React.MouseEvent): void => {
+    private internalHandleMouseUp = (e: MouseEvent): void => {
         if (!this.isDisabled(e) && this.handleMouseEvent(MouseEventType.Up, e)) {
             const props = this.mergedProps;
             props.onMouseUp?.(e, props);
         }
     };
 
-    private internalHandleMouseMove = (e: React.MouseEvent): void => {
+    private internalHandleMouseMove = (e: MouseEvent): void => {
         if (!this.isDisabled(e) && this.handleMouseEvent(MouseEventType.Move, e)) {
             const props = this.mergedProps;
             props.onMouseMove?.(e, props);
         }
     };
 
-    private internalHandlePointerDown = (e: React.PointerEvent): void => {
+    private internalHandlePointerDown = (e: PointerEvent): void => {
         if (!this.isDisabled(e) && this.handlePointerEvent(PointerEventType.Down, e)) {
             const props = this.mergedProps;
             props.onPointerDown?.(e, props);
         }
     };
 
-    private internalHandlePointerUp = (e: React.PointerEvent): void => {
+    private internalHandlePointerUp = (e: PointerEvent): void => {
         if (!this.isDisabled(e) && this.handlePointerEvent(PointerEventType.Up, e)) {
             const props = this.mergedProps;
             props.onPointerUp?.(e, props);
         }
     };
 
-    private internalHandlePointerMove = (e: React.PointerEvent): void => {
+    private internalHandlePointerMove = (e: PointerEvent): void => {
         if (!this.isDisabled(e) && this.handlePointerEvent(PointerEventType.Move, e)) {
             const props = this.mergedProps;
             props.onPointerMove?.(e, props);
         }
     };
 
-    private internalHandleDragStart = (e: React.DragEvent<HTMLElement>): void => {
+    private internalHandleDragStart = (e: DragEvent): void => {
         if (!this.isDisabled(e) && this.handleDragEvent(DragEventType.Start, e)) {
             const props = this.mergedProps;
             props.onDragStart?.(e, props);
         }
     };
 
-    private internalHandleDragOver = (e: React.DragEvent<HTMLElement>): void => {
+    private internalHandleDragOver = (e: DragEvent): void => {
         if (this.handleDragEvent(DragEventType.Over, e)) {
             const props = this.mergedProps;
             props.onDragOver?.(e, props);
         }
     };
 
-    private internalHandleDragEnter = (e: React.DragEvent<HTMLElement>): void => {
+    private internalHandleDragEnter = (e: DragEvent): void => {
         if (!this.isDisabled(e) && this.handleDragEvent(DragEventType.Enter, e)) {
             const props = this.mergedProps;
             props.onDragEnter?.(e, props);
         }
     };
 
-    private internalHandleDragLeave = (e: React.DragEvent<HTMLElement>): void => {
+    private internalHandleDragLeave = (e: DragEvent): void => {
         if (!this.isDisabled(e) && this.handleDragEvent(DragEventType.Leave, e)) {
             const props = this.mergedProps;
             props.onDragLeave?.(e, props);
         }
     };
 
-    private internalHandleDrop = (e: React.DragEvent<HTMLElement>): void => {
+    private internalHandleDrop = (e: DragEvent): void => {
         if (!this.isDisabled(e) && this.handleDragEvent(DragEventType.Drop, e)) {
             const props = this.mergedProps;
             props.onDrop?.(e, props);
         }
     };
 
-    private isDisabled(e: React.UIEvent | React.SyntheticEvent): boolean {
+    private isDisabled(e: UIEvent | MouseEvent): boolean {
         if (this.props.disabled) {
             e.preventDefault();
 

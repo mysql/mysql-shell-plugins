@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,7 +23,9 @@
 
 /* eslint-disable no-underscore-dangle */
 
-import { CommonTokenStream, Token } from "antlr4ts";
+import { CommonTokenStream } from "antlr4ts/CommonTokenStream";
+import { Token } from "antlr4ts/Token";
+
 import { QueryType, Scanner } from "../parser-common";
 import { SQLiteLexer } from "./generated/SQLiteLexer";
 
@@ -263,7 +265,7 @@ void import("./data/keywords.json").then((keywords) => {
         const set = new Set<string>();
         const set2 = new Set<string>();
 
-        const dict = keywords.default[versionKey] as Array<{ word: string; reserved: boolean }>;
+        const dict = keywords.default[versionKey] as Array<{ word: string; reserved: boolean; }>;
         dict.forEach((value) => {
             if (value.word.length > 0) {
                 set.add(value.word);

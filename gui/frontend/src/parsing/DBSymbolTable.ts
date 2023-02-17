@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,9 +23,10 @@
 
 /* eslint-disable max-classes-per-file */
 
-import { ParserRuleContext } from "antlr4ts";
-import { ParseTree, TerminalNode } from "antlr4ts/tree";
-import { Interval } from "antlr4ts/misc";
+import { ParserRuleContext } from "antlr4ts/ParserRuleContext";
+import { ParseTree } from "antlr4ts/tree/ParseTree";
+import { TerminalNode } from "antlr4ts/tree/TerminalNode";
+import { Interval } from "antlr4ts/misc/Interval";
 
 import { SymbolTable, Symbol, ScopedSymbol, RoutineSymbol, TypedSymbol, VariableSymbol } from "antlr4-c3";
 
@@ -200,7 +201,6 @@ export class DBSymbolTable extends SymbolTable {
     }
 }
 
-export class CatalogSymbol extends ScopedSymbol { }
 export class SchemaSymbol extends ScopedSymbol {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public async getAllSymbols<T extends Symbol>(t: new (...args: any[]) => T): Promise<T[]> {
@@ -235,7 +235,6 @@ export class EventSymbol extends ScopedSymbol { }
 export class ColumnSymbol extends TypedSymbol { }
 export class UserSymbol extends TypedSymbol { }
 export class IndexSymbol extends Symbol { } // Made of columns, but doesn't contain them. Hence not a scope.
-export class PrimaryKeySymbol extends Symbol { } // ditto
 export class ForeignKeySymbol extends Symbol { } // ditto
 export class StoredProcedureSymbol extends RoutineSymbol { }
 export class StoredFunctionSymbol extends RoutineSymbol { }

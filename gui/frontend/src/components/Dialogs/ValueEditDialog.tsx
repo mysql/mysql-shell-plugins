@@ -25,28 +25,44 @@ import "./ValueEditDialog.css";
 import addProperty from "../../assets/images/add.svg";
 import removeProperty from "../../assets/images/remove.svg";
 
-import React from "react";
+import { ComponentChild, createRef } from "preact";
 import { ColumnDefinition, RowComponent } from "tabulator-tables";
 
-import {
-    Dialog, IComponentProperties, Component, Label, Button, IComponentState, Icon, Codicon, GridCell, Grid, Input,
-    Checkbox, UpDown, CheckState, IInputChangeProperties, Message, Orientation, ICheckboxProperties, Dropdown,
-    ContentAlignment, IDropdownProperties, Container, Tabview, ITabviewPage, DynamicList, IFileSelectorProperties,
-    FileSelector, IUpDownProperties, TreeGrid, ITreeGridOptions, SelectionType, IPortalOptions, ProgressIndicator,
-    IInputProperties, IButtonProperties, Menu, MenuItem, IMenuItemProperties,
-} from "../ui";
 import { DialogResponseClosure, IDictionary, MessageType } from "../../app-logic/Types";
 import { ParamDialog } from "./ParamDialog";
 import { IOpenDialogFilters } from "../../supplement/Requisitions";
 import { IConnectionDetails } from "../../supplement/ShellInterface";
+import { Children } from "preact/compat";
+import { Button, IButtonProperties } from "../ui/Button/Button";
+import { Checkbox, CheckState, ICheckboxProperties } from "../ui/Checkbox/Checkbox";
+import { Codicon } from "../ui/Codicon";
+import { IComponentProperties, IComponentState, ComponentBase, SelectionType } from "../ui/Component/ComponentBase";
+import { Container, Orientation, ContentAlignment } from "../ui/Container/Container";
+import { Dialog } from "../ui/Dialog/Dialog";
+import { Dropdown, IDropdownProperties } from "../ui/Dropdown/Dropdown";
+import { FileSelector, IFileSelectorProperties } from "../ui/FileSelector/FileSelector";
+import { Grid } from "../ui/Grid/Grid";
+import { GridCell } from "../ui/Grid/GridCell";
+import { Icon } from "../ui/Icon/Icon";
+import { Input, IInputChangeProperties, IInputProperties } from "../ui/Input/Input";
+import { Label } from "../ui/Label/Label";
+import { DynamicList } from "../ui/List/DynamicList";
+import { Menu } from "../ui/Menu/Menu";
+import { MenuItem, IMenuItemProperties } from "../ui/Menu/MenuItem";
+import { Message } from "../ui/Message/Message";
+import { IPortalOptions } from "../ui/Portal/Portal";
+import { ProgressIndicator } from "../ui/ProgressIndicator/ProgressIndicator";
+import { ITabviewPage, Tabview } from "../ui/Tabview/Tabview";
+import { ITreeGridOptions, TreeGrid } from "../ui/TreeGrid/TreeGrid";
+import { UpDown, IUpDownProperties } from "../ui/UpDown/UpDown";
 
-export interface IContextUpdateData {
+interface IContextUpdateData {
     add?: string[];
     remove?: string[];
 }
 
 /** Lists in the dialog use templated data. */
-export interface IDialogListEntry {
+interface IDialogListEntry {
     [key: string]: IComponentProperties;
 }
 
@@ -74,7 +90,7 @@ export enum CommonDialogValueOption {
 }
 
 /** Contains fields that are common to all dialog values. */
-export interface IBaseDialogValue {
+interface IBaseDialogValue {
     /** The discriminator for the different value types. */
     type: string;
 
@@ -95,7 +111,7 @@ export interface IBaseDialogValue {
  * This dialog value is the only one which supports no interaction. Instead it represents a description text, which
  * takes the same place like any other dialog value (can span cells, flows with the cells etc.).
  */
-export interface IDescriptionDialogValue extends IBaseDialogValue {
+interface IDescriptionDialogValue extends IBaseDialogValue {
     type: "description";
 
     value?: string;
@@ -105,7 +121,7 @@ export interface IDescriptionDialogValue extends IBaseDialogValue {
  * This value represents a button for triggering additional functionality, outside of the current dialog
  * (e.g. to store a password or open a sub dialog).
  */
-export interface IButtonDialogValue extends IBaseDialogValue {
+interface IButtonDialogValue extends IBaseDialogValue {
     type: "button";
 
     value?: string;
@@ -143,7 +159,7 @@ export interface IStringInputDialogValue extends IBaseDialogValue {
 }
 
 /** Represents a single numeric input value, which is rendered as an up-down spinner control. */
-export interface INumberInputDialogValue extends IBaseDialogValue {
+interface INumberInputDialogValue extends IBaseDialogValue {
     type: "number";
 
     value?: number;
@@ -162,7 +178,7 @@ export interface INumberInputDialogValue extends IBaseDialogValue {
 }
 
 /** Represents a single numeric input value, which is rendered as an up-down spinner control. */
-export interface IBooleanInputDialogValue extends IBaseDialogValue {
+interface IBooleanInputDialogValue extends IBaseDialogValue {
     type: "boolean";
 
     value?: boolean;
@@ -190,7 +206,7 @@ export interface IChoiceDialogValue extends IBaseDialogValue {
 }
 
 /** A dialog value which represents a set of (string) values out of a set of possible values. */
-export interface ISetDialogValue extends IBaseDialogValue {
+interface ISetDialogValue extends IBaseDialogValue {
     type: "set";
 
     value?: string[];
@@ -203,7 +219,7 @@ export interface ISetDialogValue extends IBaseDialogValue {
 }
 
 /** A dialog value which represents a simple key/value store. Both, keys and values must be strings. */
-export interface IKeyValueDialogValue extends IBaseDialogValue {
+interface IKeyValueDialogValue extends IBaseDialogValue {
     type: "matrix";
 
     value?: IDictionary[];
@@ -213,7 +229,7 @@ export interface IKeyValueDialogValue extends IBaseDialogValue {
 }
 
 /** A dialog value which represents a file/folder selection. */
-export interface IResourceDialogValue extends IBaseDialogValue {
+interface IResourceDialogValue extends IBaseDialogValue {
     type: "resource";
 
     value?: string;
@@ -261,7 +277,7 @@ export interface IRelationDialogValue extends IBaseDialogValue {
      * Maps the keys of each entry to another dialog value in the same section, creating so a relation between
      * a sub value to an editor somewhere else.
      */
-    relations: { [key: string]: string };
+    relations: { [key: string]: string; };
 
     /** The id of the current entry in the relations object. Only one set of values can be edited at a time. */
     active?: string | number;
@@ -276,7 +292,7 @@ export interface IRelationDialogValue extends IBaseDialogValue {
     onChange?: (value: string, dialog: ValueEditDialog) => void;
 }
 
-export type IDialogValue =
+type IDialogValue =
     IDescriptionDialogValue
     | IChoiceDialogValue
     | IResourceDialogValue
@@ -325,7 +341,7 @@ export interface IDialogValues {
  */
 export interface IDialogValidations {
     requiredContexts?: string[];
-    messages: { [key: string]: string };
+    messages: { [key: string]: string; };
 }
 
 interface IDialogValuePair {
@@ -350,7 +366,7 @@ export interface ICallbackData {
 }
 
 /** A collection of values to configure the invocation of the value editor. */
-export interface IValueEditDialogShowOptions {
+interface IValueEditDialogShowOptions {
     /** The dialog contexts that should be active initially. */
     contexts?: string[];
 
@@ -367,12 +383,12 @@ export interface IValueEditDialogShowOptions {
     description?: string[];
 }
 
-export interface IValueEditDialogProperties extends IComponentProperties {
+interface IValueEditDialogProperties extends IComponentProperties {
     /** A node where to mount the dialog to (default: <body>). */
     container?: HTMLElement;
 
     advancedActionCaption?: string;
-    customFooter?: React.ReactNode;
+    customFooter?: ComponentChild;
 
     advancedAction?: (values: IDialogValues, props: IButtonProperties) => void;
     onValidate?: (closing: boolean, values: IDialogValues, data?: IDictionary) => IDialogValidations;
@@ -399,11 +415,11 @@ interface IValueEditDialogState extends IComponentState {
 }
 
 /** A dialog to let the user enter values and to validate them. */
-export class ValueEditDialog extends Component<IValueEditDialogProperties, IValueEditDialogState> {
+export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, IValueEditDialogState> {
 
-    private dialogRef = React.createRef<Dialog>();
-    private paramDialogRef = React.createRef<ParamDialog>();
-    private relationListContextMenuRef = React.createRef<Menu>();
+    private dialogRef = createRef<Dialog>();
+    private paramDialogRef = createRef<ParamDialog>();
+    private relationListContextMenuRef = createRef<Menu>();
 
     // Counts to negative infinity, to produce unique IDs for new relation list entries.
     private relationListCounter = -1;
@@ -534,7 +550,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
         this.setState({ preventConfirm });
     };
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { container, advancedActionCaption, advancedAction, customFooter } = this.props;
         const {
             title, heading, actionText, description, validations, activeContexts, values, preventConfirm,
@@ -576,7 +592,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
             customActions.push(customFooter);
         }
 
-        const descriptionLabels: React.ReactNode[] = [];
+        const descriptionLabels: ComponentChild[] = [];
         description?.forEach((value, index) => {
             descriptionLabels.push(
                 <Label
@@ -667,12 +683,12 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
      *
      * @returns The generated list of groups.
      */
-    private renderGroups = (): React.ReactNode[] => {
+    private renderGroups = (): ComponentChild[] => {
         const { onSelectTab } = this.props;
         const { values, activeContexts } = this.state;
 
-        interface ISectionNodePair { caption?: string; node: React.ReactNode; section: IDialogSection }
-        interface ISectionGroup { nodes: ISectionNodePair[]; active?: string }
+        interface ISectionNodePair { caption?: string; node: ComponentChild; section: IDialogSection; }
+        interface ISectionGroup { nodes: ISectionNodePair[]; active?: string; }
 
         const sectionGroups: ISectionGroup[] = [];
         let currentGroup = "";
@@ -714,7 +730,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
             }
         });
 
-        const groups = sectionGroups.map((group: ISectionGroup, index: number): React.ReactNode => {
+        const groups = sectionGroups.map((group: ISectionGroup, index: number): ComponentChild => {
             if (group.nodes.length === 1) {
                 // Render single sections directly.
                 return group.nodes[0].node;
@@ -775,7 +791,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
      *
      * @returns The list of grid cells.
      */
-    private renderSection = (sectionId: string, section: IDialogSection): React.ReactNode => {
+    private renderSection = (sectionId: string, section: IDialogSection): ComponentChild => {
         const result = [];
 
         // Render caption only if this section is not grouped.
@@ -855,7 +871,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
      * @returns The rendered node.
      */
     private renderDialogValueGroup = (index: number, group: IDialogValuePair[], sectionId: string,
-        relatedValues: IRelatedValues): React.ReactNode => {
+        relatedValues: IRelatedValues): ComponentChild => {
 
         const { validations } = this.state;
 
@@ -901,7 +917,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
         });
 
         const edits = this.renderEdits(group, sectionId, relatedValues);
-        const contentCount = React.Children.count(edits);
+        const contentCount = Children.count(edits);
 
         result.push(
             <GridCell
@@ -918,7 +934,6 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
                     return (
                         <Message
                             key={`leftError${index}${errorIndex}`}
-                            as={Label}
                             type={MessageType.Error}
                         >
                             {value}
@@ -941,8 +956,8 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
      * @returns An array with react nodes.
      */
     private renderEdits = (edits: IDialogValuePair[], sectionId: string,
-        relatedValues: IRelatedValues): React.ReactNode => {
-        const result: React.ReactNode[] = [];
+        relatedValues: IRelatedValues): ComponentChild => {
+        const result: ComponentChild[] = [];
 
         for (const entry of edits) {
             const options = entry.value.options;
@@ -1266,7 +1281,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
         return;
     };
 
-    private handleActionClick = (_e: React.SyntheticEvent, props: Readonly<IComponentProperties>): void => {
+    private handleActionClick = (_e: MouseEvent | KeyboardEvent, props: Readonly<IComponentProperties>): void => {
         const { onClose } = this.props;
         const { values, data } = this.state;
         let accepted = false;
@@ -1285,7 +1300,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
         this.dialogRef.current?.close(!accepted);
     };
 
-    private handleInputChange = (sectionId: string, _e: React.ChangeEvent, props: IInputChangeProperties): void => {
+    private handleInputChange = (sectionId: string, _e: InputEvent, props: IInputChangeProperties): void => {
         const { onValidate } = this.props;
         const { values, data } = this.state;
 
@@ -1390,7 +1405,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
         }
     };
 
-    private btnClick = (sectionId: string, _e: React.SyntheticEvent, props: IButtonProperties): void => {
+    private btnClick = (sectionId: string, _e: MouseEvent | KeyboardEvent, props: IButtonProperties): void => {
         const { values } = this.state;
 
         const section = values.sections.get(sectionId);
@@ -1402,7 +1417,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
         }
     };
 
-    private advancedBtnClick = (_e: React.SyntheticEvent, props: IButtonProperties): void => {
+    private advancedBtnClick = (_e: MouseEvent | KeyboardEvent, props: IButtonProperties): void => {
         const { advancedAction } = this.props;
         const { values } = this.state;
 
@@ -1503,7 +1518,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
         }
     };
 
-    private onBlur = (sectionId: string, _e: React.SyntheticEvent, props: IInputProperties): void => {
+    private onBlur = (sectionId: string, _e: FocusEvent, props: IInputProperties): void => {
         const { values } = this.state;
 
         const section = values.sections.get(sectionId);
@@ -1554,7 +1569,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
      * @param value The value to set.
      * @param section The section which contains the data entries given by the id.
      *
-     * @returns True if the value could be set (valid target data entry found), otherwise false.
+     * @returns the dialog value that was changed (if found).
      */
     private setValue(id: string, value: DialogValueType, section: IDialogSection): IDialogValue | undefined {
         const { onValidate } = this.props;
@@ -1573,12 +1588,12 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
             // Currently we only support a path with 2 elements. Both must point into the given section,
             // where the first part must represent a relational list.
             if (parts.length < 2) {
-                return;
+                return undefined;
             }
 
             dialogValue = section.values[parts[0]];
             if (!dialogValue || dialogValue.type !== "relation" || dialogValue.active === undefined) {
-                return;
+                return undefined;
             }
 
             const activeData = dialogValue.value?.find((candidate) => {
@@ -1586,7 +1601,7 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
             });
 
             if (!activeData) {
-                return;
+                return undefined;
             }
 
             activeData[parts[1]] = value;
@@ -1612,10 +1627,10 @@ export class ValueEditDialog extends Component<IValueEditDialogProperties, IValu
         this.relationListContextMenuRef.current?.open(targetRect, false, {}, { sectionId, value });
     };
 
-    private handleRelationListContextMenuItemClick = (_e: React.MouseEvent, props: IMenuItemProperties,
+    private handleRelationListContextMenuItemClick = (_e: MouseEvent, props: IMenuItemProperties,
         payload: unknown): boolean => {
 
-        const itemData = payload as { sectionId: string; value: IRelationDialogValue };
+        const itemData = payload as { sectionId: string; value: IRelationDialogValue; };
         const idName = itemData.value.listItemId ?? "id";
         if (props.id === "addEntry") {
             const titleName = (itemData.value.listItemCaptionFields ?? ["title"])[0];

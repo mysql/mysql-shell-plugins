@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -44,7 +44,7 @@ describe("GUI Console", () => {
     afterEach(async () => {
         if (testFailed) {
             testFailed = false;
-            await Misc.processFailure();
+            await Misc.storeScreenShot();
         }
     });
 
@@ -86,7 +86,7 @@ describe("GUI Console", () => {
                 return (await GuiConsole.getSession("3")) === undefined;
             }, explicitWait, "Session 3 was not closed");
 
-        } catch(e) {
+        } catch (e) {
             testFailed = true;
             throw e;
         }

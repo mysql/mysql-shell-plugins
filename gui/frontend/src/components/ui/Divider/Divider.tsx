@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,20 +23,20 @@
 
 import "./Divider.css";
 
-import React from "react";
+import { ComponentChild } from "preact";
 
-import { Component, IComponentProperties, MouseEventType } from "../Component/Component";
+import { ComponentBase, IComponentProperties, MouseEventType } from "../Component/ComponentBase";
 
 interface IDividerProperties extends IComponentProperties {
     vertical?: boolean;
     thickness?: number;
 
-    innerRef?: React.RefObject<HTMLDivElement>;
+    innerRef?: preact.RefObject<HTMLDivElement>;
 
     // data-text is supported to set a title on the divider.
 }
 
-export class Divider extends Component<IDividerProperties> {
+export class Divider extends ComponentBase<IDividerProperties> {
 
     public static defaultProps = {
         vertical: false,
@@ -52,7 +52,7 @@ export class Divider extends Component<IDividerProperties> {
         this.connectEvents("onMouseEnter", "onMouseLeave");
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { vertical, thickness, style, innerRef } = this.mergedProps;
 
         const className = this.getEffectiveClassNames([
@@ -78,7 +78,7 @@ export class Divider extends Component<IDividerProperties> {
         );
     }
 
-    protected handleMouseEvent(type: MouseEventType, e: React.MouseEvent): boolean {
+    protected handleMouseEvent(type: MouseEventType, e: MouseEvent): boolean {
         switch (type) {
             case MouseEventType.Enter: {
                 if (this.hoverTimer) {

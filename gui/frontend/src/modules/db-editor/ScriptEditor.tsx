@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,21 +21,22 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
+import { ComponentChild, createRef } from "preact";
 import { Position } from "monaco-editor";
 
-import {
-    Component, Container, IComponentProperties, IComponentState, ISplitterPaneSizeInfo, Orientation, SplitContainer,
-} from "../../components/ui";
 import { IEditorStatusInfo, ISchemaTreeEntry } from ".";
-import { ExecutionContext, PresentationInterface } from "../../script-execution";
 import { StandalonePresentationInterface } from "./execution/StandalonePresentationInterface";
 import { requisitions } from "../../supplement/Requisitions";
 import { CodeEditor, IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor";
 import { EditorLanguage } from "../../supplement";
 import { IScriptExecutionOptions } from "../../components/ui/CodeEditor";
+import { IComponentProperties, IComponentState, ComponentBase } from "../../components/ui/Component/ComponentBase";
+import { Orientation, Container } from "../../components/ui/Container/Container";
+import { SplitContainer, ISplitterPaneSizeInfo } from "../../components/ui/SplitContainer/SplitContainer";
+import { ExecutionContext } from "../../script-execution/ExecutionContext";
+import { PresentationInterface } from "../../script-execution/PresentationInterface";
 
-export interface IScriptEditorProperties extends IComponentProperties {
+interface IScriptEditorProperties extends IComponentProperties {
     editorState: IEditorPersistentState;
 
     onScriptExecution?: (context: ExecutionContext, options: IScriptExecutionOptions) => Promise<boolean>;
@@ -48,10 +49,10 @@ interface IScriptEditorState extends IComponentState {
     maximizeResultPane: boolean;
 }
 
-export class ScriptEditor extends Component<IScriptEditorProperties, IScriptEditorState> {
+export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScriptEditorState> {
 
-    private editorRef = React.createRef<CodeEditor>();
-    private resultRef = React.createRef<HTMLDivElement>();
+    private editorRef = createRef<CodeEditor>();
+    private resultRef = createRef<HTMLDivElement>();
 
     private presentationInterface?: PresentationInterface;
 
@@ -87,7 +88,7 @@ export class ScriptEditor extends Component<IScriptEditorProperties, IScriptEdit
         requisitions.unregister("explorerDoubleClick", this.handleExplorerDoubleClick);
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { editorState, onScriptExecution } = this.props;
         const { showResultPane, maximizeResultPane } = this.state;
 
@@ -222,9 +223,12 @@ export class ScriptEditor extends Component<IScriptEditorProperties, IScriptEdit
         return this.presentationInterface;
     };
 
-    private handlePaneResized = (_first: ISplitterPaneSizeInfo, second: ISplitterPaneSizeInfo): void => {
-        if (second.paneId === "resultPane" && this.presentationInterface) {
-            this.presentationInterface.currentHeight = second.size;
-        }
+    private handlePaneResized = (info: ISplitterPaneSizeInfo[]): void => {
+        info.forEach((value) => {
+            if (value.id === "resultPane" && this.presentationInterface) {
+                this.presentationInterface.currentHeight = value.currentSize;
+            }
+        });
+
     };
 }

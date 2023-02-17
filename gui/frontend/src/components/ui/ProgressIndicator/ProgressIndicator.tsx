@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,12 +23,13 @@
 
 import "./ProgressIndicator.css";
 
-import * as React from "react";
 import { isNil } from "lodash";
+import { ComponentChild } from "preact";
 
-import { Component, Container, Orientation, IComponentProperties, ContentAlignment } from "..";
+import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
+import { Container, Orientation, ContentAlignment } from "../Container/Container";
 
-export interface IProgressIndicatorProperties extends IComponentProperties {
+interface IProgressIndicatorProperties extends IComponentProperties {
     // The opacity of the indicator host container (default: 1).
     backgroundOpacity?: number;
 
@@ -47,9 +48,9 @@ export interface IProgressIndicatorProperties extends IComponentProperties {
     stroke?: number;
 }
 
-export class ProgressIndicator extends Component<IProgressIndicatorProperties> {
+export class ProgressIndicator extends ComponentBase<IProgressIndicatorProperties> {
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const {
             id, backgroundOpacity = 1, linear = false, position, indicatorWidth,
             indicatorHeight, style, stroke,

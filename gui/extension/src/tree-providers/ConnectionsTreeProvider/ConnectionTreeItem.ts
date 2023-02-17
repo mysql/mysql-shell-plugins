@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -35,8 +35,8 @@ export class ConnectionTreeItem extends TreeItem {
         super(entry.details.caption, TreeItemCollapsibleState.Collapsed);
 
         this.iconPath = {
-            light: path.join(__dirname, "..", "..", "..", "..", "images", "light", "connected.svg"),
-            dark: path.join(__dirname, "..", "..", "..", "..", "images", "dark", "connected.svg"),
+            light: path.join(__dirname, "..", "images", "light", "connected.svg"),
+            dark: path.join(__dirname, "..", "images", "dark", "connected.svg"),
         };
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,10 +23,15 @@
 
 /* eslint-disable no-underscore-dangle */
 
-import {
-    ANTLRErrorListener, Recognizer, Token, RecognitionException, InputMismatchException, FailedPredicateException,
-    NoViableAltException, Vocabulary, LexerNoViableAltException,
-} from "antlr4ts";
+import { Token } from "antlr4ts/Token";
+import { ANTLRErrorListener } from "antlr4ts/ANTLRErrorListener";
+import { Recognizer } from "antlr4ts/Recognizer";
+import { RecognitionException } from "antlr4ts/RecognitionException";
+import { InputMismatchException } from "antlr4ts/InputMismatchException";
+import { FailedPredicateException } from "antlr4ts/FailedPredicateException";
+import { NoViableAltException } from "antlr4ts/NoViableAltException";
+import { LexerNoViableAltException } from "antlr4ts/LexerNoViableAltException";
+import { Vocabulary } from "antlr4ts/Vocabulary";
 
 import { MySQLParser } from "./generated/MySQLParser";
 import { MySQLLexer } from "./generated/MySQLLexer";

@@ -12,7 +12,7 @@ exports[`SymbolGrid testing Render test 1`] = `
       className="msg grid"
       id="symbols"
       style={
-        Object {
+        {
           "columnGap": "10px",
           "gridTemplateColumns": "repeat(5, 1fr)",
           "rowGap": "10px",
@@ -27,12 +27,12 @@ exports[`SymbolGrid testing Render test 1`] = `
         <Container
           className="msg gridCell symbol"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell symbol"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -43,20 +43,14 @@ exports[`SymbolGrid testing Render test 1`] = `
             <span
               className="codicon codicon-symbol-array"
             />
-            <Label
-              as="span"
-            >
-              <span
+            <Label>
+              <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 array
-              </span>
+              </label>
             </Label>
           </div>
         </Container>
@@ -69,12 +63,12 @@ exports[`SymbolGrid testing Render test 1`] = `
         <Container
           className="msg gridCell symbol"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell symbol"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -85,20 +79,14 @@ exports[`SymbolGrid testing Render test 1`] = `
             <span
               className="codicon codicon-symbol-boolean"
             />
-            <Label
-              as="span"
-            >
-              <span
+            <Label>
+              <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 boolean
-              </span>
+              </label>
             </Label>
           </div>
         </Container>
@@ -111,12 +99,12 @@ exports[`SymbolGrid testing Render test 1`] = `
         <Container
           className="msg gridCell symbol"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell symbol"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -127,20 +115,14 @@ exports[`SymbolGrid testing Render test 1`] = `
             <span
               className="codicon codicon-symbol-class"
             />
-            <Label
-              as="span"
-            >
-              <span
+            <Label>
+              <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 class
-              </span>
+              </label>
             </Label>
           </div>
         </Container>
@@ -153,12 +135,12 @@ exports[`SymbolGrid testing Render test 1`] = `
         <Container
           className="msg gridCell symbol"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell symbol"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -169,20 +151,14 @@ exports[`SymbolGrid testing Render test 1`] = `
             <span
               className="codicon codicon-symbol-color"
             />
-            <Label
-              as="span"
-            >
-              <span
+            <Label>
+              <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 color
-              </span>
+              </label>
             </Label>
           </div>
         </Container>
@@ -195,12 +171,12 @@ exports[`SymbolGrid testing Render test 1`] = `
         <Container
           className="msg gridCell symbol"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell symbol"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -211,20 +187,14 @@ exports[`SymbolGrid testing Render test 1`] = `
             <span
               className="codicon codicon-symbol-constant"
             />
-            <Label
-              as="span"
-            >
-              <span
+            <Label>
+              <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 constant
-              </span>
+              </label>
             </Label>
           </div>
         </Container>
@@ -237,12 +207,12 @@ exports[`SymbolGrid testing Render test 1`] = `
         <Container
           className="msg gridCell symbol"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell symbol"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -253,20 +223,14 @@ exports[`SymbolGrid testing Render test 1`] = `
             <span
               className="codicon codicon-symbol-constructor"
             />
-            <Label
-              as="span"
-            >
-              <span
+            <Label>
+              <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 constructor
-              </span>
+              </label>
             </Label>
           </div>
         </Container>
@@ -279,12 +243,12 @@ exports[`SymbolGrid testing Render test 1`] = `
         <Container
           className="msg gridCell symbol"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell symbol"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -295,20 +259,14 @@ exports[`SymbolGrid testing Render test 1`] = `
             <span
               className="codicon codicon-symbol-enum"
             />
-            <Label
-              as="span"
-            >
-              <span
+            <Label>
+              <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 enum
-              </span>
+              </label>
             </Label>
           </div>
         </Container>
@@ -321,12 +279,12 @@ exports[`SymbolGrid testing Render test 1`] = `
         <Container
           className="msg gridCell symbol"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell symbol"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -337,20 +295,14 @@ exports[`SymbolGrid testing Render test 1`] = `
             <span
               className="codicon codicon-symbol-enum-member"
             />
-            <Label
-              as="span"
-            >
-              <span
+            <Label>
+              <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 enum-member
-              </span>
+              </label>
             </Label>
           </div>
         </Container>
@@ -363,12 +315,12 @@ exports[`SymbolGrid testing Render test 1`] = `
         <Container
           className="msg gridCell symbol"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell symbol"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -379,20 +331,14 @@ exports[`SymbolGrid testing Render test 1`] = `
             <span
               className="codicon codicon-symbol-event"
             />
-            <Label
-              as="span"
-            >
-              <span
+            <Label>
+              <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 event
-              </span>
+              </label>
             </Label>
           </div>
         </Container>
@@ -405,12 +351,12 @@ exports[`SymbolGrid testing Render test 1`] = `
         <Container
           className="msg gridCell symbol"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell symbol"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -421,20 +367,14 @@ exports[`SymbolGrid testing Render test 1`] = `
             <span
               className="codicon codicon-symbol-field"
             />
-            <Label
-              as="span"
-            >
-              <span
+            <Label>
+              <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 field
-              </span>
+              </label>
             </Label>
           </div>
         </Container>
@@ -447,12 +387,12 @@ exports[`SymbolGrid testing Render test 1`] = `
         <Container
           className="msg gridCell symbol"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell symbol"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -463,20 +403,14 @@ exports[`SymbolGrid testing Render test 1`] = `
             <span
               className="codicon codicon-symbol-file"
             />
-            <Label
-              as="span"
-            >
-              <span
+            <Label>
+              <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 file
-              </span>
+              </label>
             </Label>
           </div>
         </Container>
@@ -489,12 +423,12 @@ exports[`SymbolGrid testing Render test 1`] = `
         <Container
           className="msg gridCell symbol"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell symbol"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -505,20 +439,14 @@ exports[`SymbolGrid testing Render test 1`] = `
             <span
               className="codicon codicon-symbol-folder"
             />
-            <Label
-              as="span"
-            >
-              <span
+            <Label>
+              <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 folder
-              </span>
+              </label>
             </Label>
           </div>
         </Container>
@@ -531,12 +459,12 @@ exports[`SymbolGrid testing Render test 1`] = `
         <Container
           className="msg gridCell symbol"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell symbol"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -547,20 +475,14 @@ exports[`SymbolGrid testing Render test 1`] = `
             <span
               className="codicon codicon-symbol-function"
             />
-            <Label
-              as="span"
-            >
-              <span
+            <Label>
+              <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 function
-              </span>
+              </label>
             </Label>
           </div>
         </Container>
@@ -573,12 +495,12 @@ exports[`SymbolGrid testing Render test 1`] = `
         <Container
           className="msg gridCell symbol"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell symbol"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -589,20 +511,14 @@ exports[`SymbolGrid testing Render test 1`] = `
             <span
               className="codicon codicon-symbol-interface"
             />
-            <Label
-              as="span"
-            >
-              <span
+            <Label>
+              <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 interface
-              </span>
+              </label>
             </Label>
           </div>
         </Container>
@@ -615,12 +531,12 @@ exports[`SymbolGrid testing Render test 1`] = `
         <Container
           className="msg gridCell symbol"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell symbol"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -631,20 +547,14 @@ exports[`SymbolGrid testing Render test 1`] = `
             <span
               className="codicon codicon-symbol-key"
             />
-            <Label
-              as="span"
-            >
-              <span
+            <Label>
+              <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 key
-              </span>
+              </label>
             </Label>
           </div>
         </Container>
@@ -657,12 +567,12 @@ exports[`SymbolGrid testing Render test 1`] = `
         <Container
           className="msg gridCell symbol"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell symbol"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -673,20 +583,14 @@ exports[`SymbolGrid testing Render test 1`] = `
             <span
               className="codicon codicon-symbol-keyword"
             />
-            <Label
-              as="span"
-            >
-              <span
+            <Label>
+              <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 keyword
-              </span>
+              </label>
             </Label>
           </div>
         </Container>
@@ -699,12 +603,12 @@ exports[`SymbolGrid testing Render test 1`] = `
         <Container
           className="msg gridCell symbol"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell symbol"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -715,20 +619,14 @@ exports[`SymbolGrid testing Render test 1`] = `
             <span
               className="codicon codicon-symbol-method"
             />
-            <Label
-              as="span"
-            >
-              <span
+            <Label>
+              <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 method
-              </span>
+              </label>
             </Label>
           </div>
         </Container>
@@ -741,12 +639,12 @@ exports[`SymbolGrid testing Render test 1`] = `
         <Container
           className="msg gridCell symbol"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell symbol"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -757,20 +655,14 @@ exports[`SymbolGrid testing Render test 1`] = `
             <span
               className="codicon codicon-symbol-module"
             />
-            <Label
-              as="span"
-            >
-              <span
+            <Label>
+              <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 module
-              </span>
+              </label>
             </Label>
           </div>
         </Container>
@@ -783,12 +675,12 @@ exports[`SymbolGrid testing Render test 1`] = `
         <Container
           className="msg gridCell symbol"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell symbol"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -799,20 +691,14 @@ exports[`SymbolGrid testing Render test 1`] = `
             <span
               className="codicon codicon-symbol-namespace"
             />
-            <Label
-              as="span"
-            >
-              <span
+            <Label>
+              <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 namespace
-              </span>
+              </label>
             </Label>
           </div>
         </Container>
@@ -825,12 +711,12 @@ exports[`SymbolGrid testing Render test 1`] = `
         <Container
           className="msg gridCell symbol"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell symbol"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -841,20 +727,14 @@ exports[`SymbolGrid testing Render test 1`] = `
             <span
               className="codicon codicon-symbol-null"
             />
-            <Label
-              as="span"
-            >
-              <span
+            <Label>
+              <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 null
-              </span>
+              </label>
             </Label>
           </div>
         </Container>
@@ -867,12 +747,12 @@ exports[`SymbolGrid testing Render test 1`] = `
         <Container
           className="msg gridCell symbol"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell symbol"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -883,20 +763,14 @@ exports[`SymbolGrid testing Render test 1`] = `
             <span
               className="codicon codicon-symbol-number"
             />
-            <Label
-              as="span"
-            >
-              <span
+            <Label>
+              <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 number
-              </span>
+              </label>
             </Label>
           </div>
         </Container>
@@ -909,12 +783,12 @@ exports[`SymbolGrid testing Render test 1`] = `
         <Container
           className="msg gridCell symbol"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell symbol"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -925,20 +799,14 @@ exports[`SymbolGrid testing Render test 1`] = `
             <span
               className="codicon codicon-symbol-object"
             />
-            <Label
-              as="span"
-            >
-              <span
+            <Label>
+              <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 object
-              </span>
+              </label>
             </Label>
           </div>
         </Container>
@@ -951,12 +819,12 @@ exports[`SymbolGrid testing Render test 1`] = `
         <Container
           className="msg gridCell symbol"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell symbol"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -967,20 +835,14 @@ exports[`SymbolGrid testing Render test 1`] = `
             <span
               className="codicon codicon-symbol-operator"
             />
-            <Label
-              as="span"
-            >
-              <span
+            <Label>
+              <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 operator
-              </span>
+              </label>
             </Label>
           </div>
         </Container>
@@ -993,12 +855,12 @@ exports[`SymbolGrid testing Render test 1`] = `
         <Container
           className="msg gridCell symbol"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell symbol"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -1009,20 +871,14 @@ exports[`SymbolGrid testing Render test 1`] = `
             <span
               className="codicon codicon-symbol-package"
             />
-            <Label
-              as="span"
-            >
-              <span
+            <Label>
+              <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 package
-              </span>
+              </label>
             </Label>
           </div>
         </Container>
@@ -1035,12 +891,12 @@ exports[`SymbolGrid testing Render test 1`] = `
         <Container
           className="msg gridCell symbol"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell symbol"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -1051,20 +907,14 @@ exports[`SymbolGrid testing Render test 1`] = `
             <span
               className="codicon codicon-symbol-property"
             />
-            <Label
-              as="span"
-            >
-              <span
+            <Label>
+              <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 property
-              </span>
+              </label>
             </Label>
           </div>
         </Container>
@@ -1077,12 +927,12 @@ exports[`SymbolGrid testing Render test 1`] = `
         <Container
           className="msg gridCell symbol"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell symbol"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -1093,20 +943,14 @@ exports[`SymbolGrid testing Render test 1`] = `
             <span
               className="codicon codicon-symbol-reference"
             />
-            <Label
-              as="span"
-            >
-              <span
+            <Label>
+              <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 reference
-              </span>
+              </label>
             </Label>
           </div>
         </Container>
@@ -1119,12 +963,12 @@ exports[`SymbolGrid testing Render test 1`] = `
         <Container
           className="msg gridCell symbol"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell symbol"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -1135,20 +979,14 @@ exports[`SymbolGrid testing Render test 1`] = `
             <span
               className="codicon codicon-symbol-snippet"
             />
-            <Label
-              as="span"
-            >
-              <span
+            <Label>
+              <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 snippet
-              </span>
+              </label>
             </Label>
           </div>
         </Container>
@@ -1161,12 +999,12 @@ exports[`SymbolGrid testing Render test 1`] = `
         <Container
           className="msg gridCell symbol"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell symbol"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -1177,20 +1015,14 @@ exports[`SymbolGrid testing Render test 1`] = `
             <span
               className="codicon codicon-symbol-string"
             />
-            <Label
-              as="span"
-            >
-              <span
+            <Label>
+              <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 string
-              </span>
+              </label>
             </Label>
           </div>
         </Container>
@@ -1203,12 +1035,12 @@ exports[`SymbolGrid testing Render test 1`] = `
         <Container
           className="msg gridCell symbol"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell symbol"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -1219,20 +1051,14 @@ exports[`SymbolGrid testing Render test 1`] = `
             <span
               className="codicon codicon-symbol-struct"
             />
-            <Label
-              as="span"
-            >
-              <span
+            <Label>
+              <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 struct
-              </span>
+              </label>
             </Label>
           </div>
         </Container>
@@ -1245,12 +1071,12 @@ exports[`SymbolGrid testing Render test 1`] = `
         <Container
           className="msg gridCell symbol"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell symbol"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -1261,20 +1087,14 @@ exports[`SymbolGrid testing Render test 1`] = `
             <span
               className="codicon codicon-symbol-text"
             />
-            <Label
-              as="span"
-            >
-              <span
+            <Label>
+              <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 text
-              </span>
+              </label>
             </Label>
           </div>
         </Container>
@@ -1287,12 +1107,12 @@ exports[`SymbolGrid testing Render test 1`] = `
         <Container
           className="msg gridCell symbol"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell symbol"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -1303,20 +1123,14 @@ exports[`SymbolGrid testing Render test 1`] = `
             <span
               className="codicon codicon-symbol-type-parameter"
             />
-            <Label
-              as="span"
-            >
-              <span
+            <Label>
+              <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 parameter
-              </span>
+              </label>
             </Label>
           </div>
         </Container>
@@ -1329,12 +1143,12 @@ exports[`SymbolGrid testing Render test 1`] = `
         <Container
           className="msg gridCell symbol"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell symbol"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -1345,20 +1159,14 @@ exports[`SymbolGrid testing Render test 1`] = `
             <span
               className="codicon codicon-symbol-unit"
             />
-            <Label
-              as="span"
-            >
-              <span
+            <Label>
+              <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 unit
-              </span>
+              </label>
             </Label>
           </div>
         </Container>
@@ -1371,12 +1179,12 @@ exports[`SymbolGrid testing Render test 1`] = `
         <Container
           className="msg gridCell symbol"
           orientation="row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="msg container fixedScrollbar gridCell symbol"
             style={
-              Object {
+              {
                 "alignItems": undefined,
                 "flexDirection": "row",
                 "flexWrap": undefined,
@@ -1387,20 +1195,14 @@ exports[`SymbolGrid testing Render test 1`] = `
             <span
               className="codicon codicon-symbol-variable"
             />
-            <Label
-              as="span"
-            >
-              <span
+            <Label>
+              <label
                 className="msg label"
                 data-tooltip="expand"
-                style={
-                  Object {
-                    "textAlign": undefined,
-                  }
-                }
+                style={{}}
               >
                 variable
-              </span>
+              </label>
             </Label>
           </div>
         </Container>

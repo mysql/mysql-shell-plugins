@@ -4,8 +4,8 @@ exports[`Shell prompt tests ShellPrompt output test 1`] = `
 <ShellPrompt
   getSchemas={[MockFunction]}
   values={
-    Object {
-      "promptDescriptor": Object {
+    {
+      "promptDescriptor": {
         "host": "localhost",
         "isProduction": true,
         "mode": "readonly",
@@ -21,7 +21,7 @@ exports[`Shell prompt tests ShellPrompt output test 1`] = `
   <Breadcrumb
     className="msg shellPrompt"
     path={
-      Array [
+      [
         "",
       ]
     }
@@ -34,7 +34,7 @@ exports[`Shell prompt tests ShellPrompt output test 1`] = `
       <div
         className="msg container fixedScrollbar breadcrumb verticalCenterContent shellPrompt"
         style={
-          Object {
+          {
             "alignItems": undefined,
             "flexDirection": "row",
             "flexWrap": undefined,
@@ -53,11 +53,7 @@ exports[`Shell prompt tests ShellPrompt output test 1`] = `
             className="msg label shellPromptItem"
             data-tooltip="Connection to server localhost at port 3366, using the classic protocol"
             id="server"
-            style={
-              Object {
-                "textAlign": undefined,
-              }
-            }
+            style={{}}
           >
              localhost:3366
           </label>
@@ -74,11 +70,7 @@ exports[`Shell prompt tests ShellPrompt output test 1`] = `
             data-tooltip="expand"
             id="schema"
             onClick={[Function]}
-            style={
-              Object {
-                "textAlign": undefined,
-              }
-            }
+            style={{}}
           >
              myDb
           </label>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { By, until, WebElement, error } from "selenium-webdriver";
+import { By, until, WebElement } from "selenium-webdriver";
 import { driver } from "./misc";
 
 export class GuiConsole {
@@ -69,7 +69,9 @@ export class GuiConsole {
                 }
             }
         } catch (e) {
-            if (!(e instanceof error.StaleElementReferenceError)) {
+            if (typeof e === "object" && String(e).includes("StaleElementReferenceError")) {
+                return undefined;
+            } else {
                 throw e;
             }
         }

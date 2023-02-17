@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -25,25 +25,30 @@ import "./LoginPage.css";
 import logo from "../../assets/images/modules/module-shell.svg";
 import chevronRight from "../../assets/images/chevron-right.svg";
 
-import * as React from "react";
+import { ComponentChild } from "preact";
 
-import {
-    Component, Container, Icon, Label, Button, Input, Grid, GridCell, IInputChangeProperties,
-    ContentAlignment, ContentWrap, Message, Orientation,
-} from "../ui";
-import { ShellInterface } from "../../supplement/ShellInterface";
 import { MessageType } from "../../app-logic/Types";
 import { requisitions } from "../../supplement/Requisitions";
-import { ResponseError } from "../../communication";
+import { ResponseError } from "../../communication/ResponseError";
+import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface";
+import { IComponentState, ComponentBase } from "../ui/Component/ComponentBase";
+import { Container, Orientation, ContentAlignment, ContentWrap } from "../ui/Container/Container";
+import { Grid } from "../ui/Grid/Grid";
+import { GridCell } from "../ui/Grid/GridCell";
+import { Icon } from "../ui/Icon/Icon";
+import { Input, IInputChangeProperties } from "../ui/Input/Input";
+import { Label } from "../ui/Label/Label";
+import { Message } from "../ui/Message/Message";
+import { Button } from "../ui/Button/Button";
 
-interface ILoginPageState extends React.ComponentState {
+interface ILoginPageState extends IComponentState {
     userName: string;
     password: string;
     errorMessage: string;
 }
 
 // Implements the main login page for the application.
-export class LoginPage extends Component<{}, ILoginPageState> {
+export class LoginPage extends ComponentBase<{}, ILoginPageState> {
     public constructor(props: {}) {
         super(props);
 
@@ -54,7 +59,7 @@ export class LoginPage extends Component<{}, ILoginPageState> {
         };
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { userName, password, errorMessage } = this.state;
 
         const linkMap = new Map<string, string>([
@@ -76,7 +81,7 @@ export class LoginPage extends Component<{}, ILoginPageState> {
             <Container id="loginDialog" orientation={Orientation.TopDown}>
                 <Icon src={logo} id="loginDialogSakilaLogo" />
                 <Container id="heading" orientation={Orientation.TopDown}>
-                    <Label id="headingLabel" as="h2">
+                    <Label id="headingLabel">
                         MySQL Shell
                     </Label>
                     <Label id="headingSubLabel">
@@ -156,7 +161,7 @@ export class LoginPage extends Component<{}, ILoginPageState> {
         });
     };
 
-    private handleInput = (_: React.ChangeEvent, props: IInputChangeProperties): void => {
+    private handleInput = (_: InputEvent, props: IInputChangeProperties): void => {
         if (props.id === "loginUsername") {
             this.setState({ userName: props.value });
         } else {

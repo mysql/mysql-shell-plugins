@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,7 +21,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { Parser, TokenStream } from "antlr4ts";
+import { Parser } from "antlr4ts/Parser";
+import { TokenStream } from "antlr4ts/TokenStream";
 
 export enum PythonVersion {
     Auto = 0,
@@ -48,4 +49,3 @@ export abstract class PythonParserBase extends Parser {
         }
     }
 }
-

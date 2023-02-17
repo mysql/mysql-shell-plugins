@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,15 +21,14 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
 import { mount } from "enzyme";
 import keyboardKey from "keyboard-key";
 
-import { ConfirmDialog } from "../../../../components/Dialogs";
-import { Label } from "../../../../components/ui";
+import { Label } from "../../../../components/ui/Label/Label";
 
-import { nextProcessTick, sendKeyPress, snapshotFromWrapper } from "../../test-helpers";
+import { nextProcessTick, sendKeyPress } from "../../test-helpers";
 import { DialogResponseClosure } from "../../../../app-logic/Types";
+import { ConfirmDialog } from "../../../../components/Dialogs/ConfirmDialog";
 
 describe("Confirm Dialog Tests", (): void => {
 
@@ -38,7 +37,7 @@ describe("Confirm Dialog Tests", (): void => {
             <ConfirmDialog />,
         );
 
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
 
         component.unmount();
     });

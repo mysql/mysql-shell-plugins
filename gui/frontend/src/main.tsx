@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -20,31 +20,13 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/// <reference types="react-scripts" />
-/// <reference types="enzyme-adapter-preact-pure" />
 
-declare module "monaco-editor/esm/vs/basic-languages/typescript/typescript";
-declare module "monaco-editor/esm/vs/basic-languages/javascript/javascript";
-declare module "monaco-editor/esm/vs/basic-languages/mysql/mysql";
-declare module "monaco-editor/esm/vs/basic-languages/python/python";
-declare module "monaco-editor/esm/vs/platform/contextkey/common/contextkey";
+import { render } from "preact";
 
-declare module "*.txt" {
-    const content: string;
-    export default content;
-}
+import { App } from "./app-logic/App";
 
-declare module "file-loader?name=[name].[contenthash].js!*" {
-    const value: string;
-    export = value;
-}
-
-declare module "worker-loader?filename=static/workers/[name].[contenthash].js!*" {
-    class WebpackWorker extends Worker {
-        public id: string;
-
-        public constructor();
-    }
-
-    export default WebpackWorker;
-}
+/* istanbul ignore next */
+render(
+    <App />,
+    document.getElementById("root")!,
+);

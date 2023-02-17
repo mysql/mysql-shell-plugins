@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,12 +23,10 @@
 
 import imageImage from "../../../../assets/images/connections.svg";
 
-import React from "react";
 import { act } from "preact/test-utils";
 import { mount } from "enzyme";
-
-import { Accordion, Codicon, IAccordionProperties } from "../../../../components/ui";
-import { snapshotFromWrapper } from "../../test-helpers";
+import { Accordion, IAccordionProperties } from "../../../../components/ui/Accordion/Accordion";
+import { Codicon } from "../../../../components/ui/Codicon";
 
 describe("Accordion component tests", (): void => {
 
@@ -107,7 +105,7 @@ describe("Accordion component tests", (): void => {
 
         let onClick = (section1.props() as IAccordionProperties).onClick;
         await act(() => {
-            onClick?.(event as React.SyntheticEvent, { id: "2" });
+            onClick?.(event as MouseEvent | KeyboardEvent, { id: "2" });
         });
         expect(spyExpand).toBeCalled();
 
@@ -117,7 +115,7 @@ describe("Accordion component tests", (): void => {
         expect(onClick).toBeDefined();
 
         await act(() => {
-            onClick?.(event as React.SyntheticEvent, { id: "2" });
+            onClick?.(event as MouseEvent | KeyboardEvent, { id: "2" });
         });
         expect(spyAction).toBeCalled();
 
@@ -168,7 +166,7 @@ describe("Accordion component tests", (): void => {
                 ]}
             />,
         );
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
 
         component.unmount();
     });

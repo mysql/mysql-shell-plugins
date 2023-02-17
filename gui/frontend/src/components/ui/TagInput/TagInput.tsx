@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,16 +24,19 @@
 import "./TagInput.css";
 import closeButton from "../../../assets/images/close.svg";
 
-import React from "react";
+import { ComponentChild, VNode } from "preact";
 
-import {
-    IComponentProperties, Component, Label, Container, Icon, Image, Button, DragEventType, Orientation, ContentWrap,
-} from "..";
+import { IComponentProperties, ComponentBase, DragEventType } from "../Component/ComponentBase";
+import { Orientation, Container, ContentWrap } from "../Container/Container";
+import { IIconProperties, Icon } from "../Icon/Icon";
+import { IImageProperties } from "../Image/Image";
+import { Label } from "../Label/Label";
+import { Button } from "../Button/Button";
 
 export interface ITag {
     id: string;
     caption?: string;
-    picture?: React.ReactElement<Icon> | React.ReactElement<Image>;
+    picture?: VNode<IImageProperties | IIconProperties>;
 }
 
 /** A block of tags that can be dragged in/out and individually be deleted. */
@@ -42,14 +45,14 @@ export interface ITagInputProperties extends IComponentProperties {
     removable?: boolean;
     orientation?: Orientation;
 
-    innerRef?: React.RefObject<HTMLElement>;
+    innerRef?: preact.RefObject<HTMLDivElement>;
 
     canAdd?: (props: ITagInputProperties) => boolean;
     onAdd?: (id: string, props: ITagInputProperties) => void;
     onRemove?: (id: string, props: ITagInputProperties) => void;
 }
 
-export class TagInput extends Component<ITagInputProperties> {
+export class TagInput extends ComponentBase<ITagInputProperties> {
 
     public constructor(props: ITagInputProperties) {
         super(props);
@@ -58,7 +61,7 @@ export class TagInput extends Component<ITagInputProperties> {
         this.connectDragEvents();
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { tags, removable, innerRef, orientation, children } = this.mergedProps;
         const className = this.getEffectiveClassNames(["tagInput"]);
 
@@ -74,7 +77,7 @@ export class TagInput extends Component<ITagInputProperties> {
                         id={tag.id}
                         onClick={this.handleCloseButtonClick}
                     >
-                        <Icon as="span" src={closeButton} />
+                        <Icon src={closeButton} />
                     </Button>
                 }
             </Label>;
@@ -94,11 +97,14 @@ export class TagInput extends Component<ITagInputProperties> {
         );
     }
 
-    protected handleDragEvent(type: DragEventType, e: React.DragEvent<HTMLElement>): boolean {
+    protected handleDragEvent(type: DragEventType, e: DragEvent): boolean {
+        const element = e.currentTarget as HTMLElement;
         switch (type) {
             case DragEventType.Start: {
-                e.dataTransfer.setData("text/tag", (e.target as HTMLElement).innerText);
-                e.dataTransfer.effectAllowed = "copy";
+                if (e.dataTransfer) {
+                    e.dataTransfer.setData("text/tag", (e.target as HTMLElement).innerText);
+                    e.dataTransfer.effectAllowed = "copy";
+                }
 
                 break;
             }
@@ -121,12 +127,12 @@ export class TagInput extends Component<ITagInputProperties> {
             }
 
             case DragEventType.Enter: {
-                e.currentTarget.classList.add("dropTarget");
+                element.classList.add("dropTarget");
                 break;
             }
 
             case DragEventType.Leave: {
-                e.currentTarget.classList.remove("dropTarget");
+                element.classList.remove("dropTarget");
                 break;
             }
 
@@ -134,21 +140,23 @@ export class TagInput extends Component<ITagInputProperties> {
                 // Usually one would check the actual drop effect here, but that is broken in Chrome.
                 // So we can only rely on the check done on drag over (and could repeat it here)
                 e.preventDefault();
-                e.currentTarget.classList.remove("dropTarget");
+                element.classList.remove("dropTarget");
 
-                // Do not add the new tag, but just tell the owner, to take action.
-                const { tags, onAdd } = this.mergedProps;
-                const value = e.dataTransfer.getData("text/tag");
+                if (e.dataTransfer) {
+                    // Do not add the new tag, but just tell the owner, to take action.
+                    const { tags, onAdd } = this.mergedProps;
+                    const value = e.dataTransfer.getData("text/tag");
 
-                if (!tags || tags.length === 0) {
-                    onAdd?.(value, this.mergedProps);
+                    if (!tags || tags.length === 0) {
+                        onAdd?.(value, this.mergedProps);
 
-                    break;
-                }
+                        break;
+                    }
 
-                const index = tags?.findIndex((tag: ITag) => { return tag.caption === value; });
-                if (index === -1) {
-                    onAdd?.(value, this.mergedProps);
+                    const index = tags?.findIndex((tag: ITag) => { return tag.caption === value; });
+                    if (index === -1) {
+                        onAdd?.(value, this.mergedProps);
+                    }
                 }
 
                 break;
@@ -162,7 +170,7 @@ export class TagInput extends Component<ITagInputProperties> {
         return true;
     }
 
-    private handleCloseButtonClick = (e: React.SyntheticEvent, props: IComponentProperties): void => {
+    private handleCloseButtonClick = (e: MouseEvent | KeyboardEvent, props: IComponentProperties): void => {
         const { onRemove } = this.mergedProps;
 
         // Button in the label makes the entire label act like a button (but we only want the button to act so).

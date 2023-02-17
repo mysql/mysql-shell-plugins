@@ -189,13 +189,25 @@ export class Misc {
         ctxMenuItem: string,
     ): Promise<void> => {
 
-        const ctxMenuItems = ctxMenuItem.split("->");
-        const menu = await treeItem?.openContextMenu();
-        const menuItem = await menu?.getItem(ctxMenuItems[0].trim());
-        const anotherMenu = await menuItem!.select();
-        if (ctxMenuItems.length > 1) {
-            await (await anotherMenu?.getItem(ctxMenuItems[1].trim()))!.select();
-        }
+        await driver.wait(async () => {
+            try {
+                const ctxMenuItems = ctxMenuItem.split("->");
+                const menu = await treeItem?.openContextMenu();
+                const menuItem = await menu?.getItem(ctxMenuItems[0].trim());
+                const anotherMenu = await menuItem!.select();
+                if (ctxMenuItems.length > 1) {
+                    await (await anotherMenu?.getItem(ctxMenuItems[1].trim()))!.select();
+                }
+    
+                return true;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+            
+        }, explicitWait, "Context menu was stale after 5 secs");
+        
     };
 
     public static clickSectionToolbarButton = async (
@@ -634,7 +646,7 @@ export class Misc {
                 if (resultTexts.length > 0) {
                     let result = "";
                     for (const resultText of resultTexts) {
-                        const span = await resultText.findElement(By.css("code span"));
+                        const span = await resultText.findElement(By.css("span"));
                         result += await span.getAttribute("innerHTML");
                     }
 

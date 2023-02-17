@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,15 +23,11 @@
 
 import "./Input.css";
 
-import React from "react";
+import { ComponentChild, createRef } from "preact";
 
-import { Component, IComponentProperties, TextAlignment } from "..";
 import keyboardKey from "keyboard-key";
-
-export interface IInputTextRange {
-    start: number; // Zero-based character index.
-    end: number;   // ditto
-}
+import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
+import { TextAlignment } from "../Label/Label";
 
 export interface IInputProperties extends IComponentProperties {
     placeholder?: string;
@@ -46,29 +42,29 @@ export interface IInputProperties extends IComponentProperties {
     autoComplete?: boolean;
     spellCheck?: boolean;
 
-    innerRef?: React.RefObject<HTMLElement>;
+    innerRef?: preact.RefObject<HTMLElement>;
 
-    onChange?: (e: React.ChangeEvent, props: IInputChangeProperties) => void;
-    onConfirm?: (e: React.KeyboardEvent, props: IInputChangeProperties) => void;
-    onCancel?: (e: React.KeyboardEvent, props: IInputProperties) => void;
+    onChange?: (e: InputEvent, props: IInputChangeProperties) => void;
+    onConfirm?: (e: KeyboardEvent, props: IInputChangeProperties) => void;
+    onCancel?: (e: KeyboardEvent, props: IInputProperties) => void;
 }
 
 export interface IInputChangeProperties extends IInputProperties {
     value: string;
 }
 
-export class Input extends Component<IInputProperties> {
+export class Input extends ComponentBase<IInputProperties> {
 
     public static defaultProps = {
         spellCheck: true,
     };
 
-    private inputRef: React.RefObject<HTMLElement>;
+    private inputRef: preact.RefObject<HTMLElement>;
 
     public constructor(props: IInputProperties) {
         super(props);
 
-        this.inputRef = props.innerRef ?? React.createRef<HTMLElement>();
+        this.inputRef = props.innerRef ?? createRef<HTMLElement>();
 
         // Note: "placeholder", "autocomplete" and "spellCheck" are directly handled in HTML. "autoFocus" is
         // intentionally written in camel case to indicate this is *not* the HTML autofocus attribute.
@@ -86,37 +82,51 @@ export class Input extends Component<IInputProperties> {
         }
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { password, textAlignment, value, multiLine, spellCheck } = this.mergedProps;
 
         const className = this.getEffectiveClassNames(["input"]);
 
-        // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-explicit-any
-        const ElementType: any = multiLine ? "textarea" : "input";
+        if (multiLine) {
+            return (
+                <textarea
+                    ref={this.inputRef as preact.Ref<HTMLTextAreaElement>}
+                    onInput={this.handleInput}
+                    onKeyDown={this.handleKeyDown}
+                    className={className}
+                    type={password ? "password" : "text"}
+                    value={value}
+                    spellCheck={spellCheck}
+                    style={{ textAlign: textAlignment }}
+                    {...this.unhandledProperties}
+                />
+            );
 
-        return (
-            <ElementType
-                ref={this.inputRef}
-                onChange={this.handleChange}
-                onKeyDown={this.handleKeyDown}
-                className={className}
-                type={password ? "password" : "text"}
-                value={value}
-                spellCheck={spellCheck}
-                style={{ textAlign: textAlignment }}
-                {...this.unhandledProperties}
-            />
-        );
+        } else {
+            return (
+                <input
+                    ref={this.inputRef as preact.Ref<HTMLInputElement>}
+                    onInput={this.handleInput}
+                    onKeyDown={this.handleKeyDown}
+                    className={className}
+                    type={password ? "password" : "text"}
+                    value={value}
+                    spellCheck={spellCheck}
+                    style={{ textAlign: textAlignment }}
+                    {...this.unhandledProperties}
+                />
+            );
+        }
     }
 
-    private handleChange = (e: React.ChangeEvent): void => {
+    private handleInput = (e: Event): void => {
         const { onChange } = this.mergedProps;
 
         const element = e.target as HTMLInputElement;
-        onChange?.(e, { ...this.mergedProps, value: element.value });
+        onChange?.(e as InputEvent, { ...this.mergedProps, value: element.value });
     };
 
-    private handleKeyDown = (e: React.KeyboardEvent): void => {
+    private handleKeyDown = (e: KeyboardEvent): void => {
         const { multiLine, onConfirm, onCancel } = this.mergedProps;
 
         switch (keyboardKey.getCode(e)) {

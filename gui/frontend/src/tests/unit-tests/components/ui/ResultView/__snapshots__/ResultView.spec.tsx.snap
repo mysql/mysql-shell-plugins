@@ -3,359 +3,359 @@
 exports[`Result View Tests Render with Columns 1`] = `
 <ResultView
   resultSet={
-    Object {
-      "columns": Array [
-        Object {
-          "dataType": Object {
+    {
+      "columns": [
+        {
+          "dataType": {
             "type": 5,
           },
           "field": "0",
           "title": "col1",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 0,
           },
           "field": "1",
           "title": "col2",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 1,
           },
           "field": "2",
           "title": "col3",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 2,
           },
           "field": "3",
           "title": "col4",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 3,
           },
           "field": "4",
           "title": "col5",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 4,
           },
           "field": "5",
           "title": "col6",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 5,
           },
           "field": "6",
           "title": "col7",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 6,
           },
           "field": "7",
           "title": "col8",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 7,
           },
           "field": "8",
           "title": "col9",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 8,
           },
           "field": "9",
           "title": "col10",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 9,
           },
           "field": "10",
           "title": "col11",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 10,
           },
           "field": "11",
           "title": "col12",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 11,
           },
           "field": "12",
           "title": "col13",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 12,
           },
           "field": "13",
           "title": "col14",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 13,
           },
           "field": "14",
           "title": "col15",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 14,
           },
           "field": "15",
           "title": "col16",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 15,
           },
           "field": "16",
           "title": "col17",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 16,
           },
           "field": "17",
           "title": "col18",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 17,
           },
           "field": "18",
           "title": "col19",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 18,
           },
           "field": "19",
           "title": "col20",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 19,
           },
           "field": "20",
           "title": "col21",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 20,
           },
           "field": "21",
           "title": "col22",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 21,
           },
           "field": "22",
           "title": "col23",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 22,
           },
           "field": "23",
           "title": "col24",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 23,
           },
           "field": "24",
           "title": "col25",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 24,
           },
           "field": "25",
           "title": "col26",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 25,
           },
           "field": "26",
           "title": "col27",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 26,
           },
           "field": "27",
           "title": "col28",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 27,
           },
           "field": "28",
           "title": "col29",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 28,
           },
           "field": "29",
           "title": "col30",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 29,
           },
           "field": "30",
           "title": "col31",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 30,
           },
           "field": "31",
           "title": "col32",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 31,
           },
           "field": "32",
           "title": "col33",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 32,
           },
           "field": "33",
           "title": "col34",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 33,
           },
           "field": "34",
           "title": "col35",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 34,
           },
           "field": "35",
           "title": "col36",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 35,
           },
           "field": "36",
           "title": "col37",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 36,
           },
           "field": "37",
           "title": "col38",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 37,
           },
           "field": "38",
           "title": "col39",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 38,
           },
           "field": "39",
           "title": "col40",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 39,
           },
           "field": "40",
           "title": "col41",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 40,
           },
           "field": "41",
           "title": "col42",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 41,
           },
           "field": "42",
           "title": "col43",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 42,
           },
           "field": "43",
           "title": "col44",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 43,
           },
           "field": "44",
           "title": "col45",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 44,
           },
           "field": "45",
           "title": "col46",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 45,
           },
           "field": "46",
           "title": "col47",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 46,
           },
           "field": "47",
           "title": "col48",
         },
-        Object {
-          "dataType": Object {
+        {
+          "dataType": {
             "type": 47,
           },
           "field": "48",
           "title": "col49",
         },
       ],
-      "data": Object {
+      "data": {
         "currentPage": 0,
-        "executionInfo": Object {
+        "executionInfo": {
           "text": "Endless Possibilities",
           "type": 2,
         },
-        "rows": Array [],
+        "rows": [],
       },
       "resultId": "123",
       "sql": "select 1",
@@ -370,7 +370,7 @@ exports[`Result View Tests Render with Columns 1`] = `
     <div
       className="msg container fixedScrollbar resultView"
       style={
-        Object {
+        {
           "alignItems": undefined,
           "flexDirection": "column",
           "flexWrap": undefined,
@@ -380,373 +380,281 @@ exports[`Result View Tests Render with Columns 1`] = `
     >
       <TreeGrid
         columns={
-          Array [
-            Object {
+          [
+            {
               "field": "0",
               "formatter": "plaintext",
-              "formatterClipboard": "plaintext",
-              "formatterParams": Object {
-                "dbDataType": 5,
-              },
+              "formatterParams": {},
               "minWidth": 50,
               "resizable": true,
               "title": "col1",
               "width": undefined,
             },
-            Object {
+            {
               "field": "1",
               "formatter": "textarea",
-              "formatterClipboard": "textarea",
-              "formatterParams": Object {
-                "dbDataType": 0,
-              },
+              "formatterParams": {},
               "minWidth": 50,
               "resizable": true,
               "title": "col2",
               "width": undefined,
             },
-            Object {
+            {
               "field": "2",
               "formatter": "plaintext",
-              "formatterClipboard": "plaintext",
-              "formatterParams": Object {
-                "dbDataType": 1,
-              },
+              "formatterParams": {},
               "minWidth": 50,
               "resizable": true,
               "title": "col3",
               "width": undefined,
             },
-            Object {
+            {
               "field": "3",
               "formatter": "plaintext",
-              "formatterClipboard": "plaintext",
-              "formatterParams": Object {
-                "dbDataType": 2,
-              },
+              "formatterParams": {},
               "minWidth": 50,
               "resizable": true,
               "title": "col4",
               "width": undefined,
             },
-            Object {
+            {
               "field": "4",
               "formatter": "plaintext",
-              "formatterClipboard": "plaintext",
-              "formatterParams": Object {
-                "dbDataType": 3,
-              },
+              "formatterParams": {},
               "minWidth": 50,
               "resizable": true,
               "title": "col5",
               "width": undefined,
             },
-            Object {
+            {
               "field": "5",
               "formatter": "plaintext",
-              "formatterClipboard": "plaintext",
-              "formatterParams": Object {
-                "dbDataType": 4,
-              },
+              "formatterParams": {},
               "minWidth": 50,
               "resizable": true,
               "title": "col6",
               "width": undefined,
             },
-            Object {
+            {
               "field": "6",
               "formatter": "plaintext",
-              "formatterClipboard": "plaintext",
-              "formatterParams": Object {
-                "dbDataType": 5,
-              },
+              "formatterParams": {},
               "minWidth": 50,
               "resizable": true,
               "title": "col7",
               "width": undefined,
             },
-            Object {
+            {
               "field": "7",
               "formatter": "textarea",
-              "formatterClipboard": "textarea",
-              "formatterParams": Object {
-                "dbDataType": 6,
-              },
+              "formatterParams": {},
               "minWidth": 50,
               "resizable": true,
               "title": "col8",
               "width": undefined,
             },
-            Object {
+            {
               "field": "8",
               "formatter": "textarea",
-              "formatterClipboard": "textarea",
-              "formatterParams": Object {
-                "dbDataType": 7,
-              },
+              "formatterParams": {},
               "minWidth": 50,
               "resizable": true,
               "title": "col9",
               "width": undefined,
             },
-            Object {
+            {
               "field": "9",
               "formatter": "textarea",
-              "formatterClipboard": "textarea",
-              "formatterParams": Object {
-                "dbDataType": 8,
-              },
+              "formatterParams": {},
               "minWidth": 50,
               "resizable": true,
               "title": "col10",
               "width": undefined,
             },
-            Object {
+            {
               "field": "10",
               "formatter": "textarea",
-              "formatterClipboard": "textarea",
-              "formatterParams": Object {
-                "dbDataType": 9,
-              },
+              "formatterParams": {},
               "minWidth": 50,
               "resizable": true,
               "title": "col11",
               "width": undefined,
             },
-            Object {
+            {
               "field": "11",
               "formatter": "textarea",
-              "formatterClipboard": "textarea",
-              "formatterParams": Object {
-                "dbDataType": 10,
-              },
+              "formatterParams": {},
               "minWidth": 50,
               "resizable": true,
               "title": "col12",
               "width": undefined,
             },
-            Object {
+            {
               "field": "12",
               "formatter": [Function],
-              "formatterClipboard": [Function],
-              "formatterParams": Object {
-                "dbDataType": 11,
-              },
+              "formatterParams": {},
               "minWidth": 50,
               "resizable": true,
               "title": "col13",
               "width": undefined,
             },
-            Object {
+            {
               "field": "13",
               "formatter": [Function],
-              "formatterClipboard": [Function],
-              "formatterParams": Object {
-                "dbDataType": 12,
-              },
+              "formatterParams": {},
               "minWidth": 50,
               "resizable": true,
               "title": "col14",
               "width": undefined,
             },
-            Object {
+            {
               "field": "14",
               "formatter": "textarea",
-              "formatterClipboard": "textarea",
-              "formatterParams": Object {
-                "dbDataType": 13,
-              },
+              "formatterParams": {},
               "minWidth": 50,
               "resizable": true,
               "title": "col15",
               "width": undefined,
             },
-            Object {
+            {
               "field": "15",
               "formatter": "textarea",
-              "formatterClipboard": "textarea",
-              "formatterParams": Object {
-                "dbDataType": 14,
-              },
+              "formatterParams": {},
               "minWidth": 50,
               "resizable": true,
               "title": "col16",
               "width": undefined,
             },
-            Object {
+            {
               "field": "16",
               "formatter": "textarea",
-              "formatterClipboard": "textarea",
-              "formatterParams": Object {
-                "dbDataType": 15,
-              },
+              "formatterParams": {},
               "minWidth": 50,
               "resizable": true,
               "title": "col17",
               "width": undefined,
             },
-            Object {
+            {
               "field": "17",
               "formatter": "textarea",
-              "formatterClipboard": "textarea",
-              "formatterParams": Object {
-                "dbDataType": 16,
-              },
+              "formatterParams": {},
               "minWidth": 50,
               "resizable": true,
               "title": "col18",
               "width": undefined,
             },
-            Object {
+            {
               "field": "18",
               "formatter": [Function],
-              "formatterClipboard": [Function],
-              "formatterParams": Object {
-                "dbDataType": 17,
-              },
+              "formatterParams": {},
               "minWidth": 150,
               "resizable": true,
               "title": "col19",
               "width": undefined,
             },
-            Object {
+            {
               "field": "19",
               "formatter": "textarea",
-              "formatterClipboard": "textarea",
-              "formatterParams": Object {
-                "dbDataType": 18,
-              },
+              "formatterParams": {},
               "minWidth": 50,
               "resizable": true,
               "title": "col20",
               "width": undefined,
             },
-            Object {
+            {
               "field": "20",
               "formatter": [Function],
-              "formatterClipboard": [Function],
-              "formatterParams": Object {
-                "dbDataType": 19,
-              },
+              "formatterParams": {},
               "minWidth": 150,
               "resizable": true,
               "title": "col21",
               "width": undefined,
             },
-            Object {
+            {
               "field": "21",
               "formatter": [Function],
-              "formatterClipboard": [Function],
-              "formatterParams": Object {
-                "dbDataType": 20,
-              },
+              "formatterParams": {},
               "minWidth": 150,
               "resizable": true,
               "title": "col22",
               "width": undefined,
             },
-            Object {
+            {
               "field": "22",
               "formatter": [Function],
-              "formatterClipboard": [Function],
-              "formatterParams": Object {
-                "dbDataType": 21,
-              },
+              "formatterParams": {},
               "minWidth": 150,
               "resizable": true,
               "title": "col23",
               "width": undefined,
             },
-            Object {
+            {
               "field": "23",
               "formatter": [Function],
-              "formatterClipboard": [Function],
-              "formatterParams": Object {
-                "dbDataType": 22,
-              },
+              "formatterParams": {},
               "minWidth": 50,
               "resizable": true,
               "title": "col24",
               "width": undefined,
             },
-            Object {
+            {
               "field": "24",
               "formatter": [Function],
-              "formatterClipboard": [Function],
-              "formatterParams": Object {
-                "dbDataType": 23,
-              },
+              "formatterParams": {},
               "minWidth": 50,
               "resizable": true,
               "title": "col25",
               "width": undefined,
             },
-            Object {
+            {
               "field": "25",
               "formatter": [Function],
-              "formatterClipboard": [Function],
-              "formatterParams": Object {
-                "dbDataType": 24,
-              },
+              "formatterParams": {},
               "minWidth": 50,
               "resizable": true,
               "title": "col26",
               "width": undefined,
             },
-            Object {
+            {
               "field": "26",
               "formatter": [Function],
-              "formatterClipboard": [Function],
-              "formatterParams": Object {
-                "dbDataType": 25,
-              },
+              "formatterParams": {},
               "minWidth": 50,
               "resizable": true,
               "title": "col27",
               "width": undefined,
             },
-            Object {
+            {
               "field": "27",
               "formatter": "plaintext",
-              "formatterClipboard": "plaintext",
-              "formatterParams": Object {
-                "dbDataType": 26,
-              },
+              "formatterParams": {},
               "minWidth": 50,
               "resizable": true,
               "title": "col28",
               "width": undefined,
             },
-            Object {
+            {
               "field": "28",
               "formatter": "plaintext",
-              "formatterClipboard": "plaintext",
-              "formatterParams": Object {
-                "dbDataType": 27,
-              },
+              "formatterParams": {},
               "minWidth": 50,
               "resizable": true,
               "title": "col29",
               "width": undefined,
             },
-            Object {
+            {
               "field": "29",
               "formatter": "plaintext",
-              "formatterClipboard": "plaintext",
-              "formatterParams": Object {
-                "dbDataType": 28,
-              },
+              "formatterParams": {},
               "minWidth": 50,
               "resizable": true,
               "title": "col30",
               "width": undefined,
             },
-            Object {
+            {
               "field": "30",
               "formatter": "datetime",
-              "formatterClipboard": "datetime",
-              "formatterParams": Object {
-                "dbDataType": 29,
+              "formatterParams": {
                 "outputFormat": "HH:mm:ss",
               },
               "minWidth": 50,
@@ -754,12 +662,10 @@ exports[`Result View Tests Render with Columns 1`] = `
               "title": "col31",
               "width": undefined,
             },
-            Object {
+            {
               "field": "31",
               "formatter": "datetime",
-              "formatterClipboard": "datetime",
-              "formatterParams": Object {
-                "dbDataType": 30,
+              "formatterParams": {
                 "outputFormat": "HH:mm:ss",
               },
               "minWidth": 50,
@@ -767,11 +673,10 @@ exports[`Result View Tests Render with Columns 1`] = `
               "title": "col32",
               "width": undefined,
             },
-            Object {
+            {
               "field": "32",
               "formatter": "datetime",
-              "formatterClipboard": "datetime",
-              "formatterParams": Object {
+              "formatterParams": {
                 "outputFormat": "YYYY",
               },
               "minWidth": 50,
@@ -779,193 +684,145 @@ exports[`Result View Tests Render with Columns 1`] = `
               "title": "col33",
               "width": undefined,
             },
-            Object {
+            {
               "field": "33",
               "formatter": "textarea",
-              "formatterClipboard": "textarea",
-              "formatterParams": Object {
-                "dbDataType": 32,
-              },
+              "formatterParams": {},
               "minWidth": 50,
               "resizable": true,
               "title": "col34",
               "width": undefined,
             },
-            Object {
+            {
               "field": "34",
               "formatter": "textarea",
-              "formatterClipboard": "textarea",
-              "formatterParams": Object {
-                "dbDataType": 33,
-              },
+              "formatterParams": {},
               "minWidth": 50,
               "resizable": true,
               "title": "col35",
               "width": undefined,
             },
-            Object {
+            {
               "field": "35",
               "formatter": [Function],
-              "formatterClipboard": [Function],
-              "formatterParams": Object {
-                "dbDataType": 34,
-              },
+              "formatterParams": {},
               "minWidth": 150,
               "resizable": true,
               "title": "col36",
               "width": undefined,
             },
-            Object {
+            {
               "field": "36",
               "formatter": [Function],
-              "formatterClipboard": [Function],
-              "formatterParams": Object {
-                "dbDataType": 35,
-              },
+              "formatterParams": {},
               "minWidth": 150,
               "resizable": true,
               "title": "col37",
               "width": undefined,
             },
-            Object {
+            {
               "field": "37",
               "formatter": [Function],
-              "formatterClipboard": [Function],
-              "formatterParams": Object {
-                "dbDataType": 36,
-              },
+              "formatterParams": {},
               "minWidth": 150,
               "resizable": true,
               "title": "col38",
               "width": undefined,
             },
-            Object {
+            {
               "field": "38",
               "formatter": [Function],
-              "formatterClipboard": [Function],
-              "formatterParams": Object {
-                "dbDataType": 37,
-              },
+              "formatterParams": {},
               "minWidth": 150,
               "resizable": true,
               "title": "col39",
               "width": undefined,
             },
-            Object {
+            {
               "field": "39",
               "formatter": [Function],
-              "formatterClipboard": [Function],
-              "formatterParams": Object {
-                "dbDataType": 38,
-              },
+              "formatterParams": {},
               "minWidth": 150,
               "resizable": true,
               "title": "col40",
               "width": undefined,
             },
-            Object {
+            {
               "field": "40",
               "formatter": [Function],
-              "formatterClipboard": [Function],
-              "formatterParams": Object {
-                "dbDataType": 39,
-              },
+              "formatterParams": {},
               "minWidth": 150,
               "resizable": true,
               "title": "col41",
               "width": undefined,
             },
-            Object {
+            {
               "field": "41",
               "formatter": [Function],
-              "formatterClipboard": [Function],
-              "formatterParams": Object {
-                "dbDataType": 40,
-              },
+              "formatterParams": {},
               "minWidth": 150,
               "resizable": true,
               "title": "col42",
               "width": undefined,
             },
-            Object {
+            {
               "field": "42",
               "formatter": [Function],
-              "formatterClipboard": [Function],
-              "formatterParams": Object {
-                "dbDataType": 41,
-              },
+              "formatterParams": {},
               "minWidth": 150,
               "resizable": true,
               "title": "col43",
               "width": undefined,
             },
-            Object {
+            {
               "field": "43",
               "formatter": "textarea",
-              "formatterClipboard": "textarea",
-              "formatterParams": Object {
-                "dbDataType": 42,
-              },
+              "formatterParams": {},
               "minWidth": 50,
               "resizable": true,
               "title": "col44",
               "width": undefined,
             },
-            Object {
+            {
               "field": "44",
               "formatter": [Function],
-              "formatterClipboard": [Function],
-              "formatterParams": Object {
-                "dbDataType": 43,
-              },
+              "formatterParams": {},
               "minWidth": 150,
               "resizable": true,
               "title": "col45",
               "width": undefined,
             },
-            Object {
+            {
               "field": "45",
               "formatter": "textarea",
-              "formatterClipboard": "textarea",
-              "formatterParams": Object {
-                "dbDataType": 44,
-              },
+              "formatterParams": {},
               "minWidth": 50,
               "resizable": true,
               "title": "col46",
               "width": undefined,
             },
-            Object {
+            {
               "field": "46",
               "formatter": [Function],
-              "formatterClipboard": [Function],
-              "formatterParams": Object {
-                "dbDataType": 45,
-              },
+              "formatterParams": {},
               "minWidth": 50,
               "resizable": true,
               "title": "col47",
               "width": undefined,
             },
-            Object {
+            {
               "field": "47",
               "formatter": [Function],
-              "formatterClipboard": [Function],
-              "formatterParams": Object {
-                "dbDataType": 46,
-              },
+              "formatterParams": {},
               "minWidth": 150,
               "resizable": true,
               "title": "col48",
               "width": undefined,
             },
-            Object {
+            {
               "field": "48",
               "formatter": [Function],
-              "formatterClipboard": [Function],
-              "formatterParams": Object {
-                "dbDataType": 47,
-              },
+              "formatterParams": {},
               "minWidth": 150,
               "resizable": true,
               "title": "col49",
@@ -976,7 +833,7 @@ exports[`Result View Tests Render with Columns 1`] = `
         onCellContext={[Function]}
         onColumnResized={[Function]}
         options={
-          Object {
+          {
             "alternatingRowBackgrounds": false,
             "horizontalGridLines": true,
             "layout": "fitData",
@@ -986,16 +843,16 @@ exports[`Result View Tests Render with Columns 1`] = `
           }
         }
         style={
-          Object {
+          {
             "fontSize": "10pt",
           }
         }
-        tableData={Array []}
+        tableData={[]}
       >
         <div
           className="msg treeGrid horizontalGrid verticalGrid"
           style={
-            Object {
+            {
               "fontSize": "10pt",
             }
           }
@@ -1034,15 +891,15 @@ exports[`Result View Tests Render with Columns 1`] = `
 exports[`Result View Tests Render with Error/Response 1`] = `
 <ResultView
   resultSet={
-    Object {
-      "columns": Array [],
-      "data": Object {
+    {
+      "columns": [],
+      "data": {
         "currentPage": 0,
-        "executionInfo": Object {
+        "executionInfo": {
           "text": "Error",
           "type": 0,
         },
-        "rows": Array [],
+        "rows": [],
       },
       "resultId": "123",
       "sql": "select 1",
@@ -1057,7 +914,7 @@ exports[`Result View Tests Render with Error/Response 1`] = `
     <div
       className="msg container fixedScrollbar resultView"
       style={
-        Object {
+        {
           "alignItems": undefined,
           "flexDirection": "column",
           "flexWrap": undefined,
@@ -1098,11 +955,11 @@ exports[`Result View Tests Render with Error/Response 1`] = `
 exports[`Result View Tests Standard Rendering 1`] = `
 <ResultView
   resultSet={
-    Object {
-      "columns": Array [],
-      "data": Object {
+    {
+      "columns": [],
+      "data": {
         "currentPage": 0,
-        "rows": Array [],
+        "rows": [],
       },
       "resultId": "123",
       "sql": "select 1",
@@ -1117,7 +974,7 @@ exports[`Result View Tests Standard Rendering 1`] = `
     <div
       className="msg container fixedScrollbar resultView"
       style={
-        Object {
+        {
           "alignItems": undefined,
           "flexDirection": "column",
           "flexWrap": undefined,
@@ -1126,11 +983,11 @@ exports[`Result View Tests Standard Rendering 1`] = `
       }
     >
       <TreeGrid
-        columns={Array []}
+        columns={[]}
         onCellContext={[Function]}
         onColumnResized={[Function]}
         options={
-          Object {
+          {
             "alternatingRowBackgrounds": false,
             "horizontalGridLines": true,
             "layout": "fitData",
@@ -1140,16 +997,16 @@ exports[`Result View Tests Standard Rendering 1`] = `
           }
         }
         style={
-          Object {
+          {
             "fontSize": "10pt",
           }
         }
-        tableData={Array []}
+        tableData={[]}
       >
         <div
           className="msg treeGrid horizontalGrid verticalGrid"
           style={
-            Object {
+            {
               "fontSize": "10pt",
             }
           }

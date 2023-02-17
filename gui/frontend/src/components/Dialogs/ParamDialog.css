@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,32 +21,32 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-.msg.paramDialog {
+.msg.dialog.paramDialog {
     padding: 0;
     color: var(--foreground);
     min-height: 50px;
 }
 
-.msg.paramDialog .content {
+.msg.dialog.paramDialog .content {
     margin: 10px;
 }
 
-.msg.paramDialog #caption {
+.msg.dialog.paramDialog #caption {
     font-size: 1.1em;
     font-weight: 800;
     white-space: normal;
     margin: 2px 0 8px 0;
 }
 
-.msg.paramDialog .grid .left {
+.msg.dialog.paramDialog .grid .left {
     justify-content: flex-end;
     color: var(--text-dimmedForeground)
 }
 
-.msg.paramDialog .grid .right {
+.msg.dialog.paramDialog .grid .right {
     justify-content: flex-start;
 }
 
-.msg.paramDialog .grid .input {
+.msg.dialog.paramDialog .grid .input {
     flex: auto;
 }

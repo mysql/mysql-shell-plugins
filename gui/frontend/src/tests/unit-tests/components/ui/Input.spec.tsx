@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,14 +22,13 @@
  */
 
 import { mount, shallow } from "enzyme";
-import React from "react";
 import { act, render } from "@testing-library/preact";
 
-import { IInputChangeProperties, Input } from "../../../../components/ui";
-import { eventMock } from "../../__mocks__/MockEvents";
+import { IInputChangeProperties, Input } from "../../../../components/ui/Input/Input";
+import { inputEventMock } from "../../__mocks__/MockEvents";
 
 let inputText = "initial text";
-const handleInput = (event: React.ChangeEvent, props: IInputChangeProperties): void => {
+const handleInput = (event: InputEvent, props: IInputChangeProperties): void => {
     if (props.id === "input1") {
         inputText = props.value;
     }
@@ -56,7 +55,7 @@ describe("Input render testing", (): void => {
         expect(inputText).toEqual("initial text");
         const onChange = (input.props() as IInputChangeProperties).onChange;
         await act(() => {
-            onChange?.(eventMock as React.ChangeEvent, { id: "input1", value: "new value" });
+            onChange?.(inputEventMock, { id: "input1", value: "new value" });
         });
         expect(inputText).toEqual("new value");
         // const instance = input.instance();
@@ -83,10 +82,10 @@ describe("Input render testing", (): void => {
 
 
     it("Test Input elements", () => {
-        const component = shallow(
+        const component = shallow<Input>(
             <Input id="input1" placeholder="Enter something" />,
         );
-        expect(component).toBeTruthy();
+
         const props = component.props();
         expect(props.id).toEqual("input1");
         expect(props.placeholder).toEqual("Enter something");

@@ -26,30 +26,36 @@ import closeButton from "../../assets/images/close2.svg";
 import connectedIcon from "../../assets/images/connected.svg";
 import disconnectedIcon from "../../assets/images/disconnected.svg";
 
-import React from "react";
-import { render } from "preact";
+import { ComponentChild, createRef, render } from "preact";
 import { CellComponent } from "tabulator-tables";
 
-import { Component, IComponentProperties, IComponentState, SelectionType } from "../ui/Component/Component";
-import {
-    Container, Accordion, SplitContainer, Orientation, Toolbar, Label, Button, Divider, ISplitterPane, Tabview,
-    ITabviewPage, Icon, Codicon, TreeGrid, ITreeGridOptions, ISplitterPaneSizeInfo, SetDataAction,
-} from "../ui";
+import { ComponentBase, IComponentProperties, IComponentState, SelectionType } from "../ui/Component/ComponentBase";
 
-import { MessageScheduler } from "../../communication";
-import { ICodeEditorOptions, Monaco } from "../ui/CodeEditor";
+import { CodeEditorMode, ICodeEditorOptions, Monaco } from "../ui/CodeEditor";
 import { ExecutionContexts } from "../../script-execution/ExecutionContexts";
 import { strictEval } from "../../utilities/helpers";
 import { IDebuggerData, requisitions } from "../../supplement/Requisitions";
-import { CodeEditor, CodeEditorMode, ICodeEditorModel, IEditorPersistentState } from "../ui/CodeEditor/CodeEditor";
+import { CodeEditor, ICodeEditorModel, IEditorPersistentState } from "../ui/CodeEditor/CodeEditor";
 import { IDictionary } from "../../app-logic/Types";
 import { EditorLanguage } from "../../supplement";
 import { CommunicationDebuggerEnvironment } from "./CommunicationDebuggerEnvironment";
-import { ShellInterface } from "../../supplement/ShellInterface";
 
-/* eslint import/no-webpack-loader-syntax: off */
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const typings = require("!!raw-loader?esModule=false!./debugger-runtime.d.ts");
+import { MessageScheduler } from "../../communication/MessageScheduler";
+import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface";
+import { Accordion } from "../ui/Accordion/Accordion";
+import { Codicon } from "../ui/Codicon";
+import { Orientation, Container } from "../ui/Container/Container";
+import { Divider } from "../ui/Divider/Divider";
+import { Icon } from "../ui/Icon/Icon";
+import { Label } from "../ui/Label/Label";
+import { SplitContainer, ISplitterPaneSizeInfo, ISplitterPane } from "../ui/SplitContainer/SplitContainer";
+import { ITabviewPage, Tabview } from "../ui/Tabview/Tabview";
+import { Toolbar } from "../ui/Toolbar/Toolbar";
+import { TreeGrid, ITreeGridOptions, SetDataAction } from "../ui/TreeGrid/TreeGrid";
+
+import typings from "./debugger-runtime.d.ts?raw";
+import { Button } from "../ui/Button/Button";
+import { Checkbox, CheckState } from "../ui/Checkbox/Checkbox";
 
 const defaultEditorOptions: ICodeEditorOptions = {
     tabSize: 4,
@@ -60,12 +66,12 @@ const defaultEditorOptions: ICodeEditorOptions = {
     trimAutoWhitespace: true,
 };
 
-export enum ScriptTreeType {
+enum ScriptTreeType {
     Folder,
     Script,
 }
 
-export interface IScriptTreeEntry {
+interface IScriptTreeEntry {
     type: ScriptTreeType;
     language?: EditorLanguage; // Not set if type is a folder.
 
@@ -81,7 +87,7 @@ enum OutputType {
     Error,
 }
 
-export interface ICommunicationDebuggerProperties extends IComponentProperties {
+interface ICommunicationDebuggerProperties extends IComponentProperties {
     toggleDisplayMode: () => void;
 }
 
@@ -93,13 +99,14 @@ interface ICommunicationDebuggerState extends IComponentState {
     scriptTabs: ITabviewPage[];
 }
 
-export class CommunicationDebugger extends Component<ICommunicationDebuggerProperties, ICommunicationDebuggerState> {
+export class CommunicationDebugger
+    extends ComponentBase<ICommunicationDebuggerProperties, ICommunicationDebuggerState> {
 
     private environment: CommunicationDebuggerEnvironment;
 
-    private messageOutputRef = React.createRef<CodeEditor>();
-    private inputRef = React.createRef<CodeEditor>();
-    private scriptTreeRef = React.createRef<TreeGrid>();
+    private messageOutputRef = createRef<CodeEditor>();
+    private inputRef = createRef<CodeEditor>();
+    private scriptTreeRef = createRef<TreeGrid>();
 
     private outputState: IEditorPersistentState;
     private inputState: IEditorPersistentState;
@@ -118,13 +125,13 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
             scriptTabs: [],
         };
 
-        MessageScheduler.get.traceMessages = false;
+        MessageScheduler.get.traceEnabled = false;
         requisitions.register("socketStateChanged", this.connectionStateChanged);
         requisitions.register("webSessionStarted", this.webSessionStarted);
         requisitions.register("debugger", this.handleTraceEvent);
         requisitions.register("message", this.logMessage);
 
-        CodeEditor.addTypings(typings as string, "debugger");
+        CodeEditor.addTypings(typings, "debugger");
 
         // In order to keep all text in the editor, even if the debugger is updated, we use 2 editor models.
         this.outputState = this.createEditorState("");
@@ -139,7 +146,7 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
         }
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const className = this.getEffectiveClassNames(["debugger"]);
 
         const scriptTreeOptions: ITreeGridOptions = {
@@ -215,12 +222,15 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
         );
     }
 
-    private handlePaneResized = (first: ISplitterPaneSizeInfo, second: ISplitterPaneSizeInfo): void => {
-        if (first.paneId === "scriptTree") {
-            this.sidebarWidth = first.size;
-        } else if (second.paneId === "inputArea") {
-            this.inputAreaHeight = second.size;
-        }
+    private handlePaneResized = (info: ISplitterPaneSizeInfo[]): void => {
+        info.forEach((value) => {
+            if (value.id === "scriptTree") {
+                this.sidebarWidth = value.currentSize;
+            } else if (value.id === "inputArea") {
+                this.inputAreaHeight = value.currentSize;
+            }
+        });
+
     };
 
     private get outputPane(): ISplitterPane {
@@ -236,7 +246,12 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
                     <Icon src={Codicon.ListSelection} data-tooltip="Messages from shell backend and validation" />
                     <Label caption="Message" />
                     <Divider vertical={true} />
-                    <Label caption="Tools:" />
+                    <Label caption="Tools:" style={{ marginRight: "4px" }} />
+                    <Checkbox
+                        checkState={MessageScheduler.get.traceEnabled ? CheckState.Checked : CheckState.Unchecked}
+                        onChange={this.changeTrace}
+                        caption="Enable Trace"
+                        data-tooltip="Enables logging all traffic" />
                     <Button onClick={this.clearOutput}>
                         <Icon src={Codicon.ClearAll} />
                         <Label caption="Clear Output" />
@@ -294,7 +309,7 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
     }
 
     private renderInputScriptTab = (state: IEditorPersistentState, addClearScriptButton: boolean,
-        readonly: boolean): React.ReactNode => {
+        readonly: boolean): ComponentChild => {
         return (
             <Container
                 className="stretch"
@@ -444,7 +459,7 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
         this.setState({ activeInputTab: id });
     };
 
-    private closeScriptTab = (e: React.SyntheticEvent, props: IComponentProperties): void => {
+    private closeScriptTab = (e: MouseEvent | KeyboardEvent, props: IComponentProperties): void => {
         e.stopPropagation();
         e.preventDefault();
 
@@ -543,6 +558,12 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
     };
 
 
+    private changeTrace = (checkState: CheckState): void => {
+        MessageScheduler.get.traceEnabled = checkState === CheckState.Checked;
+
+        this.forceUpdate();
+    };
+
     private printOutput = (data: string, type = OutputType.Normal): void => {
         if (this.messageOutputRef.current) {
             const lastLineCount = this.outputState.model.getLineCount();
@@ -592,7 +613,7 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
         }
     };
 
-    private executeScript = (e: React.SyntheticEvent, props: IComponentProperties): void => {
+    private executeScript = (e: MouseEvent | KeyboardEvent, props: IComponentProperties): void => {
         const models = Monaco.getModels();
         const model = models.find((candidate) => { return candidate.id === props.id; });
 
@@ -654,7 +675,7 @@ export class CommunicationDebugger extends Component<ICommunicationDebuggerPrope
         if (MessageScheduler.get.isConnected) {
             this.printOutput("/* ERROR: You are already connected */\n\n", OutputType.Error);
         } else {
-            void MessageScheduler.get.connect(new URL(window.location.href), "");
+            void MessageScheduler.get.connect({ url: new URL(window.location.href) });
         }
     };
 

@@ -21,34 +21,40 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IShellDictionary } from "../../frontend/src/communication";
-import { commands, env, ExtensionContext, TerminalExitStatus, Uri, ViewColumn, WebviewPanel, window } from "vscode";
-import { DialogResponseClosure, DialogType } from "../../frontend/src/app-logic/Types";
-import {
-    IMrsDbObjectFieldData, IMrsAuthAppData, IMrsContentSetData,
-    IMrsDbObjectData, IMrsSchemaData, IMrsServiceData, IMrsUserData, IMrsUserRoleData,
-} from "../../frontend/src/communication/";
+import os from "os";
+import path from "path";
+import fs from "fs";
 
-import { DBType, ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface";
+import { commands, env, ExtensionContext, TerminalExitStatus, Uri, ViewColumn, WebviewPanel, window } from "vscode";
+
+import { DialogResponseClosure, DialogType } from "../../frontend/src/app-logic/Types";
+
+import { DBType } from "../../frontend/src/supplement/ShellInterface";
 
 import { ExtensionHost } from "./ExtensionHost";
-import {
-    ConnectionMySQLTreeItem, ConnectionsTreeBaseItem, MrsDbObjectTreeItem,
-    MrsAuthAppTreeItem, MrsUserTreeItem,
-} from "./tree-providers/ConnectionsTreeProvider";
 import { MrsContentSetTreeItem } from "./tree-providers/ConnectionsTreeProvider/MrsContentSetTreeItem";
 import { MrsSchemaTreeItem } from "./tree-providers/ConnectionsTreeProvider/MrsSchemaTreeItem";
 import { MrsServiceTreeItem } from "./tree-providers/ConnectionsTreeProvider/MrsServiceTreeItem";
 import { MrsTreeItem } from "./tree-providers/ConnectionsTreeProvider/MrsTreeItem";
 import { SchemaMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaMySQLTreeItem";
-import { findExecutable, showMessageWithTimeout, showModalDialog } from "./utilities";
+import { showMessageWithTimeout, showModalDialog } from "./utilities";
 import { openSqlEditorSessionAndConnection, openSqlEditorConnection } from "./utilitiesShellGui";
 import { DialogWebviewManager } from "./web-views/DialogWebviewProvider";
-import { arch, homedir, platform } from "os";
-import path, { join } from "path";
-import { cpSync, existsSync, readFileSync, renameSync, rmSync } from "fs";
-import { IMySQLConnectionOptions, MySQLConnectionScheme } from "../../frontend/src/communication/MySQL";
+import { IShellDictionary } from "../../frontend/src/communication/Protocol";
+import {
+    IMrsDbObjectData, IMrsServiceData, IMrsAuthAppData, IMrsSchemaData, IMrsDbObjectFieldData, IMrsContentSetData,
+    IMrsUserData,
+    IMrsUserRoleData,
+} from "../../frontend/src/communication/ProtocolMrs";
+import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
+import { ConnectionMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvider/ConnectionMySQLTreeItem";
+import { ConnectionsTreeBaseItem } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeBaseItem";
+import { MrsDbObjectTreeItem } from "./tree-providers/ConnectionsTreeProvider/MrsDbObjectTreeItem";
+import { MrsAuthAppTreeItem } from "./tree-providers/ConnectionsTreeProvider/MrsAuthAppTreeItem";
 import { MySQLShellLauncher } from "../../frontend/src/utilities/MySQLShellLauncher";
+import { IMySQLConnectionOptions, MySQLConnectionScheme } from "../../frontend/src/communication/MySQL";
+import { MrsUserTreeItem } from "./tree-providers/ConnectionsTreeProvider/MrsUserTreeItem";
+import { findExecutable } from "../../frontend/src/utilities/file-utilities";
 
 export class MRSCommandHandler {
     protected docsWebviewPanel?: WebviewPanel;
@@ -283,8 +289,8 @@ export class MRSCommandHandler {
                             "Yes", "No");
 
                         if (answer === "Yes") {
-
                             await backend.mrs.deleteUser(item.value.id);
+
                             // TODO: refresh only the affected connection.
                             void commands.executeCommand("msg.refreshConnections");
                             showMessageWithTimeout(`The Authentication App ${item.value.name} has been deleted.`);
@@ -426,7 +432,7 @@ export class MRSCommandHandler {
                     await window.showSaveDialog({
                         title: "REST Schema Dump...",
                         saveLabel: "Select the target file",
-                        defaultUri: Uri.file(`${homedir()}/${item.value.name}.mrs.json`),
+                        defaultUri: Uri.file(`${os.homedir()}/${item.value.name}.mrs.json`),
                         filters: {
                             // eslint-disable-next-line @typescript-eslint/naming-convention
                             JSON: ["mrs.json"],
@@ -457,7 +463,7 @@ export class MRSCommandHandler {
                     await window.showSaveDialog({
                         title: "REST Database Object Dump...",
                         saveLabel: "Select the target file",
-                        defaultUri: Uri.file(`${homedir()}/${item.value.name}.mrs.json`),
+                        defaultUri: Uri.file(`${os.homedir()}/${item.value.name}.mrs.json`),
                         filters: {
                             // eslint-disable-next-line @typescript-eslint/naming-convention
                             JSON: ["mrs.json"],
@@ -630,12 +636,12 @@ export class MRSCommandHandler {
                     canSelectFiles: false,
                     canSelectFolders: true,
                     canSelectMany: false,
-                    defaultUri: Uri.file(`${homedir()}/Documents`),
+                    defaultUri: Uri.file(`${os.homedir()}/Documents`),
                 }).then(async (value) => {
                     if (value !== undefined) {
                         try {
                             const targetPath = Uri.joinPath(value[0], dirName);
-                            cpSync(path, targetPath.fsPath, { recursive: true });
+                            fs.cpSync(path, targetPath.fsPath, { recursive: true });
 
                             showMessageWithTimeout(`The MRS Project ${dirName} has been stored successfully.`);
 
@@ -680,7 +686,7 @@ export class MRSCommandHandler {
     private bootstrapLocalRouter = async (context: ExtensionContext,
         item?: MrsTreeItem, waitAndClosedWhenFinished = false): Promise<TerminalExitStatus | undefined> => {
         if (item) {
-            if (findExecutable("mysqlrouter_bootstrap")) {
+            if (findExecutable("mysqlrouter_bootstrap").length > 0) {
                 const shellConfDir = MySQLShellLauncher.getShellUserConfigDir(context.extensionPath);
                 const certDir = path.join(shellConfDir, "plugin_data", "gui_plugin", "web_certs");
 
@@ -706,23 +712,23 @@ export class MRSCommandHandler {
                 }
 
                 let routerConfigDir: string;
-                if (platform() === "win32") {
-                    routerConfigDir = join(homedir(), "AppData", "Roaming", "MySQL", "mysqlrouter");
+                if (os.platform() === "win32") {
+                    routerConfigDir = path.join(os.homedir(), "AppData", "Roaming", "MySQL", "mysqlrouter");
                 } else {
-                    routerConfigDir = join(homedir(), ".mysqlrouter");
+                    routerConfigDir = path.join(os.homedir(), ".mysqlrouter");
                 }
 
-                if (existsSync(routerConfigDir)) {
+                if (fs.existsSync(routerConfigDir)) {
                     const answer = await window.showInformationMessage(
                         `The MySQL Router config directory ${routerConfigDir} already exists. `
                         + "Do you want to rename the existing directory and proceed?",
                         "Yes", "No");
                     if (answer === "Yes") {
                         try {
-                            renameSync(routerConfigDir, routerConfigDir + "_old");
+                            fs.renameSync(routerConfigDir, routerConfigDir + "_old");
                         } catch (e) {
-                            rmSync(routerConfigDir + "_old", { recursive: true, force: true });
-                            renameSync(routerConfigDir, routerConfigDir + "_old");
+                            fs.rmSync(routerConfigDir + "_old", { recursive: true, force: true });
+                            fs.renameSync(routerConfigDir, routerConfigDir + "_old");
                         }
                     } else {
                         return;
@@ -805,22 +811,22 @@ export class MRSCommandHandler {
         if (item) {
             if (findExecutable("mysqlrouter")) {
                 let routerConfigDir: string;
-                if (platform() === "win32") {
-                    routerConfigDir = join(homedir(), "AppData", "Roaming", "MySQL", "mysqlrouter");
+                if (os.platform() === "win32") {
+                    routerConfigDir = path.join(os.homedir(), "AppData", "Roaming", "MySQL", "mysqlrouter");
                 } else {
-                    routerConfigDir = join(homedir(), ".mysqlrouter");
+                    routerConfigDir = path.join(os.homedir(), ".mysqlrouter");
                 }
 
-                if (existsSync(routerConfigDir)) {
+                if (fs.existsSync(routerConfigDir)) {
                     let term = window.terminals.find((t) => { return t.name === "MySQL Router MRS"; });
                     if (term === undefined) {
                         term = window.createTerminal("MySQL Router MRS");
                     }
 
                     if (term !== undefined) {
-                        const cmd = (start ? "start" : "stop") + (platform() === "win32" ? ".ps1" : ".sh");
+                        const cmd = (start ? "start" : "stop") + (os.platform() === "win32" ? ".ps1" : ".sh");
                         term.show();
-                        if (platform() === "win32") {
+                        if (os.platform() === "win32") {
                             term.sendText("Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser", true);
                             term.sendText("clear", true);
                         }
@@ -1781,16 +1787,16 @@ export class MRSCommandHandler {
         if (!this.docsWebviewPanel) {
             try {
                 let data;
-                let mrsPluginDir = join(this.context.extensionPath, "/shell/lib/mysqlsh/plugins/mrs_plugin/");
-                let indexPath = join(mrsPluginDir, "docs/index.html");
-                if (existsSync(indexPath)) {
-                    data = readFileSync(indexPath, "utf8");
+                let mrsPluginDir = path.join(this.context.extensionPath, "/shell/lib/mysqlsh/plugins/mrs_plugin/");
+                let indexPath = path.join(mrsPluginDir, "docs/index.html");
+                if (fs.existsSync(indexPath)) {
+                    data = fs.readFileSync(indexPath, "utf8");
                 } else {
-                    mrsPluginDir = join(homedir(), ".mysqlsh/plugins/mrs_plugin");
-                    indexPath = join(mrsPluginDir, "docs/index.html");
+                    mrsPluginDir = path.join(os.homedir(), ".mysqlsh/plugins/mrs_plugin");
+                    indexPath = path.join(mrsPluginDir, "docs/index.html");
 
-                    if (existsSync(indexPath)) {
-                        data = readFileSync(indexPath, "utf8");
+                    if (fs.existsSync(indexPath)) {
+                        data = fs.readFileSync(indexPath, "utf8");
                     } else {
                         throw new Error(`MRS Documentation not found.`);
                     }
@@ -1804,8 +1810,8 @@ export class MRSCommandHandler {
                         enableScripts: true,
                         retainContextWhenHidden: true,
                         localResourceRoots: [
-                            Uri.file(join(mrsPluginDir, "docs/style/")),
-                            Uri.file(join(mrsPluginDir, "docs/images/")),
+                            Uri.file(path.join(mrsPluginDir, "docs/style/")),
+                            Uri.file(path.join(mrsPluginDir, "docs/images/")),
                         ],
                     });
                 this.docsWebviewPanel.onDidDispose(() => { this.handleDocsWebviewPanelDispose(); });
@@ -1816,7 +1822,7 @@ export class MRSCommandHandler {
                         switch (message.command) {
                             case "openSqlFile": {
                                 if (message.path && typeof message.path === "string") {
-                                    const fullPath = Uri.file(join(mrsPluginDir, String(message.path)));
+                                    const fullPath = Uri.file(path.join(mrsPluginDir, String(message.path)));
 
                                     void commands.executeCommand("msg.editInScriptEditor", fullPath);
                                 }
@@ -1826,7 +1832,7 @@ export class MRSCommandHandler {
 
                             case "loadMrsDump": {
                                 if (message.path && typeof message.path === "string") {
-                                    const fullPath = Uri.file(join(mrsPluginDir, String(message.path)));
+                                    const fullPath = Uri.file(path.join(mrsPluginDir, String(message.path)));
 
                                     void commands.executeCommand("msg.mrs.loadSchemaFromJSONFile", fullPath);
                                 }
@@ -1836,7 +1842,7 @@ export class MRSCommandHandler {
 
                             case "saveProject": {
                                 if (message.path && typeof message.path === "string") {
-                                    const fullPath = Uri.file(join(mrsPluginDir, String(message.path)));
+                                    const fullPath = Uri.file(path.join(mrsPluginDir, String(message.path)));
 
                                     void commands.executeCommand("msg.mrs.saveExampleProject", fullPath);
                                 }
@@ -1849,7 +1855,7 @@ export class MRSCommandHandler {
                     });
 
                 const styleUrl = this.docsWebviewPanel.webview.asWebviewUri(
-                    Uri.file(join(mrsPluginDir, "docs/")));
+                    Uri.file(path.join(mrsPluginDir, "docs/")));
 
                 data = data.replace("\"style/", `"${styleUrl.toString()}style/`);
                 data = data.replace(/(src=")(.*)(\/images)/gm, `$1${styleUrl.toString()}$3`);
@@ -1872,5 +1878,3 @@ export class MRSCommandHandler {
         this.docsWebviewPanel = undefined;
     };
 }
-
-

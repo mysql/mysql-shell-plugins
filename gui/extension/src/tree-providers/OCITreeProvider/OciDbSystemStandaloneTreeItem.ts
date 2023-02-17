@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,7 +24,8 @@
 import * as path from "path";
 import { TreeItemCollapsibleState } from "vscode";
 
-import { ICompartment, IMySQLDbSystem, IMdsProfileData } from "../../../../frontend/src/communication";
+import { ICompartment, IMySQLDbSystem } from "../../../../frontend/src/communication";
+import { IMdsProfileData } from "../../../../frontend/src/communication/ProtocolMds";
 import { OciDbSystemTreeItem } from "./OciDbSystemTreeItem";
 
 export class OciDbSystemStandaloneTreeItem extends OciDbSystemTreeItem {
@@ -44,8 +45,8 @@ export class OciDbSystemStandaloneTreeItem extends OciDbSystemTreeItem {
         }
 
         this.iconPath = {
-            light: path.join(__dirname, "..", "..", "..", "..", "..", "images", "light", iconName),
-            dark: path.join(__dirname, "..", "..", "..", "..", "..", "images", "dark", iconName),
+            light: path.join(__dirname, "..", "images", "light", iconName),
+            dark: path.join(__dirname, "..", "images", "dark", iconName),
         };
     }
 }

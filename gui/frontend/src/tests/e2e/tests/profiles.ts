@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,7 +21,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { promises as fsPromises } from "fs";
 import { Misc, driver } from "../lib/misc";
 import { Profile } from "../lib/profile";
 import { By, until } from "selenium-webdriver";
@@ -43,19 +42,11 @@ describe("Profiles", () => {
     afterEach(async () => {
         if (testFailed) {
             testFailed = false;
-            const img = await driver.takeScreenshot();
-            const testName: string = expect.getState().currentTestName
-                .toLowerCase().replace(/\s/g, "_");
-            try {
-                await fsPromises.access("src/tests/e2e/screenshots");
-            } catch(e) {
-                await fsPromises.mkdir("src/tests/e2e/screenshots");
-            }
-            await fsPromises.writeFile(`src/tests/e2e/screenshots/${testName}_screenshot.png`, img, "base64");
+            await Misc.storeScreenShot();
         }
     });
 
-    afterAll( async () => {
+    afterAll(async () => {
         await driver.quit();
     });
 

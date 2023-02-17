@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,13 +22,14 @@
  */
 
 import { mount } from "enzyme";
-import keyboardKey from "keyboard-key";
 import { act } from "preact/test-utils";
-import React from "react";
+import keyboardKey from "keyboard-key";
 
-import { Radiobutton, CheckState, IRadiobuttonProperties } from "../../../../components/ui";
-import { nextProcessTick, sendKeyPress, snapshotFromWrapper } from "../../test-helpers";
-import { eventMock } from "../../__mocks__/MockEvents";
+import { CheckState } from "../../../../components/ui/Checkbox/Checkbox";
+import { Radiobutton, IRadiobuttonProperties } from "../../../../components/ui/Radiobutton/Radiobutton";
+
+import { nextProcessTick, sendKeyPress } from "../../test-helpers";
+import { mouseEventMock } from "../../__mocks__/MockEvents";
 
 describe("Radiobutton component tests", (): void => {
 
@@ -46,7 +47,7 @@ describe("Radiobutton component tests", (): void => {
         expect(spyOnClick).not.toBeCalled();
         const click = (component.props() as IRadiobuttonProperties).onClick;
         await act(() => {
-            click?.(eventMock, { id: "1" });
+            click?.(mouseEventMock, { id: "1" });
         });
         expect(spyOnClick).toBeCalled();
 
@@ -64,7 +65,7 @@ describe("Radiobutton component tests", (): void => {
             />,
         );
 
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
 
         component.unmount();
     });

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,46 +21,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable max-classes-per-file */
-
-import { CellComponent, ColumnComponent, ColumnDefinition, PopupPosition } from "tabulator-tables";
-import { DBDataType } from "../../../app-logic/Types";
-
-export class MockColumnComponent implements ColumnComponent {
-    public getElement = jest.fn();
-    public getTable = jest.fn();
-    public getField = jest.fn();
-    public getCells = jest.fn();
-    public getNextColumn = jest.fn();
-    public getPrevColumn = jest.fn();
-    public move = jest.fn();
-    public isVisible = jest.fn();
-    public show = jest.fn();
-    public hide = jest.fn();
-    public toggle = jest.fn();
-    public delete = jest.fn();
-    public scrollTo = jest.fn();
-    public getSubColumns = jest.fn();
-    public getParentColumn = jest.fn();
-    public headerFilterFocus = jest.fn();
-    public setHeaderFilterValue = jest.fn();
-    public reloadHeaderFilter = jest.fn();
-    public getHeaderFilterValue = jest.fn();
-    public updateDefinition = jest.fn();
-    public getWidth = jest.fn();
-    public setWidth = jest.fn();
-    public validate = jest.fn();
-    public popup = jest.fn();
-    public getDefinition = (): ColumnDefinition => {
-        return { title: "",
-            formatterParams: { dbDataType: DBDataType.Varchar } };
-    };
-}
+import { CellComponent, PopupPosition } from "tabulator-tables";
 
 export class MockCellComponent implements CellComponent {
     public getElement = jest.fn();
     public getTable = jest.fn();
     public getRow = jest.fn();
+    public getColumn = jest.fn();
     public getData = jest.fn();
     public checkHeight = jest.fn();
     public edit = jest.fn();
@@ -72,10 +39,6 @@ export class MockCellComponent implements CellComponent {
     public validate = jest.fn();
 
     private value: unknown = "Animal";
-
-    public getColumn = (): ColumnComponent => {
-        return new MockColumnComponent();
-    };
 
     public getValue = (): unknown => {
         return this.value;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,28 +23,20 @@
 
 @viewport {
     width: device-width;
-    zoom: 1.0;
+    zoom: 1;
 }
 
 @font-face {
-    font-family: "SourceCodePro+Powerline+Awesome+MySQL Regular";
+    font-family: 'SourceCodePro+Powerline+Awesome+MySQL';
     font-style: normal;
     font-weight: 400;
-    src: url(../assets/fonts/MySQL.ttf) format("truetype");
-}
-
-@font-face {
-    font-family: "SourceCodePro+Powerline+Awesome+MySQL";
-    font-style: normal;
-    font-weight: 400;
-    src: url(../assets/fonts/MySQL.ttf) format("truetype");
+    src: url(../assets/fonts/MySQL.ttf) format('truetype');
 }
 
 * {
     box-sizing: border-box;
 }
 
-html,
 body {
     min-height: 100vh;
     margin: 0;
@@ -60,7 +52,7 @@ body {
     color: var(--foreground);
     background-color: transparent;
 
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     font-weight: 400;
     font-size: 15px;
 
@@ -111,7 +103,7 @@ pre {
 }
 
 .copyright::after {
-    content: "© 2020, 2022, Oracle Corporation and/or its affiliates.";
+    content: '© 2020, 2023, Oracle Corporation and/or its affiliates.';
     display: inline-block;
     margin-top: 80px;
     font-size: 10px;
@@ -128,15 +120,13 @@ html.themeSwitch *:after {
 }
 
 .msg .manualFocus,
-.msg [tabindex="0"]:focus,
-.msg input[type=button]:focus,
-.msg input[type=text]:focus,
-.msg input[type=password]:focus,
-.msg input[type=number]:focus,
-
-.msg button[search-type=option]:focus,
+.msg [tabindex='0']:focus,
+.msg input[type='button']:focus,
+.msg input[type='text']:focus,
+.msg input[type='password']:focus,
+.msg input[type='number']:focus,
+.msg button[search-type='option']:focus,
 .msg.searchContainer:focus-within,
-
 .msg select:focus,
 .msg textarea:focus,
 .msg button:focus {
@@ -144,16 +134,16 @@ html.themeSwitch *:after {
     outline-style: solid;
     outline-offset: -1px;
     outline-color: var(--focusBorder);
-    opacity: 1 !important
+    opacity: 1 !important;
 }
 
 /* The next two rules disable the number input spin buttons for all browsers. */
-.msg input[type="number"] {
+.msg input[type='number'] {
     appearance: textfield;
 }
 
-.msg input[type=number]::-webkit-inner-spin-button,
-.msg input[type=number]::-webkit-outer-spin-button {
+.msg input[type='number']::-webkit-inner-spin-button,
+.msg input[type='number']::-webkit-outer-spin-button {
     appearance: none;
 }
 

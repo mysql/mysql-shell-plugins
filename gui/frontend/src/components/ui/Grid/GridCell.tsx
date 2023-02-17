@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,11 +21,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
+import { ComponentChild } from "preact";
 
-import { Component, IComponentProperties } from "../Component/Component";
-import { Container, Orientation, ContentAlignment } from "..";
+import { ComponentBase, IComponentProperties } from "../Component/ComponentBase";
 import { IDictionary } from "../../../app-logic/Types";
+import { Orientation, ContentAlignment, Container } from "../Container/Container";
 
 /**
  * Grid cells use a container as HTML element and hence support its content layout.
@@ -41,7 +41,7 @@ interface IGridCellProperties extends IComponentProperties {
 }
 
 // A single row in a grid layout.
-export class GridCell extends Component<IGridCellProperties> {
+export class GridCell extends ComponentBase<IGridCellProperties> {
 
     public constructor(props: IGridCellProperties) {
         super(props);
@@ -49,7 +49,7 @@ export class GridCell extends Component<IGridCellProperties> {
         this.addHandledProperties("columnSpan", "rowSpan", "orientation", "mainAlignment", "crossAlignment", "style");
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const {
             style = {}, columnSpan, rowSpan, orientation, mainAlignment, crossAlignment, children,
         } = this.mergedProps;
@@ -63,25 +63,20 @@ export class GridCell extends Component<IGridCellProperties> {
 
         const className = this.getEffectiveClassNames(["gridCell"]);
 
-        // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-explicit-any
-        const ElementType: any = this.renderAs(Container);
-
         const otherProps: IDictionary = {};
-        if (ElementType === Container) {
-            otherProps.mainAlignment = mainAlignment;
-            otherProps.crossAlignment = crossAlignment;
-            otherProps.orientation = orientation;
-        }
+        otherProps.mainAlignment = mainAlignment;
+        otherProps.crossAlignment = crossAlignment;
+        otherProps.orientation = orientation;
 
         return (
-            <ElementType
+            <Container
                 className={className}
                 style={style}
                 {...otherProps}
                 {...this.unhandledProperties}
             >
                 {children}
-            </ElementType >
+            </Container >
         );
     }
 

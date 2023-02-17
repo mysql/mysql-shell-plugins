@@ -23,21 +23,23 @@
 
 import "./Notebook.css";
 import { Position } from "monaco-editor";
-import React from "react";
+import { ComponentChild, createRef } from "preact";
 
 import { IDBDataEntry, IEditorStatusInfo, ISchemaTreeEntry, SchemaTreeType } from ".";
-import { Component, IComponentProperties } from "../../components/ui";
 import { IScriptExecutionOptions } from "../../components/ui/CodeEditor";
 import { CodeEditor, IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor";
-import { ExecutionContext, PresentationInterface, SQLExecutionContext } from "../../script-execution";
+import { IComponentProperties, ComponentBase } from "../../components/ui/Component/ComponentBase";
+import { ExecutionContext } from "../../script-execution/ExecutionContext";
+import { PresentationInterface } from "../../script-execution/PresentationInterface";
+import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext";
 import { EditorLanguage } from "../../supplement";
 import { requisitions } from "../../supplement/Requisitions";
-import { settings } from "../../supplement/Settings/Settings";
+import { Settings } from "../../supplement/Settings/Settings";
 import { DBType } from "../../supplement/ShellInterface";
 import { quote } from "../../utilities/string-helpers";
 import { EmbeddedPresentationInterface } from "./execution/EmbeddedPresentationInterface";
 
-export interface INotebookProperties extends IComponentProperties {
+interface INotebookProperties extends IComponentProperties {
     editorState: IEditorPersistentState;
     dbType: DBType;
     readOnly?: boolean;
@@ -47,9 +49,9 @@ export interface INotebookProperties extends IComponentProperties {
     onHelpCommand?: (command: string, currentLanguage: EditorLanguage) => string | undefined;
 }
 
-export class Notebook extends Component<INotebookProperties> {
+export class Notebook extends ComponentBase<INotebookProperties> {
 
-    private editorRef = React.createRef<CodeEditor>();
+    private editorRef = createRef<CodeEditor>();
 
     public constructor(props: INotebookProperties) {
         super(props);
@@ -83,7 +85,7 @@ export class Notebook extends Component<INotebookProperties> {
         requisitions.unregister("explorerShowRows", this.explorerShowRows);
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { editorState, dbType, readOnly, onScriptExecution, onHelpCommand } = this.props;
 
         const dialect = this.dialectFromDbType(dbType);
@@ -95,7 +97,7 @@ export class Notebook extends Component<INotebookProperties> {
                 language="msg"
                 allowedLanguages={["javascript", "typescript", "sql"]}
                 sqlDialect={dialect}
-                startLanguage={settings.get("dbEditor.startLanguage", "sql") as EditorLanguage}
+                startLanguage={Settings.get("dbEditor.startLanguage", "sql") as EditorLanguage}
                 readonly={readOnly}
                 allowSoftWrap={true}
                 className="scriptingConsole"
@@ -161,7 +163,6 @@ export class Notebook extends Component<INotebookProperties> {
                         this.editorRef.current.focus();
                     }
                 });
-
             }
         }
     }
@@ -262,7 +263,7 @@ export class Notebook extends Component<INotebookProperties> {
             let sql;
 
             const tableName = `${quote(schema)}.${quote(table ?? "")}`;
-            const uppercaseKeywords = settings.get("dbEditor.upperCaseKeywords", true);
+            const uppercaseKeywords = Settings.get("dbEditor.upperCaseKeywords", true);
             const select = uppercaseKeywords ? "SELECT" : "select";
             const from = uppercaseKeywords ? "FROM" : "from";
             if (entry.type === SchemaTreeType.Column) {

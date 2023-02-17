@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,7 +23,8 @@
 
 /* eslint-disable no-underscore-dangle */
 
-import { Token, Lexer } from "antlr4ts";
+import { Lexer } from "antlr4ts/Lexer";
+import { Token } from "antlr4ts/Token";
 
 import { SQLiteLexer } from "./generated/SQLiteLexer";
 import { isReservedKeyword, SQLiteVersion } from "./SQLiteRecognizerCommon";
@@ -194,6 +195,7 @@ export abstract class SQLiteBaseLexer extends Lexer {
         ++this._tokenStartCharIndex;
     }
 
+    // eslint-disable-next-line jsdoc/require-returns-check
     /**
      * Returns the next token in the token stream that is on the default channel (not a hidden or other one).
      *
@@ -207,8 +209,5 @@ export abstract class SQLiteBaseLexer extends Lexer {
             }
 
         } while (true);
-
     }
-
 }
-

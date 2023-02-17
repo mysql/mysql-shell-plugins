@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -26,22 +26,22 @@ import { inflateRect, pointInRect, rectsAreEqual } from "../../../utilities/grap
 describe("Graphics Tests", () => {
     it("Rectangles", () => {
         const point1 = new DOMPoint(2, 1, 3, 4);
-        const point2: DOMPoint = new DOMPoint(-95, 3, 4, 1);
-        const rect1: DOMRect = new DOMRect(0, 0, 0, 0);
-        const rect2: DOMRect = new DOMRect(-100, 0, 10, 10);
-        const rect3: DOMRect = new DOMRect(0, 0, 10, 10);
-        const rect4: DOMRect = new DOMRect(0, 0, 10, 10);
-        const rect5: DOMRect = new DOMRect(-1, -1, 12, 12);
+        const point2 = new DOMPoint(-95, 3, 4, 1);
+        const rect1 = new DOMRect(0, 0, 0, 0);
+        const rect2 = new DOMRect(-100, 0, 10, 10);
+        const rect3 = new DOMRect(0, 0, 10, 10);
+        const rect4 = new DOMRect(0, 0, 10, 10);
+        const rect5 = new DOMRect(-1, -1, 12, 12);
 
-        expect(pointInRect()).toBeFalsy();
-        expect(pointInRect(point1)).toBeFalsy();
-        expect(pointInRect(point1, rect1)).toBeFalsy();
-        expect(pointInRect(point1, rect2)).toBeFalsy();
-        expect(pointInRect(point2, rect2)).toBeTruthy();
+        expect(pointInRect()).toBe(false);
+        expect(pointInRect(point1)).toBe(false);
+        expect(pointInRect(point1, rect1)).toBe(false);
+        expect(pointInRect(point1, rect2)).toBe(false);
+        expect(pointInRect(point2, rect2)).toBe(true);
 
-        expect(rectsAreEqual(rect1, rect2)).toBeFalsy();
-        expect(rectsAreEqual(rect3, rect4)).toBeTruthy();
-        expect(rectsAreEqual(rect4, rect3)).toBeTruthy();
+        expect(rectsAreEqual(rect1, rect2)).toBe(false);
+        expect(rectsAreEqual(rect3, rect4)).toBe(true);
+        expect(rectsAreEqual(rect4, rect3)).toBe(true);
 
         expect(inflateRect(rect3, 1, 1, 1, 1)).toStrictEqual(rect5);
     });

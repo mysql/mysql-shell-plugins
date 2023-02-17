@@ -21,39 +21,41 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import * as React from "react";
-
 import { ApplicationDB } from "../../app-logic/ApplicationDB";
 import {
     IColumnInfo, MessageType, IDictionary, IServicePasswordRequest, IExecutionInfo, uriPattern,
 } from "../../app-logic/Types";
 
-import {
-    Component, Container, ContentAlignment, IComponentProperties, Orientation,
-} from "../../components/ui";
+import { ComponentChild, createRef } from "preact";
+
 import { IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor";
-import { ExecutionContext, IExecutionResult, ITextResultEntry, SQLExecutionContext } from "../../script-execution";
+import { IExecutionResult, ITextResultEntry, ResultTextLanguage } from "../../script-execution";
 import { ScriptingLanguageServices } from "../../script-execution/ScriptingLanguageServices";
 import { convertRows, EditorLanguage, generateColumnInfo } from "../../supplement";
 import { requisitions } from "../../supplement/Requisitions";
-import { settings } from "../../supplement/Settings/Settings";
-import { DBType, ShellInterfaceDb, ShellInterfaceShellSession } from "../../supplement/ShellInterface";
+import { Settings } from "../../supplement/Settings/Settings";
 import { flattenObject, uuid } from "../../utilities/helpers";
 import { ShellConsole } from "./ShellConsole";
 import { ShellPrompt } from "./ShellPrompt";
 import { unquote } from "../../utilities/string-helpers";
 import { MySQLConnectionScheme } from "../../communication/MySQL";
 import { ShellPromptHandler } from "../common/ShellPromptHandler";
-import { ResultTextLanguage } from "../../components/ResultView";
 import { IScriptExecutionOptions } from "../../components/ui/CodeEditor";
-import {
-    IShellColumnsMetaData, IShellDocumentData, IShellObjectResult, IShellPromptValues, IShellResultType, IShellRowData,
-    IShellSimpleResult, IShellValueResult,
-} from "../../communication/";
 import { clearIntervalAsync, setIntervalAsync, SetIntervalAsyncTimer } from "set-interval-async/dynamic";
+import {
+    IShellPromptValues, IShellResultType, IShellObjectResult, IShellValueResult, IShellSimpleResult, IShellDocumentData,
+    IShellColumnsMetaData, IShellRowData,
+} from "../../communication/ProtocolGui";
+import { IComponentProperties, ComponentBase } from "../../components/ui/Component/ComponentBase";
+import { Container, Orientation, ContentAlignment } from "../../components/ui/Container/Container";
+import { DBType } from "../../supplement/ShellInterface";
+import { ShellInterfaceDb } from "../../supplement/ShellInterface/ShellInterfaceDb";
+import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/ShellInterfaceShellSession";
+import { ExecutionContext } from "../../script-execution/ExecutionContext";
+import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext";
 
 interface IResultTimer {
-    timer: SetIntervalAsyncTimer;
+    timer: SetIntervalAsyncTimer<unknown[]>;
     results: IExecutionResult[];
 }
 
@@ -81,13 +83,13 @@ export interface IShellTabPersistentState extends IShellPromptValues {
     lastCommand?: string;
 }
 
-export interface IShellTabProperties extends IComponentProperties {
+interface IShellTabProperties extends IComponentProperties {
     savedState: IShellTabPersistentState;
 
     onQuit: (id: string) => void;
 }
 
-export class ShellTab extends Component<IShellTabProperties> {
+export class ShellTab extends ComponentBase<IShellTabProperties> {
 
     private static aboutMessage = `Welcome to the MySQL Shell - GUI Console.
 
@@ -103,7 +105,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
         ["mysql", "\\sql"],
     ]);
 
-    private consoleRef = React.createRef<ShellConsole>();
+    private consoleRef = createRef<ShellConsole>();
 
     // Holds the current language that was last used by the user.
     // This way we know if we need to implicitly send a language command when the user executes arbitrary execution
@@ -125,7 +127,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
         this.initialSetup();
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { savedState } = this.props;
 
         return (
@@ -133,7 +135,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                 <Container
                     id="shellEditorHost"
                     orientation={Orientation.TopDown}
-                    alignment={ContentAlignment.Stretch}
+                    mainAlignment={ContentAlignment.Stretch}
                 >
                     <ShellPrompt
                         id="shellPrompt"
@@ -161,7 +163,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
             // In this case we can run our one-time initialization.
             this.consoleRef.current?.executeCommand("\\about");
 
-            const language = settings.get("shellSession.startLanguage", "javascript").toLowerCase() as EditorLanguage;
+            const language = Settings.get("shellSession.startLanguage", "javascript").toLowerCase() as EditorLanguage;
             const languageSwitch = ShellTab.languageMap.get(language) ?? "\\js";
             this.currentLanguage = language;
 
@@ -206,11 +208,11 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                 case "\\exit":
                 case "\\q":
                 case "\\e": {
-                    setImmediate(() => {
+                    setTimeout(() => {
                         const { id, onQuit } = this.props;
 
                         onQuit(id ?? "");
-                    });
+                    }, 0);
 
                     return true;
                 }

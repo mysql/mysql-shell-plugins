@@ -3,7 +3,7 @@
 exports[`InnoDb cluster module tests Test InnoDBClusterModule instantiation 1`] = `
 <InnoDBClusterModule
   innerRef={
-    Object {
+    {
       "current": null,
     }
   }

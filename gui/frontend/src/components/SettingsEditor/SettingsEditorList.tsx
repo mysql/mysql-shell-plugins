@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,23 +21,25 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
-import { render } from "preact";
+import { ComponentChild, createRef, render } from "preact";
 import { isNil } from "lodash";
 import { CellComponent, ColumnDefinition, RowComponent } from "tabulator-tables";
 
-import { Component, IComponentProperties, IComponentState, SelectionType } from "../ui/Component/Component";
-import {
-    CheckState, Dropdown, TreeGrid, ITreeGridOptions, Label, Checkbox, Input, UpDown, Button, IUpDownProperties,
-    IDropdownProperties, ICheckboxProperties, IInputChangeProperties,
-} from "../ui";
+import { ComponentBase, IComponentProperties, IComponentState, SelectionType } from "../ui/Component/ComponentBase";
 import { ThemeManager } from "../Theming/ThemeManager";
-import { settings } from "../../supplement/Settings/Settings";
+import { Settings } from "../../supplement/Settings/Settings";
 import { requisitions } from "../../supplement/Requisitions";
 import { ISettingCategory, ISettingValue } from "../../supplement/Settings/SettingsRegistry";
 import { IDictionary } from "../../app-logic/Types";
+import { CheckState, Checkbox, ICheckboxProperties } from "../ui/Checkbox/Checkbox";
+import { Dropdown, IDropdownProperties } from "../ui/Dropdown/Dropdown";
+import { Input, IInputChangeProperties } from "../ui/Input/Input";
+import { Label } from "../ui/Label/Label";
+import { TreeGrid, ITreeGridOptions } from "../ui/TreeGrid/TreeGrid";
+import { UpDown, IUpDownProperties } from "../ui/UpDown/UpDown";
+import { Button } from "../ui/Button/Button";
 
-export interface ISettingsEditorListProperties extends IComponentProperties {
+interface ISettingsEditorListProperties extends IComponentProperties {
     settingsTree: ISettingCategory[];
 
     // Triggered on vertical scrolling on the list. Passes in the id of the row currently at the top.
@@ -51,9 +53,9 @@ interface ISettingsEditorListState extends IComponentState {
 }
 
 // A dialog to edit user and application settings.
-export class SettingsEditorList extends Component<ISettingsEditorListProperties, ISettingsEditorListState> {
+export class SettingsEditorList extends ComponentBase<ISettingsEditorListProperties, ISettingsEditorListState> {
 
-    private gridRef = React.createRef<TreeGrid>();
+    private gridRef = createRef<TreeGrid>();
     private lastScrollPos = 0;
 
     // Independent of the automatic saving in the settings class, we keep an own timer here.
@@ -96,11 +98,11 @@ export class SettingsEditorList extends Component<ISettingsEditorListProperties,
         if (prevProps.settingsTree !== settingsTree) {
             this.setState({ selectedId: "", settingsList: this.collectSettingsValues() }, () => { scrollTree(); });
         } else {
-            setImmediate(() => { scrollTree(); });
+            setTimeout(() => { scrollTree(); }, 0);
         }
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { settingsList } = this.state;
 
         const settingsListColumns: ColumnDefinition[] = [{
@@ -164,7 +166,7 @@ export class SettingsEditorList extends Component<ISettingsEditorListProperties,
         if (this.saveTimer) {
             clearTimeout(this.saveTimer);
         }
-        this.saveTimer = setTimeout(() => { settings.saveSettings(); }, 1000);
+        this.saveTimer = setTimeout(() => { Settings.saveSettings(); }, 1000);
 
         const selectedRows = this.gridRef.current?.getSelectedRows() ?? [];
         if (selectedRows.length > 0) {
@@ -217,7 +219,7 @@ export class SettingsEditorList extends Component<ISettingsEditorListProperties,
         const data = cell.getData() as IDictionary;
         if (data.valueType) {
             const data = cell.getData() as ISettingValue;
-            let value = settings.get(data.id);
+            let value = Settings.get(data.id);
             usesDefault = isNil(value) || value === data.defaultValue;
             if (usesDefault) {
                 value = data.defaultValue;
@@ -227,7 +229,7 @@ export class SettingsEditorList extends Component<ISettingsEditorListProperties,
             let editor;
             let showTitle = true;
 
-            const descriptionRef = React.createRef<HTMLLabelElement>();
+            const descriptionRef = createRef<HTMLLabelElement>();
             switch (data.valueType) {
                 case "string": {
                     descriptionLabel = <Label
@@ -385,21 +387,21 @@ export class SettingsEditorList extends Component<ISettingsEditorListProperties,
         return host;
     };
 
-    private handleInputChange = (e: React.ChangeEvent, props: IInputChangeProperties): void => {
-        settings.set(props.id!, props.value);
+    private handleInputChange = (e: InputEvent, props: IInputChangeProperties): void => {
+        Settings.set(props.id!, props.value);
     };
 
     private handleCheckboxChange = (checkState: CheckState, props: ICheckboxProperties): void => {
-        settings.set(props.id!, checkState === CheckState.Checked ? true : false);
+        Settings.set(props.id!, checkState === CheckState.Checked ? true : false);
     };
 
     private handleUpDownChange = (value: number, props: IUpDownProperties): void => {
-        settings.set(props.id!, value);
+        Settings.set(props.id!, value);
     };
 
     private handleDropDownChange = (selectedIds: Set<string>, props: IDropdownProperties): void => {
         // There's always at least one entry.
-        settings.set(props.id!, [...selectedIds][0]);
+        Settings.set(props.id!, [...selectedIds][0]);
     };
 
 }

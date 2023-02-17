@@ -1,13 +1,19 @@
 {
-	"folders": [
-		{
-			"path": "frontend"
-		},
-		{
-			"path": "extension"
-		}
-	],
+    "folders": [
+        {
+            "name": "Shell GUI Frontend",
+            "path": "frontend"
+        },
+        {
+            "name": "VSCode Extension",
+            "path": "extension"
+        },
+    ],
     "settings": {
-        "workbench.colorCustomizations": {}
+        "workbench.colorCustomizations": {},
+        "jest.autoRun": "off",
+        "jest.disabledWorkspaceFolders": [
+            "VSCode Extension"
+        ]
     }
 }

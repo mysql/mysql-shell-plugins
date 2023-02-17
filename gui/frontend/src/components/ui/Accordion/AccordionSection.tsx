@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,22 +21,27 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
+import { ComponentChild, createRef } from "preact";
 import cx from "classnames";
 
 import { isNil } from "lodash";
 import keyboardKey from "keyboard-key";
 
-import {
-    Component, IComponentProperties, Container, Label, Orientation, IAccordionAction, Icon, MenuItem,
-    IAccordionActionChoice, IMenuItemProperties,
-} from "..";
-import { ContentAlignment } from "../Container/Container";
+import { Container, ContentAlignment, Orientation } from "../Container/Container";
+import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
+import { Icon } from "../Icon/Icon";
+import { Label } from "../Label/Label";
+import { MenuItem, IMenuItemProperties } from "../Menu/MenuItem";
+import { IAccordionAction, IAccordionActionChoice } from "./Accordion";
 
 export interface IAccordionSectionProperties extends IComponentProperties {
     caption: string;
-    dimmed: boolean;       // If true then dim the content to give more visual focus on other elements.
-    expanded: boolean;     // If true then show title + content of the section, otherwise only the title.
+
+    /** If true then dim the content to give more visual focus on other elements. */
+    dimmed: boolean;
+
+    /** If true then show title + content of the section, otherwise only the title. */
+    expanded: boolean;
 
     actions?: IAccordionAction[];
 
@@ -44,9 +49,9 @@ export interface IAccordionSectionProperties extends IComponentProperties {
     onAction?: (actionId: string, props: IAccordionSectionProperties) => void;
 }
 
-export class AccordionSection extends Component<IAccordionSectionProperties> {
+export class AccordionSection extends ComponentBase<IAccordionSectionProperties> {
 
-    private sectionRef = React.createRef<HTMLElement>();
+    private sectionRef = createRef<HTMLDivElement>();
 
     public constructor(props: IAccordionSectionProperties) {
         super(props);
@@ -54,7 +59,7 @@ export class AccordionSection extends Component<IAccordionSectionProperties> {
         this.addHandledProperties("caption", "dimmed", "expanded", "actions", "onToggleExpandState", "onAction");
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { children, caption, actions, dimmed, expanded } = this.props;
 
         const className = this.getEffectiveClassNames([
@@ -142,7 +147,7 @@ export class AccordionSection extends Component<IAccordionSectionProperties> {
         this.toggleExpandState();
     };
 
-    private handleKeyPress = (e: React.KeyboardEvent): void => {
+    private handleKeyPress = (e: KeyboardEvent): void => {
         const key = keyboardKey.getCode(e);
         if (key === keyboardKey.Spacebar || key === keyboardKey.Enter) {
             this.toggleExpandState();
@@ -154,14 +159,14 @@ export class AccordionSection extends Component<IAccordionSectionProperties> {
         onToggleExpandState?.(this.props);
     };
 
-    private handleActionClick = (e: React.SyntheticEvent, props: IComponentProperties): void => {
+    private handleActionClick = (e: MouseEvent | KeyboardEvent, props: IComponentProperties): void => {
         e.stopPropagation();
 
         const { onAction } = this.props;
         onAction?.(props.id || "", this.props);
     };
 
-    private handleActionKeyPress = (e: React.KeyboardEvent, props: IComponentProperties): void => {
+    private handleActionKeyPress = (e: KeyboardEvent, props: IComponentProperties): void => {
         const key = keyboardKey.getCode(e);
         if (key === keyboardKey.Spacebar || key === keyboardKey.Enter) {
             e.stopPropagation();
@@ -171,7 +176,7 @@ export class AccordionSection extends Component<IAccordionSectionProperties> {
         }
     };
 
-    private handleActionMenuClick = (e: React.SyntheticEvent, props: IMenuItemProperties): void => {
+    private handleActionMenuClick = (e: MouseEvent | KeyboardEvent, props: IMenuItemProperties): void => {
         const { onAction } = this.props;
         onAction?.(props.id || "", this.props);
     };

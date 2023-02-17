@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,16 +21,21 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
-import {
-    Component, IComponentState, IComponentProperties, Popup, ComponentPlacement, Label, TagInput,
-    Orientation, Button, ITag,
-} from "../ui";
+import { ComponentChild, createRef } from "preact";
+
 import { ValueEditDialog, IDialogValues, IDialogValidations, IDialogSection } from "../Dialogs/ValueEditDialog";
 import { ThemeEditorLists } from "./ThemeEditorLists";
 import { DialogResponseClosure } from "../../app-logic/Types";
+import {
+    IComponentProperties, IComponentState, ComponentBase, ComponentPlacement,
+} from "../ui/Component/ComponentBase";
+import { Orientation } from "../ui/Container/Container";
+import { Label } from "../ui/Label/Label";
+import { Popup } from "../ui/Popup/Popup";
+import { ITag, TagInput } from "../ui/TagInput/TagInput";
+import { Button } from "../ui/Button/Button";
 
-export interface IScopeSelectorProperties extends IComponentProperties {
+interface IScopeSelectorProperties extends IComponentProperties {
     defaultScopes: string[];
     customScopes: string[];
 }
@@ -42,10 +47,10 @@ interface IScopeSelectorState extends IComponentState {
 
 // A popup that shows lists of standard and custom scopes as tags, which can be used to assign any of them
 // to a syntax color token entry in the theme editor.
-export class ScopeSelector extends Component<IScopeSelectorProperties, IScopeSelectorState> {
+export class ScopeSelector extends ComponentBase<IScopeSelectorProperties, IScopeSelectorState> {
 
-    private newScopeDialogRef = React.createRef<ValueEditDialog>();
-    private popupRef = React.createRef<Popup>();
+    private newScopeDialogRef = createRef<ValueEditDialog>();
+    private popupRef = createRef<Popup>();
 
     public constructor(props: IScopeSelectorProperties) {
         super(props);
@@ -65,7 +70,7 @@ export class ScopeSelector extends Component<IScopeSelectorProperties, IScopeSel
         }
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { defaultTags, currentCustomScopes } = this.state;
 
         const customTags: ITag[] = [];

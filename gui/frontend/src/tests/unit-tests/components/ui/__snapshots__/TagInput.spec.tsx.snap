@@ -5,12 +5,12 @@ exports[`TagInput testing Render test 1`] = `
   orientation="column-reverse"
   removable={false}
   tags={
-    Array [
-      Object {
+    [
+      {
         "caption": "tag 1",
         "id": "1",
       },
-      Object {
+      {
         "caption": "tag 2",
         "id": "2",
       },
@@ -35,7 +35,7 @@ exports[`TagInput testing Render test 1`] = `
       onDragStart={[Function]}
       onDrop={[Function]}
       style={
-        Object {
+        {
           "alignItems": undefined,
           "flexDirection": "column-reverse",
           "flexWrap": "wrap",
@@ -52,11 +52,7 @@ exports[`TagInput testing Render test 1`] = `
           className="msg label tag"
           data-tooltip="expand"
           draggable={true}
-          style={
-            Object {
-              "textAlign": undefined,
-            }
-          }
+          style={{}}
         >
           tag 1
         </label>
@@ -70,11 +66,7 @@ exports[`TagInput testing Render test 1`] = `
           className="msg label tag"
           data-tooltip="expand"
           draggable={true}
-          style={
-            Object {
-              "textAlign": undefined,
-            }
-          }
+          style={{}}
         >
           tag 2
         </label>

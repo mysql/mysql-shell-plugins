@@ -5,7 +5,7 @@ exports[`Image component tests Standard Rendering 1`] = `
   disabled={false}
   src="close.svg"
   style={
-    Object {
+    {
       "height": "64px",
     }
   }
@@ -14,7 +14,7 @@ exports[`Image component tests Standard Rendering 1`] = `
     className="msg image"
     src="close.svg"
     style={
-      Object {
+      {
         "height": "64px",
       }
     }

@@ -23,8 +23,10 @@
 
 import { window } from "vscode";
 
-import { ShellPromptResponseType, IShellFeedbackRequest } from "../../frontend/src/communication";
-import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface";
+import { ShellPromptResponseType } from "../../frontend/src/communication/Protocol";
+import { IShellFeedbackRequest } from "../../frontend/src/communication/ProtocolGui";
+import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
+
 import { stripAnsiCode } from "../../frontend/src/utilities/helpers";
 
 const isShellPromptResult = (response?: unknown): response is IShellFeedbackRequest => {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,21 +23,16 @@
 
 import "./App.css";
 
-import React from "react";
+import { Component, createRef, VNode } from "preact";
 
 import { ApplicationHost } from "./ApplicationHost";
 import { ModuleRegistry } from "../modules/ModuleRegistry";
-import { IShellProfile, MessageScheduler } from "../communication";
 import { LoginPage } from "../components/Login/LoginPage";
 import { ErrorBoundary } from "./ErrorBoundary";
-import {
-    Statusbar, ColorPopup, IStatusbarItem, IComponentState, ControlType, ProgressIndicator,
-} from "../components/ui";
 import { TooltipProvider } from "../components/ui/Tooltip/Tooltip";
 import { webSession } from "../supplement/WebSession";
-import { ShellInterface } from "../supplement/ShellInterface";
+import { ShellInterface } from "../supplement/ShellInterface/ShellInterface";
 import { appParameters, requisitions } from "../supplement/Requisitions";
-import { ErrorPanel } from "../components/Dialogs";
 import { IThemeChangeData } from "../components/Theming/ThemeManager";
 import { IEditorStatusInfo } from "../modules/db-editor";
 import { ProfileSelector } from "./ProfileSelector";
@@ -49,6 +44,13 @@ import { MDSModule } from "../modules/mds/MDSModule";
 import { MRSModule } from "../modules/mrs/MrsModule";
 import { ApplicationDB } from "./ApplicationDB";
 import { IDialogResponse } from "./Types";
+import { MessageScheduler } from "../communication/MessageScheduler";
+import { IShellProfile } from "../communication/ProtocolGui";
+import { ColorPopup } from "../components/ui/ColorPicker/ColorPopup";
+import { IComponentState } from "../components/ui/Component/ComponentBase";
+import { ProgressIndicator } from "../components/ui/ProgressIndicator/ProgressIndicator";
+import { IStatusbarItem, ControlType, Statusbar } from "../components/ui/Statusbar/Statusbar";
+import { ErrorPanel } from "../components/Dialogs/ErrorPanel";
 
 interface IAppState extends IComponentState {
     explorerIsVisible: boolean;
@@ -59,9 +61,9 @@ interface IAppState extends IComponentState {
     statusbarEntries: IStatusbarItem[];
 }
 
-export class App extends React.Component<{}, IAppState> {
+export class App extends Component<{}, IAppState> {
 
-    private actionMenuRef = React.createRef<ProfileSelector>();
+    private actionMenuRef = createRef<ProfileSelector>();
     private defaultProfile?: IShellProfile;
 
     public constructor(props: {}) {
@@ -189,7 +191,7 @@ export class App extends React.Component<{}, IAppState> {
     public componentDidMount(): void {
         /* istanbul ignore next */
         if (!appParameters.testsRunning) {
-            void MessageScheduler.get.connect(new URL(window.location.href), "");
+            void MessageScheduler.get.connect({ url: new URL(window.location.href) });
         }
 
         requisitions.register("statusBarButtonClick", this.statusBarButtonClick);
@@ -197,7 +199,7 @@ export class App extends React.Component<{}, IAppState> {
         requisitions.register("themeChanged", this.themeChanged);
     }
 
-    public render(): React.ReactNode {
+    public render(): VNode {
         const { loginInProgress, statusbarEntries } = this.state;
 
         let content;
@@ -238,7 +240,7 @@ export class App extends React.Component<{}, IAppState> {
         this.actionMenuRef.current?.initProfileList(profile);
     };*/
 
-    private statusBarButtonClick = (values: { type: string; event: React.SyntheticEvent }): Promise<boolean> => {
+    private statusBarButtonClick = (values: { type: string; event: MouseEvent | KeyboardEvent; }): Promise<boolean> => {
         if (values.type === "openPopupMenu") {
             const target = values.event.target as HTMLElement;
             this.actionMenuRef.current?.open(target.getBoundingClientRect());

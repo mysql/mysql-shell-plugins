@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,22 +24,23 @@
 import colorDescriptions from "./assets/color-descriptions.json";
 import noPreviewIcon from "../../assets/images/no-preview.svg";
 
-import React from "react";
-import { render } from "preact";
+import { ComponentChild, createRef, render } from "preact";
 
 import Color from "color";
 import { CellComponent, ColumnDefinition } from "tabulator-tables";
 import _ from "lodash";
 
-import {
-    Component, Tabview, TabPosition, ITabviewPage, Container, Orientation, Icon,
-    Label, IComponentProperties, ColorField, IColorFieldProperties, IComponentState, TreeGrid,
-    SelectionType, ITreeGridOptions,
-} from "../ui";
 import { ITokenEntry, ThemeManager } from "./ThemeManager";
 import { TokenEditor } from "./TokenEditor";
 import { ScopeSelector } from "./ScopeSelector";
 import { IDictionary } from "../../app-logic/Types";
+import { ColorField, IColorFieldProperties } from "../ui/ColorPicker/ColorField";
+import { IComponentProperties, IComponentState, ComponentBase, SelectionType } from "../ui/Component/ComponentBase";
+import { Container, Orientation } from "../ui/Container/Container";
+import { Icon } from "../ui/Icon/Icon";
+import { Label } from "../ui/Label/Label";
+import { ITabviewPage, Tabview, TabPosition } from "../ui/Tabview/Tabview";
+import { ITreeGridOptions, TreeGrid } from "../ui/TreeGrid/TreeGrid";
 
 const noPreviewText = "No preview is available for this color. It's not used in this application.";
 
@@ -61,7 +62,7 @@ interface IThemeEditorListsState extends IComponentState {
     selectedPage: string;
 }
 
-export class ThemeEditorLists extends Component<IThemeEditorListsProperties, IThemeEditorListsState> {
+export class ThemeEditorLists extends ComponentBase<IThemeEditorListsProperties, IThemeEditorListsState> {
     // Scopes defined here https://macromates.com/manual/en/language_grammars#naming-conventions
     public static readonly defaultScopes = [
         "comment",
@@ -135,7 +136,7 @@ export class ThemeEditorLists extends Component<IThemeEditorListsProperties, ITh
 
     private expandedRowKeys: string[] = [];
 
-    private scopeSelectorRef = React.createRef<ScopeSelector>();
+    private scopeSelectorRef = createRef<ScopeSelector>();
 
     private themeNode: CSSStyleDeclaration;
 
@@ -240,7 +241,7 @@ export class ThemeEditorLists extends Component<IThemeEditorListsProperties, ITh
         };
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { selectedPage } = this.state;
         this.readData();
 
@@ -285,7 +286,7 @@ export class ThemeEditorLists extends Component<IThemeEditorListsProperties, ITh
     }
 
     private tokenListCellFormatter = (cell: CellComponent): string | HTMLElement => {
-        const data = cell.getData() as { index: number; value: ITokenEntry };
+        const data = cell.getData() as { index: number; value: ITokenEntry; };
 
         const editor = <TokenEditor
             token={data.value}
@@ -428,7 +429,7 @@ export class ThemeEditorLists extends Component<IThemeEditorListsProperties, ITh
      *
      * @param e The mouse event which caused this call originally.
      */
-    private openScopeSelector = (e: React.SyntheticEvent): void => {
+    private openScopeSelector = (e: MouseEvent | KeyboardEvent): void => {
         if (this.scopeSelectorRef.current) {
             this.scopeSelectorRef.current.open(e.currentTarget as HTMLElement);
         }

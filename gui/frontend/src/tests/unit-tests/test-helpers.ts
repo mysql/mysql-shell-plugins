@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,8 +21,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { ComponentChild } from "preact";
 import { CommonWrapper, ReactWrapper } from "enzyme";
-import toJson, { Json } from "enzyme-to-json";
 
 import fs from "fs";
 import path from "path";
@@ -30,15 +30,15 @@ import os from "os";
 import keyboardKey from "keyboard-key";
 
 import { appParameters, requisitions } from "../../supplement/Requisitions";
-import { ShellInterface } from "../../supplement/ShellInterface";
 import { webSession } from "../../supplement/WebSession";
 import { LogLevel, MySQLShellLauncher } from "../../utilities/MySQLShellLauncher";
+import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface";
 
 export const loremIpsum = "Lorem ipsum dolor sit amet, consectetur adipisci elit, " +
     "sed eiusmod tempor incidunt ut labore et dolore magna aliqua.";
 
 export type JestReactWrapper<P = {}, S = unknown> =
-    ReactWrapper<Readonly<P> & Readonly<{ children?: React.ReactNode; }>, Readonly<S>>;
+    ReactWrapper<Readonly<P> & Readonly<{ children?: ComponentChild; }>, Readonly<S>>;
 
 export interface ITestDbCredentials {
     userName: string;
@@ -46,133 +46,6 @@ export interface ITestDbCredentials {
     host: string;
     password?: string;
 }
-
-/**
- * Converts a single value, by either forwarding it to specialized functions or just returning the value itself.
- *
- * @param v The value to map.
- * @param seen A set to determine if a specific value has been process already (only for arrays and objects).
- *
- * @returns The mapped or the original value (depending on its type and content).
- */
-const mapValue = (v: unknown, seen: Set<object>): unknown => {
-    if (v) {
-        if (Array.isArray(v)) {
-            if (seen.has(v)) {
-                return "[[Recursion]]";
-            }
-
-            // eslint-disable-next-line @typescript-eslint/no-use-before-define
-            return mapArray(v, seen);
-        }
-
-        if (v instanceof Set) {
-            if (seen.has(v)) {
-                return "[[Recursion]]";
-            }
-
-            // eslint-disable-next-line @typescript-eslint/no-use-before-define
-            return mapSet(v, seen);
-        }
-
-        if (typeof v === "object") {
-            // The two non-null assertions should not be necessary, but Babel complains if they are not there.
-            if (seen.has(v!)) {
-                return "[[Recursion]]";
-            }
-
-            // eslint-disable-next-line @typescript-eslint/no-use-before-define
-            return mapObject(v!, seen);
-        }
-    }
-
-    return v;
-};
-
-/**
- * Internal function to help filtering arrays in Jest JSON trees.
- *
- * @param a The array to filter.
- * @param seen A set keeping references to already seen objects, to avoid endless recursion.
- *
- * @returns The filtered array.
- */
-const mapArray = (a: unknown[], seen: Set<object>): unknown[] => {
-    const result = a.map((entry) => {
-        return mapValue(entry, seen);
-    });
-
-    return result;
-};
-
-const mapSet = (s: Set<unknown>, seen: Set<object>): Set<unknown> => {
-    const result = new Set();
-    s.forEach((value) => {
-        result.add(mapValue(value, seen));
-    });
-
-    return result;
-};
-
-/**
- * Internal function to help filtering objects in Jest JSON trees. Particularly the __source and __self members
- * are internal React stuff, which we don't need in our snapshots.
- *
- * @param o The object to filter.
- * @param seen A set keeping references to already seen objects, to avoid endless recursion.
- *
- * @returns The filtered object.
- */
-const mapObject = (o: object, seen: Set<object>): object => {
-    const result: { [key: string]: unknown; } = {};
-
-    for (const key of Object.keys(o)) {
-        if (key.startsWith("__")) {
-            continue;
-        }
-
-        result[key] = mapValue(o[key], seen);
-    }
-
-    return result;
-};
-
-/**
- * Helper function to clean up Jest snapshot. It removes the __self and __source fields from all components,
- * which are rendered for browser debugging and contain absolute paths and other irrelevant info.
- * The `toJson` function takes care to call this method for each component in the normal render tree (children),
- * but does not take care for components passed as properties, which is what we have to do here.
- *
- * @param json The Json structure to fix.
- *
- * @returns The modified Json structure.
- */
-const mapJson = (json: Json): Json => {
-    if (!json.props) {
-        return json;
-    }
-
-    const seen = new Set<object>();
-    const props = mapObject(json.props, seen);
-
-    return { // Do not copy internal fields.
-        type: json.type,
-        children: json.children,
-        $$typeof: json.$$typeof,
-        props,
-    };
-};
-
-/**
- * Creates a snapshot from the given shallow or deep wrapper for use in snapshot comparisons in Jest.
- *
- * @param wrapper The wrapper from which to create the snapshot.
- *
- * @returns The Json snapshot for the tests.
- */
-export const snapshotFromWrapper = <P, S>(wrapper: CommonWrapper<P, S>): Json => {
-    return toJson(wrapper, { map: mapJson });
-};
 
 /**
  * Promisified version of a component's setState function. Our Component class contains this as well,
@@ -196,11 +69,16 @@ const relationMap = new Map<string, number>([
     ["<", 0], ["<=", 1], ["=", 2], [">=", 3], [">", 4],
 ]);
 
-// Information about a statement with version information.
-export interface IVersionCheckResult {
-    matched: boolean;   // True if the version in the statement matched a given version.
-    statement: string;  // The statement with stripped version information.
-    version: number;    // The found version. Can be 0 if the statement contains no version.
+/** Information about a statement with version information. */
+interface IVersionCheckResult {
+    /** True if the version in the statement matched a given version. */
+    matched: boolean;
+
+    /** The statement with stripped version information. */
+    statement: string;
+
+    /** The found version. Can be 0 if the statement contains no version. */
+    version: number;
 }
 
 /**
@@ -342,13 +220,13 @@ export const nextProcessTick = async (): Promise<void> => {
 /**
  * Allows to wait for the next Node.js run loop, after all I/O tasks, micro tasks and tick callbacks were processed.
  *
- * @returns A promise which fulfills when setImmediate callbacks are executed (which are the last tasks in a run loop).
+ * @returns A promise which fulfills when setTimeout callbacks are executed (which are the last tasks in a run loop).
  */
 export const nextRunLoop = async (): Promise<void> => {
     return new Promise((resolve) => {
-        setImmediate(() => {
+        setTimeout(() => {
             resolve();
-        });
+        }, 0);
     });
 };
 
@@ -367,7 +245,7 @@ export const sendKeyPress = (code: number, element: Element = document.body): vo
 };
 
 /**
- * Sets the given value for an input element and triggers its change event.
+ * Sets the given value for an input element and triggers its input event.
  * Note: The approach used here circumvents all React handling, re-rendering and so on. It therefore does not require
  *       to store the given value anywhere (like it is required for controlled components).
  *
@@ -375,7 +253,7 @@ export const sendKeyPress = (code: number, element: Element = document.body): vo
  * @param value The value to set.
  */
 export const changeInputValue = (element: Element, value: string): void => {
-    if (element instanceof HTMLInputElement) {
+    if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
         element.value = value;
         const e = new Event("input", { bubbles: true });
         element.dispatchEvent(e);
@@ -387,7 +265,7 @@ export const changeInputValue = (element: Element, value: string): void => {
  * work. Instead focusout is sent, which has the desired effect.
  */
 export const sendBlurEvent = (): void => {
-    if (document.activeElement instanceof HTMLInputElement) {
+    if (document.activeElement instanceof HTMLInputElement || document.activeElement instanceof HTMLTextAreaElement) {
         const e = new Event("focusout", { bubbles: true });
         document.activeElement.dispatchEvent(e);
     }
@@ -545,6 +423,7 @@ export const sendPointerMoveSequence = async (element: Element, includeTouch = f
  */
 export const setupShellForTests = (showOutput: boolean, handleEvents = true,
     logLevel?: LogLevel): Promise<MySQLShellLauncher> => {
+
     // Create a test folder name with a random part, in the system's temp folder.
     const targetDir = fs.mkdtempSync(path.join(os.tmpdir(), "msg-unit-tests"));
 

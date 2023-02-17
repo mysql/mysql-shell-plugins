@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,82 +22,79 @@
  */
 
 import { uuid } from "../../../utilities/helpers";
-import { IConsoleWorkerEnvironment, ScriptingApi, PieGraphLayout } from "../console.worker-types";
+import { ScriptingApi, PieGraphLayout } from "../console.worker-types";
+
+import { currentWorker } from "./execute";
 
 export class PieGraphProxy {
-    public static env?: IConsoleWorkerEnvironment;
-
-    public static render(data: IDataRecord[], layout?: PieGraphLayout, keys?: { name: string; value: string }): void {
-        if (PieGraphProxy.env) {
-            const pieData = data.map((value) => {
-                if (keys) {
-                    return { name: value[keys.name], value: value[keys.value] } as IPieDatum;
-                }
-
-                if (value.name !== undefined && value.value !== undefined) {
-                    return { name: value.name, value: value.value } as IPieDatum;
-                }
-
-                if (Object.values(value).length > 2) {
-                    throw new Error("PieGraph: if there are more than 2 fields in a result entry, " +
-                        "a field mapping is required ");
-                }
-
-                const values = Object.values(value);
-                if (values.length > 1) {
-                    return { name: values[0], value: values[1] } as IPieDatum;
-                }
-
-                throw new Error("PieGraph.render: Not enough parameters");
-            });
-
-            let radius: [number, number];
-
-            switch (layout) {
-                case PieGraphLayout.ThickDonut: {
-                    radius = [80, 200];
-
-                    break;
-                }
-
-                case PieGraphLayout.Donut: {
-                    radius = [120, 200];
-
-                    break;
-                }
-
-                case PieGraphLayout.ThinDonut: {
-                    radius = [150, 200];
-
-                    break;
-                }
-
-                default: {
-                    radius = [0, 200];
-                }
+    public static render(data: IDataRecord[], layout?: PieGraphLayout, keys?: { name: string; value: string; }): void {
+        const pieData = data.map((value) => {
+            if (keys) {
+                return { name: value[keys.name], value: value[keys.value] } as IPieDatum;
             }
 
-            const options: IGraphOptions = {
-                series: [
-                    {
-                        id: "m" + uuid(), // Must start with a letter.
-                        type: "pie",
-                        data: pieData,
-                        radius,
-                    },
-                ],
-            };
+            if (value.name !== undefined && value.value !== undefined) {
+                return { name: value.name, value: value.value } as IPieDatum;
+            }
 
-            PieGraphProxy.env.worker.postMessage({
-                taskId: PieGraphProxy.env.taskId,
-                data: {
-                    api: ScriptingApi.Graph,
-                    options,
-                    contextId: PieGraphProxy.env.contextId,
-                    final: true,
-                },
-            });
+            if (Object.values(value).length > 2) {
+                throw new Error("PieGraph: if there are more than 2 fields in a result entry, " +
+                    "a field mapping is required ");
+            }
+
+            const values = Object.values(value);
+            if (values.length > 1) {
+                return { name: values[0], value: values[1] } as IPieDatum;
+            }
+
+            throw new Error("PieGraph.render: Not enough parameters");
+        });
+
+        let radius: [number, number];
+
+        switch (layout) {
+            case PieGraphLayout.ThickDonut: {
+                radius = [80, 200];
+
+                break;
+            }
+
+            case PieGraphLayout.Donut: {
+                radius = [120, 200];
+
+                break;
+            }
+
+            case PieGraphLayout.ThinDonut: {
+                radius = [150, 200];
+
+                break;
+            }
+
+            default: {
+                radius = [0, 200];
+            }
         }
 
+        const options: IGraphOptions = {
+            series: [
+                {
+                    id: "m" + uuid(), // Must start with a letter.
+                    type: "pie",
+                    data: pieData,
+                    radius,
+                },
+            ],
+        };
+
+        currentWorker.postMessage({
+            taskId: currentWorker.currentTaskId,
+            data: {
+                api: ScriptingApi.Graph,
+                options,
+                contextId: currentWorker.currentContext,
+                final: true,
+            },
+        });
     }
 }

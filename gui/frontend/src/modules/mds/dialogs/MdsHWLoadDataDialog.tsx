@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,18 +21,18 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
+import { ComponentChild, createRef } from "preact";
 
 import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types";
-
+import { ValueDialogBase } from "../../../components/Dialogs/ValueDialogBase";
 import {
-    IDialogSection, IDialogValidations, IDialogValues, ValueDialogBase, ValueEditDialog, CommonDialogValueOption,
-} from "../../../components/Dialogs";
+    ValueEditDialog, IDialogValues, IDialogSection, CommonDialogValueOption, IDialogValidations,
+} from "../../../components/Dialogs/ValueEditDialog";
 
 export class MdsHWLoadDataDialog extends ValueDialogBase {
-    private dialogRef = React.createRef<ValueEditDialog>();
+    private dialogRef = createRef<ValueEditDialog>();
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         return (
             <ValueEditDialog
                 ref={this.dialogRef}

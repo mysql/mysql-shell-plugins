@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,13 +24,14 @@
 import * as assert from "assert";
 import * as vscode from "vscode";
 
-import { showStatusText, statusBarItem } from "../../extension";
+import { printChannelOutput, showStatusText, statusBarItem } from "../../extension";
 
 suite("Extension Test Suite", function () {
+    const ext = vscode.extensions.getExtension("Oracle.mysql-shell-for-vs-code");
+
     this.timeout(10000);
 
     test("wait for extension", async () => {
-        const ext = vscode.extensions.getExtension("Oracle.mysql-shell-for-vs-code");
         assert.notStrictEqual(ext, undefined);
         await ext?.activate();
     });
@@ -40,9 +41,4 @@ suite("Extension Test Suite", function () {
         assert.strictEqual(state, true);
     });
 
-    test("showStatusText test", () => {
-        showStatusText("Test");
-
-        assert.strictEqual(statusBarItem.text, "MySQL Shell: Test");
-    });
 });

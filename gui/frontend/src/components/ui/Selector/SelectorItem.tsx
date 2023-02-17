@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,12 +21,14 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
-
-import { Component, IComponentProperties, DragEventType } from "../Component/Component";
-import { Icon, Orientation, Container, ContentAlignment, Label } from "..";
-import { Codicon } from "../Codicon";
+import { ComponentChild } from "preact";
 import { isNil } from "lodash";
+
+import { ComponentBase, IComponentProperties, DragEventType } from "../Component/ComponentBase";
+import { Codicon } from "../Codicon";
+import { Orientation, Container, ContentAlignment } from "../Container/Container";
+import { Icon } from "../Icon/Icon";
+import { Label } from "../Label/Label";
 
 export interface ISelectorItemProperties extends IComponentProperties {
     selected?: boolean;
@@ -36,15 +38,15 @@ export interface ISelectorItemProperties extends IComponentProperties {
     caption?: string;
     tooltip?: string;
     image?: string | Codicon;
-    auxillary?: React.ReactNode; // Any additional component, handled by the owner of the selector.
-                                 // This is rendered end-aligned in the selector item container.
+    auxillary?: ComponentChild; // Any additional component, handled by the owner of the selector.
+    // This is rendered end-aligned in the selector item container.
 
     type?: "normal" | "stepDown" | "stepUp" | "pageDown" | "pageUp";
 
-    innerRef?: React.RefObject<HTMLElement>;
+    innerRef?: preact.RefObject<HTMLDivElement>;
 }
 
-export class SelectorItem extends Component<ISelectorItemProperties> {
+export class SelectorItem extends ComponentBase<ISelectorItemProperties> {
 
     public static defaultProps = {
         disabled: false,
@@ -64,7 +66,7 @@ export class SelectorItem extends Component<ISelectorItemProperties> {
         }
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const {
             selected, disabled, type, innerRef, orientation, image, caption, tooltip, auxillary,
         } = this.mergedProps;
@@ -94,10 +96,11 @@ export class SelectorItem extends Component<ISelectorItemProperties> {
         );
     }
 
-    protected handleDragEvent(type: DragEventType, e: React.DragEvent<HTMLElement>): boolean {
+    protected handleDragEvent(type: DragEventType, e: DragEvent): boolean {
+        const element = e.currentTarget as HTMLElement;
         switch (type) {
             case DragEventType.Start: {
-                e.dataTransfer.setData("sourceid", (e.target as HTMLElement).id);
+                e.dataTransfer?.setData("sourceid", (e.target as HTMLElement).id);
                 e.stopPropagation();
 
                 break;
@@ -110,7 +113,7 @@ export class SelectorItem extends Component<ISelectorItemProperties> {
 
             case DragEventType.Enter: {
                 if (this.dragInsideCounter === 0) {
-                    e.currentTarget.classList.add("dropTarget");
+                    element.classList.add("dropTarget");
                 }
                 ++this.dragInsideCounter;
                 e.stopPropagation();
@@ -121,7 +124,7 @@ export class SelectorItem extends Component<ISelectorItemProperties> {
             case DragEventType.Leave: {
                 --this.dragInsideCounter;
                 if (this.dragInsideCounter === 0) {
-                    e.currentTarget.classList.remove("dropTarget");
+                    element.classList.remove("dropTarget");
                 }
                 e.stopPropagation();
 
@@ -130,7 +133,7 @@ export class SelectorItem extends Component<ISelectorItemProperties> {
 
             case DragEventType.Drop: {
                 this.dragInsideCounter = 0;
-                e.currentTarget.classList.remove("dropTarget");
+                element.classList.remove("dropTarget");
                 e.stopPropagation();
                 e.preventDefault();
 

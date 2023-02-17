@@ -25,22 +25,17 @@ import shellIcon from "../../assets/images/modules/module-shell.svg";
 import sessionIcon from "../../assets/images/file-icons/shell.svg";
 import closeButton from "../../assets/images/close2.svg";
 
-import React from "react";
+import { ComponentChild, RefObject } from "preact";
 
 import { ModuleBase, IModuleInfo, IModuleState, IModuleProperties } from "../ModuleBase";
 
 import { SessionBrowser } from "./SessionBrowser";
-import {
-    ITabviewPage, Tabview, TabPosition, Button, Icon, defaultEditorOptions, Dropdown, Label, Divider, Toolbar,
-    Container, Orientation, ProgressIndicator,
-} from "../../components/ui";
 import { appParameters, requisitions } from "../../supplement/Requisitions";
 import { IShellSessionDetails } from "../../supplement/ShellInterface";
 import { IShellTabPersistentState, ShellTab } from "./ShellTab";
 import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/ShellInterfaceShellSession";
-import { settings } from "../../supplement/Settings/Settings";
-import { CodeEditorMode } from "../../components/ui/CodeEditor/CodeEditor";
-import { Monaco } from "../../components/ui/CodeEditor";
+import { Settings } from "../../supplement/Settings/Settings";
+import { CodeEditorMode, Monaco } from "../../components/ui/CodeEditor";
 import { ExecutionContexts } from "../../script-execution/ExecutionContexts";
 import { DynamicSymbolTable } from "../../script-execution/DynamicSymbolTable";
 import { ShellModuleId } from "../ModuleInfo";
@@ -48,6 +43,16 @@ import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB";
 import { IShellEditorModel } from ".";
 import { ShellPromptHandler } from "../common/ShellPromptHandler";
 import { uuid } from "../../utilities/helpers";
+import { defaultEditorOptions } from "../../components/ui";
+import { Container, Orientation } from "../../components/ui/Container/Container";
+import { Divider } from "../../components/ui/Divider/Divider";
+import { Dropdown } from "../../components/ui/Dropdown/Dropdown";
+import { Icon } from "../../components/ui/Icon/Icon";
+import { Label } from "../../components/ui/Label/Label";
+import { Button } from "../../components/ui/Button/Button";
+import { ProgressIndicator } from "../../components/ui/ProgressIndicator/ProgressIndicator";
+import { ITabviewPage, Tabview, TabPosition } from "../../components/ui/Tabview/Tabview";
+import { Toolbar } from "../../components/ui/Toolbar/Toolbar";
 
 interface IShellTabInfo {
     details: IShellSessionDetails;
@@ -55,7 +60,7 @@ interface IShellTabInfo {
     caption: string;
 }
 
-export type IShellModuleProperties = IModuleProperties;
+type IShellModuleProperties = IModuleProperties;
 
 interface IShellModuleState extends IModuleState {
     shellTabs: IShellTabInfo[];
@@ -146,7 +151,7 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
         }
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { innerRef } = this.props;
         const { selectedTab, shellTabs, showTabs, progressMessage } = this.state;
 
@@ -163,7 +168,6 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
                     linear={false}
                 />
                 <Label
-                    as="h4"
                     id="progressMessageId"
                     caption={progressMessage}
                 />
@@ -210,9 +214,9 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
         }
 
         // Add a toolbar with a drop down to switch pages in embedded mode.
-        let toolbarInset: React.ReactElement | undefined;
+        let toolbarInset: ComponentChild | undefined;
         if (appParameters.embedded && selectedTab !== "waitPage") {
-            const items: Array<React.ReactElement<typeof Dropdown.Item>> = [
+            const items = [
                 <Dropdown.Item
                     id="sessions"
                     key="sessions"
@@ -248,7 +252,7 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
             <Container
                 id="shellModuleHost"
                 className="msg moduleHost"
-                innerRef={innerRef}
+                innerRef={innerRef as RefObject<HTMLDivElement>}
                 orientation={Orientation.TopDown}
             >
                 {
@@ -279,11 +283,10 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
                 if (data.page === "sessions") {
                     this.setState({ selectedTab: data.page }, () => {
                         resolve(true);
-
-                        return;
                     });
-
                 }
+
+                return;
             }
 
             resolve(false);
@@ -431,9 +434,9 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
                     }*/
 
                     // TODO: we need server information for code completion.
-                    const serverVersion = settings.get("editor.dbVersion", 80024);
+                    const serverVersion = Settings.get("editor.dbVersion", 80024);
                     const serverEdition = "";
-                    const sqlMode = settings.get("editor.sqlMode", "");
+                    const sqlMode = Settings.get("editor.sqlMode", "");
 
                     const model = this.createEditorModel(backend, "", "msg", serverVersion, sqlMode,
                         currentSchema);
@@ -515,7 +518,7 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
         void this.doCloseTab(id);
     };
 
-    private closeTab = (e: React.SyntheticEvent): void => {
+    private closeTab = (e: MouseEvent | KeyboardEvent): void => {
         e.stopPropagation();
 
         const id = (e.currentTarget as HTMLElement).id;

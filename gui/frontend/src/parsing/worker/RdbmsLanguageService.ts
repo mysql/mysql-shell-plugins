@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -28,7 +28,7 @@ import { ScopedSymbol, Symbol, SymbolTable } from "antlr4-c3";
 
 import { ICodeEditorModel } from "../../components/ui/CodeEditor/CodeEditor";
 import { CompletionItem, CompletionList } from "../../components/ui/CodeEditor";
-import { mapCompletionKind, SQLExecutionContext } from "../../script-execution";
+import { mapCompletionKind } from "../../script-execution";
 import {
     ICompletionData, ICompletionObjectDetails, ILanguageWorkerResultData, ILanguageWorkerSuggestionData,
     ILanguageWorkerTaskData, LanguageCompletionKind, ServiceLanguage,
@@ -41,7 +41,8 @@ import {
     DBSymbolTable,
 } from "../DBSymbolTable";
 import { WorkerPool } from "../../supplement/WorkerPool";
-import { settings } from "../../supplement/Settings/Settings";
+import { Settings } from "../../supplement/Settings/Settings";
+import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext";
 
 // A string for lookup if schemas have been loaded already.
 const schemaKey = "\u0010schemas\u0010";
@@ -183,7 +184,7 @@ export class RdbmsLanguageService {
     private transformCompletionItems = async (data: ICompletionData, range: IRange): Promise<CompletionItem[]> => {
         const result: CompletionItem[] = [];
 
-        const uppercaseKeywords = settings.get("dbEditor.upperCaseKeywords", true);
+        const uppercaseKeywords = Settings.get("dbEditor.upperCaseKeywords", true);
         let sortKey = this.sortKeys.get(LanguageCompletionKind.Keyword)!;
         data.keywords.forEach((keyword) => {
             if (!uppercaseKeywords) {

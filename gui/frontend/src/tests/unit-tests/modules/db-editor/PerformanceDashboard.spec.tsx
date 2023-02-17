@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,15 +22,14 @@
  */
 
 import { mount } from "enzyme";
-import React from "react";
 
 import { MySQLConnectionScheme } from "../../../../communication/MySQL";
 
 import { ISavedGraphData } from "../../../../modules/db-editor";
 import { PerformanceDashboard } from "../../../../modules/db-editor/PerformanceDashboard";
-import {
-    DBType, IConnectionDetails, ShellInterface, ShellInterfaceSqlEditor,
-} from "../../../../supplement/ShellInterface";
+import { DBType, IConnectionDetails } from "../../../../supplement/ShellInterface";
+import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface";
+import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor";
 import { webSession } from "../../../../supplement/WebSession";
 import { sleep } from "../../../../utilities/helpers";
 import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher";
@@ -70,7 +69,7 @@ describe("PerformanceDashboard Tests", (): void => {
         expect(testConnection.id).toBeGreaterThan(-1);
 
         backend = new ShellInterfaceSqlEditor();
-    });
+    }, 20000);
 
     afterAll(async () => {
         await ShellInterface.dbConnections.removeDbConnection(webSession.currentProfileId, testConnection.id);
@@ -110,8 +109,5 @@ describe("PerformanceDashboard Tests", (): void => {
         } finally {
             await backend.closeSession();
         }
-
-
     });
-
 });

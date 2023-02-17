@@ -7,7 +7,7 @@ exports[`Dropdown render testing Standard Rendering 1`] = `
   selection="tesla"
   showDescription={false}
   style={
-    Object {
+    {
       "maxWidth": "300px",
     }
   }
@@ -17,21 +17,27 @@ exports[`Dropdown render testing Standard Rendering 1`] = `
     className="msg dropdown"
     crossAlignment="center"
     innerRef={
-      Object {
-        "current": Object {
-          "l": Object {
-            "clickfalse": [Function],
-            "keydownfalse": [Function],
-          },
-        },
+      {
+        "current": <div
+          class="msg container fixedScrollbar dropdown"
+          style="flex-direction: row; align-items: center; max-width: 300px;"
+          tabindex="0"
+        >
+          <label
+            class="msg label ellipsis"
+            data-tooltip="expand"
+          >
+            Tesla
+          </label>
+        </div>,
       }
     }
+    onBlur={[Function]}
     onClick={[Function]}
     onKeyDown={[Function]}
     orientation="row"
-    selection="tesla"
     style={
-      Object {
+      {
         "maxWidth": "300px",
       }
     }
@@ -41,9 +47,9 @@ exports[`Dropdown render testing Standard Rendering 1`] = `
       className="msg container fixedScrollbar dropdown"
       onClick={[Function]}
       onKeyDown={[Function]}
-      selection="tesla"
+      onfocusout={[Function]}
       style={
-        Object {
+        {
           "alignItems": "center",
           "flexDirection": "row",
           "flexWrap": undefined,
@@ -59,11 +65,7 @@ exports[`Dropdown render testing Standard Rendering 1`] = `
         <label
           className="msg label ellipsis"
           data-tooltip="expand"
-          style={
-            Object {
-              "textAlign": undefined,
-            }
-          }
+          style={{}}
         >
           Tesla
         </label>
@@ -74,7 +76,7 @@ exports[`Dropdown render testing Standard Rendering 1`] = `
     className="dropdownList"
     id="Popup"
     innerRef={
-      Object {
+      {
         "current": null,
       }
     }

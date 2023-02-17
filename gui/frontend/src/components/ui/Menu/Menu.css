@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-.msg.menu {
+.msg.popup.menu {
     min-width: 200px;
     width: auto;
 
@@ -38,31 +38,31 @@
 
 /* Note: in FF backdrop-filter support must be enabled in about:config. It is off by default. */
 @supports ((-webkit-backdrop-filter: blur(12px)) or (backdrop-filter: blur(12px))) {
-    .msg.menu {
+    .msg.popup.menu {
         background-color: var(--menu-blurredBackground);
         backdrop-filter: blur(12px);
     }
 }
 
-.msg.menu > * {
+.msg.popup.menu > * {
     cursor: default;
     user-select: none;
 }
 
-.msg.menu .menuItem {
+.msg.popup.menu .menuItem {
     border: 1px solid transparent;
     padding: 6px 23px 6px 23px;
 }
 
-.msg.menu .menuItem.disabled {
+.msg.popup.menu .menuItem.disabled {
     color: var(--text-dimmedForeground);
 }
 
-.msg.menu .menuItem.separator.disabled {
+.msg.popup.menu .menuItem.separator.disabled {
     background-color: var(--text-dimmedForeground);
 }
 
-.msg.menu .menuItem.submenu::after {
+.msg.popup.menu .menuItem.submenu::after {
     content: "";
     position: absolute;
 
@@ -77,28 +77,28 @@
     border-left: 8px solid var(--menu-foreground);
 }
 
-.msg.menu .menuItem.submenu:hover::after {
+.msg.popup.menu .menuItem.submenu:hover::after {
     border-left-color: var(--menu-selectionForeground);
 }
 
-.msg.menu .menuItem .icon {
+.msg.popup.menu .menuItem .icon {
     width: 24px;
     margin: 0px 0px 0px -24px;
 }
 
-.msg.menu .menuItem .icon:not(.codicon) {
+.msg.popup.menu .menuItem .icon:not(.codicon) {
     background-color: var(--menu-foreground);
 }
 
-.msg.menu .menuItem .codicon {
+.msg.popup.menu .menuItem .codicon {
     color: var(--menu-foreground);
 }
 
-.msg.menu .menuItem:hover .icon {
+.msg.popup.menu .menuItem:hover .icon {
     background-color: var(--menu-foreground);
 }
 
-.msg.menu .menuItem.separator {
+.msg.popup.menu .menuItem.separator {
     height: 1px;
     margin: 4px 0px 4px 0px;
     padding: 0;
@@ -107,13 +107,13 @@
     background-color: var(--menu-separatorBackground)
 }
 
-.msg.menubar {
+.msg.popup.menubar {
     display: flex;
     background-color: var(--menubar-background);
     font-size: 11pt;
 }
 
-.msg.menubar > .menuItem {
+.msg.popup.menubar > .menuItem {
     flex: 0 0 auto;
     padding: 3px 11px 3px 11px;
     color: var(--menu-foreground);
@@ -121,15 +121,15 @@
     border: 1px solid transparent;
 }
 
-.msg.menu > .menuItem:not(.disabled).active {
+.msg.popup.menu > .menuItem:not(.disabled).active {
     background-color: var(--menu-selectionBackground);
     color: var(--menu-selectionForeground);
     border-color: var(--menu-selectionBackground);
     border-radius: 4px;
 }
 
-.msg.menubar .menuItem:not(.disabled).active,
-.msg.menubar .menuItem:not(.nohover):hover {
+.msg.popup.menubar .menuItem:not(.disabled).active,
+.msg.popup.menubar .menuItem:not(.nohover):hover {
     background-color: var(--menubar-selectionBackground);
     color: var(--menubar-selectionForeground);
     border-color: var(--menubar-selectionBorder);

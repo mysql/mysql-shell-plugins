@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,10 +23,10 @@
 
 import "./Checkbox.css";
 
-import React from "react";
+import { ComponentChild } from "preact";
 import keyboardKey from "keyboard-key";
 
-import { IComponentProperties, Component, MouseEventType } from "..";
+import { IComponentProperties, ComponentBase, MouseEventType } from "../Component/ComponentBase";
 
 export enum CheckState {
     Unchecked,
@@ -38,12 +38,11 @@ export interface ICheckboxProperties extends IComponentProperties {
     checkState?: CheckState;
     disabled?: boolean;
     caption?: string;
-    name?: string;
 
     onChange?: (checkState: CheckState, props: ICheckboxProperties) => void;
 }
 
-export class Checkbox extends Component<ICheckboxProperties> {
+export class Checkbox extends ComponentBase<ICheckboxProperties> {
 
     public static defaultProps = {
         checkState: CheckState?.Unchecked,
@@ -57,7 +56,7 @@ export class Checkbox extends Component<ICheckboxProperties> {
         this.connectEvents("onClick");
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { children, caption, disabled, checkState } = this.mergedProps;
 
         const className = this.getEffectiveClassNames([
@@ -80,7 +79,7 @@ export class Checkbox extends Component<ICheckboxProperties> {
         );
     }
 
-    protected handleMouseEvent(type: MouseEventType, e: React.MouseEvent): boolean {
+    protected handleMouseEvent(type: MouseEventType, e: MouseEvent): boolean {
         const { disabled } = this.mergedProps;
         if (disabled) {
             e.preventDefault();
@@ -95,7 +94,7 @@ export class Checkbox extends Component<ICheckboxProperties> {
         return true;
     }
 
-    private handleKeyPress = (e: React.KeyboardEvent): void => {
+    private handleKeyPress = (e: KeyboardEvent): void => {
         const { disabled } = this.mergedProps;
         if (disabled) {
             e.preventDefault();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,29 +21,30 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import React from "react";
+import { ComponentChild, createRef } from "preact";
 import { Position } from "monaco-editor";
 
-import { Component, IComponentProperties } from "../../components/ui";
 import { CodeEditor, IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor";
-import { ExecutionContext, PresentationInterface } from "../../script-execution";
 import { requisitions } from "../../supplement/Requisitions";
 import { IEditorStatusInfo } from "../db-editor";
 import { EmbeddedPresentationInterface } from "../db-editor/execution/EmbeddedPresentationInterface";
 import { EditorLanguage } from "../../supplement";
-import { settings } from "../../supplement/Settings/Settings";
+import { Settings } from "../../supplement/Settings/Settings";
 import { IScriptExecutionOptions } from "../../components/ui/CodeEditor";
+import { IComponentProperties, ComponentBase } from "../../components/ui/Component/ComponentBase";
+import { ExecutionContext } from "../../script-execution/ExecutionContext";
+import { PresentationInterface } from "../../script-execution/PresentationInterface";
 
-export interface IShellConsoleProperties extends IComponentProperties {
+interface IShellConsoleProperties extends IComponentProperties {
     editorState: IEditorPersistentState;
 
     onScriptExecution?: (context: ExecutionContext, options: IScriptExecutionOptions) => Promise<boolean>;
     onHelpCommand?: (command: string, currentLanguage: EditorLanguage) => string | undefined;
 }
 
-export class ShellConsole extends Component<IShellConsoleProperties> {
+export class ShellConsole extends ComponentBase<IShellConsoleProperties> {
 
-    private editorRef = React.createRef<CodeEditor>();
+    private editorRef = createRef<CodeEditor>();
 
     public constructor(props: IShellConsoleProperties) {
         super(props);
@@ -68,7 +69,7 @@ export class ShellConsole extends Component<IShellConsoleProperties> {
         ]);
     }
 
-    public render(): React.ReactNode {
+    public render(): ComponentChild {
         const { editorState, onScriptExecution, onHelpCommand } = this.props;
 
         return (
@@ -77,7 +78,7 @@ export class ShellConsole extends Component<IShellConsoleProperties> {
                 state={editorState}
                 language="msg"
                 allowedLanguages={["javascript", "python", "sql"]}
-                startLanguage={settings.get("shellSession.startLanguage", "javascript") as EditorLanguage}
+                startLanguage={Settings.get("shellSession.startLanguage", "javascript") as EditorLanguage}
                 sqlDialect="mysql"
                 className="shellConsole"
                 minimap={{

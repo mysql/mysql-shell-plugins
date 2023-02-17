@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,13 +22,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 import { SymbolTable } from "antlr4-c3";
-import { CodeEditorMode, ICodeEditorModel } from "../../../components/ui/CodeEditor/CodeEditor";
+import { ICodeEditorModel } from "../../../components/ui/CodeEditor/CodeEditor";
 import { StoreType } from "../../../app-logic/ApplicationDB";
-import { Monaco, Position, Uri } from "../../../components/ui/CodeEditor";
+import { CodeEditorMode, Monaco, Position, Range, Uri } from "../../../components/ui/CodeEditor";
 import { ExecutionContexts } from "../../../script-execution/ExecutionContexts";
 
 const ec = new ExecutionContexts(StoreType.DbEditor, 1, "", "");
-export const models: ICodeEditorModel = {
+export const mockModel: ICodeEditorModel = {
     executionContexts: ec,
     symbols: new SymbolTable("myTable", {}), editorMode: CodeEditorMode.Standard,
     uri: new Uri(), id: "", getOptions: jest.fn(), getVersionId: jest.fn(), getAlternativeVersionId: jest.fn(),
@@ -37,7 +37,7 @@ export const models: ICodeEditorModel = {
     getLineContent: jest.fn(), getLineLength: jest.fn(), getLinesContent: jest.fn(), getEOL: jest.fn(),
     getEndOfLineSequence: jest.fn(), getLineMinColumn: jest.fn(), getLineMaxColumn: jest.fn(),
     getLineFirstNonWhitespaceColumn: jest.fn(), getLineLastNonWhitespaceColumn: jest.fn(),
-    validatePosition: jest.fn(),  modifyPosition: jest.fn(), validateRange: jest.fn(), getOffsetAt: jest.fn(),
+    validatePosition: jest.fn(), modifyPosition: jest.fn(), validateRange: jest.fn(), getOffsetAt: jest.fn(),
     getPositionAt: jest.fn(), getFullModelRange: jest.fn(), isDisposed: jest.fn(), findMatches: jest.fn(),
     findNextMatch: jest.fn(), findPreviousMatch: jest.fn(), getLanguageId: jest.fn(),
     getWordAtPosition: jest.fn(), getWordUntilPosition: jest.fn(), deltaDecorations: jest.fn(),
@@ -50,9 +50,12 @@ export const models: ICodeEditorModel = {
     onDidChangeDecorations: jest.fn(), onDidChangeOptions: jest.fn(), onDidChangeLanguage: jest.fn(),
     onDidChangeLanguageConfiguration: jest.fn(), onDidChangeAttached: jest.fn(), onWillDispose: jest.fn(),
     dispose: jest.fn(), isAttachedToEditor: jest.fn(), pushStackElement: jest.fn(),
+    createSnapshot: jest.fn(),
 };
-export const position: Position = { lineNumber: 0, column: 0, with: jest.fn(), delta: jest.fn(), equals: jest.fn(),
-    isBefore: jest.fn(), isBeforeOrEqual: jest.fn(), clone: jest.fn() };
+export const position: Position = {
+    lineNumber: 0, column: 0, with: jest.fn(), delta: jest.fn(), equals: jest.fn(),
+    isBefore: jest.fn(), isBeforeOrEqual: jest.fn(), clone: jest.fn(),
+};
 
 export const mockTextModel: Monaco.ITextModel = {
     uri: new Uri(), id: "1", getOptions: jest.fn(), getVersionId: jest.fn(), getAlternativeVersionId: jest.fn(),
@@ -72,5 +75,6 @@ export const mockTextModel: Monaco.ITextModel = {
     pushEditOperations: jest.fn(), pushEOL: jest.fn(), applyEdits: jest.fn(), setEOL: jest.fn(),
     onDidChangeContent: jest.fn(), onDidChangeDecorations: jest.fn(), onDidChangeOptions: jest.fn(),
     onDidChangeLanguage: jest.fn(), onDidChangeLanguageConfiguration: jest.fn(), onDidChangeAttached: jest.fn(),
-    onWillDispose: jest.fn(), dispose: jest.fn(), isAttachedToEditor:jest.fn(),
+    onWillDispose: jest.fn(), dispose: jest.fn(), isAttachedToEditor: jest.fn(),
+    createSnapshot: jest.fn(),
 };

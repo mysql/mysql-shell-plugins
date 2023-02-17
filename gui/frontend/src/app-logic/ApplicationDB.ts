@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -57,7 +57,7 @@ export interface IDbModuleResultData {
     sql?: string;
 }
 
-export interface IShellModuleResultData {
+interface IShellModuleResultData {
     // There's an auto incremented field (id) to make entries unique.
 
     /** The tab id is used to quickly remove all associated entries when a tab is closed. */
@@ -72,29 +72,29 @@ export interface IShellModuleResultData {
 }
 
 /** Application object store schema. Each module uses an own store. */
-export interface IAppStoreSchema extends DBSchema {
+interface IAppStoreSchema extends DBSchema {
     unused: { // Not really used. Only here to allow "unused" as store name in cases, where we don't need a store.
         value: {
             resultId: string;
         };
         key: string;
-        indexes: { resultIndex: string; tabIndex: string };
+        indexes: { resultIndex: string; tabIndex: string; };
     };
 
     dbModuleResultData: {
         value: IDbModuleResultData;
         key: string;
-        indexes: { resultIndex: string; tabIndex: string };
+        indexes: { resultIndex: string; tabIndex: string; };
     };
 
     shellModuleResultData: {
         value: IShellModuleResultData;
         key: string;
-        indexes: { resultIndex: string; tabIndex: string };
+        indexes: { resultIndex: string; tabIndex: string; };
     };
 }
 
-export type IAppIndexedDB = IDBPDatabase<IAppStoreSchema>;
+type IAppIndexedDB = IDBPDatabase<IAppStoreSchema>;
 
 export class ApplicationDB {
 

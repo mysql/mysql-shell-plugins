@@ -32,6 +32,7 @@ import {
     Key,
     TreeItem,
     CustomTreeSection,
+    BottomBarPanel,
 } from "vscode-extension-tester";
 
 import { before, after, afterEach } from "mocha";
@@ -307,6 +308,7 @@ describe("DATABASE CONNECTIONS", () => {
                 await treeGlobalSchemaTables?.expand();
                 treeGlobalSchemaViews = await Misc.getTreeElement(treeGlobalSchema, "Views");
                 await treeGlobalSchemaViews?.expand();
+                await new BottomBarPanel().toggle(false);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -384,17 +386,18 @@ describe("DATABASE CONNECTIONS", () => {
         });
 
         it("Open MySQL Shell Console for this connection", async () => {
-
+            
             await Misc.selectContextMenuItem(treeGlobalConn!, "Open MySQL Shell Console for this Connection");
-
+            
             await new EditorView().openEditor("MySQL Shell Consoles");
-
+            
             await Misc.switchToWebView();
-
+            
             const item = await driver.wait(until
-                .elementLocated(By.css("code > span")), 10000, "MySQL Shell Console was not loaded");
+                .elementLocated(By.css(".zoneHost .actionLabel > span")), 10000, "MySQL Shell Console was not loaded");
 
             expect(await item.getText()).to.include("Welcome to the MySQL Shell - GUI Console");
+           
             await driver.switchTo().defaultContent();
 
             try {
@@ -938,7 +941,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             const confirmDialog = await driver.wait(until.elementLocated(By.css(".confirmDialog")),
                 explicitWait, "Confirm dialog was not displayed");
-            const confirmText = await confirmDialog.findElement(By.css(".content > div > div > div"));
+            const confirmText = await confirmDialog.findElement(By.id("dialogMessage"));
             expect(await confirmText.getText()).to.equals("Password was cleared.");
             await confirmDialog.findElement(By.id("accept")).click();
             await driver.wait(until.stalenessOf(confirmDialog), 3000, "Confirm dialog was not closed");
@@ -1022,7 +1025,7 @@ describe("DATABASE CONNECTIONS", () => {
             await okBtn.click();
 
             const error = await driver.wait(
-                until.elementLocated(By.css("label.error")),
+                until.elementLocated(By.css(".message.error")),
                 2000,
             );
 
@@ -1037,7 +1040,7 @@ describe("DATABASE CONNECTIONS", () => {
             await driver.executeScript("arguments[0].scrollIntoView(true)", okBtn);
             await okBtn.click();
 
-            expect(await conDialog.findElement(By.css("label.error")).getText())
+            expect(await conDialog.findElement(By.css(".message.error")).getText())
                 .to.equals("Specify a valid host name or IP address");
 
             expect(await conDialog.findElement(By.id("ok")).isEnabled()).to.be.false;
@@ -1049,7 +1052,7 @@ describe("DATABASE CONNECTIONS", () => {
             await driver.executeScript("arguments[0].scrollIntoView(true)", okBtn);
             await driver.findElement(By.id("ok")).click();
 
-            expect(await conDialog.findElement(By.css("label.error")).getText())
+            expect(await conDialog.findElement(By.css(".message.error")).getText())
                 .to.equals("The user name must not be empty");
 
             await driver.executeScript("arguments[0].scrollIntoView(true)", okBtn);
@@ -1387,7 +1390,7 @@ describe("DATABASE CONNECTIONS", () => {
         it("Connection toolbar buttons - Autocommit DB Changes", async () => {
 
             const autoCommit = await Database.getToolbarButton("Auto commit DB changes");
-            const style = await autoCommit?.findElement(By.css("div")).getAttribute("style");
+            const style = await autoCommit?.findElement(By.css("span")).getAttribute("style");
             if (style?.includes("toolbar-auto_commit-active")) {
                 await autoCommit?.click();
             }
@@ -1511,10 +1514,6 @@ describe("DATABASE CONNECTIONS", () => {
                 const result4 = await Misc.execCmd("Math.random();");
 
                 expect(result4[0]).to.match(/(\d+).(\d+)/);
-
-                await textArea.sendKeys(Key.ARROW_UP);
-
-                await driver.sleep(500);
 
                 await textArea.sendKeys(Key.ARROW_UP);
 
@@ -1672,7 +1671,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await Database.addScript("sql");
             expect(await Database.getCurrentEditor()).to.match(/Untitled-(\d+)/);
-            expect(await Database.getCurrentEditorType()).to.equals("mysql");
+            expect(await Database.getCurrentEditorType()).to.include("mysql");
 
             const result = await Database.execScript("select * from sakila.actor limit 1;");
             expect(result[0]).to.match(/OK, (\d+) record/);
@@ -1683,7 +1682,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await Database.addScript("ts");
             expect(await Database.getCurrentEditor()).to.match(/Untitled-(\d+)/);
-            expect(await Database.getCurrentEditorType()).to.equals("typescript");
+            expect(await Database.getCurrentEditorType()).to.include("typescript");
 
             const result = await Database.execScript("Math.random()");
             expect(result[0]).to.match(/(\d+).(\d+)/);
@@ -1694,7 +1693,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await Database.addScript("js");
             expect(await Database.getCurrentEditor()).to.match(/Untitled-(\d+)/);
-            expect(await Database.getCurrentEditorType()).to.equals("javascript");
+            expect(await Database.getCurrentEditorType()).to.include("javascript");
 
             const result = await Database.execScript("Math.random()");
             expect(result[0]).to.match(/(\d+).(\d+)/);

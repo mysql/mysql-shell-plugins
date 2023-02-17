@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,15 +22,15 @@
  */
 
 import { mount } from "enzyme";
-import React from "react";
+import { createRef } from "preact";
+
 import { ScopeSelector } from "../../../../components/Theming/ScopeSelector";
-import { snapshotFromWrapper } from "../../test-helpers";
 
 describe("ScopeSelector testing", () => {
-    const scopeSelectorRef = React.createRef<ScopeSelector>();
+    const scopeSelectorRef = createRef<ScopeSelector>();
 
     test("ScopeSelector instantiation", () => {
-        const component = mount(
+        const component = mount<ScopeSelector>(
             <ScopeSelector
                 ref={scopeSelectorRef}
                 defaultScopes={[]}
@@ -44,14 +44,14 @@ describe("ScopeSelector testing", () => {
     });
 
     test("Snapshot and properties", () => {
-        const component = mount(
+        const component = mount<ScopeSelector>(
             <ScopeSelector
                 ref={scopeSelectorRef}
                 defaultScopes={["lorem", "ipsum", "dolor"]}
                 customScopes={["sit", "amet", "consectetur", "adipisci"]}
             />,
         );
-        expect(snapshotFromWrapper(component)).toMatchSnapshot();
+        expect(component).toMatchSnapshot();
 
         component.setProps({ customScopes: ["sit", "amet", "consectetur", "adipisci"] });
         expect(component.props().customScopes).toEqual(["sit", "amet", "consectetur", "adipisci"]);

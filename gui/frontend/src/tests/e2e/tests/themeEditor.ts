@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,7 +21,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { promises as fsPromises } from "fs";
 import { Misc, driver } from "../lib/misc";
 import { By, Key, until, WebElement } from "selenium-webdriver";
 import { platform } from "os";
@@ -91,16 +90,7 @@ describe("Theme Editor", () => {
     afterEach(async () => {
         if (testFailed) {
             testFailed = false;
-            const img = await driver.takeScreenshot();
-            const testName: string = expect.getState().currentTestName
-                .toLowerCase().replace(/\s/g, "_");
-
-            try {
-                await fsPromises.access("src/tests/e2e/screenshots");
-            } catch (e) {
-                await fsPromises.mkdir("src/tests/e2e/screenshots");
-            }
-            await fsPromises.writeFile(`src/tests/e2e/screenshots/${testName}_screenshot.png`, img, "base64");
+            await Misc.storeScreenShot();
         }
     });
 
@@ -217,7 +207,7 @@ describe("Theme Editor", () => {
             let colorPad0 = "";
             try {
                 colorPad0 = await ThemeEditor.getColorPadCss(0);
-            } catch(e) {
+            } catch (e) {
                 if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
                     colorPad0 = await ThemeEditor.getColorPadCss(0);
                 } else {
@@ -227,7 +217,7 @@ describe("Theme Editor", () => {
 
             expect(colorPad0).toBe(refColor);
 
-            await driver.wait(async() => {
+            await driver.wait(async () => {
                 try {
                     await ThemeEditor.toggleUiColorsMenu("Base Colors", "open");
                     const foreground = await driver.findElement(By.css("#--foreground > div"));
@@ -254,7 +244,7 @@ describe("Theme Editor", () => {
             let colorPad1 = "";
             try {
                 colorPad1 = await ThemeEditor.getColorPadCss(1);
-            } catch(e) {
+            } catch (e) {
                 if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
                     colorPad1 = await ThemeEditor.getColorPadCss(1);
                 } else {
@@ -1256,8 +1246,8 @@ describe("Theme Editor", () => {
                 "--activityBar-foreground", "luminanceInput", "90");
 
             const element = await driver.findElement(By.id("mainActivityBar"));
-            const elBackgrd = await Misc.getElementStyle(element, "backgroundColor");
-            const elFgrd = await Misc.getElementStyle(element, "color");
+            const elementBackground = await Misc.getElementStyle(element, "backgroundColor");
+            const elementForeground = await Misc.getElementStyle(element, "color");
             await driver.sleep(2000);
 
             //CHANGE BACKGROUND COLOR
@@ -1269,8 +1259,8 @@ describe("Theme Editor", () => {
             }, 5000, "Theme was not changed to Default Light")).toBe(true);
 
             expect(String(await Misc.getBackgroundColor()).trim()).toBe("#FFFFFF");
-            expect(await Misc.getElementStyle(element, "backgroundColor") !== elBackgrd).toBe(true);
-            expect(await Misc.getElementStyle(element, "color") !== elFgrd).toBe(true);
+            expect(await Misc.getElementStyle(element, "backgroundColor") !== elementBackground).toBe(true);
+            expect(await Misc.getElementStyle(element, "color") !== elementForeground).toBe(true);
 
             await driver.findElement(By.css(".themeSelector")).click();
             await driver.findElement(By.id("Default Dark")).click();
@@ -1287,8 +1277,8 @@ describe("Theme Editor", () => {
                     By.css(".themeSelector label")).getText() === themeName;
             }, 3000, `Theme was not changed to ${themeName}`)).toBe(true);
 
-            expect(await Misc.getElementStyle(element, "backgroundColor")).toBe(elBackgrd);
-            expect(await Misc.getElementStyle(element, "color")).toBe(elFgrd);
+            expect(await Misc.getElementStyle(element, "backgroundColor")).toBe(elementBackground);
+            expect(await Misc.getElementStyle(element, "color")).toBe(elementForeground);
         } catch (e) {
             testFailed = true;
             throw e;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,10 +22,13 @@
  */
 
 import {
-    DataCallback,
-    IBastionSession, IBastionSummary, ICompartment, IComputeInstance, ILoadBalancer, IMdsProfileData, IMySQLDbSystem,
-    IMySQLDbSystemShapeSummary, IShellMdsSetCurrentBastionKwargs, IShellMdsSetCurrentCompartmentKwargs, MessageScheduler, ShellAPIMds
+    IBastionSession, IBastionSummary, ICompartment, IComputeInstance, ILoadBalancer, IMySQLDbSystem,
+    IMySQLDbSystemShapeSummary,
 } from "../../communication";
+import { MessageScheduler, DataCallback } from "../../communication/MessageScheduler";
+import {
+    IMdsProfileData, ShellAPIMds, IShellMdsSetCurrentCompartmentKwargs, IShellMdsSetCurrentBastionKwargs,
+} from "../../communication/ProtocolMds";
 
 export class ShellInterfaceMds {
 

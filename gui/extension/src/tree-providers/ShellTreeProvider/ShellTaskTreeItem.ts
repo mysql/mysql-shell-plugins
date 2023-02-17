@@ -52,8 +52,8 @@ export class ShellTaskTreeItem extends TreeItem {
         }
 
         this.iconPath = {
-            light: path.join(__dirname, "..", "..", "..", "..", "..", "images", "light", taskIcon),
-            dark: path.join(__dirname, "..", "..", "..", "..", "..", "images", "dark", taskIcon),
+            light: path.join(__dirname, "..", "images", "light", taskIcon),
+            dark: path.join(__dirname, "..", "images", "dark", taskIcon),
         };
         this.command = command;
     }

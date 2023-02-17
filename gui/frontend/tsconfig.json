@@ -1,9 +1,12 @@
 {
     "compilerOptions": {
-        "target": "es2020",
+        "useDefineForClassFields": true,
+        "jsx": "react-jsx",
+        "jsxImportSource": "preact",
+        "target": "es2022",
         "module": "esnext",
-        "allowJs": true,
-        "outDir": "./output/",
+        "allowJs": false,
+        "outDir": "build",
         "removeComments": true,
         "sourceMap": true,
         "esModuleInterop": true,
@@ -15,11 +18,11 @@
         "noEmit": true,
         "noImplicitAny": true,
         "suppressImplicitAnyIndexErrors": true,
-        "jsx": "react",
         "sourceRoot": "src",
         "lib": [
-            "es2020",
-            "dom"
+            "es2022",
+            "dom",
+            "WebWorker"
         ],
         "skipLibCheck": true,
         "experimentalDecorators": false,
@@ -27,9 +30,26 @@
         "strictPropertyInitialization": false,
         "emitDecoratorMetadata": false,
         "noFallthroughCasesInSwitch": false,
+        "composite": true,
+        "paths": {
+            "react": [
+                "./node_modules/preact/compat/"
+            ],
+            "react-dom": [
+                "./node_modules/preact/compat/"
+            ]
+        }
     },
     "include": [
-        "src"
+        "src/**/*",
+        "src/**/*.json",
+        "vite.config.ts",
+        "postcss.config.cjs",
+        // Needed here during build setup in vite.config.js.
+        "package.json"
     ],
-    "exclude": []
+    "exclude": [
+        "build",
+        "node_modules"
+    ]
 }
