@@ -119,7 +119,8 @@
         "uuidv",
         "webrootpath",
         "zstd",
-        "winx"
+        "winx",
+        "outdir"
     ],
     "ignorePaths": [
         "./.eslintrc.json"
