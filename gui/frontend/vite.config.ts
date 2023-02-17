@@ -119,7 +119,7 @@ export default defineConfig({
             ],
         },
         minify: true,
-        sourcemap: false,
+        sourcemap: Boolean(process.env.SOURCE_MAPS),
         rollupOptions: {
             plugins: [
                 nodePolyfills(),

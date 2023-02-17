@@ -40,4 +40,4 @@ fi
 
 # We need lots of RAM when building with source maps. Without them 8GB are enough.
 export NODE_OPTIONS="--max-old-space-size=16000"
-node_modules/.bin/vite build
+SOURCE_MAPS=$1 node_modules/.bin/vite build
