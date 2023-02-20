@@ -99,7 +99,7 @@ export class ShellConsole extends ComponentBase<IShellConsoleProperties> {
                     verticalScrollbarSize: 16,
                     horizontalScrollbarSize: 16,
                 }}
-                lineNumbers="off"
+                lineNumbers={this.contextRelativeLineNumbers}
                 onScriptExecution={onScriptExecution}
                 onHelpCommand={onHelpCommand}
                 onCursorChange={this.handleCursorChange}
@@ -164,5 +164,27 @@ export class ShellConsole extends ComponentBase<IShellConsoleProperties> {
 
     private createPresentation = (editor: CodeEditor, language: EditorLanguage): PresentationInterface => {
         return new EmbeddedPresentationInterface(editor, language);
+    };
+
+    /**
+     * Computes custom line numbers, which are relative to an execution context.
+     *
+     * @param originalLineNumber The line number from Monaco.
+     *
+     * @returns The computed relative line number for the context at the original linenumber position.
+     */
+    private contextRelativeLineNumbers = (originalLineNumber: number): string => {
+        const { editorState } = this.props;
+        const contexts = editorState.model.executionContexts;
+        const context = contexts.contextFromPosition({ lineNumber: originalLineNumber, column: 1 });
+        if (context) {
+            if (context.endLine - context.startLine > 0) {
+                return (originalLineNumber - context.startLine + 1).toString();
+            } else {
+                return "";
+            }
+        }
+
+        return originalLineNumber.toString();
     };
 }
