@@ -1,11 +1,14 @@
-### Copyright (c) 2020, 2021, Oracle and/or its affiliates.
-
 # MySQL REST Service Plugin for MySQL Shell
-This folder contains the code for the MySQL REST Service (short: MRS) Plugin.
 
-# VS Code Settings
-Include the following settings in your VS Code settings.json file in order to 
-allow the Python linter find the referenced packages.
+This folder contains the code for the MySQL REST Service (short: MRS) Plugin. It is part of the [MySQL Shell Plugins](../readme.md) repository.
+
+# Contributing to MySQL REST Service Plugin
+
+No installation is necessary for this plugin, beside the setup of Visual Studio Code to be able to work on the code.
+
+## Visual Studio Code Settings
+
+Include the following settings in your VS Code settings.json file in order to allow the Python linter find the referenced packages.
 
 ```json
 {
@@ -21,3 +24,5 @@ allow the Python linter find the referenced packages.
     ]
 }
 ```
+
+Copyright &copy; 2020, 2023, Oracle and/or its affiliates.
