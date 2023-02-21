@@ -218,6 +218,8 @@
     color: var(--resultZone-foreground);
     overflow: auto;
     white-space: pre-wrap;
+    cursor: text;
+    user-select: text;
 }
 
 .msg.resultHost .resultText > .label {

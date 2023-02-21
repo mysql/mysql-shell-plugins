@@ -107,6 +107,7 @@
         "nowarnings",
         "ocimds",
         "oraclecloud",
+        "outdir",
         "outfile",
         "relcom",
         "saturationl",
