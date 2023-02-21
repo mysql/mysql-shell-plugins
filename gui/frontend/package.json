@@ -14,7 +14,7 @@
         "unit-tests": "node --no-compilation-cache --expose-gc --max_old_space_size=4096 node_modules/.bin/jest --logHeapUsage -c=unit-tests.jest.config.ts --watchAll=false",
         "update-snapshots": "node --no-compilation-cache --expose-gc --max_old_space_size=4096 node_modules/.bin/jest -c=unit-tests.jest.config.ts --no-coverage  --watchAll=false -u",
         "e2e-tests-run": "jest -c e2e.jest.config.ts",
-        "e2e-tests-report": "tsc src/tests/e2e/postActions.ts && node src/tests/e2e/postActions.js"
+        "e2e-tests-report": "node src/tests/e2e/postActions.mjs"
     },
     "dependencies": {
         "anser": "2.1.1",

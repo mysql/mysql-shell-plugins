@@ -57,10 +57,10 @@ if (fs.existsSync(join(baseDir, "screenshots"))) {
                 const img = document.createElement("img");
                 img.src = "screenshots/" + file;
                 for (let j = 0; j <= failedDivs.length - 1; j++) {
-                    if (failedDivs[j].querySelector("div.test-title")!.textContent!.toLowerCase()
+                    if (failedDivs[j].querySelector("div.test-title").textContent.toLowerCase()
                         .replace(/\s/g, "_") === domTestName) {
                         if (!failedDivs[j].querySelector("div.failureMessages img")) {
-                            failedDivs[j].querySelector("div.failureMessages")!.appendChild(img);
+                            failedDivs[j].querySelector("div.failureMessages").appendChild(img);
                         }
                     }
                 }
@@ -74,10 +74,10 @@ if (fs.existsSync(join(baseDir, "screenshots"))) {
 const refDivs = document.querySelectorAll("div.failed, div.pending");
 //Mark bugs on skipped tests
 for (let i=0; i <= refDivs.length-1; i++) {
-    const suite = refDivs[i].querySelector(".test-suitename")!.textContent;
-    const title = refDivs[i].querySelector(".test-title")!.textContent;
+    const suite = refDivs[i].querySelector(".test-suitename").textContent;
+    const title = refDivs[i].querySelector(".test-title").textContent;
     if (!refDivs[i].querySelector("a") || !refDivs[i].querySelector("b")) {
-        let codeLines: string[] = [];
+        let codeLines = [];
 
         switch(suite) {
             case "Login":
@@ -113,12 +113,15 @@ for (let i=0; i <= refDivs.length-1; i++) {
 
         let text = "";
         for (let y=0; y <= codeLines.length-1; y++) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             if (codeLines[y].indexOf(String(title)) !== -1) {
                 const breakLine1 = document.createElement("br");
                 const breakLine2 = document.createElement("br");
                 if (!refDivs[i].querySelector("a")) {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
                     if (codeLines[y-1].indexOf("mybug.mysql.oraclecorp.com") !== -1) {
-                        text = codeLines[y-1].match(/bug:(.*)/)![1].trim();
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+                        text = codeLines[y-1].match(/bug:(.*)/)[1].trim();
                         const htmlEl = document.createElement("a");
                         htmlEl.href = text;
                         htmlEl.text = "---->  HAS A BUG  <-----";
@@ -141,8 +144,10 @@ for (let i=0; i <= refDivs.length-1; i++) {
                     }
                 }
                 if (!refDivs[i].querySelector("b")) {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
                     if (codeLines[y-1].indexOf("reason:") !== -1) {
-                        text = codeLines[y-1].match(/reason:(.*)/)![1].trim();
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+                        text = codeLines[y-1].match(/reason:(.*)/)[1].trim();
                         const htmlEl = document.createElement("b");
                         htmlEl.textContent = `Skipped Reason: ${text}`;
 
