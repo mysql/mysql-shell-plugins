@@ -22,10 +22,13 @@
  */
 
 .msg.codeEditor {
-    /* Restore selection ability. Very important for Safari. */
-    user-select: text !important;
     --loading-progress-color: gray;
     --waiting-progress-color: gray;
+}
+
+.msg.monaco-editor.codeEditor {
+    /* Restore selection ability. Very important for Safari. */
+    user-select: text;
 }
 
 .msg.editorHost {

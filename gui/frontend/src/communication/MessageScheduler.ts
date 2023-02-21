@@ -105,12 +105,10 @@ export class MessageScheduler {
     protected socket?: WebSocket;
 
     private debugging = false;
-
-    private connectionEstablished = false;
-    private autoReconnecting = false;
     private disconnecting = false;
 
     private reconnectTimer: ReturnType<typeof setTimeout> | null;
+    private reconnectTimeout = 1000; // In milliseconds.
 
     private ongoingRequests = new Map<string, { protocolType: keyof IProtocolResults; }>();
 
@@ -137,7 +135,7 @@ export class MessageScheduler {
      */
     public get isConnected(): boolean {
         if (this.socket) {
-            return this.connectionEstablished && this.socket.readyState === this.socket.OPEN;
+            return this.socket.readyState === this.socket.OPEN;
         }
 
         return false;
@@ -170,24 +168,24 @@ export class MessageScheduler {
             this.socket.readyState === this.socket.CONNECTING)) {
             return Promise.resolve();
         } else {
-            options.url.protocol = options.url.protocol.replace("http", "ws"); // ws or wss
-            options.url.pathname = "ws1.ws";
+            const target = new URL(options.url);
+            target.protocol = options.url.protocol.replace("http", "ws"); // ws or wss
+            target.pathname = "ws1.ws";
 
             /* istanbul ignore next */
             if (appParameters.inDevelopment) {
-                options.url.port = "8000";
+                target.port = "8000";
             }
 
             return new Promise((resolve, reject) => {
-                const socket = this.createWebSocket(options);
+                const socket = this.createWebSocket(target, options);
 
-                socket.addEventListener("close", this.onClose);
+                socket.addEventListener("close", this.onClose.bind(this, options));
                 socket.addEventListener("message", this.onMessage);
                 socket.addEventListener("open", this.onOpen.bind(this, resolve));
-                socket.addEventListener("error", this.onError.bind(this, reject));
+                socket.addEventListener("error", this.onError.bind(this, options, reject));
 
                 this.socket = socket;
-
             });
         }
     }
@@ -261,12 +259,14 @@ export class MessageScheduler {
     /**
      * Creates a web socket for the given options.
      *
+     * @param target The endpoint to connect the socket to.
      * @param options Details for the connection.
      *
      * @returns A new websocket instance.
      */
-    protected createWebSocket(options: IConnectionOptions): WebSocket {
-        return new WebSocket(options.url.toString());
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected createWebSocket(target: URL, options: IConnectionOptions): WebSocket {
+        return new WebSocket(target);
     }
 
     /**
@@ -408,23 +408,12 @@ export class MessageScheduler {
      * @param resolve The resolver function to signal when the socket connection is available.
      */
     private onOpen = (resolve: (value: void | PromiseLike<void>) => void): void => {
-        if (this.autoReconnecting) {
-            this.autoReconnecting = false;
-
-            // TODO: convert this error message to a message toast.
-            void requisitions.execute("showError", [
-                "Connection Recovering",
-                "The connection was automatically re-establish after a failure.",
-            ]);
-        }
-
         if (this.reconnectTimer) {
-            // Clear the timer for the disconnection message, since the connection is back.
             clearTimeout(this.reconnectTimer);
             this.reconnectTimer = null;
         }
+        this.reconnectTimeout = 1000;
 
-        this.connectionEstablished = true;
         void requisitions.execute("socketStateChanged", true).then(() => {
             resolve();
         });
@@ -434,52 +423,52 @@ export class MessageScheduler {
     /**
      * Called when the socket is closed or failed to open. Unfortunately, the given close code is always the same
      * (1006) and the close reason is always empty.
+     *
+     * @param options The options used to open the websocket. Needed for automatic reconnect.
      */
-    private onClose = (): void => {
-        const wasConnected = this.connectionEstablished;
-
-        this.connectionEstablished = false;
-        this.autoReconnecting = false;
-
+    private onClose = (options: IConnectionOptions): void => {
         webSession.clearSessionData();
         void requisitions.execute("socketStateChanged", false);
 
         if (!this.disconnecting && !this.debugging) {
-            if (wasConnected) {
-                if (this.reconnectTimer) {
-                    clearTimeout(this.reconnectTimer);
-                }
-
-                // Show the disconnection error only after 3 seconds, to allow automatic reconnection without disturbing
-                // the user (which can also happen when the computer went to sleep).
-                this.reconnectTimer = setTimeout(() => {
-                    this.reconnectTimer = null;
-                    void requisitions.execute("showError", [
-                        "Browser Connection Error",
-                        "The connection was interrupted unexpectedly. An automatic reconnection failed, but the " +
-                        "application will continue trying to reconnect.",
-                    ]);
-                }, 3000);
+            if (this.reconnectTimer) {
+                clearTimeout(this.reconnectTimer);
             }
+
+            this.reconnectTimer = setTimeout(() => {
+                // Do not clear the timer variable here as indicator in case we need another reconnection attempt.
+                void this.connect(options);
+            }, this.reconnectTimeout);
         }
     };
 
     /**
      * Called when an error occurred in the socket connection.
      *
+     * @param options The options used to open the websocket. Needed for automatic reconnect.
      * @param reject The reject function to call to signal that the connection had a failure to open.
      * @param event Event that gives more info about the error.
      */
-    private onError = (reject: (reason?: string) => void, event: Event): void => {
+    private onError = (options: IConnectionOptions, reject: (reason?: string) => void, event: Event): void => {
         if ("message" in event) {
             reject(event.message as string);
         } else {
             reject(String(event));
         }
 
+        this.reconnectTimeout *= 2;
+        if (this.reconnectTimer) {
+            // This was a automatic reconnection attempt and failed. So, try again with a higher
+            // timeout value.
+            this.reconnectTimer = setTimeout(() => {
+                void this.connect(options);
+            }, this.reconnectTimeout);
+        }
+
         void requisitions.execute("showError", [
             "Communication Error",
-            "Could not establish a connection to the backend.",
+            `Could not establish a connection to the backend. Trying to reconnect in ` +
+            `${this.reconnectTimeout / 1000} seconds.`,
         ]);
     };
 

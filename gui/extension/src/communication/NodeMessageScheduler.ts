@@ -33,7 +33,7 @@ export class NodeMessageScheduler extends MessageScheduler {
         return new NodeMessageScheduler();
     }
 
-    protected createWebSocket(options: IConnectionOptions): WebSocket {
+    protected createWebSocket(target: URL, options: IConnectionOptions): WebSocket {
         let ca;
         if (options.shellConfigDir) {
             const caFile = join(options.shellConfigDir, "plugin_data/gui_plugin/web_certs/rootCA.crt");
@@ -43,6 +43,6 @@ export class NodeMessageScheduler extends MessageScheduler {
             }
         }
 
-        return new NodeWebSocket(options.url.toString(), { ca }) as unknown as WebSocket;
+        return new NodeWebSocket(target, { ca }) as unknown as WebSocket;
     }
 }

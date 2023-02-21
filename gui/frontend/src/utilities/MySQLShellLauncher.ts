@@ -397,9 +397,8 @@ export class MySQLShellLauncher {
                         const url = new URL(`${protocol}://${host}:${port}/` +
                             `?token=${this.launchDetails.singleUserToken}`);
 
-                        // Connect with a copy of the URL, because the URL will be modified in the connect() call.
                         const options = {
-                            url: new URL(url.href),
+                            url,
                             shellConfigDir: MySQLShellLauncher.getShellUserConfigDir(rootPath),
                         };
 
