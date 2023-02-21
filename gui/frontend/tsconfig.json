@@ -45,6 +45,7 @@
         "src/**/*.json",
         "vite.config.ts",
         "postcss.config.cjs",
+        "src/tests/e2e/postActions.mjs",
         // Needed here during build setup in vite.config.js.
         "package.json"
     ],
