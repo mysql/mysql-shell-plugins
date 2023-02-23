@@ -78,7 +78,7 @@
                 "description": "Other entities",
                 "children": {
                     "inherited-class": {
-                        "description": "Tthe superclass/baseclass name"
+                        "description": "The superclass/base class name"
                     },
                     "attribute-name": {
                         "description": "The name of an attribute (mainly in tags)"

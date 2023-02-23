@@ -3,6 +3,7 @@
     "words": [
         "antlr",
         "autocommit",
+        "autoincrement",
         "backends",
         "browserslist",
         "capath",
@@ -27,6 +28,7 @@
         "mixins",
         "mutator",
         "mutators",
+        "notnull",
         "ORDINALITY",
         "overscan",
         "pixi",
@@ -116,6 +118,7 @@
         "ciphersuites",
         "contextkey",
         "countryinfo",
+        "cutcopypaste",
         "datafiles",
         "dbconnections",
         "dbeditor",
@@ -175,6 +178,9 @@
     ],
     "ignorePaths": [
         ".eslintrc.json",
-        "src/parsing/mysql/data"
+        "src/parsing/mysql/data",
+        "src/parsing/SQLite/data",
+        "src/components/Theming/Preview/assets",
+        "src/components/Theming/assets"
     ]
 }

@@ -444,7 +444,8 @@ describe("Main pages", () => {
                 By.css(".title label"))).getText()).toBe("Communication Error");
 
             expect(await (await errorPanel.findElement(
-                By.css(".content label"))).getText()).toBe("Could not establish a connection to the backend.");
+                By.css(".content label"))).getText())
+                .toMatch(/Could not establish a connection to the backend. Trying to reconnect in (\d+) seconds/);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -462,7 +463,8 @@ describe("Main pages", () => {
                 By.css(".title label"))).getText()).toBe("Communication Error");
 
             expect(await (await errorPanel.findElement(
-                By.css(".content label"))).getText()).toBe("Could not establish a connection to the backend.");
+                By.css(".content label"))).getText())
+                .toMatch(/Could not establish a connection to the backend. Trying to reconnect in (\d+) seconds/);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -470,5 +472,3 @@ describe("Main pages", () => {
     });
 
 });
-
-

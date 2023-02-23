@@ -297,7 +297,6 @@
         "minimapSlider.activeBackground": "#64646465",
         "minimapSlider.background": "#64646425",
         "minimapSlider.hoverBackground": "#64646445",
-        "notebook.cellToolbarSeperator": "#80808059",
         "notebook.focusedCellIndicator": "#66AFE0",
         "notebook.outputContainerBackgroundColor": "#e4e6f1",
         "notificationCenter.border": "#3D3D42",

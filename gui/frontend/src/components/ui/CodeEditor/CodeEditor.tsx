@@ -849,7 +849,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             "&& !quickFixWidgetVisible";
 
         const blockBased = language === "msg";
-        editor.addAction({
+        this.disposables.push(editor.addAction({
             id: "executeCurrentAndAdvance",
             label: blockBased ? "Execute Block and Advance" : "Execute Script",
             keybindings: [KeyMod.CtrlCmd | KeyCode.Enter],
@@ -858,78 +858,120 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             run: () => {
                 this.executeCurrentContext({ advance: true });
             },
-        });
+        }));
 
-        editor.addAction({
+        this.disposables.push(editor.addAction({
             id: "executeCurrent",
             label: blockBased ? "Execute Block" : "Execute Script and Move Cursor",
             keybindings: [KeyMod.Shift | KeyCode.Enter],
             contextMenuGroupId: "2_execution",
             precondition,
             run: () => { return this.executeCurrentContext({}); },
-        });
+        }));
 
-        editor.addAction({
+        this.disposables.push(editor.addAction({
             id: "executeCurrentStatement",
             label: "Execute Current Statement",
             keybindings: [KeyMod.Shift | KeyMod.CtrlCmd | KeyCode.Enter],
             contextMenuGroupId: "2_execution",
             precondition,
             run: () => { return this.executeCurrentContext({ atCaret: true }); },
-        });
+        }));
 
         if (blockBased) {
-            editor.addAction({
+            this.disposables.push(editor.addAction({
                 id: "sendBlockUpdates",
                 label: "Update SQL in Original Source File",
                 keybindings: [KeyMod.CtrlCmd | KeyMod.Alt | KeyCode.KeyU],
                 contextMenuGroupId: "3_linked",
                 precondition,
                 run: () => { return this.runContextCommand("sendBlockUpdates"); },
-            });
+            }));
 
             // Special key handling for our blocks.
-            editor.addCommand(KeyCode.Backspace, this.handleBackspace, precondition);
-            editor.addCommand(KeyCode.Delete, this.handleDelete, precondition);
+            this.disposables.push(editor.addAction({
+                id: "deleteBackwards",
+                label: "Delete Backwards",
+                keybindings: [KeyCode.Backspace],
+                run: () => { this.handleBackspace(); },
+                precondition,
+            }));
+            this.disposables.push(editor.addAction({
+                id: "deleteForward",
+                label: "Delete Forward",
+                keybindings: [KeyCode.Delete],
+                run: () => { this.handleDelete(); },
+                precondition,
+            }));
 
-            editor.addAction({
+            this.disposables.push(editor.addAction({
                 id: "jumpToBlockStart",
                 label: "Move Cursor to the Start of the Current Statement Block",
                 keybindings: [KeyMod.WinCtrl | KeyMod.CtrlCmd | KeyCode.UpArrow],
                 contextMenuGroupId: "navigation",
                 precondition,
-                run: () => { return this.jumpToBlockStart(); },
-            });
+                run: () => { this.jumpToBlockStart(); },
+            }));
 
-            editor.addAction({
+            this.disposables.push(editor.addAction({
                 id: "jumpToBlockEnd",
                 label: "Move Cursor to the End of the Current Statement Block",
                 keybindings: [KeyMod.WinCtrl | KeyMod.CtrlCmd | KeyCode.DownArrow],
                 contextMenuGroupId: "navigation",
                 precondition,
-                run: () => { return this.jumpToBlockEnd(); },
-            });
+                run: () => { this.jumpToBlockEnd(); },
+            }));
         }
 
-        editor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyA, this.handleSelectAll, precondition);
+        this.disposables.push(editor.addAction({
+            id: "selectAll",
+            label: "Select All",
+            contextMenuGroupId: "9_cutcopypaste",
+            keybindings: [KeyMod.CtrlCmd | KeyCode.KeyA],
+            run: () => {
+                this.handleSelectAll();
+            },
+            precondition,
+        }));
 
         // In embedded mode some key combinations don't work by default. So we add handlers for them here.
         // Doing that always doesn't harm, as we do not trigger other actions than what they do normally.
-        editor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyV, () => {
-            editor.trigger("source", "editor.action.clipboardPasteAction", null);
-        });
+        this.disposables.push(editor.addAction({
+            id: "paste",
+            label: "Paste",
+            keybindings: [KeyMod.CtrlCmd | KeyCode.KeyV],
+            run: () => {
+                editor.trigger("source", "editor.action.clipboardPasteAction", null);
+            },
+        }));
 
-        editor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyC, () => {
-            editor.trigger("source", "editor.action.clipboardCopyAction", null);
-        });
+        this.disposables.push(editor.addAction({
+            id: "copy",
+            label: "Copy",
+            keybindings: [KeyMod.CtrlCmd | KeyCode.KeyC],
+            run: () => {
+                editor.trigger("source", "editor.action.clipboardCopyAction", null);
+            },
+        }));
 
-        editor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyX, () => {
-            editor.trigger("source", "editor.action.clipboardCutAction", null);
-        });
+        this.disposables.push(editor.addAction({
+            id: "cut",
+            label: "Cut",
+            keybindings: [KeyMod.CtrlCmd | KeyCode.KeyX],
+            run: () => {
+                editor.trigger("source", "editor.action.clipboardCutAction", null);
+            },
+        }));
 
-        editor.addCommand(KeyMod.CtrlCmd | KeyCode.Enter, () => {
-            editor.trigger("source", "acceptSelectedSuggestion", null);
-        }, "suggestWidgetVisible");
+        this.disposables.push(editor.addAction({
+            id: "acceptSelectedSuggestion",
+            label: "Accept Selected Suggestion",
+            keybindings: [KeyMod.CtrlCmd | KeyCode.Enter],
+            run: () => {
+                editor.trigger("source", "acceptSelectedSuggestion", null);
+            },
+            precondition: "suggestWidgetVisible",
+        }));
 
         this.disposables.push(editor);
         this.disposables.push(editor.onDidChangeCursorPosition((e: Monaco.ICursorPositionChangedEvent) => {
