@@ -293,11 +293,11 @@ export class MRSCommandHandler {
 
                             // TODO: refresh only the affected connection.
                             void commands.executeCommand("msg.refreshConnections");
-                            showMessageWithTimeout(`The Authentication App ${item.value.name} has been deleted.`);
+                            showMessageWithTimeout(`The Authentication User ${item.value.name} has been deleted.`);
                         }
                     }
                 } catch (reason) {
-                    void window.showErrorMessage(`Error deleting the Authentication App: ${String(reason)}`);
+                    void window.showErrorMessage(`Error deleting the Authentication User: ${String(reason)}`);
                 }
 
             }));
@@ -739,9 +739,9 @@ export class MRSCommandHandler {
                 if (term !== undefined) {
                     term.show();
                     term.sendText(
-                        `mysqlrouter_bootstrap ${connString} --mrs --directory ${routerConfigDir} ` +
-                        `--conf-set-option=http_server.ssl_cert=${path.join(certDir, "server.crt")} ` +
-                        `--conf-set-option=http_server.ssl_key=${path.join(certDir, "server.key")} ` +
+                        `mysqlrouter_bootstrap ${connString} --mrs --directory "${routerConfigDir}" ` +
+                        `"--conf-set-option=http_server.ssl_cert=${path.join(certDir, "server.crt")}" ` +
+                        `"--conf-set-option=http_server.ssl_key=${path.join(certDir, "server.key")}" ` +
                         `--conf-set-option=logger.level=DEBUG --conf-set-option=logger.sinks=consolelog`,
                         !waitAndClosedWhenFinished);
 
@@ -824,13 +824,40 @@ export class MRSCommandHandler {
                     }
 
                     if (term !== undefined) {
-                        const cmd = (start ? "start" : "stop") + (os.platform() === "win32" ? ".ps1" : ".sh");
+                        let cmd = (start ? "start" : "stop") + (os.platform() === "win32" ? ".ps1" : ".sh");
+                        cmd = path.join(routerConfigDir, cmd);
+
+                        if (cmd.includes(" ")) {
+                            if (os.platform() === "win32") {
+                                if (start) {
+                                    // Fix for broken mysqlrouter_bootstrap file generation for start.ps1
+                                    const buffer = fs.readFileSync(cmd, {encoding: "utf8", flag: "r"});
+                                    const regex = /"\s*-c (.*?)"/gm;
+                                    const matches = Array.from(buffer.matchAll(regex), (m) => {
+                                        return m[1];
+                                    });
+                                    if (matches.length > 0) {
+                                        const newParam = `'-c "${matches[0]}"'`;
+                                        const result = buffer.replace(regex, newParam);
+                                        fs.writeFileSync(cmd, result, {encoding: "utf8"});
+                                    }
+                                }
+
+                                // If there is a space in the path, ensure to add the PowerShell call operator (&)
+                                if (cmd.includes(" ")) {
+                                    cmd = "& \"" + cmd + "\"";
+                                }
+                            } else {
+                                cmd = "\"" + cmd + "\"";
+                            }
+                        }
+
                         term.show();
                         if (os.platform() === "win32") {
                             term.sendText("Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser", true);
                             term.sendText("clear", true);
                         }
-                        term.sendText(path.join(routerConfigDir, cmd), true);
+                        term.sendText(cmd, true);
                     }
                 } else {
                     if (start) {
@@ -1292,7 +1319,7 @@ export class MRSCommandHandler {
                 serviceId: service?.id ?? 0,
                 servicePath: service?.urlContextRoot ?? "/mrs",
                 hostName: service?.urlHostName,
-                protocols: service?.urlProtocol ?? ["HTTPS", "HTTP"],
+                protocols: service?.urlProtocol ?? ["HTTPS"],
                 isCurrent: !service || service.isCurrent === 1,
                 enabled: !service || service.enabled === 1,
                 comments: service?.comments ?? "",
