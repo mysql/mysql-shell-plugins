@@ -339,7 +339,12 @@ export class ThemeManager {
                 type: definitions.type,
                 values: definitions.json,
             };
-            void requisitions.execute("themeChanged", data);
+
+            // Delay the notification to ensure registered listeners are ready to receive it.
+            // This is especially important for the app startup.
+            setTimeout((): void => {
+                void requisitions.execute("themeChanged", data);
+            }, 0);
         }
     }
 
