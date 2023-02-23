@@ -44,15 +44,16 @@ To quickly get the MRS Notes Examples working, please feel free to follow this g
 The following steps need to be taken to setup, build and deploy the MRS Notes example project on the MySQL REST Service.
 
 1. Setup and Configure a MySQL REST Service deployment.
-2. Deploy the mrsNotes MySQL database schema `examples/mrs_notes/db_schema/mrs_notes.sql`
-3. Load the MRS schema dump `examples/mrs_notes/mrs_schema/mrsNotes.mrs.json`
-4. Please select one of the example apps below and follow the steps to build and deploy the app.
+2. Create a new MRS service.
+3. Deploy the mrsNotes MySQL database schema `examples/mrs_notes/db_schema/mrs_notes.sql`
+4. Load the MRS schema dump into the MRS service `examples/mrs_notes/mrs_schema/mrsNotes.mrs.json`
+5. Please select one of the example apps below and follow the steps to build and deploy the app.
 
 #### Deploying the MrsNotesJS JavaScript Example
 
 The MrsNotesJS project implements a minimal JavaScript demo app that allows each user to store his own notes.
 
-1. Save the `examples/mrs_notes/app_code/MrsNotesJS` project to disk and open it with VS Code.
+1. Save the following project to disk and open it with VS Code `examples/mrs_notes/app_code/MrsNotesJS`
 2. Right click on the `src` folder in the Folders view and select `Upload Folder to MySQL REST Service` from the popup menu.
 3. Set the path the app should be using and click `Upload` to upload the files.
 4. Open a web browser and access the path specified in the previous step to open the app.
@@ -61,12 +62,12 @@ The MrsNotesJS project implements a minimal JavaScript demo app that allows each
 
 The MrsNotesTS project implements a full TypeScript demo app that allows sharing of notes between users.
 
-1. Save the `examples/mrs_notes/app_code/MrsNotesTS` project to disk and open it with VS Code.
+1. Save the following project to disk and open it with VS Code `examples/mrs_notes/app_code/MrsNotesTS`
 2. After the project folder has been opened in VS Code, set the focus to the TERMINAL tab and enter `npm install` to install the required node modules
 3. In the NPM Script View, run the `package.json/build` command that will create a folder called `dist` that contains all files for deployment.
-4. Right click on the `dist` folder in the Folders view.
-5. Set the path the app should be using and click `Upload` to upload the files.
-6. Open a web browser and access the path specified in the previous step to open the app.
+4. Right click on the `dist` folder in the Folders view and select `Upload Folder to MySQL REST Service` from the popup menu.
+5. In the MRS Static Content Set dialog set the `Request Path` the app should be using, e.g. `/app` and click `Upload` to upload the files to the MRS service.
+6. Open a web browser and access the full path specified in the previous step to open the app, e.g. `https://localhost:8443/myService/app/index.html`
 
 ### MRS Setup and Configuration for the MRS Notes Examples
 

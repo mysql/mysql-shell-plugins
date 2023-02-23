@@ -477,7 +477,7 @@ exports[`Theme editor lists testing Render test 1`] = `
                     },
                     {
                       "children": undefined,
-                      "color": "#A6A6A6",
+                      "color": "#595959",
                       "description": "Placeholder foreground color",
                       "id": "input.placeholderForeground",
                       "preview": true,
@@ -5974,7 +5974,7 @@ exports[`Theme editor lists testing Render test 1`] = `
                       },
                       {
                         "children": undefined,
-                        "color": "#A6A6A6",
+                        "color": "#595959",
                         "description": "Placeholder foreground color",
                         "id": "input.placeholderForeground",
                         "preview": true,

@@ -2482,9 +2482,10 @@ Column context override
                 <ol type="1">
                 <li>Setup and Configure a MySQL REST Service
                 deployment.</li>
+                <li>Create a new MRS service.</li>
                 <li>Deploy the mrsNotes MySQL database schema
                 <code>examples/mrs_notes/db_schema/mrs_notes.sql</code></li>
-                <li>Load the MRS schema dump
+                <li>Load the MRS schema dump into the MRS service
                 <code>examples/mrs_notes/mrs_schema/mrsNotes.mrs.json</code></li>
                 <li>Please select one of the example apps below and
                 follow the steps to build and deploy the app.</li>
@@ -2497,9 +2498,9 @@ Column context override
                 JavaScript demo app that allows each user to store his
                 own notes.</p>
                 <ol type="1">
-                <li>Save the
-                <code>examples/mrs_notes/app_code/MrsNotesJS</code>
-                project to disk and open it with VS Code.</li>
+                <li>Save the following project to disk and open it with
+                VS Code
+                <code>examples/mrs_notes/app_code/MrsNotesJS</code></li>
                 <li>Right click on the <code>src</code> folder in the
                 Folders view and select
                 <code>Upload Folder to MySQL REST Service</code> from
@@ -2516,9 +2517,9 @@ Column context override
                 <p>The MrsNotesTS project implements a full TypeScript
                 demo app that allows sharing of notes between users.</p>
                 <ol type="1">
-                <li>Save the
-                <code>examples/mrs_notes/app_code/MrsNotesTS</code>
-                project to disk and open it with VS Code.</li>
+                <li>Save the following project to disk and open it with
+                VS Code
+                <code>examples/mrs_notes/app_code/MrsNotesTS</code></li>
                 <li>After the project folder has been opened in VS Code,
                 set the focus to the TERMINAL tab and enter
                 <code>npm install</code> to install the required node
@@ -2528,11 +2529,16 @@ Column context override
                 a folder called <code>dist</code> that contains all
                 files for deployment.</li>
                 <li>Right click on the <code>dist</code> folder in the
-                Folders view.</li>
-                <li>Set the path the app should be using and click
-                <code>Upload</code> to upload the files.</li>
-                <li>Open a web browser and access the path specified in
-                the previous step to open the app.</li>
+                Folders view and select
+                <code>Upload Folder to MySQL REST Service</code> from
+                the popup menu.</li>
+                <li>In the MRS Static Content Set dialog set the
+                <code>Request Path</code> the app should be using,
+                e.g. <code>/app</code> and click <code>Upload</code> to
+                upload the files to the MRS service.</li>
+                <li>Open a web browser and access the full path
+                specified in the previous step to open the app,
+                e.g. <code>https://localhost:8443/myService/app/index.html</code></li>
                 </ol>
                 <h3 data-number="7.1.3"
                 id="mrs-setup-and-configuration-for-the-mrs-notes-examples"><span

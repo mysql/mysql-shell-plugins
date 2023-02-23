@@ -71,10 +71,11 @@ export class MrsServiceDialog extends ValueDialogBase {
                 },
                 hostName: {
                     type: "text",
-                    caption: "Host Name",
+                    caption: "Host Name Filter",
                     value: request.values?.hostName as string,
                     horizontalSpan: 3,
                     description: "If specified, only requests for this host will served.",
+                    placeholder: "<Host Name Filter:Port>",
                 },
                 protocols: {
                     type: "set",

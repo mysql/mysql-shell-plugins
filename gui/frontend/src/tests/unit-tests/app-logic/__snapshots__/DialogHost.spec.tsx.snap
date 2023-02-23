@@ -843,7 +843,7 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
             class="msg label valueTitle"
             data-tooltip="expand"
           >
-            Host Name
+            Host Name Filter
           </label>
           <div
             class="msg container fixedScrollbar inputWithProgress"
@@ -852,6 +852,7 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
             <input
               class="msg input valueEditor"
               id="hostName"
+              placeholder="<Host Name Filter:Port>"
               spellcheck="true"
               type="text"
             />
