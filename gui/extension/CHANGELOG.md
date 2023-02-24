@@ -1,5 +1,13 @@
 # MySQL Shell for VS Code Change Log
 
+## Changes in 1.8.1+8.0.32
+
+### Fixes
+
+- Fixed a bug that prevented MySQL Router from starting when there was a space in the absolute file path of the config director
+- On the MRS Service dialog the Host Name label was changed to Host Name Filter and a placeholder was put in place to make it more clear that this field should be left empty unless specific host filtering should be applied
+- Improved MRS documentation to be more explicit on how to deploy the mrsNotes demo app
+
 ## Changes in 1.8.0+8.0.32
 
 ### Additions
