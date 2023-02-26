@@ -30,6 +30,8 @@ import {
 
 import { execute } from "../runtime/execute";
 
+import { Buffer } from "buffer";
+
 const sourceMapSignature = "//# sourceMappingURL=data:application/json;base64";
 
 const worker = self as unknown as PrivateWorker;
