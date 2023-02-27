@@ -1,5 +1,12 @@
 # MySQL Shell for VS Code Change Log
 
+## Changes in 1.8.2+8.0.32
+
+### Fixes
+
+- Fixed a regression that broke the result set display for binary data and the copying of quoted fields
+- DB Notebook: Fixed displaying of multiple results in generated from the same operation (i.e. execution of stored procedures)
+
 ## Changes in 1.8.1+8.0.32
 
 ### Fixes
