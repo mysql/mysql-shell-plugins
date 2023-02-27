@@ -54,3 +54,23 @@ def get_router(session, router_id, active_when_seen_within=10):
         return result[0]
 
     return None
+
+def add_router(session, router_name, address, product_name=None, version=None, attributes=None, options=None):
+    sql = """
+        INSERT INTO `mysql_rest_service_metadata`.`router`
+            (router_name, address, product_name, version, attributes, options)
+        VALUES
+            (?, ?, ?, ?, ?, ?)
+    """
+    params = [router_name, address, product_name, version, attributes, options]
+
+    return core.MrsDbExec(sql, params).exec(session).id
+
+
+def delete_router(session, router_id):
+    sql = """
+        DELETE
+        FROM `mysql_rest_service_metadata`.`router`
+        WHERE id = ?
+    """
+    core.MrsDbExec(sql, [router_id]).exec(session)

@@ -777,4 +777,15 @@ export class ShellInterfaceMrs {
         return response.result;
     }
 
+    public async deleteRouter(routerId: number): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsDeleteRouter,
+            parameters: {
+                args: {
+                    routerId,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+    }
 }

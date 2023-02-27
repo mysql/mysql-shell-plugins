@@ -36,6 +36,7 @@ import { MrsContentSetTreeItem } from "./tree-providers/ConnectionsTreeProvider/
 import { MrsSchemaTreeItem } from "./tree-providers/ConnectionsTreeProvider/MrsSchemaTreeItem";
 import { MrsServiceTreeItem } from "./tree-providers/ConnectionsTreeProvider/MrsServiceTreeItem";
 import { MrsTreeItem } from "./tree-providers/ConnectionsTreeProvider/MrsTreeItem";
+import { MrsRouterTreeItem }  from "./tree-providers/ConnectionsTreeProvider/MrsRouterTreeItem";
 import { SchemaMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaMySQLTreeItem";
 import { showMessageWithTimeout, showModalDialog } from "./utilities";
 import { openSqlEditorSessionAndConnection, openSqlEditorConnection } from "./utilitiesShellGui";
@@ -102,6 +103,26 @@ export class MRSCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.mrs.docs.service", () => {
             this.browseDocs("rest-service-properties");
         }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.deleteRouter",
+            async (item?: MrsRouterTreeItem) => {
+                if (item) {
+                    const answer = await window.showInformationMessage(
+                        `Are you sure the MRS router ${item.value.address} should be deleted?`, "Yes", "No");
+
+                    if (answer === "Yes") {
+                        try {
+                            await this.startStopLocalRouter(context, (item as unknown) as MrsTreeItem, false);
+                            await item.entry.backend?.mrs.deleteRouter(item.value.id);
+                            await commands.executeCommand("msg.refreshConnections");
+                            showMessageWithTimeout("The MRS service has been deleted successfully.");
+                        } catch (error) {
+                            void window.showErrorMessage(`Error adding the MRS service: ${String(error)}`);
+                        }
+                    }
+                }
+            }));
+
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.addService", (item?: MrsTreeItem) => {
             if (item?.entry.backend) {
