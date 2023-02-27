@@ -4,8 +4,8 @@ await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
     "command": "guitest.do_print",
-    "args": {"data": "Testing print callback"}
-},[
+    "args": { "data": "Testing print callback" }
+}, [
     {
         "request_state":
         {
@@ -37,15 +37,15 @@ await ws.sendAndValidate({
     "request_id": ws.generateRequestId(),
     "command": "guitest.do_fail",
     "args": {}
-},[
+}, [
     {
         "request_state":
-            {
-                "type": "ERROR",
-                "msg": "guitest.do_fail: Something failed\n",
-                "source": "MSG",
-                "code": 1
-            },
+        {
+            "type": "ERROR",
+            "msg": "guitest.do_fail: Something failed\n",
+            "source": "MSG",
+            "code": 1
+        },
         "request_id": ws.lastGeneratedRequestId
     }
 ])
@@ -57,8 +57,8 @@ await ws.sendAndValidate({
     "request": "execute",
     "request_id": originalRequestId,
     "command": "guitest.do_prompt",
-    "args": {"prompt": "Gimme some data:"}
-},[
+    "args": { "prompt": "Gimme some data:" }
+}, [
     {
         "request_state": {
             "type": "PENDING",
@@ -108,8 +108,8 @@ await ws.sendAndValidate({
     "request": "execute",
     "request_id": originalRequestId,
     "command": "guitest.do_prompt",
-    "args": {"prompt": "Gimme some data:"}
-},[
+    "args": { "prompt": "Gimme some data:" }
+}, [
     {
         "request_state": {
             "type": "PENDING",
@@ -148,8 +148,8 @@ await ws.sendAndValidate({
     "request": "execute",
     "request_id": originalRequestId,
     "command": "guitest.do_prompt_password",
-    "args": {"prompt": "Gimme a password:"}
-},[
+    "args": { "prompt": "Gimme a password:" }
+}, [
     {
         "request_state": {
             "type": "PENDING",
@@ -200,8 +200,8 @@ await ws.sendAndValidate({
     "request": "execute",
     "request_id": originalRequestId,
     "command": "guitest.do_prompt_password",
-    "args": {"prompt": "Gimme a password:"}
-},[
+    "args": { "prompt": "Gimme a password:" }
+}, [
     {
         "request_state": {
             "type": "PENDING",

@@ -105,12 +105,18 @@ def add_connection(ws):
     }, [
         {
             "request_id": ws.lastGeneratedRequestId,
-            "request_state": {"type": "OK", "msg": ws.ignore},
+            "request_state": {"type": "PENDING", "msg": ws.ignore},
             "result": ws.matchRegexp("\\d+")
         }
     ])
 
     connection_id = ws.lastResponse["result"]
+
+    ws.validateLastResponse({
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {"type": "OK", "msg": ws.ignore},
+        "done": True
+    })
 
     yield connection_id
 
@@ -145,7 +151,7 @@ def sqlide_session(ws, add_connection):
     }, [
         {
             "request_id": ws.lastGeneratedRequestId,
-            "request_state": {"type": "OK", "msg": ""},
+            "request_state": {"type": "PENDING", "msg": ""},
             "result": {
                 "module_session_id": ws.matchRegexp("[a-f0-9]{8}-[a-f0-9]{4}-1[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$")
             }
@@ -153,6 +159,12 @@ def sqlide_session(ws, add_connection):
     ])
 
     module_session_id = ws.lastResponse['result']['module_session_id']
+
+    ws.validateLastResponse({
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {"type": "OK", "msg": ""},
+        "done": True
+    })
 
     ws.sendAndValidate({
         "request": "execute",
@@ -164,7 +176,7 @@ def sqlide_session(ws, add_connection):
         }
     }, [{
         "request_id": ws.lastGeneratedRequestId,
-        "request_state": {"type": "OK", "msg": "Connection was successfully opened."},
+        "request_state": {"type": "PENDING", "msg": "Connection was successfully opened."},
         "result":
         {
             "module_session_id": module_session_id,
@@ -175,6 +187,13 @@ def sqlide_session(ws, add_connection):
             },
             "default_schema": "information_schema"
         }
+    }, {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "done": True
     }
     ])
 

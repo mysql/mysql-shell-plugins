@@ -1,23 +1,29 @@
 ws.tokens["profileId"] = 1
 
 
-await ws.send({
+await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
     "command": "gui.sqleditor.start_session",
     "args": {}
-})
-
-ws.validateLastResponse({
+}, [{
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ""
     },
     "result": {
         "module_session_id": ws.matchRegexp("[a-f0-9]{8}-[a-f0-9]{4}-1[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$")
     }
-})
+}, {
+    "request_id": ws.lastGeneratedRequestId,
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "done": true
+}
+])
 
 
 await ws.send({
@@ -41,13 +47,22 @@ await ws.send({
 ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ws.ignore
     },
     "result": ws.matchRegexp("\\d+")
 })
 
 ws.tokens["connectionId"] = ws.lastResponse["result"]
+
+ws.validateLastResponse({
+    "request_id": ws.lastGeneratedRequestId,
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "done": true
+})
 
 
 await ws.send({

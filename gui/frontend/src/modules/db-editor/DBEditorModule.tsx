@@ -1022,16 +1022,17 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         try {
             // Generate an own request ID, as we may need that for reply requests from the backend.
             const requestId = uuid();
-            const data = await backend.openConnection(connection.id, requestId, ((response, requestId) => {
+            let connectionData: IOpenConnectionData | undefined;
+            await backend.openConnection(connection.id, requestId, ((response, requestId) => {
                 if (!ShellPromptHandler.handleShellPrompt(response.result as IShellPasswordFeedbackRequest, requestId,
                     backend, "Provide Password")) {
-
                     const raw = response as unknown as IGenericResponse;
                     this.setProgressMessage(raw.requestState.msg);
+                    connectionData = response.result as IOpenConnectionData;
                 }
             }));
 
-            if (!data) {
+            if (!connectionData) {
                 return false;
             }
 
@@ -1039,7 +1040,6 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
             // Once the connection is open we can create the editor.
             let currentSchema = "";
-            const connectionData = data as IOpenConnectionData;
             if (connectionData.currentSchema) {
                 currentSchema = connectionData.currentSchema;
             } else if (connection.dbType === DBType.MySQL) {

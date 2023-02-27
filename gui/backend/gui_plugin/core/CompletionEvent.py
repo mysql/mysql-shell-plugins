@@ -31,11 +31,11 @@ class CompletionEvent(threading.Event):
         self._errors = []
         self._cancelled = False
 
-    def add_error(self, error: str) -> None:
+    def add_error(self, error: Exception) -> None:
         """Adds an error to the completion event for the current task.
 
         Args:
-            error (str): The error message
+            error (Exception): The error
         """
         self._errors.append(error)
         self.set()
@@ -43,10 +43,10 @@ class CompletionEvent(threading.Event):
     @property
     def has_errors(self) -> bool:
         """Returns True if the completion event has any errors."""
-        return len(self._errors) == 0
+        return len(self._errors) != 0
 
-    def get_errors(self) -> List:
-        """Returns a list of all errors messages."""
+    def get_errors(self) -> List[Exception]:
+        """Returns a list of all errors."""
         return self._errors
 
     def set_cancelled(self) -> None:

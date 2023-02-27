@@ -58,7 +58,7 @@ ws.sendAndValidate({
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
-        "done": True
+        "done": true
     }
 ])
 
@@ -92,7 +92,7 @@ ws.sendAndValidate({
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
-        "done": True
+        "done": true
     }
 ])
 
@@ -126,7 +126,7 @@ ws.sendAndValidate({
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
-        "done": True
+        "done": true
     }
 ])
 
@@ -160,7 +160,7 @@ ws.sendAndValidate({
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
-        "done": True
+        "done": true
     }
 ])
 
@@ -194,7 +194,7 @@ ws.sendAndValidate({
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
-        "done": True
+        "done": true
     }
 ])
 
@@ -228,7 +228,7 @@ ws.sendAndValidate({
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
-        "done": True
+        "done": true
     }
 ])
 
@@ -262,6 +262,6 @@ ws.sendAndValidate({
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
-        "done": True
+        "done": true
     }
 ])

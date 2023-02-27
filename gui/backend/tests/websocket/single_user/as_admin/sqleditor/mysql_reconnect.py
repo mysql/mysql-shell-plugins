@@ -96,7 +96,7 @@ ws.sendAndValidate({
         {
             "request_state": {"type": "OK", "msg": ""},
             "request_id": ws.lastGeneratedRequestId,
-            "done": True
+            "done": true
         }
 ]
 )
@@ -131,7 +131,7 @@ ws.sendAndValidate({
     {
         "request_state": {"type": "OK", "msg": ""},
         "request_id": ws.lastGeneratedRequestId,
-        "done": True
+        "done": true
     }
 ])
 
@@ -153,7 +153,7 @@ ws.sendAndValidate({
 },
     [
         {
-            "request_state": {"type": "OK", "msg": "Connection was successfully opened."},
+            "request_state": {"type": "PENDING", "msg": "Connection was successfully opened."},
             "result":
             {
                 "module_session_id": ws.tokens["module_session_id"],
@@ -165,7 +165,15 @@ ws.sendAndValidate({
                 "default_schema": connection_options["schema"],
             },
             "request_id": ws.lastGeneratedRequestId
-        }
+        },
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "done": True
+    }
 ]
 )
 

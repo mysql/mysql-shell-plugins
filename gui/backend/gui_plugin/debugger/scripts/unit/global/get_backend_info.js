@@ -8,7 +8,7 @@ await ws.send({
 ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ""
     },
     "result": {
@@ -22,4 +22,13 @@ ws.validateLastResponse({
         "server_patch": ws.matchRegexp("\\d+"),
         "server_distribution": ws.ignore
     }
+})
+
+ws.validateLastResponse({
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "request_id": ws.lastGeneratedRequestId,
+    "done": true
 })

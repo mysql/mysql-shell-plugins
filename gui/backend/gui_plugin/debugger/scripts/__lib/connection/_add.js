@@ -30,7 +30,7 @@ await ws.sendAndValidate({
     {
         "request_id": ws.lastGeneratedRequestId,
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ws.ignore
         },
         "result": ws.matchRegexp("\\d+")
@@ -38,3 +38,12 @@ await ws.sendAndValidate({
 ])
 
 _this.result["connection_id"] = ws.lastResponse["result"]
+
+await ws.validateLastResponse({
+    "request_id": ws.lastGeneratedRequestId,
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "done": true
+})

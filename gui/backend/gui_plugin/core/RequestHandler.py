@@ -45,7 +45,7 @@ class RequestHandler(Thread):
       responses to the caller.
     """
 
-    def __init__(self, request_id, func, kwargs, web_handler, confirm_complete, lock_session=False):
+    def __init__(self, request_id, func, kwargs, web_handler, lock_session=False):
         super().__init__()
         self._request_id = request_id
         self._func = func
@@ -53,13 +53,13 @@ class RequestHandler(Thread):
         self._web_handler = web_handler
         self._text_cache = None
         self._thread_context = None
-        self._confirm_complete = confirm_complete
         self._lock_session = lock_session
 
         # Prompt handling members
         self._prompt_event = None
         self._prompt_replied = False
         self._prompt_reply = None
+        self._confirm_complete = True
 
     def get_context(self):
         return self._thread_context
@@ -163,20 +163,25 @@ class RequestHandler(Thread):
                 self._kwargs["session"].release()
 
         if result is not None:
-            self.web_handler.send_command_response(
-                self.request_id, result)
+            if isinstance(result, dict) and "request_state" in result:
+                self._confirm_complete = result["request_state"]["type"] != "ERROR"
+                self.web_handler.send_command_response(self.request_id, result)
+            else:
+                self.web_handler.send_command_response(
+                    self.request_id, Response.pending(msg="", args={"result": result}))
         elif hasattr(self._thread_context, "completion_event"):
-            if not self._thread_context.completion_event.has_errors:
+            if self._thread_context.completion_event.has_errors:
+                self._confirm_complete = False
                 for error in self._thread_context.completion_event.get_errors():
                     self.web_handler.send_command_response(
-                        self.request_id, Response.error(error))
+                        self.request_id, Response.exception(error))
             elif self._thread_context.completion_event.is_cancelled:
+                self._confirm_complete = False
                 self.web_handler.send_command_response(
                     self.request_id, Response.cancelled(""))
-            else:
-                self.web_handler.send_command_done(self.request_id)
-        elif self._confirm_complete:
-            # This is the case of any plugin function that does not fail but
-            # does not return anything, we should return an OK response anyway
-            # to confirm it completed
+
+        # This is the case of any plugin function that does not fail but
+        # does not return anything, we should return an OK response anyway
+        # to confirm it completed
+        if self._confirm_complete:
             self.web_handler.send_command_done(self.request_id)

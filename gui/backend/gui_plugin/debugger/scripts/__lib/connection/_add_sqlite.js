@@ -11,6 +11,24 @@ var _this = lib.connection.add_sqlite
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
+    "command": "gui.core.delete_file",
+    "args": {
+        "path": ws.tokens["current_test_name"] + ".sqlite3"
+    }
+}, [
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
     "command": "gui.core.create_file",
     "args": {
         "path": ws.tokens["current_test_name"] + ".sqlite3"
@@ -19,14 +37,24 @@ await ws.sendAndValidate({
     {
         "request_id": ws.lastGeneratedRequestId,
         "request_state": {
-            "msg": ws.matchRegexp("|The supplied file already exists\.")
-        }
+            "type": "PENDING",
+            "msg": ""
+        },
+        "result": ws.tokens["current_test_name"] + ".sqlite3",
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
     }
 ])
 
 // ws.tokens[subScriptName] = {
 lib.connection.add.params = {
-        "connection": {
+    "connection": {
         "db_type": "Sqlite",
         "caption": "This is a test database",
         "description": "This is a test database description",

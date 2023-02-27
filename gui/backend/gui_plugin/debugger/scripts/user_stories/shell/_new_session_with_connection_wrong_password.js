@@ -26,7 +26,7 @@ await ws.sendAndValidate({
     {
         "request_id": ws.lastGeneratedRequestId,
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ws.ignore
         },
         "result": ws.matchRegexp("\\d+")
@@ -34,6 +34,16 @@ await ws.sendAndValidate({
 ])
 
 ws.tokens["db_connection_id"] = ws.lastResponse["result"]
+
+ws.validateLastResponse({
+    "request_id": ws.lastGeneratedRequestId,
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "done": true
+})
+
 ws.tokens["uri"] = default_mysql_options.user + '@' + default_mysql_options.host + ':' + default_mysql_options.portStr
 
 request_id = ws.generateRequestId()

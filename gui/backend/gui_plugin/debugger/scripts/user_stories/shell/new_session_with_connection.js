@@ -35,7 +35,7 @@ await ws.sendAndValidate({
     {
         "request_id": ws.lastGeneratedRequestId,
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ws.ignore
         },
         "result": ws.matchRegexp("\\d+")
@@ -43,6 +43,15 @@ await ws.sendAndValidate({
 ])
 
 ws.tokens["db_connection_id"] = ws.lastResponse["result"]
+
+ws.validateLastResponse({
+    "request_id": ws.lastGeneratedRequestId,
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "done": true
+})
 
 
 
@@ -62,7 +71,7 @@ await ws.sendAndValidate({
         "request_state": { "type": "OK", "msg": ws.ignore },
         "request_id": ws.lastGeneratedRequestId,
         "request_state": { "msg": "New Shell Interactive session created successfully." },
-        "result": { "prompt_descriptor": { "mode": "Py" }, "module_session_id": ws.lastModuleSessionId, "last_prompt": {}}
+        "result": { "prompt_descriptor": { "mode": "Py" }, "module_session_id": ws.lastModuleSessionId, "last_prompt": {} }
     }
 ])
 

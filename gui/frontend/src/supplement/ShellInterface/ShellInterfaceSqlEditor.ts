@@ -114,9 +114,11 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
      *
      * @param dbConnectionId The id of the db connection.
      * @param requestId The ID to use for the request sent to the backend.
-     * @param callback The callback for intermediate results.
+     * @param callback The callback for intermediate results. If not specified, then response errors will throw
+     *                 an exception.
      *
-     * @returns A promise resolving to various connection data or undefined if no session is open.
+     * @returns A promise resolving an empty result if a callback was given (in which case the results are passed to
+     *          the callback)
      */
     public async openConnection(dbConnectionId: number, requestId?: string,
         callback?: DataCallback<ShellAPIGui.GuiSqleditorOpenConnection>):

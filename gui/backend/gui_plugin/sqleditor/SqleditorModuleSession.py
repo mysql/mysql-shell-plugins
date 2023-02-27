@@ -76,12 +76,13 @@ class SqleditorModuleSession(DbModuleSession):
             self._db_user_session.reconnect(db_session.connection_options)
 
     def on_user_session_connected(self, db_session):
-        data = Response.ok("Connection was successfully opened.", {"result": {
+        data = Response.pending("Connection was successfully opened.", {"result": {
             "module_session_id": self._module_session_id,
             "info": db_session.info(),
             "default_schema": db_session.get_default_schema()
         }})
         self.send_command_response(self._current_request_id, data)
+        self.completion_event.set()
 
     @check_user_database_session
     def default_user_schema(self):

@@ -82,12 +82,18 @@ ws.sendAndValidate({
 }, [
     {
         "request_id": ws.lastGeneratedRequestId,
-        "request_state": {"type": "OK", "msg": ws.ignore},
+        "request_state": {"type": "PENDING", "msg": ws.ignore},
         "result": ws.matchRegexp("\\d+")
     }
 ])
 
 connection_id = ws.lastResponse["result"]
+
+ws.validateLastResponse({
+    "request_id": ws.lastGeneratedRequestId,
+    "request_state": {"type": "OK", "msg": ws.ignore},
+    "done": True
+})
 
 ws.sendAndValidate({
     "request": "execute",
@@ -98,7 +104,7 @@ ws.sendAndValidate({
     }
 }, [
     {
-        "request_state": {"type": "OK", "msg": "Connection was successfully opened."},
+        "request_state": {"type": "PENDING", "msg": "Connection was successfully opened."},
         "result": {
             "module_session_id": ws.lastModuleSessionId,
             "info":
@@ -111,6 +117,14 @@ ws.sendAndValidate({
             "default_schema": "information_schema",
         },
         "request_id": ws.lastGeneratedRequestId
+    },
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "done": True
     }
 ])
 
@@ -144,7 +158,7 @@ ws.sendAndValidate({
     {
         "request_state": {"type": "OK", "msg": ""},
         "request_id": ws.lastGeneratedRequestId,
-        "done": True
+        "done": true
     }
 ])
 
@@ -165,7 +179,7 @@ ws.sendAndValidate({
 },
     [
         {
-            "request_state": {"type": "OK", "msg": "Connection was successfully opened."},
+            "request_state": {"type": "PENDING", "msg": "Connection was successfully opened."},
             "result": {
                 "module_session_id": ws.lastModuleSessionId,
                 "info": {
@@ -176,7 +190,15 @@ ws.sendAndValidate({
                 "default_schema": params["connection"]["options"]["schema"],
             },
             "request_id": ws.lastGeneratedRequestId
-        }
+        },
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "done": True
+    }
 ]
 )
 
