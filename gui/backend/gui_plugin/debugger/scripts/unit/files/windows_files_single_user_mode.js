@@ -31,10 +31,17 @@ await ws.sendAndValidate({
     {
         "request_id": ws.lastGeneratedRequestId,
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ""
         },
         "result": ws.ignore
+    }, {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "done": true
     }
 ])
 

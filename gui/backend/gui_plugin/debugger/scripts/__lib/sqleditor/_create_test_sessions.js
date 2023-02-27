@@ -43,7 +43,7 @@ await ws.sendAndValidate({
     {
         "request_id": ws.lastGeneratedRequestId,
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ws.ignore
         },
         "result": ws.matchRegexp("\\d+")
@@ -51,6 +51,15 @@ await ws.sendAndValidate({
 ])
 
 _this["connection_id_user1"] = ws.lastResponse["result"]
+
+await ws.validateLastResponse({
+    "request_id": ws.lastGeneratedRequestId,
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "done": true
+})
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -70,7 +79,7 @@ await ws.sendAndValidate({
     {
         "request_id": ws.lastGeneratedRequestId,
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ws.ignore
         },
         "result": ws.matchRegexp("\\d+")
@@ -78,6 +87,15 @@ await ws.sendAndValidate({
 ])
 
 _this["connection_id_user2"] = ws.lastResponse["result"]
+
+ws.validateLastResponse({
+    "request_id": ws.lastGeneratedRequestId,
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "done": true
+})
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -97,7 +115,7 @@ await ws.sendAndValidate({
     {
         "request_id": ws.lastGeneratedRequestId,
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ws.ignore
         },
         "result": ws.matchRegexp("\\d+")
@@ -105,3 +123,12 @@ await ws.sendAndValidate({
 ])
 
 _this["connection_id_user2_nopwd"] = ws.lastResponse["result"]
+
+ws.validateLastResponse({
+    "request_id": ws.lastGeneratedRequestId,
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "done": true
+})

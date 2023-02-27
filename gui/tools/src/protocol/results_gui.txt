@@ -276,6 +276,7 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiCoreGetLogLevel]: { result: string; };
     [ShellAPIGui.GuiCoreListFiles]: {};
     [ShellAPIGui.GuiCoreCreateFile]: {};
+    [ShellAPIGui.GuiCoreDeleteFile]: {};
     [ShellAPIGui.GuiCoreValidatePath]: {};
     [ShellAPIGui.GuiCoreGetBackendInformation]: { result: IShellBackendInformation; };
     [ShellAPIGui.GuiCoreIsShellWebCertificateInstalled]: {};

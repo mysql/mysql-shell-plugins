@@ -53,7 +53,8 @@ def params():
 
     @backend_callback(1)
     def open_connection_cb(msg_type, msg, request_id, values):
-        if values['request_state']['type'] != "OK":
+        if values['request_state']['type'] != "PENDING"\
+                or values['request_state']['msg'] != "Connection was successfully opened.":
             raise Exception('Failed opening connection.')
 
     parameters._web_session.register_callback(
@@ -135,7 +136,8 @@ class TestSqleditor:
 
         @backend_callback(1)
         def open_connection_cb(msg_type, msg, request_id, values):
-            if values['request_state']['type'] != "OK":
+            if values['request_state']['type'] != "PENDING"\
+                    or values['request_state']['msg'] != "Connection was successfully opened.":
                 raise Exception('Failed opening connection.')
 
         params._web_session.register_callback(

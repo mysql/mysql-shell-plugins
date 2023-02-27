@@ -16,7 +16,7 @@ await ws.sendAndValidate({
     {
         "request_id": ws.lastGeneratedRequestId,
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": ""
         },
         "result": {
@@ -26,3 +26,12 @@ await ws.sendAndValidate({
 ])
 
 _this.result["session_id"] = ws.lastResponse["result"]['module_session_id']
+
+await ws.validateLastResponse({
+    "request_id": ws.lastGeneratedRequestId,
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "done": true
+})

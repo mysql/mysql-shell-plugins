@@ -14,9 +14,22 @@ await ws.sendAndValidate({
         "module_session_id": ws.lastModuleSessionId
     }
 }, [
-    Object.assign(Object(), responses.ok.default, {
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
         "result": ws.tokens["types"]
-    })
+    },
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "done": true
+    }
 ])
 
 
@@ -37,7 +50,7 @@ await ws.sendAndValidate({
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
-        "result": ws.ignore,
+        "result": ws.ignore
     },
     {
         "request_state": {
@@ -45,7 +58,7 @@ await ws.sendAndValidate({
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
-        "done": true,
+        "done": true
     }
 ])
 
@@ -66,7 +79,7 @@ await ws.sendAndValidate({
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
-        "result": { "name": "main" },
+        "result": { "name": "main" }
     },
     {
         "request_state": {
@@ -74,6 +87,6 @@ await ws.sendAndValidate({
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
-        "done": true,
+        "done": true
     }
 ])

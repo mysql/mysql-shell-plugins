@@ -18,5 +18,3 @@ await ws.send({
 
 _this.params["validation"].params["default_schema"] = _this.params["default_schema"]
 ws.execute(_this.params["validation"].file)
-
-_this.result["info"] = ws.lastResponse['result']['info']

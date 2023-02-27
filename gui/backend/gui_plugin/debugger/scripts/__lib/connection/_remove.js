@@ -18,6 +18,7 @@ await ws.sendAndValidate({
         "request_state": {
             "type": "OK",
             "msg": ws.ignore
-        }
+        },
+        "done": true
     }
 ])

@@ -20,7 +20,7 @@ await ws.sendAndValidate({
     {
         "request_id": ws.lastGeneratedRequestId,
         "request_state": {
-            "type": "OK",
+            "type": "PENDING",
             "msg": "Connection was successfully opened."
         },
         "result": {
@@ -32,6 +32,14 @@ await ws.sendAndValidate({
             },
             "default_schema": ws.ignore
         }
+    },
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "done": true
     }
 ])
 

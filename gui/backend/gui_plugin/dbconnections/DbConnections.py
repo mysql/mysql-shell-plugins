@@ -19,14 +19,17 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from mysqlsh.plugin_manager import plugin_function  # pylint: disable=no-name-in-module
 import json
-from gui_plugin.core.dbms import DbSessionFactory
-from gui_plugin.core.Db import BackendDatabase, BackendTransaction
+
+from mysqlsh.plugin_manager import \
+    plugin_function  # pylint: disable=no-name-in-module
+
 import gui_plugin.core.Error as Error
+from gui_plugin.core.backenddb import dbconnections
+from gui_plugin.core.Db import BackendDatabase, BackendTransaction
+from gui_plugin.core.dbms import DbSessionFactory
 from gui_plugin.core.Error import MSGException
 from gui_plugin.core.modules.DbModuleSession import DbModuleSession
-from gui_plugin.core.backenddb import dbconnections
 
 
 @plugin_function('gui.dbconnections.addDbConnection', shell=False, web=True)
@@ -210,7 +213,7 @@ def list_db_connections(profile_id, folder_path='', be_session=None):
                 LEFT JOIN db_connection dc ON
                     p_dc.db_connection_id = dc.id
             WHERE p_dc.profile_id = ? AND p_dc.folder_path LIKE ?''',
-                           (profile_id, '%' if folder_path == '' else folder_path))
+                         (profile_id, '%' if folder_path == '' else folder_path))
 
 
 @plugin_function('gui.dbconnections.getDbConnection', shell=False, web=True)
@@ -227,7 +230,7 @@ def get_db_connection(db_connection_id, be_session=None):
     """
     with BackendDatabase(be_session) as db:
         return db.select('SELECT * FROM db_connection WHERE id = ?',
-                           (db_connection_id,))[0]
+                         (db_connection_id,))[0]
 
 
 @plugin_function('gui.dbconnections.getDbTypes', shell=False, web=True)
@@ -304,13 +307,15 @@ def test_connection(connection, password=None):
     Returns:
         None
     """
-
     new_session = DbModuleSession()
     new_session.open_connection(connection, password)
-    if password is None and not 'password' in connection['options']:
+    if not new_session.completion_event.has_errors and password is None and not 'password' in connection['options']:
         return {"module_session_id": new_session.module_session_id}
 
-    new_session.close()
+    new_session.completion_event.wait()
+
+    if not new_session.completion_event.has_errors:
+        new_session.close()
 
 
 @plugin_function('gui.dbconnections.moveConnection', shell=False, web=True)
@@ -354,4 +359,4 @@ def move_connection(profile_id, folder_path, connection_id_to_move, connection_i
             db.execute("""UPDATE profile_has_db_connection
                           SET `index`=?
                           WHERE profile_id=? AND folder_path=? AND db_connection_id=?""",
-                          (index, profile_id, folder_path, connection_id_to_move))
+                       (index, profile_id, folder_path, connection_id_to_move))

@@ -11,10 +11,19 @@ await ws.send({
 ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ""
     },
     "result": "."
+})
+
+ws.validateLastResponse({
+    "request_id": ws.lastGeneratedRequestId,
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "done": true
 })
 
 //  validate '.' path
@@ -30,10 +39,19 @@ await ws.send({
 ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ""
     },
     "result": "."
+})
+
+ws.validateLastResponse({
+    "request_id": ws.lastGeneratedRequestId,
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "done": true
 })
 
 //  validate './' path
@@ -49,12 +67,20 @@ await ws.send({
 ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ""
     },
     "result": "."
 })
 
+ws.validateLastResponse({
+    "request_id": ws.lastGeneratedRequestId,
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "done": true
+})
 
 //  validate '..' path
 await ws.send({
@@ -130,10 +156,19 @@ await ws.send({
 ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ""
     },
     "result": "directory1/subdirectory1"
+})
+
+ws.validateLastResponse({
+    "request_id": ws.lastGeneratedRequestId,
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "done": true
 })
 
 //  validate with an valid file
@@ -149,10 +184,19 @@ await ws.send({
 ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ""
     },
     "result": "directory1/subdirectory1/file1"
+})
+
+ws.validateLastResponse({
+    "request_id": ws.lastGeneratedRequestId,
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "done": true
 })
 
 //  validate with an invalid file
@@ -189,8 +233,17 @@ await ws.send({
 ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ""
     },
     "result": "directory1/subdirectory1/file1"
+})
+
+ws.validateLastResponse({
+    "request_id": ws.lastGeneratedRequestId,
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "done": true
 })

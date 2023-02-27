@@ -21,4 +21,4 @@ await ws.send({
 _this.params["validation"].params["default_schema"] = settings.result["default_schema"]
 ws.execute(_this.params["validation"].file)
 
-_this.result["session_id"] = ws.lastResponse['result']['module_session_id']
+_this.result["session_id"] = _this.params["validation"].result['module_session_id']

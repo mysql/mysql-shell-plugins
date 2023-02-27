@@ -11,14 +11,14 @@ ws.tokens["task6_req_id"] = ws.generateRequestId()
 await ws.send(
     Object.assign(Object(), requests.sqleditor.execute, {
         "request_id": ws.tokens["task1_req_id"],
-        "args": { "sql": "SELECT SLEEP(5)" }
+        "args": { "sql": "SELECT SLEEP(8)" }
     }),
 )
 
 await ws.send(
     Object.assign(Object(), requests.sqleditor.execute, {
         "request_id": ws.tokens["task2_req_id"],
-        "args": { "sql": "SELECT SLEEP(5)" }
+        "args": { "sql": "SELECT SLEEP(8)" }
     }),
 )
 
@@ -62,27 +62,27 @@ await ws.send({
 
 await ws.send({
     "request": "cancel",
-    "request_id": ws.tokens["task2_req_id"] ,
+    "request_id": ws.tokens["task2_req_id"],
 })
 
 await ws.send({
     "request": "cancel",
-    "request_id": ws.tokens["task3_req_id"] ,
+    "request_id": ws.tokens["task3_req_id"],
 })
 
 await ws.send({
     "request": "cancel",
-    "request_id": ws.tokens["task4_req_id"] ,
+    "request_id": ws.tokens["task4_req_id"],
 })
 
 await ws.send({
     "request": "cancel",
-    "request_id": ws.tokens["task5_req_id"] ,
+    "request_id": ws.tokens["task5_req_id"],
 })
 
 await ws.sendAndValidate({
     "request": "cancel",
-    "request_id": ws.tokens["task6_req_id"] ,
+    "request_id": ws.tokens["task6_req_id"],
 }, ws.matchList([
     {
         "request_state": {
@@ -125,7 +125,7 @@ await ws.sendAndValidate({
             "msg": ""
         },
         "request_id": ws.tokens["task2_req_id"],
-    },{
+    }, {
         "request_state": {
             "type": "CANCELLED",
             "msg": ""

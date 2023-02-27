@@ -12,7 +12,7 @@ var default_mysql_options = defaults.database_connections.mysql[1].options
 _this = lib.connection.add_mysqlx
 
 lib.connection.add.params = {
-        "connection": {
+    "connection": {
         "db_type": "MySQL",
         "caption": "This is a test database",
         "description": "This is a test database description",

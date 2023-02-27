@@ -37,6 +37,9 @@ export enum EventType {
     /** A response indicating that something went wrong. Ends the request processing. */
     ErrorResponse = -2,
 
+    /** A response indicating that an ongoing process was cancelled and did not end with either data or an error. */
+    CancelResponse = -3,
+
     /** The first response send back, immediately after the BE has received a request. */
     StartResponse = 1,
 
@@ -44,12 +47,13 @@ export enum EventType {
     DataResponse = 2,
 
     /** The response ending the current data stream (sequence of data responses). */
-    FinalResponse = 3,
+    EndResponse = 3,
 
-    /** The response indicating that the entire request was finished. */
-    DoneResponse = 4,
-
-    Notification = 4,
+    /**
+     * The response indicating that the entire request was finished. No other response will be sent for this
+     * request.
+     */
+    FinalResponse = 4,
 
     Unknown = 0,
 }

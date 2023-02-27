@@ -45,7 +45,7 @@ class BaseTask():
 
         if self.completion_event is not None and state in ["ERROR", "CANCELLED"]:
             if state == "ERROR":
-                self.completion_event.add_error(message)
+                self.completion_event.add_error(Exception(message))
             if state == "CANCELLED":
                 self.completion_event.set_cancelled()
         elif self.result_callback is not None:

@@ -10,9 +10,18 @@ await ws.send({
 ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ""
     },
     "result": ws.matchRegexp("\\d+"),
+})
+
+ws.validateLastResponse({
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "request_id": ws.lastGeneratedRequestId,
+    "done": true
 })
 

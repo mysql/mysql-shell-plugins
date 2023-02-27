@@ -287,50 +287,31 @@ export class MessageScheduler {
                 const record = this.ongoingRequests.get(response.requestId);
                 if (record) {
                     const ongoing = record as IOngoingRequest<typeof record.protocolType>;
-                    const data = response as IProtocolResults[typeof record.protocolType];
 
                     switch (response.eventType) {
                         case EventType.DataResponse: {
-                            // Some APIs do not return error responses, but data responses with an error field
-                            // and/or message. We have to handle them here manually.
-                            if (this.isErrorInfo(response)) {
-                                const index = response.result.info.indexOf("ERROR:");
-                                if (index > -1) {
-                                    const error = response.result.info.substring(index);
-
-                                    this.ongoingRequests.delete(response.requestId);
-                                    ongoing.reject(error);
-
-                                    break;
-                                }
-                            }
-
                             // It's a normal data response.
                             if (ongoing.onData) {
-                                ongoing.onData(data, response.requestId);
+                                ongoing.onData(response, response.requestId);
                             } else {
-                                ongoing.result.push(data);
+                                ongoing.result.push(response);
+                            }
+
+                            break;
+                        }
+
+                        case EventType.EndResponse: {
+                            if (MessageScheduler.multiResultList.includes(record.protocolType)) {
+                                ongoing.result.push(response);
+                                ongoing.resolve(ongoing.result);
+                            } else {
+                                ongoing.resolve(response);
                             }
 
                             break;
                         }
 
                         case EventType.FinalResponse: {
-                            // For now we treat the final response like a done response, as not all responses
-                            // use the "done" field yet.
-                            this.ongoingRequests.delete(response.requestId);
-
-                            if (MessageScheduler.multiResultList.includes(record.protocolType)) {
-                                ongoing.result.push(data);
-                                ongoing.resolve(ongoing.result);
-                            } else {
-                                ongoing.resolve(data);
-                            }
-
-                            break;
-                        }
-
-                        case EventType.DoneResponse: {
                             this.ongoingRequests.delete(response.requestId);
                             if (MessageScheduler.multiResultList.includes(record.protocolType) ||
                                 ongoing.result.length === 0) {
@@ -344,15 +325,14 @@ export class MessageScheduler {
 
                         case EventType.ErrorResponse: {
                             this.ongoingRequests.delete(response.requestId);
+                            ongoing.reject(new ResponseError(response as IErrorResult));
 
-                            // There are differences in how error responses are structured. Sometimes they have a
-                            // nested requestState field.
-                            const result = (data as IDictionary).result as object;
-                            if (result && "requestState" in result) {
-                                ongoing.reject(new ResponseError(result as IErrorResult));
-                            } else {
-                                ongoing.reject(new ResponseError(data as IErrorResult));
-                            }
+                            break;
+                        }
+
+                        case EventType.CancelResponse: {
+                            this.ongoingRequests.delete(response.requestId);
+                            ongoing.resolve([]);
 
                             break;
                         }
@@ -512,10 +492,16 @@ export class MessageScheduler {
 
             case "OK": {
                 if (response.done) {
-                    response.eventType = EventType.DoneResponse;
-                } else {
                     response.eventType = EventType.FinalResponse;
+                } else {
+                    response.eventType = EventType.EndResponse;
                 }
+
+                break;
+            }
+
+            case "CANCELLED": {
+                response.eventType = EventType.CancelResponse;
                 break;
             }
 
@@ -529,7 +515,13 @@ export class MessageScheduler {
     };
 
     private isErrorInfo(response: IGenericResponse): response is IErrorInfo {
-        return (response as IErrorInfo).result && (response as IErrorInfo).result.info !== undefined;
+        if (!("result" in response)) {
+            return false;
+        }
+
+        const info = response as IErrorInfo;
+
+        return typeof info.result.info === "string";
     }
 
     private isWebSessionData(response: unknown): response is IWebSessionData {

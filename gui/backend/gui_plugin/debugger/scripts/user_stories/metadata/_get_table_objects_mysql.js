@@ -91,7 +91,7 @@ await ws.sendAndValidate({
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
-        "done": true,
+        "done": true
     }
 ])
 
@@ -121,7 +121,7 @@ await ws.sendAndValidate({
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
-        "done": true,
+        "done": true
     }
 ])
 
@@ -151,7 +151,7 @@ await ws.sendAndValidate({
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
-        "done": true,
+        "done": true
     }
 ], 0))
 
@@ -182,7 +182,7 @@ await ws.sendAndValidate({
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
-        "done": true,
+        "done": true
     }
 ])
 
@@ -212,7 +212,7 @@ await ws.sendAndValidate({
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
-        "done": true,
+        "done": true
     }
 ])
 
@@ -242,6 +242,6 @@ await ws.sendAndValidate({
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
-        "done": true,
+        "done": true
     }
 ], 0))

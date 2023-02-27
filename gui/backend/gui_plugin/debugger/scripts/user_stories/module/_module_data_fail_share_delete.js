@@ -9,11 +9,18 @@ await ws.sendAndValidate({
     "request_id": ws.generateRequestId()
 }, [{
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ws.ignore
     },
     "request_id": ws.lastGeneratedRequestId,
-    "result": [{"id": ws.tokens['module_data_id2'], "data_category_id": ws.tokens['category_script_id'], "caption": "test3", "created": ws.ignore, "last_update": ws.ignore}]
+    "result": [{ "id": ws.tokens['module_data_id2'], "data_category_id": ws.tokens['category_script_id'], "caption": "test3", "created": ws.ignore, "last_update": ws.ignore }]
+}, {
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "request_id": ws.lastGeneratedRequestId,
+    "done": true
 }])
 
 await ws.sendAndValidate({
@@ -45,10 +52,17 @@ await ws.sendAndValidate({
     "request_id": ws.generateRequestId()
 }, [{
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ""
     },
     "request_id": ws.lastGeneratedRequestId
+}, {
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "request_id": ws.lastGeneratedRequestId,
+    "done": true
 }])
 
 await ws.sendAndValidate({
@@ -60,11 +74,18 @@ await ws.sendAndValidate({
     "request_id": ws.generateRequestId()
 }, [{
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ws.ignore
     },
     "request_id": ws.lastGeneratedRequestId,
     "result": "import time; time.sleep(5)"
+}, {
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "request_id": ws.lastGeneratedRequestId,
+    "done": true
 }])
 
 await ws.sendAndValidate({
@@ -81,13 +102,22 @@ await ws.sendAndValidate({
     "request_id": ws.generateRequestId()
 }, [{
     "request_state": {
-        "type": "OK",
-        "msg": "", 
+        "type": "PENDING",
+        "msg": "",
     },
     "request_id": ws.lastGeneratedRequestId
 }])
 
 ws.tokens['admin2_profile_id'] = ws.lastResponse['result']
+
+ws.validateLastResponse({
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "request_id": ws.lastGeneratedRequestId,
+    "done": true
+})
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -121,10 +151,17 @@ await ws.sendAndValidate({
     "request_id": ws.generateRequestId()
 }, [{
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ""
     },
     "request_id": ws.lastGeneratedRequestId
+}, {
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "request_id": ws.lastGeneratedRequestId,
+    "done": true
 }])
 
 await ws.sendAndValidate({
@@ -154,13 +191,22 @@ await ws.sendAndValidate({
     "request_id": ws.generateRequestId()
 }, [{
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ""
     },
     "request_id": ws.lastGeneratedRequestId
 }])
 
 ws.tokens['user_group_id2'] = ws.lastResponse['result']
+
+ws.validateLastResponse({
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "request_id": ws.lastGeneratedRequestId,
+    "done": true
+})
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -230,10 +276,17 @@ await ws.sendAndValidate({
     "request_id": ws.generateRequestId()
 }, [{
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ""
     },
     "request_id": ws.lastGeneratedRequestId
+}, {
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "request_id": ws.lastGeneratedRequestId,
+    "done": true
 }])
 
 

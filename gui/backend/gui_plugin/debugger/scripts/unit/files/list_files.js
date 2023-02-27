@@ -8,12 +8,20 @@ await ws.send({
 ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ""
     },
     "result": ws.ignore,
 })
 
+ws.validateLastResponse({
+    "request_id": ws.lastGeneratedRequestId,
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "done": true
+})
 
 //  list files using an empty path
 await ws.send({
@@ -28,10 +36,19 @@ await ws.send({
 ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ""
     },
     "result": ws.ignore,
+})
+
+ws.validateLastResponse({
+    "request_id": ws.lastGeneratedRequestId,
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "done": true
 })
 
 //  list files using "."
@@ -47,10 +64,19 @@ await ws.send({
 ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ""
     },
     "result": ws.ignore,
+})
+
+ws.validateLastResponse({
+    "request_id": ws.lastGeneratedRequestId,
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "done": true
 })
 
 //  list files using "./"
@@ -66,12 +92,20 @@ await ws.send({
 ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ""
     },
     "result": ws.ignore,
 })
 
+ws.validateLastResponse({
+    "request_id": ws.lastGeneratedRequestId,
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "done": true
+})
 
 //  Check for <mysqlsh_home>/.
 await ws.send({
@@ -86,10 +120,19 @@ await ws.send({
 ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ""
     },
     "result": ws.ignore,
+})
+
+ws.validateLastResponse({
+    "request_id": ws.lastGeneratedRequestId,
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "done": true
 })
 
 //  Check for <mysqlsh_home>/..
@@ -125,10 +168,19 @@ await ws.send({
 ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ""
     },
     "result": ["directory1/subdirectory1"],
+})
+
+ws.validateLastResponse({
+    "request_id": ws.lastGeneratedRequestId,
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "done": true
 })
 
 //  Check inside subdirectory
@@ -144,12 +196,20 @@ await ws.send({
 ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ""
     },
     "result": ws.matchList(["directory1/subdirectory1/file1", "directory1/subdirectory1/file2"], 0),
 })
 
+ws.validateLastResponse({
+    "request_id": ws.lastGeneratedRequestId,
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "done": true
+})
 
 //  Resolve directories
 await ws.send({
@@ -164,10 +224,19 @@ await ws.send({
 ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ""
     },
     "result": ws.matchList(["directory1/subdirectory1/file1", "directory1/subdirectory1/file2"], 0),
+})
+
+ws.validateLastResponse({
+    "request_id": ws.lastGeneratedRequestId,
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "done": true
 })
 
 //  invalid path

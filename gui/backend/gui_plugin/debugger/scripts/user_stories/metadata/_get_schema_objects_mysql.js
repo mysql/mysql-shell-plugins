@@ -76,12 +76,20 @@ await ws.sendAndValidate({
     }
 }, [
     {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "result": ws.tokens["types"]
+    },
+    {
+        "request_id": ws.lastGeneratedRequestId,
         "request_state": {
             "type": "OK",
             "msg": ""
         },
-        "request_id": ws.lastGeneratedRequestId,
-        "result": ws.tokens["types"]
+        "done": true
     }
 ])
 

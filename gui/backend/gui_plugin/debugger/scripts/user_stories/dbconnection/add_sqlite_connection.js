@@ -3,23 +3,31 @@ ws.tokens["db_type"] = "Sqlite"
 ws.tokens["db_file"] = "tests_add_sqlite_connection.sqlite3"
 ws.tokens["folder_path"] = "tests"
 
-await ws.send({
+await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
     "command": "gui.sqleditor.start_session",
     "args": {}
-})
-
-ws.validateLastResponse({
-    "request_id": ws.lastGeneratedRequestId,
-    "request_state": {
-        "type": "OK",
-        "msg": ""
+}, [
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "result": {
+            "module_session_id": ws.matchRegexp("[a-f0-9]{8}-[a-f0-9]{4}-1[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$")
+        }
     },
-    "result": {
-        "module_session_id": ws.matchRegexp("[a-f0-9]{8}-[a-f0-9]{4}-1[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$")
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "done": true
     }
-})
+])
 
 await ws.send({
     "request": "execute",
@@ -33,10 +41,19 @@ await ws.send({
 ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ""
     },
     "result": ws.tokens["db_file"]
+})
+
+ws.validateLastResponse({
+    "request_id": ws.lastGeneratedRequestId,
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "done": true
 })
 
 await ws.send({
@@ -60,7 +77,7 @@ await ws.send({
 ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ws.ignore
     },
     "result": ws.matchRegexp("\\d+")
@@ -68,7 +85,16 @@ ws.validateLastResponse({
 
 ws.tokens["connection_id"] = ws.lastResponse["result"]
 
-await ws.send({
+ws.validateLastResponse({
+    "request_id": ws.lastGeneratedRequestId,
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "done": true
+})
+
+await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
     "command": "gui.sqleditor.open_connection",
@@ -76,20 +102,29 @@ await ws.send({
         "db_connection_id": ws.tokens["connection_id"],
         "module_session_id": ws.lastModuleSessionId,
     }
-})
-
-ws.validateLastResponse({
-    "request_id": ws.lastGeneratedRequestId,
-    "request_state": {
-        "type": "OK",
-        "msg": "Connection was successfully opened."
+}, [
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "PENDING",
+            "msg": "Connection was successfully opened."
+        },
+        "result": {
+            "module_session_id": ws.lastModuleSessionId,
+            "info": {},
+            "default_schema": "tests_add_sqlite_connection"
+        }
     },
-    "result": {
-        "module_session_id": ws.lastModuleSessionId,
-        "info": {},
-        "default_schema": "tests_add_sqlite_connection"
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "done": true
     }
-})
+])
+
 
 await ws.sendAndValidate({
     "request": "execute",

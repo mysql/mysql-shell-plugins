@@ -52,10 +52,19 @@ await ws.send({
 ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ""
     },
     "result": "test_db.sqlite"
+})
+
+ws.validateLastResponse({
+    "request_id": ws.lastGeneratedRequestId,
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "done": true
 })
 
 //  Create the file (.sqlite3)
@@ -71,12 +80,20 @@ await ws.send({
 ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ""
     },
     "result": "test_db.sqlite3"
 })
 
+ws.validateLastResponse({
+    "request_id": ws.lastGeneratedRequestId,
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "done": true
+})
 
 await ws.send({
     "request": "execute",
@@ -90,11 +107,21 @@ await ws.send({
 ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ""
     },
     "result": ws.matchList(["test_db.sqlite", "test_db.sqlite3"], 0),
 })
+
+ws.validateLastResponse({
+    "request_id": ws.lastGeneratedRequestId,
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "done": true
+})
+
 
 //  Create the file that already exists
 await ws.send({
@@ -116,6 +143,7 @@ ws.validateLastResponse({
     }
 })
 
+
 //  Create the file inside a directory
 await ws.send({
     "request": "execute",
@@ -129,10 +157,19 @@ await ws.send({
 ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ""
     },
     "result": "directory1/test_db.sqlite"
+})
+
+ws.validateLastResponse({
+    "request_id": ws.lastGeneratedRequestId,
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "done": true
 })
 
 await ws.send({
@@ -147,10 +184,19 @@ await ws.send({
 ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ""
     },
     "result": ws.matchList(["directory1/test_db.sqlite"], 0),
+})
+
+ws.validateLastResponse({
+    "request_id": ws.lastGeneratedRequestId,
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "done": true
 })
 
 //  Path to a directory

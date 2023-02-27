@@ -733,16 +733,8 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                     request_id, kwargs['module_session_id'])
                 del kwargs['module_session_id']
 
-            confirm_complete = True
-            if cmd in ['gui.sqleditor.open_connection',
-                       'gui.sqleditor.reconnect', 'gui.dbconnections.test_connection',
-                       'gui.shell.start_session', 'gui.shell.execute', 'gui.shell.complete',
-                       'gui.db.start_session', 'gui.sqleditor.start_session',
-                       'gui.db.reconnect', 'gui.sqleditor.set_current_schema']:
-                confirm_complete = False
-
             thread = RequestHandler(
-                request_id, func, kwargs, self, confirm_complete, lock_session=lock_session)
+                request_id, func, kwargs, self, lock_session=lock_session)
             thread.start()
             result = None
 

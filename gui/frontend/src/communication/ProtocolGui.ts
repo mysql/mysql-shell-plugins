@@ -42,6 +42,8 @@ export enum ShellAPIGui {
     GuiCoreCreateFile = "gui.core.create_file",
     /** Validates the specified path. */
     GuiCoreValidatePath = "gui.core.validate_path",
+    /** Deletes a file specified by the path. */
+    GuiCoreDeleteFile = "gui.core.delete_file",
     /** Returns information about backend */
     GuiCoreGetBackendInformation = "gui.core.get_backend_information",
     /** Checks if the MySQL Shell GUI webserver certificate is installed */
@@ -267,6 +269,7 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiCoreListFiles]: { args: { path?: string; }; };
     [ShellAPIGui.GuiCoreCreateFile]: { args: { path: string; }; };
     [ShellAPIGui.GuiCoreValidatePath]: { args: { path: string; }; };
+    [ShellAPIGui.GuiCoreDeleteFile]: { args: { path: string; }; };
     [ShellAPIGui.GuiCoreGetBackendInformation]: {};
     [ShellAPIGui.GuiCoreIsShellWebCertificateInstalled]: { kwargs?: IShellGuiCoreIsShellWebCertificateInstalledKwargs; };
     [ShellAPIGui.GuiCoreInstallShellWebCertificate]: { kwargs?: IShellGuiCoreInstallShellWebCertificateKwargs; };
@@ -644,6 +647,7 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiCoreGetLogLevel]: { result: string; };
     [ShellAPIGui.GuiCoreListFiles]: {};
     [ShellAPIGui.GuiCoreCreateFile]: {};
+    [ShellAPIGui.GuiCoreDeleteFile]: {};
     [ShellAPIGui.GuiCoreValidatePath]: {};
     [ShellAPIGui.GuiCoreGetBackendInformation]: { result: IShellBackendInformation; };
     [ShellAPIGui.GuiCoreIsShellWebCertificateInstalled]: {};

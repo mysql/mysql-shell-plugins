@@ -51,10 +51,11 @@ describe("MySQL Administration", () => {
     beforeAll(async () => {
         await Misc.loadDriver();
         try {
+            const filename = basename(__filename);
             await driver.wait(async () => {
                 try {
-                    const url = Misc.getUrl(basename(__filename));
-                    console.log(`${basename(__filename)} : ${url}`);
+                    const url = Misc.getUrl(basename(filename));
+                    console.log(`${filename} : ${url}`);
                     await Misc.loadPage(url);
                     await Misc.waitForHomePage();
                     await driver.findElement(By.id("gui.sqleditor")).click();

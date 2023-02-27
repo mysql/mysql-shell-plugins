@@ -24,6 +24,7 @@ import threading
 
 import mysqlsh
 
+import gui_plugin.core.Context as ctx
 import gui_plugin.core.Error as Error
 import gui_plugin.core.Logger as logger
 from gui_plugin.core.Context import get_context
@@ -52,6 +53,7 @@ class DbModuleSession(ModuleSession):
         self._db_service_session = None
         self._bastion_options = None
         self._reconnection_mode = reconnection_mode
+        self.completion_event = None
 
     def __del__(self):
         self.close()
@@ -155,6 +157,7 @@ class DbModuleSession(ModuleSession):
                                                     data)
 
     def open_connection(self, connection, password):
+        self.completion_event = ctx.set_completion_event()
         # Closes the existing connections if any
         self.close_connection()
 
@@ -178,7 +181,10 @@ class DbModuleSession(ModuleSession):
 
         self._connection_options = options
 
-        self.connect()
+        try:
+            self.connect()
+        except Exception as ex:
+            self.completion_event.add_error(ex)
 
     def connect(self):
         session_id = "ServiceSession-" + self.web_session.session_uuid
@@ -230,21 +236,21 @@ class DbModuleSession(ModuleSession):
         return self._prompt_replied, self._prompt_reply
 
     def on_connected(self, db_session):
-        data = Response.ok("Connection was successfully opened.", {"result": {
+        data = Response.pending("Connection was successfully opened.", {"result": {
             "module_session_id": self._module_session_id,
             "info": db_session.info(),
             "default_schema": db_session.get_default_schema()
         }})
-
         self.send_command_response(self._current_request_id, data)
+        self.completion_event.set()
 
     def on_fail_connecting(self, exc):
         logger.exception(exc)
 
-        self.send_command_response(
-            self._current_request_id, Response.exception(exc))
-
         self.close_connection(True)
+
+        self.completion_event.add_error(exc)
+        self.completion_event.set()
 
     def cancel_request(self, request_id):
         raise NotImplementedError()

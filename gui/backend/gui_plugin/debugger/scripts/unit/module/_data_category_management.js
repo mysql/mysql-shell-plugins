@@ -7,9 +7,21 @@ await ws.sendAndValidate({
     "args": {},
     "request_id": ws.generateRequestId()
 }, [
-    Object.assign(Object(), responses.ok.default, {
-        "result": [{'id': 1, 'name': 'Text', 'parent_category_id': None}],
-    })
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "result": [{ 'id': 1, 'name': 'Text', 'parent_category_id': None }],
+    }, {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "done": true
+    }
 ])
 
 // Verify initial values
@@ -21,16 +33,28 @@ await ws.sendAndValidate({
     },
     "request_id": ws.generateRequestId()
 }, [
-    Object.assign(Object(), responses.ok.default, {
-        "result":  [{'id': 1, 'name': 'Text', 'parent_category_id': None},
-                    {'id': 2, 'name': 'Script', 'parent_category_id': 1},
-                    {'id': 3, 'name': 'JSON', 'parent_category_id': 1},
-                    {'id': 4, 'name': 'MySQL Script', 'parent_category_id': 2},
-                    {'id': 5, 'name': 'Python Script', 'parent_category_id': 2},
-                    {'id': 6, 'name': 'JavaScript Script', 'parent_category_id': 2},
-                    {'id': 7, 'name': 'TypeScript Script', 'parent_category_id': 2},
-                    {'id': 8, 'name': 'SQLite Script', 'parent_category_id': 2}]
-    })
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "result": [{ 'id': 1, 'name': 'Text', 'parent_category_id': None },
+        { 'id': 2, 'name': 'Script', 'parent_category_id': 1 },
+        { 'id': 3, 'name': 'JSON', 'parent_category_id': 1 },
+        { 'id': 4, 'name': 'MySQL Script', 'parent_category_id': 2 },
+        { 'id': 5, 'name': 'Python Script', 'parent_category_id': 2 },
+        { 'id': 6, 'name': 'JavaScript Script', 'parent_category_id': 2 },
+        { 'id': 7, 'name': 'TypeScript Script', 'parent_category_id': 2 },
+        { 'id': 8, 'name': 'SQLite Script', 'parent_category_id': 2 }]
+    }, {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "done": true
+    }
 ])
 
 // Verify initial values
@@ -42,14 +66,26 @@ await ws.sendAndValidate({
     },
     "request_id": ws.generateRequestId()
 }, [
-    Object.assign(Object(), responses.ok.default, {
-        "result":  [{'id': 2, 'name': 'Script', 'parent_category_id': 1},
-                    {'id': 4, 'name': 'MySQL Script', 'parent_category_id': 2},
-                    {'id': 5, 'name': 'Python Script', 'parent_category_id': 2},
-                    {'id': 6, 'name': 'JavaScript Script', 'parent_category_id': 2},
-                    {'id': 7, 'name': 'TypeScript Script', 'parent_category_id': 2},
-                    {'id': 8, 'name': 'SQLite Script', 'parent_category_id': 2}]
-    })
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "result": [{ 'id': 2, 'name': 'Script', 'parent_category_id': 1 },
+        { 'id': 4, 'name': 'MySQL Script', 'parent_category_id': 2 },
+        { 'id': 5, 'name': 'Python Script', 'parent_category_id': 2 },
+        { 'id': 6, 'name': 'JavaScript Script', 'parent_category_id': 2 },
+        { 'id': 7, 'name': 'TypeScript Script', 'parent_category_id': 2 },
+        { 'id': 8, 'name': 'SQLite Script', 'parent_category_id': 2 }]
+    }, {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "done": true
+    }
 ])
 
 // Verify initial values
@@ -61,9 +97,21 @@ await ws.sendAndValidate({
     },
     "request_id": ws.generateRequestId()
 }, [
-    Object.assign(Object(), responses.ok.default, {
-        "result":  [{'id': 8, 'name': 'SQLite Script', 'parent_category_id': 2}]
-    })
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "result": [{ 'id': 8, 'name': 'SQLite Script', 'parent_category_id': 2 }]
+    }, {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "done": true
+    }
 ])
 
 //  Add a new data category with empty name
@@ -89,12 +137,26 @@ await ws.sendAndValidate({
     },
     "request_id": ws.generateRequestId()
 }, [
-    Object.assign(Object(), responses.ok.default, {
-        "request_state": { "msg": "" }
-    })
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "result": ws.matchRegexp("\d"),
+        "request_id": ws.lastGeneratedRequestId
+    }
 ])
 
 ws.tokens['data_category_id1'] = ws.lastResponse['result']
+
+await ws.validateLastResponse({
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "request_id": ws.lastGeneratedRequestId,
+    "done": true
+})
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -104,10 +166,22 @@ await ws.sendAndValidate({
     },
     "request_id": ws.generateRequestId()
 }, [
-    Object.assign(Object(), responses.ok.default, {
-        "request_state": { "msg": "" },
-        "result": ws.tokens['data_category_id1']
-    })
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "result": ws.tokens['data_category_id1'],
+        "request_id": ws.lastGeneratedRequestId
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
 ])
 
 await ws.sendAndValidate({
@@ -118,11 +192,23 @@ await ws.sendAndValidate({
     },
     "request_id": ws.generateRequestId()
 }, [
-    Object.assign(Object(), responses.ok.default, {
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
         "result": [
-            {"id": 101, "name": "MyDataCategory", "parent_category_id": null}
+            { "id": 101, "name": "MyDataCategory", "parent_category_id": null }
         ],
-    })
+    }, {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "done": true
+    }
 ])
 
 // List all root categories
@@ -132,10 +218,22 @@ await ws.sendAndValidate({
     "args": {},
     "request_id": ws.generateRequestId()
 }, [
-    Object.assign(Object(), responses.ok.default, {
-        "result": [{'id': 1, 'name': 'Text', 'parent_category_id': None},
-                   {"id": 101, "name": "MyDataCategory", "parent_category_id": null}],
-    })
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "result": [{ 'id': 1, 'name': 'Text', 'parent_category_id': None },
+        { "id": 101, "name": "MyDataCategory", "parent_category_id": null }],
+    }, {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "done": true
+    }
 ])
 
 // List categories for ShellCategory name
@@ -180,9 +278,21 @@ await ws.sendAndValidate({
     },
     "request_id": ws.generateRequestId()
 }, [
-    Object.assign(Object(), responses.ok.default, {
-        "result": [{"id": 101, "name": "MyDataCategory", "parent_category_id": null}],
-    })
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "result": [{ "id": 101, "name": "MyDataCategory", "parent_category_id": null }],
+    }, {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "done": true
+    }
 ])
 
 // Require API to remove folder
@@ -248,12 +358,26 @@ await ws.sendAndValidate({
     },
     "request_id": ws.generateRequestId()
 }, [
-    Object.assign(Object(), responses.ok.default, {
-        "request_state": { "msg": "" }
-    })
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "result": ws.matchRegexp("\d"),
+        "request_id": ws.lastGeneratedRequestId
+    }
 ])
 
 ws.tokens['data_subcategory_id1'] = ws.lastResponse['result']
+
+await ws.validateLastResponse({
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "request_id": ws.lastGeneratedRequestId,
+    "done": true
+})
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -263,10 +387,22 @@ await ws.sendAndValidate({
     },
     "request_id": ws.generateRequestId()
 }, [
-    Object.assign(Object(), responses.ok.default, {
-        "request_state": { "msg": "" },
-        "result": ws.tokens['data_subcategory_id1']
-    })
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "result": ws.tokens['data_subcategory_id1'],
+        "request_id": ws.lastGeneratedRequestId
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
 ])
 
 await ws.sendAndValidate({
@@ -275,11 +411,23 @@ await ws.sendAndValidate({
     "args": {},
     "request_id": ws.generateRequestId()
 }, [
-    Object.assign(Object(), responses.ok.default, {
-        "result": [{'id': 1, 'name': 'Text', 'parent_category_id': None},
-                   {"id": ws.tokens['data_category_id1'], "name": "MyDataCategory", "parent_category_id": null}
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "result": [{ 'id': 1, 'name': 'Text', 'parent_category_id': None },
+        { "id": ws.tokens['data_category_id1'], "name": "MyDataCategory", "parent_category_id": null }
         ],
-    })
+    }, {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "done": true
+    }
 ])
 
 await ws.sendAndValidate({
@@ -290,12 +438,24 @@ await ws.sendAndValidate({
     },
     "request_id": ws.generateRequestId()
 }, [
-    Object.assign(Object(), responses.ok.default, {
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
         "result": [
-            {"id": ws.tokens['data_category_id1'], "name": "MyDataCategory", "parent_category_id": null},
-            {"id": ws.tokens['data_subcategory_id1'], "name": "MyDataSubCategory", "parent_category_id": ws.tokens['data_category_id1']}
+            { "id": ws.tokens['data_category_id1'], "name": "MyDataCategory", "parent_category_id": null },
+            { "id": ws.tokens['data_subcategory_id1'], "name": "MyDataSubCategory", "parent_category_id": ws.tokens['data_category_id1'] }
         ],
-    })
+    }, {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "done": true
+    }
 ])
 
 //  Remove an existing top data category
@@ -356,12 +516,24 @@ await ws.sendAndValidate({
     },
     "request_id": ws.generateRequestId()
 }, [
-    Object.assign(Object(), responses.ok.default, {
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
         "result": [
-            {"id": ws.tokens['data_category_id1'], "name": "MyDataCategory", "parent_category_id": null},
-            {"id": ws.tokens['data_subcategory_id1'], "name": "MyDataSubCategory", "parent_category_id": ws.tokens['data_category_id1']}
+            { "id": ws.tokens['data_category_id1'], "name": "MyDataCategory", "parent_category_id": null },
+            { "id": ws.tokens['data_subcategory_id1'], "name": "MyDataSubCategory", "parent_category_id": ws.tokens['data_category_id1'] }
         ],
-    })
+    }, {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "done": true
+    }
 ])
 
 //  Remove an existing sub data category
@@ -373,11 +545,22 @@ await ws.sendAndValidate({
     },
     "request_id": ws.generateRequestId()
 }, [
-    Object.assign(Object(), responses.ok.default, {
+    {
         "request_state": {
+            "type": "PENDING",
             "msg": ""
-        }
-    })
+        },
+        "result": ws.matchRegexp("\d"),
+        "request_id": ws.lastGeneratedRequestId
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
 ])
 
 //  Remove an existing top data category
@@ -389,11 +572,22 @@ await ws.sendAndValidate({
     },
     "request_id": ws.generateRequestId()
 }, [
-    Object.assign(Object(), responses.ok.default, {
+    {
         "request_state": {
+            "type": "PENDING",
             "msg": ""
-        }
-    })
+        },
+        "result": ws.matchRegexp("\d"),
+        "request_id": ws.lastGeneratedRequestId
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
 ])
 
 await ws.sendAndValidate({
@@ -418,9 +612,21 @@ await ws.sendAndValidate({
     "args": {},
     "request_id": ws.generateRequestId()
 }, [
-    Object.assign(Object(), responses.ok.default, {
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
         "result": [],
-    })
+    }, {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "done": true
+    }
 ])
 
 //  Remove a data category that doesn't exist any more
@@ -466,9 +672,21 @@ await ws.sendAndValidate({
     },
     "request_id": ws.generateRequestId()
 }, [
-    Object.assign(Object(), responses.ok.default, {
-        "request_state": { "msg": "" }
-    })
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "result": ws.matchRegexp("\d"),
+        "request_id": ws.lastGeneratedRequestId
+    }, {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
 ])
 
 await ws.sendAndValidate({
@@ -495,12 +713,22 @@ await ws.sendAndValidate({
     },
     "request_id": ws.generateRequestId()
 }, [
-    Object.assign(Object(), responses.ok.default, {
+    {
         "request_state": {
+            "type": "PENDING",
             "msg": ""
         },
-        "result": ws.tokens['data_category_id1']
-    })
+        "result": ws.tokens['data_category_id1'],
+        "request_id": ws.lastGeneratedRequestId
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
 ])
 
 await ws.sendAndValidate({
@@ -511,7 +739,19 @@ await ws.sendAndValidate({
     },
     "request_id": ws.generateRequestId()
 }, [
-    Object.assign(Object(), responses.ok.default, {
-        "result": [{"id": ws.tokens['data_category_id1'], "name": "MyDataCategory", "parent_category_id": null}],
-    })
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "result": [{ "id": ws.tokens['data_category_id1'], "name": "MyDataCategory", "parent_category_id": null }],
+    }, {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "done": true
+    }
 ])

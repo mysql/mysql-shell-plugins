@@ -108,10 +108,18 @@ await ws.sendAndValidate({
     "request_id": ws.generateRequestId()
 }, [{
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ws.ignore
     },
-    "request_id": ws.lastGeneratedRequestId
+    "request_id": ws.lastGeneratedRequestId,
+    "result": ws.matchRegexp("\d")
+}, {
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "request_id": ws.lastGeneratedRequestId,
+    "done": true
 }])
 
 await ws.sendAndValidate({
@@ -124,10 +132,18 @@ await ws.sendAndValidate({
     "request_id": ws.generateRequestId()
 }, [{
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ws.ignore
     },
-    "request_id": ws.lastGeneratedRequestId
+    "request_id": ws.lastGeneratedRequestId,
+    "result": ws.matchRegexp("\d")
+}, {
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "request_id": ws.lastGeneratedRequestId,
+    "done": true
 }])
 
 await ws.sendAndValidate({
@@ -140,10 +156,18 @@ await ws.sendAndValidate({
     "request_id": ws.generateRequestId()
 }, [{
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ws.ignore
     },
-    "request_id": ws.lastGeneratedRequestId
+    "request_id": ws.lastGeneratedRequestId,
+    "result": ws.matchRegexp("\d")
+}, {
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "request_id": ws.lastGeneratedRequestId,
+    "done": true
 }])
 
 await ws.sendAndValidate({
@@ -156,10 +180,18 @@ await ws.sendAndValidate({
     "request_id": ws.generateRequestId()
 }, [{
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ws.ignore
     },
-    "request_id": ws.lastGeneratedRequestId
+    "request_id": ws.lastGeneratedRequestId,
+    "result": ws.matchRegexp("\d")
+}, {
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "request_id": ws.lastGeneratedRequestId,
+    "done": true
 }])
 
 await ws.sendAndValidate({
@@ -172,10 +204,18 @@ await ws.sendAndValidate({
     "request_id": ws.generateRequestId()
 }, [{
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ws.ignore
     },
-    "request_id": ws.lastGeneratedRequestId
+    "request_id": ws.lastGeneratedRequestId,
+    "result": ws.matchRegexp("\d")
+}, {
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "request_id": ws.lastGeneratedRequestId,
+    "done": true
 }])
 
 await ws.sendAndValidate({
@@ -188,10 +228,18 @@ await ws.sendAndValidate({
     "request_id": ws.generateRequestId()
 }, [{
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ws.ignore
     },
-    "request_id": ws.lastGeneratedRequestId
+    "request_id": ws.lastGeneratedRequestId,
+    "result": ws.matchRegexp("\d")
+}, {
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "request_id": ws.lastGeneratedRequestId,
+    "done": true
 }])
 
 await ws.sendAndValidate({
@@ -204,10 +252,18 @@ await ws.sendAndValidate({
     "request_id": ws.generateRequestId()
 }, [{
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ws.ignore
     },
-    "request_id": ws.lastGeneratedRequestId
+    "request_id": ws.lastGeneratedRequestId,
+    "result": ws.matchRegexp("\d")
+}, {
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "request_id": ws.lastGeneratedRequestId,
+    "done": true
 }])
 
 await ws.sendAndValidate({
@@ -220,10 +276,18 @@ await ws.sendAndValidate({
     "request_id": ws.generateRequestId()
 }, [{
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ws.ignore
     },
-    "request_id": ws.lastGeneratedRequestId
+    "request_id": ws.lastGeneratedRequestId,
+    "result": ws.matchRegexp("\d")
+}, {
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "request_id": ws.lastGeneratedRequestId,
+    "done": true
 }])
 
 
@@ -237,9 +301,17 @@ await ws.sendAndValidate({
     "request_id": ws.generateRequestId()
 }, [{
     "request_state": {
-        "type": "OK",
+        "type": "PENDING",
         "msg": ws.ignore
     },
-    "request_id": ws.lastGeneratedRequestId
+    "request_id": ws.lastGeneratedRequestId,
+    "result": ws.matchRegexp("\d")
+}, {
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "request_id": ws.lastGeneratedRequestId,
+    "done": true
 }])
 
