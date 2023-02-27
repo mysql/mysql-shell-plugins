@@ -78,6 +78,11 @@ def reset_mrs_database(session):
     session.run_sql("DELETE FROM mysql_rest_service_metadata.config")
     session.run_sql("INSERT INTO mysql_rest_service_metadata.config (id, service_enabled, data) VALUES (1, 1, '{}')")
 
+    session.run_sql("DELETE FROM mysql_rest_service_metadata.router_general_log")
+    session.run_sql("DELETE FROM mysql_rest_service_metadata.router_session")
+    session.run_sql("DELETE FROM mysql_rest_service_metadata.router_status")
+    session.run_sql("DELETE FROM mysql_rest_service_metadata.router")
+
 
 @pytest.fixture(scope="session")
 def init_mrs():
@@ -221,6 +226,18 @@ def init_mrs():
     role_id = lib.roles.add_role(session, role_id, service["id"], "Process Admin", "Process administrator.")
     roles["Process Admin"] = role_id
 
+    router_id = lib.routers.add_router(session, "test_router_1", "localhost:1234",
+        "MySQL Router", "8.0.32", {
+            "attribute_1": "this is attribute 1",
+            "attribute_2": "this is attribute 2",
+            "attribute_3": "this is attribute 3",
+        }, {
+            "option_1": "this is option 1",
+            "option_2": "this is option 2",
+            "option_3": "this is option 3",
+        })
+
+
     yield {
         "session": session,
         "service_id": service["id"],
@@ -231,6 +248,7 @@ def init_mrs():
         "auth_app_id": auth_app["auth_app_id"],
         "mrs_user1": user["id"],
         "roles": roles,
+        "router": router_id,
     }
 
     tmp_dir.cleanup()

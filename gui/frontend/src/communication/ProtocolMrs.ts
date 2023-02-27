@@ -171,7 +171,9 @@ export enum ShellAPIMrs {
     /** List all router ids */
     MrsListRouterIds = "mrs.list.router_ids",
     /** List all configured routers */
-    MrsListRouters = "mrs.list.routers"
+    MrsListRouters = "mrs.list.routers",
+    /** Delete an existing router */
+    MrsDeleteRouter = "mrs.delete.router"
 }
 
 export interface IShellMrsAddServiceKwargs {
@@ -1089,6 +1091,7 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsAddRole]: { args: { caption: string; }; kwargs?: IShellMrsAddRoleKwargs; };
     [ShellAPIMrs.MrsListRouterIds]: { args: { seenWithin?: number; moduleSessionId?: string; }; };
     [ShellAPIMrs.MrsListRouters]: { args: { activeWhenSeenWithin?: number; moduleSessionId?: string; }; };
+    [ShellAPIMrs.MrsDeleteRouter]: { args: { routerId?: number; moduleSessionId?: string; }; };
 
 }
 
@@ -1334,5 +1337,7 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsAddRole]: {};
     [ShellAPIMrs.MrsListRouterIds]: { result: number[]; };
     [ShellAPIMrs.MrsListRouters]: { result: IMrsRouterData[]; };
+    [ShellAPIMrs.MrsDeleteRouter]: {};
+
 }
 

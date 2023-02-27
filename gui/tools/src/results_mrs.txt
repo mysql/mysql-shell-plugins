@@ -240,4 +240,6 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsAddRole]: {};
     [ShellAPIMrs.MrsListRouterIds]: { result: number[]; };
     [ShellAPIMrs.MrsListRouters]: { result: IMrsRouterData[]; };
+    [ShellAPIMrs.MrsDeleteRouter]: {};
+
 }

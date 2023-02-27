@@ -590,6 +590,10 @@
                 "title": "Delete REST Service..."
             },
             {
+                "command": "msg.mrs.deleteRouter",
+                "title": "Delete Router..."
+            },
+            {
                 "command": "msg.mrs.deleteSchema",
                 "title": "Delete REST Schema..."
             },
@@ -1131,6 +1135,11 @@
                     "command": "msg.mrs.docs.service",
                     "when": "view == msg.connections && viewItem == mrsService",
                     "group": "9_msg@1"
+                },
+                {
+                    "command": "msg.mrs.deleteRouter",
+                    "when": "viewItem == mrsRouter",
+                    "group": "10_msg@1"
                 },
                 {
                     "command": "msg.mrs.editSchema",
