@@ -37,23 +37,31 @@ import { requisitions } from "../../frontend/src/supplement/Requisitions";
 import { printChannelOutput } from "./extension";
 import { IDictionary } from "../../frontend/src/app-logic/Types";
 
-// A record of white spaces in a code block, which must be re-applied when replacing the original block.
+/** A record of white spaces in a code block, which must be re-applied when replacing the original block. */
 interface IWhiteSpaces {
     leading: string;
     indentation: string;
     trailing: string;
 }
 
-// Describes a block of code that was sent to the application.
+/** Describes a block of code that was sent to the application. */
 interface ILinkedCodeBlock {
-    id: number;           // A unique id to link code blocks between the extension and the app.
-    originalCode: string; // The code as it was when the span was created. Allows to compare for code updates.
+    /** A unique id to link code blocks between the extension and the app. */
+    id: number;
+
+    /** The code as it was when the span was created. Allows to compare for code updates. */
+    originalCode: string;
+
     whiteSpaces: IWhiteSpaces;
-    start: number;        // The start offset of the code block in the text editor document.
-    length: number;       // The length of the code block in characters.
+
+    /** The start offset of the code block in the text editor document. */
+    start: number;
+
+    /** The length of the code block in characters. */
+    length: number;
 }
 
-// A class to manage code blocks that are synchronized with the web app.
+/** A class to manage code blocks that are synchronized with the web app. */
 export class CodeBlocks {
     private static nextSpanId = 1;
 

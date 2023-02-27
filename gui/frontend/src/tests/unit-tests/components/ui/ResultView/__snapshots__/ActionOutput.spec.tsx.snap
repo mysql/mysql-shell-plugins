@@ -49,11 +49,15 @@ exports[`Action Output Tests Action Full Rendering 1`] = `
         <label
           className="msg resultText error actionLabel"
           data-tooltip="expand"
+          language="ansi"
+          onClick={[Function]}
           style={
             {
               "gridColumn": "span 2",
             }
           }
+          tabIndex={-1}
+          type={0}
         >
           <span
             className=""
@@ -78,8 +82,10 @@ HTMLCollection [
   <label
     class="msg resultText response actionLabel"
     data-tooltip="expand"
-    id=""
+    language="ansi"
     style="grid-column: span 2;"
+    tabindex="-1"
+    type="4"
   >
     <span
       class=""
