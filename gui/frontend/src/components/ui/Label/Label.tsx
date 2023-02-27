@@ -121,7 +121,10 @@ export class Label extends ComponentBase<ILabelProperties, ILabelState> {
                     className={className}
                     data-tooltip="expand"
                     style={actualStyle}
-                >{labelEntries}</label>
+                    {...this.unhandledProperties}
+                >
+                    {labelEntries}
+                </label>
             );
         } else {
             const className = this.getEffectiveClassNames([
