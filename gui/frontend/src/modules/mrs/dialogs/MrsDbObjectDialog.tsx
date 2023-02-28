@@ -88,9 +88,7 @@ export class MrsDbObjectDialog extends ValueDialogBase {
                     type: "choice",
                     caption: "REST Schema Path",
                     value: selectedSchema?.requestPath,
-                    choices: schemas.filter((schema) => {
-                        return schema.name === selectedSchema?.name;
-                    }).map((schema) => {
+                    choices: schemas.map((schema) => {
                         return schema.requestPath;
                     }),
                     horizontalSpan: 4,
@@ -333,7 +331,9 @@ export class MrsDbObjectDialog extends ValueDialogBase {
                 values.objectType = this.objectType;
 
                 // mainSection
+                values.servicePath = mainSection.values.service.value as string;
                 values.name = mainSection.values.name.value as string;
+                values.dbSchemaPath = mainSection.values.schema.value as string;
                 values.dbSchemaId = schemas.find((schema) => {
                     return mainSection.values.schema.value === schema.requestPath;
                 })?.id;

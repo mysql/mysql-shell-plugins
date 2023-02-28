@@ -756,13 +756,15 @@ export interface IShellMrsDeleteDbObjectKwargs {
 export interface IShellMrsUpdateDbObjectKwargsValue {
     /** The new name to apply to the database object */
     name?: string;
-    /** If the DB Object is enabled or not */
+    /** The id of the schema to update in the database object */
+    dbSchemaId?: string;
+    /** If the database object is enabled or not */
     enabled?: boolean;
     /** The allowed CRUD operations for the object */
     crudOperations?: unknown[];
     /** The format to use for the CRUD operation */
     crudOperationFormat?: string;
-    /** Whether authentication is required to access the schema */
+    /** Whether authentication is required to access the database object */
     requiresAuth?: boolean;
     /** The number of items returned per page */
     itemsPerPage?: number;
@@ -774,7 +776,7 @@ export interface IShellMrsUpdateDbObjectKwargsValue {
     rowUserOwnershipEnforced?: boolean;
     /** The column for row ownership enforcement */
     rowUserOwnershipColumn?: string;
-    /** Comments for the schema */
+    /** Comments for the database object */
     comments?: string;
     /** The media_type of the db object */
     mediaType?: string;
@@ -782,21 +784,21 @@ export interface IShellMrsUpdateDbObjectKwargsValue {
     authStoredProcedure?: string;
     /** The options of this db object */
     options: IShellDictionary | null;
-    /** The db objects fields as JSON string */
+    /** The database object fields as JSON string */
     fields?: unknown[];
 }
 
 export interface IShellMrsUpdateDbObjectKwargs {
-    /** The id of the db object */
+    /** The id of the database object */
     dbObjectId?: string;
-    /** The name of the schema object add */
+    /** The name of the database object to update */
     dbObjectName?: string;
-    /** The id of the schema the object should be added to */
+    /** The id of the schema that contains the database object to be updated */
     schemaId?: string;
     /** The request_path */
     requestPath?: string;
     /** The values to update */
-    value: IShellMrsUpdateDbObjectKwargsValue | null;
+    value?: IShellMrsUpdateDbObjectKwargsValue;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }

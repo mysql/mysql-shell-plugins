@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -26,14 +26,13 @@ import mysqlsh
 from lib.core import MrsDbSession
 from mrs_plugin import lib
 
-@pytest.mark.usefixtures("init_mrs")
-def test_add_content_set(init_mrs, table_contents):
-    with lib.core.MrsDbSession(session=init_mrs["session"]) as session:
+def test_add_content_set(phone_book, table_contents):
+    with lib.core.MrsDbSession(session=phone_book["session"]) as session:
         table_content_set = table_contents("content_set")
 
         with tempfile.TemporaryDirectory() as tmp:
             content_set = {
-                "service_id": init_mrs["service_id"],
+                "service_id": phone_book["service_id"],
                 "request_path": "test_content_set2",
                 "requires_auth": False,
                 "comments": "Content Set",
@@ -45,9 +44,8 @@ def test_add_content_set(init_mrs, table_contents):
             assert not table_content_set.same_as_snapshot
 
 
-@pytest.mark.usefixtures("init_mrs")
-def test_enable_disable(init_mrs, table_contents):
-    with lib.core.MrsDbSession(session=init_mrs["session"]) as session:
+def test_enable_disable(phone_book, table_contents):
+    with lib.core.MrsDbSession(session=phone_book["session"]) as session:
         table_content_set = table_contents("content_set")
         args = {
                 "content_set_ids": [b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'],
@@ -61,7 +59,7 @@ def test_enable_disable(init_mrs, table_contents):
 
         assert table_content_set.same_as_snapshot
 
-        args["content_set_ids"] = [init_mrs["content_set_id"]]
+        args["content_set_ids"] = [phone_book["content_set_id"]]
         lib.content_sets.enable_content_set(**args, value=False)
 
         assert not table_content_set.same_as_snapshot
@@ -70,12 +68,11 @@ def test_enable_disable(init_mrs, table_contents):
         assert table_content_set.same_as_snapshot
 
 
-@pytest.mark.usefixtures("init_mrs")
-def test_get_content_set(init_mrs, table_contents):
-    with MrsDbSession(session=init_mrs["session"]) as session:
+def test_get_content_set(phone_book, table_contents):
+    with MrsDbSession(session=phone_book["session"]) as session:
         table_content_set = table_contents("content_set")
         content_set_1 = {
-            'id': init_mrs["content_set_id"],
+            'id': phone_book["content_set_id"],
             'request_path': '/test_content_set',
             'requires_auth': 0,
             'enabled': 1,
@@ -84,22 +81,22 @@ def test_get_content_set(init_mrs, table_contents):
             "options": None,
         }
         args = {
-            "content_set_id": init_mrs["content_set_id"],
-            "service_id": init_mrs["service_id"],
+            "content_set_id": phone_book["content_set_id"],
+            "service_id": phone_book["service_id"],
             "session": session,
         }
 
 
         sets = lib.content_sets.get_content_set(**args)
         assert sets == content_set_1
-        assert table_content_set.get("id", init_mrs["content_set_id"]) == {
-            'id': init_mrs["content_set_id"],
+        assert table_content_set.get("id", phone_book["content_set_id"]) == {
+            'id': phone_book["content_set_id"],
             'request_path': '/test_content_set',
             'requires_auth': 0,
             'enabled': 1,
             'comments': 'Content Set',
             'options': None,
-            'service_id': init_mrs["service_id"],
+            'service_id': phone_book["service_id"],
         }
 
         args["content_set_id"] = "0x00000000000000000000000000000000"

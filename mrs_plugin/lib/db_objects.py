@@ -19,7 +19,7 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from mrs_plugin.lib import core, schemas
+from mrs_plugin.lib import core, schemas, database
 import json
 
 
@@ -63,6 +63,22 @@ def format_db_object_listing(db_objects, print_header=False):
             output += "\n"
 
     return output
+
+def map_crud_operations(crud_operations):
+    grant_privileges = []
+    for crud_operation in crud_operations:
+        if crud_operation == "CREATE" or crud_operation == "1":
+            grant_privileges.append("INSERT")
+        elif crud_operation == "READ" or crud_operation == "2":
+            grant_privileges.append("SELECT")
+        elif crud_operation == "UPDATE" or crud_operation == "3":
+            grant_privileges.append("UPDATE")
+        elif crud_operation == "DELETE" or crud_operation == "4":
+            grant_privileges.append("DELETE")
+        else:
+            raise ValueError(f"The given CRUD operation {crud_operation} "
+                                "does not exist.")
+    return grant_privileges
 
 def validate_value(value, value_name):
     if not value and not isinstance(value, bool):
@@ -256,19 +272,8 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
     core.check_request_path(session, schema["host_ctx"] + schema["request_path"] + request_path)
 
 
-    grant_privileges = []
-    for crud_operation in crud_operations:
-        if crud_operation == "CREATE" or crud_operation == "1":
-            grant_privileges.append("INSERT")
-        elif crud_operation == "READ" or crud_operation == "2":
-            grant_privileges.append("SELECT")
-        elif crud_operation == "UPDATE" or crud_operation == "3":
-            grant_privileges.append("UPDATE")
-        elif crud_operation == "DELETE" or crud_operation == "4":
-            grant_privileges.append("DELETE")
-        else:
-            raise ValueError(f"The given CRUD operation {crud_operation} "
-                                "does not exist.")
+    if db_object_type == "PROCEDURE":
+        crud_operations = []
 
     db_object_id = core.get_sequence_id(session)
     core.insert(table="db_object", values={
@@ -296,19 +301,16 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
         field["db_object_id"] = db_object_id
         core.insert(table="field", values=field).exec(session)
 
-    # Grant privilege to the 'mysql_rest_service_data_provider' role
-    if not grant_privileges:
-        raise ValueError("No valid CRUD Operation specified")
-
     if db_object_type == "PROCEDURE":
-        sql = (f"GRANT EXECUTE ON PROCEDURE `"
-                f"{schema.get('name')}`.`{db_object_name}` "
-                "TO 'mysql_rest_service_data_provider'")
+        database.grant_procedure(session, schema["name"], db_object_name)
     else:
-        sql = (f"GRANT {','.join(grant_privileges)} ON "
-                f"{schema.get('name')}.{db_object_name} "
-                "TO 'mysql_rest_service_data_provider'")
-    session.run_sql(sql)
+        grant_privileges = map_crud_operations(crud_operations)
+
+        # Grant privilege to the 'mysql_rest_service_data_provider' role
+        if not grant_privileges:
+            raise ValueError("No valid CRUD Operation specified")
+
+        database.grant_db_object(session, schema["name"], db_object_name, grant_privileges)
 
     return db_object_id
 
@@ -434,6 +436,20 @@ def update_db_objects(session, db_object_ids, value):
             sets=value,
             where=["id=?"]).exec(session, [db_object_id])
 
+        grant_privileges = map_crud_operations(value.get("crud_operations", []))
+
+        # Grant privilege to the 'mysql_rest_service_data_provider' role
+        if not grant_privileges:
+            raise ValueError("No valid CRUD Operation specified")
+
+        db_object = get_db_object(session, db_object_id)
+        schema = schemas.get_schema(session, db_object["db_schema_id"])
+
+        if db_object["object_type"] == "PROCEDURE":
+            database.grant_procedure(session, schema.get("name"), db_object['name'])
+        else:
+            database.grant_db_object(session, schema.get("name"), db_object['name'], grant_privileges)
+
         if fields is not None:
             update_db_object_fields(session, db_object_id, fields)
 
@@ -442,6 +458,7 @@ def update_db_object_fields(session, db_object_id, fields):
     fields_in_db = core.select(table="field",
         where="db_object_id=?"
     ).exec(session, [db_object_id]).items
+
 
     for field_in_db in fields_in_db:
         if field_in_db["id"] not in [field["id"] for field in fields]:
@@ -476,49 +493,5 @@ def get_db_object_fields(session, db_object_id=None,
         raise ValueError(
             "The object_type must be either set to TABLE, VIEW or PROCEDURE.")
 
+    return database.get_db_object_fields(session, schema_name, db_object_name, db_object_type)
 
-    # cSpell:ignore mediumint tinyint id
-    if db_object_type == "PROCEDURE":
-        sql = """
-            SELECT @id:=@id-1 AS id, @id * -1 AS position,
-                PARAMETER_NAME AS name, PARAMETER_NAME AS bind_field_Name,
-                PARAMETER_MODE AS mode,
-                CASE
-                    WHEN (DTD_IDENTIFIER = "tinyint(1)") THEN "BOOLEAN"
-                    WHEN (DATA_TYPE = "bigint") THEN "LONG"
-                    WHEN (DATA_TYPE = "tinyint" OR DATA_TYPE = "smallint" OR DATA_TYPE = "mediumint"
-                        OR DATA_TYPE = "int") THEN "INT"
-                    WHEN (DATA_TYPE = "numeric" OR DATA_TYPE = "decimal" OR DATA_TYPE = "float"
-                        OR DATA_TYPE = "real" OR DATA_TYPE = "double precision") THEN "DOUBLE"
-                    WHEN (DATA_TYPE = "json") THEN "JSON"
-                    ELSE "STRING"
-                END as datatype,
-                "" as comments
-            FROM `INFORMATION_SCHEMA`.`PARAMETERS`, (SELECT @id:=0) as init
-            WHERE SPECIFIC_SCHEMA = ?
-                AND SPECIFIC_NAME = ?
-            ORDER BY ORDINAL_POSITION
-        """
-    else:
-        sql = """
-            SELECT @id:=@id-1 as id, @id * -1 AS position,
-                COLUMN_NAME AS name, COLUMN_NAME AS bind_field_Name,
-                "IN" AS mode,
-                CASE
-                    WHEN (COLUMN_TYPE = "tinyint(1)") THEN "BOOLEAN"
-                    WHEN (DATA_TYPE = "bigint") THEN "LONG"
-                    WHEN (DATA_TYPE = "tinyint" OR DATA_TYPE = "smallint" OR DATA_TYPE = "mediumint"
-                        OR DATA_TYPE = "int") THEN "INT"
-                    WHEN (DATA_TYPE = "numeric" OR DATA_TYPE = "decimal" OR DATA_TYPE = "float"
-                        OR DATA_TYPE = "real" OR DATA_TYPE = "double precision") THEN "DOUBLE"
-                    WHEN (DATA_TYPE = "json") THEN "JSON"
-                    ELSE "STRING"
-                END as datatype,
-                "" as comments
-            FROM `INFORMATION_SCHEMA`.`COLUMNS`, (SELECT @id:=0) as init
-            WHERE TABLE_SCHEMA = ?
-                AND TABLE_NAME = ?
-            ORDER BY ORDINAL_POSITION
-        """
-
-    return core.MrsDbExec(sql).exec(session, [schema_name, db_object_name]).items

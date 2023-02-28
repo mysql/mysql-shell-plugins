@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -22,13 +22,12 @@
 import pytest
 from ... content_files import *
 
-@pytest.mark.usefixtures("init_mrs")
-def test_get_content_files(init_mrs):
+def test_get_content_files(phone_book):
     args = {
         "include_enable_state": False,
-        "session": init_mrs["session"],
+        "session": phone_book["session"],
     }
 
-    files = get_content_files(init_mrs["content_set_id"], **args)
+    files = get_content_files(phone_book["content_set_id"], **args)
     assert files is not None
 

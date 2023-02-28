@@ -230,10 +230,7 @@ def add_schema(**kwargs):
             raise RuntimeError("Operation cancelled. The service was not found.")
 
         if not schema_name and interactive:
-            rows = lib.core.select(table="INFORMATION_SCHEMA.SCHEMATA",
-                cols="SCHEMA_NAME",
-                where=["SCHEMA_NAME NOT LIKE ?", "SCHEMA_NAME NOT LIKE ?", "SCHEMA_NAME <> ?"]
-            ).exec(session, params=['.%', 'mysql_%', 'mysql']).items
+            rows = lib.database.get_schemas(session)
 
             schemas = [row["SCHEMA_NAME"] for row in rows]
 

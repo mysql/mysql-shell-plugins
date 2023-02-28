@@ -21,15 +21,14 @@
 
 import pytest
 from .... import lib
-from ...conftest import TableContents
-from ..helpers import AuthAppCT
+from ..helpers import AuthAppCT, TableContents
 
-def test_get_auth_app(init_mrs, table_contents):
-    session = init_mrs["session"]
+def test_get_auth_app(phone_book, table_contents):
+    session = phone_book["session"]
 
     auth_apps_table: TableContents = table_contents("auth_app")
 
-    auth_app = lib.auth_apps.get_auth_app(session, init_mrs["auth_app_id"])
+    auth_app = lib.auth_apps.get_auth_app(session, phone_book["auth_app_id"])
 
     assert auth_app["auth_vendor"] == "MRS"
 
@@ -39,7 +38,7 @@ def test_get_auth_app(init_mrs, table_contents):
     assert auth_apps_table.items == [auth_app]
 
     new_auth_app_data = {
-        "service_id": init_mrs["service_id"],
+        "service_id": phone_book["service_id"],
         "auth_vendor_id": lib.core.id_to_binary("0x30000000000000000000000000000000", "auth_vendor_id"),
         "name": "New Auth App",
         "description": "This is the new test auth app description",
@@ -49,7 +48,7 @@ def test_get_auth_app(init_mrs, table_contents):
         "app_id": "<some app id>",
         "enabled": True,
         "limit_to_registered_users": False,
-        "default_role_id": init_mrs["roles"]["Full Access"]
+        "default_role_id": phone_book["roles"]["Full Access"]
     }
 
     with AuthAppCT(session, **new_auth_app_data) as auth_app_id:
@@ -69,17 +68,17 @@ def test_get_auth_app(init_mrs, table_contents):
     assert auth_apps_table.same_as_snapshot
 
 
-def test_get_auth_apps(init_mrs, table_contents):
-    session = init_mrs["session"]
+def test_get_auth_apps(phone_book, table_contents):
+    session = phone_book["session"]
 
     auth_apps_table: TableContents = table_contents("auth_app")
 
-    auth_apps = lib.auth_apps.get_auth_apps(session, init_mrs["service_id"])
+    auth_apps = lib.auth_apps.get_auth_apps(session, phone_book["service_id"])
 
     assert len(auth_apps) == 1
 
     new_auth_app_data = {
-        "service_id": init_mrs["service_id"],
+        "service_id": phone_book["service_id"],
         "auth_vendor_id": lib.core.id_to_binary("0x30000000000000000000000000000000", "auth_vendor_id"),
         "name": "New Auth App",
     }
@@ -88,7 +87,7 @@ def test_get_auth_apps(init_mrs, table_contents):
         assert auth_app_id
         assert auth_apps_table.count == auth_apps_table.snapshot.count + 1
 
-        auth_apps = lib.auth_apps.get_auth_apps(session, init_mrs["service_id"])
+        auth_apps = lib.auth_apps.get_auth_apps(session, phone_book["service_id"])
 
         assert len(auth_apps) == 2
 

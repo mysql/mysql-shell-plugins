@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -27,12 +27,11 @@ from .helpers import ServiceCT
 from mrs_plugin import lib
 
 
-@pytest.mark.usefixtures("init_mrs")
-def test_add_service(init_mrs, table_contents):
+def test_add_service(phone_book, table_contents):
     args = {
         "url_protocol": ["HTTP"],
         "comments": "Test service",
-        "session": init_mrs["session"]
+        "session": phone_book["session"]
     }
 
     services_table = table_contents("service")
@@ -46,7 +45,7 @@ def test_add_service(init_mrs, table_contents):
     args = {
         "url_protocol": ["HTTP"],
         "comments": "Test service 2",
-        "session": init_mrs["session"]
+        "session": phone_book["session"]
     }
 
     with ServiceCT("/service2", "localhost", **args) as service_id:
@@ -56,13 +55,12 @@ def test_add_service(init_mrs, table_contents):
     assert services_table.same_as_snapshot
 
 
-@pytest.mark.usefixtures("init_mrs")
-def test_get_services(init_mrs, table_contents):
+def test_get_services(phone_book, table_contents):
     services = get_services()
     assert services is not None
 
     args = {
-        "session": init_mrs["session"]
+        "session": phone_book["session"]
     }
     services = get_services(**args)
     assert services is not None
@@ -83,11 +81,11 @@ def test_get_services(init_mrs, table_contents):
         'is_current': 0,
     }]
 
-@pytest.mark.usefixtures("init_mrs")
-def test_get_service(init_mrs, table_contents):
+
+def test_get_service(phone_book, table_contents):
     service_table = table_contents("service")
     args = {
-        "session": init_mrs["session"]
+        "session": phone_book["session"]
     }
     service = get_service(url_host_name="localhost", url_context_root="/test", **args)
 
@@ -148,18 +146,17 @@ def test_get_service(init_mrs, table_contents):
         }
 
 
-@pytest.mark.usefixtures("init_mrs")
-def test_change_service(init_mrs):
+def test_change_service(phone_book):
 
     args = {
-        "session": init_mrs["session"]
+        "session": phone_book["session"]
     }
 
     with ServiceCT(url_host_name="localhost", url_context_root="/service2", **args) as service_id:
         assert service_id is not None
 
         args_for_get_service = {
-            "session": init_mrs["session"],
+            "session": phone_book["session"],
         }
 
         args_for_get_service["service_id"] = args["service_id"] = service_id

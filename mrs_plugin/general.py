@@ -329,11 +329,8 @@ def status(session=None):
             print("Checking the current status of the MRS...\n")
 
         # Check if the MRS metadata schema already exists
-        row = lib.core.select(table="INFORMATION_SCHEMA.SCHEMATA",
-            cols="SCHEMA_NAME",
-            where="SCHEMA_NAME='mysql_rest_service_metadata'"
-        ).exec(session).first
-        if not row:
+        row = lib.database.get_schema(session, "mysql_rest_service_metadata")
+        if row is None:
             if lib.core.get_interactive_result():
                 print("The MySQL REST Data Service is not configured yet. "
                       "Run mrs.configure() to configure the service.")

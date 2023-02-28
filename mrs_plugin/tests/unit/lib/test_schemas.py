@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -22,16 +22,15 @@
 import pytest
 from mrs_plugin import lib
 
-@pytest.mark.usefixtures("init_mrs")
-def test_add_schema(init_mrs, table_contents):
+def test_add_schema(phone_book, table_contents):
     schema_table = table_contents("db_schema")
     args = {
         "schema_name": "PhoneBook",
-        "service_id": init_mrs["service_id"],
+        "service_id": phone_book["service_id"],
         "requires_auth": False,
         "request_path": "/test_schema_123",
         "enabled": True,
-        "session": init_mrs["session"]
+        "session": phone_book["session"]
     }
 
     args['schema_name'] = "test_schema_123"
@@ -49,14 +48,14 @@ def test_add_schema(init_mrs, table_contents):
 
     schema_table.same_as_snapshot
 
-@pytest.mark.usefixtures("init_mrs")
-def test_get_schema(init_mrs):
+
+def test_get_schema(phone_book):
 
     args = {
         "request_path": "PhoneBook",
         "service_id": 1,
         "auto_select_single": True,
-        "session": init_mrs["session"],
+        "session": phone_book["session"],
     }
     with pytest.raises(Exception) as exc_info:
         lib.schemas.get_schema(**args)

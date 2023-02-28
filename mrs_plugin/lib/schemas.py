@@ -19,7 +19,7 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from mrs_plugin.lib import core, services
+from mrs_plugin.lib import core, database
 import json
 
 def format_schema_listing(schemas, print_header=False):
@@ -231,11 +231,9 @@ def add_schema(session, schema_name, service_id: bytes=None, request_path=None, 
         The id of the inserted schema
     """
     # If a schema name has been provided, check if that schema exists
-    row = core.select(table="INFORMATION_SCHEMA.SCHEMATA", cols="SCHEMA_NAME",
-        where="SCHEMA_NAME=?", order="SCHEMA_NAME"
-    ).exec(session, [schema_name]).first
+    row = database.get_schema(session, schema_name)
 
-    if not row:
+    if row is None:
         raise ValueError(f"The given schema_name '{schema_name}' does not exists.")
 
     schema_name = row["SCHEMA_NAME"]

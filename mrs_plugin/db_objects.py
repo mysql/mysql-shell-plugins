@@ -179,22 +179,9 @@ def add_db_object(**kwargs):
 
             if not db_object_type and interactive:
                 # Get object counts per type
-                row = lib.core.select(table="INFORMATION_SCHEMA.TABLES", cols="COUNT(*) AS table_count",
-                    where=["TABLE_SCHEMA=?", "TABLE_TYPE='BASE TABLE'"]
-                ).exec(session, [schema.get("name")]).first
-                table_count = int(row["table_count"]) if row else 0
-
-                row = lib.core.select(table="INFORMATION_SCHEMA.TABLES",
-                    cols="COUNT(*) AS view_count",
-                    where=["TABLE_SCHEMA=?", "(TABLE_TYPE = 'VIEW' OR TABLE_TYPE = 'SYSTEM VIEW')"]
-                ).exec(session, [schema.get("name")]).first
-                view_count = int(row["view_count"]) if row else 0
-
-                row = lib.core.select(table="INFORMATION_SCHEMA.ROUTINES",
-                    cols="COUNT(*) AS proc_count",
-                    where=["ROUTINE_SCHEMA=?", "ROUTINE_TYPE='PROCEDURE'"]
-                ).exec(session, [schema.get("name")]).first
-                proc_count = int(row["proc_count"]) if row else 0
+                table_count = lib.database.get_object_type_count(session, schema.get("name"), "TABLE")
+                view_count = lib.database.get_object_type_count(session, schema.get("name"), "VIEW")
+                proc_count = lib.database.get_object_type_count(session, schema.get("name"), "PROCEDURE")
 
                 db_object_types = []
                 if table_count > 0:
@@ -221,20 +208,7 @@ def add_db_object(**kwargs):
                     raise ValueError('Operation cancelled.')
 
             if not db_object_name and interactive:
-                if db_object_type == "TABLE":
-                    sql = lib.core.select(table="INFORMATION_SCHEMA.TABLES", cols="TABLE_NAME AS OBJECT_NAME",
-                        where=["TABLE_SCHEMA=? /*=sakila*/", "TABLE_TYPE = 'BASE TABLE'"],
-                        order="TABLE_NAME")
-                elif db_object_type == "VIEW":
-                    sql = lib.core.select(table="INFORMATION_SCHEMA.TABLES", cols="TABLE_NAME AS OBJECT_NAME",
-                        where=["TABLE_SCHEMA=? /*=sakila*/", "(TABLE_TYPE='VIEW' OR TABLE_TYPE='SYSTEM VIEW')"],
-                        order="TABLE_NAME")
-                else:
-                    sql = lib.core.select(table="INFORMATION_SCHEMA.ROUTINES", cols="ROUTINE_NAME AS OBJECT_NAME",
-                        where=["ROUTINE_SCHEMA=? /*=sakila*/", "ROUTINE_TYPE='PROCEDURE'"],
-                        order="ROUTINE_NAME")
-
-                db_objects = sql.exec(session, [schema.get("name")]).items
+                db_objects = lib.database.get_db_objects(session, schema.get("name"), db_object_type)
 
                 if len(db_objects) == 0:
                     raise ValueError(
@@ -251,31 +225,13 @@ def add_db_object(**kwargs):
                     raise ValueError('Operation cancelled.')
             # If a schema name has been provided, check if that schema exists
             elif db_object_name and db_object_type:
+                db_object = lib.database.get_db_object(session, schema.get("name"), db_object_name, db_object_type)
 
-                if db_object_type == "TABLE":
-                    sql = lib.core.select(table="INFORMATION_SCHEMA.TABLES", cols="TABLE_NAME AS OBJECT_NAME",
-                        where=["TABLE_SCHEMA=?", "TABLE_TYPE='BASE TABLE'", "TABLE_NAME=?"]
-                    )
-                elif db_object_type == "VIEW":
-                    sql = lib.core.select(table="INFORMATION_SCHEMA.TABLES", cols="TABLE_NAME AS OBJECT_NAME",
-                        where=["TABLE_SCHEMA=?", "(TABLE_TYPE='VIEW' OR TABLE_TYPE='SYSTEM VIEW')", "TABLE_NAME=?"]
-                    )
-                elif db_object_type == "PROCEDURE":
-                    sql = lib.core.select(table="INFORMATION_SCHEMA.ROUTINES", cols="ROUTINE_NAME AS OBJECT_NAME",
-                        where=["ROUTINE_SCHEMA=?", "ROUTINE_TYPE='PROCEDURE'", "ROUTINE_NAME=?"]
-                    )
-                else:
-                    raise ValueError('Invalid db_object_type. Only valid types are '
-                                    'TABLE, VIEW and PROCEDURE.')
-
-                row = sql.exec(session, [schema.get("name"), db_object_name]).first
-
-                if row:
-                    db_object_name = row["OBJECT_NAME"]
-                else:
+                if not db_object:
                     raise ValueError(
                         f"The {db_object_type} named '{db_object_name}' "
                         f"does not exists in database schema {schema.get('name')}.")
+                db_object_name = db_object["OBJECT_NAME"]
 
             # Get request_path
             if not request_path:
@@ -451,10 +407,7 @@ def get_db_object(request_path=None, db_object_name=None, **kwargs):
         elif schema_name:
             schema = lib.schemas.get_schema(schema_name=schema_name, session=session)
         elif interactive:
-            rows = lib.core.select(table="INFORMATION_SCHEMA.SCHEMATA",
-                cols="SCHEMA_NAME",
-                where=["SCHEMA_NAME NOT LIKE ?", "SCHEMA_NAME NOT LIKE ?", "SCHEMA_NAME <> ?"]
-            ).exec(session, params=['.%', 'mysql_%', 'mysql']).items
+            rows = lib.database.get_schemas(session)
 
             schemas = [row["SCHEMA_NAME"] for row in rows]
 
@@ -936,54 +889,59 @@ def update_db_object(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        db_object_id (str): The id of the db object
-        db_object_name (str): The name of the schema object add
-        schema_id (str): The id of the schema the object should be added to
+        db_object_id (str): The id of the database object
+        db_object_name (str): The name of the database object to update
+        schema_id (str): The id of the schema that contains the database object to be updated
         request_path (str): The request_path
-        value (dict,required): The values to update
+        value (dict): The values to update
         session (object): The database session to use.
 
     Allowed options for value:
         name (str): The new name to apply to the database object
-        enabled (bool): If the DB Object is enabled or not
+        db_schema_id (str): The id of the schema to update in the database object
+        enabled (bool): If the database object is enabled or not
         crud_operations (list): The allowed CRUD operations for the object
         crud_operation_format (str): The format to use for the CRUD operation
         requires_auth (bool): Whether authentication is required to access
-            the schema
+            the database object
         items_per_page (int): The number of items returned per page
         request_path (str): The request_path
         auto_detect_media_type (bool): Whether the media type should be detected automatically
         row_user_ownership_enforced (bool): Enable row ownership enforcement
         row_user_ownership_column (str): The column for row ownership enforcement
-        comments (str): Comments for the schema
+        comments (str): Comments for the database object
         media_type (str): The media_type of the db object
         auth_stored_procedure (str): The stored procedure that implements the authentication check for this db object
         options (dict,required): The options of this db object
-        fields (list): The db objects fields as JSON string
+        fields (list): The database object fields as JSON string
 
     Returns:
         The result message as string
     """
-    if kwargs.get("value") is not None:
-        kwargs["value"] = lib.core.convert_json(kwargs["value"])
 
-        for field in kwargs["value"].get("fields", []):
-            # the ids to insert have the value of position * -1, otherwise, it comes
-            ids=['db_object_id']
+    # convert to python native types or default kwargs["value"] to {} of "values" is not supplied
+    kwargs["value"] = lib.core.convert_json(kwargs.get("value", {}))
+    lib.core.convert_ids_to_binary(["db_schema_id"], kwargs["value"])
 
-            # with the id to update. To avoid issues, for inserts, we're marking
-            # the id to None
-            if field["id"].startswith("-"):
-                field["id"] = None
-            else:
-                ids.append("id")
+    for field in kwargs["value"].get("fields", []):
+        # the ids to insert have the value of position * -1, otherwise, it comes
+        # with the id to update. To avoid issues, for inserts, we're marking
+        # the id to None
+        ids=['db_object_id']
 
-            lib.core.convert_ids_to_binary(ids, field)
+        if field["id"].startswith("-"):
+            field["id"] = None
+        else:
+            ids.append("id")
+
+        lib.core.convert_ids_to_binary(ids, field)
 
     if kwargs.get("request_path") is not None:
         lib.core.Validations.request_path(kwargs["request_path"])
 
     lib.core.convert_ids_to_binary(["schema_id", "db_object_id"], kwargs)
+
+    schema_name = kwargs["value"].pop("schema_name", None)
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         kwargs["session"] = session
@@ -993,13 +951,50 @@ def update_db_object(**kwargs):
 
         kwargs = resolve_db_object_ids(**kwargs)
 
-        # check for request_path collisions
-        if kwargs["value"].get("request_path"):
-            for db_object_id in kwargs["db_object_ids"]:
-                db_object = lib.db_objects.get_db_object(session=session, db_object_id=db_object_id)
-                schema = lib.schemas.get_schema(session=session, schema_id=db_object["db_schema_id"])
+        # verify the objects exist in the schema
+        for object_id in kwargs["db_object_ids"]:
+
+            db_object = lib.db_objects.get_db_object(session=session, db_object_id=object_id)
+            target_name = kwargs["value"].get("name") or db_object["name"]
+
+            # get the target schema
+            if kwargs["value"].get("db_schema_id") or schema_name:
+                target_schema = lib.schemas.get_schema(session,
+                    schema_id=kwargs["value"].get("db_schema_id"),
+                    schema_name=schema_name)
+            else:
+                target_schema = lib.schemas.get_schema(session, db_object["db_schema_id"])
+
+            if not target_schema:
+                raise ValueError("The target schema does not exist.")
+
+            # check for request_path collisions
+            if kwargs["value"].get("request_path"):
                 if db_object["request_path"] != kwargs["value"]["request_path"]:
-                    lib.core.check_request_path(session, schema["host_ctx"] + schema['request_path'] + kwargs["value"]["request_path"])
+                    lib.core.check_request_path(session, target_schema["host_ctx"] + target_schema['request_path'] + kwargs["value"]["request_path"])
+
+            # check if the target object exists in the target schema
+            if not lib.database.get_db_object(session, target_schema["name"], target_name, db_object["object_type"]):
+                raise ValueError(
+                    f"The {db_object.get('object_type')} named '{target_name}' "
+                    f"does not exists in database schema '{target_schema['name']}'.")
+
+            # check if the MRS db_object already exists in the target MRS schema
+            if db_object["db_schema_id"] != target_schema["id"]:
+                if lib.db_objects.get_db_object(session, schema_id=target_schema["id"], db_object_name=target_name):
+                    raise ValueError("The object already exists in the target schema.")
+
+            # check if the current fields are a sub-set of the existing ones
+            if "fields" in kwargs["value"]:
+                fields_in_object = lib.database.get_db_object_fields(session,
+                    target_schema["name"], target_name, db_object["object_type"])
+                fields_in_object = [item["name"] for item in fields_in_object]
+                for new_field in kwargs["value"]["fields"]:
+                    if new_field["name"] not in fields_in_object:
+                        raise ValueError(f"Field '{new_field['name']}' does not exist in {fields_in_object}.")
+
+
+            kwargs["value"]["db_schema_id"] = target_schema["id"]
 
         with lib.core.MrsDbTransaction(session):
             lib.db_objects.update_db_objects(session=session,
@@ -1007,8 +1002,8 @@ def update_db_object(**kwargs):
 
             if lib.core.get_interactive_result():
                 if len(kwargs['db_object_ids']) == 1:
-                    return f"The db_object has been updated."
-                return f"The db_object have been updated."
+                    return f"The database object has been updated."
+                return f"The database objects have been updated."
             return True
     return False
 

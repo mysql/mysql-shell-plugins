@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -23,12 +23,11 @@ import pytest
 from ... db_objects import *
 import json
 
-@pytest.mark.usefixtures("init_mrs")
-def test_add_db_object(init_mrs, table_contents):
+def test_add_db_object(phone_book, table_contents):
     db_objects_table = table_contents("db_object")
     db_object = {
-        "session": init_mrs["session"],
-        "schema_id": init_mrs["schema_id"],
+        "session": phone_book["session"],
+        "schema_id": phone_book["schema_id"],
         "db_object_name": "ContactsWithEmail",
         "db_object_type": "VIEW",
         "schema_name": "PhoneBook",
@@ -52,7 +51,7 @@ def test_add_db_object(init_mrs, table_contents):
     assert db_objects_table.count == db_objects_table.snapshot.count + 1
 
     db_object = {
-        "schema_id": init_mrs["schema_id"],
+        "schema_id": phone_book["schema_id"],
         "db_object_name": "GetAllContacts",
         "db_object_type": "PROCEDURE",
         "schema_name": "PhoneBook",
@@ -65,7 +64,7 @@ def test_add_db_object(init_mrs, table_contents):
         "row_user_ownership_enforced": False,
         "row_user_ownership_column": "",
         "comments": "Test table",
-        "session": init_mrs["session"],
+        "session": phone_book["session"],
     }
     id = add_db_object(**db_object)
     assert id is not None
@@ -88,7 +87,7 @@ def test_add_db_object(init_mrs, table_contents):
         "items_per_page": 10,
         "row_user_ownership_enforced": False,
         "row_user_ownership_column": "",
-        "session": init_mrs["session"],
+        "session": phone_book["session"],
     }
 
     with pytest.raises(Exception) as exc_info:
@@ -98,32 +97,29 @@ def test_add_db_object(init_mrs, table_contents):
     assert db_objects_table.count == db_objects_table.snapshot.count + 2
 
 
-@pytest.mark.usefixtures("init_mrs")
-def test_get_db_objects(init_mrs):
+def test_get_db_objects(phone_book):
     args = {
         "include_enable_state": False,
-        "session": init_mrs["session"],
+        "session": phone_book["session"],
     }
-    db_objects = get_db_objects(schema_id=init_mrs["schema_id"], **args)
+    db_objects = get_db_objects(schema_id=phone_book["schema_id"], **args)
     assert db_objects is not None
 
 
-
-@pytest.mark.usefixtures("init_mrs")
-def test_get_db_object(init_mrs):
+def test_get_db_object(phone_book):
     args = {
         "schema_id": 9999,
-        "session": init_mrs["session"]
+        "session": phone_book["session"]
     }
 
-    expected_db_object = get_db_object(session=init_mrs["session"], db_object_id=init_mrs["db_object_id"])
+    expected_db_object = get_db_object(session=phone_book["session"], db_object_id=phone_book["db_object_id"])
 
     with pytest.raises(Exception) as exc_info:
         get_db_object(**args)
     assert str(exc_info.value) == 'Invalid id type for schema_id.'
 
 
-    args["schema_id"] = init_mrs["schema_id"]
+    args["schema_id"] = phone_book["schema_id"]
     with pytest.raises(Exception) as exc_info:
         get_db_object(request_path="test_db", db_object_name="db", **args)
     assert str(exc_info.value) == "The request_path has to start with '/'."
@@ -141,22 +137,20 @@ def test_get_db_object(init_mrs):
     # expected_db_object["changed_at"] = result["changed_at"]
     assert result == expected_db_object
 
-@pytest.mark.usefixtures("init_mrs")
-def test_set_request_path(init_mrs):
+def test_set_request_path(phone_book):
     args ={
-        "session": init_mrs["session"]
+        "session": phone_book["session"]
     }
 
-    result = set_request_path(db_object_id=init_mrs["db_object_id"], request_path="/db_table", **args)
+    result = set_request_path(db_object_id=phone_book["db_object_id"], request_path="/db_table", **args)
     assert result is True
 
 
-@pytest.mark.usefixtures("init_mrs")
-def test_set_crud_operations(init_mrs, table_contents):
+def test_set_crud_operations(phone_book, table_contents):
     db_object_table = table_contents("db_object")
     args ={
-        "db_object_id": init_mrs["db_object_id"],
-        "session": init_mrs["session"]
+        "db_object_id": phone_book["db_object_id"],
+        "session": phone_book["session"]
     }
 
     result = get_db_object(**args)
@@ -176,7 +170,7 @@ def test_set_crud_operations(init_mrs, table_contents):
 
     set_crud_operations(crud_operations=['CREATE', 'READ'],
             crud_operation_format="FEED", **args)
-    result = get_db_object(db_object_id=init_mrs["db_object_id"])
+    result = get_db_object(db_object_id=phone_book["db_object_id"])
     assert result is not None
     assert not db_object_table.same_as_snapshot
     assert result["crud_operations"] == ['CREATE', 'READ']
@@ -189,33 +183,44 @@ def test_set_crud_operations(init_mrs, table_contents):
     assert result["crud_operations"] == ['CREATE', 'READ', 'UPDATE', 'DELETE']
 
 
-@pytest.mark.usefixtures("init_mrs")
-def test_disable_enable(init_mrs, table_contents):
+def test_disable_enable(phone_book, table_contents):
     db_object_table = table_contents("db_object")
 
     assert db_object_table.snapshot.count == 3
 
     args ={
-        "db_object_id": init_mrs["db_object_id"],
-        "session": init_mrs["session"]
+        "db_object_id": phone_book["db_object_id"],
+        "session": phone_book["session"]
     }
-    assert db_object_table.get("id", init_mrs["db_object_id"])["enabled"] == True
-    disable_db_object(db_object_name="db", schema_id=init_mrs["schema_id"], **args)
-    assert db_object_table.get("id", init_mrs["db_object_id"])["enabled"] == False
+    assert db_object_table.get("id", phone_book["db_object_id"])["enabled"] == True
+    disable_db_object(db_object_name="db", schema_id=phone_book["schema_id"], **args)
+    assert db_object_table.get("id", phone_book["db_object_id"])["enabled"] == False
 
     args ={
-        "db_object_id": init_mrs["db_object_id"],
-        "session": init_mrs["session"]
+        "db_object_id": phone_book["db_object_id"],
+        "session": phone_book["session"]
     }
-    enable_db_object(db_object_name="db", schema_id=init_mrs["schema_id"], **args)
-    assert db_object_table.get("id", init_mrs["db_object_id"])["enabled"] == True
+    enable_db_object(db_object_name="db", schema_id=phone_book["schema_id"], **args)
+    assert db_object_table.get("id", phone_book["db_object_id"])["enabled"] == True
 
-@pytest.mark.usefixtures("init_mrs")
-def test_db_object_update(init_mrs):
-    original_db_object = get_db_object(session=init_mrs["session"], db_object_id=init_mrs["db_object_id"])
+
+def test_db_object_update(phone_book):
+    original_db_object = get_db_object(session=phone_book["session"], db_object_id=phone_book["db_object_id"])
+
     args ={
-        "db_object_id": init_mrs["db_object_id"],
-        "session": init_mrs["session"],
+        "db_object_id": phone_book["db_object_id"],
+        "session": phone_book["session"],
+        "value": {
+            "name": "new_name",
+        }
+    }
+    with pytest.raises(ValueError) as exc_info:
+        update_db_object(**args)
+    assert str(exc_info.value) == "The TABLE named 'new_name' does not exists in database schema 'PhoneBook'."
+
+    args ={
+        "db_object_id": phone_book["db_object_id"],
+        "session": phone_book["session"],
         "value": {
             "name": "new_name",
             "request_path": "/aaaaaa",
@@ -236,23 +241,9 @@ def test_db_object_update(init_mrs):
             }
         },
     }
-    update_db_object(**args)
-    db_object = get_db_object(**args)
-
-    assert db_object.get("name") == args["value"]["name"]
-    assert db_object.get("request_path") == args["value"]["request_path"]
-    assert db_object.get("enabled") == args["value"]["enabled"]
-    assert db_object.get("items_per_page") == args["value"]["items_per_page"]
-    assert db_object.get("crud_operations") == args["value"]["crud_operations"]
-    assert db_object.get("crud_operation_format") == args["value"]["crud_operation_format"]
-    assert db_object.get("media_type") == args["value"]["media_type"]
-    assert db_object.get("auto_detect_media_type") == args["value"]["auto_detect_media_type"]
-    assert db_object.get("requires_auth") == args["value"]["requires_auth"]
-    assert db_object.get("auth_stored_procedure") == args["value"]["auth_stored_procedure"]
-    assert db_object.get("row_user_ownership_enforced") == args["value"]["row_user_ownership_enforced"]
-    assert db_object.get("row_user_ownership_column") == args["value"]["row_user_ownership_column"]
-    assert db_object.get("comments") == args["value"]["comments"]
-    assert db_object.get("options") == args["value"]["options"]
+    with pytest.raises(ValueError) as exp:
+        update_db_object(**args)
+    assert str(exp.value) == "The TABLE named 'new_name' does not exists in database schema 'PhoneBook'."
 
     args["value"] = {
             "name": original_db_object.get("name"),
@@ -290,12 +281,11 @@ def test_db_object_update(init_mrs):
     assert db_object.get("options") == args["value"]["options"]
 
 
-@pytest.mark.usefixtures("init_mrs")
-def test_delete(init_mrs, table_contents):
+def test_delete(phone_book, table_contents):
     db_object_table = table_contents("db_object")
 
     db_object = {
-        "schema_id": init_mrs["schema_id"],
+        "schema_id": phone_book["schema_id"],
         "db_object_name": "ContactBasicInfo",
         "db_object_type": "VIEW",
         "schema_name": "PhoneBook",
@@ -308,13 +298,13 @@ def test_delete(init_mrs, table_contents):
         "row_user_ownership_enforced": False,
         "row_user_ownership_column": "",
         "comments": "Object that will be removed",
-        "session": init_mrs["session"],
+        "session": phone_book["session"],
     }
     id = add_db_object(**db_object)
     assert id is not None
     assert db_object_table.count == db_object_table.snapshot.count + 1
 
-    delete_db_object(session=init_mrs["session"], db_object_name="ContactBasicInfo", schema_id=init_mrs["schema_id"])
+    delete_db_object(session=phone_book["session"], db_object_name="ContactBasicInfo", schema_id=phone_book["schema_id"])
     assert db_object_table.count == db_object_table.snapshot.count
 
 
@@ -322,6 +312,96 @@ def test_delete(init_mrs, table_contents):
     assert id is not None
     assert db_object_table.count == db_object_table.snapshot.count + 1
 
-    delete_db_object(session=init_mrs["session"], db_object_id=id)
+    delete_db_object(session=phone_book["session"], db_object_id=id)
     assert db_object_table.count == db_object_table.snapshot.count
+
+def test_move_db_object(phone_book, mobile_phone_book, table_contents):
+    session = phone_book["session"]
+    db_object = lib.db_objects.get_db_object(session, phone_book["db_object_id"])
+
+    args ={
+        "db_object_id": db_object["id"],
+        "session": session,
+        "value": {
+            "name": "new_name",
+            "schema_name": "NonExistingSchema",
+        },
+    }
+    with pytest.raises(ValueError) as exp:
+        update_db_object(**args)
+    assert str(exp.value) == "The target schema does not exist."
+
+    args ={
+        "db_object_id": db_object["id"],
+        "session": session,
+        "value": {
+            "name": "new_name",
+            "schema_name": "PhoneBook",
+        },
+    }
+    with pytest.raises(ValueError) as exp:
+        update_db_object(**args)
+    assert str(exp.value) == "The TABLE named 'new_name' does not exists in database schema 'PhoneBook'."
+
+    args ={
+        "db_object_id": db_object["id"],
+        "session": session,
+        "value": {
+            "schema_name": "MobilePhoneBook",
+            "crud_operations": ["CREATE", "READ"],
+            "crud_operation_format": "ITEM",
+        },
+    }
+    with pytest.raises(ValueError) as exp:
+        update_db_object(**args)
+    assert str(exp.value) == "The object already exists in the target schema."
+
+    schema_id_text = lib.core.convert_id_to_string(mobile_phone_book["schema_id"])
+    print(f"db_object name: {db_object['name']}, schema id: {schema_id_text}")
+
+    db_object_to_remove = lib.db_objects.get_db_object(session, schema_id=mobile_phone_book["schema_id"], db_object_name=db_object["name"])
+    assert db_object_to_remove
+    assert not db_object_to_remove["id"] == db_object["id"]
+
+    lib.db_objects.delete_db_object(session, [db_object_to_remove["id"]])
+
+    assert not lib.db_objects.get_db_object(session, db_object_to_remove["id"])
+
+    db_object = lib.db_objects.get_db_object(session, db_object["id"])
+    assert db_object
+
+    args ={
+        "db_object_id": db_object["id"],
+        "session": session,
+        "value": {
+            "schema_name": "NotExistingSchema",
+            "request_path": "/movedObject",
+            "crud_operations": ["CREATE", "READ"],
+            "crud_operation_format": "ITEM",
+        },
+    }
+
+    with pytest.raises(ValueError) as exp:
+        update_db_object(**args)
+    assert str(exp.value) == "The target schema does not exist."
+
+
+    args ={
+        "db_object_id": db_object["id"],
+        "session": session,
+        "value": {
+            "schema_name": "MobilePhoneBook",
+            "request_path": "/movedObject",
+            "crud_operations": ["CREATE", "READ"],
+            "crud_operation_format": "ITEM",
+        },
+    }
+
+    update_db_object(**args)
+
+    db_object = lib.db_objects.get_db_object(session, db_object["id"])
+
+    assert db_object
+    assert db_object["schema_name"] == args["value"]["schema_name"]
+    assert db_object["request_path"] == args["value"]["request_path"]
 
