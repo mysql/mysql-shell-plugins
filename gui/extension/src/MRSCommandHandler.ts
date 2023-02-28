@@ -1489,8 +1489,7 @@ export class MRSCommandHandler {
                 const name = response.data.name as string;
                 const requestPath = response.data.requestPath as string;
                 const requiresAuth = response.data.requiresAuth as boolean;
-                const itemsPerPage = response.data.itemsPerPage === "" ?
-                    0 : response.data.itemsPerPage as number;
+                const itemsPerPage = response.data.itemsPerPage ? response.data.itemsPerPage as number : null;
                 const comments = response.data.comments as string;
                 const enabled = response.data.enabled as boolean;
                 const options = response.data.options === "" ?
@@ -1612,7 +1611,9 @@ export class MRSCommandHandler {
             return;
         }
 
+        const servicePath = response.data.servicePath as string;
         const schemaId = response.data.dbSchemaId as string;
+        const schemaPath = response.data.dbSchemaPath as string;
         const name = response.data.name as string;
         const requestPath = response.data.requestPath as string;
         const requiresAuth = response.data.requiresAuth as boolean;
@@ -1635,6 +1636,15 @@ export class MRSCommandHandler {
             (p: IMrsDbObjectFieldData) => {
                 return p.id !== "";
             });
+
+        const newService = services.find((service) => {
+            return service.urlContextRoot === servicePath;
+        });
+
+        const serviceSchemas = await backend.mrs.listSchemas(newService?.id);
+        const newSchema = serviceSchemas.find((schema) => {
+            return schema.requestPath === schemaPath;
+        });
 
         if (createObject) {
             // Create new DB Object
@@ -1665,6 +1675,7 @@ export class MRSCommandHandler {
                     schemaId,
                     {
                         name,
+                        dbSchemaId: newSchema?.id,
                         requestPath,
                         requiresAuth,
                         autoDetectMediaType,

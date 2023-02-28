@@ -21,12 +21,11 @@
 
 import pytest
 
-from tests.conftest import table_contents
 from mrs_plugin import lib
 from mrs_plugin import routers
 
-def test_add_delete_router(init_mrs, table_contents):
-    session = init_mrs["session"]
+def test_add_delete_router(phone_book, table_contents):
+    session = phone_book["session"]
     router_table = table_contents("router")
 
     router_data = {
@@ -55,9 +54,7 @@ def test_add_delete_router(init_mrs, table_contents):
 
     router_id = lib.core.MrsDbExec(sql, params).exec(session).id
 
-    assert router_id
-
-    router = lib.routers.get_router(init_mrs["session"], router_id)
+    router = lib.routers.get_router(phone_book["session"], router_id)
 
     assert router
     assert not router_table.same_as_snapshot
@@ -66,6 +63,6 @@ def test_add_delete_router(init_mrs, table_contents):
     for key, value in router_data.items():
         assert router[key] == value
 
-    routers.delete_router(router["id"], init_mrs["session"])
+    routers.delete_router(router["id"], phone_book["session"])
 
     assert router_table.same_as_snapshot

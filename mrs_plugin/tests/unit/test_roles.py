@@ -24,30 +24,28 @@ import pytest
 from ... roles import *
 from mrs_plugin import lib
 
-@pytest.mark.usefixtures("init_mrs")
-def test_get_roles(init_mrs):
-    roles = get_roles(None, init_mrs["session"])
+def test_get_roles(phone_book):
+    roles = get_roles(None, phone_book["session"])
 
-    assert len(roles) == len(init_mrs["roles"]) - 1
-
-    for role in roles:
-        assert role["caption"] in init_mrs["roles"]
-        assert role["id"] == init_mrs["roles"][role["caption"]]
-
-    roles = get_roles(init_mrs["service_id"], init_mrs["session"])
-
-    assert len(roles) == len(init_mrs["roles"])
+    assert len(roles) == len(phone_book["roles"]) - 1
 
     for role in roles:
-        assert role["caption"] in init_mrs["roles"]
-        assert role["id"] == init_mrs["roles"][role["caption"]]
+        assert role["caption"] in phone_book["roles"]
+        assert role["id"] == phone_book["roles"][role["caption"]]
+
+    roles = get_roles(phone_book["service_id"], phone_book["session"])
+
+    assert len(roles) == len(phone_book["roles"])
+
+    for role in roles:
+        assert role["caption"] in phone_book["roles"]
+        assert role["id"] == phone_book["roles"][role["caption"]]
 
 
-@pytest.mark.usefixtures("init_mrs")
-def test_add_role(init_mrs):
+def test_add_role(phone_book):
     role1 = add_role("Test role 1", description="This is the role 1 description")
     role2 = add_role("Test role 2", derived_Role_id=role1["id"],
-        specific_to_service_id=init_mrs["service_id"], description="This is the role 2 description")
+        specific_to_service_id=phone_book["service_id"], description="This is the role 2 description")
     role3 = add_role("Test role 3", derived_Role_id=role2["id"],
         description="This is the role 3 description")
 
@@ -55,10 +53,10 @@ def test_add_role(init_mrs):
         "Test role 1": role1["id"],
         "Test role 2": role2["id"],
         "Test role 3": role3["id"],
-        **init_mrs["roles"],
+        **phone_book["roles"],
     }
 
-    roles = get_roles(init_mrs["service_id"], init_mrs["session"])
+    roles = get_roles(phone_book["service_id"], phone_book["session"])
 
     for role in roles:
         assert role["caption"] in local_roles

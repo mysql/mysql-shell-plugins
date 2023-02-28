@@ -28,27 +28,26 @@ import hashlib
 import hmac
 import base64
 
-@pytest.mark.usefixtures("init_mrs")
-def test_add_users(init_mrs, table_contents):
+def test_add_users(phone_book, table_contents):
     users_table = table_contents("mrs_user")
     users_has_role_table = table_contents("mrs_user_has_role")
     user_init = {
         "name": "User 2",
         "email": "user2@host.com",
-        "auth_app_id": init_mrs["auth_app_id"],
+        "auth_app_id": phone_book["auth_app_id"],
         "vendor_user_id": None,
         "login_permitted": True,
         "mapped_user_id": None,
         "app_options": {},
         "auth_string": None,
-        "session": init_mrs["session"],
+        "session": phone_book["session"],
         "user_roles": [
             ]
     }
 
 
-    assert users_has_role_table.filter("user_id", init_mrs["mrs_user1"]) == [{
-        "user_id": init_mrs["mrs_user1"],
+    assert users_has_role_table.filter("user_id", phone_book["mrs_user1"]) == [{
+        "user_id": phone_book["mrs_user1"],
         "role_id": lib.auth_apps.DEFAULT_ROLE_ID,
         "comments": "Default role."
     }]
@@ -94,18 +93,17 @@ def test_add_users(init_mrs, table_contents):
     assert test_auth_string == user_auth_string
 
 
-@pytest.mark.usefixtures("init_mrs")
-def test_get_users(init_mrs, table_contents):
+def test_get_users(phone_book, table_contents):
     users_table = table_contents("mrs_user")
 
-    users = get_users(session=init_mrs["session"], auth_app_id=init_mrs["auth_app_id"])
+    users = get_users(session=phone_book["session"], auth_app_id=phone_book["auth_app_id"])
     assert users is not None
     assert len(users) == 2 # 1 added user + 1 inserted auth the auth_app
 
     for user in users:
         assert user["auth_string"] == lib.users.STORED_PASSWORD_STRING
 
-    users = get_users(session=init_mrs["session"], service_id=init_mrs["service_id"])
+    users = get_users(session=phone_book["session"], service_id=phone_book["service_id"])
     assert users is not None
     assert len(users) == 2 # 1 added user + 1 inserted auth the auth_app
 
@@ -113,11 +111,10 @@ def test_get_users(init_mrs, table_contents):
         assert user["auth_string"] == lib.users.STORED_PASSWORD_STRING
 
 
-@pytest.mark.usefixtures("init_mrs")
-def test_edit_users(init_mrs, table_contents):
+def test_edit_users(phone_book, table_contents):
     users_table = table_contents("mrs_user")
 
-    users = get_users(session=init_mrs["session"], auth_app_id=init_mrs["auth_app_id"])
+    users = get_users(session=phone_book["session"], auth_app_id=phone_book["auth_app_id"])
     assert users is not None
     assert len(users) == 2  # 1 added user + 1 inserted auth the auth_app
 
@@ -126,12 +123,12 @@ def test_edit_users(init_mrs, table_contents):
         "value": {
             "email": "user2@anotherhost.com"
         },
-        "session": init_mrs["session"]
+        "session": phone_book["session"]
     }
 
     update_user(**user_update)
 
-    user = get_user(session=init_mrs["session"], user_id=users[1]["id"])
+    user = get_user(session=phone_book["session"], user_id=users[1]["id"])
 
     assert user is not None
     assert user["email"] == user_update["value"]["email"]
@@ -141,7 +138,7 @@ def test_edit_users(init_mrs, table_contents):
         "value": {
             "auth_string": lib.users.STORED_PASSWORD_STRING
         },
-        "session": init_mrs["session"]
+        "session": phone_book["session"]
     }
 
     update_user(**user_update)
@@ -153,7 +150,7 @@ def test_edit_users(init_mrs, table_contents):
         "value": {
             "auth_string": "somotherpassword"
         },
-        "session": init_mrs["session"]
+        "session": phone_book["session"]
     }
 
     with pytest.raises(RuntimeError) as exp:
@@ -167,7 +164,7 @@ def test_edit_users(init_mrs, table_contents):
         "value": {
             "auth_app_id": lib.core.convert_id_to_string(users[1]["auth_app_id"])
         },
-        "session": init_mrs["session"]
+        "session": phone_book["session"]
     }
 
     new_values = {
@@ -188,7 +185,7 @@ def test_edit_users(init_mrs, table_contents):
             "user_id": users[1]["id"],
             "value": {
             },
-            "session": init_mrs["session"]
+            "session": phone_book["session"]
         }
         user_update["value"][key] = value
         original_record[key] = value
@@ -203,7 +200,7 @@ def test_edit_users(init_mrs, table_contents):
         "value": {
         },
         "user_roles": None,
-        "session": init_mrs["session"]
+        "session": phone_book["session"]
     }
 
     # Update setting user_roles to None
@@ -239,7 +236,7 @@ def test_edit_users(init_mrs, table_contents):
         "value": {
             "name": "User 1"
         },
-        "session": init_mrs["session"]
+        "session": phone_book["session"]
     }
     with pytest.raises(Exception) as exp:
         update_user(**user_update)
@@ -250,7 +247,7 @@ def test_edit_users(init_mrs, table_contents):
         "value": {
             "email": "user1@host.com"
         },
-        "session": init_mrs["session"]
+        "session": phone_book["session"]
     }
     with pytest.raises(Exception) as exp:
         update_user(**user_update)
@@ -258,10 +255,9 @@ def test_edit_users(init_mrs, table_contents):
 
 
 
-@pytest.mark.usefixtures("init_mrs")
-def test_user_roles(init_mrs, table_contents):
-    users = get_users(session=init_mrs["session"], auth_app_id=init_mrs["auth_app_id"])
-    user = get_user(session=init_mrs["session"], user_id=users[1]["id"])
+def test_user_roles(phone_book, table_contents):
+    users = get_users(session=phone_book["session"], auth_app_id=phone_book["auth_app_id"])
+    user = get_user(session=phone_book["session"], user_id=users[1]["id"])
 
     roles = get_user_roles(user["id"])
 
@@ -273,14 +269,14 @@ def test_user_roles(init_mrs, table_contents):
         }
     ]
 
-    add_user_role(user["id"], init_mrs["roles"]["Process Admin"], "Added as process admin", init_mrs["session"])
+    add_user_role(user["id"], phone_book["roles"]["Process Admin"], "Added as process admin", phone_book["session"])
 
     roles = get_user_roles(user["id"])
 
     assert roles == [
         {
             "user_id": user["id"],
-            "role_id": init_mrs["roles"]["Process Admin"],
+            "role_id": phone_book["roles"]["Process Admin"],
             "comments": "Added as process admin",
         },
         {
@@ -296,7 +292,7 @@ def test_user_roles(init_mrs, table_contents):
 
     assert roles == []
 
-    add_user_role(user["id"], init_mrs["roles"]["Full Access"], "Default role.", init_mrs["session"])
+    add_user_role(user["id"], phone_book["roles"]["Full Access"], "Default role.", phone_book["session"])
 
     roles = get_user_roles(user["id"])
 
@@ -309,23 +305,22 @@ def test_user_roles(init_mrs, table_contents):
     ]
 
 
-@pytest.mark.usefixtures("init_mrs")
-def test_delete_users(init_mrs, table_contents):
+def test_delete_users(phone_book, table_contents):
     users_table = table_contents("mrs_user")
     users_has_role_table = table_contents("mrs_user_has_role")
 
     assert users_table.count == 2
 
-    users = get_users(session=init_mrs["session"], auth_app_id=init_mrs["auth_app_id"])
+    users = get_users(session=phone_book["session"], auth_app_id=phone_book["auth_app_id"])
     assert users is not None
     assert len(users) == 2  # 1 added user + 1 inserted auth the auth_app
 
-    delete_user(session=init_mrs["session"], user_id=users[1]["id"])
+    delete_user(session=phone_book["session"], user_id=users[1]["id"])
 
     assert users_table.count == 1
     assert users_has_role_table.filter("user_id", users[1]["id"]) == []
 
-    users = get_users(session=init_mrs["session"], auth_app_id=init_mrs["auth_app_id"])
+    users = get_users(session=phone_book["session"], auth_app_id=phone_book["auth_app_id"])
     assert users is not None
     assert len(users) == 1  # 1 added user + 1 inserted auth the auth_app
     assert users[0]["name"] == "User 1"

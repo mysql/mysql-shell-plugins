@@ -21,7 +21,7 @@
 
 import pytest
 from .... import lib
-from ...conftest import TableContents
+from ..helpers import TableContents
 
 EXPECTED = {
     "0x30000000000000000000000000000000": {
@@ -55,8 +55,8 @@ EXPECTED = {
 }
 
 
-def test_get_auth_vendor(init_mrs, table_contents):
-    session = init_mrs["session"]
+def test_get_auth_vendor(phone_book, table_contents):
+    session = phone_book["session"]
 
     auth_vendor_table: TableContents = table_contents("auth_vendor")
 
@@ -69,8 +69,8 @@ def test_get_auth_vendor(init_mrs, table_contents):
 
 
 
-def test_get_auth_vendors(init_mrs, table_contents):
-    session = init_mrs["session"]
+def test_get_auth_vendors(phone_book, table_contents):
+    session = phone_book["session"]
 
     auth_vendor_table: TableContents = table_contents("auth_app")
 

@@ -25,8 +25,7 @@ from ... import lib
 
 InitialAuthAppIds = []
 
-@pytest.mark.usefixtures("init_mrs")
-def test_add_auth_vendors(init_mrs, table_contents):
+def test_add_auth_vendors(phone_book, table_contents):
     auth_vendor_table = table_contents("auth_vendor")
 
     assert auth_vendor_table.count == 4
@@ -60,8 +59,7 @@ def test_add_auth_vendors(init_mrs, table_contents):
     }]
 
 
-@pytest.mark.usefixtures("init_mrs")
-def test_add_auth_apps(init_mrs, table_contents):
+def test_add_auth_apps(phone_book, table_contents):
     auth_apps_table = table_contents("auth_app")
 
     args = {
@@ -72,10 +70,10 @@ def test_add_auth_apps(init_mrs, table_contents):
         "limit_to_registered_users": False,
         "registered_users": None,
         "app_id": "some app id",
-        "session": init_mrs["session"]
+        "session": phone_book["session"]
     }
 
-    result = add_auth_app(app_name="Test Auth App", service_id=init_mrs["service_id"], **args)
+    result = add_auth_app(app_name="Test Auth App", service_id=phone_book["service_id"], **args)
     assert result is not None
     InitialAuthAppIds.append(result["auth_app_id"])
     assert auth_apps_table.count == auth_apps_table.snapshot.count + 1
@@ -89,7 +87,7 @@ def test_add_auth_apps(init_mrs, table_contents):
         'id': result["auth_app_id"],
         'limit_to_registered_users': int(args["limit_to_registered_users"]),
         'name': 'Test Auth App',
-        'service_id': init_mrs["service_id"],
+        'service_id': phone_book["service_id"],
         'url': args["url"],
         'url_direct_auth': None
     }
@@ -102,10 +100,10 @@ def test_add_auth_apps(init_mrs, table_contents):
         "limit_to_registered_users": False,
         "registered_users": None,
         "app_id": "some app id",
-        "session": init_mrs["session"]
+        "session": phone_book["session"]
     }
 
-    result = add_auth_app(app_name="Test Auth App 2", service_id=init_mrs["service_id"], **args)
+    result = add_auth_app(app_name="Test Auth App 2", service_id=phone_book["service_id"], **args)
     assert result is not None
     InitialAuthAppIds.append(result["auth_app_id"])
     assert auth_apps_table.count == auth_apps_table.snapshot.count + 2
@@ -119,23 +117,23 @@ def test_add_auth_apps(init_mrs, table_contents):
         'id': result["auth_app_id"],
         'limit_to_registered_users': int(args["limit_to_registered_users"]),
         'name': 'Test Auth App 2',
-        'service_id': init_mrs["service_id"],
+        'service_id': phone_book["service_id"],
         'url': args["url"],
         'url_direct_auth': None
     }
 
-@pytest.mark.usefixtures("init_mrs")
-def test_get_auth_apps(init_mrs):
+
+def test_get_auth_apps(phone_book):
     args = {
         "include_enable_state": False,
-        "session": init_mrs["session"],
+        "session": phone_book["session"],
     }
     apps = get_auth_apps(**args)
     assert apps == []
 
     args = {
         "include_enable_state": True,
-        "session": init_mrs["session"],
+        "session": phone_book["session"],
     }
     apps = get_auth_apps(**args)
 
@@ -148,8 +146,7 @@ def test_get_auth_apps(init_mrs):
     assert apps[2]["id"] == InitialAuthAppIds[1]
 
 
-@pytest.mark.usefixtures("init_mrs")
-def test_update_auth_apps(init_mrs, table_contents):
+def test_update_auth_apps(phone_book, table_contents):
     auth_apps_table = table_contents("auth_app")
     value = {
         "name": "Test Auth App New",
@@ -164,7 +161,7 @@ def test_update_auth_apps(init_mrs, table_contents):
     }
     args = {
         "app_id": InitialAuthAppIds[0],
-        "session": init_mrs["session"],
+        "session": phone_book["session"],
         "value": value
     }
     update_auth_app(**args)
@@ -181,22 +178,21 @@ def test_update_auth_apps(init_mrs, table_contents):
         'id': args["app_id"],
         'limit_to_registered_users': int(value["limit_to_registered_users"]),
         'name': value["name"],
-        'service_id': init_mrs["service_id"],
+        'service_id': phone_book["service_id"],
         'url': value["url"],
         'url_direct_auth': value["url_direct_auth"]
     }
 
 
-@pytest.mark.usefixtures("init_mrs")
-def test_delete_auth_apps(init_mrs, table_contents):
+def test_delete_auth_apps(phone_book, table_contents):
     auth_apps_table = table_contents("auth_app")
 
     assert auth_apps_table.count == 3
 
-    delete_auth_app(session=init_mrs["session"], app_id=InitialAuthAppIds[0])
+    delete_auth_app(session=phone_book["session"], app_id=InitialAuthAppIds[0])
 
     assert auth_apps_table.count == 2
 
-    delete_auth_app(session=init_mrs["session"], app_id=InitialAuthAppIds[1])
+    delete_auth_app(session=phone_book["session"], app_id=InitialAuthAppIds[1])
 
     assert auth_apps_table.count == 1
