@@ -227,8 +227,6 @@ describe("MySQL Shell Connections", () => {
 
             await ShellSession.waitForResult("ClassicSession");
 
-            await Misc.execCmd(textArea, "shell.disconnect()");
-
             let uri = `mysql.getSession('${globalConn.username}:${globalConn.password}@${globalConn.hostname}:`;
             uri += `${globalConn.port}/${globalConn.schema}')`;
 
@@ -237,8 +235,6 @@ describe("MySQL Shell Connections", () => {
                 uri);
 
             await ShellSession.waitForResult("ClassicSession");
-
-            await Misc.execCmd(textArea, "shell.disconnect()");
 
             uri = `mysqlx.getSession('${globalConn.username}:${globalConn.password}@${globalConn.hostname}:`;
             uri += `${String(globalConn.portX)}/${globalConn.schema}')`;

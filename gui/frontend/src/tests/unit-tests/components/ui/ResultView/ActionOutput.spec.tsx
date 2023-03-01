@@ -69,7 +69,7 @@ describe("Action Output Tests", (): void => {
         await nextRunLoop();
 
         const output = component.getDOMNode().getElementsByClassName("msg");
-        expect(output).toHaveLength(1);
+        expect(output).toHaveLength(3);
         expect(output).toMatchSnapshot();
 
         component.unmount();

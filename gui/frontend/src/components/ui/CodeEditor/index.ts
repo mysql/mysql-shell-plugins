@@ -147,6 +147,9 @@ export interface IScriptExecutionOptions {
      * or all statements, if there's no selection.
      */
     source?: IPosition | string;
+
+    /** When true render the query and the result as plain text. */
+    asText?: boolean;
 }
 
 /** Determines the behavior of the code editor. */

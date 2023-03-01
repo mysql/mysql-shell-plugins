@@ -97,6 +97,9 @@ interface ICodeExecutionOptions {
 
     /** Tells the executor to add a hint to SELECT statements to use the secondary engine(usually HeatWave). */
     forceSecondaryEngine?: boolean;
+
+    /** When true render the query and the result as plain text. */
+    asText?: boolean;
 }
 
 interface ICodeEditorProperties extends IComponentProperties {
@@ -104,19 +107,23 @@ interface ICodeEditorProperties extends IComponentProperties {
     initialContent?: string;
     executeInitialContent?: boolean;
 
-    // The language to be used when creating a default model. If a model is given, the language is taken from that.
+    /** The language to be used when creating a default model. If a model is given, the language is taken from that. */
     language?: EditorLanguage;
 
-    // Limits the languages this editor instance should support. Put your main/fallback language as first entry in that
-    // list (if at all given), as this is what is used by default if a language is not supported.
+    /**
+     * Limits the languages this editor instance should support. Put your main/fallback language as first entry in that
+     * list (if at all given), as this is what is used by default if a language is not supported.
+     */
     allowedLanguages?: EditorLanguage[];
 
-    // Used only for the "msg" language to specify the dialect of the SQL language supported there.
+    /** Used only for the "msg" language to specify the dialect of the SQL language supported there. */
     sqlDialect?: string;
 
-    // Used only if "msg" is the main language and no execution context exists and when the user pastes text, which
-    // is then split into language blocks.
-    // It determines the language of the initial execution/language block and must not be "msg".
+    /**
+     * Used only if "msg" is the main language and no execution context exists and when the user pastes text, which
+     * is then split into language blocks.
+     * It determines the language of the initial execution/language block and must not be "msg".
+     */
     startLanguage?: EditorLanguage;
 
     readonly?: boolean;
@@ -125,8 +132,11 @@ interface ICodeEditorProperties extends IComponentProperties {
     autoFocus?: boolean;
     allowSoftWrap: boolean;
 
-    componentMinWidth?: number; // Min width of embedded components.
-    lineDecorationsWidth?: number; // The width of the gutter area where line decorations are shown.
+    /** Min width of embedded components. */
+    componentMinWidth?: number;
+
+    /** The width of the gutter area where line decorations are shown. */
+    lineDecorationsWidth?: number;
 
     renderLineHighlight?: "none" | "gutter" | "line" | "all";
     showIndentGuides?: boolean;
@@ -143,7 +153,7 @@ interface ICodeEditorProperties extends IComponentProperties {
     onOptionsChanged?: () => void;
     onModelChange?: () => void;
 
-    // The presentation class depends on the place where the editor is used.
+    /** The presentation class depends on the place where the editor is used. */
     createResultPresentation?: ResultPresentationFactory;
 }
 
@@ -854,6 +864,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             label: blockBased ? "Execute Block and Advance" : "Execute Script",
             keybindings: [KeyMod.CtrlCmd | KeyCode.Enter],
             contextMenuGroupId: "2_execution",
+            contextMenuOrder: 1,
             precondition,
             run: () => {
                 this.executeCurrentContext({ advance: true });
@@ -865,6 +876,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             label: blockBased ? "Execute Block" : "Execute Script and Move Cursor",
             keybindings: [KeyMod.Shift | KeyCode.Enter],
             contextMenuGroupId: "2_execution",
+            contextMenuOrder: 2,
             precondition,
             run: () => { return this.executeCurrentContext({}); },
         }));
@@ -874,8 +886,18 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             label: "Execute Current Statement",
             keybindings: [KeyMod.Shift | KeyMod.CtrlCmd | KeyCode.Enter],
             contextMenuGroupId: "2_execution",
+            contextMenuOrder: 3,
             precondition,
             run: () => { return this.executeCurrentContext({ atCaret: true }); },
+        }));
+
+        this.disposables.push(editor.addAction({
+            id: "executeToText",
+            label: "Execute and Print as Text",
+            contextMenuGroupId: "2_execution",
+            contextMenuOrder: 4,
+            precondition,
+            run: () => { return this.executeCurrentContext({ atCaret: true, advance: true, asText: true }); },
         }));
 
         if (blockBased) {
@@ -949,6 +971,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             id: "copy",
             label: "Copy",
             keybindings: [KeyMod.CtrlCmd | KeyCode.KeyC],
+            precondition,
             run: () => {
                 editor.trigger("source", "editor.action.clipboardCopyAction", null);
             },
@@ -958,19 +981,20 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             id: "cut",
             label: "Cut",
             keybindings: [KeyMod.CtrlCmd | KeyCode.KeyX],
+            precondition,
             run: () => {
                 editor.trigger("source", "editor.action.clipboardCutAction", null);
             },
         }));
 
         this.disposables.push(editor.addAction({
-            id: "acceptSelectedSuggestion",
+            id: "acceptSuggestion",
             label: "Accept Selected Suggestion",
             keybindings: [KeyMod.CtrlCmd | KeyCode.Enter],
+            precondition: "suggestWidgetVisible",
             run: () => {
                 editor.trigger("source", "acceptSelectedSuggestion", null);
             },
-            precondition: "suggestWidgetVisible",
         }));
 
         this.disposables.push(editor);
@@ -1337,6 +1361,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                         const executionOptions = {
                             forceSecondaryEngine: options.forceSecondaryEngine,
                             source: position,
+                            asText: options.asText,
                         };
                         void onScriptExecution?.(block, executionOptions);
                         editor.focus();
@@ -1798,7 +1823,12 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
 
         const advance = (language === "msg") && options.startNewBlock;
         this.executeCurrentContext(
-            { atCaret: true, advance: advance || terminalMode, forceSecondaryEngine: options.forceSecondaryEngine });
+            {
+                atCaret: true,
+                advance: advance || terminalMode,
+                forceSecondaryEngine: options.forceSecondaryEngine,
+                asText: options.asText,
+            });
         editor?.focus();
 
         return Promise.resolve(true);

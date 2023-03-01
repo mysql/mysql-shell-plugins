@@ -257,13 +257,13 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
     protected defineRenderTarget(): HTMLDivElement {
         // The zone node is positioned absolutely and hence cannot use margins to define a distance to neighbor
         // elements. That's why we need an additional element below it that acts as background and mount point.
-        const zoneNode = document.createElement("div");
-        zoneNode.className = "zoneHost";
+        const zoneHost = document.createElement("div");
+        zoneHost.className = "zoneHost";
 
         const result = document.createElement("div");
         result.className = "renderTarget";
         result.style.maxHeight = `${PresentationInterface.maxHeight}px`;
-        zoneNode.appendChild(result);
+        zoneHost.appendChild(result);
 
         result.addEventListener("wheel", (e) => {
             if (!this.editor?.isScrolling) {
@@ -279,7 +279,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
         let zoneId = "";
         const zone = {
             afterLineNumber: this.endLine,
-            domNode: zoneNode,
+            domNode: zoneHost,
             marginDomNode: marginNode,
             suppressMouseDown: false,
             heightInPx: this.currentHeight,

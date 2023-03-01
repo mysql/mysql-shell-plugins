@@ -123,6 +123,7 @@
         "dbconnections",
         "dbeditor",
         "dblwr",
+        "ebcc",
         "esbuild",
         "eucjpms",
         "gbps",

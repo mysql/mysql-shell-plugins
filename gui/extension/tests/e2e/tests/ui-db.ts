@@ -1567,7 +1567,8 @@ describe("DATABASE CONNECTIONS", () => {
                 await Misc.processFailure(this);
             }
 
-            await driver.findElement(By.id("itemCloseButton")).click();
+            const closeEditorBtn = await driver.findElement(By.id("itemCloseButton"));
+            await driver.executeScript("arguments[0].click()", closeEditorBtn);
         });
 
         after(async function () {

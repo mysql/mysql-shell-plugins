@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable max-classes-per-file */
+/* eslint-disable max-classes-per-file, @typescript-eslint/no-use-before-define */
 
 import { ParserRuleContext } from "antlr4ts/ParserRuleContext";
 import { ParseTree } from "antlr4ts/tree/ParseTree";
@@ -32,32 +32,94 @@ import { SymbolTable, Symbol, ScopedSymbol, RoutineSymbol, TypedSymbol, Variable
 
 import { SymbolKind, ISymbolInfo, ISymbolDefinition } from "./parser-common";
 
-// An enhanced symbol with additional database symbols.
+export class CatalogSymbol extends ScopedSymbol {
+}
+
+export class SchemaSymbol extends ScopedSymbol {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    public async getAllSymbols<T extends Symbol>(t: new (...args: any[]) => T): Promise<T[]> {
+        let existing = await super.getAllSymbols(t, true);
+        if (existing.length === 0 && this.symbolTable instanceof DBSymbolTable) {
+            const kind = DBSymbolTable.getKindFromSymbol(t);
+            await this.symbolTable.loadSymbolsOfKind(this, kind);
+            existing = await super.getAllSymbols(t, true);
+        }
+
+        return existing;
+    }
+}
+
+export class TableSymbol extends ScopedSymbol {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    public async getAllSymbols<T extends Symbol>(t: new (...args: any[]) => T): Promise<T[]> {
+        let existing = await super.getAllSymbols(t, true);
+        if (existing.length === 0 && this.symbolTable instanceof DBSymbolTable) {
+            if (t.name === "ColumnSymbol") {
+                await this.symbolTable.loadSymbolsOfKind(this, SymbolKind.Column);
+                existing = await super.getAllSymbols(t, true);
+            }
+        }
+
+        return existing;
+    }
+}
+
+export class ViewSymbol extends ScopedSymbol { }
+export class EventSymbol extends ScopedSymbol { }
+export class ColumnSymbol extends TypedSymbol { }
+export class UserSymbol extends TypedSymbol { }
+export class IndexSymbol extends Symbol { } // Made of columns, but doesn't contain them. Hence not a scope.
+export class ForeignKeySymbol extends Symbol { } // ditto
+export class StoredProcedureSymbol extends RoutineSymbol { }
+export class StoredFunctionSymbol extends RoutineSymbol { }
+export class TriggerSymbol extends ScopedSymbol { }
+export class UdfSymbol extends Symbol { } // No body nor parameter info.
+export class EngineSymbol extends Symbol { }
+export class LabelSymbol extends Symbol { }
+export class PluginSymbol extends Symbol { }
+export class TablespaceSymbol extends Symbol { }
+export class LogfileGroupSymbol extends Symbol { }
+export class CharsetSymbol extends Symbol { }
+export class CollationSymbol extends Symbol { }
+export class PrimaryKeySymbol extends Symbol { }
+export class UserVariableSymbol extends VariableSymbol { }
+export class SystemVariableSymbol extends Symbol {
+    public constructor(name: string, public description: string[]) {
+        super(name);
+    }
+}
+export class SystemFunctionSymbol extends Symbol {
+    public constructor(name: string, public description: string[]) {
+        super(name);
+    }
+}
+
+/** An enhanced symbol with additional database symbols. */
 export class DBSymbolTable extends SymbolTable {
 
-    private static symbolToKindMap: Map<string, SymbolKind> = new Map([
-        ["CatalogSymbol", SymbolKind.Catalog],
-        ["SchemaSymbol", SymbolKind.Schema],
-        ["TableSymbol", SymbolKind.Table],
-        ["ViewSymbol", SymbolKind.View],
-        ["EventSymbol", SymbolKind.Event],
-        ["ColumnSymbol", SymbolKind.Column],
-        ["IndexSymbol", SymbolKind.Index],
-        ["PrimaryKeySymbol", SymbolKind.PrimaryKey],
-        ["ForeignKeySymbol", SymbolKind.ForeignKey],
-        ["StoredProcedureSymbol", SymbolKind.Procedure],
-        ["StoredFunctionSymbol", SymbolKind.Function],
-        ["TriggerSymbol", SymbolKind.Trigger],
-        ["UdfSymbol", SymbolKind.Udf],
-        ["EngineSymbol", SymbolKind.Engine],
-        ["TablespaceSymbol", SymbolKind.Tablespace],
-        ["LogfileGroupSymbol", SymbolKind.LogfileGroup],
-        ["CharsetSymbol", SymbolKind.Charset],
-        ["CollationSymbol", SymbolKind.Collation],
-        ["UserVariableSymbol", SymbolKind.UserVariable],
-        ["PluginSymbol", SymbolKind.Plugin],
-        ["SystemVariableSymbol", SymbolKind.SystemVariable],
-        ["SystemFunctionSymbol", SymbolKind.SystemFunction],
+    private static symbolToKindMap: Map<typeof Symbol, SymbolKind> = new Map([
+        [CatalogSymbol, SymbolKind.Catalog],
+        [SchemaSymbol, SymbolKind.Schema],
+        [TableSymbol, SymbolKind.Table],
+        [ViewSymbol, SymbolKind.View],
+        [EventSymbol, SymbolKind.Event],
+        [ColumnSymbol, SymbolKind.Column],
+        [IndexSymbol, SymbolKind.Index],
+        [PrimaryKeySymbol, SymbolKind.PrimaryKey],
+        [ForeignKeySymbol, SymbolKind.ForeignKey],
+        [StoredProcedureSymbol.constructor as typeof Symbol, SymbolKind.Procedure],
+        [StoredFunctionSymbol.constructor as typeof Symbol, SymbolKind.Function],
+        [TriggerSymbol, SymbolKind.Trigger],
+        [UdfSymbol, SymbolKind.Udf],
+        [EngineSymbol, SymbolKind.Engine],
+        [TablespaceSymbol, SymbolKind.Tablespace],
+        [LogfileGroupSymbol, SymbolKind.LogfileGroup],
+        [CharsetSymbol, SymbolKind.Charset],
+        [CollationSymbol, SymbolKind.Collation],
+        [UserVariableSymbol.constructor as typeof Symbol, SymbolKind.UserVariable],
+        [PluginSymbol, SymbolKind.Plugin],
+        [SystemVariableSymbol.constructor as typeof Symbol, SymbolKind.SystemVariable],
+        [SystemFunctionSymbol.constructor as typeof Symbol, SymbolKind.SystemFunction],
     ]);
 
     // TODO: set the tree actually.
@@ -65,8 +127,15 @@ export class DBSymbolTable extends SymbolTable {
 
     private symbolReferences: Map<string, number> = new Map();
 
-    public static getKindFromSymbol(symbolName: string): SymbolKind {
-        return this.symbolToKindMap.get(symbolName) ?? SymbolKind.Unknown;
+    /**
+     * Converts a symbol class to a symbol kind in a way that is compatible with minified class names.
+     *
+     * @param symbol The symbol class name.
+     *
+     * @returns The symbol kind.
+     */
+    public static getKindFromSymbol(symbol: typeof Symbol): SymbolKind {
+        return this.symbolToKindMap.get(symbol) ?? SymbolKind.Unknown;
     }
 
     /**
@@ -125,7 +194,7 @@ export class DBSymbolTable extends SymbolTable {
             symbol = temp;
         }
 
-        const kind = DBSymbolTable.getKindFromSymbol(symbol.constructor.name);
+        const kind = DBSymbolTable.getKindFromSymbol(symbol.constructor as typeof Symbol);
 
         return {
             kind,
@@ -135,7 +204,6 @@ export class DBSymbolTable extends SymbolTable {
             // eslint-disable-next-line dot-notation
             description: symbol["description"], // Not all symbols have a description.
         };
-
     }
 
     /**
@@ -198,63 +266,5 @@ export class DBSymbolTable extends SymbolTable {
         }
 
         return this.resolve(name, localOnly);
-    }
-}
-
-export class SchemaSymbol extends ScopedSymbol {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    public async getAllSymbols<T extends Symbol>(t: new (...args: any[]) => T): Promise<T[]> {
-        let existing = await super.getAllSymbols(t, true);
-        if (existing.length === 0 && this.symbolTable instanceof DBSymbolTable) {
-            const kind = DBSymbolTable.getKindFromSymbol(t.name);
-            await this.symbolTable.loadSymbolsOfKind(this, kind);
-            existing = await super.getAllSymbols(t, true);
-        }
-
-        return existing;
-    }
-}
-
-export class TableSymbol extends ScopedSymbol {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    public async getAllSymbols<T extends Symbol>(t: new (...args: any[]) => T): Promise<T[]> {
-        let existing = await super.getAllSymbols(t, true);
-        if (existing.length === 0 && this.symbolTable instanceof DBSymbolTable) {
-            if (t.name === "ColumnSymbol") {
-                await this.symbolTable.loadSymbolsOfKind(this, SymbolKind.Column);
-                existing = await super.getAllSymbols(t, true);
-            }
-        }
-
-        return existing;
-    }
-}
-
-export class ViewSymbol extends ScopedSymbol { }
-export class EventSymbol extends ScopedSymbol { }
-export class ColumnSymbol extends TypedSymbol { }
-export class UserSymbol extends TypedSymbol { }
-export class IndexSymbol extends Symbol { } // Made of columns, but doesn't contain them. Hence not a scope.
-export class ForeignKeySymbol extends Symbol { } // ditto
-export class StoredProcedureSymbol extends RoutineSymbol { }
-export class StoredFunctionSymbol extends RoutineSymbol { }
-export class TriggerSymbol extends ScopedSymbol { }
-export class UdfSymbol extends Symbol { } // No body nor parameter info.
-export class EngineSymbol extends Symbol { }
-export class LabelSymbol extends Symbol { }
-export class PluginSymbol extends Symbol { }
-export class TablespaceSymbol extends Symbol { }
-export class LogfileGroupSymbol extends Symbol { }
-export class CharsetSymbol extends Symbol { }
-export class CollationSymbol extends Symbol { }
-export class UserVariableSymbol extends VariableSymbol { }
-export class SystemVariableSymbol extends Symbol {
-    public constructor(name: string, public description: string[]) {
-        super(name);
-    }
-}
-export class SystemFunctionSymbol extends Symbol {
-    public constructor(name: string, public description: string[]) {
-        super(name);
     }
 }

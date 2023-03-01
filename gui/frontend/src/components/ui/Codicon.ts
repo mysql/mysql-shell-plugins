@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
- /* spell-checker: disable */
+/* spell-checker: disable */
 
 export enum Codicon {
     Undefined,
@@ -89,6 +89,7 @@ export enum Codicon {
     CommentDiscussion,
     CompareChanges,
     Console,
+    Copy,
     CreditCard,
     Dash,
     Dashboard,
@@ -517,6 +518,7 @@ export const iconNameMap = new Map<Codicon, string>([
     [Codicon.CommentDiscussion, "comment-discussion"],
     [Codicon.CompareChanges, "compare-changes"],
     [Codicon.Console, "console"],
+    [Codicon.Copy, "copy"],
     [Codicon.CreditCard, "credit-card"],
     [Codicon.Dash, "dash"],
     [Codicon.Dashboard, "dashboard"],

@@ -42,7 +42,7 @@ import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool";
 import { ScriptingLanguageServices } from "../../script-execution/ScriptingLanguageServices";
 import { QueryType } from "../../parsing/parser-common";
 import { DBEditorToolbar } from "./DBEditorToolbar";
-import { IColumnInfo, IExecutionInfo, MessageType } from "../../app-logic/Types";
+import { DBDataType, IColumnInfo, IDictionary, IExecutionInfo, MessageType } from "../../app-logic/Types";
 import { Settings } from "../../supplement/Settings/Settings";
 import { ApplicationDB } from "../../app-logic/ApplicationDB";
 import {
@@ -150,6 +150,7 @@ interface IQueryExecutionOptions {
     /** context The context to send result to. */
     context: SQLExecutionContext;
 
+    /** The query to execute. */
     queryType: QueryType,
 
     /** The original query sent by the caller (does not include an auto LIMIT clause). */
@@ -172,11 +173,13 @@ interface IQueryExecutionOptions {
 
     /** If given, the results of this request replace an existing result set. */
     oldResultId?: string;
+
+    /** Render SQL results as plain text instead of interactive tables. */
+    showAsText: boolean;
 }
 
 // A tab page for a single connection (managed by the scripting module).
 export class DBConnectionTab extends ComponentBase<IDBConnectionTabProperties, IDBConnectionTabState> {
-
     private static aboutMessage = `Welcome to the MySQL Shell - DB Notebook.
 
 Press %modifier%+Enter to execute the current statement.
@@ -620,6 +623,7 @@ Execute \\help or \\? for help;`;
                     explicitPaging: changed,
                     currentPage: page,
                     oldResultId,
+                    showAsText: options.asText ?? false,
                 });
             } else {
                 await this.doExecution({
@@ -633,6 +637,7 @@ Execute \\help or \\? for help;`;
                     explicitPaging: false,
                     currentPage: page,
                     oldResultId,
+                    showAsText: options.asText ?? false,
                 });
             }
         }
@@ -680,7 +685,7 @@ Execute \\help or \\? for help;`;
 
                 let hasMoreRows = false;
                 let rowCount = 0;
-                let status: IExecutionInfo = {text: ""};
+                let status: IExecutionInfo = { text: "" };
                 let resultSummary = false;
 
                 if (data.result.totalRowCount !== undefined) {
@@ -716,33 +721,55 @@ Execute \\help or \\? for help;`;
                 }
                 const rows = convertRows(columns, data.result.rows);
 
-                void ApplicationDB.db.put("dbModuleResultData", {
-                    tabId: id,
-                    resultId,
-                    rows,
-                    columns: setColumns ? columns : undefined,
-                    executionInfo: resultSummary ? status : undefined,
-                    totalRowCount: resultSummary ? rowCount: undefined,
-                    hasMoreRows,
-                    currentPage: options.currentPage,
-                    index: options.index,
-                    sql: options.original,
-                });
+                if (options.showAsText) {
+                    let content = "";
+                    if (setColumns) {
+                        content += options.query + "\n";
+                    }
 
-                this.addTimedResult(options.context, {
-                    type: "resultSetRows",
-                    rows,
-                    columns: setColumns ? columns : undefined,
-                    executionInfo: resultSummary ? status : undefined,
-                    totalRowCount: resultSummary ? rowCount: undefined,
-                    hasMoreRows,
-                    currentPage: options.currentPage,
-                }, {
-                    resultId,
-                    index: options.index,
-                    sql: options.original,
-                    replaceData,
-                });
+                    content += this.convertResultSetToText(rows, columns, setColumns, resultSummary);
+                    this.addTimedResult(options.context, {
+                        type: "text",
+                        executionInfo: resultSummary ? status : undefined,
+                        text: [{
+                            type: MessageType.Text,
+                            content,
+                        }],
+                    }, {
+                        resultId,
+                        index: options.index,
+                        sql: options.original,
+                        replaceData,
+                    });
+                } else {
+                    void ApplicationDB.db.put("dbModuleResultData", {
+                        tabId: id,
+                        resultId,
+                        rows,
+                        columns: setColumns ? columns : undefined,
+                        executionInfo: resultSummary ? status : undefined,
+                        totalRowCount: resultSummary ? rowCount : undefined,
+                        hasMoreRows,
+                        currentPage: options.currentPage,
+                        index: options.index,
+                        sql: options.original,
+                    });
+
+                    this.addTimedResult(options.context, {
+                        type: "resultSetRows",
+                        rows,
+                        columns: setColumns ? columns : undefined,
+                        executionInfo: resultSummary ? status : undefined,
+                        totalRowCount: resultSummary ? rowCount : undefined,
+                        hasMoreRows,
+                        currentPage: options.currentPage,
+                    }, {
+                        resultId,
+                        index: options.index,
+                        sql: options.original,
+                        replaceData,
+                    });
+                }
 
                 if (resultSummary) {
                     resultId = uuid();
@@ -1524,5 +1551,86 @@ Execute \\help or \\? for help;`;
 
         onGraphDataChange?.(id ?? "", data);
     };
+
+    /**
+     * Converts the given tabular data into a text representation.
+     *
+     * @param rows The row data.
+     * @param columns Column information.
+     * @param started A flag indicating whether the column header must be rendered
+     * @param finished A flag indicating whether the final line must be rendered.
+     *
+     * @returns The text representation of the given data.
+     */
+    private convertResultSetToText(rows: IDictionary[], columns: IColumnInfo[], started: boolean, finished: boolean) {
+        let result = "";
+
+        // Compute the width of each column, based on the column name and the data, if not yet done.
+        if (columns.length > 0 && columns[0].width === undefined) {
+            columns.forEach((column: IColumnInfo) => {
+                column.width = column.title.length;
+                switch (column.dataType.type) {
+                    case DBDataType.TinyInt:
+                    case DBDataType.SmallInt:
+                    case DBDataType.MediumInt:
+                    case DBDataType.Int:
+                    case DBDataType.Bigint:
+                    case DBDataType.UInteger:
+                    case DBDataType.Float:
+                    case DBDataType.Real:
+                    case DBDataType.Double:
+                    case DBDataType.Decimal: {
+                        column.rightAlign = true;
+
+                        break;
+                    }
+
+                    default:
+                }
+            });
+        }
+
+        rows.forEach((row) => {
+            columns.forEach((column) => {
+                const value = String(row[column.field]);
+                const length = value.length;
+                if (length > (column.width ?? 0)) {
+                    column.width = length;
+                }
+            });
+        });
+
+        const separator = columns.reduce((previous, current) => {
+            return previous + "-".repeat(current.width! + 2) + "+";
+        }, "+");
+
+        if (started) {
+            // Render the column header.
+            result += separator + "\n";
+
+            const line = columns.reduce((previous, current, index) => {
+                return previous + " " + current.title.padEnd(columns[index].width!) + " |";
+            }, "|");
+            result += line + "\n" + separator + "\n";
+        }
+
+        // Render the data.
+        rows.forEach((row) => {
+            const line = columns.reduce((previous, current, index) => {
+                if (columns[index].rightAlign) {
+                    return previous + " " + String(row[current.field]).padStart(columns[index].width!) + " |";
+                }
+
+                return previous + " " + String(row[current.field]).padEnd(columns[index].width!) + " |";
+            }, "|");
+            result += line + "\n";
+        });
+
+        if (finished) {
+            result += separator + "\n";
+        }
+
+        return result;
+    }
 
 }

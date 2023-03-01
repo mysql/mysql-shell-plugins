@@ -26,6 +26,10 @@
     --waiting-progress-color: gray;
 }
 
+.msg.monaco-editor .view-zones {
+    z-index: 1
+}
+
 .msg.monaco-editor.codeEditor {
     /* Restore selection ability. Very important for Safari. */
     user-select: text;

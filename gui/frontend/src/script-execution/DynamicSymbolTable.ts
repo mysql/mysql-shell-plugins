@@ -54,7 +54,7 @@ export class DynamicSymbolTable extends DBSymbolTable {
         let existing = await super.getAllSymbols(t, localOnly);
         if (existing.length === 0) {
             // Not yet loaded, so do it now.
-            await this.loadSymbolsOfKind(this, DBSymbolTable.getKindFromSymbol(t.name));
+            await this.loadSymbolsOfKind(this, DBSymbolTable.getKindFromSymbol(t));
             existing = await super.getAllSymbols(t, localOnly);
         }
 

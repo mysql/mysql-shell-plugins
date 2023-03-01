@@ -138,38 +138,82 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                         disabled={this.handleCellMenuItemDisabled}
                     />
                     <MenuItem
-                        caption="-" disabled />
-
-                    <MenuItem
-                        id="copyRowMenuItem1"
-                        caption="Copy Row"
-                        disabled={this.handleCellMenuItemDisabled}
+                        caption="-" disabled
                     />
-                    <MenuItem
-                        id="copyRowMenuItem2"
-                        caption="Copy Row With Names"
-                        disabled={this.handleCellMenuItemDisabled}
-                    />
-                    <MenuItem
-                        id="copyRowMenuItem3"
-                        caption="Copy Row Unquoted"
-                        disabled={this.handleCellMenuItemDisabled}
-                    />
-                    <MenuItem
-                        id="copyRowMenuItem4"
-                        caption="Copy Row With Names, Unquoted"
-                        disabled={this.handleCellMenuItemDisabled}
-                    />
-                    <MenuItem
-                        id="copyRowMenuItem5"
-                        caption="Copy Row With Names, Tab Separated"
-                        disabled={this.handleCellMenuItemDisabled}
-                    />
-                    <MenuItem
-                        id="copyRowMenuItem6"
-                        caption="Copy Row Tab Separated"
-                        disabled={this.handleCellMenuItemDisabled}
-                    />
+                    <MenuItem id="copyRowSubmenu" caption="Copy Single Row">
+                        <MenuItem
+                            id="copyRowMenuItem1"
+                            caption="Copy Row"
+                            disabled={this.handleCellMenuItemDisabled}
+                        />
+                        <MenuItem
+                            id="copyRowMenuItem2"
+                            caption="Copy Row With Names"
+                            disabled={this.handleCellMenuItemDisabled}
+                        />
+                        <MenuItem
+                            id="copyRowMenuItem3"
+                            caption="Copy Row Unquoted"
+                            disabled={this.handleCellMenuItemDisabled}
+                        />
+                        <MenuItem
+                            id="copyRowMenuItem4"
+                            caption="Copy Row With Names, Unquoted"
+                            disabled={this.handleCellMenuItemDisabled}
+                        />
+                        <MenuItem
+                            id="copyRowMenuItem5"
+                            caption="Copy Row With Names, Tab Separated"
+                            disabled={this.handleCellMenuItemDisabled}
+                        />
+                        <MenuItem
+                            id="copyRowMenuItem6"
+                            caption="Copy Row Tab Separated"
+                            disabled={this.handleCellMenuItemDisabled}
+                        />
+                    </MenuItem>
+                    <MenuItem id="copyRowsSubmenu" caption="Copy Multiple Rows">
+                        <MenuItem
+                            id="copyRowsMenuItem1"
+                            caption="Copy All Rows"
+                            disabled={this.handleCellMenuItemDisabled}
+                        />
+                        <MenuItem
+                            id="copyRowsMenuItem2"
+                            caption="Copy All Rows With Names"
+                            disabled={this.handleCellMenuItemDisabled}
+                        />
+                        <MenuItem
+                            id="copyRowsMenuItem3"
+                            caption="Copy All Rows Unquoted"
+                            disabled={this.handleCellMenuItemDisabled}
+                        />
+                        <MenuItem
+                            id="copyRowsMenuItem4"
+                            caption="Copy All Rows With Names, Unquoted"
+                            disabled={this.handleCellMenuItemDisabled}
+                        />
+                        <MenuItem
+                            id="copyRowsMenuItem5"
+                            caption="Copy All Rows With Names, Tab Separated"
+                            disabled={this.handleCellMenuItemDisabled}
+                        />
+                        <MenuItem
+                            id="copyRowsMenuItem6"
+                            caption="Copy All Rows Tab Separated"
+                            disabled={this.handleCellMenuItemDisabled}
+                        />
+                        <MenuItem
+                            id="copyRowsMenuItem7"
+                            caption="Copy Selected Rows"
+                            disabled={this.handleCellMenuItemDisabled}
+                        />
+                        <MenuItem
+                            id="copyRowsMenuItem8"
+                            caption="Copy All Selected Rows, Tab Separated"
+                            disabled={this.handleCellMenuItemDisabled}
+                        />
+                    </MenuItem>
                     <MenuItem
                         id="copyFieldMenuItem"
                         caption="Copy Field"
@@ -344,7 +388,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                 case DBDataType.Time:
                 case DBDataType.Time_f: {
                     formatter = "datetime";
-                        // TODO: make this locale dependent.
+                    // TODO: make this locale dependent.
                     formatterParams.outputFormat = "HH:mm:ss";
                     //editor = true;
 
@@ -463,27 +507,27 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
             }
 
             case "copyRowMenuItem1": {
-                return false;
+                return selectCount > 1;
             }
 
             case "copyRowMenuItem2": {
-                return false;
+                return selectCount > 1;
             }
 
             case "copyRowMenuItem3": {
-                return false;
+                return selectCount > 1;
             }
 
             case "copyRowMenuItem4": {
-                return false;
+                return selectCount > 1;
             }
 
             case "copyRowMenuItem5": {
-                return false;
+                return selectCount > 1;
             }
 
             case "copyRowMenuItem6": {
-                return false;
+                return selectCount > 1;
             }
 
             case "copyFieldMenuItem": {
@@ -492,6 +536,38 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
 
             case "copyFieldUnquotedMenuItem": {
                 return selectCount > 1;
+            }
+
+            case "copyRowsMenuItem1": {
+                return false;
+            }
+
+            case "copyRowsMenuItem2": {
+                return false;
+            }
+
+            case "copyRowsMenuItem3": {
+                return false;
+            }
+
+            case "copyRowsMenuItem4": {
+                return false;
+            }
+
+            case "copyRowsMenuItem5": {
+                return false;
+            }
+
+            case "copyRowsMenuItem6": {
+                return false;
+            }
+
+            case "copyRowsMenuItem7": {
+                return selectCount === 0;
+            }
+
+            case "copyRowsMenuItem8": {
+                return selectCount === 0;
             }
 
             case "pasteRowMenuItem": {
@@ -655,6 +731,54 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                     break;
                 }
 
+                case "copyRowsMenuItem1": {
+                    this.copyRows(false, false, ",", true);
+
+                    break;
+                }
+
+                case "copyRowsMenuItem2": {
+                    this.copyRows(true, false, ",", true);
+
+                    break;
+                }
+
+                case "copyRowsMenuItem3": {
+                    this.copyRows(false, true, ",", true);
+
+                    break;
+                }
+
+                case "copyRowsMenuItem4": {
+                    this.copyRows(true, true, ",", true);
+
+                    break;
+                }
+
+                case "copyRowsMenuItem5": {
+                    this.copyRows(true, false, "\t", true);
+
+                    break;
+                }
+
+                case "copyRowsMenuItem6": {
+                    this.copyRows(false, false, "\t", true);
+
+                    break;
+                }
+
+                case "copyRowsMenuItem7": {
+                    this.copyRows(true, false, "\t", true);
+
+                    break;
+                }
+
+                case "copyRowsMenuItem8": {
+                    this.copyRows(false, false, "\t", true);
+
+                    break;
+                }
+
                 case "copyFieldMenuItem": {
                     void requisitions.writeToClipboard(this.formatCell(this.currentCell));
                     break;
@@ -702,9 +826,15 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         return true;
     };
 
-    private copyRows = (withNames: boolean, unquoted: boolean, separator = ", "): void => {
+    private copyRows = (withNames: boolean, unquoted: boolean, separator = ", ", all = false): void => {
         // istanbul ignore next
-        let rows = this.gridRef.current?.getSelectedRows() ?? [];
+        let rows;
+        if (all) {
+            rows = this.gridRef.current?.getRows() ?? [];
+        } else {
+            rows = this.gridRef.current?.getSelectedRows() ?? [];
+        }
+
         if (rows.length === 0 && this.currentCell) {
             rows = [this.currentCell.getRow()];
         }

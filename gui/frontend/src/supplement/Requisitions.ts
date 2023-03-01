@@ -135,6 +135,7 @@ export interface IOpenFileDialogResult {
 export interface IEditorExecutionOptions {
     startNewBlock: boolean;
     forceSecondaryEngine: boolean;
+    asText: boolean;
 }
 
 /** A special set of data for the communication debugger/listener. */

@@ -352,7 +352,7 @@ exports[`Application tests Application readiness 1`] = `
           <p>
             <Icon
               disabled={false}
-              src={123}
+              src={124}
             />
             <Label>
               
@@ -519,7 +519,7 @@ exports[`Application tests Application readiness 1`] = `
             <p>
               <Icon
                 disabled={false}
-                src={388}
+                src={389}
               />
               <Label />
             </p>
@@ -588,7 +588,7 @@ exports[`Application tests Application readiness 1`] = `
             <p>
               <Icon
                 disabled={false}
-                src={275}
+                src={276}
               />
               <Label>
                 Confirm

@@ -17,7 +17,7 @@ exports[`Error Panel Tests Render Test 1`] = `
       <p>
         <Icon
           disabled={false}
-          src={123}
+          src={124}
         />
         <Label>
           

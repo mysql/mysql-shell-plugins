@@ -50,7 +50,7 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
             <p>
               <Icon
                 disabled={false}
-                src={275}
+                src={276}
               />
               <Label>
                 Confirm
@@ -101,7 +101,7 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
             <p>
               <Icon
                 disabled={false}
-                src={275}
+                src={276}
               />
               <Label>
                 Confirm
@@ -167,7 +167,7 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
             <p>
               <Icon
                 disabled={false}
-                src={388}
+                src={389}
               />
               <Label />
             </p>
@@ -237,7 +237,7 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
             <p>
               <Icon
                 disabled={false}
-                src={275}
+                src={276}
               />
               <Label>
                 Confirm

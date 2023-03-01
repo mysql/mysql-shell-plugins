@@ -702,7 +702,7 @@ exports[`Value Edit Dialog Tests Render with Defaults Test 1`] = `
       <p>
         <Icon
           disabled={false}
-          src={388}
+          src={389}
         />
         <Label />
       </p>
