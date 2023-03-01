@@ -402,7 +402,19 @@ export class PresentationInterface {
                     if (!this.resultData.text) {
                         this.resultData.text = data.text;
                     } else if (data.text) {
+                        // If the last entry has the same language as the new data, then merge them.
+                        const lastEntry = this.resultData.text[this.resultData.text.length - 1];
+                        while (data.text.length > 0 && data.text[0].index === lastEntry.index
+                            && data.text[0].language === lastEntry?.language) {
+                            lastEntry.content += data.text[0].content;
+                            data.text.shift();
+                        }
+
+                        // Add the remaining text data.
                         this.resultData.text.push(...data.text);
+                        if (data.executionInfo) {
+                            this.resultData.executionInfo = data.executionInfo;
+                        }
                     }
                 }
 
@@ -852,8 +864,6 @@ export class PresentationInterface {
 
     private handleResultPaneChange = (maximized: boolean): void => {
         this.maximizedResult = maximized;
-
-        //this.updateRenderTarget();
     };
 
     private handleSelectTab = (index: number): void => {

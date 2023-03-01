@@ -592,6 +592,8 @@ describe("Database Connections", () => {
                 ).getAttribute("class"),
             ).toContain("expanded");
 
+            await Misc.cleanPrompt();
+
             const table = await DBConnection.getSchemaObject("obj", "db_connection");
 
             await driver.wait(async () => {

@@ -156,6 +156,7 @@ export interface IDBDataTypeDetails {
     synonyms?: string[];
 }
 
+/** GUI related information about a table column. */
 export interface IColumnInfo {
     /** The column's title shown in the UI. */
     title: string;
@@ -165,13 +166,22 @@ export interface IColumnInfo {
 
     /** Note: SQLite has no column data types like other RDBMS-es. Instead we store column affinities here. */
     dataType: IDBDataTypeDetails;
+
+    /** The column's width in characters. */
+    width?: number;
+
+    /** A flag to indicate right alignment. */
+    rightAlign?: boolean;
 }
 
+/**
+ * Determines how text is rendered. The type corresponds to a specific CSS class.
+ */
 export enum MessageType {
     Error,
     Warning,
     Info,
-    Interactive,
+    Text,
     Response,
 }
 
@@ -263,7 +273,7 @@ export interface IStatusbarInfo {
     id: string;
     text?: string;
     icon?: string | codicon.Codicon;
-    choices?: Array<{ label: string; data: IDictionary }>;
+    choices?: Array<{ label: string; data: IDictionary; }>;
     visible?: boolean;
     standout?: boolean;
 }

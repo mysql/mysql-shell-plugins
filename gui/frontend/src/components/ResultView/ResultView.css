@@ -216,10 +216,13 @@
 .zoneHost .resultText {
     background-color: var(--editorZone-background);
     color: var(--resultZone-foreground);
-    overflow: auto;
     white-space: pre-wrap;
     cursor: text;
     user-select: text;
+}
+
+.zoneHost .resultText.text {
+    white-space: pre;
 }
 
 .msg.resultHost .resultText > .label {
@@ -355,4 +358,20 @@
 
 .msg.connectionTabHost .renderTarget .actionOutput {
     font-family: "SourceCodePro+Powerline+Awesome+MySQL", monospace;
+}
+
+.msg.actionOutput .copyButton {
+    display: none;
+}
+
+.msg.actionOutput:hover .copyButton {
+    display: block;
+    position: sticky;
+    align-self: flex-end;
+    top: 5px;
+    width: 20px;
+    height: 20px;
+    min-width: 0;
+    padding: 2px;
+    margin: 0 4px -22px 0;
 }

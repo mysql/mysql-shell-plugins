@@ -361,6 +361,16 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                       class="msg actionOutput"
                       style="display: flex; gap: 2px; flex-direction: column;"
                     >
+                      <button
+                        class="msg button imageOnly copyButton"
+                        data-tooltip="Copy result to clipboard"
+                        tabindex="-1"
+                      >
+                        <span
+                          class="msg icon codicon codicon-copy"
+                          data-tooltip="inherit"
+                        />
+                      </button>
                       <div
                         style="display: flex; gap: 2px; flex-direction: row;"
                       >
@@ -440,6 +450,9 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                 >
                   <div
                     className="msg actionOutput"
+                    onPointerDown={[Function]}
+                    onPointerMove={[Function]}
+                    onPointerUp={[Function]}
                     style={
                       {
                         "display": "flex",
@@ -448,6 +461,38 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                       }
                     }
                   >
+                    <Button
+                      className="copyButton"
+                      data-tooltip="Copy result to clipboard"
+                      focusOnClick={false}
+                      imageOnly={true}
+                      onPointerDown={[Function]}
+                      tabIndex={-1}
+                    >
+                      <button
+                        className="msg button imageOnly copyButton"
+                        data-tooltip="Copy result to clipboard"
+                        onMouseDown={[Function]}
+                        onPointerDown={[Function]}
+                        style={
+                          {
+                            "flexDirection": undefined,
+                          }
+                        }
+                        tabIndex={-1}
+                      >
+                        <Icon
+                          data-tooltip="inherit"
+                          disabled={false}
+                          src={65}
+                        >
+                          <span
+                            className="msg icon codicon codicon-copy"
+                            data-tooltip="inherit"
+                          />
+                        </Icon>
+                      </button>
+                    </Button>
                     <div
                       style={
                         {

@@ -25,6 +25,7 @@ import autoCommitActiveIcon from "../../assets/images/toolbar/toolbar-auto_commi
 import autoCommitInactiveIcon from "../../assets/images/toolbar/toolbar-auto_commit-inactive.svg";
 import commitIcon from "../../assets/images/toolbar/toolbar-commit.svg";
 import executeCaretIcon from "../../assets/images/toolbar/toolbar-execute_caret.svg";
+import executePrintTextIcon from "../../assets/images/toolbar/toolbar-execute_print_text.svg";
 //import executeExplainIcon from "../../assets/images/toolbar/execute-explain.svg";
 import executeHeatWaveIcon from "../../assets/images/toolbar/toolbar-execute_heatwave.svg";
 import executeHeatWaveCaretIcon from "../../assets/images/toolbar/toolbar-execute_caret_heatwave.svg";
@@ -182,7 +183,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
                     onClick={
                         () => {
                             void requisitions.execute("editorExecuteSelectedOrAll",
-                                { startNewBlock: true, forceSecondaryEngine: false });
+                                { startNewBlock: true, forceSecondaryEngine: false, asText: false });
                         }
                     }
                 >
@@ -198,7 +199,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
                     onClick={
                         () => {
                             void requisitions.execute("editorExecuteSelectedOrAll",
-                                { startNewBlock: false, forceSecondaryEngine: false });
+                                { startNewBlock: false, forceSecondaryEngine: false, asText: false });
                         }
                     }
                 >
@@ -216,11 +217,28 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
                     onClick={
                         () => {
                             void requisitions.execute("editorExecuteCurrent",
-                                { startNewBlock: false, forceSecondaryEngine: false });
+                                { startNewBlock: false, forceSecondaryEngine: false, asText: false });
                         }
                     }
                 >
                     <Icon src={executeCaretIcon} data-tooltip="inherit" />
+                </Button>,
+            );
+
+            leftItems.push(
+                <Button
+                    key="executeToText"
+                    data-tooltip={`Execute the ${area} and print the result as text`}
+                    imageOnly={true}
+                    disabled={!canExecute}
+                    onClick={
+                        () => {
+                            void requisitions.execute("editorExecuteCurrent",
+                                { startNewBlock: false, forceSecondaryEngine: false, asText: true });
+                        }
+                    }
+                >
+                    <Icon src={executePrintTextIcon} data-tooltip="inherit" />
                 </Button>,
             );
 
@@ -234,7 +252,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
                         onClick={
                             () => {
                                 void requisitions.execute("editorExecuteSelectedOrAll",
-                                    { startNewBlock: true, forceSecondaryEngine: true });
+                                    { startNewBlock: true, forceSecondaryEngine: true, asText: false });
                             }
                         }
                     >
@@ -248,7 +266,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
                         onClick={
                             () => {
                                 void requisitions.execute("editorExecuteCurrent",
-                                    { startNewBlock: false, forceSecondaryEngine: true });
+                                    { startNewBlock: false, forceSecondaryEngine: true, asText: false });
                             }
                         }
                     >

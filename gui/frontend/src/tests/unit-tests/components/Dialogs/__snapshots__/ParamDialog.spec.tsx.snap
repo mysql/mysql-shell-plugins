@@ -25,7 +25,7 @@ exports[`Param Dialog Tests Render Test 1`] = `
       <p>
         <Icon
           disabled={false}
-          src={255}
+          src={256}
         />
         <Label>
           Parameters

@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 24 20" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1,0,0,1,-142,-94)">
+        <g id="Menu">
+        </g>
+        <g id="Expand">
+        </g>
+        <g id="Grid">
+        </g>
+        <g id="Word-Wrap" serif:id="Word Wrap">
+        </g>
+        <g id="Special-Chars" serif:id="Special Chars">
+        </g>
+        <g id="Search">
+        </g>
+        <g id="SQL-Beautifier" serif:id="SQL Beautifier">
+        </g>
+        <g id="SQL-Beautifier1" serif:id="SQL Beautifier">
+        </g>
+        <g id="Auto-Commit" serif:id="Auto Commit">
+        </g>
+        <g id="Stop-on-Error" serif:id="Stop on Error">
+        </g>
+        <g id="Execute-Explain" serif:id="Execute Explain">
+        </g>
+        <g id="Execute-Current" serif:id="Execute Current">
+        </g>
+        <g id="Execute-and-Next-Cmd" serif:id="Execute and Next Cmd">
+        </g>
+        <g id="Kill-Connection-2" serif:id="Kill Connection 2">
+        </g>
+        <g id="Sleeping-Connections" serif:id="Sleeping Connections">
+        </g>
+        <g id="Kill-Connection" serif:id="Kill Connection">
+        </g>
+        <g id="Kill-Query" serif:id="Kill Query">
+        </g>
+        <g id="Show-Details" serif:id="Show Details">
+        </g>
+        <g id="Infos">
+        </g>
+        <g id="Background-Threads" serif:id="Background Threads">
+        </g>
+        <g id="refresh">
+        </g>
+        <g id="New-File" serif:id="New File">
+        </g>
+        <g id="New-File-Selector" serif:id="New File Selector">
+        </g>
+        <g id="Minimize">
+        </g>
+        <g id="Maximize">
+        </g>
+        <g id="Close">
+        </g>
+        <g id="load">
+        </g>
+        <g id="save">
+        </g>
+        <g id="Execute-on-Heatwave" serif:id="Execute on Heatwave">
+        </g>
+        <g id="Execute-Current-on-Heatwave" serif:id="Execute Current on Heatwave">
+        </g>
+        <g id="Trace-Heatwave-Query" serif:id="Trace Heatwave Query">
+        </g>
+        <g id="Layer3" transform="matrix(1,0,0,1,-2,0)">
+            <path d="M156.199,101.422L153.283,101.422L153.283,105.211L144.205,113L148.937,104.474L144.205,104.474L149.883,95L158.401,95L151.776,100.684L156.199,101.422Z" style="fill:rgb(34,34,36);"/>
+            <g id="Frame" transform="matrix(1,0,0,1,-157,2)">
+                <g transform="matrix(0.432831,0,0,0.166667,-325.254,-193.833)">
+                    <rect x="1470" y="1823" width="30" height="6" style="fill:rgb(34,34,36);"/>
+                </g>
+                <g transform="matrix(0.0328311,0,0,1.5,262.746,-2633.5)">
+                    <rect x="1470" y="1823" width="30" height="6" style="fill:rgb(34,34,36);"/>
+                </g>
+                <g transform="matrix(0.0328311,0,0,1.5,274.746,-2633.5)">
+                    <rect x="1470" y="1823" width="30" height="6" style="fill:rgb(34,34,36);"/>
+                </g>
+                <g transform="matrix(0.432831,0,0,0.166667,-325.254,-203.833)">
+                    <rect x="1470" y="1823" width="30" height="6" style="fill:rgb(34,34,36);"/>
+                </g>
+            </g>
+            <g id="Result" transform="matrix(1,0,0,1,2,0)">
+                <g transform="matrix(0.0666667,0,0,0.166667,63.0075,-195.833)">
+                    <rect x="1470" y="1823" width="30" height="6" style="fill:rgb(34,34,36);"/>
+                </g>
+                <g transform="matrix(0.133333,0,0,0.166667,-36.9925,-193.833)">
+                    <rect x="1470" y="1823" width="30" height="6" style="fill:rgb(34,34,36);"/>
+                </g>
+                <g transform="matrix(0.0666667,0,0,0.166667,60,-195.833)">
+                    <rect x="1470" y="1823" width="30" height="6" style="fill:rgb(34,34,36);"/>
+                </g>
+                <g transform="matrix(0.0666667,0,0,0.166667,58,-193.833)">
+                    <rect x="1470" y="1823" width="30" height="6" style="fill:rgb(34,34,36);"/>
+                </g>
+                <g transform="matrix(0.1,0,0,0.166667,7,-195.833)">
+                    <rect x="1470" y="1823" width="30" height="6" style="fill:rgb(34,34,36);"/>
+                </g>
+                <g transform="matrix(0.0333333,0,0,0.166667,105,-193.833)">
+                    <rect x="1470" y="1823" width="30" height="6" style="fill:rgb(34,34,36);"/>
+                </g>
+                <g transform="matrix(0.3,0,0,0.166667,-287,-197.833)">
+                    <rect x="1470" y="1823" width="30" height="6" style="fill:rgb(34,34,36);"/>
+                </g>
+            </g>
+            <g id="SQL" transform="matrix(1,0,0,1,2,0)">
+                <g transform="matrix(0.0661644,0,0,0.166667,56.7459,-199.833)">
+                    <rect x="1470" y="1823" width="30" height="6" style="fill:rgb(34,34,36);"/>
+                </g>
+                <g transform="matrix(0.0994977,0,0,0.166667,10.7459,-199.833)">
+                    <rect x="1470" y="1823" width="30" height="6" style="fill:rgb(34,34,36);"/>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

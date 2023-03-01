@@ -1174,7 +1174,7 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
         <p>
           <Icon
             disabled={false}
-            src={388}
+            src={389}
           />
           <Label />
         </p>
@@ -1243,7 +1243,7 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
         <p>
           <Icon
             disabled={false}
-            src={275}
+            src={276}
           />
           <Label>
             Confirm
@@ -1312,7 +1312,7 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
           <p>
             <Icon
               disabled={false}
-              src={388}
+              src={389}
             />
             <Label />
           </p>
@@ -1400,7 +1400,7 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
           <p>
             <Icon
               disabled={false}
-              src={388}
+              src={389}
             />
             <Label />
           </p>
@@ -1488,7 +1488,7 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
           <p>
             <Icon
               disabled={false}
-              src={388}
+              src={389}
             />
             <Label />
           </p>
@@ -1576,7 +1576,7 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
           <p>
             <Icon
               disabled={false}
-              src={388}
+              src={389}
             />
             <Label />
           </p>
@@ -1664,7 +1664,7 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
           <p>
             <Icon
               disabled={false}
-              src={388}
+              src={389}
             />
             <Label />
           </p>
@@ -1752,7 +1752,7 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
           <p>
             <Icon
               disabled={false}
-              src={388}
+              src={389}
             />
             <Label />
           </p>
@@ -1839,7 +1839,7 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
           <p>
             <Icon
               disabled={false}
-              src={388}
+              src={389}
             />
             <Label />
           </p>
@@ -1926,7 +1926,7 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
           <p>
             <Icon
               disabled={false}
-              src={388}
+              src={389}
             />
             <Label />
           </p>

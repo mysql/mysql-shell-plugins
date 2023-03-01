@@ -547,7 +547,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                 content,
                                 language: "ansi",
                             }],
-                            executionInfo: { type: MessageType.Interactive, text: "" },
+                            executionInfo: { type: MessageType.Info, text: "" },
                         }, resultId);
                     }
 

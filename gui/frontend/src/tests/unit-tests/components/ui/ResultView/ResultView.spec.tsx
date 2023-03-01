@@ -417,7 +417,7 @@ describe("Result View Tests", (): void => {
             { 0: "44", 1: "ghi" },
         ];
 
-        const component = mount<ResultView>(
+        const wrapper = mount<ResultView>(
             <ResultView
                 resultSet={{
                     type: "resultSet",
@@ -432,22 +432,22 @@ describe("Result View Tests", (): void => {
             />,
         );
 
-        const cellMenu = component.find<Menu>(Menu);
-        expect(cellMenu).toBeDefined();
+        const contextMenu = wrapper.find<Menu>(Menu);
+        expect(contextMenu).toBeDefined();
 
         const cell = new MockCellComponent();
-        component.instance().setFakeCell(cell);
-        const grid = component.find<TreeGrid>(TreeGrid);
+        wrapper.instance().setFakeCell(cell);
+        const grid = wrapper.find<TreeGrid>(TreeGrid);
         expect(grid).toBeDefined();
         const table = await grid.instance().table;
         expect(table).toBeDefined();
         table?.selectRow(); // Selects all rows.
 
         // We can show the cell context menu only by explicitly calling its open method, because we have no real cell
-        // to trigger a context menu event on. That possible only when Tabulator actually renders its content
+        // to trigger a context menu event on. That is possible only when Tabulator actually renders its content
         // (which doesn't happen because of the zero sized host).
-        const rect = component.getDOMNode().getBoundingClientRect();
-        cellMenu.instance().open(rect, false);
+        const rect = wrapper.getDOMNode().getBoundingClientRect();
+        contextMenu.instance().open(rect, false);
 
         await nextProcessTick();
 
@@ -455,8 +455,8 @@ describe("Result View Tests", (): void => {
         const portals = document.getElementsByClassName("portal");
         expect(portals).toHaveLength(1);
 
-        const items = document.getElementsByClassName("menuItem");
-        expect(items).toHaveLength(21);
+        const elements = document.getElementsByClassName("menuItem");
+        expect(elements).toHaveLength(17);
 
         const clipboardSpy = jest.spyOn(requisitions, "writeToClipboard")
             .mockImplementation((_text: string) => {
@@ -464,189 +464,310 @@ describe("Result View Tests", (): void => {
             });
 
         try {
-            for (let i = 0; i < items.length; ++i) {
-                const item = items.item(i) as HTMLButtonElement;
+            // @ts-ignore, finding the menu items via enzyme does not work, so we have to do it manually.
+            const menuItems = contextMenu.instance().itemRefs.map((item) => { return item.current; });
+            expect(elements.length).toEqual(menuItems.length);
+
+            for (let i = 0; i < menuItems.length; ++i) {
+                const element = elements[i] as HTMLElement;
+                const item = menuItems[i];
                 expect(item).not.toBeNull();
 
-                if (item) {
-                    switch (item.id) {
-                        case "openValueMenuItem": {
-                            expect(item.classList.contains("disabled")).toBeTruthy();
-                            item.click();
+                if (item && item.props.caption !== "-") {
+                    expect(item.props.id).toEqual(element.id);
+                }
 
-                            // TODO: test handling, once implemented.
+                switch (element.id) {
+                    case "openValueMenuItem": {
+                        expect(element.classList.contains("disabled")).toBe(true);
+                        element.click();
 
-                            break;
+                        // TODO: test handling, once implemented.
+
+                        break;
+                    }
+
+                    case "setNullMenuItem": {
+                        expect(element.classList.contains("disabled")).toBe(true);
+
+                        expect(cell.getValue()).toBe("Animal");
+                        element.click();
+                        expect(cell.getValue()).toBe(null);
+
+                        // Restore value.
+                        cell.setValue("Animal");
+
+                        break;
+                    }
+
+                    case "saveToFileMenuItem": {
+                        expect(element.classList.contains("disabled")).toBe(true);
+                        element.click();
+
+                        // TODO: test handling, once implemented.
+
+                        break;
+                    }
+
+                    case "loadFromFileMenuItem": {
+                        expect(element.classList.contains("disabled")).toBe(true);
+                        element.click();
+
+                        // TODO: test handling, once implemented.
+
+                        break;
+                    }
+
+                    case "copyRowSubmenu": {
+                        expect(element.classList.contains("submenu")).toBe(true);
+                        item?.openSubMenu(false);
+
+                        await nextProcessTick();
+
+                        const portals = document.getElementsByClassName("portal");
+                        expect(portals).toHaveLength(2);
+
+                        const subItems = portals.item(1)?.getElementsByClassName("menuItem");
+                        expect(subItems).not.toBeNull();
+                        for (let i = 0; i < subItems!.length; ++i) {
+                            const subItem = subItems!.item(i) as HTMLButtonElement;
+                            expect(subItem).not.toBeNull();
+
+                            switch (subItem.id) {
+                                case "copyRowMenuItem1": {
+                                    expect(subItem.classList.contains("disabled")).toBe(true);
+                                    subItem.click();
+                                    expect(clipboardSpy).toHaveBeenLastCalledWith(
+                                        "42, 'abc'\n43, 'def'\n44, 'ghi'\n");
+
+                                    break;
+                                }
+
+                                case "copyRowMenuItem2": {
+                                    expect(subItem.classList.contains("disabled")).toBe(true);
+                                    subItem.click();
+                                    expect(clipboardSpy).toHaveBeenLastCalledWith(
+                                        "# col1, col2\n42, 'abc'\n43, 'def'\n44, 'ghi'\n");
+
+                                    break;
+                                }
+
+                                case "copyRowMenuItem3": {
+                                    expect(subItem.classList.contains("disabled")).toBe(true);
+                                    subItem.click();
+                                    expect(clipboardSpy).toHaveBeenLastCalledWith(
+                                        "42, abc\n43, def\n44, ghi\n");
+
+                                    break;
+                                }
+
+                                case "copyRowMenuItem4": {
+                                    expect(subItem.classList.contains("disabled")).toBe(true);
+                                    subItem.click();
+                                    expect(clipboardSpy).toHaveBeenLastCalledWith(
+                                        "# col1, col2\n42, abc\n43, def\n44, ghi\n");
+
+                                    break;
+                                }
+
+                                case "copyRowMenuItem5": {
+                                    expect(subItem.classList.contains("disabled")).toBe(true);
+                                    subItem.click();
+                                    expect(clipboardSpy).toHaveBeenLastCalledWith(
+                                        "# col1\tcol2\n42\t'abc'\n43\t'def'\n44\t'ghi'\n");
+
+                                    break;
+                                }
+
+                                case "copyRowMenuItem6": {
+                                    expect(subItem.classList.contains("disabled")).toBe(true);
+                                    subItem.click();
+                                    expect(clipboardSpy).toHaveBeenLastCalledWith(
+                                        "42\t'abc'\n43\t'def'\n44\t'ghi'\n");
+
+                                    break;
+                                }
+
+                                default:
+                            }
                         }
 
-                        case "setNullMenuItem": {
-                            expect(item.classList.contains("disabled")).toBeTruthy();
+                        item?.closeSubMenu();
 
-                            expect(cell.getValue()).toBe("Animal");
-                            item.click();
-                            expect(cell.getValue()).toBe(null);
+                        break;
+                    }
 
-                            // Restore value.
-                            cell.setValue("Animal");
+                    case "copyRowsSubmenu": {
+                        expect(element.classList.contains("submenu")).toBe(true);
+                        item?.openSubMenu(false);
 
-                            break;
+                        await nextProcessTick();
+
+                        const portals = document.getElementsByClassName("portal");
+                        expect(portals).toHaveLength(2);
+
+                        const subItems = portals.item(1)?.getElementsByClassName("menuItem");
+                        expect(subItems).not.toBeNull();
+                        for (let i = 0; i < subItems!.length; ++i) {
+                            const subItem = subItems!.item(i) as HTMLButtonElement;
+                            expect(subItem).not.toBeNull();
+
+                            switch (subItem.id) {
+                                case "copyRowsMenuItem1": {
+                                    expect(subItem.classList.contains("disabled")).toBe(false);
+                                    subItem.click();
+                                    expect(clipboardSpy).toHaveBeenCalledTimes(7);
+
+                                    break;
+                                }
+
+                                case "copyRowsMenuItem2": {
+                                    expect(subItem.classList.contains("disabled")).toBe(false);
+                                    subItem.click();
+                                    expect(clipboardSpy).toHaveBeenCalledTimes(8);
+
+                                    break;
+                                }
+
+                                case "copyRowsMenuItem3": {
+                                    expect(subItem.classList.contains("disabled")).toBe(false);
+                                    subItem.click();
+                                    expect(clipboardSpy).toHaveBeenCalledTimes(9);
+
+                                    break;
+                                }
+
+                                case "copyRowsMenuItem4": {
+                                    expect(subItem.classList.contains("disabled")).toBe(false);
+                                    subItem.click();
+                                    expect(clipboardSpy).toHaveBeenCalledTimes(10);
+
+                                    break;
+                                }
+
+                                case "copyRowsMenuItem5": {
+                                    expect(subItem.classList.contains("disabled")).toBe(false);
+                                    subItem.click();
+                                    expect(clipboardSpy).toHaveBeenCalledTimes(11);
+
+                                    break;
+                                }
+
+                                case "copyRowsMenuItem6": {
+                                    expect(subItem.classList.contains("disabled")).toBe(false);
+                                    subItem.click();
+                                    expect(clipboardSpy).toHaveBeenCalledTimes(12);
+
+                                    break;
+                                }
+
+                                case "copyRowsMenuItem7": {
+                                    expect(subItem.classList.contains("disabled")).toBe(false);
+                                    subItem.click();
+                                    expect(clipboardSpy).toHaveBeenCalledTimes(13);
+
+                                    break;
+                                }
+
+                                case "copyRowsMenuItem8": {
+                                    expect(subItem.classList.contains("disabled")).toBe(false);
+                                    subItem.click();
+                                    expect(clipboardSpy).toHaveBeenCalledTimes(14);
+
+                                    break;
+                                }
+
+                                default: {
+                                    expect(subItem.classList.contains("divider")).toBe(true);
+                                }
+                            }
                         }
 
-                        case "saveToFileMenuItem": {
-                            expect(item.classList.contains("disabled")).toBeTruthy();
-                            item.click();
+                        item?.closeSubMenu();
 
-                            // TODO: test handling, once implemented.
+                        break;
+                    }
 
-                            break;
-                        }
+                    case "copyFieldMenuItem": {
+                        expect(element.classList.contains("disabled")).toBe(true);
+                        element.click();
 
-                        case "loadFromFileMenuItem": {
-                            expect(item.classList.contains("disabled")).toBeTruthy();
-                            item.click();
+                        expect(clipboardSpy).toHaveBeenLastCalledWith("'Animal'");
 
-                            // TODO: test handling, once implemented.
+                        break;
+                    }
 
-                            break;
-                        }
+                    case "copyFieldUnquotedMenuItem": {
+                        expect(element.classList.contains("disabled")).toBe(true);
+                        element.click();
 
-                        case "copyRowMenuItem1": {
-                            expect(item.classList.contains("disabled")).toBeFalsy();
-                            item.click();
+                        expect(clipboardSpy).toHaveBeenLastCalledWith("Animal");
 
-                            expect(clipboardSpy).toHaveBeenLastCalledWith("42, 'abc'\n43, 'def'\n44, 'ghi'\n");
+                        break;
+                    }
 
-                            break;
-                        }
+                    case "pasteRowMenuItem": {
+                        expect(element.classList.contains("disabled")).toBe(true);
+                        element.click();
 
-                        case "copyRowMenuItem2": {
-                            expect(item.classList.contains("disabled")).toBeFalsy();
-                            item.click();
+                        // TODO: test handling, once implemented.
 
-                            expect(clipboardSpy)
-                                .toHaveBeenLastCalledWith("# col1, col2\n42, 'abc'\n43, 'def'\n44, 'ghi'\n");
+                        break;
+                    }
 
-                            break;
-                        }
+                    case "deleteRowMenuItem": {
+                        expect(element.classList.contains("disabled")).toBe(true);
 
-                        case "copyRowMenuItem3": {
-                            expect(item.classList.contains("disabled")).toBeFalsy();
-                            item.click();
+                        // TODO: test handling, once implemented.
 
-                            expect(clipboardSpy).toHaveBeenLastCalledWith("42, abc\n43, def\n44, ghi\n");
+                        break;
+                    }
 
-                            break;
-                        }
+                    case "capitalizeMenuItem": { // Means: title case.
+                        expect(element.classList.contains("disabled")).toBe(true);
 
-                        case "copyRowMenuItem4": {
-                            expect(item.classList.contains("disabled")).toBeFalsy();
-                            item.click();
+                        cell.setValue("animalsOrHumans");
+                        element.click();
+                        expect(cell.getValue()).toBe("AnimalsOrHumans");
 
-                            expect(clipboardSpy).toHaveBeenLastCalledWith("# col1, col2\n42, abc\n43, def\n44, ghi\n");
+                        break;
+                    }
 
-                            break;
-                        }
+                    case "lowerCaseMenuItem": {
+                        expect(element.classList.contains("disabled")).toBe(true);
 
-                        case "copyRowMenuItem5": {
-                            expect(item.classList.contains("disabled")).toBeFalsy();
-                            item.click();
+                        cell.setValue("AnimAL");
+                        element.click();
+                        expect(cell.getValue()).toBe("animal");
 
-                            expect(clipboardSpy)
-                                .toHaveBeenLastCalledWith("# col1\tcol2\n42\t'abc'\n43\t'def'\n44\t'ghi'\n");
+                        break;
+                    }
 
-                            break;
-                        }
+                    case "upperCaseMenuItem": {
+                        expect(element.classList.contains("disabled")).toBe(true);
 
-                        case "copyRowMenuItem6": {
-                            expect(item.classList.contains("disabled")).toBeFalsy();
-                            item.click();
+                        cell.setValue("animal");
+                        element.click();
+                        expect(cell.getValue()).toBe("ANIMAL");
 
-                            expect(clipboardSpy).toHaveBeenLastCalledWith("42\t'abc'\n43\t'def'\n44\t'ghi'\n");
+                        break;
+                    }
 
-                            break;
-                        }
-
-                        case "copyFieldMenuItem": {
-                            expect(item.classList.contains("disabled")).toBeTruthy();
-                            item.click();
-
-                            expect(clipboardSpy).toHaveBeenLastCalledWith("'Animal'");
-
-                            break;
-                        }
-
-                        case "copyFieldUnquotedMenuItem": {
-                            expect(item.classList.contains("disabled")).toBeTruthy();
-                            item.click();
-
-                            expect(clipboardSpy).toHaveBeenLastCalledWith("Animal");
-
-                            break;
-                        }
-
-                        case "pasteRowMenuItem": {
-                            expect(item.classList.contains("disabled")).toBeTruthy();
-                            item.click();
-
-                            // TODO: test handling, once implemented.
-
-                            break;
-                        }
-
-                        case "deleteRowMenuItem": {
-                            expect(item.classList.contains("disabled")).toBeTruthy();
-
-                            // TODO: test handling, once implemented.
-
-                            break;
-                        }
-
-                        case "capitalizeMenuItem": { // Means: title case.
-                            expect(item.classList.contains("disabled")).toBeTruthy();
-
-                            cell.setValue("animalsOrHumans");
-                            item.click();
-                            expect(cell.getValue()).toBe("AnimalsOrHumans");
-
-                            break;
-                        }
-
-                        case "lowerCaseMenuItem": {
-                            expect(item.classList.contains("disabled")).toBeTruthy();
-
-                            cell.setValue("AnimAL");
-                            item.click();
-                            expect(cell.getValue()).toBe("animal");
-
-                            break;
-                        }
-
-                        case "upperCaseMenuItem": {
-                            expect(item.classList.contains("disabled")).toBeTruthy();
-
-                            cell.setValue("animal");
-                            item.click();
-                            expect(cell.getValue()).toBe("ANIMAL");
-
-                            break;
-                        }
-
-                        default: {
-                            expect(item.classList.contains("divider")).toBeTruthy();
-                        }
+                    default: {
+                        expect(element.classList.contains("divider")).toBe(true);
                     }
                 }
             }
         } catch (e) {
             // Close the menu first before handling the error or we get an error when the portal
             // is closed implicitly, when no document is available anymore.
-            cellMenu.instance().close();
+            contextMenu.instance().close();
             throw e;
         }
 
         clipboardSpy.mockRestore();
 
-        component.unmount();
+        wrapper.unmount();
 
     });
 });

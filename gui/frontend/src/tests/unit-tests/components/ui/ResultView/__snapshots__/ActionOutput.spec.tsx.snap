@@ -16,6 +16,9 @@ exports[`Action Output Tests Action Full Rendering 1`] = `
 >
   <div
     className="msg actionOutput"
+    onPointerDown={[Function]}
+    onPointerMove={[Function]}
+    onPointerUp={[Function]}
     style={
       {
         "display": "flex",
@@ -24,6 +27,38 @@ exports[`Action Output Tests Action Full Rendering 1`] = `
       }
     }
   >
+    <Button
+      className="copyButton"
+      data-tooltip="Copy result to clipboard"
+      focusOnClick={false}
+      imageOnly={true}
+      onPointerDown={[Function]}
+      tabIndex={-1}
+    >
+      <button
+        className="msg button imageOnly copyButton"
+        data-tooltip="Copy result to clipboard"
+        onMouseDown={[Function]}
+        onPointerDown={[Function]}
+        style={
+          {
+            "flexDirection": undefined,
+          }
+        }
+        tabIndex={-1}
+      >
+        <Icon
+          data-tooltip="inherit"
+          disabled={false}
+          src={65}
+        >
+          <span
+            className="msg icon codicon codicon-copy"
+            data-tooltip="inherit"
+          />
+        </Icon>
+      </button>
+    </Button>
     <div
       style={
         {
@@ -79,6 +114,20 @@ exports[`Action Output Tests Action Full Rendering 1`] = `
 
 exports[`Action Output Tests Action Full Rendering 2`] = `
 HTMLCollection [
+  <button
+    class="msg button imageOnly copyButton"
+    data-tooltip="Copy result to clipboard"
+    tabindex="-1"
+  >
+    <span
+      class="msg icon codicon codicon-copy"
+      data-tooltip="inherit"
+    />
+  </button>,
+  <span
+    class="msg icon codicon codicon-copy"
+    data-tooltip="inherit"
+  />,
   <label
     class="msg resultText response actionLabel"
     data-tooltip="expand"
@@ -104,6 +153,9 @@ exports[`Action Output Tests Standard Rendering 1`] = `
 >
   <div
     className="msg actionOutput"
+    onPointerDown={[Function]}
+    onPointerMove={[Function]}
+    onPointerUp={[Function]}
     style={
       {
         "display": "flex",
@@ -111,6 +163,39 @@ exports[`Action Output Tests Standard Rendering 1`] = `
         "gap": "2px",
       }
     }
-  />
+  >
+    <Button
+      className="copyButton"
+      data-tooltip="Copy result to clipboard"
+      focusOnClick={false}
+      imageOnly={true}
+      onPointerDown={[Function]}
+      tabIndex={-1}
+    >
+      <button
+        className="msg button imageOnly copyButton"
+        data-tooltip="Copy result to clipboard"
+        onMouseDown={[Function]}
+        onPointerDown={[Function]}
+        style={
+          {
+            "flexDirection": undefined,
+          }
+        }
+        tabIndex={-1}
+      >
+        <Icon
+          data-tooltip="inherit"
+          disabled={false}
+          src={65}
+        >
+          <span
+            className="msg icon codicon codicon-copy"
+            data-tooltip="inherit"
+          />
+        </Icon>
+      </button>
+    </Button>
+  </div>
 </ActionOutput>
 `;

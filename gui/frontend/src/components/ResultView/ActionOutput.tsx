@@ -25,7 +25,10 @@ import { ComponentChild, createRef } from "preact";
 
 import { ITextResultEntry } from "../../script-execution";
 import { requisitions } from "../../supplement/Requisitions";
+import { Button } from "../ui/Button/Button";
+import { Codicon } from "../ui/Codicon";
 import { IComponentProperties, ComponentBase } from "../ui/Component/ComponentBase";
+import { Icon } from "../ui/Icon/Icon";
 import { Label } from "../ui/Label/Label";
 
 interface IActionOutputProperties extends IComponentProperties {
@@ -47,6 +50,11 @@ interface IActionOutputProperties extends IComponentProperties {
 export class ActionOutput extends ComponentBase<IActionOutputProperties> {
 
     private gridRef = createRef<HTMLDivElement>();
+    private outputRef = createRef<HTMLDivElement>();
+
+    // When set to true, a selection process is ongoing. We have to do this manually because
+    // simply setting user-select has no effect in certain browsers (e.g. Safari and Chrome)
+    private trackingSelection = false;
 
     public constructor(props: IActionOutputProperties) {
         super(props);
@@ -102,7 +110,24 @@ export class ActionOutput extends ComponentBase<IActionOutputProperties> {
         });
 
         return (
-            <div className={className} style={{ display: "flex", gap: "2px", flexDirection: "column" }}>
+            <div
+                ref={this.outputRef}
+                className={className}
+                style={{ display: "flex", gap: "2px", flexDirection: "column" }}
+                onPointerDown={this.handlePointerDown}
+                onPointerMove={this.handlePointerMove}
+                onPointerUp={this.handlePointerUp}
+            >
+                <Button
+                    className="copyButton"
+                    data-tooltip="Copy result to clipboard"
+                    imageOnly
+                    focusOnClick={false}
+                    tabIndex={-1}
+                    onPointerDown={this.copyToClipboard}
+                >
+                    <Icon src={Codicon.Copy} data-tooltip="inherit" />
+                </Button>
                 {rows}
             </div>
         );
@@ -126,4 +151,90 @@ export class ActionOutput extends ComponentBase<IActionOutputProperties> {
             void requisitions.execute("editorSelectStatement", { contextId, statementIndex: parseInt(label.id, 10) });
         }
     };
+
+    /**
+     * Implements our special selection handling for render targets. Ths is needed because by default monaco-editor
+     * does not allow to select text in view zones and simply enabling user-select on the render target does not work.
+     *
+     * @param e The mouse event.
+     */
+    private handlePointerDown = (e: PointerEvent): void => {
+        if (e.buttons === 1) {
+            const element = e.target as HTMLElement;
+            element.focus();
+
+            this.trackingSelection = true;
+            const range = this.getMouseEventCaretRange(e);
+            if (range !== null) {
+                this.selectTextRange(range);
+                element.setPointerCapture(e.pointerId);
+            }
+        }
+
+    };
+
+    private handlePointerMove = (e: PointerEvent): void => {
+        if (this.trackingSelection) {
+            const selection = window.getSelection();
+            if (selection) {
+                const range = this.getMouseEventCaretRange(e);
+                if (range !== null) {
+                    selection.extend(range.startContainer, range.startOffset);
+                }
+            }
+        }
+    };
+
+    private handlePointerUp = (e: PointerEvent): void => {
+        if (e.buttons === 0) {
+            this.trackingSelection = false;
+            const element = e.target as HTMLElement;
+            element.releasePointerCapture(e.pointerId);
+        }
+    };
+
+    /**
+     * Retrieve the range of text under the mouse pointer.
+     *
+     * @param e The mouse event from which to get the position.
+     *
+     * @returns The range of text under the mouse pointer, or null if the position doesn't contain a text node.
+     */
+    private getMouseEventCaretRange = (e: PointerEvent): globalThis.Range | null => {
+        let range;
+        const x = e.clientX;
+        const y = e.clientY;
+
+        if ("caretPositionFromPoint" in document) {
+            // Firefox only.
+            // See https://developer.mozilla.org/en-US/docs/Web/API/DocumentOrShadowRoot/caretPositionFromPoint
+            // Need that cast because the type definition does not include the method declaration
+            range = (document.caretPositionFromPoint as (x: number, y: number) => globalThis.Range)(x, y);
+        } else {
+            range = document.caretRangeFromPoint(x, y);
+        }
+
+        return range;
+    };
+
+    private selectTextRange = (range: globalThis.Range): void => {
+        const sel = window.getSelection();
+        sel?.removeAllRanges();
+        sel?.addRange(range);
+    };
+
+    private copyToClipboard = (): void => {
+        if (this.outputRef.current) {
+            const selection = window.getSelection();
+            let text = selection?.toString() ?? "";
+            if (text === "") {
+                text = this.outputRef.current.innerText ?? "";
+            }
+
+            if (text.length > 0) {
+                requisitions.writeToClipboard(text);
+            }
+        }
+    };
+
 }

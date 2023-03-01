@@ -109,7 +109,7 @@ export class Label extends ComponentBase<ILabelProperties, ILabelState> {
         if (language === "ansi" && labelEntries) {
             const className = this.getEffectiveClassNames([
                 "resultText",
-                this.classFromProperty(type, ["error", "warning", "info", "interactive", "response"]),
+                this.classFromProperty(type, ["error", "warning", "info", "text", "response"]),
                 this.classFromProperty(quoted, "quote"),
                 this.classFromProperty(code, "code"),
                 this.classFromProperty(heading, "heading"),

@@ -334,6 +334,18 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
         }
     }
 
+    /**
+     * @returns all rows currently in the table.
+     */
+    public getRows(): RowComponent[] {
+        if (this.tableReady && this.tabulator) {
+            return this.tabulator.getRows();
+        }
+
+        return [];
+    }
+
+    /** @returns the currently selected rows in the table. */
     public getSelectedRows(): RowComponent[] {
         if (this.tableReady && this.tabulator) {
             return this.tabulator.getSelectedRows();
