@@ -23,6 +23,6 @@
         "camelcase",
         "paren",
         "preinstall",
-        "mkcert"
+        "mysqlsh"
     ]
 }

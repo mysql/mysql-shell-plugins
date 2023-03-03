@@ -23,19 +23,34 @@
 
 /// <reference types="vitest" />
 
+// https://vitejs.dev/config/
+
 import { defineConfig } from "vite";
 import preact from "@preact/preset-vite";
-import mkcert from "vite-plugin-mkcert";
+import { existsSync, readFileSync } from "fs";
+import { platform, homedir } from "os";
+import { join } from "path";
 
-// https://vitejs.dev/config/
+// Use the MySQL Shell for VS Code certificate for HTTPS, if available
+const shellUserConfigDir = (platform() === "win32")
+    ? join(homedir(), "AppData", "Roaming", "MySQL", "mysqlsh-gui")
+    : join(homedir(), ".mysqlsh-gui");
+const certDir = join(shellUserConfigDir, "plugin_data", "gui_plugin", "web_certs");
+const httpsSetting = existsSync(join(certDir, "server.key")) && existsSync(join(certDir, "server.crt")) && {
+    key: readFileSync(join(certDir, "server.key")),
+    cert: readFileSync(join(certDir, "server.crt")),
+};
+
 export default defineConfig({
-    server: { https: true },
+    server: {
+        https: httpsSetting,
+    },
     base: "",
     define: {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         "import.meta.vitest": "undefined",
     },
-    plugins: [preact(), mkcert()],
+    plugins: [preact()],
     test: {
         setupFiles: ["./vitest.setup.ts"],
         includeSource: ["src/**/*.{ts,tsx}"],
