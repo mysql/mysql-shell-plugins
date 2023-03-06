@@ -662,7 +662,9 @@ export class MRSCommandHandler {
                     if (value !== undefined) {
                         try {
                             const targetPath = Uri.joinPath(value[0], dirName);
-                            fs.cpSync(path, targetPath.fsPath, { recursive: true });
+                            // Add filter to ignore node_modules folder
+                            const filter = (src: string) => { return src.indexOf("node_modules") === -1; };
+                            fs.cpSync(path, targetPath.fsPath, { filter, recursive: true });
 
                             showMessageWithTimeout(`The MRS Project ${dirName} has been stored successfully.`);
 

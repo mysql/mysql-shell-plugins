@@ -44,10 +44,11 @@ To quickly get the MRS Notes Examples working, please feel free to follow this g
 The following steps need to be taken to setup, build and deploy the MRS Notes example project on the MySQL REST Service.
 
 1. Setup and Configure a MySQL REST Service deployment.
-2. Create a new MRS service.
+2. Create a new MRS service (e.g. `/myService`).
 3. Deploy the mrsNotes MySQL database schema `examples/mrs_notes/db_schema/mrs_notes.sql`
 4. Load the MRS schema dump into the MRS service `examples/mrs_notes/mrs_schema/mrsNotes.mrs.json`
-5. Please select one of the example apps below and follow the steps to build and deploy the app.
+5. Ensure a bootstrapped MySQL Router instance is running (if not, start it).
+6. Please select one of the example apps below and follow the steps to build and deploy the app.
 
 #### Deploying the MrsNotesJS JavaScript Example
 
