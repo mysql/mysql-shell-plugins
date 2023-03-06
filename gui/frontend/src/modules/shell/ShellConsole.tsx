@@ -75,7 +75,7 @@ export class ShellConsole extends ComponentBase<IShellConsoleProperties> {
         return (
             <CodeEditor
                 ref={this.editorRef}
-                state={editorState}
+                savedState={editorState}
                 language="msg"
                 allowedLanguages={["javascript", "python", "sql"]}
                 startLanguage={Settings.get("shellSession.startLanguage", "javascript") as EditorLanguage}

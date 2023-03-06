@@ -267,7 +267,7 @@ export class CommunicationDebugger
                 </Toolbar>
                 <CodeEditor
                     ref={this.messageOutputRef}
-                    state={this.outputState}
+                    savedState={this.outputState}
                     language="typescript"
                     lineNumbers="off"
                     lineDecorationsWidth={10}
@@ -343,7 +343,7 @@ export class CommunicationDebugger
                 </Toolbar>
                 <CodeEditor
                     ref={this.inputRef}
-                    state={state}
+                    savedState={state}
                     lineDecorationsWidth={10}
                     readonly={readonly}
                 />

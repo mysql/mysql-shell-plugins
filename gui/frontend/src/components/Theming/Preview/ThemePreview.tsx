@@ -23,15 +23,13 @@
 
 import "./ThemePreview.css";
 
-import code from "./assets/code-examples.txt";
+import code from "./assets/code-examples.txt?raw";
 import exampleBlocks from "./assets/code-block-example.json";
 import gearIcon from "../../../assets/images/settings.svg";
 import closeIcon from "../../../assets/images/close.svg";
 import imageImage from "../Preview/assets/image.svg";
 
 import { ComponentChild } from "preact";
-
-import { loadTextFile } from "../../../utilities/helpers";
 
 import { TablePreview } from "./TablePreview";
 
@@ -78,7 +76,7 @@ interface IThemePreviewState extends IComponentState {
     codeExamples: IDictionary;
 }
 
-// A component that contains UI elements for preview in the theme editor.
+/** A component that contains UI elements for preview in the theme editor. */
 export class ThemePreview extends ComponentBase<{}, IThemePreviewState> {
 
     private readonly editorState: IEditorPersistentState;
@@ -86,35 +84,35 @@ export class ThemePreview extends ComponentBase<{}, IThemePreviewState> {
     public constructor(props: {}) {
         super(props);
 
+        const delimiter = /(<< ([a-z]+) >>)+/g;
+        let matches = delimiter.exec(code);
+        let start = delimiter.lastIndex;
+        let currentLanguage = matches ? matches[2] : "";
+
+        const codeExamples: { [key: string]: string; } = {};
+        let actualCode = code;
+        if (typeof code !== "string") {
+            // In Jest the file is imported as a transformer object, not as string.
+            actualCode = "";
+        }
+
+        do {
+            matches = delimiter.exec(actualCode);
+            if (matches) {
+                codeExamples[currentLanguage] = actualCode.substring(start, delimiter.lastIndex - matches[1].length);
+                start = delimiter.lastIndex + 1;
+                currentLanguage = matches[2];
+            } else {
+                // Reached the end of the input. Copy the last part as well.
+                codeExamples[currentLanguage] = actualCode.substring(start, actualCode.length - 1);
+                break;
+            }
+        } while (true);
+
         this.state = {
             editorLanguage: "javascript",
-            codeExamples: {},
+            codeExamples,
         };
-
-        loadTextFile(code, true, ((response: string): void => {
-            const delimiter = /(<< ([a-z]+) >>)+/g;
-            let matches = delimiter.exec(response);
-            let start = delimiter.lastIndex;
-            let currentLanguage = matches ? matches[2] : "";
-
-            const codeExamples: { [key: string]: string; } = {};
-
-            do {
-                matches = delimiter.exec(response);
-                if (matches) {
-                    codeExamples[currentLanguage] = response.substring(start,
-                        delimiter.lastIndex - matches[1].length);
-                    start = delimiter.lastIndex + 1;
-                    currentLanguage = matches[2];
-                } else {
-                    // Reached the end of the input. Copy the last part as well.
-                    codeExamples[currentLanguage] = response.substring(start, response.length - 1);
-                    break;
-                }
-            } while (true);
-
-            this.setState({ codeExamples });
-        }));
 
         let content = `\nprint("typescript");\n\\js\n`;
         content += `\nprint("javascript");\n\\sql\n`;

@@ -103,7 +103,7 @@ interface ICodeExecutionOptions {
 }
 
 interface ICodeEditorProperties extends IComponentProperties {
-    state?: IEditorPersistentState;
+    savedState?: IEditorPersistentState;
     initialContent?: string;
     executeInitialContent?: boolean;
 
@@ -351,7 +351,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         }
 
         const {
-            language, initialContent, state, autoFocus, createResultPresentation,
+            language, initialContent, savedState, autoFocus, createResultPresentation,
             readonly, minimap, detectLinks, suggest, showIndentGuides, renderLineHighlight, useTabStops,
             font, scrollbar, lineNumbers, lineDecorationsWidth, allowSoftWrap,
         } = this.mergedProps;
@@ -381,8 +381,8 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         let combinedLanguage;
 
         let model: ICodeEditorModel;
-        if (state && !state.model.isDisposed()) {
-            model = state.model;
+        if (savedState && !savedState.model.isDisposed()) {
+            model = savedState.model;
             combinedLanguage = model.getLanguageId() === "msg";
         } else {
             combinedLanguage = language === "msg";
@@ -445,17 +445,16 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             showUnused: true,
             scrollbar,
             lineNumbers,
-            scrollBeyondLastLine: false, //true,
+            scrollBeyondLastLine: false,
             lineDecorationsWidth: lineDecorationsWidth ?? (combinedLanguage ? 49 : 20),
 
             model,
-            //suggestFontSize: 12,
         };
 
         this.editor = Monaco.create(this.hostRef.current, options);
 
-        if (state?.viewState) {
-            this.editor.restoreViewState(state.viewState);
+        if (savedState?.viewState) {
+            this.editor.restoreViewState(savedState.viewState);
         }
 
         this.editor.layout();
@@ -466,8 +465,9 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         this.resizeObserver?.observe(this.hostRef.current as Element);
 
         if (model) {
-            if (state && state.contextStates && state.contextStates.length > 0 && createResultPresentation) {
-                model.executionContexts.restoreFromState(this, createResultPresentation, state.contextStates);
+            if (savedState && savedState.contextStates && savedState.contextStates.length > 0
+                && createResultPresentation) {
+                model.executionContexts.restoreFromState(this, createResultPresentation, savedState.contextStates);
             } else {
                 if (model.getLanguageId() === "msg" && model.getLineCount() > 1) {
                     this.generateExecutionBlocksFromContent();
@@ -478,8 +478,8 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         }
 
         this.prepareUse();
-        if (state?.viewState) {
-            const position = state.viewState.viewState.firstPosition.lineNumber ?? 0;
+        if (savedState?.viewState) {
+            const position = savedState.viewState.viewState.firstPosition.lineNumber ?? 0;
             this.editor.revealLineNearTop(position, Monaco.ScrollType.Immediate);
         }
 
@@ -500,7 +500,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             this.scrollingTimer = null;
         }
 
-        const { state } = this.mergedProps;
+        const { savedState } = this.mergedProps;
 
         requisitions.unregister("settingsChanged", this.handleSettingsChanged);
         requisitions.unregister("editorExecuteSelectedOrAll", this.executeSelectedOrAll);
@@ -512,10 +512,10 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         const editor = this.backend;
 
         // Save the current view state also before the editor is destroyed.
-        if (state && editor) {
-            state.viewState = editor.saveViewState();
-            state.contextStates = state.model.executionContexts.cleanUpAndReturnState();
-            state.options = this.options;
+        if (savedState && editor) {
+            savedState.viewState = editor.saveViewState();
+            savedState.contextStates = savedState.model.executionContexts.cleanUpAndReturnState();
+            savedState.options = this.options;
         }
 
         this.disposables.forEach((d: IDisposable) => {
@@ -527,34 +527,40 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
     }
 
     public componentDidUpdate(prevProps: ICodeEditorProperties): void {
-        const { initialContent, state, autoFocus, createResultPresentation } = this.mergedProps;
+        const { initialContent, language, savedState, autoFocus, createResultPresentation } = this.mergedProps;
 
         const editor = this.backend;
-        if (state?.model !== editor?.getModel()) {
-            if (prevProps.state && editor) {
+        if (savedState?.model !== editor?.getModel()) {
+            if (prevProps.savedState && editor) {
                 // Save the current state before switching to the new model.
-                prevProps.state.viewState = editor.saveViewState();
-                prevProps.state.contextStates = prevProps.state.model.executionContexts.cleanUpAndReturnState();
-                prevProps.state.options = this.options;
+                prevProps.savedState.viewState = editor.saveViewState();
+                prevProps.savedState.contextStates =
+                    prevProps.savedState.model.executionContexts.cleanUpAndReturnState();
+                prevProps.savedState.options = this.options;
             }
 
-            if (state) {
-                if (!state.model.isDisposed()) {
-                    editor?.setModel(state.model);
+            if (savedState) {
+                if (!savedState.model.isDisposed()) {
+                    editor?.setModel(savedState.model);
                 }
 
-                if (state.viewState) {
-                    editor?.restoreViewState(state.viewState);
+                if (savedState.viewState) {
+                    editor?.restoreViewState(savedState.viewState);
                 }
-                this.options = state.options;
+                this.options = savedState.options;
             }
 
             const model = this.model;
             if (model) {
-                if (state && state.contextStates && state.contextStates.length > 0 && createResultPresentation) {
-                    model.executionContexts.restoreFromState(this, createResultPresentation, state.contextStates);
+                if (!savedState && language) {
+                    Monaco.setModelLanguage(model, language);
+                }
+
+                if (savedState && savedState.contextStates && savedState.contextStates.length > 0
+                    && createResultPresentation) {
+                    model.executionContexts.restoreFromState(this, createResultPresentation, savedState.contextStates);
                 } else {
-                    if (!state) {
+                    if (!savedState) {
                         model.setValue(initialContent ?? "");
                     }
 

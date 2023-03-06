@@ -108,7 +108,7 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
                         resizable: showResultPane && !maximizeResultPane,
                         content: <CodeEditor
                             ref={this.editorRef}
-                            state={editorState}
+                            savedState={editorState}
                             minimap={{
                                 enabled: true,
                             }}

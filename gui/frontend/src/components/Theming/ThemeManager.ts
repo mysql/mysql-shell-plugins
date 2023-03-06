@@ -350,11 +350,13 @@ export class ThemeManager {
 
     private settingsChanged = (entry?: { key: string; value: unknown; }): Promise<boolean> => {
         if (!entry || entry.key === "" || entry.key.startsWith("theming.")) {
-            Settings.get("theming.themes", []).forEach((definition: IThemeObject): void => {
-                this.loadThemeDetails(definition);
-            });
+            if (!this.updating) {
+                Settings.get("theming.themes", []).forEach((definition: IThemeObject): void => {
+                    this.loadThemeDetails(definition);
+                });
 
-            this.activeTheme = Settings.get("theming.currentTheme", "Auto");
+                this.activeTheme = Settings.get("theming.currentTheme", "Auto");
+            }
 
             return Promise.resolve(true);
         }
@@ -580,10 +582,8 @@ export class ThemeManager {
             return;
         }
 
-        Settings.set("theming.currentTheme", this.currentTheme);
-
+        this.updating = true;
         const themes: IThemeObject[] = [];
-
         this.themeDefinitions.forEach((definition: IThemeDefinition, key: string) => {
             if (key !== "Default Dark" && key !== "Default Light") {
                 themes.push(definition.json);
@@ -591,7 +591,10 @@ export class ThemeManager {
         });
 
         Settings.set("theming.themes", themes);
+        Settings.set("theming.currentTheme", this.currentTheme);
         Settings.saveSettings();
+
+        this.updating = false;
     }
 
 }

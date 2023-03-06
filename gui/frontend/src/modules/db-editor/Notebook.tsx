@@ -93,7 +93,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
         return (
             <CodeEditor
                 ref={this.editorRef}
-                state={editorState}
+                savedState={editorState}
                 language="msg"
                 allowedLanguages={["javascript", "typescript", "sql"]}
                 sqlDialect={dialect}
