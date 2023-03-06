@@ -30,7 +30,7 @@ import Header from "./components/Header";
 import Notes from "./pages/NotesPage/NotesPage";
 
 // Defines the MySQL REST Service URL of the MRS Notes service
-export const serviceUrl = "https://localhost:8443/mrs";
+export const serviceUrl = "https://localhost:8443/myService";
 
 export interface IUser {
     name: string;

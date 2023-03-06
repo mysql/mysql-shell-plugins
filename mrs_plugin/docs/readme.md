@@ -39,7 +39,7 @@ The documentation is written in Markdown syntax. It is converted to HTML with th
 
 ### Generating the HTML file
 
-A VS Code build tasks has been defined to build the documentation in the docs/dist folder. Press `Cmd + Shift + B` to start the build.
+A VS Code build tasks has been defined to build the documentation in the docs/dist folder. Press `Cmd + Shift + B` to start the build. The documentation is built using the `./scripts/generate_html_docs.sh` script.
 
 To build the documentation manually, invoke the following command to generate the index.html page:
 
