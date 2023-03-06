@@ -24,7 +24,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 
 import {
-    binarySearch, clampValue, convertCamelToSnakeCase, flattenObject, loadTextFile, selectFile, sleep, strictEval, uuid,
+    binarySearch, clampValue, convertCamelToSnakeCase, flattenObject, selectFile, sleep, strictEval, uuid,
     waitFor, convertSnakeToCamelCase, convertCamelToTitleCase, convertTitleToCamelCase, stripAnsiCode, deepEqual,
 } from "../../../utilities/helpers";
 import { loremIpsum, nextProcessTick, uuidPattern } from "../test-helpers";
@@ -102,77 +102,6 @@ describe("Utilities Tests", (): void => {
         index = binarySearch(entries, (current) => { return 5e4 - current.id; });
         expect(index).toEqual(-7);
     });
-
-    /*it("Build password request", (): void => {
-        const result: IShellFeedbackRequest = {};
-        result.password = "1234567";
-        let passwordRequest = ShellPromptHandler.splitAndBuildPasswdRequest(result,
-            "request1", {} as ShellInterfaceShellSession);
-
-        expect(passwordRequest).toBeDefined();
-        expect(passwordRequest.caption).toEqual("1234567");
-
-        result.password = "[1mPlease provide the password for 'root@localhost:3306': [0m";
-        passwordRequest = ShellPromptHandler.splitAndBuildPasswdRequest(result,
-            "request1", {} as ShellInterfaceShellSession);
-
-        expect(passwordRequest).toBeDefined();
-        expect(passwordRequest.caption).toEqual("Open MySQL Connection in Shell Session");
-        expect(passwordRequest.user).toEqual("root");
-        expect(passwordRequest.service).toEqual("root@localhost:3306");
-
-        result.password = "Please provide the password for ssh://user1@viking01:22:";
-        passwordRequest = ShellPromptHandler.splitAndBuildPasswdRequest(result,
-            "request1", {} as ShellInterfaceShellSession);
-
-        expect(passwordRequest).toBeDefined();
-        expect(passwordRequest.caption).toEqual("Open SSH tunnel in Shell Session");
-        expect(passwordRequest.service).toEqual("ssh://user1@viking01:22");
-        expect(passwordRequest.user).toEqual("user1");
-
-    });*/
-
-    it("Load File", () => {
-        const xhrMock: Partial<XMLHttpRequest> = {
-            open: jest.fn(),
-            send: jest.fn(),
-            setRequestHeader: jest.fn(),
-            readyState: 4,
-            status: 200,
-            responseText: "Hello World!",
-        };
-
-        jest.spyOn(window, "XMLHttpRequest").mockImplementation(() => {
-            return xhrMock as XMLHttpRequest;
-        });
-
-        const callback = jest.fn();
-        loadTextFile("a-file", true, callback);
-        expect(xhrMock.open).toBeCalledWith("GET", "a-file", true);
-        expect(xhrMock.setRequestHeader).toBeCalledWith("Accept", "text/plain");
-        (xhrMock.onreadystatechange as EventListener)(new Event(""));
-        expect(callback.mock.calls).toEqual([["Hello World!"]]);
-    });
-
-    /*it("Shell prompt result test", (): void => {
-        const val1 = { rows: [] };
-        let result = val1 as IShellResultType;
-        const val2 = { result: { prompt: "" }, requestState: { type: "error", msg: "test" } };
-        const result2 = val2 as IOpenConnectionData;
-        expect(ShellPromptHandler.isShellPasswordResult(result)).toBe(false);
-        expect(ShellPromptHandler.isShellPromptResult(result)).toBe(false);
-        expect(ShellPromptHandler.isShellMdsPromptResult(result2)).toBe(true);
-
-        const val3 = { password: "" };
-        result = val3 as IShellResultType;
-        expect(ShellPromptHandler.isShellPasswordResult(result)).toBe(true);
-        expect(ShellPromptHandler.isShellPromptResult(result)).toBe(false);
-
-        const val4 = { prompt: "" };
-        result = val4 as IShellResultType;
-        expect(ShellPromptHandler.isShellPasswordResult(result)).toBe(false);
-        expect(ShellPromptHandler.isShellPromptResult(result)).toBe(true);
-    });*/
 
     it("Select File", async () => {
         // Single file.

@@ -27,27 +27,6 @@ import Anser from "anser";
 import { IDictionary } from "../app-logic/Types";
 
 /**
- * Loads the given file from the server as plain text.
- *
- * @param name The file (including path) to load.
- * @param async Load the file asynchronously.
- * @param callback A function to call on completion. Also required for synchronous load!
- */
-export const loadTextFile = (name: string, async: boolean, callback: (response: string) => void): void => {
-    const request = new XMLHttpRequest();
-    request.open("GET", name, async);
-    request.onreadystatechange = (): void => {
-        if (request.readyState === 4 && request.status === 200) {
-            callback(request.responseText);
-        }
-    };
-
-    request.responseType = "text";
-    request.setRequestHeader("Accept", "text/plain");
-    request.send(null);
-};
-
-/**
  * Allows the user to select a local file.
  *
  * @param contentType Restricts the file selection to specific file types.

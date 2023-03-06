@@ -135,11 +135,10 @@ const config: Config = {
         "monaco-editor$": "monaco-editor/esm/vs/editor/editor.api",
         "tabulator-tables$": "tabulator-tables/dist/js/tabulator_esm.js",
         ".+\\.worker\\?worker$": "<rootDir>/src/tests/unit-tests/__mocks__/workerMock.ts",
-        ".+runtime\\.d\\.ts$": "<rootDir>/src/tests/unit-tests/__mocks__/typingsMock.ts",
         "^react$": "preact/compat",
         //"^react-dom$": "preact/compat",
         '^react/jsx-runtime$': 'preact/jsx-runtime',
-        ".*\\?raw": "jest-raw-loader"
+        ".*\\?raw": "@glen/jest-raw-loader"
     },
 
     // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader
