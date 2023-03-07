@@ -626,4 +626,26 @@ export class Database {
         await btn?.click();
     };
 
+    public static getAutoCompleteMenuItems = async (): Promise<string[]> => {
+        const els = [];
+        let items = await driver.wait(until.elementsLocated(By.css(".monaco-list .monaco-highlighted-label span")),
+            explicitWait, "Auto complete items were not displayed");
+
+        for (const item of items) {
+            els.push(await item.getText());
+        }
+
+        await driver.actions().sendKeys(selKey.ARROW_UP).perform();
+
+        items = await driver.wait(until.elementsLocated(By.css(".monaco-list .monaco-highlighted-label span")),
+            explicitWait, "Auto complete items were not displayed");
+
+        for (const item of items) {
+            els.push(await item.getText());
+        }
+
+        return [...new Set(els)];
+
+    };
+
 }
