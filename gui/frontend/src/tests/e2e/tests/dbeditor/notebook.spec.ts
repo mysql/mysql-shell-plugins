@@ -875,8 +875,6 @@ describe("Notebook", () => {
     it("Pie Graph based on DB table", async () => {
         try {
 
-            //await DBConnection.setEditorLanguage("ts");
-
             const contentHost = await driver.findElement(By.id("contentHost"));
             const textArea = await contentHost.findElement(By.css("textarea"));
             await Misc.execCmd(textArea, "\\typescript", undefined, true);
@@ -1010,6 +1008,25 @@ describe("Notebook", () => {
             testFailed = true;
             throw e;
         }
+    });
+
+    it("Schema autocomplete context menu", async () => {
+
+        await DBConnection.writeSQL("select * from ");
+
+        const textArea = await driver.findElement(By.css("textarea"));
+
+        await textArea.sendKeys(Key.chord(Key.CONTROL, Key.SPACE));
+
+        const els = await DBNotebooks.getAutoCompleteMenuItems();
+
+        expect(els).toContain("information_schema");
+        expect(els).toContain("mysql");
+        expect(els).toContain("performance_schema");
+        expect(els).toContain("sakila");
+        expect(els).toContain("sys");
+        expect(els).toContain("world_x_cst");
+
     });
 
 });

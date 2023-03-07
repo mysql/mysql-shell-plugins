@@ -414,6 +414,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
 
+            treeDBSection = await Misc.getSection(dbTreeSection);
             const treeLocalConn = await Misc.getTreeElement(treeDBSection, localConn.caption);
             await Misc.selectContextMenuItem(treeLocalConn!, "Edit DB Connection");
 
@@ -1539,6 +1540,28 @@ describe("DATABASE CONNECTIONS", () => {
             for (const col of chartColumns) {
                 expect(parseInt(await col.getAttribute("width"), 10)).to.be.greaterThan(0);
             }
+
+        });
+
+        it("Schema autocomplete context menu", async () => {
+
+            const result = await Misc.execCmd("\\sql ");
+            expect(result[0]).to.include("Switched to MySQL mode");
+
+            await Misc.writeCmd("select * from ");
+
+            const textArea = await driver.findElement(By.css("textarea"));
+
+            await textArea.sendKeys(Key.chord(Key.CONTROL, Key.SPACE));
+
+            const els = await Database.getAutoCompleteMenuItems();
+
+            expect(els).to.include("information_schema");
+            expect(els).to.include("mysql");
+            expect(els).to.include("performance_schema");
+            expect(els).to.include("sakila");
+            expect(els).to.include("sys");
+            expect(els).to.include("world_x_cst");
 
         });
 

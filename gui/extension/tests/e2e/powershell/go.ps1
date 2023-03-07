@@ -94,16 +94,6 @@ try {
         writeMsg "SKIPPED. Not found"
     }
 
-    # REMOVE SHELL INSTANCE HOME
-    $shellInstanceHome = Join-Path $env:userprofile "mysqlsh-$env:TEST_SUITE" "plugin_data" "gui_plugin" "shell_instance_home"
-    writeMsg "Removing $shellInstanceHome ..." "-NoNewLine"
-    if (Test-Path -Path $shellInstanceHome){
-        Remove-Item -Path $shellInstanceHome -Force -Recurse
-        writeMsg "DONE"
-    } else {
-        writeMsg "SKIPPED. Not found"
-    }
-
     if ($env:TEST_SUITE -eq "oci"){
         # LOAD THE OCI LIBRARY ON EXTENSION (PREVENT OCI TESTS TO TAKE TOO LONG TO RUN AND FAIL DUE TO TIMEOUTS)
         $loaded = $false
@@ -137,13 +127,11 @@ try {
         writeMsg "DONE for $($env:TEST_SUITE.toUpper()) suite. There are FAILED tests. Check resultsExt-$env:TEST_SUITE.log"
     }
 
-    # UNINSTALL EXTENSION
+    # CLEANUP EXTENSION FOLDER
     Get-ChildItem -Path $extPath | % {
-        if ( ($_.Name -like "*mysql-shell-for-vs-code*") ){
-            writeMsg "Removing $_ ..." "-NoNewLine"
-            Remove-Item -Path $_ -Force -Recurse
-            writeMsg "DONE"
-        }
+        writeMsg "Removing $_ ..." "-NoNewLine"
+        Remove-Item -Path $_ -Force -Recurse
+        writeMsg "DONE"
     }
 
     exit $prcExecTests.ExitCode

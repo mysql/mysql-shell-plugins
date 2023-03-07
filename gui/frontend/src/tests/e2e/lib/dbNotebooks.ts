@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { By, until, WebElement } from "selenium-webdriver";
+import { By, until, WebElement, Key } from "selenium-webdriver";
 import { driver, explicitWait, IDBConnection } from "./misc";
 
 export class DBNotebooks {
@@ -193,5 +193,33 @@ export class DBNotebooks {
         await driver.findElement(By.id("gui.shell")).click();
         await driver.findElement(By.id("gui.sqleditor")).click();
     };
+
+    /**
+     * Returns the autocomplete context item list
+     *
+     * @returns A promise resolving when the list is fulfilled
+     */
+    public static getAutoCompleteMenuItems = async (): Promise<string[]> => {
+        const els = [];
+        let items = await driver.wait(until.elementsLocated(By.css(".monaco-list .monaco-highlighted-label span")),
+            explicitWait, "Auto complete items were not displayed");
+
+        for (const item of items) {
+            els.push(await item.getText());
+        }
+
+        await driver.actions().sendKeys(Key.ARROW_UP).perform();
+
+        items = await driver.wait(until.elementsLocated(By.css(".monaco-list .monaco-highlighted-label span")),
+            explicitWait, "Auto complete items were not displayed");
+
+        for (const item of items) {
+            els.push(await item.getText());
+        }
+
+        return [...new Set(els)];
+
+    };
+
 
 }
