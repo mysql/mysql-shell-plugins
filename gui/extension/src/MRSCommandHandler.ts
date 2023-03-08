@@ -293,11 +293,11 @@ export class MRSCommandHandler {
 
                             // TODO: refresh only the affected connection.
                             void commands.executeCommand("msg.refreshConnections");
-                            showMessageWithTimeout(`The Authentication User ${item.value.name} has been deleted.`);
+                            showMessageWithTimeout(`The MRS User ${item.value.name} has been deleted.`);
                         }
                     }
                 } catch (reason) {
-                    void window.showErrorMessage(`Error deleting the Authentication User: ${String(reason)}`);
+                    void window.showErrorMessage(`Error deleting the MRS User: ${String(reason)}`);
                 }
 
             }));
