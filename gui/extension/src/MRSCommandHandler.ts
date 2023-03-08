@@ -1490,7 +1490,8 @@ export class MRSCommandHandler {
                 const name = response.data.name as string;
                 const requestPath = response.data.requestPath as string;
                 const requiresAuth = response.data.requiresAuth as boolean;
-                const itemsPerPage = response.data.itemsPerPage as number;
+                const itemsPerPage = response.data.itemsPerPage === "" ?
+                    null : response.data.itemsPerPage as number;
                 const comments = response.data.comments as string;
                 const enabled = response.data.enabled as boolean;
                 const options = response.data.options === "" ?
