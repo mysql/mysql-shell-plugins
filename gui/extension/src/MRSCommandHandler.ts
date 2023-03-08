@@ -272,7 +272,7 @@ export class MRSCommandHandler {
                         });
                     }
                 } catch (reason) {
-                    void window.showErrorMessage(`Error adding a new Authentication App: ${String(reason)}`);
+                    void window.showErrorMessage(`Error adding a new MRS Authentication App: ${String(reason)}`);
                 }
             }));
 
@@ -289,11 +289,11 @@ export class MRSCommandHandler {
                             await backend.mrs.deleteAuthApp(item.value.id);//
                             // TODO: refresh only the affected connection.
                             void commands.executeCommand("msg.refreshConnections");
-                            showMessageWithTimeout(`The Authentication App ${item.value.name} has been deleted.`);
+                            showMessageWithTimeout(`The MRS Authentication App ${item.value.name} has been deleted.`);
                         }
                     }
                 } catch (reason) {
-                    void window.showErrorMessage(`Error deleting the Authentication App: ${String(reason)}`);
+                    void window.showErrorMessage(`Error deleting the MRS Authentication App: ${String(reason)}`);
                 }
 
             }));
@@ -1023,11 +1023,11 @@ export class MRSCommandHandler {
         authApp?: IMrsAuthAppData, service?: IMrsServiceData): Promise<void> => {
 
         const title = authApp
-            ? "Adjust the REST Authentication App Configuration"
-            : "Enter Configuration Values for the New REST Authentication App";
+            ? "Adjust the MRS Authentication App Configuration"
+            : "Enter Configuration Values for the New MRS Authentication App";
         const tabTitle = authApp
-            ? "Edit REST Authentication App"
-            : "Add REST Authentication App";
+            ? "Edit MRS Authentication App"
+            : "Add MRS Authentication App";
 
 
         const authVendors = await backend.mrs.getAuthVendors();
@@ -1096,9 +1096,9 @@ export class MRSCommandHandler {
                     });
 
                     void commands.executeCommand("msg.refreshConnections");
-                    showMessageWithTimeout("The MRS service has been updated.", 5000);
+                    showMessageWithTimeout("The MRS Authentication App has been updated.", 5000);
                 } catch (error) {
-                    void window.showErrorMessage(`Error while adding MySQL REST service: ${String(error)}`);
+                    void window.showErrorMessage(`Error while adding MySQL REST Authentication App: ${String(error)}`);
                 }
             }
         } else {
@@ -1120,9 +1120,9 @@ export class MRSCommandHandler {
                     }
 
                     void commands.executeCommand("msg.refreshConnections");
-                    showMessageWithTimeout("The MRS service has been updated.", 5000);
+                    showMessageWithTimeout("The MRS Authentication App has been updated.", 5000);
                 } catch (error) {
-                    void window.showErrorMessage(`Error while adding MySQL REST service: ${String(error)}`);
+                    void window.showErrorMessage(`Error while adding MySQL REST Authentication App: ${String(error)}`);
                 }
             }
         }
@@ -1220,9 +1220,9 @@ export class MRSCommandHandler {
                     }, rolesToUpdate);
 
                     void commands.executeCommand("msg.refreshConnections");
-                    showMessageWithTimeout("The MRS user has been updated.", 5000);
+                    showMessageWithTimeout("The MRS User has been updated.", 5000);
                 } catch (error) {
-                    void window.showErrorMessage(`Error while updating MySQL REST user: ${String(error)}`);
+                    void window.showErrorMessage(`Error while updating MySQL REST User: ${String(error)}`);
                 }
             }
         } else {
@@ -1241,9 +1241,9 @@ export class MRSCommandHandler {
                 }
 
                 void commands.executeCommand("msg.refreshConnections");
-                showMessageWithTimeout("The MRS service has been updated.", 5000);
+                showMessageWithTimeout("The MRS User has been updated.", 5000);
             } catch (error) {
-                void window.showErrorMessage(`Error while adding MySQL REST service: ${String(error)}`);
+                void window.showErrorMessage(`Error while adding MySQL REST User: ${String(error)}`);
             }
         }
 

@@ -611,11 +611,11 @@
             },
             {
                 "command": "msg.mrs.editAuthApp",
-                "title": "Edit Authorization App"
+                "title": "Edit Authentication App"
             },
             {
                 "command": "msg.mrs.deleteAuthApp",
-                "title": "Delete Authorization App"
+                "title": "Delete Authentication App"
             },
             {
                 "command": "msg.mrs.addUser",
