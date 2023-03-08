@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -26,7 +26,6 @@
 from mysqlsh.plugin_manager import plugin_function
 import mrs_plugin.lib as lib
 from .interactive import resolve_service
-
 
 
 def verify_value_keys(**kwargs):
@@ -205,7 +204,7 @@ def add_schema(**kwargs):
         requires_auth (bool): Whether authentication is required to access
             the schema
         enabled (bool): The enabled state
-        items_per_page (int): The number of items returned per page
+        items_per_page (int,required): The number of items returned per page
         comments (str): Comments for the schema
         options (dict,required): The options for the schema
         session (object): The database session to use.
@@ -580,7 +579,7 @@ def update_schema(**kwargs):
         requires_auth (bool): Whether authentication is required to access
             the schema
         enabled (bool): The enabled state
-        items_per_page (int): The number of items returned per page
+        items_per_page (int,required): The number of items returned per page
         comments (str): Comments for the schema
         options (dict,required): The options for the schema
 
@@ -603,4 +602,3 @@ def update_schema(**kwargs):
     kwargs = resolve_comments(**kwargs)
 
     return call_update_schema(**kwargs)
-

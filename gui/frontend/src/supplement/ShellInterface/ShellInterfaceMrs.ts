@@ -352,7 +352,7 @@ export class ShellInterfaceMrs {
 
     public async addSchema(serviceId: string, schemaName: string, requestPath: string, requiresAuth: boolean,
         options: IShellDictionary | null,
-        itemsPerPage?: number, comments?: string): Promise<string> {
+        itemsPerPage: number | null, comments?: string): Promise<string> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsAddSchema,
             parameters: {

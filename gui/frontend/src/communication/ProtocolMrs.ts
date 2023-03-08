@@ -383,7 +383,7 @@ export interface IShellMrsAddSchemaKwargs {
     /** The enabled state */
     enabled?: boolean;
     /** The number of items returned per page */
-    itemsPerPage?: number;
+    itemsPerPage: number | null;
     /** Comments for the schema */
     comments?: string;
     /** The options for the schema */
@@ -522,7 +522,7 @@ export interface IShellMrsUpdateSchemaKwargsValue {
     /** The enabled state */
     enabled?: boolean;
     /** The number of items returned per page */
-    itemsPerPage?: number;
+    itemsPerPage: number | null;
     /** Comments for the schema */
     comments?: string;
     /** The options for the schema */
