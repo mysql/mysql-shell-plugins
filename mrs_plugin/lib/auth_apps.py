@@ -73,6 +73,7 @@ def get_auth_vendors(session, enabled=None):
 
     return core.MrsDbExec(sql, params).exec(session).items
 
+
 def get_auth_vendor(session, vendor_id):
     sql = """
         SELECT * FROM `mysql_rest_service_metadata`.`auth_vendor`
@@ -80,6 +81,7 @@ def get_auth_vendor(session, vendor_id):
     """
 
     return core.MrsDbExec(sql, [vendor_id]).exec(session).first
+
 
 def get_auth_app(session, app_id):
     sql = """
@@ -94,6 +96,7 @@ def get_auth_app(session, app_id):
         """
 
     return core.MrsDbExec(sql, [app_id]).exec(session).first
+
 
 def get_auth_apps(session, service_id: bytes, include_enable_state=None):
     """Returns all authentication apps for the given MRS service

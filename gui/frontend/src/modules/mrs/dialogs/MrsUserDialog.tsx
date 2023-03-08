@@ -142,7 +142,7 @@ export class MrsUserDialog extends ValueDialogBase {
                     value: data.appOptions ? JSON.stringify(data.appOptions) : "",
                     horizontalSpan: 6,
                     verticalSpan: 2,
-                    description: "The options stored for this user",
+                    description: "Additional options in JSON format",
                     multiLine: true,
                 },
                 vendorUserId: {
