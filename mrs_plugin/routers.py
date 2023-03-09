@@ -51,40 +51,6 @@ def get_routers(active_when_seen_within=None, session=None):
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, session=session) as session:
         return lib.routers.get_routers(session, active_when_seen_within=active_when_seen_within or 10)
 
-@plugin_function('mrs.add.router', shell=True, cli=True, web=False)
-def add_router(**kwargs):
-    """Add a new router
-
-    Args:
-        **kwargs: Additional options
-
-    Keyword Args:
-        router_name (str): The name of this router
-        address (str): The router address
-        product_name (str): The name of the product that the router is using
-        version (str): The version of the
-        attributes (dict): The attributes for the router connection
-        options (dict): The options for the router
-        session (object): The database session to use.
-
-    Returns:
-        The id of the created router
-    """
-    if kwargs.get("attributes"):
-        kwargs["attributes"] = lib.core.convert_json(kwargs["attributes"])
-    if kwargs.get("options"):
-        kwargs["options"] = lib.core.convert_json(kwargs["options"])
-
-    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
-        return lib.routers.add_router(session,
-            kwargs.get("router_name"),
-            kwargs.get("address"),
-            kwargs.get("product_name"),
-            kwargs.get("version"),
-            kwargs.get("attributes"),
-            kwargs.get("options")
-        )
-
 
 @plugin_function('mrs.delete.router', shell=True, cli=True, web=True)
 def delete_router(router_id=None, session=None):

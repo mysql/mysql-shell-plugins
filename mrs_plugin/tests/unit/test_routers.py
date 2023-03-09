@@ -26,6 +26,7 @@ from mrs_plugin import lib
 from mrs_plugin import routers
 
 def test_add_delete_router(init_mrs, table_contents):
+    session = init_mrs["session"]
     router_table = table_contents("router")
 
     router_data = {
@@ -36,13 +37,23 @@ def test_add_delete_router(init_mrs, table_contents):
         "attributes": { "test_router_attribute_1": "this is the test router attribute 1" },
         "options": { "test_router_option_1": "this is the test router option 1" }
     }
-    router_id = routers.add_router(router_name="test_router_2",
-        address="localhost",
-        product_name="MySQL Router",
-        version="8.0.32",
-        attributes={ "test_router_attribute_1": "this is the test router attribute 1" },
-        options={ "test_router_option_1": "this is the test router option 1" },
-        session=init_mrs["session"])
+
+    sql = """
+        INSERT INTO `mysql_rest_service_metadata`.`router`
+            (router_name, address, product_name, version, attributes, options)
+        VALUES
+            (?, ?, ?, ?, ?, ?)
+    """
+    params = [
+        router_data["router_name"],
+        router_data["address"],
+        router_data["product_name"],
+        router_data["version"],
+        router_data["attributes"],
+        router_data["options"]
+    ]
+
+    router_id = lib.core.MrsDbExec(sql, params).exec(session).id
 
     assert router_id
 

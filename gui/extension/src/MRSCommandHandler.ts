@@ -112,12 +112,11 @@ export class MRSCommandHandler {
 
                     if (answer === "Yes") {
                         try {
-                            await this.startStopLocalRouter(context, (item as unknown) as MrsTreeItem, false);
                             await item.entry.backend?.mrs.deleteRouter(item.value.id);
                             await commands.executeCommand("msg.refreshConnections");
-                            showMessageWithTimeout("The MRS service has been deleted successfully.");
+                            showMessageWithTimeout("The MRS Router has been deleted successfully.");
                         } catch (error) {
-                            void window.showErrorMessage(`Error adding the MRS service: ${String(error)}`);
+                            void window.showErrorMessage(`Error deleting the MRS Router: ${String(error)}`);
                         }
                     }
                 }

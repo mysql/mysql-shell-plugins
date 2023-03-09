@@ -226,16 +226,30 @@ def init_mrs():
     role_id = lib.roles.add_role(session, role_id, service["id"], "Process Admin", "Process administrator.")
     roles["Process Admin"] = role_id
 
-    router_id = lib.routers.add_router(session, "test_router_1", "localhost:1234",
-        "MySQL Router", "8.0.32", {
+    sql = """
+        INSERT INTO `mysql_rest_service_metadata`.`router`
+            (router_name, address, product_name, version, attributes, options)
+        VALUES
+            (?, ?, ?, ?, ?, ?)
+    """
+    params = [
+        "test_router_1",
+        "localhost:1234",
+        "MySQL Router",
+        "8.0.32",
+        {
             "attribute_1": "this is attribute 1",
             "attribute_2": "this is attribute 2",
             "attribute_3": "this is attribute 3",
-        }, {
+        },
+        {
             "option_1": "this is option 1",
             "option_2": "this is option 2",
             "option_3": "this is option 3",
-        })
+        }
+    ]
+
+    router_id = lib.core.MrsDbExec(sql, params).exec(session).id
 
 
     yield {
