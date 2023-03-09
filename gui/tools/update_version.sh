@@ -1,5 +1,6 @@
-# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
-#
+#!/bin/sh
+# Copyright (c) 2023, Oracle and/or its affiliates.
+
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
 # as published by the Free Software Foundation.
@@ -19,27 +20,6 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from mysqlsh.plugin_manager import plugin_function
+SRC_DIR=`pwd`
 
-# Define plugin version
-VERSION = "1.8.3"
-
-@plugin_function('gui.info', shell=True, cli=True, web=True)
-def info():
-    """Returns basic information about this plugin.
-
-    Returns:
-        str
-    """
-    return (f"MySQL GUI Plugin Version {VERSION} PREVIEW\n"
-             "Warning! For testing purposes only!")
-
-
-@plugin_function('gui.version', shell=True, cli=True, web=True)
-def version():
-    """Returns the version number of the plugin
-
-    Returns:
-        str
-    """
-    return VERSION
+python $SRC_DIR/src/version_handler.py
