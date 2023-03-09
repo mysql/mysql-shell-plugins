@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -25,7 +25,7 @@ from mysqlsh.plugin_manager import plugin_function
 from mds_plugin import core, configuration
 
 # Define plugin version
-VERSION = "0.1.15"
+VERSION = "1.8.3"
 
 
 @plugin_function('mds.info')
