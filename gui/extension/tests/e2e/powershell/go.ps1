@@ -94,6 +94,16 @@ try {
         writeMsg "SKIPPED. Not found"
     }
 
+    # REMOVE SHELL INSTANCE HOME
+    $shellInstanceHome = Join-Path $env:userprofile "mysqlsh-$env:TEST_SUITE" "plugin_data" "gui_plugin" "shell_instance_home"
+    writeMsg "Removing $shellInstanceHome ..." "-NoNewLine"
+    if (Test-Path -Path $shellInstanceHome){
+        Remove-Item -Path $shellInstanceHome -Force -Recurse
+        writeMsg "DONE"
+    } else {
+        writeMsg "SKIPPED. Not found"
+    }
+
     if ($env:TEST_SUITE -eq "oci"){
         # LOAD THE OCI LIBRARY ON EXTENSION (PREVENT OCI TESTS TO TAKE TOO LONG TO RUN AND FAIL DUE TO TIMEOUTS)
         $loaded = $false

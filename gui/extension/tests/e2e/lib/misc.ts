@@ -56,7 +56,10 @@ export const ociExplicitWait = 10000;
 export const ociTasksExplicitWait = 50000;
 
 export let isExtPrepared = false;
-
+export const dbMaxLevel = 5;
+export const ociMaxLevel = 5;
+export const shellMaxLevel = 1;
+export const tasksMaxLevel = 1;
 export let driver: WebDriver;
 
 export class Misc {
@@ -69,14 +72,14 @@ export class Misc {
 
         await driver.wait(async () => {
             return (await openEditors.getOpenEditorTitles()).includes("Welcome to MySQL Shell");
-        }, explicitWait*2, "Welcome tab was not displayed");
+        }, explicitWait * 2, "Welcome tab was not displayed");
 
         await Misc.reloadVSCode();
 
         try {
             await fs.truncate(Misc.getMysqlshLog());
         } catch (e) {
-            await driver.wait(async ()  => {
+            await driver.wait(async () => {
                 try {
                     await fs.truncate(Misc.getMysqlshLog());
 
@@ -101,47 +104,6 @@ export class Misc {
 
     public static getSection = async (name: string): Promise<CustomTreeSection> => {
         return await new SideBarView().getContent().getSection(name) as CustomTreeSection;
-    };
-
-    public static getTreeElement = async (
-        scope: TreeItem | CustomTreeSection | undefined,
-        el: string,
-        section?: string,
-    ): Promise<TreeItem | undefined> => {
-
-        if (scope) {
-            if (scope instanceof TreeItem) {
-                try {
-                    let scopeChildren: TreeItem[];
-                    await driver.wait(async () => {
-                        scopeChildren = await scope.getChildren();
-
-                        return scopeChildren.length > 0;
-                    }, 1500, `'${await scope.getLabel()}' does not have children`);
-
-                    if (el.includes("*")) {
-                        for (const child of scopeChildren!) {
-                            if ((await child.getLabel()).includes(el.replace("*", ""))) {
-                                return child;
-                            }
-                        }
-                    } else {
-                        return scope.findChildItem(el);
-                    }
-                } catch (e) {
-                    if (!String(e).includes("does not have children")) {
-                        throw e;
-                    }
-                }
-            } else if (scope instanceof CustomTreeSection) {
-                return scope.findItem(el);
-            }
-        } else {
-            const treeSection = await Misc.getSection(String(section));
-
-            return treeSection?.findItem(el);
-        }
-
     };
 
     public static isDefaultItem = async (
@@ -242,8 +204,8 @@ export class Misc {
                     const sectionRect = await section.getRect();
                     await driver.actions().move(
                         {
-                            x: sectionRect.x+50,
-                            y: sectionRect.y+50,
+                            x: sectionRect.x + 50,
+                            y: sectionRect.y + 50,
                         },
                     ).perform();
                     await button?.click();
@@ -463,7 +425,7 @@ export class Misc {
         const webViewFrame = await driver.findElement(By.css("iframe")).getAttribute("id");
 
         await driver.wait(until.ableToSwitchToFrame(By.id(webViewFrame))
-            ,explicitWait, `Not able to switch to frame 'frame:${webViewFrame}'`);
+            , explicitWait, `Not able to switch to frame 'frame:${webViewFrame}'`);
     };
 
     public static verifyNotification = async (text: string, waitToDisappear = false): Promise<void> => {
@@ -612,7 +574,7 @@ export class Misc {
         return result;
     };
 
-    public static getResultTab = async (resultHost: WebElement, tabName: string): Promise <WebElement | undefined> => {
+    public static getResultTab = async (resultHost: WebElement, tabName: string): Promise<WebElement | undefined> => {
         const tabs = await resultHost.findElements(By.css(".tabArea div"));
 
         for (const tab of tabs) {
@@ -694,21 +656,21 @@ export class Misc {
                 }
 
                 const actionLabel = await context.findElements(By.css(".actionLabel"));
-                if(actionLabel.length > 0) {
+                if (actionLabel.length > 0) {
                     resultToReturn = await actionLabel[0].getAttribute("innerHTML");
 
                     return resultToReturn;
                 }
 
                 const actionOutput = await context.findElements(By.css(".actionOutput"));
-                if(actionOutput.length > 0) {
+                if (actionOutput.length > 0) {
                     resultToReturn = await actionOutput[0].findElement(By.css(".info")).getAttribute("innerHTML");
 
                     return resultToReturn;
                 }
 
                 const graphHost = await context.findElements(By.css(".graphHost"));
-                if(graphHost.length > 0) {
+                if (graphHost.length > 0) {
                     resultToReturn = "graph";
 
                     return resultToReturn;
@@ -719,7 +681,7 @@ export class Misc {
                     throw e;
                 } else {
                     const zoneHosts = await driver.findElements(By.css(".zoneHost"));
-                    zoneHost = zoneHosts[zoneHosts.length -1];
+                    zoneHost = zoneHosts[zoneHosts.length - 1];
                 }
             }
 
@@ -737,7 +699,7 @@ export class Misc {
                 const btn = await treeItem.findElement(By.xpath(locator));
 
                 const treeItemCoord = await treeItem.getRect();
-                await driver.actions().move({x: treeItemCoord.x, y: treeItemCoord.y}).perform();
+                await driver.actions().move({ x: treeItemCoord.x, y: treeItemCoord.y }).perform();
                 await driver.wait(until.elementIsVisible(btn),
                     explicitWait, `'Connect to Database' button was not visible`);
 
@@ -794,7 +756,7 @@ export class Misc {
             } catch (e) {
                 if (e instanceof error.StaleElementReferenceError) {
                     const zoneHosts = await driver.findElements(By.css(".zoneHost"));
-                    zoneHost = zoneHosts[zoneHosts.length -1];
+                    zoneHost = zoneHosts[zoneHosts.length - 1];
                 } else {
                     throw e;
                 }
@@ -826,10 +788,10 @@ export class Misc {
             }
 
             await Misc.getCmdResultMsg(zoneHost, timeout)
-                .then ( (result) => {
+                .then((result) => {
                     toReturn.push(result);
                 })
-                .catch ( (e) => {
+                .catch((e) => {
                     if (String(e).includes("Could not return")) {
                         throw new Error(`Could not get result for '${cmd}'`);
                     } else {
@@ -838,10 +800,10 @@ export class Misc {
                 });
 
             await Misc.getCmdResultContent(hasMultipleQueries, zoneHost, timeout)
-                .then ( (result) => {
+                .then((result) => {
                     toReturn.push(result);
                 })
-                .catch ( (e) => {
+                .catch((e) => {
                     if (String(e).includes("Could not return")) {
                         throw new Error(`Could not get content for '${cmd}'`);
                     } else {
@@ -853,12 +815,12 @@ export class Misc {
             await driver.wait(until.elementLocated(
                 By.xpath(`//div[@class='zoneHost' and @monaco-view-zone='d${blockId}']`)),
             150, "")
-                .then( async (zoneHost: WebElement) => {
+                .then(async (zoneHost: WebElement) => {
                     await Misc.getCmdResultMsg(zoneHost, timeout)
-                        .then ( (result) => {
+                        .then((result) => {
                             toReturn.push(result);
                         })
-                        .catch ( (e) => {
+                        .catch((e) => {
                             if (String(e).includes("Could not return")) {
                                 throw new Error(`Could not get result for '${cmd}'`);
                             } else {
@@ -866,9 +828,9 @@ export class Misc {
                             }
                         });
                 })
-                .catch( () => {
+                .catch(() => {
                     toReturn.push("");
-                } );
+                });
         }
 
         return toReturn;
@@ -960,7 +922,7 @@ export class Misc {
         return sentence;
     };
 
-    private static hideSection = async (section:string, hide: boolean): Promise <void> => {
+    private static hideSection = async (section: string, hide: boolean): Promise<void> => {
         const context = await driver.findElement(By.xpath("//a[@aria-label='Views and More Actions...']"));
         await context.click();
 
@@ -970,7 +932,7 @@ export class Misc {
         const items = await contextMenu.findElements(By.css("li.action-item a"));
         for (const item of items) {
             const label = await item.getAttribute("innerHTML");
-            if (label.includes(section) ) {
+            if (label.includes(section)) {
                 const isChecked = (await item.getAttribute("class")).includes("checked");
                 if ((isChecked && hide) || (!isChecked && !hide)) {
                     await item.click();

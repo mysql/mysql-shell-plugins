@@ -20,7 +20,7 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-import { WebElement, By, until } from "vscode-extension-tester";
+import { WebElement, By, until, Condition } from "vscode-extension-tester";
 import { driver, explicitWait } from "./misc";
 
 export class Shell {
@@ -42,44 +42,59 @@ export class Shell {
         return dataLang;
     };
 
-    public static isValueOnJsonResult = async (resultHost: WebElement, value: string): Promise<boolean> => {
-        const spans = await resultHost.findElements(By.css("label > span > span"));
-        if (spans.length > 0) {
-            for (const span of spans) {
-                const spanText = await span.getText();
-                if (spanText.includes(value)) {
-                    return true;
-                }
-            }
-        } else {
-            const otherSpans = await resultHost.findElements(By.css("code > span"));
-            for (const span of otherSpans) {
-                const spanText = await span.getText();
-                if (spanText.includes(value)) {
-                    return true;
-                }
-            }
-        }
+    public static isShellLoaded = (): Condition<boolean> => {
+        return new Condition("Shell is not loaded",
+            async () => {
+                const title = await driver.findElements(By.id("title"));
+                const textarea = await driver.findElements(By.css("textarea"));
 
-        return false;
+                return title.length > 0 || textarea.length > 0;
+            });
     };
 
-    public static isValueOnDataSet = async (resultHost: WebElement, value: String): Promise<boolean> => {
-        const cells = await driver.wait(async () => {
-            const cells = await resultHost.findElements(By.css(".zoneHost .tabulator-cell"));
-            if (cells.length > 0) {
-                return cells;
+    public static isValueOnJsonResult = (resultHost: WebElement, value: string): Condition<boolean> => {
+        return new Condition("Value is not on json result", async () => {
+            const spans = await resultHost.findElements(By.css("label > span > span"));
+            if (spans.length > 0) {
+                for (const span of spans) {
+                    const spanText = await span.getText();
+                    if (spanText.includes(value)) {
+                        return true;
+                    }
+                }
+            } else {
+                const otherSpans = await resultHost.findElements(By.css("label > span"));
+                for (const span of otherSpans) {
+                    const spanText = await span.getText();
+                    if (spanText.includes(value)) {
+                        return true;
+                    }
+                }
             }
-        }, explicitWait, "No cells were found");
 
-        for (const cell of cells!) {
-            const text = await cell.getText();
-            if (text === value) {
-                return true;
+            return false;
+        });
+
+    };
+
+    public static isValueOnDataSet = (resultHost: WebElement, value: String): Condition<boolean> => {
+        return new Condition("Value is not on data set", async () => {
+            const cells = await driver.wait(async () => {
+                const cells = await resultHost.findElements(By.css(".zoneHost .tabulator-cell"));
+                if (cells.length > 0) {
+                    return cells;
+                }
+            }, explicitWait, "No cells were found");
+
+            for (const cell of cells!) {
+                const text = await cell.getText();
+                if (text === value) {
+                    return true;
+                }
             }
-        }
 
-        return false;
+            return false;
+        });
     };
 
     public static changeSchemaOnTab = async (schema: string): Promise<void> => {

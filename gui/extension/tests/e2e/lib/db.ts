@@ -29,6 +29,7 @@ import {
     error,
     TreeItem,
     CustomTreeSection,
+    Condition,
 } from "vscode-extension-tester";
 import { expect } from "chai";
 import { basename } from "path";
@@ -52,7 +53,7 @@ export interface IDBConnection {
 
 export class Database {
 
-    public static createConnection = async (scope: CustomTreeSection , dbConfig: IDBConnection,
+    public static createConnection = async (scope: CustomTreeSection, dbConfig: IDBConnection,
         storePassword = false): Promise<void> => {
 
         await Misc.clickSectionToolbarButton(scope, "Create New DB Connection");
@@ -155,10 +156,21 @@ export class Database {
         await dialog.findElement(By.id("ok")).click();
     };
 
+    public static isConnectionLoaded = (): Condition<boolean> => {
+        return new Condition("DB is not loaded", async () => {
+            const st1 = await driver.findElements(By.css(".msg.portal"));
+            const st2 = await driver.findElements(By.css("textarea"));
+            const st3 = await driver.findElements(By.id("title"));
+
+            return st1.length > 0 || st2.length > 0 || st3.length > 0;
+        });
+    };
+
     public static deleteConnection = async (dbName: string): Promise<void> => {
 
-        const treeItem = await Misc.getTreeElement(undefined, dbName, dbTreeSection);
-        await Misc.selectContextMenuItem(treeItem!, "Delete DB Connection");
+        const treeSection = await Misc.getSection(dbTreeSection);
+        const treeItem = await treeSection.findItem(dbName, 5);
+        await Misc.selectContextMenuItem(treeItem, "Delete DB Connection");
 
         const editorView = new EditorView();
         await driver.wait(async () => {
@@ -221,7 +233,7 @@ export class Database {
         throw new Error(`Could not find '${button}' button`);
     };
 
-    public static isStatementStart = async (statement: string): Promise <boolean | undefined> => {
+    public static isStatementStart = async (statement: string): Promise<boolean | undefined> => {
 
         const getLineSentence = async (ctx: WebElement): Promise<string> => {
             const spans = await ctx.findElements(By.css("span"));
@@ -243,7 +255,7 @@ export class Database {
 
                 let index = -1;
 
-                for (let i=0; i <= rightSideLines.length - 1; i++) {
+                for (let i = 0; i <= rightSideLines.length - 1; i++) {
                     const lineSentence = await getLineSentence(rightSideLines[i]);
                     if (lineSentence.includes(statement)) {
                         index = i;
@@ -619,7 +631,7 @@ export class Database {
         const btn = await treeItem.findElement(By.xpath(locator));
 
         const treeItemCoord = await treeItem.getRect();
-        await driver.actions().move({x: treeItemCoord.x, y: treeItemCoord.y}).perform();
+        await driver.actions().move({ x: treeItemCoord.x, y: treeItemCoord.y }).perform();
         await driver.wait(until.elementIsVisible(btn),
             explicitWait, `'Reload Database Information' button was not visible`);
 
