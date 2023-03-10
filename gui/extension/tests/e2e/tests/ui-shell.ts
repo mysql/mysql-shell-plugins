@@ -22,6 +22,7 @@
  */
 import {
     By,
+    Condition,
     CustomTreeSection,
     EditorView,
     until,
@@ -36,6 +37,7 @@ import {
     explicitWait,
     Misc,
     isExtPrepared,
+    shellMaxLevel,
 } from "../lib/misc";
 
 import { IDBConnection, Database } from "../lib/db";
@@ -93,10 +95,11 @@ describe("MYSQL SHELL CONSOLES", () => {
 
             await Misc.switchToWebView();
 
-            await driver.wait(until.elementLocated(By.id("shellEditorHost")), 10000, "Console was not loaded");
+            await driver.wait(Shell.isShellLoaded(), explicitWait * 3, "Shell Console was not loaded");
+
             await driver.switchTo().defaultContent();
 
-            const treeSession1 = await Misc.getTreeElement(treeConsolesSection, "Session 1");
+            const treeSession1 = await treeConsolesSection.findItem("Session 1", shellMaxLevel);
 
             expect(treeSession1).to.exist;
 
@@ -111,17 +114,24 @@ describe("MYSQL SHELL CONSOLES", () => {
             await Misc.clickSectionToolbarButton(treeConsolesSection!, "Open MySQL Shell Console Browser");
             await Misc.switchToWebView();
 
+            await driver.wait(Shell.isShellLoaded(), explicitWait * 3, "Shell Console was not loaded");
+
             expect(await driver.wait(until.elementLocated(By.id("title")),
                 explicitWait, "Title was not found").getText())
                 .to.equal("MySQL Shell - GUI Console");
 
             const newSession = await driver.findElement(By.id("-1"));
+
             await newSession.click();
 
-            await driver.wait(until.elementLocated(By.id("shellEditorHost")), 10000, "Console was not loaded");
+            await driver.wait(Shell.isShellLoaded(), explicitWait * 3, "Shell Console was not loaded");
+
             await driver.switchTo().defaultContent();
 
-            expect(await Misc.getTreeElement(treeConsolesSection, "Session 1")).to.exist;
+            await driver.wait(new Condition("", async () => {
+                return treeConsolesSection.findItem("Session 1", shellMaxLevel);
+            }), explicitWait, "Session 1 was not found on the tree");
+
         });
 
         it("Open multiple sessions", async () => {
@@ -129,9 +139,9 @@ describe("MYSQL SHELL CONSOLES", () => {
             for (let i = 1; i <= 3; i++) {
                 await Misc.clickSectionToolbarButton(treeConsolesSection!, "Add a New MySQL Shell Console");
                 await Misc.switchToWebView();
-                await driver.wait(until.elementLocated(By.id("shellEditorHost")), 10000, "Console was not loaded");
+                await driver.wait(Shell.isShellLoaded(), explicitWait * 3, "Shell Console was not loaded");
                 await driver.switchTo().defaultContent();
-                await driver.wait(Misc.getTreeElement(treeConsolesSection, `Session ${i}`),
+                await driver.wait(treeConsolesSection.findItem(`Session ${i}`, shellMaxLevel),
                     explicitWait, `Session ${i} does not exist on the tree`);
             }
 
@@ -240,7 +250,7 @@ describe("MYSQL SHELL CONSOLES", () => {
                         By.xpath(`//div[@class='zoneHost' and @monaco-view-zone='${String(nextResultBlock)}']`));
 
                 return next.length > 0;
-            },  explicitWait, "Could not get the command results");
+            }, explicitWait, "Could not get the command results");
 
             uri = `Creating a session to '${String(shellConn.username)}@${String(shellConn.hostname)}:`;
             uri += `${String(shellConn.port)}/${String(shellConn.schema)}'`;
@@ -368,6 +378,8 @@ describe("MYSQL SHELL CONSOLES", () => {
 
                 await Misc.switchToWebView();
 
+                await driver.wait(Shell.isShellLoaded(), explicitWait * 3, "Shell Console was not loaded");
+
                 editor = await driver.wait(until.elementLocated(By.id("shellEditorHost")),
                     10000, "Console was not loaded");
 
@@ -473,7 +485,8 @@ describe("MYSQL SHELL CONSOLES", () => {
 
             const result = await Misc.execCmd("db.actor.select().limit(1)");
 
-            expect(await Shell.isValueOnDataSet(result[1] as WebElement, "PENELOPE")).to.be.true;
+            await driver.wait(Shell.isValueOnDataSet(result[1] as WebElement, "PENELOPE"),
+                explicitWait, "'PENELOPE is not on the data set'");
 
         });
 
@@ -509,7 +522,7 @@ describe("MYSQL SHELL CONSOLES", () => {
 
             expect(await Shell.getLangResult(result1[1] as WebElement)).to.equals("json");
 
-            await driver.wait(Shell.isValueOnJsonResult(result1[1] as WebElement,"Yugoslavia"),
+            await driver.wait(Shell.isValueOnJsonResult(result1[1] as WebElement, "Yugoslavia"),
                 explicitWait, "'Yugoslavia' is not the json result");
 
         });
@@ -518,11 +531,13 @@ describe("MYSQL SHELL CONSOLES", () => {
 
             await Misc.execCmd("\\sql ");
 
-            let result = await Misc.execCmd("SHOW DATABASES;", undefined, explicitWait*4, true);
+            let result = await Misc.execCmd("SHOW DATABASES;", undefined, explicitWait * 4, true);
 
-            expect(await Shell.isValueOnDataSet(result[1] as WebElement, "sakila")).to.be.true;
+            await driver.wait(Shell.isValueOnDataSet(result[1] as WebElement, "sakila"),
+                explicitWait, "'sakila is not on the data set'");
 
-            expect(await Shell.isValueOnDataSet(result[1] as WebElement, "mysql")).to.be.true;
+            await driver.wait(Shell.isValueOnDataSet(result[1] as WebElement, "mysql"),
+                explicitWait, "'mysql is not on the data set'");
 
             await Misc.execCmd("\\js ");
 
@@ -552,7 +567,7 @@ describe("MYSQL SHELL CONSOLES", () => {
             result = await Misc.execCmd("db.category.select().limit(1)");
 
             await driver.wait(Shell.isValueOnDataSet(result[1] as WebElement, "Action"),
-                explicitWait, "'Action is not on the json result'");
+                explicitWait, "'Action is not on the data set'");
         });
 
     });
