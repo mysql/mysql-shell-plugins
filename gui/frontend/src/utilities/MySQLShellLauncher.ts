@@ -31,7 +31,6 @@ import { appParameters, requisitions } from "../supplement/Requisitions";
 import { uuid } from "./helpers";
 import { MessageScheduler } from "../communication/MessageScheduler";
 import { findExecutable } from "./file-utilities";
-//import { findExecutable } from "./file-utilities";
 
 type ShellOutputCallback = (output: string) => void;
 type ShellErrorCallback = (error: Error) => void;

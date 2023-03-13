@@ -42,6 +42,7 @@ describe("Connection browser tests", (): void => {
             <ConnectionBrowser
                 connections={[connection1]}
                 onAddConnection={jest.fn()}
+                onUpdateConnection={jest.fn()}
                 onDropConnection={jest.fn()}
             />,
         );

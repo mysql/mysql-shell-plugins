@@ -62,7 +62,7 @@
             "runtimeArgs": [
                 "--allow-insecure-localhost"
             ],
-            "showAsyncStacks": true,
+            "showAsyncStacks": false,
             "smartStep": true,
             "perScriptSourcemaps": "auto",
             "resolveSourceMapLocations": [

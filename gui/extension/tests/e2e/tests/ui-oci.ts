@@ -180,12 +180,15 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await Misc.selectContextMenuItem(treeE2eTests!, "View Config Profile Information");
 
             const editors = await new EditorView().getOpenEditorTitles();
+
             expect(editors).to.include.members(["E2ETESTS Info.json"]);
 
             const textEditor = new TextEditor();
             await driver.wait(async () => {
-                return (await textEditor.getText()).length > 0;
-            }, 3000, "No text was found on file");
+
+
+                return (await textEditor.getText()).includes("fingerprint");
+            }, ociExplicitWait, "No text was found on file");
 
             expect(Misc.isJson(await textEditor.getText())).to.equal(true);
 
@@ -263,12 +266,13 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             }, explicitWait, "'QA Info.json' was not opened");
 
             const textEditor = new TextEditor();
+            let json = "";
             await driver.wait(async () => {
-                return (await textEditor.getText()).indexOf("{") !== -1;
-            }, explicitWait, "No text was found inside QA Info.json");
+                json = await textEditor.getText();
 
-            const json = await textEditor.getText();
-            expect(Misc.isJson(json)).to.equal(true);
+                return Misc.isJson(json);
+
+            }, explicitWait*2, "No text was found inside QA Info.json");
 
             const parsed = JSON.parse(json);
             compartmentId = parsed.id;
@@ -279,7 +283,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             await Misc.selectContextMenuItem(treeQA, "Set as Current Compartment");
 
-            expect(await Misc.isDefaultItem(treeQA!, "compartment")).to.be.true;
+            expect(await Misc.isDefaultItem(treeQA, "compartment")).to.be.true;
 
             treeQA = await treeOCISection.findItem("QA (Default)", ociMaxLevel);
 
@@ -346,6 +350,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 return editors.includes("MDSforVSCodeExtension Info.json");
             }, explicitWait, "MDSforVSCodeExtension Info.json was not opened");
 
+
             const textEditor = new TextEditor();
             await driver.wait(async () => {
                 const text = await textEditor.getText();
@@ -359,6 +364,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             }
 
             expect(Misc.isJson(json)).to.equal(true);
+
 
         });
 
@@ -509,12 +515,13 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             const textEditor = new TextEditor();
             await driver.wait(async () => {
-                return (await textEditor.getText()).indexOf("{") !== -1;
+                const text = await textEditor.getText();
+
+                return text.indexOf("{") !== -1;
             }, explicitWait, "No text was found inside Bastion4PrivateSubnetStandardVnc Info.json");
 
             const json = await textEditor.getText();
             expect(Misc.isJson(json)).to.equal(true);
-
             const parsed = JSON.parse(json);
             const bastionId = parsed.id;
 

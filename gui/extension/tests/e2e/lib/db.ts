@@ -182,19 +182,6 @@ export class Database {
         await driver.switchTo().defaultContent();
     };
 
-    public static isConnectionSuccessful = (name: string): Condition<boolean> => {
-        return new Condition("", async () => {
-            await driver.switchTo().defaultContent();
-            const edView = new EditorView();
-            const editors = await edView.getOpenEditorTitles();
-            expect(editors).to.include(name);
-
-            await Misc.switchToWebView();
-
-            return (await driver.findElements(By.css(".zoneHost"))).length > 0;
-        });
-    };
-
     public static closeConnection = async (name: string): Promise<void> => {
         await driver.switchTo().defaultContent();
         const edView = new EditorView();
