@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -20,6 +20,8 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 import pytest
+from ... import lib
+
 from ... schemas import add_schema, delete_schema
 from ... services import add_service, delete_service, get_service
 from ... db_objects import add_db_object, delete_db_object
@@ -58,3 +60,36 @@ class ServiceCT(object):
     def __exit__(self, type, value, traceback):
         assert delete_service(service_id=self._service_id) == True
 
+class AuthAppCT():
+    def __init__(self, session, **kwargs):
+        self._session = session
+        params = {
+            "service_id": kwargs.get("service_id"),
+            "auth_vendor_id": kwargs.get("auth_vendor_id"),
+            "name": kwargs.get("name"),
+            "description": kwargs.get("description"),
+            "url": kwargs.get("url"),
+            "url_direct_auth": kwargs.get("url_direct_auth"),
+            "access_token": kwargs.get("access_token"),
+            "app_id": kwargs.get("app_id"),
+            "limit_to_reg_users": kwargs.get("limit_to_reg_users"),
+            "default_role_id": kwargs.get("default_role_id"),
+        }
+        self._auth_app_id = lib.auth_apps.add_auth_app(session,
+            params["service_id"],
+            params["auth_vendor_id"],
+            params["name"],
+            params["description"],
+            params["url"],
+            params["url_direct_auth"],
+            params["access_token"],
+            params["app_id"],
+            params["limit_to_reg_users"],
+            params["default_role_id"]
+        )
+
+    def __enter__(self):
+        return self._auth_app_id
+
+    def __exit__(self, type, value, traceback):
+        lib.auth_apps.delete_auth_app(self._session, self._auth_app_id)
