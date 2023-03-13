@@ -165,26 +165,9 @@ def add_auth_app(app_name=None, service_id=None, **kwargs):
 
         with lib.core.MrsDbTransaction(session):
             # Create the auth_app
-            auth_app_id = lib.core.get_sequence_id(session)
-            lib.core.insert(table="auth_app", values=[
-                "id", "auth_vendor_id", "service_id", "name", "description", "url",
-                "url_direct_auth", "access_token", "app_id", "enabled",
-                "limit_to_registered_users",
-                "default_role_id"
-            ]).exec(session, [
-                auth_app_id,
-                auth_vendor_id,
-                service.get("id"),
-                app_name,
-                description,
-                url,
-                url_direct_auth,
-                access_token,
-                app_id,
-                1,
-                limit_to_reg_users if limit_to_reg_users else 0,
-                default_role_id
-            ])
+            auth_app_id = lib.auth_apps.add_auth_app(session, service["id"], auth_vendor_id,
+                app_name, description, url, url_direct_auth, access_token, app_id,
+                limit_to_reg_users, default_role_id)
 
             # Create the registered_users if specified
             if registered_users and len(registered_users) > 0:

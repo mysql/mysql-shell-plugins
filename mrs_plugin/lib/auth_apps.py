@@ -113,7 +113,7 @@ def get_auth_apps(session, service_id: bytes, include_enable_state=None):
 
     sql = """
         SELECT a.id, a.auth_vendor_id, a.service_id, a.name,
-            a.description, a.url, a.access_token, a.app_id, a.enabled,
+            a.description, a.url, a.url_direct_auth, a.access_token, a.app_id, a.enabled,
             a.limit_to_registered_users, a.default_role_id,
             v.name as auth_vendor
         FROM `mysql_rest_service_metadata`.`auth_app` a
@@ -128,6 +128,33 @@ def get_auth_apps(session, service_id: bytes, include_enable_state=None):
     sql += "ORDER BY a.name"
 
     return core.MrsDbExec(sql).exec(session, [service.get("id")]).items
+
+
+def add_auth_app(session, service_id, auth_vendor_id, app_name, description, url, url_direct_auth
+    , access_token, app_id, limit_to_reg_users, default_role_id):
+
+    auth_app_id = core.get_sequence_id(session)
+    core.insert(table="auth_app", values=[
+        "id", "auth_vendor_id", "service_id", "name", "description", "url",
+        "url_direct_auth", "access_token", "app_id", "enabled",
+        "limit_to_registered_users",
+        "default_role_id"
+    ]).exec(session, [
+        auth_app_id,
+        auth_vendor_id,
+        service_id,
+        app_name,
+        description,
+        url,
+        url_direct_auth,
+        access_token,
+        app_id,
+        1,
+        limit_to_reg_users if limit_to_reg_users else 0,
+        default_role_id
+    ])
+
+    return auth_app_id
 
 
 def delete_auth_app(session, app_id):
