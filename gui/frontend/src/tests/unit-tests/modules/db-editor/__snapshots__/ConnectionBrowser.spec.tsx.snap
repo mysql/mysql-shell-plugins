@@ -19,6 +19,7 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
   }
   onAddConnection={[MockFunction]}
   onDropConnection={[MockFunction]}
+  onUpdateConnection={[MockFunction]}
 >
   <Container
     className="msg connectionBrowser"
@@ -36,244 +37,214 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
         }
       }
     >
-      <ConfirmDialog
-        id="confirmNewBastionDialog"
-        onClose={[Function]}
-      >
-        <Dialog
-          actions={
+      <ConnectionEditor
+        connections={
+          [
             {
-              "end": [],
-            }
-          }
-          caption={
-            <p>
-              <Icon
-                disabled={false}
-                src={276}
-              />
-              <Label>
-                Confirm
-              </Label>
-            </p>
-          }
-          className="msg confirmDialog"
-          container={
-            <body
-              theme="dark"
-            />
-          }
-          content={
-            <Container
-              orientation="column"
-            >
-              
-              <Container
-                className="description"
-                orientation="column"
-              />
-            </Container>
-          }
-          onClose={[Function]}
-        >
-          <Portal
-            container={
-              <body
-                theme="dark"
-              />
-            }
-            onClose={[Function]}
-            onOpen={[Function]}
-          />
-        </Dialog>
-      </ConfirmDialog>
-      <ConfirmDialog
-        id="keepConnectionDialogRef"
-        onClose={[Function]}
-      >
-        <Dialog
-          actions={
-            {
-              "end": [],
-            }
-          }
-          caption={
-            <p>
-              <Icon
-                disabled={false}
-                src={276}
-              />
-              <Label>
-                Confirm
-              </Label>
-            </p>
-          }
-          className="msg confirmDialog"
-          container={
-            <body
-              theme="dark"
-            />
-          }
-          content={
-            <Container
-              orientation="column"
-            >
-              
-              <Container
-                className="description"
-                orientation="column"
-              />
-            </Container>
-          }
-          onClose={[Function]}
-        >
-          <Portal
-            container={
-              <body
-                theme="dark"
-              />
-            }
-            onClose={[Function]}
-            onOpen={[Function]}
-          />
-        </Dialog>
-      </ConfirmDialog>
-      <ValueEditDialog
+              "caption": "",
+              "dbType": "MySQL",
+              "description": "",
+              "id": 0,
+              "options": {
+                "type": "unknown",
+              },
+              "useMDS": false,
+              "useSSH": false,
+            },
+          ]
+        }
         id="connectionEditor"
-        onClose={[Function]}
-        onSelectTab={[Function]}
-        onValidate={[Function]}
+        onAddConnection={[MockFunction]}
+        onUpdateConnection={[MockFunction]}
       >
-        <Dialog
-          actions={
-            {
-              "begin": [],
-              "end": [
-                <Button
-                  caption="OK"
-                  disabled={false}
-                  id="ok"
-                  onClick={[Function]}
-                />,
-                <Button
-                  caption="Cancel"
-                  id="cancel"
-                  onClick={[Function]}
-                />,
-              ],
-            }
-          }
-          caption={
-            <p>
-              <Icon
-                disabled={false}
-                src={389}
-              />
-              <Label />
-            </p>
-          }
-          className="msg valueEditDialog"
-          container={
-            <body
-              theme="dark"
-            />
-          }
-          content={
-            <Grid
-              columnGap={16}
-              columns={8}
-              rowGap={16}
-            />
-          }
+        <ValueEditDialog
           id="connectionEditor"
           onClose={[Function]}
           onSelectTab={[Function]}
+          onValidate={[Function]}
         >
-          <Portal
+          <Dialog
+            actions={
+              {
+                "begin": [],
+                "end": [
+                  <Button
+                    caption="OK"
+                    disabled={false}
+                    id="ok"
+                    onClick={[Function]}
+                  />,
+                  <Button
+                    caption="Cancel"
+                    id="cancel"
+                    onClick={[Function]}
+                  />,
+                ],
+              }
+            }
+            caption={
+              <p>
+                <Icon
+                  disabled={false}
+                  src={389}
+                />
+                <Label />
+              </p>
+            }
+            className="msg valueEditDialog"
             container={
               <body
                 theme="dark"
+              />
+            }
+            content={
+              <Grid
+                columnGap={16}
+                columns={8}
+                rowGap={16}
               />
             }
             id="connectionEditor"
             onClose={[Function]}
-            onOpen={[Function]}
             onSelectTab={[Function]}
-          />
-        </Dialog>
-        <Menu
-          onItemClick={[Function]}
-          orientation="column"
-          placement="right-start"
-        >
-          <Popup
-            className="msg menu"
-            onClose={[Function]}
-            onKeyDown={[Function]}
-            onOpen={[Function]}
-            orientation="column"
-            pinned={false}
-            placement="right-start"
-            showArrow={false}
           >
             <Portal
+              container={
+                <body
+                  theme="dark"
+                />
+              }
+              id="connectionEditor"
+              onClose={[Function]}
+              onOpen={[Function]}
+              onSelectTab={[Function]}
+            />
+          </Dialog>
+          <Menu
+            onItemClick={[Function]}
+            orientation="column"
+            placement="right-start"
+          >
+            <Popup
+              className="msg menu"
               onClose={[Function]}
               onKeyDown={[Function]}
               onOpen={[Function]}
-            />
-          </Popup>
-        </Menu>
-      </ValueEditDialog>
-      <ConfirmDialog
-        id="confirmClearPasswordDlg"
-      >
-        <Dialog
-          actions={
-            {
-              "end": [],
-            }
-          }
-          caption={
-            <p>
-              <Icon
-                disabled={false}
-                src={276}
-              />
-              <Label>
-                Confirm
-              </Label>
-            </p>
-          }
-          className="msg confirmDialog"
-          container={
-            <body
-              theme="dark"
-            />
-          }
-          content={
-            <Container
               orientation="column"
+              pinned={false}
+              placement="right-start"
+              showArrow={false}
             >
-              
-              <Container
-                className="description"
-                orientation="column"
+              <Portal
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
               />
-            </Container>
-          }
-          onClose={[Function]}
+            </Popup>
+          </Menu>
+        </ValueEditDialog>
+        <ConfirmDialog
+          id="confirmClearPasswordDlg"
         >
-          <Portal
+          <Dialog
+            actions={
+              {
+                "end": [],
+              }
+            }
+            caption={
+              <p>
+                <Icon
+                  disabled={false}
+                  src={276}
+                />
+                <Label>
+                  Confirm
+                </Label>
+              </p>
+            }
+            className="msg confirmDialog"
             container={
               <body
                 theme="dark"
               />
             }
+            content={
+              <Container
+                orientation="column"
+              >
+                
+                <Container
+                  className="description"
+                  orientation="column"
+                />
+              </Container>
+            }
             onClose={[Function]}
-            onOpen={[Function]}
-          />
-        </Dialog>
-      </ConfirmDialog>
+          >
+            <Portal
+              container={
+                <body
+                  theme="dark"
+                />
+              }
+              onClose={[Function]}
+              onOpen={[Function]}
+            />
+          </Dialog>
+        </ConfirmDialog>
+        <ConfirmDialog
+          id="confirmNewBastionDialog"
+          onClose={[Function]}
+        >
+          <Dialog
+            actions={
+              {
+                "end": [],
+              }
+            }
+            caption={
+              <p>
+                <Icon
+                  disabled={false}
+                  src={276}
+                />
+                <Label>
+                  Confirm
+                </Label>
+              </p>
+            }
+            className="msg confirmDialog"
+            container={
+              <body
+                theme="dark"
+              />
+            }
+            content={
+              <Container
+                orientation="column"
+              >
+                
+                <Container
+                  className="description"
+                  orientation="column"
+                />
+              </Container>
+            }
+            onClose={[Function]}
+          >
+            <Portal
+              container={
+                <body
+                  theme="dark"
+                />
+              }
+              onClose={[Function]}
+              onOpen={[Function]}
+            />
+          </Dialog>
+        </ConfirmDialog>
+      </ConnectionEditor>
       <Menu
         id="tileActionMenu"
         onItemClick={[Function]}

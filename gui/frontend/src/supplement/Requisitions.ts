@@ -82,7 +82,8 @@ const parseAppParameters = (): void => {
         appParameters.inDevelopment = true;
     }
 
-    if (process.env.npm_package_name === "mysql-shell-for-vs-code" || process.env.VSCODE_PID !== undefined) {
+    // Test Explorer tests also run under VS Code control, but must not be treated as embedded.
+    if (process.env.VSCODE_PID !== undefined && process.env.JEST_WORKER_ID === undefined) {
         appParameters.inExtension = true;
     }
 };

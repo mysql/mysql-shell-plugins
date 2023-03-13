@@ -202,6 +202,23 @@ export const waitFor = async (timeout: number, condition: () => boolean): Promis
     return timeout > 0 ? true : false;
 };
 
+/**
+ * Determines the base name (that is, the last part of the path) of a file or directory.
+ *
+ * @param path The path to get the base name from.
+ * @param extension An optional extension to remove from the base name.
+ *
+ * @returns The base name of the path or an empty string if the path is empty.
+ */
+export const basename = (path: string, extension?: string): string => {
+    const result = path.split(/[\\/]/).pop() ?? "";
+    if (extension && result.endsWith(extension)) {
+        return result.substring(0, result.length - extension.length);
+    }
+
+    return result;
+};
+
 interface IConversionOptions {
     ignore?: string[];
 }

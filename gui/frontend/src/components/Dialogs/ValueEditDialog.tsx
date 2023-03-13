@@ -31,7 +31,6 @@ import { ColumnDefinition, RowComponent } from "tabulator-tables";
 import { DialogResponseClosure, IDictionary, MessageType } from "../../app-logic/Types";
 import { ParamDialog } from "./ParamDialog";
 import { IOpenDialogFilters } from "../../supplement/Requisitions";
-import { IConnectionDetails } from "../../supplement/ShellInterface";
 import { Children } from "preact/compat";
 import { Button, IButtonProperties } from "../ui/Button/Button";
 import { Checkbox, CheckState, ICheckboxProperties } from "../ui/Checkbox/Checkbox";
@@ -361,10 +360,6 @@ interface IRelatedValues {
     relations: Map<string, [DialogValueType, string]>;
 }
 
-export interface ICallbackData {
-    onAddConnection?: (vale: IConnectionDetails) => void;
-}
-
 /** A collection of values to configure the invocation of the value editor. */
 interface IValueEditDialogShowOptions {
     /** The dialog contexts that should be active initially. */
@@ -392,8 +387,7 @@ interface IValueEditDialogProperties extends IComponentProperties {
 
     advancedAction?: (values: IDialogValues, props: IButtonProperties) => void;
     onValidate?: (closing: boolean, values: IDialogValues, data?: IDictionary) => IDialogValidations;
-    onClose?: (closure: DialogResponseClosure, values: IDialogValues, data?: IDictionary,
-        callbackData?: ICallbackData) => void;
+    onClose?: (closure: DialogResponseClosure, values: IDialogValues, data?: IDictionary) => void;
     onToggleAdvanced?: (checked: boolean) => void;
     onSelectTab?: (id: string) => void;
 }

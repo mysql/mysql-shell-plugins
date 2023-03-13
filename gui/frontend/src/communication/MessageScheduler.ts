@@ -458,7 +458,7 @@ export class MessageScheduler {
         if ("message" in event) {
             reject(event.message as string);
         } else {
-            reject(String(event));
+            reject(JSON.stringify(event, undefined, 4));
         }
 
         this.reconnectTimeout *= 2;

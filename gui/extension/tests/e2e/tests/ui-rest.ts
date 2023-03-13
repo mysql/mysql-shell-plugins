@@ -385,6 +385,8 @@ describe("REST", () => {
 
             await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
 
+            treeDBSection = await Misc.getSection(dbTreeSection);
+
             expect(await treeDBSection.findItem("sakila (/sakila)", dbMaxLevel)).to.not.exist;
 
         });
