@@ -14,76 +14,71 @@ exports[`Action Output Tests Action Full Rendering 1`] = `
   }
   showIndexes={true}
 >
-  <div
+  <Button
+    className="copyButton"
+    data-tooltip="Copy result to clipboard"
+    focusOnClick={false}
+    imageOnly={true}
+    onPointerDown={[Function]}
+    tabIndex={-1}
+  >
+    <button
+      className="msg button imageOnly copyButton"
+      data-tooltip="Copy result to clipboard"
+      onMouseDown={[Function]}
+      onPointerDown={[Function]}
+      style={
+        {
+          "flexDirection": undefined,
+        }
+      }
+      tabIndex={-1}
+    >
+      <Icon
+        data-tooltip="inherit"
+        disabled={false}
+        src={65}
+      >
+        <span
+          className="msg icon codicon codicon-copy"
+          data-tooltip="inherit"
+        />
+      </Icon>
+    </button>
+  </Button>
+  <Container
     className="msg actionOutput"
     onPointerDown={[Function]}
     onPointerMove={[Function]}
     onPointerUp={[Function]}
-    style={
-      {
-        "display": "flex",
-        "flexDirection": "column",
-        "gap": "2px",
-      }
-    }
+    orientation="row"
   >
-    <Button
-      className="copyButton"
-      data-tooltip="Copy result to clipboard"
-      focusOnClick={false}
-      imageOnly={true}
-      onPointerDown={[Function]}
-      tabIndex={-1}
-    >
-      <button
-        className="msg button imageOnly copyButton"
-        data-tooltip="Copy result to clipboard"
-        onMouseDown={[Function]}
-        onPointerDown={[Function]}
-        style={
-          {
-            "flexDirection": undefined,
-          }
-        }
-        tabIndex={-1}
-      >
-        <Icon
-          data-tooltip="inherit"
-          disabled={false}
-          src={65}
-        >
-          <span
-            className="msg icon codicon codicon-copy"
-            data-tooltip="inherit"
-          />
-        </Icon>
-      </button>
-    </Button>
     <div
+      className="msg container fixedScrollbar actionOutput"
+      onPointerDown={[Function]}
+      onPointerMove={[Function]}
+      onPointerUp={[Function]}
       style={
         {
-          "display": "flex",
+          "alignItems": undefined,
           "flexDirection": "row",
-          "gap": "2px",
+          "flexWrap": undefined,
+          "justifyContent": undefined,
         }
       }
     >
-      <Label
-        caption="Lorem ipsum dolor sit amet"
-        className="actionLabel"
-        language="ansi"
-        onClick={[Function]}
+      <div
         style={
           {
-            "gridColumn": "span 2",
+            "display": "flex",
+            "flexDirection": "row",
+            "gap": "2px",
           }
         }
-        tabIndex={-1}
-        type={0}
       >
-        <label
-          className="msg resultText error actionLabel"
-          data-tooltip="expand"
+        <Label
+          caption="Lorem ipsum dolor sit amet"
+          className="actionLabel"
           language="ansi"
           onClick={[Function]}
           style={
@@ -94,54 +89,43 @@ exports[`Action Output Tests Action Full Rendering 1`] = `
           tabIndex={-1}
           type={0}
         >
-          <span
-            className=""
+          <label
+            className="msg resultText error actionLabel"
+            language="ansi"
+            onClick={[Function]}
             style={
               {
-                "backgroundColor": undefined,
-                "color": undefined,
+                "gridColumn": "span 2",
               }
             }
+            tabIndex={-1}
+            type={0}
           >
-            Lorem ipsum dolor sit amet
-          </span>
-        </label>
-      </Label>
+            <span
+              className=""
+              style={
+                {
+                  "backgroundColor": undefined,
+                  "color": undefined,
+                }
+              }
+            >
+              Lorem ipsum dolor sit amet
+            </span>
+          </label>
+        </Label>
+      </div>
     </div>
-  </div>
+  </Container>
 </ActionOutput>
 `;
 
 exports[`Action Output Tests Action Full Rendering 2`] = `
 HTMLCollection [
-  <button
-    class="msg button imageOnly copyButton"
-    data-tooltip="Copy result to clipboard"
-    tabindex="-1"
-  >
-    <span
-      class="msg icon codicon codicon-copy"
-      data-tooltip="inherit"
-    />
-  </button>,
   <span
     class="msg icon codicon codicon-copy"
     data-tooltip="inherit"
   />,
-  <label
-    class="msg resultText response actionLabel"
-    data-tooltip="expand"
-    language="ansi"
-    style="grid-column: span 2;"
-    tabindex="-1"
-    type="4"
-  >
-    <span
-      class=""
-    >
-      A simple response
-    </span>
-  </label>,
 ]
 `;
 
@@ -151,51 +135,59 @@ exports[`Action Output Tests Standard Rendering 1`] = `
   output={[]}
   showIndexes={false}
 >
-  <div
+  <Button
+    className="copyButton"
+    data-tooltip="Copy result to clipboard"
+    focusOnClick={false}
+    imageOnly={true}
+    onPointerDown={[Function]}
+    tabIndex={-1}
+  >
+    <button
+      className="msg button imageOnly copyButton"
+      data-tooltip="Copy result to clipboard"
+      onMouseDown={[Function]}
+      onPointerDown={[Function]}
+      style={
+        {
+          "flexDirection": undefined,
+        }
+      }
+      tabIndex={-1}
+    >
+      <Icon
+        data-tooltip="inherit"
+        disabled={false}
+        src={65}
+      >
+        <span
+          className="msg icon codicon codicon-copy"
+          data-tooltip="inherit"
+        />
+      </Icon>
+    </button>
+  </Button>
+  <Container
     className="msg actionOutput"
     onPointerDown={[Function]}
     onPointerMove={[Function]}
     onPointerUp={[Function]}
-    style={
-      {
-        "display": "flex",
-        "flexDirection": "column",
-        "gap": "2px",
-      }
-    }
+    orientation="row"
   >
-    <Button
-      className="copyButton"
-      data-tooltip="Copy result to clipboard"
-      focusOnClick={false}
-      imageOnly={true}
+    <div
+      className="msg container fixedScrollbar actionOutput"
       onPointerDown={[Function]}
-      tabIndex={-1}
-    >
-      <button
-        className="msg button imageOnly copyButton"
-        data-tooltip="Copy result to clipboard"
-        onMouseDown={[Function]}
-        onPointerDown={[Function]}
-        style={
-          {
-            "flexDirection": undefined,
-          }
+      onPointerMove={[Function]}
+      onPointerUp={[Function]}
+      style={
+        {
+          "alignItems": undefined,
+          "flexDirection": "row",
+          "flexWrap": undefined,
+          "justifyContent": undefined,
         }
-        tabIndex={-1}
-      >
-        <Icon
-          data-tooltip="inherit"
-          disabled={false}
-          src={65}
-        >
-          <span
-            className="msg icon codicon codicon-copy"
-            data-tooltip="inherit"
-          />
-        </Icon>
-      </button>
-    </Button>
-  </div>
+      }
+    />
+  </Container>
 </ActionOutput>
 `;

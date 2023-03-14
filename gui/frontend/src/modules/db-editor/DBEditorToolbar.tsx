@@ -234,7 +234,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
                     onClick={
                         () => {
                             void requisitions.execute("editorExecuteCurrent",
-                                { startNewBlock: false, forceSecondaryEngine: false, asText: true });
+                                { startNewBlock: true, forceSecondaryEngine: false, asText: true });
                         }
                     }
                 >

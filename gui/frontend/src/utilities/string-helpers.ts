@@ -22,6 +22,7 @@
  */
 
 import { isNil } from "lodash";
+import { Buffer } from "buffer";
 
 // A web worker friendly module for specific string handling.
 
@@ -195,6 +196,25 @@ export const formatBytes = (value: number): string => {
  */
 export const formatWithNumber = (text: string, value: number): string => {
     return `${value} ${text}${(value === 1 || value === -1) ? "" : "s"}`;
+};
+
+/**
+ * Converts the given string data (which is assumed to be base64 encoded) to a hex string.
+ *
+ * @param text The string to convert.
+ * @param limit The maximum number of characters to show.
+ *
+ * @returns The hex string.
+ */
+export const formatBase64ToHex = (text: string, limit?: number): string => {
+    const buffer = Buffer.from(text, "base64");
+    const bufString = buffer.toString("hex");
+
+    if (limit && bufString.length > limit) {
+        return "0x" + bufString.substring(0, limit) + "…";
+    }
+
+    return "0x" + bufString;
 };
 
 /**

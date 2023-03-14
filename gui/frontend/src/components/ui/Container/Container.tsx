@@ -62,6 +62,9 @@ export interface IContainerProperties extends IComponentProperties {
     wrap?: ContentWrap;
     scrollPosition?: number;
 
+    /** Set to false if you don't want the always visible scrollbars (default: true). */
+    fixedScrollbars?: boolean;
+
     innerRef?: preact.RefObject<HTMLDivElement>;
 }
 
@@ -75,8 +78,8 @@ export class Container<P extends IContainerProperties> extends ComponentBase<P> 
     public constructor(props: P) {
         super(props);
 
-        this.addHandledProperties("style", "orientation", "mainAlignment", "crossAlignment", "wrap", "innerRef",
-            "scrollPosition");
+        this.addHandledProperties("style", "orientation", "mainAlignment", "crossAlignment", "wrap", "scrollPosition",
+            "fixedScrollbars", "innerRef");
     }
 
     public componentDidUpdate(): void {
@@ -88,8 +91,13 @@ export class Container<P extends IContainerProperties> extends ComponentBase<P> 
     }
 
     public render(): ComponentChild {
-        const { children, style, orientation, mainAlignment, crossAlignment, data, wrap, innerRef } = this.mergedProps;
-        const className = this.getEffectiveClassNames(["container", "fixedScrollbar"]);
+        const {
+            children, style, orientation, mainAlignment, crossAlignment, data, wrap, fixedScrollbars = true, innerRef,
+        } = this.mergedProps;
+        const className = this.getEffectiveClassNames([
+            "container",
+            this.classFromProperty(fixedScrollbars, "fixedScrollbar"),
+        ]);
 
         const newStyle = {
             flexDirection: orientation,
