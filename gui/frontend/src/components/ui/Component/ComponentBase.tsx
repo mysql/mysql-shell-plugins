@@ -305,7 +305,14 @@ export abstract class ComponentBase<P extends IComponentProperties = {}, S exten
         );
     }
 
-    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+    /**
+     * Conditionally returns a CSS class name from a list of names or a single name.
+     *
+     * @param value A value that must be truthy to return a class name.
+     * @param c A single class name or a list of class names. If the value is a boolean, the list must have two entries.
+     *
+     * @returns The class name or undefined, depending on the truthiness of the value.
+     */
     protected classFromProperty(value: unknown, c: string | string[]): string | undefined {
         if (isNil(value)) {
             return undefined;

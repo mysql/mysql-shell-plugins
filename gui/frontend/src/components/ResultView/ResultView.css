@@ -360,18 +360,20 @@
     font-family: "SourceCodePro+Powerline+Awesome+MySQL", monospace;
 }
 
-.msg.actionOutput .copyButton {
+.zoneHost > .renderTarget > #outputHost .copyButton {
     display: none;
 }
 
-.msg.actionOutput:hover .copyButton {
+.zoneHost > .renderTarget > #outputHost:hover .copyButton {
     display: block;
-    position: sticky;
+    position: absolute;
     align-self: flex-end;
-    top: 5px;
+    top: 0;
+    right: 10px;
     width: 20px;
     height: 20px;
     min-width: 0;
     padding: 2px;
     margin: 0 4px -22px 0;
+    z-index: 1;
 }

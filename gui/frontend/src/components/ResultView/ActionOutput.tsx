@@ -28,6 +28,7 @@ import { requisitions } from "../../supplement/Requisitions";
 import { Button } from "../ui/Button/Button";
 import { Codicon } from "../ui/Codicon";
 import { IComponentProperties, ComponentBase } from "../ui/Component/ComponentBase";
+import { Container } from "../ui/Container/Container";
 import { Icon } from "../ui/Icon/Icon";
 import { Label } from "../ui/Label/Label";
 
@@ -100,6 +101,7 @@ export class ActionOutput extends ComponentBase<IActionOutputProperties> {
                 type={entry.type}
                 style={{ gridColumn: `span ${columnSpan}` }}
                 tabIndex={index === undefined ? -1 : 0}
+                data-tooltip={undefined}
                 onClick={this.handleLabelClick}
             />);
 
@@ -110,14 +112,7 @@ export class ActionOutput extends ComponentBase<IActionOutputProperties> {
         });
 
         return (
-            <div
-                ref={this.outputRef}
-                className={className}
-                style={{ display: "flex", gap: "2px", flexDirection: "column" }}
-                onPointerDown={this.handlePointerDown}
-                onPointerMove={this.handlePointerMove}
-                onPointerUp={this.handlePointerUp}
-            >
+            <>
                 <Button
                     className="copyButton"
                     data-tooltip="Copy result to clipboard"
@@ -128,8 +123,16 @@ export class ActionOutput extends ComponentBase<IActionOutputProperties> {
                 >
                     <Icon src={Codicon.Copy} data-tooltip="inherit" />
                 </Button>
-                {rows}
-            </div>
+                <Container
+                    ref={this.outputRef}
+                    className={className}
+                    onPointerDown={this.handlePointerDown}
+                    onPointerMove={this.handlePointerMove}
+                    onPointerUp={this.handlePointerUp}
+                >
+                    {rows}
+                </Container>
+            </>
         );
     }
 

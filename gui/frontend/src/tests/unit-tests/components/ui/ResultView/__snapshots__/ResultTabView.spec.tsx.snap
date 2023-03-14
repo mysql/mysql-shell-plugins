@@ -357,26 +357,25 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                     class="msg container fixedScrollbar content"
                     style="flex-direction: column;"
                   >
-                    <div
-                      class="msg actionOutput"
-                      style="display: flex; gap: 2px; flex-direction: column;"
+                    <button
+                      class="msg button imageOnly copyButton"
+                      data-tooltip="Copy result to clipboard"
+                      tabindex="-1"
                     >
-                      <button
-                        class="msg button imageOnly copyButton"
-                        data-tooltip="Copy result to clipboard"
-                        tabindex="-1"
-                      >
-                        <span
-                          class="msg icon codicon codicon-copy"
-                          data-tooltip="inherit"
-                        />
-                      </button>
+                      <span
+                        class="msg icon codicon codicon-copy"
+                        data-tooltip="inherit"
+                      />
+                    </button>
+                    <div
+                      class="msg container fixedScrollbar actionOutput"
+                      style="flex-direction: row;"
+                    >
                       <div
                         style="display: flex; gap: 2px; flex-direction: row;"
                       >
                         <label
                           class="msg resultText error actionLabel"
-                          data-tooltip="expand"
                           language="ansi"
                           style="grid-column: span 2;"
                           tabindex="-1"
@@ -394,7 +393,6 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                       >
                         <label
                           class="msg resultText response actionLabel"
-                          data-tooltip="expand"
                           language="ansi"
                           style="grid-column: span 2;"
                           tabindex="-1"
@@ -448,76 +446,71 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                   }
                   showIndexes={true}
                 >
-                  <div
+                  <Button
+                    className="copyButton"
+                    data-tooltip="Copy result to clipboard"
+                    focusOnClick={false}
+                    imageOnly={true}
+                    onPointerDown={[Function]}
+                    tabIndex={-1}
+                  >
+                    <button
+                      className="msg button imageOnly copyButton"
+                      data-tooltip="Copy result to clipboard"
+                      onMouseDown={[Function]}
+                      onPointerDown={[Function]}
+                      style={
+                        {
+                          "flexDirection": undefined,
+                        }
+                      }
+                      tabIndex={-1}
+                    >
+                      <Icon
+                        data-tooltip="inherit"
+                        disabled={false}
+                        src={65}
+                      >
+                        <span
+                          className="msg icon codicon codicon-copy"
+                          data-tooltip="inherit"
+                        />
+                      </Icon>
+                    </button>
+                  </Button>
+                  <Container
                     className="msg actionOutput"
                     onPointerDown={[Function]}
                     onPointerMove={[Function]}
                     onPointerUp={[Function]}
-                    style={
-                      {
-                        "display": "flex",
-                        "flexDirection": "column",
-                        "gap": "2px",
-                      }
-                    }
+                    orientation="row"
                   >
-                    <Button
-                      className="copyButton"
-                      data-tooltip="Copy result to clipboard"
-                      focusOnClick={false}
-                      imageOnly={true}
-                      onPointerDown={[Function]}
-                      tabIndex={-1}
-                    >
-                      <button
-                        className="msg button imageOnly copyButton"
-                        data-tooltip="Copy result to clipboard"
-                        onMouseDown={[Function]}
-                        onPointerDown={[Function]}
-                        style={
-                          {
-                            "flexDirection": undefined,
-                          }
-                        }
-                        tabIndex={-1}
-                      >
-                        <Icon
-                          data-tooltip="inherit"
-                          disabled={false}
-                          src={65}
-                        >
-                          <span
-                            className="msg icon codicon codicon-copy"
-                            data-tooltip="inherit"
-                          />
-                        </Icon>
-                      </button>
-                    </Button>
                     <div
+                      className="msg container fixedScrollbar actionOutput"
+                      onPointerDown={[Function]}
+                      onPointerMove={[Function]}
+                      onPointerUp={[Function]}
                       style={
                         {
-                          "display": "flex",
+                          "alignItems": undefined,
                           "flexDirection": "row",
-                          "gap": "2px",
+                          "flexWrap": undefined,
+                          "justifyContent": undefined,
                         }
                       }
                     >
-                      <Label
-                        caption="Message 1"
-                        className="actionLabel"
-                        language="ansi"
-                        onClick={[Function]}
+                      <div
                         style={
                           {
-                            "gridColumn": "span 2",
+                            "display": "flex",
+                            "flexDirection": "row",
+                            "gap": "2px",
                           }
                         }
-                        tabIndex={-1}
-                        type={0}
                       >
-                        <label
-                          className="msg resultText error actionLabel"
-                          data-tooltip="expand"
+                        <Label
+                          caption="Message 1"
+                          className="actionLabel"
                           language="ansi"
                           onClick={[Function]}
                           style={
@@ -528,45 +521,44 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                           tabIndex={-1}
                           type={0}
                         >
-                          <span
-                            className=""
+                          <label
+                            className="msg resultText error actionLabel"
+                            language="ansi"
+                            onClick={[Function]}
                             style={
                               {
-                                "backgroundColor": undefined,
-                                "color": undefined,
+                                "gridColumn": "span 2",
                               }
                             }
+                            tabIndex={-1}
+                            type={0}
                           >
-                            Message 1
-                          </span>
-                        </label>
-                      </Label>
-                    </div>
-                    <div
-                      style={
-                        {
-                          "display": "flex",
-                          "flexDirection": "row",
-                          "gap": "2px",
-                        }
-                      }
-                    >
-                      <Label
-                        caption="Message 2"
-                        className="actionLabel"
-                        language="ansi"
-                        onClick={[Function]}
+                            <span
+                              className=""
+                              style={
+                                {
+                                  "backgroundColor": undefined,
+                                  "color": undefined,
+                                }
+                              }
+                            >
+                              Message 1
+                            </span>
+                          </label>
+                        </Label>
+                      </div>
+                      <div
                         style={
                           {
-                            "gridColumn": "span 2",
+                            "display": "flex",
+                            "flexDirection": "row",
+                            "gap": "2px",
                           }
                         }
-                        tabIndex={-1}
-                        type={4}
                       >
-                        <label
-                          className="msg resultText response actionLabel"
-                          data-tooltip="expand"
+                        <Label
+                          caption="Message 2"
+                          className="actionLabel"
                           language="ansi"
                           onClick={[Function]}
                           style={
@@ -577,21 +569,34 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                           tabIndex={-1}
                           type={4}
                         >
-                          <span
-                            className=""
+                          <label
+                            className="msg resultText response actionLabel"
+                            language="ansi"
+                            onClick={[Function]}
                             style={
                               {
-                                "backgroundColor": undefined,
-                                "color": undefined,
+                                "gridColumn": "span 2",
                               }
                             }
+                            tabIndex={-1}
+                            type={4}
                           >
-                            Message 2
-                          </span>
-                        </label>
-                      </Label>
+                            <span
+                              className=""
+                              style={
+                                {
+                                  "backgroundColor": undefined,
+                                  "color": undefined,
+                                }
+                              }
+                            >
+                              Message 2
+                            </span>
+                          </label>
+                        </Label>
+                      </div>
                     </div>
-                  </div>
+                  </Container>
                 </ActionOutput>
               </div>
             </Container>

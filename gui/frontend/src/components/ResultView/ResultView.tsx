@@ -41,7 +41,7 @@ import { Icon } from "../ui/Icon/Icon";
 import { Menu } from "../ui/Menu/Menu";
 import { MenuItem, IMenuItemProperties } from "../ui/Menu/MenuItem";
 
-import { Buffer } from "buffer";
+import { formatBase64ToHex } from "../../utilities/string-helpers";
 
 interface IResultViewProperties extends IComponentProperties {
     resultSet: IResultSet;
@@ -636,11 +636,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                     case DBDataType.LongBlob:
                     case DBDataType.Binary:
                     case DBDataType.Varbinary: {
-                        const buffer = Buffer.from(String(cell.getValue()), "base64");
-                        // Convert to a HEX string
-                        const bufString = buffer.toString("hex");
-
-                        return "0x" + bufString;
+                        return formatBase64ToHex(String(cell.getValue()));
                     }
 
 
@@ -1109,11 +1105,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
             // Binary data is given as a based64 encoded string
             const val = cell.getValue() as string;
             if (val) {
-                const buffer = Buffer.from(val, "base64");
-                // Convert to a HEX string and truncate at 32 bytes
-                const bufString = buffer.toString("hex");
-
-                return "0x" + ((bufString.length > 64) ? bufString.substring(0, 63) + "&hellip;" : bufString);
+                return formatBase64ToHex(val, 64);
             } else {
                 return "";
             }

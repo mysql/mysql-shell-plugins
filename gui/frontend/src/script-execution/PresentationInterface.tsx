@@ -775,7 +775,11 @@ export class PresentationInterface {
 
                     this.minHeight = 36;
                 } else {
-                    element = <Container orientation={Orientation.TopDown} style={{ flex: "1 1 auto" }}>
+                    element = <Container
+                        id="outputHost"
+                        orientation={Orientation.TopDown}
+                        fixedScrollbars={false}
+                    >
                         <ActionOutput
                             output={this.resultData.text}
                             contextId={contextId}

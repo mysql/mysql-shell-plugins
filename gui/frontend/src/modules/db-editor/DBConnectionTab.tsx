@@ -29,7 +29,7 @@ import { clearIntervalAsync, setIntervalAsync, SetIntervalAsyncTimer } from "set
 
 import { Explorer, IExplorerSectionState } from "./Explorer";
 import { IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor";
-import { formatTime, formatWithNumber } from "../../utilities/string-helpers";
+import { formatBase64ToHex, formatTime, formatWithNumber } from "../../utilities/string-helpers";
 import { Notebook } from "./Notebook";
 import {
     IEntityBase, EntityType, ISchemaTreeEntry, IDBDataEntry, SchemaTreeType, IToolbarItems, ISavedGraphData,
@@ -1553,7 +1553,8 @@ Execute \\help or \\? for help;`;
     };
 
     /**
-     * Converts the given tabular data into a text representation.
+     * Converts the given tabular data into a text representation. The method updates the given column info with the
+     * width of each column, if not yet done.
      *
      * @param rows The row data.
      * @param columns Column information.
@@ -1565,9 +1566,16 @@ Execute \\help or \\? for help;`;
     private convertResultSetToText(rows: IDictionary[], columns: IColumnInfo[], started: boolean, finished: boolean) {
         let result = "";
 
+        const convertLineBreaks = (value: string): string => {
+            const result = value.replaceAll(/\r/g, "\\r");
+
+            return result.replaceAll(/\n/g, "\\n");
+        };
+
         // Compute the width of each column, based on the column name and the data, if not yet done.
         if (columns.length > 0 && columns[0].width === undefined) {
             columns.forEach((column: IColumnInfo) => {
+                column.title = convertLineBreaks(column.title);
                 column.width = column.title.length;
                 switch (column.dataType.type) {
                     case DBDataType.TinyInt:
@@ -1591,8 +1599,29 @@ Execute \\help or \\? for help;`;
         }
 
         rows.forEach((row) => {
+            let value;
             columns.forEach((column) => {
-                const value = String(row[column.field]);
+                switch (column.dataType.type) {
+                    // Binary data
+                    case DBDataType.TinyBlob:
+                    case DBDataType.Blob:
+                    case DBDataType.MediumBlob:
+                    case DBDataType.LongBlob:
+                    case DBDataType.Binary:
+                    case DBDataType.Varbinary: {
+                        value = formatBase64ToHex(String(row[column.field]), 64);
+
+                        break;
+                    }
+
+                    default: {
+                        value = convertLineBreaks(String(row[column.field]));
+
+                        break;
+                    }
+                }
+
+                row[column.field] = value;
                 const length = value.length;
                 if (length > (column.width ?? 0)) {
                     column.width = length;
