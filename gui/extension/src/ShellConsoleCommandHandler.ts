@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,10 +23,10 @@
 
 import { commands, ExtensionContext } from "vscode";
 
-import { requisitions } from "../../frontend/src/supplement/Requisitions";
+import { IWebviewProvider, requisitions } from "../../frontend/src/supplement/Requisitions";
 import { IShellSessionDetails } from "../../frontend/src/supplement/ShellInterface";
 import { ConnectionTreeItem } from "./tree-providers/ConnectionsTreeProvider/ConnectionTreeItem";
-import { ShellConsoleSessionTreeItem } from "./tree-providers/ShellTreeProvider/ShellConsoleSessionTreeItem";
+import { IShellSessionEntry } from "./tree-providers/OpenEditorsTreeProvider/OpenEditorsTreeProvider";
 
 import { ShellConsoleViewProvider } from "./web-views/ShellConsoleViewProvider";
 
@@ -37,19 +37,21 @@ export class ShellConsoleCommandHandler {
     public setup(context: ExtensionContext): void {
         requisitions.register("connectedToUrl", this.connectedToUrl);
 
-        context.subscriptions.push(commands.registerCommand("msg.openSessionBrowser", () => {
-            const provider = this.currentProvider;
-            void provider?.show("MySQL Shell Consoles", "sessions");
+        context.subscriptions.push(commands.registerCommand("msg.openSessionBrowser", (provider?: IWebviewProvider) => {
+            provider ??= this.currentProvider;
+            if (provider instanceof ShellConsoleViewProvider) {
+                void provider?.show("sessions");
+            }
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.newSession", () => {
             const provider = this.currentProvider;
-            void provider?.openSession("MySQL Shell Consoles", { sessionId: -1 });
+            void provider?.openSession({ sessionId: -1 });
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.openSession", (details: IShellSessionDetails) => {
             const provider = this.currentProvider;
-            void provider?.openSession("MySQL Shell Consoles", details);
+            void provider?.openSession(details);
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.newSessionUsingConnection",
@@ -60,13 +62,15 @@ export class ShellConsoleCommandHandler {
                     caption: `Session to ${item.entry.details.caption}`,
                     dbConnectionId: item.entry.details.id,
                 };
-                void provider?.openSession("MySQL Shell Consoles", details);
+                void provider?.openSession(details);
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.removeSession",
-            (item: ShellConsoleSessionTreeItem) => {
-                const provider = this.currentProvider;
-                void provider?.removeSession("MySQL Shell Consoles", item.details);
+            (entry: IShellSessionEntry) => {
+                const provider = entry.parent.provider;
+                if (provider instanceof ShellConsoleViewProvider) {
+                    void provider.removeSession(entry.details);
+                }
             }));
 
     }
@@ -82,7 +86,8 @@ export class ShellConsoleCommandHandler {
         if (this.providers.length > 0) {
             return this.providers[this.providers.length - 1];
         } else if (this.url) {
-            const provider = new ShellConsoleViewProvider(this.url, (view) => {
+            const caption = this.createTabCaption();
+            const provider = new ShellConsoleViewProvider(this.url, caption, (view) => {
                 const index = this.providers.findIndex((candidate) => { return candidate === view; });
                 if (index > -1) {
                     this.providers.splice(index, 1);
@@ -102,5 +107,22 @@ export class ShellConsoleCommandHandler {
         this.closeProviders();
 
         return Promise.resolve(true);
+    };
+    private createTabCaption = (): string => {
+        if (this.providers.length === 0) {
+            return "MySQL Shell Consoles";
+        }
+
+        let index = 1;
+        while (true) {
+            const caption = `MySQL Shell Consoles (${index})`;
+            if (!this.providers.find((candidate) => {
+                return candidate.caption === caption;
+            })) {
+                return caption;
+            }
+
+            ++index;
+        }
     };
 }

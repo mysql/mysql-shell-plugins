@@ -36,10 +36,7 @@ import { before, after, afterEach } from "mocha";
 import fs from "fs/promises";
 import { expect } from "chai";
 import {
-    dbTreeSection,
     ociTreeSection,
-    consolesTreeSection,
-    tasksTreeSection,
     driver,
     explicitWait,
     ociExplicitWait,
@@ -48,17 +45,20 @@ import {
     isExtPrepared,
     ociMaxLevel,
     tasksMaxLevel,
+    dbEditorDefaultName,
+    openEditorsTreeSection,
+    tasksTreeSection,
 } from "../lib/misc";
 
 import { Database } from "../lib/db";
+import { Shell } from "../lib/shell";
 import { homedir } from "os";
 import { join } from "path";
 
 describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
-    let treeDBSection: CustomTreeSection;
     let treeOCISection: CustomTreeSection;
-    let treeConsolesSection: CustomTreeSection;
+    let treeOpenEditorsSection: CustomTreeSection;
     let treeTasksSection: CustomTreeSection;
 
     let treeE2eTests: TreeItem | undefined;
@@ -73,21 +73,15 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 await Misc.prepareExtension();
             }
 
-            treeDBSection = await Misc.getSection(dbTreeSection);
-            await treeDBSection!.collapse();
-            treeOCISection = await Misc.getSection(ociTreeSection);
-            await treeOCISection?.expand();
-
-            treeConsolesSection = await Misc.getSection(consolesTreeSection);
-            await treeConsolesSection!.collapse();
-            treeTasksSection = await Misc.getSection(tasksTreeSection);
-            await treeTasksSection!.collapse();
+            await Misc.sectionFocus(ociTreeSection);
 
             await Misc.toggleBottomBar(false);
 
-            await driver.wait(async () => {
-                return !(await Misc.hasLoadingBar(treeOCISection!));
-            }, 20000, "Loading bar is still displayed before config is set");
+            treeOCISection = await Misc.getSection(ociTreeSection);
+            treeTasksSection = await Misc.getSection(tasksTreeSection);
+
+            await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait*2,
+                `${await treeOCISection.getTitle()} is still loading`);
 
             const path = join(homedir(), ".oci", "config");
             await fs.writeFile(path, "");
@@ -114,34 +108,26 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             treeE2eTests = await treeOCISection.findItem("E2ETESTS (us-ashburn-1)", ociMaxLevel);
             await treeE2eTests?.expand();
 
-            await driver.wait(async () => {
-                return !(await Misc.hasLoadingBar(treeOCISection!)) &&
-                    (await treeE2eTests?.getChildren())!.length > 0;
-            }, 80000, "Loading bar is still displayed");
+            await driver.wait(Misc.isNotLoading(treeOCISection), 200000,
+                `${await treeOCISection.getTitle()} is still loading`);
 
             const treeRoot = await treeOCISection.findItem("/ (Root Compartment)", ociMaxLevel);
             await treeRoot.expand();
 
-            await driver.wait(async () => {
-                return !(await Misc.hasLoadingBar(treeOCISection!)) &&
-                    (await treeRoot.getChildren())!.length > 0;
-            }, ociExplicitWait, "Loading bar is still displayed");
+            await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait,
+                `${await treeOCISection.getTitle()} is still loading`);
 
             treeQA = await treeOCISection.findItem("QA (Default)", ociMaxLevel);
             await treeQA?.expand();
 
-            await driver.wait(async () => {
-                return !(await Misc.hasLoadingBar(treeOCISection!)) &&
-                    (await treeQA.getChildren())!.length > 0;
-            }, ociExplicitWait, "Loading bar is still displayed");
+            await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait,
+                `${await treeOCISection.getTitle()} is still loading`);
 
             treeShellTesting = await treeOCISection.findItem("MySQLShellTesting", ociMaxLevel);
             await treeShellTesting?.expand();
 
-            await driver.wait(async () => {
-                return !(await Misc.hasLoadingBar(treeOCISection!)) &&
-                    (await treeShellTesting.getChildren())!.length > 0;
-            }, 20000, "Loading bar is still displayed");
+            await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait,
+                `${await treeOCISection.getTitle()} is still loading`);
 
             treeDbSystem = await treeOCISection.findItem("MDSforVSCodeExtension", ociMaxLevel);
 
@@ -215,11 +201,18 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         let compartmentId = "";
 
+        before(async function (){
+            try {
+                treeOpenEditorsSection = await Misc.getSection(openEditorsTreeSection);
+            } catch (e) {
+                await Misc.processFailure(this);
+            }
+        });
+
         beforeEach(async function () {
             try {
-                await driver.wait(async () => {
-                    return !(await Misc.hasLoadingBar(treeOCISection!));
-                }, ociExplicitWait, "There is still a loading bar on OCI");
+                await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait,
+                    `${await treeOCISection.getTitle()} is still loading`);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -248,7 +241,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         after(async function () {
 
             try {
-                await treeConsolesSection?.collapse();
+                await new EditorView().closeAllEditors();
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -257,7 +250,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         });
 
         it("View Compartment Information", async () => {
-            console.log(`treeQA: ${await treeQA.getLabel()}`);
+
             await Misc.selectContextMenuItem(treeQA, "View Compartment Information");
 
             await driver.wait(async () => {
@@ -289,13 +282,13 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             expect(treeQA).to.exist;
 
-            await treeConsolesSection?.expand();
+            await treeOpenEditorsSection.expand();
 
-            await Misc.clickSectionToolbarButton(treeConsolesSection!, "Add a New MySQL Shell Console");
+            await Misc.clickSectionToolbarButton(treeOpenEditorsSection, "New Shell Notebook");
 
             await Misc.switchToWebView();
 
-            await driver.wait(until.elementLocated(By.id("shellEditorHost")), 20000, "Console was not loaded");
+            await driver.wait(Shell.isShellLoaded(), explicitWait * 3, "Shell Console was not loaded");
 
             const result = await Misc.execCmd("mds.get.currentCompartmentId()", undefined, 60000);
 
@@ -309,10 +302,10 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         beforeEach(async function () {
             try {
+                await Misc.sectionFocus(ociTreeSection);
                 treeDbSystem = await treeOCISection.findItem("MDSforVSCodeExtension", ociMaxLevel);
-                await driver.wait(async () => {
-                    return !(await Misc.hasLoadingBar(treeOCISection!));
-                }, ociExplicitWait, "There is still a loading bar on OCI");
+                await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait,
+                    `${await treeOCISection.getTitle()} is still loading`);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -325,7 +318,6 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             }
 
             await driver.switchTo().defaultContent();
-            await treeTasksSection.collapse();
             const edView = new EditorView();
             const editors = await edView.getOpenEditorTitles();
             for (const editor of editors) {
@@ -338,16 +330,6 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 }
             }
         });
-
-        after(async function () {
-            try {
-                await treeTasksSection?.collapse();
-            } catch (e) {
-                await Misc.processFailure(this);
-                throw e;
-            }
-        });
-
 
         it("View DB System Information", async () => {
 
@@ -394,7 +376,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         });
 
         it("Restart a DB System (and cancel)", async () => {
-            console.log(`treeDbSystem: ${await treeDbSystem.getLabel()}`);
+
             await Misc.selectContextMenuItem(treeDbSystem, "Restart the DB System");
 
             expect(await treeTasksSection.findItem("Restart DB System (running)", tasksMaxLevel)).to.exist;
@@ -458,6 +440,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         before(async function () {
             try {
+                await Misc.sectionFocus(ociTreeSection);
                 treeDbSystem = await treeOCISection.findItem("MDSforVSCodeExtension", ociMaxLevel);
                 treeBastion = await treeOCISection.findItem("Bastion4PrivateSubnetStandardVnc", ociMaxLevel);
                 expect(treeBastion).to.exist;
@@ -469,9 +452,9 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         beforeEach(async function () {
             try {
-                await driver.wait(async () => {
-                    return !(await Misc.hasLoadingBar(treeOCISection!));
-                }, ociExplicitWait, "There is still a loading bar on OCI");
+                await Misc.sectionFocus(ociTreeSection);
+                await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait,
+                    `${await treeOCISection.getTitle()} is still loading`);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -485,7 +468,6 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             await driver.switchTo().defaultContent();
             await treeTasksSection?.collapse();
-            await treeConsolesSection?.collapse();
 
             const edView = new EditorView();
             const editors = await edView.getOpenEditorTitles();
@@ -533,19 +515,18 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             await Misc.selectContextMenuItem(treeBastion!, "Set as Current Bastion");
 
-            await driver.wait(async () => {
-                return !(await Misc.hasLoadingBar(treeOCISection!));
-            }, ociExplicitWait, "There is still a loading bar on OCI");
+            await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait,
+                `${await treeOCISection.getTitle()} is still loading`);
 
             expect(await Misc.isDefaultItem(treeBastion!, "bastion")).to.be.true;
 
-            await treeConsolesSection?.expand();
+            await treeOpenEditorsSection.expand();
 
-            await Misc.clickSectionToolbarButton(treeConsolesSection!, "Add a New MySQL Shell Console");
+            await Misc.clickSectionToolbarButton(treeOpenEditorsSection, "New Shell Notebook");
 
             await Misc.switchToWebView();
 
-            await driver.wait(until.elementLocated(By.id("shellEditorHost")), 20000, "Console was not loaded");
+            await driver.wait(Shell.isShellLoaded(), explicitWait * 3, "Shell Console was not loaded");
 
             const result = await Misc.execCmd("mds.get.currentBastionId()", undefined, 60000);
 
@@ -557,7 +538,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             await Misc.selectContextMenuItem(treeBastion!, "Refresh When Bastion Reaches Active State");
 
-            await treeTasksSection?.expand();
+            await treeTasksSection.expand();
 
             expect(await treeTasksSection.findItem("Refresh Bastion (running)", tasksMaxLevel)).to.exist;
 
@@ -579,7 +560,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             treeBastion = await treeOCISection.findItem("Bastion4PrivateSubnetStandardVnc", ociMaxLevel);
             await Misc.selectContextMenuItem(treeBastion!, "Delete Bastion");
 
-            await treeTasksSection?.expand();
+            await treeTasksSection.expand();
 
             expect(await treeTasksSection.findItem("Delete Bastion (running)", ociMaxLevel)).to.exist;
 
@@ -610,7 +591,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 await driver.wait(async () => {
                     const editors = await new EditorView().getOpenEditorTitles();
 
-                    return editors.includes("DB Connections");
+                    return editors.includes(dbEditorDefaultName);
                 }, explicitWait, "DB Connections was not opened");
 
                 await Misc.switchToWebView();
@@ -653,55 +634,48 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
                 expect(mds).to.exist;
 
-                try {
 
-                    await Misc.switchToWebView();
+                await Misc.switchToWebView();
 
-                    await mds.click();
+                await mds.click();
 
-                    await driver.wait(async () => {
-                        const fingerprintDialog = await driver.findElements(By.css(".visible.confirmDialog"));
-                        let passwordDialog = await driver.findElements(By.css(".visible.passwordDialog"));
-                        if (fingerprintDialog.length > 0) {
-                            await fingerprintDialog[0].findElement(By.id("accept")).click();
-                            passwordDialog = await driver.findElements(By.css(".visible.passwordDialog"));
-                        }
-                        if (passwordDialog.length > 0) {
-                            await passwordDialog[0].findElement(By.css("input")).sendKeys("MySQLR0cks!");
-                            await passwordDialog[0].findElement(By.id("ok")).click();
+                await driver.wait(async () => {
+                    const fingerprintDialog = await driver.findElements(By.css(".visible.confirmDialog"));
+                    let passwordDialog = await driver.findElements(By.css(".visible.passwordDialog"));
+                    if (fingerprintDialog.length > 0) {
+                        await fingerprintDialog[0].findElement(By.id("accept")).click();
+                        passwordDialog = await driver.findElements(By.css(".visible.passwordDialog"));
+                    }
+                    if (passwordDialog.length > 0) {
+                        await passwordDialog[0].findElement(By.css("input")).sendKeys("MySQLR0cks!");
+                        await passwordDialog[0].findElement(By.id("ok")).click();
 
-                            return true;
-                        }
-
-                        return false;
-                    }, 30000, "Dialogs were not displayed");
-                    console.log(1);
-                    try {
-                        const confirmDialog = await driver.wait(until.elementLocated(By.css(".visible.confirmDialog")),
-                            explicitWait, "Confirm dialog was not displayed");
-                        console.log(2);
-                        await confirmDialog.findElement(By.id("refuse")).click();
-                        console.log(3);
-                    } catch (e) {
-                        // continue
+                        return true;
                     }
 
-                    await driver.wait(Database.isConnectionLoaded(), ociExplicitWait, "Connection was not loaded");
-
-                    const result = await Misc.execCmd("select version();", undefined, 10000);
-
-                    expect(result[0]).to.include("OK");
-
-                    await driver.switchTo().defaultContent();
-
-                    expect(await treeOCISection.findItem("Bastion4PrivateSubnetStandardVnc", ociMaxLevel)).to.exist;
-
-                } finally {
-                    await driver.switchTo().defaultContent();
-                    await treeDBSection?.expand();
-                    await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
-                    await treeDBSection?.collapse();
+                    return false;
+                }, 30000, "Dialogs were not displayed");
+                console.log(1);
+                try {
+                    const confirmDialog = await driver.wait(until.elementLocated(By.css(".visible.confirmDialog")),
+                        explicitWait, "Confirm dialog was not displayed");
+                    console.log(2);
+                    await confirmDialog.findElement(By.id("refuse")).click();
+                    console.log(3);
+                } catch (e) {
+                        // continue
                 }
+
+                await driver.wait(Database.isConnectionLoaded(), ociExplicitWait, "Connection was not loaded");
+
+                const result = await Misc.execCmd("select version();", undefined, 10000);
+
+                expect(result[0]).to.include("OK");
+
+                await driver.switchTo().defaultContent();
+
+                expect(await treeOCISection.findItem("Bastion4PrivateSubnetStandardVnc", ociMaxLevel)).to.exist;
+
             } else {
                 await Misc.selectContextMenuItem(treeDbSystem!, "Start the DB System");
 

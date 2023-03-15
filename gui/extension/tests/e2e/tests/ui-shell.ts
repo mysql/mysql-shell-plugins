@@ -22,7 +22,6 @@
  */
 import {
     By,
-    Condition,
     CustomTreeSection,
     EditorView,
     until,
@@ -32,12 +31,12 @@ import {
 import { before, after, afterEach } from "mocha";
 import { expect } from "chai";
 import {
-    consolesTreeSection,
     driver,
     explicitWait,
     Misc,
     isExtPrepared,
-    shellMaxLevel,
+    openEditorsTreeSection,
+    openEditorsMaxLevel,
 } from "../lib/misc";
 
 import { IDBConnection, Database } from "../lib/db";
@@ -60,7 +59,7 @@ describe("MYSQL SHELL CONSOLES", () => {
         sslClientKey: undefined,
     };
 
-    let treeConsolesSection: CustomTreeSection;
+    let treeOpenEditorsSection: CustomTreeSection;
 
     before(async function () {
         try {
@@ -68,8 +67,13 @@ describe("MYSQL SHELL CONSOLES", () => {
                 await Misc.prepareExtension();
             }
 
-            treeConsolesSection = await Misc.getSection(consolesTreeSection);
-            await treeConsolesSection?.expand();
+            await Misc.sectionFocus(openEditorsTreeSection);
+
+            treeOpenEditorsSection = await Misc.getSection(openEditorsTreeSection);
+
+            await Misc.clickSectionToolbarButton(treeOpenEditorsSection, "New Shell Notebook");
+            await Misc.switchToWebView();
+            await driver.wait(Shell.isShellLoaded(), explicitWait * 3, "Shell Console was not loaded");
         } catch (e) {
             await Misc.processFailure(this);
             throw e;
@@ -77,7 +81,15 @@ describe("MYSQL SHELL CONSOLES", () => {
 
     });
 
-    describe("Toolbar shell", () => {
+    describe("Shell generic operations", () => {
+
+        beforeEach(async function () {
+            try {
+                await driver.switchTo().defaultContent();
+            } catch (e) {
+                await Misc.processFailure(this);
+            }
+        });
 
         afterEach(async function () {
             if (this.currentTest?.state === "failed") {
@@ -89,59 +101,22 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         });
 
-        it("Add a new MySQL Shell Console", async () => {
-
-            await Misc.clickSectionToolbarButton(treeConsolesSection!, "Add a New MySQL Shell Console");
-
-            await Misc.switchToWebView();
-
-            await driver.wait(Shell.isShellLoaded(), explicitWait * 3, "Shell Console was not loaded");
-
-            await driver.switchTo().defaultContent();
-
-            const treeSession1 = await treeConsolesSection.findItem("Session 1", shellMaxLevel);
-
-            expect(treeSession1).to.exist;
-
-            await Misc.selectContextMenuItem(treeSession1!, "Close this MySQL Shell Console");
-
-            await driver.wait(until.stalenessOf(treeSession1!), explicitWait, "Session 1 was not closed");
-
-        });
-
-        it("Open MySQL Shell Console Browser", async () => {
-
-            await Misc.clickSectionToolbarButton(treeConsolesSection!, "Open MySQL Shell Console Browser");
-            await Misc.switchToWebView();
-
-            await driver.wait(Shell.isShellLoaded(), explicitWait * 3, "Shell Console was not loaded");
-
-            expect(await driver.wait(until.elementLocated(By.id("title")),
-                explicitWait, "Title was not found").getText())
-                .to.equal("MySQL Shell - GUI Console");
-
-            const newSession = await driver.findElement(By.id("-1"));
-
-            await newSession.click();
-
-            await driver.wait(Shell.isShellLoaded(), explicitWait * 3, "Shell Console was not loaded");
-
-            await driver.switchTo().defaultContent();
-
-            await driver.wait(new Condition("", async () => {
-                return treeConsolesSection.findItem("Session 1", shellMaxLevel);
-            }), explicitWait, "Session 1 was not found on the tree");
-
+        after(async function () {
+            try {
+                await new EditorView().closeEditor("MySQL Shell Consoles");
+            } catch (e) {
+                await Misc.processFailure(this);
+            }
         });
 
         it("Open multiple sessions", async () => {
 
-            for (let i = 1; i <= 3; i++) {
-                await Misc.clickSectionToolbarButton(treeConsolesSection!, "Add a New MySQL Shell Console");
+            for (let i = 1; i <= 5; i++) {
+                await Misc.clickSectionToolbarButton(treeOpenEditorsSection, "New Shell Notebook");
                 await Misc.switchToWebView();
                 await driver.wait(Shell.isShellLoaded(), explicitWait * 3, "Shell Console was not loaded");
                 await driver.switchTo().defaultContent();
-                await driver.wait(treeConsolesSection.findItem(`Session ${i}`, shellMaxLevel),
+                await driver.wait(treeOpenEditorsSection.findItem(`Session ${i}`, openEditorsMaxLevel),
                     explicitWait, `Session ${i} does not exist on the tree`);
             }
 
@@ -168,7 +143,7 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         before(async function () {
             try {
-                await Misc.clickSectionToolbarButton(treeConsolesSection!, "Add a New MySQL Shell Console");
+                await Misc.clickSectionToolbarButton(treeOpenEditorsSection, "New Shell Notebook");
                 await Misc.switchToWebView();
             } catch (e) {
                 await Misc.processFailure(this);
@@ -374,7 +349,7 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         before(async function () {
             try {
-                await Misc.clickSectionToolbarButton(treeConsolesSection!, "Add a New MySQL Shell Console");
+                await Misc.clickSectionToolbarButton(treeOpenEditorsSection, "New Shell Notebook");
 
                 await Misc.switchToWebView();
 

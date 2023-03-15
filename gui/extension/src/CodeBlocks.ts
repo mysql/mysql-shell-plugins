@@ -33,7 +33,9 @@ import { CommonTokenStream } from "antlr4ts/CommonTokenStream";
 
 import { PythonLexer } from "../../frontend/src/parsing/python/generated/PythonLexer";
 
-import { requisitions } from "../../frontend/src/supplement/Requisitions";
+import {
+    IRequestListEntry, IRequestTypeMap, IWebviewProvider, requisitions,
+} from "../../frontend/src/supplement/Requisitions";
 import { printChannelOutput } from "./extension";
 import { IDictionary } from "../../frontend/src/app-logic/Types";
 
@@ -74,7 +76,7 @@ export class CodeBlocks {
     public setup(context: ExtensionContext): void {
         this.initializeBlockDecorations();
 
-        requisitions.register("codeBlocksUpdate", this.codeBlocksUpdate);
+        requisitions.register("proxyRequest", this.proxyRequest);
 
         // Ensure the code block markers are actually deleted when the document closes
         context.subscriptions.push(workspace.onDidCloseTextDocument((document: TextDocument) => {
@@ -494,4 +496,22 @@ export class CodeBlocks {
             }
         }
     }
+
+    private proxyRequest = (request: {
+        provider: IWebviewProvider;
+        original: IRequestListEntry<keyof IRequestTypeMap>;
+    }): Promise<boolean> => {
+        switch (request.original.requestType) {
+            case "codeBlocksUpdate": {
+                const response = request.original.parameter as { linkId: number; code: string; };
+
+                return this.codeBlocksUpdate(response);
+            }
+
+            default:
+        }
+
+        return Promise.resolve(false);
+    };
+
 }

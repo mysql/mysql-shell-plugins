@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g id="notebook">
+        <path id="Add-Notebook" serif:id="Add Notebook" d="M14,16L13,16L13,14L11,14L11,13L13,13L13,11L14,11L14,13L16,13L16,14L14,14L14,16ZM10,15L2,15L1,14L1,2L2,1L12,1L13,2L13,10L12,10L12,2L2,2L2,14L10,14L10,15ZM14,10L14,8L15,8L15,10L14,10ZM15,5L15,7L14,7L14,5L15,5Z"/>
+        <g transform="matrix(0.410664,0,0,0.412104,0.600267,0.90308)">
+            <g id="shell">
+                <g>
+                    <g transform="matrix(1,0,0,1,1.15796,0)">
+                        <path d="M6.871,7.507L15.363,16L6.871,24.493L4.626,22.248L10.874,16L4.626,9.752L6.871,7.507Z" style="fill-rule:nonzero;"/>
+                    </g>
+                    <g transform="matrix(0.607047,0,0,0.878621,6.2864,2.9304)">
+                        <path d="M31.385,24.493L15.363,24.493L15.413,21.178L31.435,21.178L31.385,24.493Z" style="fill-rule:nonzero;"/>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

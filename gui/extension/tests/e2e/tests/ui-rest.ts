@@ -34,9 +34,6 @@ import { before, after, afterEach } from "mocha";
 import { expect } from "chai";
 import {
     dbTreeSection,
-    ociTreeSection,
-    consolesTreeSection,
-    tasksTreeSection,
     driver,
     explicitWait,
     Misc,
@@ -80,10 +77,6 @@ describe("REST", () => {
     };
 
     let treeDBSection: CustomTreeSection;
-    let treeOCISection: CustomTreeSection;
-    let treeConsolesSection: CustomTreeSection;
-    let treeTasksSection: CustomTreeSection;
-
     let treeGlobalConn: TreeItem | undefined;
 
     before(async function () {
@@ -94,13 +87,7 @@ describe("REST", () => {
                 await Misc.prepareExtension();
             }
 
-            treeOCISection = await Misc.getSection(ociTreeSection);
-            treeConsolesSection = await Misc.getSection(consolesTreeSection);
-            treeTasksSection = await Misc.getSection(tasksTreeSection);
-
-            await treeOCISection?.collapse();
-            await treeConsolesSection?.collapse();
-            await treeTasksSection?.collapse();
+            await Misc.sectionFocus(dbTreeSection);
 
             await Misc.toggleBottomBar(false);
 

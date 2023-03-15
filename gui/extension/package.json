@@ -309,14 +309,6 @@
                 "title": "Execute the selected or all statements"
             },
             {
-                "command": "msg.openDBBrowser",
-                "title": "Open the DB Connection Browser",
-                "icon": {
-                    "dark": "images/dark/overviewPage.svg",
-                    "light": "images/light/overviewPage.svg"
-                }
-            },
-            {
                 "command": "msg.refreshConnections",
                 "title": "Reload the connection list",
                 "icon": {
@@ -423,7 +415,11 @@
             },
             {
                 "command": "msg.removeSession",
-                "title": "Close this MySQL Shell Console"
+                "title": "Close this MySQL Shell Console",
+                "icon": {
+                    "dark": "images/dark/close.svg",
+                    "light": "images/light/close.svg"
+                }
             },
             {
                 "command": "msg.selectProfile",
@@ -528,6 +524,78 @@
             {
                 "command": "msg.editInScriptEditor",
                 "title": "Edit File in MySQL Shell"
+            },
+            {
+                "command": "msg.closeEditor",
+                "title": "Close Editor",
+                "icon": {
+                    "dark": "images/dark/close.svg",
+                    "light": "images/light/close.svg"
+                }
+            },
+            {
+                "command": "msg.openDBBrowser",
+                "title": "Open the DB Connection Browser",
+                "icon": {
+                    "dark": "images/dark/overviewPage.svg",
+                    "light": "images/light/overviewPage.svg"
+                }
+            },
+            {
+                "command": "msg.newNotebookMysql",
+                "title": "New MySQL Notebook",
+                "icon": {
+                    "dark": "images/dark/newNotebookMysql.svg",
+                    "light": "images/light/newNotebookMysql.svg"
+                }
+            },
+            {
+                "command": "msg.newNotebookSqlite",
+                "title": "New SQLite Notebook",
+                "icon": {
+                    "dark": "images/dark/newNotebookSqlite.svg",
+                    "light": "images/light/newNotebookSqlite.svg"
+                }
+            },
+            {
+                "command": "msg.newSession",
+                "title": "New Shell Notebook",
+                "icon": {
+                    "dark": "images/dark/newNotebookShell.svg",
+                    "light": "images/light/newNotebookShell.svg"
+                }
+            },
+            {
+                "command": "msg.newScriptJs",
+                "title": "New JavaScript Script",
+                "icon": {
+                    "dark": "images/dark/newScriptJs.svg",
+                    "light": "images/light/newScriptJs.svg"
+                }
+            },
+            {
+                "command": "msg.newScriptMysql",
+                "title": "New MySQL Script",
+                "icon": {
+                    "dark": "images/dark/newScriptMysql.svg",
+                    "light": "images/light/newScriptMysql.svg"
+                }
+            },
+            {
+                "command": "msg.newScriptSqlite",
+                "title": "New SQLite Script",
+                "icon": {
+                    "dark": "images/dark/newScriptSqlite.svg",
+                    "light": "images/light/newScriptSqlite.svg"
+                }
+            },
+            {
+                "command": "msg.newScriptTs",
+                "title": "New TypeScript Script",
+                "icon": {
+                    "dark": "images/dark/newScriptTs.svg",
+                    "light": "images/light/newScriptTs.svg"
+                }
             },
             {
                 "command": "msg.mrs.configureMySQLRestService",
@@ -676,6 +744,14 @@
             {
                 "command": "msg.showTaskOutput",
                 "title": "Show Task Output"
+            },
+            {
+                "command": "msg.showNotebook",
+                "title": "Show Notebook"
+            },
+            {
+                "command": "msg.showScript",
+                "title": "Show Script"
             },
             {
                 "command": "msg.showServerStatus",
@@ -869,12 +945,12 @@
             ],
             "view/title": [
                 {
-                    "command": "msg.addConnection",
-                    "group": "navigation",
-                    "when": "view == msg.connections"
+                    "command": "msg.newSession",
+                    "group": "navigation@2",
+                    "when": "view == msg.openEditors"
                 },
                 {
-                    "command": "msg.openDBBrowser",
+                    "command": "msg.addConnection",
                     "group": "navigation",
                     "when": "view == msg.connections"
                 },
@@ -917,16 +993,6 @@
                     "command": "msg.mds.refreshOciProfiles",
                     "group": "navigation",
                     "when": "view == msg.oci"
-                },
-                {
-                    "command": "msg.newSession",
-                    "group": "navigation",
-                    "when": "view == msg.consoles"
-                },
-                {
-                    "command": "msg.openSessionBrowser",
-                    "group": "navigation",
-                    "when": "view == msg.consoles"
                 }
             ],
             "view/item/context": [
@@ -1065,6 +1131,66 @@
                     "command": "msg.showTableData",
                     "when": "view == msg.connections && viewItem =~ /^schemaViewItem.*/",
                     "group": "1_msg@1"
+                },
+                {
+                    "command": "msg.closeEditor",
+                    "when": "view == msg.openEditors && viewItem == editorItem",
+                    "group": "inline"
+                },
+                {
+                    "command": "msg.newNotebookMysql",
+                    "group": "inline@1",
+                    "when": "view == msg.openEditors && viewItem == editorConnectionMySQL"
+                },
+                {
+                    "command": "msg.newNotebookMysql",
+                    "group": "scripts@1",
+                    "when": "view == msg.openEditors && viewItem == editorConnectionMySQL"
+                },
+                {
+                    "command": "msg.newNotebookSqlite",
+                    "group": "inline@1",
+                    "when": "view == msg.openEditors && viewItem == editorConnectionSQLite"
+                },
+                {
+                    "command": "msg.newNotebookSqlite",
+                    "group": "scripts@1",
+                    "when": "view == msg.openEditors && viewItem == editorConnectionSQLite"
+                },
+                {
+                    "command": "msg.newScriptMysql",
+                    "group": "inline@2",
+                    "when": "view == msg.openEditors && viewItem == editorConnectionMySQL"
+                },
+                {
+                    "command": "msg.newScriptMysql",
+                    "group": "scripts@2",
+                    "when": "view == msg.openEditors && viewItem == editorConnectionMySQL"
+                },
+                {
+                    "command": "msg.newScriptSqlite",
+                    "group": "inline@2",
+                    "when": "view == msg.openEditors && viewItem == editorConnectionSQLite"
+                },
+                {
+                    "command": "msg.newScriptSqlite",
+                    "group": "scripts@2",
+                    "when": "view == msg.openEditors && viewItem == editorConnectionSQLite"
+                },
+                {
+                    "command": "msg.newScriptJs",
+                    "group": "scripts@3",
+                    "when": "view == msg.openEditors && viewItem =~ /^editorConnection.*/"
+                },
+                {
+                    "command": "msg.newScriptTs",
+                    "group": "scripts@4",
+                    "when": "view == msg.openEditors && viewItem =~ /^editorConnection.*/"
+                },
+                {
+                    "command": "msg.removeSession",
+                    "when": "view == msg.openEditors && viewItem == session",
+                    "group": "inline"
                 },
                 {
                     "command": "msg.mrs.addService",
@@ -1227,11 +1353,6 @@
                     "group": "2_msg@1"
                 },
                 {
-                    "command": "msg.removeSession",
-                    "when": "view == msg.consoles && viewItem == session",
-                    "group": "1_msg@1"
-                },
-                {
                     "command": "msg.mds.getProfileInfo",
                     "when": "view == msg.oci && viewItem == mdsConfigProfile",
                     "group": "1_msg@1"
@@ -1377,17 +1498,16 @@
         "views": {
             "msg-view": [
                 {
+                    "id": "msg.openEditors",
+                    "name": "OPEN EDITORS"
+                },
+                {
                     "id": "msg.connections",
                     "name": "DATABASE CONNECTIONS"
                 },
                 {
                     "id": "msg.oci",
                     "name": "ORACLE CLOUD INFRASTRUCTURE"
-                },
-                {
-                    "id": "msg.consoles",
-                    "name": "MYSQL SHELL CONSOLES",
-                    "visibility": "hidden"
                 },
                 {
                     "id": "msg.shellTasks",

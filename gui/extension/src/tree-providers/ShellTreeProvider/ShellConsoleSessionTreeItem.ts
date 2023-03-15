@@ -24,13 +24,11 @@
 import * as path from "path";
 import { Command, TreeItem, TreeItemCollapsibleState } from "vscode";
 
-import { IShellSessionDetails } from "../../../../frontend/src/supplement/ShellInterface";
-
 export class ShellConsoleSessionTreeItem extends TreeItem {
     public contextValue = "session";
 
-    public constructor(public details: IShellSessionDetails, command?: Command) {
-        super(details.caption ?? "untitled", TreeItemCollapsibleState.None);
+    public constructor(caption: string, command?: Command) {
+        super(caption, TreeItemCollapsibleState.None);
 
         this.iconPath = {
             light: path.join(__dirname, "..", "images", "light", "terminal.svg"),

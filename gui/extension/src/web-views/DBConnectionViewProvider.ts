@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,97 +23,95 @@
 
 import { Uri, window } from "vscode";
 
-import { IOpenDialogOptions, IOpenFileDialogResult, requisitions } from "../../../frontend/src/supplement/Requisitions";
+import {
+    IEditorCloseChangeData, IEditorOpenChangeData, IOpenDialogOptions, IOpenFileDialogResult, requisitions,
+} from "../../../frontend/src/supplement/Requisitions";
 
 import { IMySQLDbSystem } from "../../../frontend/src/communication";
 import { DBEditorModuleId } from "../../../frontend/src/modules/ModuleInfo";
 import { EntityType, IDBEditorScriptState } from "../../../frontend/src/modules/db-editor";
 import { WebviewProvider } from "./WebviewProvider";
-import { INewScriptRequest, IRunQueryRequest, IScriptRequest } from "../../../frontend/src/supplement";
+import { EditorLanguage, INewScriptRequest, IRunQueryRequest, IScriptRequest } from "../../../frontend/src/supplement";
 
 export class DBConnectionViewProvider extends WebviewProvider {
-
     /**
      * Shows the given module page.
      *
-     * @param caption A caption for the webview tab in which the page is hosted.
      * @param page The page to show.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public show(caption: string, page: string): Promise<boolean> {
+    public show(page: string): Promise<boolean> {
         return this.runCommand("job", [
             { requestType: "showModule", parameter: DBEditorModuleId },
             { requestType: "showPage", parameter: { module: DBEditorModuleId, page } },
-        ], caption, "newConnection");
+        ], "newConnection");
     }
 
     /**
      * Shows a sub part of a page.
      *
-     * @param caption The title of the webview tab.
-     * @param page The page to open in the webview tab (if not already done).
+     * @param pageId The page to open in the webview tab (if not already done). Can either be the name of a page
+     *               or a connection id.
      * @param type The type of the section.
+     * @param id The id of the item to be selected.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public showPageSection(caption: string, page: string, type: EntityType): Promise<boolean> {
+    public showPageSection(pageId: string, type: EntityType, id: string): Promise<boolean> {
         return this.runCommand("job", [
             { requestType: "showModule", parameter: DBEditorModuleId },
-            { requestType: "showPage", parameter: { module: DBEditorModuleId, page } },
-            { requestType: "showPageSection", parameter: type },
-        ], caption, "newConnection");
+            { requestType: "showPage", parameter: { module: DBEditorModuleId, page: pageId } },
+            { requestType: "showPageSection", parameter: { id, type } },
+        ], "newConnection");
     }
 
     /**
      * Executes a single statement in a webview tab.
      *
-     * @param caption The title of the webview tab.
      * @param page The page to open in the webview tab (if not already done).
      * @param details Required information about the query that must be executed.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public runQuery(caption: string, page: string, details: IRunQueryRequest): Promise<boolean> {
+    public runQuery(page: string, details: IRunQueryRequest): Promise<boolean> {
         return this.runCommand("job", [
             { requestType: "showModule", parameter: DBEditorModuleId },
             { requestType: "showPage", parameter: { module: DBEditorModuleId, page, suppressAbout: true } },
             { requestType: "editorRunQuery", parameter: details },
-        ], caption, details.linkId === -1 ? "newConnection" : "newConnectionWithEmbeddedSql");
+        ], details.linkId === -1 ? "newConnection" : "newConnectionWithEmbeddedSql");
     }
 
     /**
      * Executes a full script in a webview tab.
      *
-     * @param caption The title of the webview tab.
      * @param page The page to open in the webview tab (if not already done).
      * @param details The content of the script to run and other related information.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public runScript(caption: string, page: string, details: IScriptRequest): Promise<boolean> {
+    public runScript(page: string, details: IScriptRequest): Promise<boolean> {
         return this.runCommand("job", [
             { requestType: "showModule", parameter: DBEditorModuleId },
             { requestType: "showPage", parameter: { module: DBEditorModuleId, page, suppressAbout: true } },
             { requestType: "editorRunScript", parameter: details },
-        ], caption, "newConnection");
+        ], "newConnection");
     }
 
     /**
      * Opens a new script editor in the webview tab and loads the given content into it.
      *
-     * @param caption The title of the webview tab.
      * @param page The page to open in the webview tab (if not already done).
      * @param details The content of the script to run and other related information.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public editScriptInNotebook(caption: string, page: string, details: IScriptRequest): Promise<boolean> {
+    public editScriptInNotebook(page: string, details: IScriptRequest): Promise<boolean> {
         return this.runCommand("job", [
             { requestType: "showModule", parameter: DBEditorModuleId },
             { requestType: "showPage", parameter: { module: DBEditorModuleId, page, suppressAbout: true } },
             { requestType: "editorEditScript", parameter: details },
-        ], caption, "newConnection");
+        ], "newConnection");
     }
 
     /**
@@ -127,7 +125,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
     public insertScriptData(state: IDBEditorScriptState): Promise<boolean> {
         if (state.dbDataId) {
             return this.runCommand("editorInsertUserScript",
-                { language: state.language, resourceId: state.dbDataId }, "", "newConnection");
+                { language: state.language, resourceId: state.dbDataId }, "newConnection");
         }
 
         return Promise.resolve(false);
@@ -136,73 +134,110 @@ export class DBConnectionViewProvider extends WebviewProvider {
     /**
      * Opens the dialog for adding a new connection on the app.
      *
-     * @param caption A caption for the webview tab in which the page is hosted.
      * @param mdsData Additional data for MDS connections.
      * @param profileName The config profile name for MDS connections.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public addConnection(caption: string, mdsData?: IMySQLDbSystem, profileName?: String): Promise<boolean> {
+    public addConnection(mdsData?: IMySQLDbSystem, profileName?: String): Promise<boolean> {
         return this.runCommand("job", [
             { requestType: "showModule", parameter: DBEditorModuleId },
             { requestType: "showPage", parameter: { module: DBEditorModuleId, page: "connections" } },
             { requestType: "addNewConnection", parameter: { mdsData, profileName } },
-        ], caption, "connections");
+        ], "connections");
     }
 
     /**
      * Removes the connection from the stored connection list.
      *
-     * @param caption A caption for the webview tab in which the page is hosted.
      * @param connectionId The connection id.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public removeConnection(caption: string, connectionId: number): Promise<boolean> {
+    public removeConnection(connectionId: number): Promise<boolean> {
         return this.runCommand("job", [
             { requestType: "showModule", parameter: DBEditorModuleId },
             { requestType: "showPage", parameter: { module: DBEditorModuleId, page: "connections" } },
             { requestType: "removeConnection", parameter: connectionId },
-        ], caption, "connections");
+        ], "connections");
     }
 
     /**
      * Shows the connection editor on the connections page for the given connection id.
      *
-     * @param caption A caption for the webview tab in which the page is hosted.
      * @param connectionId The connection id.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public editConnection(caption: string, connectionId: number): Promise<boolean> {
+    public editConnection(connectionId: number): Promise<boolean> {
         return this.runCommand("job", [
             { requestType: "showModule", parameter: DBEditorModuleId },
             { requestType: "showPage", parameter: { module: DBEditorModuleId, page: "connections" } },
             { requestType: "editConnection", parameter: connectionId },
-        ], caption, "connections");
+        ], "connections");
     }
 
     /**
      * Shows the connection editor on the connections page with a duplicate of the given connection.
      *
-     * @param caption A caption for the webview tab in which the page is hosted.
      * @param connectionId The connection id.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public duplicateConnection(caption: string, connectionId: number): Promise<boolean> {
+    public duplicateConnection(connectionId: number): Promise<boolean> {
         return this.runCommand("job", [
             { requestType: "showModule", parameter: DBEditorModuleId },
             { requestType: "showPage", parameter: { module: DBEditorModuleId, page: "connections" } },
             { requestType: "duplicateConnection", parameter: connectionId },
-        ], caption, "connections");
+        ], "connections");
     }
 
     public renameFile(request: IScriptRequest): Promise<boolean> {
         // Can only be called if a connection is active. This is the bounce-back from a save request from a connection.
         return this.runCommand("job", [
             { requestType: "editorRenameScript", parameter: request },
-        ], "", "connections");
+        ], "connections");
+    }
+
+    /**
+     * Closes the editor with the given id in the webview tab.
+     *
+     * @param connectionId The id of the webview tab.
+     * @param editorId The id of the editor to close.
+     *
+     * @returns A promise which resolves after the command was executed.
+     */
+    public closeEditor(connectionId: number, editorId: string): Promise<boolean> {
+        return this.runCommand("job", [
+            // No need to send a showModule request here. The module must exist or the editor wouldn't be open.
+            { requestType: "editorClose", parameter: { connectionId, editorId } },
+        ], "");
+    }
+
+    public reselectLastItem(): void {
+        void requisitions.execute("proxyRequest", {
+            provider: this,
+            original: {
+                requestType: "editorSelect",
+                parameter: { connectionId: -1, editorId: "" },
+            },
+        });
+    }
+
+    /**
+     * We have 2 entry points to create new scripts. One is from the web app via a remote request. The other is from the
+     * extension via a local request. This method handles the local request.
+     *
+     * @param language The language of the script to create.
+     */
+    public createScript(language: EditorLanguage): void {
+        void requisitions.execute("proxyRequest", {
+            provider: this,
+            original: {
+                requestType: "createNewScript",
+                parameter: language,
+            },
+        });
     }
 
     protected requisitionsCreated(): void {
@@ -217,32 +252,58 @@ export class DBConnectionViewProvider extends WebviewProvider {
             this.requisitions.register("editorSaveScript", this.editorSaveScript);
             this.requisitions.register("createNewScript", this.createNewScript);
             this.requisitions.register("closeInstance", this.closeInstance);
+            this.requisitions.register("editorsChanged", this.editorsChanged);
+            this.requisitions.register("editorSelect", this.editorSelect);
         }
     }
 
     protected refreshConnections = (): Promise<boolean> => {
-        // Watch out! It uses the global requisition singleton, not the local one for this webview provider.
-        return requisitions.execute("refreshConnections", undefined);
+        return requisitions.execute("proxyRequest", {
+            provider: this,
+            original: { requestType: "refreshConnections", parameter: undefined },
+        });
     };
 
     protected refreshOciTree = (): Promise<boolean> => {
-        // Ditto.
-        return requisitions.execute("refreshOciTree", undefined);
+        return requisitions.execute("proxyRequest", {
+            provider: this,
+            original: { requestType: "refreshOciTree", parameter: undefined },
+        });
     };
 
-    protected updateCodeBlock = (data: { linkId: number; code: string }): Promise<boolean> => {
-        // Ditto.
-        return requisitions.execute("codeBlocksUpdate", data);
+    protected updateCodeBlock = (data: { linkId: number; code: string; }): Promise<boolean> => {
+        return requisitions.execute("proxyRequest", {
+            provider: this,
+            original: { requestType: "codeBlocksUpdate", parameter: data },
+        });
     };
 
     private editorSaveScript = (details: IScriptRequest): Promise<boolean> => {
-        // Ditto.
-        return requisitions.execute("editorSaveScript", details);
+        return requisitions.execute("proxyRequest", {
+            provider: this,
+            original: { requestType: "editorSaveScript", parameter: details },
+        });
     };
 
     private createNewScript = (details: INewScriptRequest): Promise<boolean> => {
-        // Ditto.
-        return requisitions.execute("createNewScript", details);
+        return requisitions.execute("proxyRequest", {
+            provider: this,
+            original: { requestType: "createNewScript", parameter: details },
+        });
+    };
+
+    private editorsChanged = (details: IEditorOpenChangeData | IEditorCloseChangeData): Promise<boolean> => {
+        return requisitions.execute("proxyRequest", {
+            provider: this,
+            original: { requestType: "editorsChanged", parameter: details },
+        });
+    };
+
+    private editorSelect = (details: { connectionId: number, editorId: string; }): Promise<boolean> => {
+        return requisitions.execute("proxyRequest", {
+            provider: this,
+            original: { requestType: "editorSelect", parameter: details },
+        });
     };
 
     private closeInstance = (): Promise<boolean> => {

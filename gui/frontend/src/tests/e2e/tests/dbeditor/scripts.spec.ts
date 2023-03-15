@@ -275,7 +275,7 @@ describe("Scripts", () => {
 
     it("Switch between scripts", async () => {
         try {
-            await DBConnection.selectCurrentEditor("DB Notebook", "shell");
+            await DBConnection.selectCurrentEditor("DB Notebook", "notebook");
 
             const script1 = await DBConnection.addScript("JS");
 
@@ -380,7 +380,7 @@ describe("Scripts", () => {
             testFailed = true;
             throw e;
         } finally {
-            await DBConnection.selectCurrentEditor("DB Notebook", "shell");
+            await DBConnection.selectCurrentEditor("DB Notebook", "notebook");
         }
     });
 

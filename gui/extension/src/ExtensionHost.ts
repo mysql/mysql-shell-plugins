@@ -33,7 +33,6 @@ import { ISettingCategory, settingCategories } from "../../frontend/src/suppleme
 import { Settings } from "../../frontend/src/supplement/Settings/Settings";
 import { ShellTask } from "../../frontend/src/shell-tasks/ShellTask";
 
-import { ShellConsolesTreeDataProvider } from "./tree-providers/ShellTreeProvider/ShellConsolesTreeProvider";
 import { ScriptsTreeDataProvider } from "./tree-providers/ScriptsTreeProvider";
 import { SchemaMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaMySQLTreeItem";
 import { ShellTasksTreeDataProvider } from "./tree-providers/ShellTreeProvider/ShellTasksTreeProvider";
@@ -67,7 +66,6 @@ export class ExtensionHost {
     // Tree data providers for the extension's sidebar. The connection provider is managed in the DB editor
     // command handler.
     private scriptsTreeDataProvider: ScriptsTreeDataProvider;
-    private consoleTreeDataProvider: ShellConsolesTreeDataProvider;
     private shellTasksTreeDataProvider: ShellTasksTreeDataProvider;
 
     // List of shell tasks
@@ -218,9 +216,6 @@ export class ExtensionHost {
         }));
 
         // Our tree providers.
-        this.consoleTreeDataProvider = new ShellConsolesTreeDataProvider();
-        this.context.subscriptions.push(window.registerTreeDataProvider("msg.consoles", this.consoleTreeDataProvider));
-
         this.shellTasksTreeDataProvider = new ShellTasksTreeDataProvider(this.shellTasks);
         this.context.subscriptions.push(window.registerTreeDataProvider("msg.shellTasks",
             this.shellTasksTreeDataProvider));
@@ -355,7 +350,6 @@ export class ExtensionHost {
 
         // Refresh relevant tree providers.
         this.dbEditorCommandHandler.refreshConnectionTree();
-        this.consoleTreeDataProvider.refresh([]);
 
         void commands.executeCommand("msg.mds.refreshOciProfiles");
     }
