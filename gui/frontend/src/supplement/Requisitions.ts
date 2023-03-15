@@ -36,7 +36,7 @@ import { IWebSessionData, IShellProfile, IShellPromptValues } from "../communica
 import { IThemeChangeData } from "../components/Theming/ThemeManager";
 import { IEditorStatusInfo, IDBDataEntry, ISchemaTreeEntry, EntityType } from "../modules/db-editor";
 import { RequisitionPipeline } from "./RequisitionPipeline";
-import { IConnectionDetails, IShellSessionDetails } from "./ShellInterface";
+import { DBType, IConnectionDetails, IShellSessionDetails } from "./ShellInterface";
 
 export const appParameters: Map<string, string> & IAppParameters = new Map<string, string>();
 
@@ -144,6 +144,63 @@ export interface IDebuggerData {
     response?: INativeShellResponse;
 }
 
+/** The data sent when opening an editor. */
+export interface IEditorOpenChangeData {
+    opened: true;
+
+    /** A unique id of the connection to which the editor belongs. */
+    connectionId: number,
+
+    /** The connection's title. */
+    connectionCaption: string;
+
+    /** The connection's type. */
+    dbType: DBType;
+
+    /** A unique id of the editor. */
+    editorId: string,
+
+    /** The editor's title. */
+    editorCaption: string,
+
+    /** The editor's language. */
+    language: EditorLanguage;
+
+    /** The type of the page. */
+    editorType: EntityType;
+}
+
+/** The data sent when an editor is being closed by the app. */
+export interface IEditorCloseChangeData {
+    opened: false;
+
+    /** A unique id of the connection to which the editor belongs. */
+    connectionId: number,
+
+    /** The id of the entry to remove. If empty close all entries from the connection. */
+    editorId?: string,
+}
+
+export interface IWebviewProvider {
+    caption: string;
+
+    close(): void;
+    runCommand<K extends keyof IRequestTypeMap>(requestType: K, parameter: IRequisitionCallbackValues<K>,
+        caption: string, settingName: string): Promise<boolean>;
+}
+
+/**
+ * The request sent from a webview provider to the app requisition instance, when it received notifications
+ * from its local requisition instance.
+ */
+export interface IProxyRequest {
+    /** The provider which sent this request. */
+    provider: IWebviewProvider;
+
+    /** The request to be forwarded. */
+    original: IRequestListEntry<keyof IRequestTypeMap>;
+}
+
 /**
  * The map containing possible requests and their associated callback.
  * The return value in the promise determines if the request was handled or not.
@@ -191,8 +248,17 @@ export interface IRequestTypeMap {
     "editorValidationDone": (id: string) => Promise<boolean>;
     "editorSelectStatement": (details: { contextId: string; statementIndex: number; }) => Promise<boolean>;
 
+    /** Sent by the host to trigger close handling of an editor. */
+    "editorClose": (details: { connectionId: number; editorId: string; }) => Promise<boolean>;
+
     /** Triggered when an execution context changes its loading state (pending, loading, waiting, idle). */
     "editorContextStateChanged": (id: string) => Promise<boolean>;
+
+    /** Triggered by the application when an editor was opened or closed. */
+    "editorsChanged": (details: IEditorOpenChangeData | IEditorCloseChangeData) => Promise<boolean>;
+
+    /** Sent by the application when an editor was selected. */
+    "editorSelect": (details: { connectionId: number, editorId: string; }) => Promise<boolean>;
 
     "sqlSetCurrentSchema": (data: { id: string; connectionId: number; schema: string; }) => Promise<boolean>;
     "sqlTransactionChanged": SimpleCallback;
@@ -223,7 +289,7 @@ export interface IRequestTypeMap {
     "showPreferences": SimpleCallback;
     "showModule": (module: string) => Promise<boolean>;
     "showPage": (data: { module: string; page: string; }) => Promise<boolean>;
-    "showPageSection": (type: EntityType) => Promise<boolean>;
+    "showPageSection": (details: { id: string, type: EntityType; }) => Promise<boolean>;
 
     "showDialog": (request: IDialogRequest) => Promise<boolean>;
     "dialogResponse": (response: IDialogResponse) => Promise<boolean>;
@@ -251,6 +317,12 @@ export interface IRequestTypeMap {
     /** A list of requests that must be executed sequentially. */
     "job": (job: Array<IRequestListEntry<keyof IRequestTypeMap>>) => Promise<boolean>;
 
+    /**
+     * A request which is a re-post of another request.
+     * Used to handle notifications from multiple application instances (each represented by a web view provider).
+     */
+    "proxyRequest": (request: IProxyRequest) => Promise<boolean>;
+
     /** Pass text around (e.g. for debugging). */
     "message": (message: string) => Promise<boolean>;
 
@@ -271,9 +343,9 @@ export interface IRequestListEntry<K extends keyof IRequestTypeMap> {
 }
 
 /**
- *  Management class for requests and messages sent between various parts of the application. It allows to schedule
+ * Management class for requests and messages sent between various parts of the application. It allows to schedule
  * tasks and trigger notifications to multiple subscribed receivers.
- *  It uses request types which specify a single specific request in the application.
+ * It uses request types which specify a single specific request in the application.
  */
 export class RequisitionHub {
 

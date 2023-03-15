@@ -23,7 +23,9 @@
 
 import { TreeDataProvider, TreeItem, EventEmitter, ProviderResult, Event, window } from "vscode";
 
-import { requisitions } from "../../../../frontend/src/supplement/Requisitions";
+import {
+    IRequestListEntry, IRequestTypeMap, IWebviewProvider, requisitions,
+} from "../../../../frontend/src/supplement/Requisitions";
 
 import { ICompartment } from "../../../../frontend/src/communication";
 
@@ -55,11 +57,11 @@ export class OciTreeDataProvider implements TreeDataProvider<TreeItem> {
     private compartmentCache: IConfigProfileCompartments = {};
 
     public constructor() {
-        requisitions.register("refreshOciTree", this.refreshOciTree);
+        requisitions.register("proxyRequest", this.proxyRequest);
     }
 
     public dispose(): void {
-        requisitions.unregister("refreshOciTree", this.refreshOciTree);
+        requisitions.register("proxyRequest", this.proxyRequest);
     }
 
     public get onDidChangeTreeData(): Event<TreeItem | undefined> {
@@ -245,10 +247,21 @@ export class OciTreeDataProvider implements TreeDataProvider<TreeItem> {
         return items;
     }
 
-    private refreshOciTree = (): Promise<boolean> => {
-        this.refresh();
+    private proxyRequest = (request: {
+        provider: IWebviewProvider;
+        original: IRequestListEntry<keyof IRequestTypeMap>;
+    }): Promise<boolean> => {
+        switch (request.original.requestType) {
+            case "refreshOciTree": {
+                this.refresh();
 
-        return Promise.resolve(true);
+                return Promise.resolve(true);
+            }
+
+            default:
+        }
+
+        return Promise.resolve(false);
     };
 
 }

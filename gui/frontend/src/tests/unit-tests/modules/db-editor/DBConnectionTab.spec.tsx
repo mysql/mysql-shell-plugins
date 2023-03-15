@@ -85,6 +85,8 @@ describe("DBConnectionTab tests", (): void => {
         const backend = new ShellInterfaceSqlEditor();
         const savedState: IDBConnectionTabPersistentState = {
             backend,
+            connectionId: 0,
+            dbType: DBType.MySQL,
             serverVersion: 1,
             serverEdition: "gpl",
             heatWaveEnabled: false,

@@ -59,7 +59,8 @@ import markdownIcon from "../../assets/images/file-icons/markdown.svg";
 import mysqlIcon from "../../assets/images/file-icons/mysql.svg";
 import sqliteIcon from "../../assets/images/file-icons/sqlite.svg";
 import pythonIcon from "../../assets/images/file-icons/python.svg";
-import shellIcon from "../../assets/images/file-icons/shell.svg";
+import notebookMySQLIcon from "../../assets/images/notebookMysql.svg";
+import notebookSQLiteIcon from "../../assets/images/notebookSqlite.svg";
 import typescriptIcon from "../../assets/images/file-icons/typescript.svg";
 import xmlIcon from "../../assets/images/file-icons/xml.svg";
 
@@ -89,19 +90,20 @@ import { TreeGrid, ITreeGridOptions, TabulatorProxy } from "../../components/ui/
 import { DBType } from "../../supplement/ShellInterface";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor";
 import { ISplitterPaneSizeInfo } from "../../components/ui/SplitContainer/SplitContainer";
+import { uuid } from "../../utilities/helpers";
 
 /** Lookup for icons for a specific document type. */
-export const documentTypeToIcon: Map<EditorLanguage, string> = new Map([
-    ["ini", iniIcon],
-    ["javascript", javascriptIcon],
-    ["json", jsonIcon],
-    ["markdown", markdownIcon],
-    ["mysql", mysqlIcon],
-    ["sql", sqliteIcon],
-    ["python", pythonIcon],
-    ["msg", shellIcon],
-    ["typescript", typescriptIcon],
-    ["xml", xmlIcon],
+export const documentTypeToIcon: Map<EditorLanguage, Record<DBType, string>> = new Map([
+    ["ini", { [DBType.MySQL]: iniIcon, [DBType.Sqlite]: iniIcon }],
+    ["javascript", { [DBType.MySQL]: javascriptIcon, [DBType.Sqlite]: javascriptIcon }],
+    ["json", { [DBType.MySQL]: jsonIcon, [DBType.Sqlite]: jsonIcon }],
+    ["markdown", { [DBType.MySQL]: markdownIcon, [DBType.Sqlite]: markdownIcon }],
+    ["mysql", { [DBType.MySQL]: mysqlIcon, [DBType.Sqlite]: mysqlIcon }],
+    ["sql", { [DBType.MySQL]: sqliteIcon, [DBType.Sqlite]: sqliteIcon }],
+    ["python", { [DBType.MySQL]: pythonIcon, [DBType.Sqlite]: pythonIcon }],
+    ["msg", { [DBType.MySQL]: notebookMySQLIcon, [DBType.Sqlite]: notebookSQLiteIcon }],
+    ["typescript", { [DBType.MySQL]: typescriptIcon, [DBType.Sqlite]: typescriptIcon }],
+    ["xml", { [DBType.MySQL]: xmlIcon, [DBType.Sqlite]: xmlIcon }],
 ]);
 
 /** Lookup for icons for special pages. */
@@ -130,7 +132,7 @@ interface IExplorerProperties extends IComponentProperties {
     // The state of each accordion item.
     savedState?: Map<string, IExplorerSectionState>;
 
-    onSelectItem?: (id: string, type: EntityType) => void;
+    onSelectItem?: (id: string, type: EntityType, caption: string) => void;
     onCloseItem?: (id: string) => void;
     onAddItem?: () => string | undefined;
     onChangeItem?: (id: string, newCaption: string) => void;
@@ -215,7 +217,7 @@ export class Explorer extends ComponentBase<IExplorerProperties, IExplorerState>
     }
 
     public render(): ComponentChild {
-        const { id = "", savedState, dbType } = this.props;
+        const { savedState, dbType } = this.props;
         const { editing, schemaList } = this.state;
 
         const className = this.getEffectiveClassNames(["scriptingExplorer"]);
@@ -304,7 +306,7 @@ export class Explorer extends ComponentBase<IExplorerProperties, IExplorerState>
                             content: [
                                 <Accordion.Item
                                     key="serverStatus"
-                                    id={`${id}-${EntityType.Status}`}
+                                    id={uuid()}
                                     caption="Server Status"
                                     picture={<Icon src={adminServerStatusIcon} width="20px" height="20px" />}
                                     payload={{ type: EntityType.Status }}
@@ -312,7 +314,7 @@ export class Explorer extends ComponentBase<IExplorerProperties, IExplorerState>
                                 />,
                                 <Accordion.Item
                                     key="clientConnections"
-                                    id={`${id}-${EntityType.Connections}`}
+                                    id={uuid()}
                                     caption="Client Connections"
                                     picture={<Icon src={clientConnectionsIcon} width="20px" height="20px" />}
                                     payload={{ type: EntityType.Connections }}
@@ -320,7 +322,7 @@ export class Explorer extends ComponentBase<IExplorerProperties, IExplorerState>
                                 />,
                                 <Accordion.Item
                                     key="performanceDashboard"
-                                    id={`${id}-${EntityType.Dashboard}`}
+                                    id={uuid()}
                                     caption="Performance Dashboard"
                                     picture={<Icon
                                         src={adminPerformanceDashboardIcon}
@@ -852,7 +854,9 @@ export class Explorer extends ComponentBase<IExplorerProperties, IExplorerState>
         let image;
         switch (data.type) {
             case EntityType.Script: {
-                const actualIcon = documentTypeToIcon.get((data as IDBEditorScriptState).language || "text");
+                const language = (data as IDBEditorScriptState).language;
+                const icons = documentTypeToIcon.get(language);
+                const actualIcon = icons?.MySQL;
 
                 if (actualIcon) {
                     image = <Image src={actualIcon} width={16} height={16} />;
@@ -1028,7 +1032,7 @@ export class Explorer extends ComponentBase<IExplorerProperties, IExplorerState>
 
         if (props.id) {
             const itemProps = props as IAccordionItemProperties;
-            onSelectItem?.(props.id, itemProps.payload?.type as EntityType);
+            onSelectItem?.(props.id, itemProps.payload?.type as EntityType, itemProps.caption);
         }
     };
 
@@ -1037,7 +1041,7 @@ export class Explorer extends ComponentBase<IExplorerProperties, IExplorerState>
 
         const data = cell.getData() as IDBDataEntry;
         if (data.type === EntityType.Script && data.id) {
-            onSelectItem?.(data.id, EntityType.Script);
+            onSelectItem?.(data.id, EntityType.Script, data.caption);
         }
     };
 
@@ -1176,7 +1180,9 @@ export class Explorer extends ComponentBase<IExplorerProperties, IExplorerState>
                 let icon;
                 if (entry.state) {
                     const language = entry.state.model.getLanguageId() as EditorLanguage;
-                    icon = documentTypeToIcon.get(language) || defaultIcon;
+                    const icons = documentTypeToIcon.get(language);
+                    icon = icons?.MySQL ?? defaultIcon;
+
                 } else {
                     const name = pageTypeToIcon.get(entry.type) || defaultIcon;
                     icon = <Icon src={name} width="20px" height="20px" />;

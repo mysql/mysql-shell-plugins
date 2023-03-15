@@ -27,14 +27,13 @@ import {
     until,
     Key as selKey,
     error,
-    TreeItem,
     CustomTreeSection,
     Condition,
 } from "vscode-extension-tester";
 import { expect } from "chai";
 import { basename } from "path";
 
-import { driver, Misc, dbTreeSection, explicitWait, ociExplicitWait } from "./misc";
+import { driver, Misc, dbTreeSection, explicitWait, ociExplicitWait, dbEditorDefaultName } from "./misc";
 
 export interface IDBConnection {
     caption: string;
@@ -103,7 +102,7 @@ export class Database {
             try {
                 await driver.switchTo().frame(await driver.findElement(By.id(`frame:${String(webView)}`)));
             } catch (e) {
-                await driver.switchTo().frame(await driver.findElement(By.id("frame:DB Connections")));
+                await driver.switchTo().frame(await driver.findElement(By.id("frame:MySQL Shell")));
             }
         }
 
@@ -176,7 +175,7 @@ export class Database {
         await driver.wait(async () => {
             const activeTab = await editorView.getActiveTab();
 
-            return await activeTab?.getTitle() === "DB Connections";
+            return await activeTab?.getTitle() === "MySQL Shell";
         }, 3000, "error");
 
         await Misc.switchToWebView();
@@ -190,15 +189,17 @@ export class Database {
         await driver.switchTo().defaultContent();
     };
 
-    public static isConnectionSuccessful = async (connection: string): Promise<boolean> => {
-        await driver.switchTo().defaultContent();
-        const edView = new EditorView();
-        const editors = await edView.getOpenEditorTitles();
-        expect(editors).to.include(connection);
+    public static isConnectionSuccessful = (): Condition<boolean> => {
+        return new Condition("", async () => {
+            await driver.switchTo().defaultContent();
+            const edView = new EditorView();
+            const editors = await edView.getOpenEditorTitles();
+            expect(editors).to.include(dbEditorDefaultName);
 
-        await Misc.switchToWebView();
+            await Misc.switchToWebView();
 
-        return (await driver.findElements(By.css(".zoneHost"))).length > 0;
+            return (await driver.findElements(By.css(".zoneHost"))).length > 0;
+        });
     };
 
     public static closeConnection = async (name: string): Promise<void> => {
@@ -622,20 +623,6 @@ export class Database {
         }, timeout, `No results were found from the script execution - '${cmd}'`);
 
         return toReturn;
-    };
-
-    public static reloadConnection = async (treeItem: TreeItem): Promise<void> => {
-
-        let locator = ".//a[contains(@class, 'action-label')";
-        locator += " and @role='button' and @aria-label='Reload Database Information']";
-        const btn = await treeItem.findElement(By.xpath(locator));
-
-        const treeItemCoord = await treeItem.getRect();
-        await driver.actions().move({ x: treeItemCoord.x, y: treeItemCoord.y }).perform();
-        await driver.wait(until.elementIsVisible(btn),
-            explicitWait, `'Reload Database Information' button was not visible`);
-
-        await btn?.click();
     };
 
     public static getAutoCompleteMenuItems = async (): Promise<string[]> => {

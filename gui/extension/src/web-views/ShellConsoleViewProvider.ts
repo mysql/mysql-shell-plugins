@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -34,52 +34,50 @@ export class ShellConsoleViewProvider extends WebviewProvider {
 
     public constructor(
         url: URL,
+        caption: string,
         onDispose: (view: WebviewProvider) => void) {
-        super(url, onDispose);
+        super(url, caption, onDispose);
     }
 
     /**
      * Shows the given module page.
      *
-     * @param caption A caption for the webview tab in which the page is hosted.
      * @param page The page to show.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public show(caption: string, page: string): Promise<boolean> {
+    public show(page: string): Promise<boolean> {
         return this.runCommand("job", [
             { requestType: "showModule", parameter: ShellModuleId },
             { requestType: "showPage", parameter: { module: ShellModuleId, page } },
-        ], caption, "newShellConsole");
+        ], "newShellConsole");
     }
 
     /**
      * Opens a page for a session with the given session id.
      *
-     * @param caption A caption for the webview tab in which the page is hosted.
      * @param session The session to open.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public openSession(caption: string, session: IShellSessionDetails): Promise<boolean> {
+    public openSession(session: IShellSessionDetails): Promise<boolean> {
         const command = session.sessionId === -1 ? "newSession" : "openSession";
 
         return this.runCommand("job", [
             { requestType: "showModule", parameter: ShellModuleId },
             { requestType: command, parameter: session },
-        ], caption, "newShellConsole");
+        ], "newShellConsole");
     }
 
     /**
      * Closes the session with the given id.
      *
-     * @param caption A caption for the webview tab in which the page is hosted.
      * @param session The session to remove.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public removeSession(caption: string, session: IShellSessionDetails): Promise<boolean> {
-        return this.runCommand("removeSession", session, caption, "newShellConsole");
+    public removeSession(session: IShellSessionDetails): Promise<boolean> {
+        return this.runCommand("removeSession", session, "newShellConsole");
     }
 
     protected requisitionsCreated(): void {
@@ -94,7 +92,13 @@ export class ShellConsoleViewProvider extends WebviewProvider {
     protected sessionAdded = (session: IShellSessionDetails): Promise<boolean> => {
         this.openSessions.push(session);
 
-        return requisitions.execute("refreshSessions", this.openSessions);
+        return requisitions.execute("proxyRequest", {
+            provider: this,
+            original: {
+                requestType: "refreshSessions",
+                parameter: this.openSessions,
+            },
+        });
     };
 
     protected sessionRemoved = (session: IShellSessionDetails): Promise<boolean> => {
@@ -106,13 +110,26 @@ export class ShellConsoleViewProvider extends WebviewProvider {
             this.openSessions.splice(index, 1);
         }
 
-        return requisitions.execute("refreshSessions", this.openSessions);
+        return requisitions.execute("proxyRequest", {
+            provider: this,
+            original: {
+                requestType: "refreshSessions",
+                parameter: this.openSessions,
+            },
+        });
     };
 
     protected handleDispose(): void {
         super.handleDispose();
 
         this.openSessions = [];
-        void requisitions.execute("refreshSessions", []);
+
+        void requisitions.execute("proxyRequest", {
+            provider: this,
+            original: {
+                requestType: "refreshSessions",
+                parameter: [],
+            },
+        });
     }
 }

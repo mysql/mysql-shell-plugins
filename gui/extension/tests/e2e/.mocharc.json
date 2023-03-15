@@ -1,5 +1,5 @@
 {
-  "timeout": 140000,
+  "timeout": 200000,
   "reporter": "mochawesome",
   "reporterOptions": {
     "showSkipped": true,

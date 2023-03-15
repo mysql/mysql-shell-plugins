@@ -104,30 +104,6 @@ try {
         writeMsg "SKIPPED. Not found"
     }
 
-    if ($env:TEST_SUITE -eq "oci"){
-        # LOAD THE OCI LIBRARY ON EXTENSION (PREVENT OCI TESTS TO TAKE TOO LONG TO RUN AND FAIL DUE TO TIMEOUTS)
-        $loaded = $false
-        $extensionsPath = Join-Path $env:userprofile "test-resources-oci" "ext"
-        writeMsg "Extension OCI patch: $extensionsPath"
-        Get-ChildItem -Path $extensionsPath | % {
-            if ( ($_.Name -like "*mysql-shell-for-vs-code*") ){
-                $mysqlsh = Join-Path $_ "shell" "bin" "mysqlsh"
-                writeMsg "Importing OCI Library using shell: $mysqlsh ..." "-NoNewLine"
-                $prc = Start-Process -FilePath $mysqlsh -ArgumentList "--py", "-e", "`"import oci`"" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\oci.log" -RedirectStandardError "$env:WORKSPACE\ociErr.log"
-                if ($prc.ExitCode -ne 0){
-                    Throw "Error importing OCI Library"
-                }
-                else{
-                    $loaded = $true
-                    writeMsg "DONE"
-                }
-            }
-        }
-        if ($loaded -eq $false){
-            Throw "OCI Library not loaded. Maybe the extension folder was not found."
-        }
-    }
-
     # EXECUTE TESTS
     writeMsg "Executing GUI tests for $env:TEST_SUITE suite..."
     $prcExecTests = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests", "--", "-s $testResources", "-e $extPath", "-f", "./output/tests/ui-$env:TEST_SUITE.js" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\resultsExt-$env:TEST_SUITE.log" -RedirectStandardError "$env:WORKSPACE\resultsExtErr-$env:TEST_SUITE.log"

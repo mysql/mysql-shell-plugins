@@ -22,6 +22,7 @@
  */
 
 import { mount } from "enzyme";
+import { EntityType } from "../../../../modules/db-editor";
 
 import { DocumentDropdownItem } from "../../../../modules/db-editor/DocumentDropdownItem";
 
@@ -29,7 +30,7 @@ describe("DocumentDropDownItem tests", (): void => {
 
     it("Standard initialization", () => {
         const component = mount<DocumentDropdownItem>(
-            <DocumentDropdownItem page="page1" />,
+            <DocumentDropdownItem page="page1" type={EntityType.Notebook} />,
         );
         expect(component).toMatchSnapshot();
 

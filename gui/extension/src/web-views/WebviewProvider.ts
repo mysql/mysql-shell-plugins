@@ -21,10 +21,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { commands, ViewColumn, WebviewPanel, window, workspace } from "vscode";
+import * as path from "path";
+
+import { commands, Uri, ViewColumn, WebviewPanel, window, workspace } from "vscode";
 
 import {
-    IRequestTypeMap, IRequisitionCallbackValues, RequisitionHub, requisitions,
+    IRequestTypeMap, IRequisitionCallbackValues, IWebviewProvider, RequisitionHub, requisitions,
 } from "../../../frontend/src/supplement/Requisitions";
 
 import { IEmbeddedMessage } from "../../../frontend/src/communication";
@@ -35,8 +37,8 @@ import { printChannelOutput } from "../extension";
 type WebviewDisposeHandler = (view: WebviewProvider) => void;
 type WebviewChangeStateHandler = (view: WebviewProvider, active: boolean) => void;
 
-// The base class for our web view providers.
-export class WebviewProvider {
+/** The base class for our web view providers. */
+export class WebviewProvider implements IWebviewProvider {
     protected panel?: WebviewPanel;
     protected requisitions?: RequisitionHub;
 
@@ -44,6 +46,7 @@ export class WebviewProvider {
 
     public constructor(
         protected url: URL,
+        public caption: string,
         protected onDispose: WebviewDisposeHandler,
         protected onStateChange?: WebviewChangeStateHandler) {
     }
@@ -61,39 +64,36 @@ export class WebviewProvider {
      *
      * @param requestType The type of the request to be sent.
      * @param parameter The data for the request.
-     * @param caption A caption for the webview tab.
      * @param settingName For positioning in VS Code, if a new webview must be opened.
      *
      * @returns A promise that resolves when the panel is up and running.
      */
     public runCommand<K extends keyof IRequestTypeMap>(requestType: K, parameter: IRequisitionCallbackValues<K>,
-        caption: string, settingName = ""): Promise<boolean> {
+        settingName = ""): Promise<boolean> {
         return this.runInPanel(() => {
             this.requisitions?.executeRemote(requestType, parameter);
 
             return Promise.resolve(true);
-        }, caption, settingName);
+        }, settingName);
     }
 
     /**
      * Runs a block of code in this web view. If the web view panel doesn't exist, it will be created first.
      *
      * @param block The block to execute.
-     * @param caption The caption of the web view panel, in case it must be created first. If not specified and there's
-     *                no webview panel yet, no panel will be created and the execution will not happen.
      * @param settingName The name of the setting which determines where to place the tab in case it must be created
      *                    by this method.
      * @returns A promise which resolves after the block was executed.
      */
-    protected runInPanel(block: () => Promise<boolean>, caption?: string, settingName?: string): Promise<boolean> {
+    protected runInPanel(block: () => Promise<boolean>, settingName?: string): Promise<boolean> {
         const placement =
             settingName ? workspace.getConfiguration("msg.tabPosition").get<string>(settingName) : undefined;
 
         return new Promise((resolve, reject) => {
             if (!this.panel) {
                 // Create the panel only if a caption is given. Otherwise the block is not executed at all.
-                if (caption) {
-                    this.createPanel(caption, placement).then(() => {
+                if (this.caption) {
+                    this.createPanel(placement).then(() => {
                         block().then(() => {
                             resolve(true);
                         }).catch((reason) => {
@@ -106,11 +106,6 @@ export class WebviewProvider {
                     resolve(false);
                 }
             } else {
-                if (caption) {
-                    // Keep the current title if no new caption is given.
-                    this.panel.title = caption;
-                }
-
                 this.panel.reveal();
                 block().then(() => {
                     resolve(true);
@@ -121,19 +116,23 @@ export class WebviewProvider {
         });
     }
 
-    protected createPanel(caption: string, placement?: string): Promise<boolean> {
+    protected createPanel(placement?: string): Promise<boolean> {
         return new Promise((resolve) => {
             void this.prepareEditorGroup(placement).then((viewColumn) => {
                 this.panel = window.createWebviewPanel(
                     "msg-webview",
-                    caption,
-                    viewColumn,
+                    this.caption,
+                    { viewColumn, preserveFocus: true },
                     {
                         enableScripts: true,
                         retainContextWhenHidden: true,
                     });
 
                 this.panel.onDidDispose(() => { this.handleDispose(); });
+                this.panel.iconPath = {
+                    dark: Uri.file(path.join(__dirname, "..", "images", "dark", "mysql.svg")),
+                    light: Uri.file(path.join(__dirname, "..", "images", "light", "mysql.svg")),
+                };
 
                 this.requisitions = new RequisitionHub("host", this.panel.webview);
                 this.requisitions.register("applicationDidStart", (): Promise<boolean> => {
@@ -142,8 +141,6 @@ export class WebviewProvider {
 
                     return Promise.resolve(true);
                 });
-
-                this.requisitions.register("settingsChanged", this.updateVscodeSettings);
 
                 this.requisitionsCreated();
 
@@ -301,7 +298,7 @@ export class WebviewProvider {
   </script>
 </head>
 <body style="margin:0px;padding:0px;overflow:hidden;">
-<iframe id="frame:${caption}" onload="hideWaitForContentDiv()"
+<iframe id="frame:${this.caption}" onload="hideWaitForContentDiv()"
     src="${this.url.toString()}"
     frameborder="0" style="overflow: hidden; overflow-x: hidden; overflow-y: hidden; height:100%;
     width:100%; position: absolute; top: 0px; left: 0px; right: 0px; bottom: 0px" height="100%"
@@ -325,7 +322,7 @@ export class WebviewProvider {
     window.addEventListener('message', (event) => {
         if (!frame) {
             vscode = acquireVsCodeApi();
-            frame = document.getElementById("frame:${caption}");
+            frame = document.getElementById("frame:${this.caption}");
 
             // Listen to style changes on the outer iframe.
             const sendThemeMessage = () => {
@@ -395,32 +392,30 @@ export class WebviewProvider {
 
     protected requisitionsCreated(): void {
         if (this.requisitions) {
+            this.requisitions.register("settingsChanged", this.updateVscodeSettings);
             this.requisitions.register("selectConnectionTab", this.selectConnectionTab);
             this.requisitions.register("dialogResponse", this.dialogResponse);
         }
     }
 
     private selectConnectionTab = (page: string): Promise<boolean> => {
-        // The app just opened or activated a new tab. We have to update the webview caption.
+        // The app just opened or activated a new tab.
         if (this.panel && page) {
-            this.panel.title = page;
-
-            return Promise.resolve(true);
+            return requisitions.execute("proxyRequest", {
+                provider: this,
+                original: { requestType: "selectConnectionTab", parameter: undefined },
+            });
         }
 
         return Promise.resolve(false);
     };
 
     private dialogResponse = (response: IDialogResponse): Promise<boolean> => {
-        if (!response.data) {
-            response.data = { view: this };
-        } else {
-            response.data.view = this;
-        }
-
-        // Forward to global requisitions.
-        // TODO: better let handlers subscribe to the internal requisitions.
-        return requisitions.execute("dialogResponse", response);
+        // Proxy the notification over the global requisitions.
+        return requisitions.execute("proxyRequest", {
+            provider: this,
+            original: { requestType: "dialogResponse", parameter: response },
+        });
     };
 
     private updateVscodeSettings = (entry?: { key: string; value: unknown; }): Promise<boolean> => {

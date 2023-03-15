@@ -82,11 +82,15 @@ export interface IOpenEditorState extends IEntityBase {
 export interface IDBConnectionTabPersistentState {
     backend: ShellInterfaceSqlEditor;
 
+    connectionId: number;
+
     // Informations about the connected backend (where supported).
     serverVersion: number;
     serverEdition: string;
     sqlMode: string;
     heatWaveEnabled: boolean;
+
+    dbType: DBType;
 
     editors: IOpenEditorState[];
     scripts: IDBDataEntry[];
@@ -101,6 +105,27 @@ export interface IDBConnectionTabPersistentState {
 
     /** Cached data/settings for the performance dashboard. */
     graphData: ISavedGraphData;
+}
+
+/** Selecting an item requires different data, depending on the type of the item. */
+export interface ISelectItemDetails {
+    /** The item's unique id. */
+    itemId: string,
+
+    /** The id of this connection tab. */
+    tabId: string,
+
+    /** The type of the item. */
+    type: EntityType,
+
+    /** For external/broken out scripts only: their language. */
+    language?: EditorLanguage,
+
+    /** For external/broken out scripts only: the script's name. */
+    caption?: string,
+
+    /** For external/broken out scripts only: the script's content. */
+    content?: string;
 }
 
 interface IDBConnectionTabProperties extends IComponentProperties {
@@ -119,7 +144,7 @@ interface IDBConnectionTabProperties extends IComponentProperties {
 
     onAddEditor?: (id: string) => string | undefined;
     onRemoveEditor?: (id: string, editorId: string) => void;
-    onSelectItem?: (id: string, editorId: string, language?: EditorLanguage, name?: string, content?: string) => void;
+    onSelectItem?: (details: ISelectItemDetails) => void;
     onEditorRename?: (id: string, editorId: string, newCaption: string) => void;
 
     // Sent when the content of a standalone editor changed (typing, pasting, undo/redo etc.).
@@ -494,8 +519,8 @@ Execute \\help or \\? for help;`;
         return true;
     };
 
-    private showPageSection = (type: EntityType): Promise<boolean> => {
-        this.handleSelectItem("", type);
+    private showPageSection = (details: { id: string, type: EntityType; }): Promise<boolean> => {
+        this.handleSelectItem(details.id, details.type);
 
         return Promise.resolve(true);
     };
@@ -503,7 +528,14 @@ Execute \\help or \\? for help;`;
     private editorEditScript = (details: IScriptRequest): Promise<boolean> => {
         const { id, onSelectItem } = this.props;
 
-        onSelectItem?.(id ?? "", details.scriptId, details.language, details.name, details.content);
+        onSelectItem?.({
+            tabId: id ?? "",
+            itemId: details.scriptId,
+            type: EntityType.Script,
+            language: details.language,
+            caption: details.name,
+            content: details.content,
+        });
 
         return Promise.resolve(true);
     };
@@ -1340,33 +1372,10 @@ Execute \\help or \\? for help;`;
         }
     };
 
-    private handleSelectItem = (itemId: string, type: EntityType): void => {
+    private handleSelectItem = (itemId: string, type: EntityType, caption?: string): void => {
         const { id = "", onSelectItem } = this.props;
 
-        let name: string | undefined;
-        switch (type) {
-            case EntityType.Connections: {
-                name = "clientConnections";
-                itemId = `${id}-${EntityType.Connections}`;
-                break;
-            }
-
-            case EntityType.Status: {
-                name = "serverStatus";
-                itemId = `${id}-${EntityType.Status}`;
-                break;
-            }
-
-            case EntityType.Dashboard: {
-                name = "performanceDashboard";
-                itemId = `${id}-${EntityType.Dashboard}`;
-                break;
-            }
-
-            default:
-        }
-
-        onSelectItem?.(id, itemId, undefined, name);
+        onSelectItem?.({ itemId, tabId: id, type, caption });
     };
 
     private handleCloseEditor = (editorId: string): void => {

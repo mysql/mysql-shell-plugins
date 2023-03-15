@@ -69,6 +69,7 @@ import { SchemaViewTreeItem } from "./SchemaViewTreeItem";
 import { MrsAuthAppTreeItem } from "./MrsAuthAppTreeItem";
 import { MrsUserTreeItem } from "./MrsUserTreeItem";
 import { MrsRouterTreeItem } from "./MrsRouterTreeItem";
+import { uuid } from "../../../../frontend/src/utilities/helpers";
 
 export interface IConnectionEntry {
     id: string;
@@ -173,19 +174,20 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
             const serverStatusCommand = {
                 title: "Show Server Status",
                 command: "msg.showServerStatus",
-                arguments: ["Server Status", element.entry.details.id],
+                // The first argument is undefined to show the page on the currently selected connection.
+                arguments: [undefined, element.entry.details.id, uuid()],
             };
 
             const clientConnectionsCommand = {
                 title: "Show Client Connections",
                 command: "msg.showClientConnections",
-                arguments: ["Client Connections", element.entry.details.id],
+                arguments: [undefined, element.entry.details.id, uuid()],
             };
 
             const performanceDashboardCommand = {
                 title: "Show Performance Dashboard",
                 command: "msg.showPerformanceDashboard",
-                arguments: ["Performance Dashboard", element.entry.details.id],
+                arguments: [undefined, element.entry.details.id, uuid()],
             };
 
             return [
@@ -278,7 +280,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
             i = i.entry.mrsTreeItem;
         }
 
-        if (i instanceof MrsTreeItem && this.expandedMrsTreeItems.indexOf(i) === -1 ) {
+        if (i instanceof MrsTreeItem && this.expandedMrsTreeItems.indexOf(i) === -1) {
             this.expandedMrsTreeItems.push(i);
         }
     };

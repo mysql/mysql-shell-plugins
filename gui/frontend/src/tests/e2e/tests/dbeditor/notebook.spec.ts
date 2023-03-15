@@ -984,16 +984,16 @@ describe("Notebook", () => {
                 await driver
                     .findElement(By.css("#documentSelector img"))
                     .getAttribute("src"),
-            ).toContain("shell");
+            ).toContain("notebook");
 
             await driver
                 .findElement(By.id("contentHost"))
                 .findElement(By.css("textarea"))
                 .sendKeys("select actor from actor");
 
-            await DBConnection.selectCurrentEditor("DB Notebook", "shell");
+            await DBConnection.selectCurrentEditor("DB Notebook", "notebook");
 
-            await DBConnection.selectCurrentEditor("myNewConsole", "shell");
+            await DBConnection.selectCurrentEditor("myNewConsole", "notebook");
 
             const console = await DBConnection.getOpenEditor("myNewConsole");
 
