@@ -122,12 +122,14 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
 
     public constructor() {
         requisitions.register("proxyRequest", this.proxyRequest);
+        requisitions.register("editorSaved", this.editorSaved);
 
         this.#connectionOverview = this.createOverviewItems(null);
     }
 
     public dispose(): void {
         requisitions.unregister("proxyRequest", this.proxyRequest);
+        requisitions.unregister("editorSaved", this.editorSaved);
     }
 
     public clear(provider?: IWebviewProvider): void {
@@ -281,7 +283,8 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
                     editors: [],
 
                     parent: entry,
-                    treeItem: new EditorConnectionTreeItem(details.connectionCaption, details.dbType),
+                    treeItem: new EditorConnectionTreeItem(details.connectionCaption, details.dbType,
+                        details.connectionId),
                 };
 
                 connection.editors.push({
@@ -351,6 +354,15 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
         return connectionOverview;
     };
 
+    /**
+     * Requests sent from one of the providers.
+     *
+     * @param request The request to handle.
+     * @param request.provider The provider that sent the request.
+     * @param request.original The original request.
+     *
+     * @returns A promise that resolves to true if the request was handled.
+     */
     private proxyRequest = (request: {
         provider: IWebviewProvider;
         original: IRequestListEntry<keyof IRequestTypeMap>;
@@ -459,6 +471,24 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
         }
 
         this.#changeEvent.fire(undefined);
+
+        return Promise.resolve(true);
+    };
+
+    private editorSaved = (details: { id: string, newName: string, saved: boolean; }): Promise<boolean> => {
+        // There's no information about which provider sent the request so we have to search for the
+        // scriptId in all providers.
+        for (const entry of this.#openConnections.values()) {
+            for (const connection of entry.connections) {
+                for (const editor of connection.editors) {
+                    if (editor.id === details.id) {
+                        editor.caption = details.newName;
+                        editor.treeItem.label = details.newName;
+                        this.#changeEvent.fire(editor);
+                    }
+                }
+            }
+        }
 
         return Promise.resolve(true);
     };

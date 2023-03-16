@@ -522,9 +522,16 @@ export class DBConnection {
 
         for (const item of dropDownItems) {
             const name = await item.findElement(By.css("label")).getText();
-            const type = await item
-                .findElement(By.css("img"))
-                .getAttribute("src");
+            const el = await item.findElements(By.css("img"));
+
+            let type = "";
+
+            if (el.length > 0) {
+                type = await el[0].getAttribute("src");
+            } else {
+                type = await item.findElement(By.css("span")).getAttribute("style");
+            }
+
             if (name === editorName) {
                 if (type.indexOf(editorType) !== -1) {
                     await driver.wait(async () => {

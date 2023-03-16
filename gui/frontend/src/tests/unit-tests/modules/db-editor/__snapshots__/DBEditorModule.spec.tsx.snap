@@ -26,7 +26,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
             <span
               class="msg icon"
               data-tooltip="inherit"
-              style="mask-image: url(connections.svg);"
+              style="mask-image: url(overviewPage.svg);"
             />
             <label
               class="msg label"
@@ -103,7 +103,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
               <span
                 class="msg icon"
                 data-tooltip="inherit"
-                style="mask-image: url(connections.svg);"
+                style="mask-image: url(overviewPage.svg);"
               />
               <label
                 class="msg label"
@@ -167,7 +167,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
               id="progressMessageId"
             />
           </p>,
-          "icon": "connections.svg",
+          "icon": "overviewPage.svg",
           "id": "progress",
         },
       ]
@@ -203,7 +203,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
                 <span
                   class="msg icon"
                   data-tooltip="inherit"
-                  style="mask-image: url(connections.svg);"
+                  style="mask-image: url(overviewPage.svg);"
                 />
                 <label
                   class="msg label"
@@ -282,7 +282,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
                 "auxillary": undefined,
                 "canReorder": true,
                 "caption": "Open Connection",
-                "icon": "connections.svg",
+                "icon": "overviewPage.svg",
                 "id": "progress",
                 "tooltip": undefined,
               },
@@ -316,7 +316,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
                     <span
                       class="msg icon"
                       data-tooltip="inherit"
-                      style="mask-image: url(connections.svg);"
+                      style="mask-image: url(overviewPage.svg);"
                     />
                     <label
                       class="msg label"
@@ -409,7 +409,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
                 disabled={false}
                 draggable={true}
                 id="progress"
-                image="connections.svg"
+                image="overviewPage.svg"
                 innerRef={
                   {
                     "current": <div
@@ -421,7 +421,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
                       <span
                         class="msg icon"
                         data-tooltip="inherit"
-                        style="mask-image: url(connections.svg);"
+                        style="mask-image: url(overviewPage.svg);"
                       />
                       <label
                         class="msg label"
@@ -455,7 +455,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
                         <span
                           class="msg icon"
                           data-tooltip="inherit"
-                          style="mask-image: url(connections.svg);"
+                          style="mask-image: url(overviewPage.svg);"
                         />
                         <label
                           class="msg label"
@@ -497,17 +497,17 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
                     <Icon
                       data-tooltip="inherit"
                       disabled={false}
-                      src="connections.svg"
+                      src="overviewPage.svg"
                     >
                       <span
                         className="msg icon"
                         data-tooltip="inherit"
                         style={
                           {
-                            "WebkitMaskImage": "url(connections.svg)",
+                            "WebkitMaskImage": "url(overviewPage.svg)",
                             "backgroundColor": undefined,
                             "height": undefined,
-                            "maskImage": "url(connections.svg)",
+                            "maskImage": "url(overviewPage.svg)",
                             "width": undefined,
                           }
                         }

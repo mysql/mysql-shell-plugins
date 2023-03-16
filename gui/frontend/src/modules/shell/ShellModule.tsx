@@ -22,7 +22,7 @@
  */
 
 import shellIcon from "../../assets/images/modules/module-shell.svg";
-import sessionIcon from "../../assets/images/file-icons/shell.svg";
+import sessionIcon from "../../assets/images/terminal.svg";
 import closeButton from "../../assets/images/close2.svg";
 
 import { ComponentChild, RefObject } from "preact";

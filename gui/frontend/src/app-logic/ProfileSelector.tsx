@@ -30,7 +30,7 @@ import editIcon from "../assets/images/edit.svg";
 import deleteIcon from "../assets/images/close2.svg";
 import addIcon from "../assets/images/add.svg";
 import defaultIcon from "../assets/images/chevron-right.svg";
-import currentIcon from "../assets/images/connections.svg";
+import currentIcon from "../assets/images/overviewPage.svg";
 
 import { webSession } from "../supplement/WebSession";
 import { requisitions } from "../supplement/Requisitions";

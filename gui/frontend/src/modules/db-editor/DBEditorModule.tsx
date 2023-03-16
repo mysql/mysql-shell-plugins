@@ -24,18 +24,19 @@
 import defaultIcon from "../../assets/images/file-icons/default.svg";
 
 import moduleIcon from "../../assets/images/modules/module-sql.svg";
+import connectionIconMySQL from "../../assets/images/connectionMysql.svg";
+import connectionIconSQLite from "../../assets/images/connectionSqlite.svg";
 import scriptingIcon from "../../assets/images/scripting.svg";
-import connectionsIcon from "../../assets/images/connections.svg";
+import overviewPageIcon from "../../assets/images/overviewPage.svg";
 import closeIcon from "../../assets/images/close2.svg";
 import saveIcon from "../../assets/images/toolbar/toolbar-save.svg";
 
 import newIcon from "../../assets/images/toolbar/toolbar-new-file-selector.svg";
-import javascriptIcon from "../../assets/images/file-icons/javascript.svg";
-import sqliteIcon from "../../assets/images/file-icons/sqlite.svg";
-import mysqlIcon from "../../assets/images/file-icons/mysql.svg";
-import typescriptIcon from "../../assets/images/file-icons/typescript.svg";
-import notebookMySQLIcon from "../../assets/images/notebookMysql.svg";
-import notebookSQLiteIcon from "../../assets/images/notebookSqlite.svg";
+import javascriptIcon from "../../assets/images/file-icons/scriptJs.svg";
+import sqliteIcon from "../../assets/images/file-icons/scriptSqlite.svg";
+import mysqlIcon from "../../assets/images/file-icons/scriptMysql.svg";
+import typescriptIcon from "../../assets/images/file-icons/scriptTs.svg";
+import notebookIcon from "../../assets/images/notebook.svg";
 
 import { ComponentChild, createRef, toChildArray } from "preact";
 
@@ -72,10 +73,10 @@ import { ComponentPlacement } from "../../components/ui/Component/ComponentBase"
 import { Divider } from "../../components/ui/Divider/Divider";
 import { Dropdown, IDropdownProperties } from "../../components/ui/Dropdown/Dropdown";
 import { Icon } from "../../components/ui/Icon/Icon";
+import { Image } from "../../components/ui/Image/Image";
 import { Label } from "../../components/ui/Label/Label";
 import { Menu } from "../../components/ui/Menu/Menu";
 import { Button } from "../../components/ui/Button/Button";
-import { Image } from "../../components/ui/Image/Image";
 import { MenuItem, IMenuItemProperties } from "../../components/ui/Menu/MenuItem";
 import { ProgressIndicator } from "../../components/ui/ProgressIndicator/ProgressIndicator";
 import { ITabviewPage, Tabview, TabPosition } from "../../components/ui/Tabview/Tabview";
@@ -220,7 +221,6 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         } = this.state;
 
         let sqlIcon = mysqlIcon;
-        let notebookIcon = notebookMySQLIcon;
         const showEmbeddedContent = appParameters.embedded;
 
         // Generate the main toolbar inset based on the current display mode.
@@ -231,7 +231,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     id="connections"
                     key="connections"
                     caption="DB Connections"
-                    picture={<Icon src={connectionsIcon} />}
+                    picture={<Icon src={overviewPageIcon} />}
                 />,
             ];
 
@@ -242,16 +242,14 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 const connectionState = this.connectionState.get(info.tabId)!;
 
                 // Add one entry per connection.
-                const language = info.details.dbType === DBType.MySQL ? "mysql" : "sql";
-                const icons = documentTypeToIcon.get(language);
-                const icon = icons ? icons[info.details.dbType] : defaultIcon;
+                const iconName = info.details.dbType === DBType.MySQL ? connectionIconMySQL : connectionIconSQLite;
 
                 items.push(
                     <Dropdown.Item
                         id={info.tabId}
                         key={info.tabId}
                         caption={info.caption}
-                        picture={<Icon src={icon} />}
+                        picture={<Icon src={iconName} />}
                     />,
                 );
 
@@ -260,9 +258,12 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     let picture;
                     if (entry.state) {
                         const language = entry.state.model.getLanguageId() as EditorLanguage;
-                        const icons = documentTypeToIcon.get(language);
-                        const icon = icons ? icons[info.details.dbType] : defaultIcon;
-                        picture = <Image src={icon} />;
+                        const iconName = documentTypeToIcon.get(language);
+                        if (language === "msg") {
+                            picture = <Icon src={iconName ?? defaultIcon} width="20px" height="20px" />;
+                        } else {
+                            picture = <Image src={iconName ?? defaultIcon} />;
+                        }
                     } else {
                         const name = pageTypeToIcon.get(entry.type) || defaultIcon;
                         picture = <Icon src={name} width="20px" height="20px" />;
@@ -289,7 +290,6 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
                         if (info.details.dbType === DBType.Sqlite) {
                             sqlIcon = sqliteIcon;
-                            notebookIcon = notebookSQLiteIcon;
                         }
                     }
                 });
@@ -360,7 +360,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             </>;
 
             pages.push({
-                icon: connectionsIcon,
+                icon: overviewPageIcon,
                 caption: "Open Connection",
                 id: "progress",
                 content,
@@ -377,7 +377,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             />);
 
             pages.push({
-                icon: connectionsIcon,
+                icon: overviewPageIcon,
                 caption: "Connection Overview",
                 id: "connections",
                 content,
@@ -404,9 +404,12 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                                     let picture;
                                     if (entry.state) {
                                         const language = entry.state.model.getLanguageId() as EditorLanguage;
-                                        const icons = documentTypeToIcon.get(language);
-                                        const icon = icons ? icons[info.details.dbType] : defaultIcon;
-                                        picture = <Image src={icon} />;
+                                        const iconName = documentTypeToIcon.get(language);
+                                        if (language === "msg") {
+                                            picture = <Icon src={iconName ?? defaultIcon} width="20px" height="20px" />;
+                                        } else {
+                                            picture = <Image src={iconName ?? defaultIcon} />;
+                                        }
                                     } else {
                                         const name = pageTypeToIcon.get(entry.type) || defaultIcon;
                                         picture = <Icon src={name} width="20px" height="20px" />;
@@ -1118,7 +1121,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         }
     };
 
-    private editorSaved = (details: { id: string, saved: boolean; }): Promise<boolean> => {
+    private editorSaved = (details: { id: string, newName: string, saved: boolean; }): Promise<boolean> => {
         const { dirtyEditors } = this.state;
 
         if (dirtyEditors.has(details.id)) {

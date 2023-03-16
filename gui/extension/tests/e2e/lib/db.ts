@@ -531,11 +531,18 @@ export class Database {
 
     public static getCurrentEditorType = async (): Promise<string> => {
         const selector = await driver.findElement(By.id("documentSelector"));
-        const img = await selector.findElement(By.css("img"));
-        const imgSrc = await img.getAttribute("src");
-        const srcPath = basename(imgSrc);
+        const img = await selector.findElements(By.css("img"));
+        if (img.length > 0) {
+            const imgSrc = await img[0].getAttribute("src");
+            const srcPath = basename(imgSrc);
 
-        return srcPath.split(".")[0];
+            return srcPath.split(".")[0];
+        } else {
+            const span = await selector.findElement(By.css("span"));
+
+            return span.getAttribute("style");
+        }
+
     };
 
     public static getCurrentEditor = async (): Promise<string> => {

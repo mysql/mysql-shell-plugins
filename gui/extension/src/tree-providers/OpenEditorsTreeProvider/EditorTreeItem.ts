@@ -26,13 +26,12 @@ import * as path from "path";
 import { Command, TreeItem, TreeItemCollapsibleState } from "vscode";
 import { EntityType } from "../../../../frontend/src/modules/db-editor";
 import { IEditorOpenChangeData } from "../../../../frontend/src/supplement/Requisitions";
-import { DBType } from "../../../../frontend/src/supplement/ShellInterface";
 
 export class EditorTreeItem extends TreeItem {
     public contextValue = "editorItem";
 
-    static readonly #iconMap = new Map<EntityType, string>([
-        [EntityType.Notebook, "shell"],
+    static readonly #entityIconMap = new Map<EntityType, string>([
+        [EntityType.Notebook, "terminal"],
         [EntityType.Script, "script"],
         [EntityType.Folder, "folder"],
         [EntityType.Status, "adminServerStatus"],
@@ -46,19 +45,51 @@ export class EditorTreeItem extends TreeItem {
 
         if (data.editorType === EntityType.Script || data.editorType === EntityType.Notebook) {
             if (data.language === "msg") {
-                const icon = data.dbType === DBType.MySQL ? "notebookMysql" : "notebookSqlite";
                 this.iconPath = {
-                    light: path.join(__dirname, "..", "images", "light", icon + ".svg"),
-                    dark: path.join(__dirname, "..", "images", "dark", icon + ".svg"),
+                    light: path.join(__dirname, "..", "images", "light", "notebook.svg"),
+                    dark: path.join(__dirname, "..", "images", "dark", "notebook.svg"),
                 };
             } else {
+                let name;
+                switch (data.language) {
+                    case "sql": {
+                        name = "scriptSqlite";
+                        break;
+                    }
+
+                    case "mysql": {
+                        name = "scriptMysql";
+                        break;
+                    }
+
+                    case "javascript": {
+                        name = "scriptJs";
+                        break;
+                    }
+
+                    case "typescript": {
+                        name = "scriptTs";
+                        break;
+                    }
+
+                    case "python": {
+                        name = "scriptPy";
+                        break;
+                    }
+
+                    default: {
+                        name = "default";
+                        break;
+                    }
+                }
+
                 this.iconPath = {
-                    light: path.join(__dirname, "..", "images", "file-icons", data.language + ".svg"),
-                    dark: path.join(__dirname, "..", "images", "file-icons", data.language + ".svg"),
+                    light: path.join(__dirname, "..", "images", "light", "file-icons", name + ".svg"),
+                    dark: path.join(__dirname, "..", "images", "dark", "file-icons", name + ".svg"),
                 };
             }
         } else {
-            const icon = EditorTreeItem.#iconMap.get(data.editorType) ?? "default";
+            const icon = EditorTreeItem.#entityIconMap.get(data.editorType) ?? "default";
             this.iconPath = {
                 light: path.join(__dirname, "..", "images", "light", icon + ".svg"),
                 dark: path.join(__dirname, "..", "images", "dark", icon + ".svg"),

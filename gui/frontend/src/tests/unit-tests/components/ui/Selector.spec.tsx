@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import connection from "../../../../assets/images/connections.svg";
+import overviewPageIcon from "../../../../assets/images/overviewPage.svg";
 
 import { mount, shallow } from "enzyme";
 
@@ -33,16 +33,16 @@ import { Selector } from "../../../../components/ui/Selector/Selector";
 describe("Selector component tests", (): void => {
 
     const itemArray = [
-        { caption: "1", icon: connection },
-        { caption: "2", icon: connection },
-        { caption: "3", icon: connection },
-        { caption: "4", icon: connection },
-        { caption: "5", icon: connection },
-        { caption: "6", icon: connection },
-        { caption: "7", icon: connection },
-        { caption: "8", icon: connection },
-        { caption: "9", icon: connection },
-        { caption: "10", icon: connection },
+        { caption: "1", icon: overviewPageIcon },
+        { caption: "2", icon: overviewPageIcon },
+        { caption: "3", icon: overviewPageIcon },
+        { caption: "4", icon: overviewPageIcon },
+        { caption: "5", icon: overviewPageIcon },
+        { caption: "6", icon: overviewPageIcon },
+        { caption: "7", icon: overviewPageIcon },
+        { caption: "8", icon: overviewPageIcon },
+        { caption: "9", icon: overviewPageIcon },
+        { caption: "10", icon: overviewPageIcon },
     ];
 
     it("Test Selector onSelect callback", async () => {
@@ -53,16 +53,16 @@ describe("Selector component tests", (): void => {
                 smoothScroll={true}
                 onSelect={jest.fn()}
                 items={[
-                    { caption: "1", icon: connection },
-                    { caption: "2", icon: connection },
-                    { caption: "3", icon: connection },
-                    { caption: "4", icon: connection },
-                    { caption: "5", icon: connection },
-                    { caption: "6", icon: connection },
-                    { caption: "7", icon: connection },
-                    { caption: "8", icon: connection },
-                    { caption: "9", icon: connection },
-                    { caption: "10", icon: connection },
+                    { caption: "1", icon: overviewPageIcon },
+                    { caption: "2", icon: overviewPageIcon },
+                    { caption: "3", icon: overviewPageIcon },
+                    { caption: "4", icon: overviewPageIcon },
+                    { caption: "5", icon: overviewPageIcon },
+                    { caption: "6", icon: overviewPageIcon },
+                    { caption: "7", icon: overviewPageIcon },
+                    { caption: "8", icon: overviewPageIcon },
+                    { caption: "9", icon: overviewPageIcon },
+                    { caption: "10", icon: overviewPageIcon },
                 ]}
             />,
         );

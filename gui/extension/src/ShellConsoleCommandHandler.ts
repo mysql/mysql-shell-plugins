@@ -26,7 +26,9 @@ import { commands, ExtensionContext } from "vscode";
 import { IWebviewProvider, requisitions } from "../../frontend/src/supplement/Requisitions";
 import { IShellSessionDetails } from "../../frontend/src/supplement/ShellInterface";
 import { ConnectionTreeItem } from "./tree-providers/ConnectionsTreeProvider/ConnectionTreeItem";
-import { IShellSessionEntry } from "./tree-providers/OpenEditorsTreeProvider/OpenEditorsTreeProvider";
+import {
+    IEditorConnectionEntry, IShellSessionEntry,
+} from "./tree-providers/OpenEditorsTreeProvider/OpenEditorsTreeProvider";
 
 import { ShellConsoleViewProvider } from "./web-views/ShellConsoleViewProvider";
 
@@ -55,12 +57,23 @@ export class ShellConsoleCommandHandler {
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.newSessionUsingConnection",
-            (item: ConnectionTreeItem) => {
+            (item: ConnectionTreeItem | IEditorConnectionEntry) => {
                 const provider = this.currentProvider;
+
+                let caption;
+                let dbConnectionId;
+                if (item instanceof ConnectionTreeItem) {
+                    caption = item.entry.details.caption;
+                    dbConnectionId = item.entry.details.id;
+                } else {
+                    caption = item.caption;
+                    dbConnectionId = item.connectionId;
+                }
+
                 const details: IShellSessionDetails = {
                     sessionId: -1,
-                    caption: `Session to ${item.entry.details.caption}`,
-                    dbConnectionId: item.entry.details.id,
+                    caption: `Session to ${caption}`,
+                    dbConnectionId,
                 };
                 void provider?.openSession(details);
             }));

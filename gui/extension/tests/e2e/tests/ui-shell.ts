@@ -26,6 +26,7 @@ import {
     EditorView,
     until,
     WebElement,
+    TreeItem,
 } from "vscode-extension-tester";
 
 import { before, after, afterEach } from "mocha";
@@ -37,6 +38,7 @@ import {
     isExtPrepared,
     openEditorsTreeSection,
     openEditorsMaxLevel,
+    dbConnectionsLabel,
 } from "../lib/misc";
 
 import { IDBConnection, Database } from "../lib/db";
@@ -60,6 +62,7 @@ describe("MYSQL SHELL CONSOLES", () => {
     };
 
     let treeOpenEditorsSection: CustomTreeSection;
+    let treeDBConnections: TreeItem;
 
     before(async function () {
         try {
@@ -71,7 +74,12 @@ describe("MYSQL SHELL CONSOLES", () => {
 
             treeOpenEditorsSection = await Misc.getSection(openEditorsTreeSection);
 
+            treeDBConnections = await treeOpenEditorsSection.findItem(dbConnectionsLabel, openEditorsMaxLevel);
+
+            await Misc.selectContextMenuItem(treeDBConnections, "Open New MySQL Shell Console");
+
             await Misc.clickSectionToolbarButton(treeOpenEditorsSection, "New Shell Notebook");
+
             await Misc.switchToWebView();
             await driver.wait(Shell.isShellLoaded(), explicitWait * 3, "Shell Console was not loaded");
         } catch (e) {
@@ -112,7 +120,8 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Open multiple sessions", async () => {
 
             for (let i = 1; i <= 5; i++) {
-                await Misc.clickSectionToolbarButton(treeOpenEditorsSection, "New Shell Notebook");
+                treeDBConnections = await treeOpenEditorsSection.findItem(dbConnectionsLabel, openEditorsMaxLevel);
+                await Misc.selectContextMenuItem(treeDBConnections, "Open New MySQL Shell Console");
                 await Misc.switchToWebView();
                 await driver.wait(Shell.isShellLoaded(), explicitWait * 3, "Shell Console was not loaded");
                 await driver.switchTo().defaultContent();
@@ -143,7 +152,8 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         before(async function () {
             try {
-                await Misc.clickSectionToolbarButton(treeOpenEditorsSection, "New Shell Notebook");
+                treeDBConnections = await treeOpenEditorsSection.findItem(dbConnectionsLabel, openEditorsMaxLevel);
+                await Misc.selectContextMenuItem(treeDBConnections, "Open New MySQL Shell Console");
                 await Misc.switchToWebView();
             } catch (e) {
                 await Misc.processFailure(this);
@@ -349,7 +359,9 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         before(async function () {
             try {
-                await Misc.clickSectionToolbarButton(treeOpenEditorsSection, "New Shell Notebook");
+                treeDBConnections = await treeOpenEditorsSection.findItem(dbConnectionsLabel, openEditorsMaxLevel);
+
+                await Misc.selectContextMenuItem(treeDBConnections, "Open New MySQL Shell Console");
 
                 await Misc.switchToWebView();
 

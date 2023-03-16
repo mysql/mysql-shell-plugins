@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import connection from "../../../../assets/images/connections.svg";
+import overviewPageIcon from "../../../../assets/images/overviewPage.svg";
 
 import { mount } from "enzyme";
 
@@ -38,12 +38,12 @@ describe("Container component tests", (): void => {
                     orientation={Orientation.TopDown}
                     style={{ margin: "20px" }}
                 >
-                    <Icon src={connection} />
-                    <Icon src={connection} />
-                    <Icon src={connection} />
-                    <Icon src={connection} />
-                    <Icon src={connection} />
-                    <Icon src={connection} />
+                    <Icon src={overviewPageIcon} />
+                    <Icon src={overviewPageIcon} />
+                    <Icon src={overviewPageIcon} />
+                    <Icon src={overviewPageIcon} />
+                    <Icon src={overviewPageIcon} />
+                    <Icon src={overviewPageIcon} />
                 </Container>
                 <Container
                     orientation={Orientation.BottomUp}

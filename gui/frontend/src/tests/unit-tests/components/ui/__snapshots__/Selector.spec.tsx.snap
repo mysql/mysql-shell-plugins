@@ -9,43 +9,43 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
     [
       {
         "caption": "1",
-        "icon": "connections.svg",
+        "icon": "overviewPage.svg",
       },
       {
         "caption": "2",
-        "icon": "connections.svg",
+        "icon": "overviewPage.svg",
       },
       {
         "caption": "3",
-        "icon": "connections.svg",
+        "icon": "overviewPage.svg",
       },
       {
         "caption": "4",
-        "icon": "connections.svg",
+        "icon": "overviewPage.svg",
       },
       {
         "caption": "5",
-        "icon": "connections.svg",
+        "icon": "overviewPage.svg",
       },
       {
         "caption": "6",
-        "icon": "connections.svg",
+        "icon": "overviewPage.svg",
       },
       {
         "caption": "7",
-        "icon": "connections.svg",
+        "icon": "overviewPage.svg",
       },
       {
         "caption": "8",
-        "icon": "connections.svg",
+        "icon": "overviewPage.svg",
       },
       {
         "caption": "9",
-        "icon": "connections.svg",
+        "icon": "overviewPage.svg",
       },
       {
         "caption": "10",
-        "icon": "connections.svg",
+        "icon": "overviewPage.svg",
       },
     ]
   }
@@ -76,7 +76,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <span
               class="msg icon"
               data-tooltip="inherit"
-              style="mask-image: url(connections.svg);"
+              style="mask-image: url(overviewPage.svg);"
             />
             <label
               class="msg label"
@@ -93,7 +93,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <span
               class="msg icon"
               data-tooltip="inherit"
-              style="mask-image: url(connections.svg);"
+              style="mask-image: url(overviewPage.svg);"
             />
             <label
               class="msg label"
@@ -110,7 +110,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <span
               class="msg icon"
               data-tooltip="inherit"
-              style="mask-image: url(connections.svg);"
+              style="mask-image: url(overviewPage.svg);"
             />
             <label
               class="msg label"
@@ -127,7 +127,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <span
               class="msg icon"
               data-tooltip="inherit"
-              style="mask-image: url(connections.svg);"
+              style="mask-image: url(overviewPage.svg);"
             />
             <label
               class="msg label"
@@ -144,7 +144,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <span
               class="msg icon"
               data-tooltip="inherit"
-              style="mask-image: url(connections.svg);"
+              style="mask-image: url(overviewPage.svg);"
             />
             <label
               class="msg label"
@@ -161,7 +161,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <span
               class="msg icon"
               data-tooltip="inherit"
-              style="mask-image: url(connections.svg);"
+              style="mask-image: url(overviewPage.svg);"
             />
             <label
               class="msg label"
@@ -178,7 +178,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <span
               class="msg icon"
               data-tooltip="inherit"
-              style="mask-image: url(connections.svg);"
+              style="mask-image: url(overviewPage.svg);"
             />
             <label
               class="msg label"
@@ -195,7 +195,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <span
               class="msg icon"
               data-tooltip="inherit"
-              style="mask-image: url(connections.svg);"
+              style="mask-image: url(overviewPage.svg);"
             />
             <label
               class="msg label"
@@ -212,7 +212,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <span
               class="msg icon"
               data-tooltip="inherit"
-              style="mask-image: url(connections.svg);"
+              style="mask-image: url(overviewPage.svg);"
             />
             <label
               class="msg label"
@@ -229,7 +229,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <span
               class="msg icon"
               data-tooltip="inherit"
-              style="mask-image: url(connections.svg);"
+              style="mask-image: url(overviewPage.svg);"
             />
             <label
               class="msg label"
@@ -322,7 +322,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
         caption="1"
         disabled={false}
         id="selector1Item0"
-        image="connections.svg"
+        image="overviewPage.svg"
         key="selector1Item0"
         onClick={[Function]}
         onDrop={[Function]}
@@ -356,17 +356,17 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <Icon
               data-tooltip="inherit"
               disabled={false}
-              src="connections.svg"
+              src="overviewPage.svg"
             >
               <span
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
                   {
-                    "WebkitMaskImage": "url(connections.svg)",
+                    "WebkitMaskImage": "url(overviewPage.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(connections.svg)",
+                    "maskImage": "url(overviewPage.svg)",
                     "width": undefined,
                   }
                 }
@@ -390,7 +390,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
         caption="2"
         disabled={false}
         id="selector1Item1"
-        image="connections.svg"
+        image="overviewPage.svg"
         key="selector1Item1"
         onClick={[Function]}
         onDrop={[Function]}
@@ -424,17 +424,17 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <Icon
               data-tooltip="inherit"
               disabled={false}
-              src="connections.svg"
+              src="overviewPage.svg"
             >
               <span
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
                   {
-                    "WebkitMaskImage": "url(connections.svg)",
+                    "WebkitMaskImage": "url(overviewPage.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(connections.svg)",
+                    "maskImage": "url(overviewPage.svg)",
                     "width": undefined,
                   }
                 }
@@ -458,7 +458,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
         caption="3"
         disabled={false}
         id="selector1Item2"
-        image="connections.svg"
+        image="overviewPage.svg"
         key="selector1Item2"
         onClick={[Function]}
         onDrop={[Function]}
@@ -492,17 +492,17 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <Icon
               data-tooltip="inherit"
               disabled={false}
-              src="connections.svg"
+              src="overviewPage.svg"
             >
               <span
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
                   {
-                    "WebkitMaskImage": "url(connections.svg)",
+                    "WebkitMaskImage": "url(overviewPage.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(connections.svg)",
+                    "maskImage": "url(overviewPage.svg)",
                     "width": undefined,
                   }
                 }
@@ -526,7 +526,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
         caption="4"
         disabled={false}
         id="selector1Item3"
-        image="connections.svg"
+        image="overviewPage.svg"
         key="selector1Item3"
         onClick={[Function]}
         onDrop={[Function]}
@@ -560,17 +560,17 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <Icon
               data-tooltip="inherit"
               disabled={false}
-              src="connections.svg"
+              src="overviewPage.svg"
             >
               <span
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
                   {
-                    "WebkitMaskImage": "url(connections.svg)",
+                    "WebkitMaskImage": "url(overviewPage.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(connections.svg)",
+                    "maskImage": "url(overviewPage.svg)",
                     "width": undefined,
                   }
                 }
@@ -594,7 +594,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
         caption="5"
         disabled={false}
         id="selector1Item4"
-        image="connections.svg"
+        image="overviewPage.svg"
         key="selector1Item4"
         onClick={[Function]}
         onDrop={[Function]}
@@ -628,17 +628,17 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <Icon
               data-tooltip="inherit"
               disabled={false}
-              src="connections.svg"
+              src="overviewPage.svg"
             >
               <span
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
                   {
-                    "WebkitMaskImage": "url(connections.svg)",
+                    "WebkitMaskImage": "url(overviewPage.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(connections.svg)",
+                    "maskImage": "url(overviewPage.svg)",
                     "width": undefined,
                   }
                 }
@@ -662,7 +662,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
         caption="6"
         disabled={false}
         id="selector1Item5"
-        image="connections.svg"
+        image="overviewPage.svg"
         key="selector1Item5"
         onClick={[Function]}
         onDrop={[Function]}
@@ -696,17 +696,17 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <Icon
               data-tooltip="inherit"
               disabled={false}
-              src="connections.svg"
+              src="overviewPage.svg"
             >
               <span
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
                   {
-                    "WebkitMaskImage": "url(connections.svg)",
+                    "WebkitMaskImage": "url(overviewPage.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(connections.svg)",
+                    "maskImage": "url(overviewPage.svg)",
                     "width": undefined,
                   }
                 }
@@ -730,7 +730,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
         caption="7"
         disabled={false}
         id="selector1Item6"
-        image="connections.svg"
+        image="overviewPage.svg"
         key="selector1Item6"
         onClick={[Function]}
         onDrop={[Function]}
@@ -764,17 +764,17 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <Icon
               data-tooltip="inherit"
               disabled={false}
-              src="connections.svg"
+              src="overviewPage.svg"
             >
               <span
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
                   {
-                    "WebkitMaskImage": "url(connections.svg)",
+                    "WebkitMaskImage": "url(overviewPage.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(connections.svg)",
+                    "maskImage": "url(overviewPage.svg)",
                     "width": undefined,
                   }
                 }
@@ -798,7 +798,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
         caption="8"
         disabled={false}
         id="selector1Item7"
-        image="connections.svg"
+        image="overviewPage.svg"
         key="selector1Item7"
         onClick={[Function]}
         onDrop={[Function]}
@@ -832,17 +832,17 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <Icon
               data-tooltip="inherit"
               disabled={false}
-              src="connections.svg"
+              src="overviewPage.svg"
             >
               <span
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
                   {
-                    "WebkitMaskImage": "url(connections.svg)",
+                    "WebkitMaskImage": "url(overviewPage.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(connections.svg)",
+                    "maskImage": "url(overviewPage.svg)",
                     "width": undefined,
                   }
                 }
@@ -866,7 +866,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
         caption="9"
         disabled={false}
         id="selector1Item8"
-        image="connections.svg"
+        image="overviewPage.svg"
         key="selector1Item8"
         onClick={[Function]}
         onDrop={[Function]}
@@ -900,17 +900,17 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <Icon
               data-tooltip="inherit"
               disabled={false}
-              src="connections.svg"
+              src="overviewPage.svg"
             >
               <span
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
                   {
-                    "WebkitMaskImage": "url(connections.svg)",
+                    "WebkitMaskImage": "url(overviewPage.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(connections.svg)",
+                    "maskImage": "url(overviewPage.svg)",
                     "width": undefined,
                   }
                 }
@@ -934,7 +934,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
         caption="10"
         disabled={false}
         id="selector1Item9"
-        image="connections.svg"
+        image="overviewPage.svg"
         key="selector1Item9"
         onClick={[Function]}
         onDrop={[Function]}
@@ -968,17 +968,17 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <Icon
               data-tooltip="inherit"
               disabled={false}
-              src="connections.svg"
+              src="overviewPage.svg"
             >
               <span
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
                   {
-                    "WebkitMaskImage": "url(connections.svg)",
+                    "WebkitMaskImage": "url(overviewPage.svg)",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(connections.svg)",
+                    "maskImage": "url(overviewPage.svg)",
                     "width": undefined,
                   }
                 }

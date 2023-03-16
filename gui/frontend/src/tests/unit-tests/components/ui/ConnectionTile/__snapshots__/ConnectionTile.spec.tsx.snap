@@ -14,7 +14,7 @@ exports[`ConnectionTile component tests Test ConnectionTile output (Snapshot) 1`
       "options": {},
     }
   }
-  icon="mysql.svg"
+  icon="scriptMysql.svg"
   id="tile1"
   tileId={1}
   type={0}
@@ -50,16 +50,16 @@ exports[`ConnectionTile component tests Test ConnectionTile output (Snapshot) 1`
     >
       <Icon
         disabled={false}
-        src="mysql.svg"
+        src="scriptMysql.svg"
       >
         <span
           className="msg icon"
           style={
             {
-              "WebkitMaskImage": "url(mysql.svg)",
+              "WebkitMaskImage": "url(scriptMysql.svg)",
               "backgroundColor": undefined,
               "height": undefined,
-              "maskImage": "url(mysql.svg)",
+              "maskImage": "url(scriptMysql.svg)",
               "width": undefined,
             }
           }

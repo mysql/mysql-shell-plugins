@@ -243,7 +243,7 @@ export interface IRequestTypeMap {
     "editorRunScript": (details: IScriptRequest) => Promise<boolean>;
     "editorEditScript": (details: IScriptRequest) => Promise<boolean>;
     "editorSaveScript": (details: IScriptRequest) => Promise<boolean>;
-    "editorSaved": (details: { id: string, saved: boolean; }) => Promise<boolean>;
+    "editorSaved": (details: { id: string, newName: string, saved: boolean; }) => Promise<boolean>;
     "editorRenameScript": (details: IScriptRequest) => Promise<boolean>;
     "editorValidationDone": (id: string) => Promise<boolean>;
     "editorSelectStatement": (details: { contextId: string; statementIndex: number; }) => Promise<boolean>;

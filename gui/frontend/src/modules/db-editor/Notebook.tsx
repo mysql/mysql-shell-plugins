@@ -100,6 +100,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
                 startLanguage={Settings.get("dbEditor.startLanguage", "sql") as EditorLanguage}
                 readonly={readOnly}
                 allowSoftWrap={true}
+                autoFocus={true}
                 className="scriptingConsole"
                 minimap={{
                     enabled: true,

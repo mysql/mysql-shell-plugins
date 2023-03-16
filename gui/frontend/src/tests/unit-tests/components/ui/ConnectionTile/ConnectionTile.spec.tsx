@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import mysqlIcon from "../../../../../assets/images/file-icons/mysql.svg";
+import mysqlIcon from "../../../../../assets/images/file-icons/scriptMysql.svg";
 
 import { mount } from "enzyme";
 
