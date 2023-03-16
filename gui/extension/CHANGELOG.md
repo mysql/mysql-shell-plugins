@@ -1,14 +1,18 @@
 # MySQL Shell for VS Code Change Log
 
-## Changes in 1.8.3+8.0.32
+## Changes in 1.9.0+8.0.32
 
 ### Fixes
 
-- 
+- Fixed broken auto-completion for database schemas and objects
+- Fixed various issues on MRS dialogs.
 
 ### Additions
 
-- 
+- Added new Open Editors view in sidebar that shows all open MySQL Shell editors and tabs. This view replaces the MySQL Shell Consoles view that is now included in the Open Editors view.
+- Added new Execute to Text feature that allows to copy the result as text.
+- Made output text selectable and added a Copy to Clipboard overlay icon.
+- Added menu item to delete a registered MySQL Router instance from the MRS metadata.
 
 ## Changes in 1.8.2+8.0.32
 

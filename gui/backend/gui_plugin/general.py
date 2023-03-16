@@ -22,7 +22,7 @@
 from mysqlsh.plugin_manager import plugin_function
 
 # Define plugin version
-VERSION = "1.8.3"
+VERSION = "1.9.0"
 
 @plugin_function('gui.info', shell=True, cli=True, web=True)
 def info():
