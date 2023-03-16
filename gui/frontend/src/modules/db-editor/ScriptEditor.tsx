@@ -113,6 +113,7 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
                                 enabled: true,
                             }}
                             allowSoftWrap={true}
+                            autoFocus={true}
                             font={{
                                 fontFamily: "SourceCodePro+Powerline+Awesome+MySQL",
                                 fontSize: 15,

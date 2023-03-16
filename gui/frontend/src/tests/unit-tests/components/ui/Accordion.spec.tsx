@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import imageImage from "../../../../assets/images/connections.svg";
+import overviewPageIcon from "../../../../assets/images/overviewPage.svg";
 
 import { act } from "preact/test-utils";
 import { mount } from "enzyme";
@@ -71,9 +71,9 @@ describe("Accordion component tests", (): void => {
                         ],
                         id: "second",
                         content: [
-                            <Accordion.Item id="item5" key="item5" caption="Item 5" picture={imageImage} />,
-                            <Accordion.Item id="item6" key="item6" caption="Item 6" picture={imageImage} />,
-                            <Accordion.Item id="item7" key="item7" caption="Item 7" picture={imageImage} />,
+                            <Accordion.Item id="item5" key="item5" caption="Item 5" picture={overviewPageIcon} />,
+                            <Accordion.Item id="item6" key="item6" caption="Item 6" picture={overviewPageIcon} />,
+                            <Accordion.Item id="item7" key="item7" caption="Item 7" picture={overviewPageIcon} />,
                         ],
                     },
                     {
@@ -149,9 +149,9 @@ describe("Accordion component tests", (): void => {
                         caption: "SECOND SECTION",
                         id: "second",
                         content: [
-                            <Accordion.Item id="item5" key="item5" caption="Item 5" picture={imageImage} />,
-                            <Accordion.Item id="item6" key="item6" caption="Item 6" picture={imageImage} />,
-                            <Accordion.Item id="item7" key="item7" caption="Item 7" picture={imageImage} />,
+                            <Accordion.Item id="item5" key="item5" caption="Item 5" picture={overviewPageIcon} />,
+                            <Accordion.Item id="item6" key="item6" caption="Item 6" picture={overviewPageIcon} />,
+                            <Accordion.Item id="item7" key="item7" caption="Item 7" picture={overviewPageIcon} />,
                         ],
                     },
                     {

@@ -38,16 +38,16 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
       >
         <Icon
           disabled={false}
-          src="connections.svg"
+          src="overviewPage.svg"
         >
           <span
             className="msg icon"
             style={
               {
-                "WebkitMaskImage": "url(connections.svg)",
+                "WebkitMaskImage": "url(overviewPage.svg)",
                 "backgroundColor": undefined,
                 "height": undefined,
-                "maskImage": "url(connections.svg)",
+                "maskImage": "url(overviewPage.svg)",
                 "width": undefined,
               }
             }
@@ -55,16 +55,16 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
         </Icon>
         <Icon
           disabled={false}
-          src="connections.svg"
+          src="overviewPage.svg"
         >
           <span
             className="msg icon"
             style={
               {
-                "WebkitMaskImage": "url(connections.svg)",
+                "WebkitMaskImage": "url(overviewPage.svg)",
                 "backgroundColor": undefined,
                 "height": undefined,
-                "maskImage": "url(connections.svg)",
+                "maskImage": "url(overviewPage.svg)",
                 "width": undefined,
               }
             }
@@ -72,16 +72,16 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
         </Icon>
         <Icon
           disabled={false}
-          src="connections.svg"
+          src="overviewPage.svg"
         >
           <span
             className="msg icon"
             style={
               {
-                "WebkitMaskImage": "url(connections.svg)",
+                "WebkitMaskImage": "url(overviewPage.svg)",
                 "backgroundColor": undefined,
                 "height": undefined,
-                "maskImage": "url(connections.svg)",
+                "maskImage": "url(overviewPage.svg)",
                 "width": undefined,
               }
             }
@@ -89,16 +89,16 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
         </Icon>
         <Icon
           disabled={false}
-          src="connections.svg"
+          src="overviewPage.svg"
         >
           <span
             className="msg icon"
             style={
               {
-                "WebkitMaskImage": "url(connections.svg)",
+                "WebkitMaskImage": "url(overviewPage.svg)",
                 "backgroundColor": undefined,
                 "height": undefined,
-                "maskImage": "url(connections.svg)",
+                "maskImage": "url(overviewPage.svg)",
                 "width": undefined,
               }
             }
@@ -106,16 +106,16 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
         </Icon>
         <Icon
           disabled={false}
-          src="connections.svg"
+          src="overviewPage.svg"
         >
           <span
             className="msg icon"
             style={
               {
-                "WebkitMaskImage": "url(connections.svg)",
+                "WebkitMaskImage": "url(overviewPage.svg)",
                 "backgroundColor": undefined,
                 "height": undefined,
-                "maskImage": "url(connections.svg)",
+                "maskImage": "url(overviewPage.svg)",
                 "width": undefined,
               }
             }
@@ -123,16 +123,16 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
         </Icon>
         <Icon
           disabled={false}
-          src="connections.svg"
+          src="overviewPage.svg"
         >
           <span
             className="msg icon"
             style={
               {
-                "WebkitMaskImage": "url(connections.svg)",
+                "WebkitMaskImage": "url(overviewPage.svg)",
                 "backgroundColor": undefined,
                 "height": undefined,
-                "maskImage": "url(connections.svg)",
+                "maskImage": "url(overviewPage.svg)",
                 "width": undefined,
               }
             }

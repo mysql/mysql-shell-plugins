@@ -36,7 +36,7 @@ import { MrsContentSetTreeItem } from "./tree-providers/ConnectionsTreeProvider/
 import { MrsSchemaTreeItem } from "./tree-providers/ConnectionsTreeProvider/MrsSchemaTreeItem";
 import { MrsServiceTreeItem } from "./tree-providers/ConnectionsTreeProvider/MrsServiceTreeItem";
 import { MrsTreeItem } from "./tree-providers/ConnectionsTreeProvider/MrsTreeItem";
-import { MrsRouterTreeItem }  from "./tree-providers/ConnectionsTreeProvider/MrsRouterTreeItem";
+import { MrsRouterTreeItem } from "./tree-providers/ConnectionsTreeProvider/MrsRouterTreeItem";
 import { SchemaMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaMySQLTreeItem";
 import { showMessageWithTimeout, showModalDialog } from "./utilities";
 import { openSqlEditorSessionAndConnection, openSqlEditorConnection } from "./utilitiesShellGui";
@@ -853,7 +853,7 @@ export class MRSCommandHandler {
                             if (os.platform() === "win32") {
                                 if (start) {
                                     // Fix for broken mysqlrouter_bootstrap file generation for start.ps1
-                                    const buffer = fs.readFileSync(cmd, {encoding: "utf8", flag: "r"});
+                                    const buffer = fs.readFileSync(cmd, { encoding: "utf8", flag: "r" });
                                     const regex = /"\s*-c (.*?)"/gm;
                                     const matches = Array.from(buffer.matchAll(regex), (m) => {
                                         return m[1];
@@ -861,7 +861,7 @@ export class MRSCommandHandler {
                                     if (matches.length > 0) {
                                         const newParam = `'-c "${matches[0]}"'`;
                                         const result = buffer.replace(regex, newParam);
-                                        fs.writeFileSync(cmd, result, {encoding: "utf8"});
+                                        fs.writeFileSync(cmd, result, { encoding: "utf8" });
                                     }
                                 }
 
@@ -991,7 +991,7 @@ export class MRSCommandHandler {
                     "Yes", "No");
                 if (answer === "Yes") {
                     dbObject.dbSchemaId = await backend.mrs.addSchema(service.id,
-                        item.schema, `/${item.schema}`, true, null, undefined, undefined);
+                        item.schema, `/${item.schema}`, true, null, null, undefined);
 
                     void commands.executeCommand("msg.refreshConnections");
                     showMessageWithTimeout(`The MRS schema ${item.schema} has been added successfully.`, 5000);
@@ -1095,7 +1095,7 @@ export class MRSCommandHandler {
                     });
 
                     void commands.executeCommand("msg.refreshConnections");
-                    showMessageWithTimeout("The MRS Authentication App has been updated.", 5000);
+                    showMessageWithTimeout("The MRS Authentication App has been added.", 5000);
                 } catch (error) {
                     void window.showErrorMessage(`Error while adding MySQL REST Authentication App: ${String(error)}`);
                 }
@@ -1240,7 +1240,7 @@ export class MRSCommandHandler {
                 }
 
                 void commands.executeCommand("msg.refreshConnections");
-                showMessageWithTimeout("The MRS User has been updated.", 5000);
+                showMessageWithTimeout("The MRS User has been added.", 5000);
             } catch (error) {
                 void window.showErrorMessage(`Error while adding MySQL REST User: ${String(error)}`);
             }
@@ -1490,7 +1490,7 @@ export class MRSCommandHandler {
                 const requestPath = response.data.requestPath as string;
                 const requiresAuth = response.data.requiresAuth as boolean;
                 const itemsPerPage = response.data.itemsPerPage === "" ?
-                    null : response.data.itemsPerPage as number;
+                    0 : response.data.itemsPerPage as number;
                 const comments = response.data.comments as string;
                 const enabled = response.data.enabled as boolean;
                 const options = response.data.options === "" ?

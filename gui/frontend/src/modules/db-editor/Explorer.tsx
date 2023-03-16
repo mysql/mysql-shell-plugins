@@ -52,17 +52,12 @@ import adminServerStatusIcon from "../../assets/images/adminServerStatus.svg";
 import clientConnectionsIcon from "../../assets/images/clientConnections.svg";
 
 import defaultIcon from "../../assets/images/file-icons/default.svg";
-import iniIcon from "../../assets/images/file-icons/ini.svg";
-import javascriptIcon from "../../assets/images/file-icons/javascript.svg";
-import jsonIcon from "../../assets/images/file-icons/json.svg";
-import markdownIcon from "../../assets/images/file-icons/markdown.svg";
-import mysqlIcon from "../../assets/images/file-icons/mysql.svg";
-import sqliteIcon from "../../assets/images/file-icons/sqlite.svg";
-import pythonIcon from "../../assets/images/file-icons/python.svg";
-import notebookMySQLIcon from "../../assets/images/notebookMysql.svg";
-import notebookSQLiteIcon from "../../assets/images/notebookSqlite.svg";
-import typescriptIcon from "../../assets/images/file-icons/typescript.svg";
-import xmlIcon from "../../assets/images/file-icons/xml.svg";
+import javascriptIcon from "../../assets/images/file-icons/scriptJs.svg";
+import mysqlIcon from "../../assets/images/file-icons/scriptMysql.svg";
+import sqliteIcon from "../../assets/images/file-icons/scriptSqlite.svg";
+import pythonIcon from "../../assets/images/file-icons/scriptPy.svg";
+import notebookIcon from "../../assets/images/notebook.svg";
+import typescriptIcon from "../../assets/images/file-icons/scriptTs.svg";
 
 import { ComponentChild, createRef, render } from "preact";
 import { CellComponent, ColumnDefinition, RowComponent } from "tabulator-tables";
@@ -93,17 +88,13 @@ import { ISplitterPaneSizeInfo } from "../../components/ui/SplitContainer/SplitC
 import { uuid } from "../../utilities/helpers";
 
 /** Lookup for icons for a specific document type. */
-export const documentTypeToIcon: Map<EditorLanguage, Record<DBType, string>> = new Map([
-    ["ini", { [DBType.MySQL]: iniIcon, [DBType.Sqlite]: iniIcon }],
-    ["javascript", { [DBType.MySQL]: javascriptIcon, [DBType.Sqlite]: javascriptIcon }],
-    ["json", { [DBType.MySQL]: jsonIcon, [DBType.Sqlite]: jsonIcon }],
-    ["markdown", { [DBType.MySQL]: markdownIcon, [DBType.Sqlite]: markdownIcon }],
-    ["mysql", { [DBType.MySQL]: mysqlIcon, [DBType.Sqlite]: mysqlIcon }],
-    ["sql", { [DBType.MySQL]: sqliteIcon, [DBType.Sqlite]: sqliteIcon }],
-    ["python", { [DBType.MySQL]: pythonIcon, [DBType.Sqlite]: pythonIcon }],
-    ["msg", { [DBType.MySQL]: notebookMySQLIcon, [DBType.Sqlite]: notebookSQLiteIcon }],
-    ["typescript", { [DBType.MySQL]: typescriptIcon, [DBType.Sqlite]: typescriptIcon }],
-    ["xml", { [DBType.MySQL]: xmlIcon, [DBType.Sqlite]: xmlIcon }],
+export const documentTypeToIcon: Map<EditorLanguage, string> = new Map([
+    ["javascript", javascriptIcon],
+    ["mysql", mysqlIcon],
+    ["sql", sqliteIcon],
+    ["python", pythonIcon],
+    ["msg", notebookIcon],
+    ["typescript", typescriptIcon],
 ]);
 
 /** Lookup for icons for special pages. */
@@ -856,7 +847,7 @@ export class Explorer extends ComponentBase<IExplorerProperties, IExplorerState>
             case EntityType.Script: {
                 const language = (data as IDBEditorScriptState).language;
                 const icons = documentTypeToIcon.get(language);
-                const actualIcon = icons?.MySQL;
+                const actualIcon = icons;
 
                 if (actualIcon) {
                     image = <Image src={actualIcon} width={16} height={16} />;
@@ -1180,9 +1171,11 @@ export class Explorer extends ComponentBase<IExplorerProperties, IExplorerState>
                 let icon;
                 if (entry.state) {
                     const language = entry.state.model.getLanguageId() as EditorLanguage;
-                    const icons = documentTypeToIcon.get(language);
-                    icon = icons?.MySQL ?? defaultIcon;
-
+                    icon = documentTypeToIcon.get(language) ?? defaultIcon;
+                    if (language === "msg") {
+                        // The notebook icon has no color, so we have to use an icon instead of an image.
+                        icon = <Icon src={icon} width="20px" height="20px" />;
+                    }
                 } else {
                     const name = pageTypeToIcon.get(entry.type) || defaultIcon;
                     icon = <Icon src={name} width="20px" height="20px" />;

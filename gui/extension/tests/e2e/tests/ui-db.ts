@@ -449,7 +449,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Open MySQL Shell Console for this connection", async () => {
 
-            await Misc.selectContextMenuItem(treeGlobalConn!, "Open MySQL Shell Console for this Connection");
+            await Misc.selectContextMenuItem(treeGlobalConn!, "Open New MySQL Shell Console for this Connection");
 
             await new EditorView().openEditor("MySQL Shell Consoles");
 
@@ -1775,14 +1775,14 @@ describe("DATABASE CONNECTIONS", () => {
 
             await Database.addScript("sql");
             expect(await Database.getCurrentEditor()).to.match(/Untitled-(\d+)/);
-            expect(await Database.getCurrentEditorType()).to.include("mysql");
+            expect(await Database.getCurrentEditorType()).to.include("Mysql");
 
             const result = await Database.execScript("select * from sakila.actor limit 1;");
             expect(result[0]).to.match(/OK, (\d+) record/);
 
             await driver.switchTo().defaultContent();
 
-            refItem = await Misc.getTreeScript(treeOpenEditorsSection, "Untitled-", "mysql");
+            refItem = await Misc.getTreeScript(treeOpenEditorsSection, "Untitled-", "Mysql");
 
             expect(refItem).to.exist;
 
@@ -1792,14 +1792,14 @@ describe("DATABASE CONNECTIONS", () => {
 
             await Database.addScript("ts");
             expect(await Database.getCurrentEditor()).to.match(/Untitled-(\d+)/);
-            expect(await Database.getCurrentEditorType()).to.include("typescript");
+            expect(await Database.getCurrentEditorType()).to.include("scriptTs");
 
             const result = await Database.execScript("Math.random()");
             expect(result[0]).to.match(/(\d+).(\d+)/);
 
             await driver.switchTo().defaultContent();
 
-            refItem = await Misc.getTreeScript(treeOpenEditorsSection, "Untitled-", "typescript");
+            refItem = await Misc.getTreeScript(treeOpenEditorsSection, "Untitled-", "scriptTs");
 
             expect(refItem).to.exist;
 
@@ -1809,14 +1809,14 @@ describe("DATABASE CONNECTIONS", () => {
 
             await Database.addScript("js");
             expect(await Database.getCurrentEditor()).to.match(/Untitled-(\d+)/);
-            expect(await Database.getCurrentEditorType()).to.include("javascript");
+            expect(await Database.getCurrentEditorType()).to.include("scriptJs");
 
             const result = await Database.execScript("Math.random()");
             expect(result[0]).to.match(/(\d+).(\d+)/);
 
             await driver.switchTo().defaultContent();
 
-            refItem = await Misc.getTreeScript(treeOpenEditorsSection, "Untitled-", "javascript");
+            refItem = await Misc.getTreeScript(treeOpenEditorsSection, "Untitled-", "scriptJs");
 
             expect(refItem).to.exist;
 
@@ -1954,6 +1954,8 @@ describe("DATABASE CONNECTIONS", () => {
 
     describe("Open Editors", () => {
 
+        let treeDBConnections: TreeItem;
+
         beforeEach(async function () {
 
             try {
@@ -1974,7 +1976,9 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("New Shell Notebook", async () => {
 
-            await Misc.clickSectionToolbarButton(treeOpenEditorsSection, "New Shell Notebook");
+            treeDBConnections = await treeOpenEditorsSection.findItem(dbConnectionsLabel, openEditorsMaxLevel);
+
+            await Misc.selectContextMenuItem(treeDBConnections, "Open New MySQL Shell Console");
 
             await Misc.switchToWebView();
 
@@ -2038,7 +2042,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await (await Misc.getActionButton(treeOEGlobalConn, "New MySQL Script")).click();
 
-            const treeItem = await Misc.getTreeScript(treeOpenEditorsSection, "Untitled-", "mysql");
+            const treeItem = await Misc.getTreeScript(treeOpenEditorsSection, "Untitled-", "Mysql");
 
             expect(treeItem).to.exist;
 
@@ -2046,7 +2050,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await Misc.switchToWebView();
             expect(await Database.getCurrentEditor()).to.match(/Untitled-(\d+)/);
-            expect(await Database.getCurrentEditorType()).to.include("mysql");
+            expect(await Database.getCurrentEditorType()).to.include("Mysql");
 
             await driver.switchTo().defaultContent();
             await (await Misc.getActionButton(treeItem, "Close Editor")).click();
@@ -2081,7 +2085,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await Misc.selectContextMenuItem(item, "New MySQL Script");
 
-            const treeItem = await Misc.getTreeScript(treeOpenEditorsSection, "Untitled-", "mysql");
+            const treeItem = await Misc.getTreeScript(treeOpenEditorsSection, "Untitled-", "Mysql");
 
             expect(treeItem).to.exist;
 
@@ -2089,7 +2093,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await Misc.switchToWebView();
             expect(await Database.getCurrentEditor()).to.match(/Untitled-(\d+)/);
-            expect(await Database.getCurrentEditorType()).to.include("mysql");
+            expect(await Database.getCurrentEditorType()).to.include("Mysql");
 
             await driver.switchTo().defaultContent();
             await (await Misc.getActionButton(treeItem, "Close Editor")).click();
@@ -2102,7 +2106,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await Misc.selectContextMenuItem(item, "New JavaScript Script");
 
-            const treeItem = await Misc.getTreeScript(treeOpenEditorsSection, "Untitled-", "javascript");
+            const treeItem = await Misc.getTreeScript(treeOpenEditorsSection, "Untitled-", "scriptJs");
 
             expect(treeItem).to.exist;
 
@@ -2110,7 +2114,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await Misc.switchToWebView();
             expect(await Database.getCurrentEditor()).to.match(/Untitled-(\d+)/);
-            expect(await Database.getCurrentEditorType()).to.include("javascript");
+            expect(await Database.getCurrentEditorType()).to.include("scriptJs");
 
             await driver.switchTo().defaultContent();
             await (await Misc.getActionButton(treeItem, "Close Editor")).click();
@@ -2123,7 +2127,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await Misc.selectContextMenuItem(item, "New TypeScript Script");
 
-            const treeItem = await Misc.getTreeScript(treeOpenEditorsSection, "Untitled-", "typescript");
+            const treeItem = await Misc.getTreeScript(treeOpenEditorsSection, "Untitled-", "scriptTs");
 
             expect(treeItem).to.exist;
 
@@ -2131,7 +2135,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await Misc.switchToWebView();
             expect(await Database.getCurrentEditor()).to.match(/Untitled-(\d+)/);
-            expect(await Database.getCurrentEditorType()).to.include("typescript");
+            expect(await Database.getCurrentEditorType()).to.include("scriptTs");
 
             await driver.switchTo().defaultContent();
             await (await Misc.getActionButton(treeItem, "Close Editor")).click();

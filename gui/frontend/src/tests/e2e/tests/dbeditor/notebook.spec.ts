@@ -982,8 +982,8 @@ describe("Notebook", () => {
 
             expect(
                 await driver
-                    .findElement(By.css("#documentSelector img"))
-                    .getAttribute("src"),
+                    .findElement(By.css("#documentSelector span"))
+                    .getAttribute("style"),
             ).toContain("notebook");
 
             await driver

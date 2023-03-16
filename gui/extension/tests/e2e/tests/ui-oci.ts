@@ -48,6 +48,8 @@ import {
     dbEditorDefaultName,
     openEditorsTreeSection,
     tasksTreeSection,
+    dbConnectionsLabel,
+    openEditorsMaxLevel,
 } from "../lib/misc";
 
 import { Database } from "../lib/db";
@@ -200,6 +202,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
     describe("Compartment", () => {
 
         let compartmentId = "";
+        let treeDBConnections: TreeItem;
 
         before(async function (){
             try {
@@ -284,7 +287,9 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             await treeOpenEditorsSection.expand();
 
-            await Misc.clickSectionToolbarButton(treeOpenEditorsSection, "New Shell Notebook");
+            treeDBConnections = await treeOpenEditorsSection.findItem(dbConnectionsLabel, openEditorsMaxLevel);
+
+            await Misc.selectContextMenuItem(treeDBConnections, "Open New MySQL Shell Console");
 
             await Misc.switchToWebView();
 
@@ -522,7 +527,9 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             await treeOpenEditorsSection.expand();
 
-            await Misc.clickSectionToolbarButton(treeOpenEditorsSection, "New Shell Notebook");
+            const treeDBConnections = await treeOpenEditorsSection.findItem(dbConnectionsLabel, openEditorsMaxLevel);
+
+            await Misc.selectContextMenuItem(treeDBConnections, "Open New MySQL Shell Console");
 
             await Misc.switchToWebView();
 

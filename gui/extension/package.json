@@ -371,7 +371,7 @@
             },
             {
                 "command": "msg.newSessionUsingConnection",
-                "title": "Open MySQL Shell Console for this Connection"
+                "title": "Open New MySQL Shell Console for this Connection"
             },
             {
                 "command": "msg.defaultConnection",
@@ -399,14 +399,6 @@
                 "icon": {
                     "dark": "images/dark/overviewPage.svg",
                     "light": "images/light/overviewPage.svg"
-                }
-            },
-            {
-                "command": "msg.newSession",
-                "title": "Add a New MySQL Shell Console",
-                "icon": {
-                    "dark": "images/dark/add.svg",
-                    "light": "images/light/add.svg"
                 }
             },
             {
@@ -537,64 +529,64 @@
                 "command": "msg.openDBBrowser",
                 "title": "Open the DB Connection Browser",
                 "icon": {
-                    "dark": "images/dark/overviewPage.svg",
-                    "light": "images/light/overviewPage.svg"
+                    "dark": "images/dark/openConnection.svg",
+                    "light": "images/light/openConnection.svg"
                 }
             },
             {
                 "command": "msg.newNotebookMysql",
                 "title": "New MySQL Notebook",
                 "icon": {
-                    "dark": "images/dark/newNotebookMysql.svg",
-                    "light": "images/light/newNotebookMysql.svg"
+                    "dark": "images/dark/newNotebook.svg",
+                    "light": "images/light/newNotebook.svg"
                 }
             },
             {
                 "command": "msg.newNotebookSqlite",
                 "title": "New SQLite Notebook",
                 "icon": {
-                    "dark": "images/dark/newNotebookSqlite.svg",
-                    "light": "images/light/newNotebookSqlite.svg"
+                    "dark": "images/dark/newNotebook.svg",
+                    "light": "images/light/newNotebook.svg"
                 }
             },
             {
                 "command": "msg.newSession",
-                "title": "New Shell Notebook",
+                "title": "Open New MySQL Shell Console",
                 "icon": {
-                    "dark": "images/dark/newNotebookShell.svg",
-                    "light": "images/light/newNotebookShell.svg"
+                    "dark": "images/dark/newNotebook.svg",
+                    "light": "images/light/newNotebook.svg"
                 }
             },
             {
                 "command": "msg.newScriptJs",
                 "title": "New JavaScript Script",
                 "icon": {
-                    "dark": "images/dark/newScriptJs.svg",
-                    "light": "images/light/newScriptJs.svg"
+                    "dark": "images/dark/file-icons/newScriptJs.svg",
+                    "light": "images/light/file-icons/newScriptJs.svg"
                 }
             },
             {
                 "command": "msg.newScriptMysql",
                 "title": "New MySQL Script",
                 "icon": {
-                    "dark": "images/dark/newScriptMysql.svg",
-                    "light": "images/light/newScriptMysql.svg"
+                    "dark": "images/dark/newScript.svg",
+                    "light": "images/light/newScript.svg"
                 }
             },
             {
                 "command": "msg.newScriptSqlite",
                 "title": "New SQLite Script",
                 "icon": {
-                    "dark": "images/dark/newScriptSqlite.svg",
-                    "light": "images/light/newScriptSqlite.svg"
+                    "dark": "images/dark/newScript.svg",
+                    "light": "images/light/newScript.svg"
                 }
             },
             {
                 "command": "msg.newScriptTs",
                 "title": "New TypeScript Script",
                 "icon": {
-                    "dark": "images/dark/newScriptTs.svg",
-                    "light": "images/light/newScriptTs.svg"
+                    "dark": "images/dark/file-icons/newScriptTs.svg",
+                    "light": "images/light/file-icons/newScriptTs.svg"
                 }
             },
             {
@@ -945,11 +937,6 @@
             ],
             "view/title": [
                 {
-                    "command": "msg.newSession",
-                    "group": "navigation@2",
-                    "when": "view == msg.openEditors"
-                },
-                {
                     "command": "msg.addConnection",
                     "group": "navigation",
                     "when": "view == msg.connections"
@@ -1133,6 +1120,11 @@
                     "group": "1_msg@1"
                 },
                 {
+                    "command": "msg.openDBBrowser",
+                    "when": "view == msg.openEditors && viewItem =~ /^editorOverview.*/",
+                    "group": "inline"
+                },
+                {
                     "command": "msg.closeEditor",
                     "when": "view == msg.openEditors && viewItem == editorItem",
                     "group": "inline"
@@ -1186,6 +1178,16 @@
                     "command": "msg.newScriptTs",
                     "group": "scripts@4",
                     "when": "view == msg.openEditors && viewItem =~ /^editorConnection.*/"
+                },
+                {
+                    "command": "msg.newSessionUsingConnection",
+                    "when": "view == msg.openEditors && viewItem =~ /^editorConnectionMySQL/",
+                    "group": "sessions@1"
+                },
+                {
+                    "command": "msg.newSession",
+                    "group": "sessions@1",
+                    "when": "view == msg.openEditors && viewItem =~ /^editorOverview.*/"
                 },
                 {
                     "command": "msg.removeSession",

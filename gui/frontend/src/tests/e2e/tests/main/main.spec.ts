@@ -97,7 +97,7 @@ describe("Main pages", () => {
 
             expect(
                 await driver.findElement(By.css(".connectionBrowser #title")).getText(),
-            ).toBe("MySQL Shell - DB Notebooks");
+            ).toBe("MySQL Shell - DB Connections");
 
             expect(
                 await driver

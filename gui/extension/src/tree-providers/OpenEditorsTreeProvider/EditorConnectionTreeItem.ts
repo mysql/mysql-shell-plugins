@@ -28,12 +28,21 @@ import { DBType } from "../../../../frontend/src/supplement/ShellInterface";
 
 export class EditorConnectionTreeItem extends TreeItem {
 
-    public constructor(caption: string, dbType: DBType) {
+    public readonly entry: { details: { caption: string, id: number; }; };
+
+    public constructor(caption: string, dbType: DBType, connectionId: number) {
         super(caption, TreeItemCollapsibleState.Expanded);
+
+        this.entry = {
+            details: {
+                caption,
+                id: connectionId,
+            },
+        };
 
         let iconName;
         if (dbType === DBType.MySQL) {
-            iconName = "mysql";
+            iconName = "connectionMysql";
             this.contextValue = "editorConnectionMySQL";
         } else {
             iconName = "connectionSqlite";

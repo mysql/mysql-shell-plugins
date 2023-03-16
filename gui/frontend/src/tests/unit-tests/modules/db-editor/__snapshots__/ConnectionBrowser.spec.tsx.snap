@@ -300,10 +300,12 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
         </Popup>
       </Menu>
       <FrontPage
-        caption="MySQL Shell - DB Notebooks"
-        description="DB Notebooks are modern editors for working with databases. They can be used to create and manage databases schema objects, write SQL queries and scripts, and work with data.
+        caption="MySQL Shell - DB Connections"
+        description="Welcome to the MySQL Shell for VS Code extension.
 
-Click on a Database Connection to open a new DB Notebook."
+Click the [New Connection] tile to add a new database connection. Click a [Database Connection] tile to open a new DB Notebook.
+
+DB Notebooks are modern editors for working with databases. You can use them to create and manage databases schema objects, write SQL queries and scripts, and work with data."
         helpUrls={
           Map {
             "Learn More >" => "https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code",
@@ -343,7 +345,7 @@ Click on a Database Connection to open a new DB Notebook."
                   }
                 }
               >
-                MySQL Shell - DB Notebooks
+                MySQL Shell - DB Connections
               </label>
             </Label>
             <Label
@@ -360,9 +362,11 @@ Click on a Database Connection to open a new DB Notebook."
                   }
                 }
               >
-                DB Notebooks are modern editors for working with databases. They can be used to create and manage databases schema objects, write SQL queries and scripts, and work with data.
+                Welcome to the MySQL Shell for VS Code extension.
 
-Click on a Database Connection to open a new DB Notebook.
+Click the [New Connection] tile to add a new database connection. Click a [Database Connection] tile to open a new DB Notebook.
+
+DB Notebooks are modern editors for working with databases. You can use them to create and manage databases schema objects, write SQL queries and scripts, and work with data.
               </label>
             </Label>
             <Container
@@ -499,7 +503,7 @@ Click on a Database Connection to open a new DB Notebook.
                         >
                           <span
                             class="msg icon"
-                            style="mask-image: url(mysql.svg);"
+                            style="mask-image: url(connectionMysql.svg);"
                           />
                           <div
                             class="msg container fixedScrollbar textHost"
@@ -603,7 +607,7 @@ Click on a Database Connection to open a new DB Notebook.
                         }
                       }
                       draggable={true}
-                      icon="mysql.svg"
+                      icon="connectionMysql.svg"
                       onAction={[Function]}
                       tileId={0}
                       type={0}
@@ -641,16 +645,16 @@ Click on a Database Connection to open a new DB Notebook.
                         >
                           <Icon
                             disabled={false}
-                            src="mysql.svg"
+                            src="connectionMysql.svg"
                           >
                             <span
                               className="msg icon"
                               style={
                                 {
-                                  "WebkitMaskImage": "url(mysql.svg)",
+                                  "WebkitMaskImage": "url(connectionMysql.svg)",
                                   "backgroundColor": undefined,
                                   "height": undefined,
-                                  "maskImage": "url(mysql.svg)",
+                                  "maskImage": "url(connectionMysql.svg)",
                                   "width": undefined,
                                 }
                               }

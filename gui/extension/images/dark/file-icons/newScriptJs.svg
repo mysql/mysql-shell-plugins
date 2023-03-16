@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1,0,0,1,-618,-162)">
+        <g id="newScriptJs">
+            <g transform="matrix(1,0,0,1,617,162)">
+                <path d="M10.5,0.1L13.9,3.6L14,4L14,9.982L13,9.982L13,5L9,5L9,1L3,1L3,14L10.991,14L10.991,15L2.5,15L2,14.5L2,0.5L2.5,0L10.2,0L10.5,0.1ZM10,1L10,4L12.9,4L10,1ZM15,16L14,16L14,14L12,14L12,13L14,13L14,11L15,11L15,13L17,13L17,14L15,14L15,16Z" style="fill:rgb(241,221,63);"/>
+            </g>
+            <g id="javascript" transform="matrix(0.403188,0,0,0.403188,618.421,164.048)">
+                <path id="javascript1" serif:id="javascript" d="M11.4,10L14.1,10L14.1,17.6C14.1,21 12.5,22.2 9.8,22.2C9.2,22.2 8.3,22.1 7.8,21.9L8.1,19.7C8.5,19.9 9,20 9.5,20C10.6,20 11.4,19.5 11.4,17.6L11.4,10ZM16.5,19.2C17.2,19.6 18.4,20 19.5,20C20.8,20 21.4,19.5 21.4,18.7C21.4,17.9 20.8,17.5 19.4,17C17.4,16.3 16.1,15.2 16.1,13.4C16.1,11.3 17.8,9.8 20.7,9.8C22.1,9.8 23.1,10.1 23.8,10.4L23.2,12.6C22.7,12.4 21.9,12 20.7,12C19.5,12 18.9,12.5 18.9,13.2C18.9,14 19.6,14.3 21.1,14.9C23.2,15.7 24.2,16.8 24.2,18.5C24.2,20.5 22.6,22.2 19.3,22.2C17.9,22.2 16.6,21.8 15.9,21.5L16.5,19.2Z" style="fill:rgb(241,221,63);fill-rule:nonzero;"/>
+            </g>
+        </g>
+    </g>
+</svg>

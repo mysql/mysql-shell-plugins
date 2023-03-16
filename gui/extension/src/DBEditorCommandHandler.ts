@@ -612,20 +612,21 @@ export class DBEditorCommandHandler {
                             filters,
                         }).then((value: Uri) => {
                             if (value) {
+                                const newName = basename(value.fsPath);
                                 scripts.set(details.scriptId, value);
                                 void provider.renameFile({
                                     scriptId: details.scriptId,
-                                    name: basename(value.fsPath),
+                                    name: newName,
                                     language: details.language,
                                     content: details.content,
                                 });
 
                                 const buffer = Buffer.from(details.content, "utf-8");
-                                void workspace.fs.writeFile(value, buffer);
-                            }
 
-                            void requisitions.execute("editorSaved",
-                                { id: details.scriptId, saved: value !== undefined });
+                                void workspace.fs.writeFile(value, buffer);
+                                void requisitions.execute("editorSaved",
+                                    { id: details.scriptId, newName, saved: value !== undefined });
+                            }
                         });
                     } else {
                         const buffer = Buffer.from(details.content, "utf-8");

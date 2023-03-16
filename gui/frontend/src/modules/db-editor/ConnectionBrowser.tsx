@@ -21,8 +21,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import mysqlIcon from "../../assets/images/file-icons/mysql.svg";
-import sqliteIcon from "../../assets/images/file-icons/sqlite.svg";
+import mysqlIcon from "../../assets/images/connectionMysql.svg";
+import sqliteIcon from "../../assets/images/connectionSqlite.svg";
 
 import plusIcon from "../../assets/images/plus.svg";
 import editIcon from "../../assets/images/edit.svg";
@@ -331,11 +331,14 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
                 </Menu>
                 <FrontPage
                     showGreeting={Settings.get("dbEditor.connectionBrowser.showGreeting", true)}
-                    caption="MySQL Shell - DB Notebooks"
-                    description={"DB Notebooks are modern editors for working with databases. They can be used to " +
+                    caption="MySQL Shell - DB Connections"
+                    description={
+                        "Welcome to the MySQL Shell for VS Code extension.\n\n" +
+                        "Click the [New Connection] tile to add a new database connection. Click a " +
+                        "[Database Connection] tile to open a new DB Notebook.\n\n" +
+                        "DB Notebooks are modern editors for working with databases. You can use them to " +
                         "create and manage databases schema objects, write SQL queries and scripts, and work with " +
-                        "data.\n\n" +
-                        "Click on a Database Connection to open a new DB Notebook."
+                        "data."
                     }
                     helpUrls={linkMap}
                     onCloseGreeting={this.handleCloseGreeting}

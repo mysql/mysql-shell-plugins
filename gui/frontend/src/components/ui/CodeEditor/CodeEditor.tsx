@@ -1369,8 +1369,11 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                             source: position,
                             asText: options.asText,
                         };
-                        void onScriptExecution?.(block, executionOptions);
-                        editor.focus();
+
+                        void onScriptExecution?.(block, executionOptions).then(() => {
+                            editor.focus();
+                        });
+
                         if (options.advance) {
                             this.prepareNextExecutionBlock(index);
                         }
