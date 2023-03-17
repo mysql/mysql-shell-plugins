@@ -100,12 +100,13 @@ export class ShellConsoleCommandHandler {
             return this.providers[this.providers.length - 1];
         } else if (this.url) {
             const caption = this.createTabCaption();
-            const provider = new ShellConsoleViewProvider(this.url, caption, (view) => {
+            const provider = new ShellConsoleViewProvider(this.url, (view) => {
                 const index = this.providers.findIndex((candidate) => { return candidate === view; });
                 if (index > -1) {
                     this.providers.splice(index, 1);
                 }
             });
+            provider.caption = caption;
 
             this.providers.push(provider);
 

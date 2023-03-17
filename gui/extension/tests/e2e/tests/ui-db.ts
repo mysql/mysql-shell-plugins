@@ -349,7 +349,7 @@ describe("DATABASE CONNECTIONS", () => {
         after(async function () {
             try {
                 await new EditorView().closeAllEditors();
-                await Misc.clickSectionToolbarButton(treeDBSection!, "Collapse All");
+                await Misc.clickSectionToolbarButton(treeDBSection, "Collapse All");
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -402,16 +402,14 @@ describe("DATABASE CONNECTIONS", () => {
 
             await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
 
-            await Database.setPassword(globalConn);
             try {
+                await Database.setPassword(globalConn);
                 await Misc.setConfirmDialog(globalConn, "no");
             } catch (e) {
                 // continue
             }
 
             await driver.switchTo().defaultContent();
-
-            await treeOpenEditorsSection.expand();
 
             await Misc.sectionFocus(openEditorsTreeSection);
 
@@ -435,9 +433,9 @@ describe("DATABASE CONNECTIONS", () => {
 
             expect(await treeOEGlobalConn.findChildItem(openEditorsDBNotebook)).to.exist;
 
-            await new EditorView().closeEditor(`${dbEditorDefaultName} (1)`);
+            await new EditorView().closeEditor(globalConn.caption);
 
-            await new EditorView().closeEditor(dbEditorDefaultName);
+            await new EditorView().closeEditor(globalConn.caption);
 
             const treeVisibleItems = await treeOpenEditorsSection.getVisibleItems();
 
@@ -511,7 +509,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await Database.createConnection(treeDBSection!, localConn);
 
-            expect(await Database.getWebViewConnection(localConn.caption, true, globalConn.caption)).to.exist;
+            expect(await Database.getWebViewConnection(localConn.caption, true)).to.exist;
 
             await new EditorView().closeEditor(dbEditorDefaultName);
 
@@ -621,7 +619,7 @@ describe("DATABASE CONNECTIONS", () => {
                 const editors = await new EditorView().getOpenEditorTitles();
 
                 return editors.includes(dbEditorDefaultName);
-            }, explicitWait, `${dbEditorDefaultName} editor was not opened`);
+            }, explicitWait, `${globalConn.caption} editor was not opened`);
 
             await Misc.switchToWebView();
 
@@ -641,7 +639,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await Misc.selectContextMenuItem(treeGlobalSchema!, "Copy To Clipboard -> Name");
 
-            await new EditorView().openEditor(dbEditorDefaultName);
+            await new EditorView().openEditor(globalConn.caption);
 
             await Misc.switchToWebView();
 
@@ -665,7 +663,7 @@ describe("DATABASE CONNECTIONS", () => {
 
                 await Misc.selectContextMenuItem(treeGlobalSchema!, "Copy To Clipboard -> Create Statement");
 
-                await new EditorView().openEditor(dbEditorDefaultName);
+                await new EditorView().openEditor(globalConn.caption);
                 await Misc.switchToWebView();
 
                 await driver.executeScript(
@@ -689,7 +687,7 @@ describe("DATABASE CONNECTIONS", () => {
             const random = String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000));
             const testSchema = `testschema${random}`;
 
-            await new EditorView().openEditor(dbEditorDefaultName);
+            await new EditorView().openEditor(globalConn.caption);
 
             await Misc.switchToWebView();
 
@@ -700,7 +698,6 @@ describe("DATABASE CONNECTIONS", () => {
                 await driver.findElement(By.css(".current-line")),
             );
 
-
             let result = await Misc.execCmd("call clearSchemas();", undefined, explicitWait * 2);
             expect(result[0]).to.include("OK");
 
@@ -709,15 +706,17 @@ describe("DATABASE CONNECTIONS", () => {
 
             await driver.switchTo().defaultContent();
 
-            let treeTestSchema: TreeItem | undefined;
-            await driver?.wait(async () => {
+            treeDBSection = await Misc.getSection(dbTreeSection);
+
+            await driver.wait(new Condition ("", async () => {
                 await (await Misc.getActionButton(treeGlobalConn, "Reload Database Information")).click();
-                treeTestSchema = await treeDBSection.findItem(testSchema, dbMaxLevel);
 
-                return treeTestSchema;
-            }, explicitWait, `${testSchema} was not found`);
+                return (await treeDBSection.findItem(testSchema, dbMaxLevel)) !== undefined;
+            }), explicitWait, `${testSchema} was not found`);
 
-            await Misc.selectContextMenuItem(treeTestSchema!, "Drop Schema...");
+            const treeTestSchema = await treeDBSection.findItem(testSchema, dbMaxLevel);
+
+            await Misc.selectContextMenuItem(treeTestSchema, "Drop Schema...");
 
             const ntf = await driver.findElements(By.css(".notifications-toasts.visible"));
             if (ntf.length > 0) {
@@ -735,6 +734,9 @@ describe("DATABASE CONNECTIONS", () => {
             await driver.wait(until.stalenessOf(msg), 7000, "Drop message dialog was not displayed");
 
             await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
+
+            treeDBSection = await Misc.getSection(dbTreeSection);
+
             expect(await treeDBSection.findItem(testSchema, dbMaxLevel)).to.not.exist;
 
         });
@@ -750,7 +752,7 @@ describe("DATABASE CONNECTIONS", () => {
             await Misc.selectContextMenuItem(actorTable, "Show Data...");
 
             try {
-                await new EditorView().openEditor(dbEditorDefaultName);
+                await new EditorView().openEditor(globalConn.caption);
                 await Misc.switchToWebView();
                 await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
                 const result = await Misc.getCmdResultMsg();
@@ -767,7 +769,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await Misc.selectContextMenuItem(actorTable, "Copy To Clipboard -> Name");
 
-            await new EditorView().openEditor(dbEditorDefaultName);
+            await new EditorView().openEditor(globalConn.caption);
 
             await Misc.switchToWebView();
 
@@ -790,7 +792,7 @@ describe("DATABASE CONNECTIONS", () => {
 
                 await Misc.selectContextMenuItem(actorTable, "Copy To Clipboard -> Create Statement");
 
-                await new EditorView().openEditor(dbEditorDefaultName);
+                await new EditorView().openEditor(globalConn.caption);
                 await Misc.switchToWebView();
 
                 await driver.executeScript(
@@ -813,7 +815,7 @@ describe("DATABASE CONNECTIONS", () => {
             const random = String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000));
             const testTable = `testtable${random}`;
 
-            await new EditorView().openEditor(dbEditorDefaultName);
+            await new EditorView().openEditor(globalConn.caption);
             await Misc.switchToWebView();
 
             await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
@@ -857,6 +859,9 @@ describe("DATABASE CONNECTIONS", () => {
             await driver.wait(until.stalenessOf(msg), 7000, "Drop message dialog was not displayed");
 
             await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
+
+            treeDBSection = await Misc.getSection(dbTreeSection);
+
             expect(await treeDBSection.findItem(testTable, dbMaxLevel)).to.not.exist;
 
         });
@@ -867,7 +872,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await Misc.selectContextMenuItem(treeTestView, "Show Data...");
 
-            await new EditorView().openEditor(dbEditorDefaultName);
+            await new EditorView().openEditor(globalConn.caption);
 
             await Misc.switchToWebView();
 
@@ -882,7 +887,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await Misc.selectContextMenuItem(treeTestView, "Copy To Clipboard -> Name");
 
-            await new EditorView().openEditor(dbEditorDefaultName);
+            await new EditorView().openEditor(globalConn.caption);
 
             await Misc.switchToWebView();
 
@@ -905,7 +910,7 @@ describe("DATABASE CONNECTIONS", () => {
 
                 await Misc.selectContextMenuItem(treeTestView, "Copy To Clipboard -> Create Statement");
 
-                await new EditorView().openEditor(dbEditorDefaultName);
+                await new EditorView().openEditor(globalConn.caption);
 
                 await Misc.switchToWebView();
 
@@ -927,7 +932,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Drop View", async () => {
 
-            await new EditorView().openEditor(dbEditorDefaultName);
+            await new EditorView().openEditor(globalConn.caption);
 
             await Misc.switchToWebView();
 
@@ -979,6 +984,9 @@ describe("DATABASE CONNECTIONS", () => {
             await driver.wait(until.stalenessOf(msg), 7000, "Drop message dialog was not displayed");
 
             await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
+
+            treeDBSection = await Misc.getSection(dbTreeSection);
+
             expect(await treeDBSection.findItem(testView, dbMaxLevel)).to.not.exist;
 
         });
@@ -1135,7 +1143,8 @@ describe("DATABASE CONNECTIONS", () => {
                 sqliteConn,
             );
 
-            await driver.wait(Database.isConnectionSuccessful(), explicitWait * 3, "DB Connection was not successful");
+            await driver.wait(Database.isConnectionSuccessful(sqliteConName),
+                explicitWait * 3, "DB Connection was not successful");
 
             await driver.switchTo().defaultContent();
 
@@ -1170,7 +1179,8 @@ describe("DATABASE CONNECTIONS", () => {
 
             await Misc.switchToWebView();
 
-            await driver.wait(Database.isConnectionSuccessful(), explicitWait * 3, "DB Connection was not successful");
+            await driver.wait(Database.isConnectionSuccessful(sqliteConName),
+                explicitWait * 3, "DB Connection was not successful");
 
             await driver.wait(async () => {
                 return (await Misc.getCmdResultMsg(undefined))?.includes("OK");
@@ -2022,7 +2032,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             expect(treeItem).to.exist;
 
-            await new EditorView().openEditor(dbEditorDefaultName);
+            await new EditorView().openEditor(globalConn.caption);
 
             await Misc.switchToWebView();
 
@@ -2046,7 +2056,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             expect(treeItem).to.exist;
 
-            await new EditorView().openEditor(dbEditorDefaultName);
+            await new EditorView().openEditor(globalConn.caption);
 
             await Misc.switchToWebView();
             expect(await Database.getCurrentEditor()).to.match(/Untitled-(\d+)/);
@@ -2067,7 +2077,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             expect(treeItem).to.exist;
 
-            await new EditorView().openEditor(dbEditorDefaultName);
+            await new EditorView().openEditor(globalConn.caption);
 
             await Misc.switchToWebView();
 
@@ -2089,7 +2099,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             expect(treeItem).to.exist;
 
-            await new EditorView().openEditor(dbEditorDefaultName);
+            await new EditorView().openEditor(globalConn.caption);
 
             await Misc.switchToWebView();
             expect(await Database.getCurrentEditor()).to.match(/Untitled-(\d+)/);
@@ -2110,7 +2120,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             expect(treeItem).to.exist;
 
-            await new EditorView().openEditor(dbEditorDefaultName);
+            await new EditorView().openEditor(globalConn.caption);
 
             await Misc.switchToWebView();
             expect(await Database.getCurrentEditor()).to.match(/Untitled-(\d+)/);
@@ -2131,7 +2141,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             expect(treeItem).to.exist;
 
-            await new EditorView().openEditor(dbEditorDefaultName);
+            await new EditorView().openEditor(globalConn.caption);
 
             await Misc.switchToWebView();
             expect(await Database.getCurrentEditor()).to.match(/Untitled-(\d+)/);

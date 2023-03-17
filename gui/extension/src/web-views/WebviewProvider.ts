@@ -44,11 +44,25 @@ export class WebviewProvider implements IWebviewProvider {
 
     private notifyOnDispose = true;
 
+    #caption: string;
+
     public constructor(
         protected url: URL,
-        public caption: string,
         protected onDispose: WebviewDisposeHandler,
         protected onStateChange?: WebviewChangeStateHandler) {
+    }
+
+    /** @returns the current caption of the web view panel (if it exists). */
+    public get caption(): string {
+        return this.#caption ?? "MySQL Shell";
+    }
+
+    /** Sets a new caption for the webview panel. */
+    public set caption(value: string) {
+        this.#caption = value;
+        if (this.panel) {
+            this.panel.title = value;
+        }
     }
 
     public close(): void {
@@ -121,7 +135,7 @@ export class WebviewProvider implements IWebviewProvider {
             void this.prepareEditorGroup(placement).then((viewColumn) => {
                 this.panel = window.createWebviewPanel(
                     "msg-webview",
-                    this.caption,
+                    this.#caption,
                     { viewColumn, preserveFocus: true },
                     {
                         enableScripts: true,
@@ -298,7 +312,7 @@ export class WebviewProvider implements IWebviewProvider {
   </script>
 </head>
 <body style="margin:0px;padding:0px;overflow:hidden;">
-<iframe id="frame:${this.caption}" onload="hideWaitForContentDiv()"
+<iframe id="frame-msg" onload="hideWaitForContentDiv()"
     src="${this.url.toString()}"
     frameborder="0" style="overflow: hidden; overflow-x: hidden; overflow-y: hidden; height:100%;
     width:100%; position: absolute; top: 0px; left: 0px; right: 0px; bottom: 0px" height="100%"
@@ -322,7 +336,7 @@ export class WebviewProvider implements IWebviewProvider {
     window.addEventListener('message', (event) => {
         if (!frame) {
             vscode = acquireVsCodeApi();
-            frame = document.getElementById("frame:${this.caption}");
+            frame = document.getElementById("frame-msg");
 
             // Listen to style changes on the outer iframe.
             const sendThemeMessage = () => {
@@ -403,7 +417,7 @@ export class WebviewProvider implements IWebviewProvider {
         if (this.panel && page) {
             return requisitions.execute("proxyRequest", {
                 provider: this,
-                original: { requestType: "selectConnectionTab", parameter: undefined },
+                original: { requestType: "selectConnectionTab", parameter: { page } },
             });
         }
 

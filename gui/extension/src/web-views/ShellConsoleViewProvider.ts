@@ -32,11 +32,8 @@ export class ShellConsoleViewProvider extends WebviewProvider {
 
     private openSessions: IShellSessionDetails[] = [];
 
-    public constructor(
-        url: URL,
-        caption: string,
-        onDispose: (view: WebviewProvider) => void) {
-        super(url, caption, onDispose);
+    public constructor(url: URL, onDispose: (view: WebviewProvider) => void) {
+        super(url, onDispose);
     }
 
     /**

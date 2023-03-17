@@ -202,6 +202,7 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
 
     private updateEditors = (provider: IWebviewProvider,
         details: IEditorOpenChangeData | IEditorCloseChangeData): void => {
+
         if (details.opened) {
             let entry = this.#openConnections.get(provider);
             if (!entry) {
@@ -219,14 +220,14 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
                 entry.connectionOverview.parent = entry;
             }
 
-            const connection = entry.connections.find((item) => {
+            let connection = entry.connections.find((item) => {
                 return item.connectionId === details.connectionId;
             });
 
             const editorCommand: Command = {
                 title: "",
                 command: "",
-                arguments: [provider, details.connectionId, details.editorId],
+                arguments: [provider, details.connectionCaption, details.connectionId, details.editorId],
             };
 
             switch (details.editorType) {
@@ -275,7 +276,7 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
                     treeItem: new EditorTreeItem(details, editorCommand),
                 });
             } else {
-                const connection: IEditorConnectionEntry = {
+                connection = {
                     type: "connection",
                     connectionId: details.connectionId,
                     caption: details.connectionCaption,
@@ -300,6 +301,15 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
 
                 entry.connections.push(connection);
             }
+
+            const itemToSelect = connection.editors[connection.editors.length - 1];
+            this.#changeEvent.fire(undefined);
+
+            this.#lastSelectedItems.set(provider, itemToSelect);
+            if (itemToSelect.caption !== "DB Connections") {
+                provider.caption = details.connectionCaption;
+            }
+            this.#selectCallback(itemToSelect);
         } else {
             const entry = this.#openConnections.get(provider);
             if (!entry) {
@@ -332,9 +342,9 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
             if (entry.connections.length === 0) {
                 this.#openConnections.delete(provider);
             }
-        }
 
-        this.#changeEvent.fire(undefined);
+            this.#changeEvent.fire(undefined);
+        }
     };
 
     private createOverviewItems = (
@@ -377,50 +387,14 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
 
             case "editorSelect": {
                 const response = request.original.parameter as { connectionId: number, editorId: string; };
-                const entry = this.#openConnections.get(request.provider);
-                if (!entry) {
-                    return Promise.resolve(false);
-                }
 
-                // If no connection was given or the editorId is empty then select the last active item
-                // for the given provider.
-                if (response.connectionId < 0 || response.editorId.length === 0) {
-                    const lastItem = this.#lastSelectedItems.get(request.provider);
-                    if (lastItem) {
-                        this.#selectCallback(lastItem);
-                    }
-
-                    return Promise.resolve(true);
-                }
-
-                const connection = entry.connections.find((item) => {
-                    return item.connectionId === response.connectionId;
-                });
-
-                if (connection) {
-                    const editor = connection.editors.find((item) => {
-                        return item.id === response.editorId;
-                    });
-
-                    if (editor) {
-                        this.#lastSelectedItems.set(request.provider, editor);
-                        this.#selectCallback(editor);
-                    }
-                }
-
-                break;
+                return this.selectItem(request.provider, response.connectionId, response.editorId);
             }
 
             case "selectConnectionTab": {
-                const entry = this.#openConnections.get(request.provider);
-                if (!entry) {
-                    return Promise.resolve(false);
-                }
+                const response = request.original.parameter as { page: string; };
 
-                this.#lastSelectedItems.set(request.provider, entry.connectionOverview!);
-                this.#selectCallback(entry.connectionOverview!);
-
-                break;
+                return this.selectItem(request.provider, -1, response.page);
             }
 
             case "refreshSessions": {
@@ -430,6 +404,49 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
             }
 
             default:
+        }
+
+        return Promise.resolve(false);
+    };
+
+    private selectItem = (provider: IWebviewProvider, connectionId: number, editorOrPage: string): Promise<boolean> => {
+        const entry = this.#openConnections.get(provider);
+        if (!entry) {
+            return Promise.resolve(false);
+        }
+
+        // If no connection was given or the editorId is empty then select the last active item
+        // for the given provider.
+        if (connectionId < 0 && editorOrPage.length === 0) {
+            const lastItem = this.#lastSelectedItems.get(provider);
+            if (lastItem) {
+                this.#selectCallback(lastItem);
+            }
+
+            return Promise.resolve(true);
+        }
+
+        const connection = entry.connections.find((item) => {
+            return item.connectionId === connectionId;
+        });
+
+        if (connection) {
+            const editor = connection.editors.find((item) => {
+                return item.id === editorOrPage;
+            });
+
+            if (editor) {
+                this.#lastSelectedItems.set(provider, editor);
+                this.#selectCallback(editor);
+            }
+        } else {
+            this.#lastSelectedItems.set(provider, entry.connectionOverview!);
+            if (editorOrPage === "DB Connections") {
+                provider.caption = entry.caption;
+            } else {
+                provider.caption = editorOrPage ?? entry.caption;
+            }
+            this.#selectCallback(entry.connectionOverview!);
         }
 
         return Promise.resolve(false);
