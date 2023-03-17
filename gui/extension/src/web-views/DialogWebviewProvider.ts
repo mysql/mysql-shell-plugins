@@ -44,7 +44,8 @@ export class DialogWebviewManager {
         }
 
         return new Promise((resolve) => {
-            const provider = new WebviewProvider(this.url!, caption, this.handleDispose);
+            const provider = new WebviewProvider(this.url!, this.handleDispose);
+            provider.caption = caption;
             this.pendingDialogRequests.set(provider, resolve);
 
             // We don't wait here for the app instantiation, but will resolve the promise when the dialog

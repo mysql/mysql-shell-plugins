@@ -175,19 +175,19 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                 title: "Show Server Status",
                 command: "msg.showServerStatus",
                 // The first argument is undefined to show the page on the currently selected connection.
-                arguments: [undefined, element.entry.details.id, uuid()],
+                arguments: [undefined, "Server Status", element.entry.details.id, uuid()],
             };
 
             const clientConnectionsCommand = {
                 title: "Show Client Connections",
                 command: "msg.showClientConnections",
-                arguments: [undefined, element.entry.details.id, uuid()],
+                arguments: [undefined, "Client Connections", element.entry.details.id, uuid()],
             };
 
             const performanceDashboardCommand = {
                 title: "Show Performance Dashboard",
                 command: "msg.showPerformanceDashboard",
-                arguments: [undefined, element.entry.details.id, uuid()],
+                arguments: [undefined, "Performance Dashboard", element.entry.details.id, uuid()],
             };
 
             return [

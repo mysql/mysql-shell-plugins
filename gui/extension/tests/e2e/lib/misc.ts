@@ -171,11 +171,11 @@ export class Misc {
             await driver.wait(async () => {
                 try {
                     const ctxMenuItems = ctxMenuItem.split("->");
-                    const menu = await treeItem?.openContextMenu();
-                    const menuItem = await menu?.getItem(ctxMenuItems[0].trim());
-                    const anotherMenu = await menuItem!.select();
+                    const menu = await treeItem.openContextMenu();
+                    const menuItem = await menu.getItem(ctxMenuItems[0].trim());
+                    const anotherMenu = await menuItem.select();
                     if (ctxMenuItems.length > 1) {
-                        await (await anotherMenu?.getItem(ctxMenuItems[1].trim()))!.select();
+                        await (await anotherMenu.getItem(ctxMenuItems[1].trim())).select();
                     }
 
                     return true;
@@ -434,7 +434,6 @@ export class Misc {
         await driver.wait(async () => {
             try {
                 const workbench = new Workbench();
-
                 const ntfs = await workbench.getNotifications();
 
                 return (await ntfs[ntfs.length - 1].getMessage()).includes(text);
@@ -446,7 +445,7 @@ export class Misc {
         if (waitToDisappear) {
             await driver.wait(async () => {
                 return (await Misc.hasNotifications()) === false;
-            }, explicitWait, `'${text}' notification is still visible`);
+            }, ociExplicitWait, `'${text}' notification is still visible`);
         }
 
     };

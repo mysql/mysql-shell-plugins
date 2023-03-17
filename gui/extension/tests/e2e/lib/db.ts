@@ -33,7 +33,7 @@ import {
 import { expect } from "chai";
 import { basename } from "path";
 
-import { driver, Misc, dbTreeSection, explicitWait, ociExplicitWait, dbEditorDefaultName } from "./misc";
+import { driver, Misc, dbTreeSection, explicitWait, ociExplicitWait } from "./misc";
 
 export interface IDBConnection {
     caption: string;
@@ -93,17 +93,10 @@ export class Database {
         await driver.switchTo().defaultContent();
     };
 
-    public static getWebViewConnection = async (name: string, useFrame = true,
-        webView?: string): Promise<WebElement> => {
+    public static getWebViewConnection = async (name: string, useFrame = true): Promise<WebElement> => {
 
         if (useFrame) {
-            await driver.switchTo().frame(0);
-            await driver.switchTo().frame(await driver.findElement(By.id("active-frame")));
-            try {
-                await driver.switchTo().frame(await driver.findElement(By.id(`frame:${String(webView)}`)));
-            } catch (e) {
-                await driver.switchTo().frame(await driver.findElement(By.id("frame:MySQL Shell")));
-            }
+            await Misc.switchToWebView();
         }
 
         const db = await driver.wait(async () => {
@@ -189,12 +182,12 @@ export class Database {
         await driver.switchTo().defaultContent();
     };
 
-    public static isConnectionSuccessful = (): Condition<boolean> => {
+    public static isConnectionSuccessful = (name: string): Condition<boolean> => {
         return new Condition("", async () => {
             await driver.switchTo().defaultContent();
             const edView = new EditorView();
             const editors = await edView.getOpenEditorTitles();
-            expect(editors).to.include(dbEditorDefaultName);
+            expect(editors).to.include(name);
 
             await Misc.switchToWebView();
 

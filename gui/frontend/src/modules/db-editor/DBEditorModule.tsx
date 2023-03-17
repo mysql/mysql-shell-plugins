@@ -1462,7 +1462,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             }
         } else if (connectionState) {
             // Even if the active page does not change, we have to notify the remote side.
-            // Otherwise there's no notification when the user switches between tabs.
+            // Otherwise there's no notification when the user switches between multiple tabs.
             requisitions.executeRemote("editorSelect",
                 { connectionId: connectionState.connectionId, editorId: details.itemId });
         }

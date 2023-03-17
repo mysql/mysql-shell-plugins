@@ -151,41 +151,46 @@ export class DBEditorCommandHandler {
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.showNotebook",
-            (provider: IWebviewProvider | undefined, connectionId: number, itemId: string) => {
+            (provider: IWebviewProvider | undefined, caption: string, connectionId: number, itemId: string) => {
                 provider ??= this.currentProvider;
                 if (provider instanceof DBConnectionViewProvider) {
+                    provider.caption = caption;
                     void provider.showPageSection(String(connectionId), EntityType.Notebook, itemId);
                 }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.showScript",
-            (provider: IWebviewProvider | undefined, connectionId: number, itemId: string) => {
+            (provider: IWebviewProvider | undefined, caption: string, connectionId: number, itemId: string) => {
                 provider ??= this.currentProvider;
                 if (provider instanceof DBConnectionViewProvider) {
+                    provider.caption = caption;
                     void provider.showPageSection(String(connectionId), EntityType.Script, itemId);
                 }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.showServerStatus",
-            (provider: IWebviewProvider | undefined, connectionId: number, itemId: string) => {
+            (provider: IWebviewProvider | undefined, caption: string, connectionId: number, itemId: string) => {
                 provider ??= this.currentProvider;
                 if (provider instanceof DBConnectionViewProvider) {
+                    provider.caption = caption;
                     void provider.showPageSection(String(connectionId), EntityType.Status, itemId);
                 }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.showClientConnections",
-            (provider: IWebviewProvider | undefined, connectionId: number, itemId: string) => {
+            (provider: IWebviewProvider | undefined, caption: string, connectionId: number, itemId: string) => {
                 provider ??= this.currentProvider;
                 if (provider instanceof DBConnectionViewProvider) {
+                    provider.caption = caption;
                     void provider.showPageSection(String(connectionId), EntityType.Connections, itemId);
                 }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.showPerformanceDashboard",
-            (provider: IWebviewProvider | undefined, connectionId: number, itemId: string) => {
+            (provider: IWebviewProvider | undefined, caption: string, connectionId: number, itemId: string) => {
                 provider ??= this.currentProvider;
                 if (provider instanceof DBConnectionViewProvider) {
+                    provider.caption = caption;
                     void provider.showPageSection(String(connectionId), EntityType.Dashboard, itemId);
                 }
             }));
@@ -239,7 +244,10 @@ export class DBEditorCommandHandler {
             if (provider instanceof DBConnectionViewProvider) {
                 void provider.show("connections");
             } else {
-                void this.currentProvider?.show("connections");
+                const provider = this.currentProvider;
+                if (provider) {
+                    void provider.show("connections");
+                }
             }
         }));
 
@@ -507,8 +515,8 @@ export class DBEditorCommandHandler {
     private get newProvider(): DBConnectionViewProvider | undefined {
         if (this.url) {
             const caption = this.createTabCaption();
-            const provider = new DBConnectionViewProvider(this.url, caption, this.providerDisposed,
-                this.providerStateChanged);
+            const provider = new DBConnectionViewProvider(this.url, this.providerDisposed, this.providerStateChanged);
+            provider.caption = caption;
             this.providers.push(provider);
 
             return provider;

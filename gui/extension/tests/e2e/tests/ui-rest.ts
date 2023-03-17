@@ -112,17 +112,17 @@ describe("REST", () => {
     describe("REST API", () => {
 
         let randomService = "";
-        let treeRandomService: TreeItem | undefined;
-        let treeMySQLRESTService: TreeItem | undefined;
-        let treeMySQLRESTSchema: TreeItem | undefined;
+        let treeRandomService: TreeItem;
+        let treeMySQLRESTService: TreeItem;
+        let treeMySQLRESTSchema: TreeItem;
 
         before(async function () {
             try {
                 const randomCaption = String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000));
-                await treeGlobalConn?.expand();
+                await treeGlobalConn.expand();
                 await Misc.setInputPassword(globalConn.password);
 
-                await Misc.selectContextMenuItem(treeGlobalConn!, "Configure Instance for MySQL REST Service Support");
+                await Misc.selectContextMenuItem(treeGlobalConn, "Configure Instance for MySQL REST Service Support");
 
                 await Misc.setInputPassword(globalConn.password);
 
@@ -134,12 +134,12 @@ describe("REST", () => {
                     return treeMySQLRESTService;
                 }, explicitWait, `MySQL REST Service is not on the tree`);
 
-                await Misc.selectContextMenuItem(treeGlobalConn!, "Show MySQL System Schemas");
+                await Misc.selectContextMenuItem(treeGlobalConn, "Show MySQL System Schemas");
 
                 await driver.wait(treeDBSection.findItem("mysql_rest_service_metadata", dbMaxLevel),
                     explicitWait, `mysql_rest_service_metadata is not on the tree`);
 
-                await Misc.selectContextMenuItem(treeMySQLRESTService!, "Add REST Service...");
+                await Misc.selectContextMenuItem(treeMySQLRESTService, "Add REST Service...");
 
                 randomService = `Service${randomCaption}`;
                 await Misc.switchToWebView();
@@ -161,6 +161,14 @@ describe("REST", () => {
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
+            }
+        });
+
+        beforeEach(async function () {
+            try {
+                treeDBSection = await Misc.getSection(dbTreeSection);
+            } catch (e) {
+                await Misc.processFailure(this);
             }
         });
 
@@ -186,7 +194,7 @@ describe("REST", () => {
             try {
 
                 const treeServMetadata = await treeDBSection.findItem("mysql_rest_service_metadata", dbMaxLevel);
-                await Misc.selectContextMenuItem(treeServMetadata!, "Drop Schema...");
+                await Misc.selectContextMenuItem(treeServMetadata, "Drop Schema...");
 
                 const ntf = await driver.findElements(By.css(".notifications-toasts.visible"));
                 if (ntf.length > 0) {
@@ -208,16 +216,16 @@ describe("REST", () => {
 
         it("Set as new DEFAULT REST Service", async () => {
 
-            await Misc.selectContextMenuItem(treeRandomService!, "Set as New Default REST Service");
+            await Misc.selectContextMenuItem(treeRandomService, "Set as New Default REST Service");
 
             await Misc.verifyNotification("The MRS service has been set as the new default service.", true);
 
-            expect(await Misc.isDefaultItem(treeRandomService!, "rest")).to.be.true;
+            expect(await Misc.isDefaultItem(treeRandomService, "rest")).to.be.true;
         });
 
         it("Edit REST Service", async () => {
 
-            await Misc.selectContextMenuItem(treeRandomService!, "Edit REST Service...");
+            await Misc.selectContextMenuItem(treeRandomService, "Edit REST Service...");
 
             await Misc.switchToWebView();
 
@@ -235,7 +243,7 @@ describe("REST", () => {
                 return treeRandomService;
             }, 3000, `/edited${randomService} was not displayed on the tree`);
 
-            await Misc.selectContextMenuItem(treeRandomService!, "Edit REST Service...");
+            await Misc.selectContextMenuItem(treeRandomService, "Edit REST Service...");
 
             await Misc.switchToWebView();
 
@@ -260,11 +268,11 @@ describe("REST", () => {
 
         it("Add a REST Service Schema", async () => {
 
-            const randomServiceLabel = await treeRandomService?.getLabel();
+            const randomServiceLabel = await treeRandomService.getLabel();
 
             const treeSakila = await treeDBSection.findItem("sakila", dbMaxLevel);
 
-            await Misc.selectContextMenuItem(treeSakila!, "Add Schema to REST Service");
+            await Misc.selectContextMenuItem(treeSakila, "Add Schema to REST Service");
 
             await Misc.switchToWebView();
 
@@ -286,11 +294,11 @@ describe("REST", () => {
 
         it("Edit REST Schema", async () => {
 
-            const randomServiceLabel = await treeRandomService?.getLabel();
+            const randomServiceLabel = await treeRandomService.getLabel();
 
             await (await treeDBSection.findItem(String(randomServiceLabel), dbMaxLevel)).expand();
 
-            await Misc.selectContextMenuItem(treeMySQLRESTSchema!, "Edit REST Schema...");
+            await Misc.selectContextMenuItem(treeMySQLRESTSchema, "Edit REST Schema...");
 
             await Misc.switchToWebView();
 
@@ -302,6 +310,8 @@ describe("REST", () => {
             await Misc.verifyNotification("The MRS schema has been updated successfully.", true);
 
             await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
+
+            treeDBSection = await Misc.getSection(dbTreeSection);
 
             const treeSakilaEdited = await treeDBSection.findItem("sakila (/edited)", dbMaxLevel);
 
@@ -332,10 +342,6 @@ describe("REST", () => {
 
         it("Add Table to REST Service", async () => {
 
-            const treeSakilaEdited = await treeDBSection.findItem("sakila (/edited)", dbMaxLevel);
-
-            await treeSakilaEdited?.collapse();
-
             await (await treeDBSection.findItem("sakila", dbMaxLevel)).expand();
 
             await (await treeDBSection.findItem("Tables", dbMaxLevel)).expand();
@@ -353,18 +359,20 @@ describe("REST", () => {
 
             await Misc.verifyNotification("The MRS Database Object actor has been added successfully", true);
 
-            await treeSakilaEdited?.expand();
+            const treeSakilaEdited = await treeDBSection.findItem("sakila (/edited)", dbMaxLevel);
+
+            await treeSakilaEdited.expand();
 
             expect(await treeDBSection.findItem("actor (/actor)", dbMaxLevel)).to.exist;
         });
 
         it("Delete REST Schema", async () => {
 
-            await treeRandomService?.expand();
+            await treeRandomService.expand();
 
-            const schema = await treeMySQLRESTSchema.getLabel();
+            treeMySQLRESTSchema = await treeDBSection.findItem("sakila (/edited)", dbMaxLevel);
 
-            await Misc.selectContextMenuItem(treeMySQLRESTSchema!, "Delete REST Schema...");
+            await Misc.selectContextMenuItem(treeMySQLRESTSchema, "Delete REST Schema...");
 
             await Misc.verifyNotification("Are you sure the MRS schema sakila should be deleted?", false);
 
@@ -377,15 +385,15 @@ describe("REST", () => {
 
             await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
 
-            expect(await treeDBSection.findItem(schema, dbMaxLevel)).to.not.exist;
+            expect(await treeDBSection.findItem("sakila (/sakila)", dbMaxLevel)).to.not.exist;
 
         });
 
         it("Delete REST Service", async () => {
 
-            await Misc.selectContextMenuItem(treeRandomService!, "Delete REST Service...");
+            await Misc.selectContextMenuItem(treeRandomService, "Delete REST Service...");
 
-            const label = await treeRandomService?.getLabel();
+            const label = await treeRandomService.getLabel();
 
             await Misc.verifyNotification(`Are you sure the MRS service ${String(label)} should be deleted?`);
 
