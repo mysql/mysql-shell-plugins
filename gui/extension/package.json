@@ -614,6 +614,10 @@
                 "title": "Stop Local MySQL Router Instance"
             },
             {
+                "command": "msg.mrs.killLocalRouters",
+                "title": "Kill Local MySQL Router Instances"
+            },
+            {
                 "command": "msg.mrs.docs",
                 "title": "Browse the MySQL REST Service Documentation",
                 "icon": {
@@ -1224,6 +1228,12 @@
                     "when": "viewItem == mrs",
                     "group": "3_msg@3"
                 },
+                {
+                    "command": "msg.mrs.killLocalRouters",
+                    "when": "viewItem == mrs",
+                    "group": "3_msg@4"
+                },
+
                 {
                     "command": "msg.mrs.docs",
                     "when": "viewItem == mrs",
