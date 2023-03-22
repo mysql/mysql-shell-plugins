@@ -28,7 +28,7 @@ import { requisitions } from "../../supplement/Requisitions";
 import { Button } from "../ui/Button/Button";
 import { Codicon } from "../ui/Codicon";
 import { IComponentProperties, ComponentBase } from "../ui/Component/ComponentBase";
-import { Container } from "../ui/Container/Container";
+import { Container, Orientation } from "../ui/Container/Container";
 import { Icon } from "../ui/Icon/Icon";
 import { Label } from "../ui/Label/Label";
 
@@ -50,7 +50,6 @@ interface IActionOutputProperties extends IComponentProperties {
  */
 export class ActionOutput extends ComponentBase<IActionOutputProperties> {
 
-    private gridRef = createRef<HTMLDivElement>();
     private outputRef = createRef<HTMLDivElement>();
 
     // When set to true, a selection process is ongoing. We have to do this manually because
@@ -64,7 +63,7 @@ export class ActionOutput extends ComponentBase<IActionOutputProperties> {
     }
 
     public componentDidUpdate(): void {
-        const lastChild = this.gridRef.current?.lastElementChild;
+        const lastChild = this.outputRef.current?.lastElementChild;
 
         /* istanbul ignore next */
         if (lastChild && "scrollIntoView" in lastChild) {
@@ -124,7 +123,8 @@ export class ActionOutput extends ComponentBase<IActionOutputProperties> {
                     <Icon src={Codicon.Copy} data-tooltip="inherit" />
                 </Button>
                 <Container
-                    ref={this.outputRef}
+                    innerRef={this.outputRef}
+                    orientation={Orientation.TopDown}
                     className={className}
                     onPointerDown={this.handlePointerDown}
                     onPointerMove={this.handlePointerMove}

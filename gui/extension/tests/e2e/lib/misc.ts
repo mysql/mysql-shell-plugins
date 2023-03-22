@@ -408,7 +408,7 @@ export class Misc {
 
     public static switchToWebView = async (): Promise<void> => {
         const iframeDivs = await driver.wait(until.elementsLocated(By.xpath("//div[contains(@id, 'webview-')]")),
-            explicitWait, "No frames were found");
+            ociExplicitWait, "No frames were found");
         let refIframe: WebElement | undefined;
         for (const iframeDiv of iframeDivs) {
             const style = await iframeDiv.getAttribute("style");
@@ -419,15 +419,15 @@ export class Misc {
         }
 
         await driver.wait(until.ableToSwitchToFrame(refIframe as WebElement),
-            explicitWait, "Not able to switch to first iframe");
+            ociExplicitWait, "Not able to switch to first iframe");
 
         await driver.wait(until.ableToSwitchToFrame(
-            By.id("active-frame")), explicitWait, `Not able to switch to 'active-frame'`);
+            By.id("active-frame")), ociExplicitWait, `Not able to switch to 'active-frame'`);
 
         const webViewFrame = await driver.findElement(By.css("iframe")).getAttribute("id");
 
         await driver.wait(until.ableToSwitchToFrame(By.id(webViewFrame))
-            , explicitWait, `Not able to switch to frame 'frame:${webViewFrame}'`);
+            , ociExplicitWait, `Not able to switch to frame 'frame:${webViewFrame}'`);
     };
 
     public static verifyNotification = async (text: string, waitToDisappear = false): Promise<void> => {
@@ -793,18 +793,18 @@ export class Misc {
 
     public static getTreeScript = async (section: CustomTreeSection,
         partialName: string, type: string): Promise <TreeItem> => {
-        const treeVisibleItems = await section.getVisibleItems();
-
-        for (const item of treeVisibleItems) {
-            if ((await item.getLabel()).includes(partialName)) {
-                const itemIcon = await item.findElement(By.css(".custom-view-tree-node-item-icon"));
-                if ((await itemIcon.getAttribute("style")).includes(type)) {
-                    return item;
+        return driver.wait(new Condition("", async () => {
+            section = await Misc.getSection(await section.getTitle());
+            const treeVisibleItems = await section.getVisibleItems();
+            for (const item of treeVisibleItems) {
+                if ((await item.getLabel()).includes(partialName)) {
+                    const itemIcon = await item.findElement(By.css(".custom-view-tree-node-item-icon"));
+                    if ((await itemIcon.getAttribute("style")).includes(type)) {
+                        return item;
+                    }
                 }
             }
-        }
-
-        throw new Error(`Could not find the script '${partialName}' with type '${type}' on the Open Editors tree`);
+        }), explicitWait, `Could not find the script '${partialName}' with type '${type}' on the Open Editors tree`);
     };
 
     private static getCmdResultContent = async (multipleQueries: boolean,

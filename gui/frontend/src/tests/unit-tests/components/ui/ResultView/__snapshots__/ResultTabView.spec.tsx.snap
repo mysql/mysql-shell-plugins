@@ -369,7 +369,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                     </button>
                     <div
                       class="msg container fixedScrollbar actionOutput"
-                      style="flex-direction: row;"
+                      style="flex-direction: column;"
                     >
                       <div
                         style="display: flex; gap: 2px; flex-direction: row;"
@@ -480,10 +480,53 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                   </Button>
                   <Container
                     className="msg actionOutput"
+                    innerRef={
+                      {
+                        "current": <div
+                          class="msg container fixedScrollbar actionOutput"
+                          style="flex-direction: column;"
+                        >
+                          <div
+                            style="display: flex; gap: 2px; flex-direction: row;"
+                          >
+                            <label
+                              class="msg resultText error actionLabel"
+                              language="ansi"
+                              style="grid-column: span 2;"
+                              tabindex="-1"
+                              type="0"
+                            >
+                              <span
+                                class=""
+                              >
+                                Message 1
+                              </span>
+                            </label>
+                          </div>
+                          <div
+                            style="display: flex; gap: 2px; flex-direction: row;"
+                          >
+                            <label
+                              class="msg resultText response actionLabel"
+                              language="ansi"
+                              style="grid-column: span 2;"
+                              tabindex="-1"
+                              type="4"
+                            >
+                              <span
+                                class=""
+                              >
+                                Message 2
+                              </span>
+                            </label>
+                          </div>
+                        </div>,
+                      }
+                    }
                     onPointerDown={[Function]}
                     onPointerMove={[Function]}
                     onPointerUp={[Function]}
-                    orientation="row"
+                    orientation="column"
                   >
                     <div
                       className="msg container fixedScrollbar actionOutput"
@@ -493,7 +536,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                       style={
                         {
                           "alignItems": undefined,
-                          "flexDirection": "row",
+                          "flexDirection": "column",
                           "flexWrap": undefined,
                           "justifyContent": undefined,
                         }
