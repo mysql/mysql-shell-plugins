@@ -451,23 +451,29 @@ describe("DATABASE CONNECTIONS", () => {
 
             await driver.wait(new Condition("", async () => {
                 const item = await treeDBSection.findItem(sqliteConName, dbMaxLevel);
-                await item.expand();
+                if (item) {
+                    await item.expand();
 
-                return item.isExpanded();
+                    return item.isExpanded();
+                }
             }), explicitWait, `${sqliteConName} was not expanded`);
 
             await driver.wait(new Condition("", async () => {
                 const item = await treeDBSection.findItem("main", dbMaxLevel);
-                await item.expand();
+                if (item) {
+                    await item.expand();
 
-                return item.isExpanded();
+                    return item.isExpanded();
+                }
             }), explicitWait, `main was not expanded`);
 
             await driver.wait(new Condition("", async () => {
                 const item = await treeDBSection.findItem("Tables", dbMaxLevel);
-                await item.expand();
+                if (item) {
+                    await item.expand();
 
-                return item.isExpanded();
+                    return item.isExpanded();
+                }
             }), explicitWait, `Tables was not expanded`);
 
             const treeDBConn = await treeDBSection.findItem("db_connection", dbMaxLevel);
@@ -1261,6 +1267,36 @@ describe("DATABASE CONNECTIONS", () => {
     describe("Open Editors", () => {
 
         let treeDBConnections: TreeItem;
+        const localConn: IDBConnection = {
+            caption: `otherConn${String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000))}`,
+            description: "Local connection",
+            hostname: String(process.env.DBHOSTNAME),
+            username: String(process.env.DBUSERNAME),
+            port: Number(process.env.DBPORT),
+            portX: Number(process.env.DBPORTX),
+            schema: "sakila",
+            password: String(process.env.DBPASSWORD),
+            sslMode: undefined,
+            sslCA: undefined,
+            sslClientCert: undefined,
+            sslClientKey: undefined,
+        };
+        let treeLocalConn: TreeItem;
+
+        before(async function() {
+            try {
+
+                await Database.createConnection(treeDBSection, localConn);
+                expect(await Database.getWebViewConnection(localConn.caption, true)).to.exist;
+                await new EditorView().closeEditor(dbEditorDefaultName);
+                await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
+                treeLocalConn = await treeDBSection.findItem(localConn.caption, dbMaxLevel);
+                expect(treeLocalConn).to.exist;
+
+            } catch (e) {
+                await Misc.processFailure(this);
+            }
+        });
 
         beforeEach(async function () {
 
@@ -1296,9 +1332,33 @@ describe("DATABASE CONNECTIONS", () => {
                 openEditorsMaxLevel);
 
             expect(await treeOEShellConsoles.findChildItem("Session 1")).to.exist;
+
         });
 
         it("Icon - New MySQL Notebook", async () => {
+
+            await Misc.sectionFocus(dbTreeSection);
+
+            await (await Misc.getActionButton(treeLocalConn, "Connect to Database")).click();
+
+            await Misc.switchToWebView();
+
+            await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
+
+            await Database.setPassword(localConn);
+
+            try {
+                await Misc.setConfirmDialog(localConn, "no");
+            } catch (e) {
+                // continue
+            }
+
+            await driver.switchTo().defaultContent();
+
+            await Misc.sectionFocus(openEditorsTreeSection);
+
+            expect(await treeOpenEditorsSection.findItem(`DB Notebook (${localConn.caption})`,
+                openEditorsMaxLevel)).to.exist;
 
             await Misc.sectionFocus(dbTreeSection);
 
@@ -1318,11 +1378,13 @@ describe("DATABASE CONNECTIONS", () => {
 
             await driver.switchTo().defaultContent();
 
-            await Misc.sectionFocus(openEditorsTreeSection);
+            await new EditorView().openEditor(globalConn.caption);
 
             const treeOEGlobalConn = await treeOpenEditorsSection.findItem(globalConn.caption, openEditorsMaxLevel);
 
             await (await Misc.getActionButton(treeOEGlobalConn, "New MySQL Notebook")).click();
+
+            treeOpenEditorsSection = await Misc.getSection(openEditorsTreeSection);
 
             const treeItem = await Misc.getTreeScript(treeOpenEditorsSection, "Untitled-", "notebook");
 
@@ -1454,13 +1516,15 @@ describe("DATABASE CONNECTIONS", () => {
 
             const treeVisibleItems = await treeOpenEditorsSection.getVisibleItems();
 
-            expect(treeVisibleItems.length).to.equals(3);
+            expect(treeVisibleItems.length).to.equals(4);
 
             expect(await treeVisibleItems[0].getLabel()).to.equals(dbConnectionsLabel);
 
-            expect(await treeVisibleItems[1].getLabel()).to.equals(globalConn.caption);
+            expect(await treeVisibleItems[1].getLabel()).to.equals(localConn.caption);
 
-            expect(await treeVisibleItems[2].getLabel()).to.equals("MySQL Shell Consoles");
+            expect(await treeVisibleItems[2].getLabel()).to.equals(globalConn.caption);
+
+            expect(await treeVisibleItems[3].getLabel()).to.equals("MySQL Shell Consoles");
 
         });
 
@@ -1598,11 +1662,10 @@ describe("DATABASE CONNECTIONS", () => {
 
             await Misc.sectionFocus(openEditorsTreeSection);
 
-            const treeOEGlobalConn = await treeOpenEditorsSection.findItem(globalConn.caption, openEditorsMaxLevel);
+            const treeOEGlobalConn = await treeOpenEditorsSection.findItem(`DB Notebook (${globalConn.caption})`,
+                openEditorsMaxLevel);
 
             expect(treeOEGlobalConn).to.exist;
-
-            expect(await treeOEGlobalConn.findChildItem(openEditorsDBNotebook)).to.exist;
 
         });
 
@@ -1633,19 +1696,15 @@ describe("DATABASE CONNECTIONS", () => {
 
             expect(await treeOEMySQLShell.findChildItem(dbConnectionsLabel)).to.exist;
 
-            let treeOEGlobalConn = await treeOEMySQLShell.findChildItem(globalConn.caption);
+            const treeOEGlobalConn = await treeOEMySQLShell.findChildItem(globalConn.caption);
 
-            expect(await treeOEGlobalConn.findChildItem(openEditorsDBNotebook)).to.exist;
+            expect(await treeOEGlobalConn.findChildItem(`DB Notebook (${globalConn.caption})`)).to.exist;
 
             treeOEMySQLShell = await treeOpenEditorsSection.findItem(`${dbEditorDefaultName} (1)`, openEditorsMaxLevel);
 
             expect(treeOEMySQLShell).to.exist;
 
             expect(await treeOEMySQLShell.findChildItem(dbConnectionsLabel)).to.exist;
-
-            treeOEGlobalConn = await treeOEMySQLShell.findChildItem(globalConn.caption);
-
-            expect(await treeOEGlobalConn.findChildItem(openEditorsDBNotebook)).to.exist;
 
             await new EditorView().closeEditor(globalConn.caption);
 

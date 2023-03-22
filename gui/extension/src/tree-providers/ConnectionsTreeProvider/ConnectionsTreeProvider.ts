@@ -25,7 +25,9 @@ import {
     TreeDataProvider, TreeItem, EventEmitter, ProviderResult, Event, window,
 } from "vscode";
 
-import { requisitions } from "../../../../frontend/src/supplement/Requisitions";
+import {
+    IRequestListEntry, IRequestTypeMap, IWebviewProvider, requisitions,
+} from "../../../../frontend/src/supplement/Requisitions";
 
 import { DBType, IConnectionDetails } from "../../../../frontend/src/supplement/ShellInterface";
 import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
@@ -102,7 +104,10 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
     public constructor() {
         // TODO: make this configurable.
         this.useDedicatedSchemaSubtree = false;
+
+        // A connection refresh request can be scheduled from the frontend or within the extension.
         requisitions.register("refreshConnections", this.refreshConnections);
+        requisitions.register("proxyRequest", this.proxyRequest);
 
         this.refreshMrsRoutersTimer = null;
     }
@@ -113,6 +118,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
             this.refreshMrsRoutersTimer = null;
         }
         requisitions.unregister("refreshConnections", this.refreshConnections);
+        requisitions.unregister("proxyRequest", this.proxyRequest);
 
         this.closeAllConnections();
     }
@@ -822,4 +828,29 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
 
         return Promise.resolve(true);
     };
+
+    /**
+     * Requests sent from one of the providers.
+     *
+     * @param request The request to handle.
+     * @param request.provider The provider that sent the request.
+     * @param request.original The original request.
+     *
+     * @returns A promise that resolves to true if the request was handled.
+     */
+    private proxyRequest = (request: {
+        provider: IWebviewProvider;
+        original: IRequestListEntry<keyof IRequestTypeMap>;
+    }): Promise<boolean> => {
+        switch (request.original.requestType) {
+            case "refreshConnections": {
+                return this.refreshConnections();
+            }
+
+            default:
+        }
+
+        return Promise.resolve(false);
+    };
+
 }

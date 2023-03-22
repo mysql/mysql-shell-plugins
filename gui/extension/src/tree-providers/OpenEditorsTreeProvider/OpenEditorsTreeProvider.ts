@@ -53,6 +53,9 @@ export interface IOpenEditorEntry extends IOpenEditorBaseEntry {
 
     parent: IEditorConnectionEntry;
     treeItem: EditorTreeItem;
+
+    /** Used in simple view mode */
+    alternativeCaption: string;
 }
 
 export interface IEditorConnectionOverviewEntry extends IOpenEditorBaseEntry {
@@ -101,7 +104,7 @@ export interface IProviderSessionEntry extends IOpenEditorBaseEntry {
  */
 export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditorBaseEntry> {
 
-    #openConnections = new Map<IWebviewProvider, IProviderEditorEntry>();
+    #openProviders = new Map<IWebviewProvider, IProviderEditorEntry>();
     #openSessions = new Map<IWebviewProvider, IProviderSessionEntry>();
 
     #lastSelectedItems = new Map<IWebviewProvider, IOpenEditorBaseEntry>();
@@ -134,9 +137,9 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
 
     public clear(provider?: IWebviewProvider): void {
         if (provider) {
-            this.#openConnections.delete(provider);
+            this.#openProviders.delete(provider);
         } else {
-            this.#openConnections.clear();
+            this.#openProviders.clear();
         }
 
         this.#changeEvent.fire(undefined);
@@ -160,16 +163,30 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
 
     public getChildren(element?: IOpenEditorBaseEntry): ProviderResult<IOpenEditorBaseEntry[]> {
         if (!element) {
-            const connectionProviders = [...this.#openConnections.values()];
+            const connectionProviders = [...this.#openProviders.values()];
             const sessionProviders = [...this.#openSessions.values()];
 
+            // If nothing is open currently, show the overview (and possible sessions).
             if (connectionProviders.length === 0) {
                 return [this.#connectionOverview, ...sessionProviders.values()];
             }
 
             if (connectionProviders.length === 1) {
                 // If there's only one provider active, do not show the provider entry.
-                const provider = [...this.#openConnections.values()][0];
+                const provider = [...this.#openProviders.values()][0];
+
+                // If there's only one connection open, do not show the connection entry either.
+                if (provider.connections.length === 1) {
+                    this.updateEditorItemCaptions(provider, true);
+
+                    return [
+                        provider.connectionOverview!,
+                        ...provider.connections[0].editors,
+                        ...sessionProviders.values(),
+                    ];
+                } else {
+                    this.updateEditorItemCaptions(provider, false);
+                }
 
                 return [
                     provider.connectionOverview!,
@@ -178,7 +195,11 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
                 ];
             }
 
-            return [...this.#openConnections.values(), ...sessionProviders.values()];
+            this.#openProviders.forEach((provider) => {
+                this.updateEditorItemCaptions(provider, true);
+            });
+
+            return [...this.#openProviders.values(), ...sessionProviders.values()];
         }
 
         if (element.type === "connectionProvider") {
@@ -204,7 +225,7 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
         details: IEditorOpenChangeData | IEditorCloseChangeData): void => {
 
         if (details.opened) {
-            let entry = this.#openConnections.get(provider);
+            let entry = this.#openProviders.get(provider);
             if (!entry) {
                 entry = {
                     type: "connectionProvider",
@@ -214,7 +235,7 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
                     connections: [],
                 };
 
-                this.#openConnections.set(provider, entry);
+                this.#openProviders.set(provider, entry);
 
                 entry.connectionOverview = this.createOverviewItems(provider);
                 entry.connectionOverview.parent = entry;
@@ -265,15 +286,18 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
             }
 
             if (connection) {
+                const alternativeCaption = `${details.editorCaption} (${details.connectionCaption})`;
                 connection.editors.push({
                     type: "editor",
                     caption: details.editorCaption,
+                    alternativeCaption,
                     id: details.editorId,
                     language: details.language,
                     editorType: details.editorType,
 
                     parent: connection,
-                    treeItem: new EditorTreeItem(details, editorCommand),
+                    treeItem: new EditorTreeItem(details.editorCaption, alternativeCaption, details.language,
+                        details.editorType, editorCommand),
                 });
             } else {
                 connection = {
@@ -288,15 +312,18 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
                         details.connectionId),
                 };
 
+                const alternativeCaption = `${details.editorCaption} (${details.connectionCaption})`;
                 connection.editors.push({
                     type: "editor",
                     caption: details.editorCaption,
+                    alternativeCaption,
                     id: details.editorId,
                     language: details.language,
                     editorType: details.editorType,
 
                     parent: connection,
-                    treeItem: new EditorTreeItem(details, editorCommand),
+                    treeItem: new EditorTreeItem(details.editorCaption, alternativeCaption, details.language,
+                        details.editorType, editorCommand),
                 });
 
                 entry.connections.push(connection);
@@ -311,7 +338,7 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
             }
             this.#selectCallback(itemToSelect);
         } else {
-            const entry = this.#openConnections.get(provider);
+            const entry = this.#openProviders.get(provider);
             if (!entry) {
                 return;
             }
@@ -340,7 +367,7 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
             }
 
             if (entry.connections.length === 0) {
-                this.#openConnections.delete(provider);
+                this.#openProviders.delete(provider);
             }
 
             this.#changeEvent.fire(undefined);
@@ -410,7 +437,7 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
     };
 
     private selectItem = (provider: IWebviewProvider, connectionId: number, editorOrPage: string): Promise<boolean> => {
-        const entry = this.#openConnections.get(provider);
+        const entry = this.#openProviders.get(provider);
         if (!entry) {
             return Promise.resolve(false);
         }
@@ -495,7 +522,7 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
     private editorSaved = (details: { id: string, newName: string, saved: boolean; }): Promise<boolean> => {
         // There's no information about which provider sent the request so we have to search for the
         // scriptId in all providers.
-        for (const entry of this.#openConnections.values()) {
+        for (const entry of this.#openProviders.values()) {
             for (const connection of entry.connections) {
                 for (const editor of connection.editors) {
                     if (editor.id === details.id) {
@@ -508,5 +535,19 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
         }
 
         return Promise.resolve(true);
+    };
+
+    /**
+     * Updates the caption of all editor tree items of a provider entry, depending on the view mode.
+     *
+     * @param provider The provider entry to update.
+     * @param simpleView True if the simple view is active, false otherwise.
+     */
+    private updateEditorItemCaptions = (provider: IProviderEditorEntry, simpleView: boolean): void => {
+        for (const connection of provider.connections) {
+            for (const editor of connection.editors) {
+                editor.treeItem.updateLabel(simpleView);
+            }
+        }
     };
 }

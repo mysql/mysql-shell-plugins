@@ -25,7 +25,7 @@ import * as path from "path";
 
 import { Command, TreeItem, TreeItemCollapsibleState } from "vscode";
 import { EntityType } from "../../../../frontend/src/modules/db-editor";
-import { IEditorOpenChangeData } from "../../../../frontend/src/supplement/Requisitions";
+import { EditorLanguage } from "../../../../frontend/src/supplement";
 
 export class EditorTreeItem extends TreeItem {
     public contextValue = "editorItem";
@@ -39,19 +39,20 @@ export class EditorTreeItem extends TreeItem {
         [EntityType.Dashboard, "adminPerformanceDashboard"],
     ]);
 
-    public constructor(data: IEditorOpenChangeData, command: Command) {
-        super(data.editorCaption, TreeItemCollapsibleState.None);
+    public constructor(private normalCaption: string, private alternativeCaption: string, language: EditorLanguage,
+        editorType: EntityType, command: Command) {
+        super(normalCaption, TreeItemCollapsibleState.None);
         this.command = command;
 
-        if (data.editorType === EntityType.Script || data.editorType === EntityType.Notebook) {
-            if (data.language === "msg") {
+        if (editorType === EntityType.Script || editorType === EntityType.Notebook) {
+            if (language === "msg") {
                 this.iconPath = {
                     light: path.join(__dirname, "..", "images", "light", "notebook.svg"),
                     dark: path.join(__dirname, "..", "images", "dark", "notebook.svg"),
                 };
             } else {
                 let name;
-                switch (data.language) {
+                switch (language) {
                     case "sql": {
                         name = "scriptSqlite";
                         break;
@@ -89,11 +90,15 @@ export class EditorTreeItem extends TreeItem {
                 };
             }
         } else {
-            const icon = EditorTreeItem.#entityIconMap.get(data.editorType) ?? "default";
+            const icon = EditorTreeItem.#entityIconMap.get(editorType) ?? "default";
             this.iconPath = {
                 light: path.join(__dirname, "..", "images", "light", icon + ".svg"),
                 dark: path.join(__dirname, "..", "images", "dark", icon + ".svg"),
             };
         }
+    }
+
+    public updateLabel(simpleView: boolean): void {
+        this.label = simpleView ? this.alternativeCaption : this.normalCaption;
     }
 }

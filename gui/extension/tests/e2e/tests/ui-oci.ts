@@ -669,13 +669,11 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
                     return false;
                 }, 30000, "Dialogs were not displayed");
-                console.log(1);
+
                 try {
                     const confirmDialog = await driver.wait(until.elementLocated(By.css(".visible.confirmDialog")),
                         explicitWait, "Confirm dialog was not displayed");
-                    console.log(2);
                     await confirmDialog.findElement(By.id("refuse")).click();
-                    console.log(3);
                 } catch (e) {
                         // continue
                 }
