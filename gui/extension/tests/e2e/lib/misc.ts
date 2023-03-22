@@ -39,7 +39,9 @@ import {
     TreeItem,
     InputBox,
     Condition,
+    BottomBarPanel,
 } from "vscode-extension-tester";
+import clipboard from "clipboardy";
 import { expect } from "chai";
 import { ChildProcess, spawn } from "child_process";
 import addContext from "mochawesome/addContext";
@@ -410,6 +412,7 @@ export class Misc {
         const iframeDivs = await driver.wait(until.elementsLocated(By.xpath("//div[contains(@id, 'webview-')]")),
             ociExplicitWait, "No frames were found");
         let refIframe: WebElement | undefined;
+
         for (const iframeDiv of iframeDivs) {
             const style = await iframeDiv.getAttribute("style");
             if (style.includes("visibility: visible")) {
@@ -424,100 +427,70 @@ export class Misc {
         await driver.wait(until.ableToSwitchToFrame(
             By.id("active-frame")), ociExplicitWait, `Not able to switch to 'active-frame'`);
 
-        const webViewFrame = await driver.findElement(By.css("iframe")).getAttribute("id");
+        try {
+            const webViewFrame = await driver.findElement(By.css("iframe")).getAttribute("id");
 
-        await driver.wait(until.ableToSwitchToFrame(By.id(webViewFrame))
-            , ociExplicitWait, `Not able to switch to frame 'frame:${webViewFrame}'`);
+            await driver.wait(until.ableToSwitchToFrame(By.id(webViewFrame))
+                ,explicitWait, `Not able to switch to frame 'frame:${webViewFrame}'`);
+        } catch (e) {
+            //continue, no more iframes
+        }
+
+    };
+
+    public static isRouterInstalled = async (): Promise <boolean> => {
+        const dirFiles = await fs.readdir("C:/Program Files/MySQL");
+        for (const item of dirFiles) {
+            if (item.includes("MySQL Router")) {
+                return true;
+            }
+        }
     };
 
     public static verifyNotification = async (text: string, waitToDisappear = false): Promise<void> => {
+        let ntf = "";
         await driver.wait(async () => {
-            try {
-                const workbench = new Workbench();
-                const ntfs = await workbench.getNotifications();
+            const ntfs = await new Workbench().getNotifications();
+            if (ntfs.length > 0) {
+                ntf = await ntfs[ntfs.length - 1].getMessage();
 
-                return (await ntfs[ntfs.length - 1].getMessage()).includes(text);
-            } catch (e) {
-                return false;
+                return true;
             }
-        }, ociExplicitWait, `Notification with text '${text}' was not found`);
+        }, ociExplicitWait, `Could not find any notification`);
+
+        expect(ntf).to.include(text);
 
         if (waitToDisappear) {
             await driver.wait(async () => {
                 return (await Misc.hasNotifications()) === false;
             }, ociExplicitWait, `'${text}' notification is still visible`);
         }
-
     };
 
-    public static sectionFocus = async (section: string): Promise <void> => {
-        const treeDBSection = await Misc.getSection(dbTreeSection);
-        const treeOCISection = await Misc.getSection(ociTreeSection);
-        const treeOpenEditorsSection = await Misc.getSection(openEditorsTreeSection);
-        const treeTasksSection = await Misc.getSection(tasksTreeSection);
-
-        if ((await treeDBSection.getTitle()) === section) {
-            await driver.wait(new Condition("", async () => {
-
-                await treeDBSection.expand();
-                await treeOCISection.collapse();
-                await treeOpenEditorsSection.collapse();
-                await treeTasksSection.collapse();
-
-                return (await treeDBSection.isExpanded()) &&
-                     (!await treeOCISection.isExpanded()) &&
-                     (!await treeOpenEditorsSection.isExpanded()) &&
-                     (!await treeTasksSection.isExpanded());
-
-            }), explicitWait, `${section} was not focused`);
-        } else if ((await treeOCISection.getTitle()) === section) {
-            await driver.wait(new Condition("", async () => {
-
-                await treeOCISection.expand();
-                await treeDBSection.collapse();
-                await treeOpenEditorsSection.collapse();
-                await treeTasksSection.collapse();
-
-                return (await treeOCISection.isExpanded()) &&
-                     (!await treeDBSection.isExpanded()) &&
-                     (!await treeOpenEditorsSection.isExpanded()) &&
-                     (!await treeTasksSection.isExpanded());
-
-            }), explicitWait, `${section} was not focused`);
-        } else if ((await treeOpenEditorsSection.getTitle()) === section) {
-            await driver.wait(new Condition("", async () => {
-
-                await treeOpenEditorsSection.expand();
-                await treeDBSection.collapse();
-                await treeOCISection.collapse();
-                await treeTasksSection.collapse();
-
-                return (await treeOpenEditorsSection.isExpanded()) &&
-                     (!await treeDBSection.isExpanded()) &&
-                     (!await treeOCISection.isExpanded()) &&
-                     (!await treeTasksSection.isExpanded());
-
-            }), explicitWait, `${section} was not focused`);
-        } else if ((await treeTasksSection.getTitle()) === section) {
-            await driver.wait(new Condition("", async () => {
-
-                await treeTasksSection.expand();
-                await treeDBSection.collapse();
-                await treeOCISection.collapse();
-                await treeOpenEditorsSection.collapse();
-
-                return (await treeTasksSection.isExpanded()) &&
-                     (!await treeDBSection.isExpanded()) &&
-                     (!await treeOCISection.isExpanded()) &&
-                     (!await treeOpenEditorsSection.isExpanded());
-
-            }), explicitWait, `${section} was not focused`);
-        } else {
-            throw new Error(`Unknow section: ${section}`);
-        }
+    public static execOnTerminal = async (cmd: string, timeout: number): Promise<void> => {
+        const bootomBar = new BottomBarPanel();
+        const terminal = await bootomBar.openTerminalView();
+        timeout = timeout ?? explicitWait;
+        await terminal.executeCommand(cmd, timeout);
     };
 
-    public static waitForOutputText = async (view: OutputView, textToSearch: string,
+    public static waitForTerminalText = async (textToSearch: string,
+        timeout: number): Promise<void> => {
+        await driver.wait(async () => {
+            const out = await Misc.getTerminalOutput();
+
+            return out.includes(textToSearch);
+        }, timeout, `Could not find text '${textToSearch}' on the terminal`);
+    };
+
+    public static terminalHasErrors = async (): Promise<boolean> => {
+        const out = await Misc.getTerminalOutput();
+
+        return out.includes("ERR") || out.includes("err");
+    };
+
+
+    public static waitForOutputText = async (textToSearch: string,
         timeout: number): Promise<void> => {
         await driver.wait(async () => {
             try {
@@ -689,6 +662,13 @@ export class Misc {
         return itemStyle.includes("ociDbSystemStopped");
     };
 
+    public static isMRSDisabled = async (mrsTreeItem: TreeItem): Promise<boolean> => {
+        const itemIcon = await mrsTreeItem.findElement(By.css(".custom-view-tree-node-item-icon"));
+        const itemStyle = await itemIcon.getAttribute("style");
+
+        return itemStyle.includes("mrsDisabled");
+    };
+
     public static getCmdResultMsg = async (zoneHost?: WebElement, timeout?: number): Promise<string | undefined> => {
         let resultToReturn = "";
         timeout = timeout ?? 5000;
@@ -780,7 +760,7 @@ export class Misc {
                     throw e;
                 }
             }
-        }, explicitWait, "Could not connect to DB (button was always stale)");
+        }, explicitWait, `Could not get icon for '${await treeItem.getLabel()}' (button was always stale)`);
     };
 
     public static getMysqlshLog = (): string => {
@@ -788,6 +768,80 @@ export class Misc {
             return join(String(process.env.USERPROFILE), `mysqlsh-${String(process.env.TEST_SUITE)}`, "mysqlsh.log");
         } else {
             return join(String(process.env.APPDATA), "MySQL", "mysqlsh-gui", "mysqlsh.log");
+        }
+    };
+
+    public static isRouterActive = async (treeItem: TreeItem): Promise<boolean> => {
+        const icon = await treeItem.findElement(By.css(".custom-view-tree-node-item-icon"));
+        const style = await icon.getAttribute("style");
+
+        return !style.includes("routerNotActive");
+    };
+
+    public static sectionFocus = async (section: string): Promise <void> => {
+        const treeDBSection = await Misc.getSection(dbTreeSection);
+        const treeOCISection = await Misc.getSection(ociTreeSection);
+        const treeOpenEditorsSection = await Misc.getSection(openEditorsTreeSection);
+        const treeTasksSection = await Misc.getSection(tasksTreeSection);
+
+        if ((await treeDBSection.getTitle()) === section) {
+            await driver.wait(new Condition("", async () => {
+
+                await treeDBSection.expand();
+                await treeOCISection.collapse();
+                await treeOpenEditorsSection.collapse();
+                await treeTasksSection.collapse();
+
+                return (await treeDBSection.isExpanded()) &&
+                     (!await treeOCISection.isExpanded()) &&
+                     (!await treeOpenEditorsSection.isExpanded()) &&
+                     (!await treeTasksSection.isExpanded());
+
+            }), explicitWait, `${section} was not focused`);
+        } else if ((await treeOCISection.getTitle()) === section) {
+            await driver.wait(new Condition("", async () => {
+
+                await treeOCISection.expand();
+                await treeDBSection.collapse();
+                await treeOpenEditorsSection.collapse();
+                await treeTasksSection.collapse();
+
+                return (await treeOCISection.isExpanded()) &&
+                     (!await treeDBSection.isExpanded()) &&
+                     (!await treeOpenEditorsSection.isExpanded()) &&
+                     (!await treeTasksSection.isExpanded());
+
+            }), explicitWait, `${section} was not focused`);
+        } else if ((await treeOpenEditorsSection.getTitle()) === section) {
+            await driver.wait(new Condition("", async () => {
+
+                await treeOpenEditorsSection.expand();
+                await treeDBSection.collapse();
+                await treeOCISection.collapse();
+                await treeTasksSection.collapse();
+
+                return (await treeOpenEditorsSection.isExpanded()) &&
+                     (!await treeDBSection.isExpanded()) &&
+                     (!await treeOCISection.isExpanded()) &&
+                     (!await treeTasksSection.isExpanded());
+
+            }), explicitWait, `${section} was not focused`);
+        } else if ((await treeTasksSection.getTitle()) === section) {
+            await driver.wait(new Condition("", async () => {
+
+                await treeTasksSection.expand();
+                await treeDBSection.collapse();
+                await treeOCISection.collapse();
+                await treeOpenEditorsSection.collapse();
+
+                return (await treeTasksSection.isExpanded()) &&
+                     (!await treeDBSection.isExpanded()) &&
+                     (!await treeOCISection.isExpanded()) &&
+                     (!await treeOpenEditorsSection.isExpanded());
+
+            }), explicitWait, `${section} was not focused`);
+        } else {
+            throw new Error(`Unknow section: ${section}`);
         }
     };
 
@@ -805,6 +859,18 @@ export class Misc {
                 }
             }
         }), explicitWait, `Could not find the script '${partialName}' with type '${type}' on the Open Editors tree`);
+    };
+
+    private static getTerminalOutput = async (): Promise<string> => {
+        const workbench = new Workbench();
+        await workbench.executeCommand("terminal select all");
+        await driver.sleep(1000);
+        const terminal = await driver.findElement(By.css("#terminal textarea"));
+        await terminal.sendKeys(selKey.chord(key.CONTROL, "c"));
+        const out = clipboard.readSync();
+        clipboard.writeSync("");
+
+        return out;
     };
 
     private static getCmdResultContent = async (multipleQueries: boolean,

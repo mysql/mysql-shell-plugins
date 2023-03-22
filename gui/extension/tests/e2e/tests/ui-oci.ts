@@ -559,7 +559,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             const bottomBar = new BottomBarPanel();
             const outputView = await bottomBar.openOutputView();
 
-            await Misc.waitForOutputText(outputView, "Task 'Refresh Bastion' completed successfully", 20000);
+            await Misc.waitForOutputText("Task 'Refresh Bastion' completed successfully", 20000);
 
             await outputView.clearText();
 
@@ -578,7 +578,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             expect(await treeTasksSection.findItem("Delete Bastion (running)", ociMaxLevel)).to.exist;
 
-            await Misc.waitForOutputText(outputView, "OCI profile 'E2ETESTS' loaded.", ociTasksExplicitWait);
+            await Misc.waitForOutputText("OCI profile 'E2ETESTS' loaded.", ociTasksExplicitWait);
 
             await Misc.verifyNotification("Are you sure you want to delete");
 
@@ -590,7 +590,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await driver.wait(treeTasksSection.findItem("Delete Bastion (error)", ociMaxLevel),
                 explicitWait, "'Delete Bastion (error)' was not found on the tree");
 
-            await Misc.waitForOutputText(outputView, "Deletion aborted", explicitWait);
+            await Misc.waitForOutputText("Deletion aborted", explicitWait);
 
             await outputView.clearText();
 

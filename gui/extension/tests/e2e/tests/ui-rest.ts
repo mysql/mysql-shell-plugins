@@ -25,9 +25,9 @@ import {
     EditorView,
     Workbench,
     until,
-    ModalDialog,
     TreeItem,
     CustomTreeSection,
+    BottomBarPanel,
 } from "vscode-extension-tester";
 
 import { before, after, afterEach } from "mocha";
@@ -41,9 +41,10 @@ import {
     dbMaxLevel,
 } from "../lib/misc";
 
+import { hostname } from "os";
 import { IDBConnection, Database } from "../lib/db";
 
-describe("REST", () => {
+describe("MRS", () => {
 
     if (!process.env.DBHOSTNAME) {
         throw new Error("Please define the environment variable DBHOSTNAME");
@@ -103,13 +104,28 @@ describe("REST", () => {
             treeGlobalConn = await treeDBSection.findItem(globalConn.caption, dbMaxLevel);
             expect(treeGlobalConn).to.exist;
 
+            await (await Misc.getActionButton(treeGlobalConn, "Connect to Database")).click();
+            await Misc.switchToWebView();
+            await Database.setPassword(globalConn);
+            try {
+                await Misc.setConfirmDialog(globalConn, "no");
+            } catch (e) {
+            // continue
+            }
+
+            const result = await Misc.execCmd("DROP SCHEMA IF EXISTS `mysql_rest_service_metadata`;",
+                undefined, explicitWait*2);
+            expect(result[0]).to.match(/OK/);
+            await driver.switchTo().defaultContent();
+            await new EditorView().closeAllEditors();
+
         } catch (e) {
             await Misc.processFailure(this);
             throw e;
         }
     });
 
-    describe("REST API", () => {
+    describe("MySQL REST Service", () => {
 
         let randomService = "";
         let treeRandomService: TreeItem;
@@ -118,6 +134,7 @@ describe("REST", () => {
 
         before(async function () {
             try {
+
                 const randomCaption = String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000));
                 await treeGlobalConn.expand();
                 await Misc.setInputPassword(globalConn.password);
@@ -147,270 +164,674 @@ describe("REST", () => {
 
                 await Misc.verifyNotification("The MRS service has been created.", true);
 
-                await driver?.switchTo().defaultContent();
+                await driver.switchTo().defaultContent();
 
                 await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
 
-                await treeMySQLRESTService?.expand();
+                await treeMySQLRESTService.expand();
 
                 treeRandomService = await treeDBSection.findItem(`/${randomService}`, dbMaxLevel);
 
                 expect(treeRandomService).to.exist;
 
-                await driver?.switchTo().defaultContent();
+                await driver.switchTo().defaultContent();
+
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
             }
         });
 
-        beforeEach(async function () {
-            try {
+        describe("Main Context Menu", () => {
+
+            let treeRouter: TreeItem;
+
+            afterEach(async function () {
+                await driver.switchTo().defaultContent();
+                if (this.currentTest.state === "failed") {
+                    const notifications = await new Workbench().getNotifications();
+                    if (notifications.length > 0) {
+                        await notifications[notifications.length - 1].expand();
+                    }
+
+                    await Misc.processFailure(this);
+
+                    if (notifications.length > 0) {
+                        await notifications[notifications.length - 1].dismiss();
+                    }
+
+                }
+
+                await new EditorView().closeAllEditors();
+
+            });
+
+            after(async function () {
+                try {
+                    await new BottomBarPanel().toggle(false);
+
+                } catch (e) {
+                    await Misc.processFailure(this);
+                    throw e;
+                }
+            });
+
+
+            it("Disable MySQL REST Service", async () => {
+
+                await Misc.selectContextMenuItem(treeMySQLRESTService, "Disable MySQL REST Service");
+
+                await Misc.setInputPassword(globalConn.password);
+
+                await Misc.verifyNotification("MySQL REST Service configured successfully.", true);
+
+                expect(await Misc.isMRSDisabled(treeMySQLRESTService)).to.equals(true);
+            });
+
+            it("Enable MySQL REST Service", async () => {
+
+                await Misc.selectContextMenuItem(treeMySQLRESTService, "Enable MySQL REST Service");
+
+                await Misc.setInputPassword(globalConn.password);
+
+                await Misc.verifyNotification("MySQL REST Service configured successfully.", true);
+
+                expect(await Misc.isMRSDisabled(treeMySQLRESTService)).to.equals(false);
+
+            });
+
+            it("Bootstrap Local MySQL Router Instance", async () => {
+
+                expect(await Misc.isRouterInstalled(), "Please install MySQL Router manually").to.be.true;
+
+                await Misc.selectContextMenuItem(treeMySQLRESTService, "Bootstrap Local MySQL Router Instance");
+
+                await Misc.waitForTerminalText("Please enter MySQL password for root:", explicitWait*2);
+
+                await Misc.execOnTerminal(globalConn.password, explicitWait*2);
+
+                await Misc.waitForTerminalText("JWT secret:", explicitWait*2);
+
+                await Misc.execOnTerminal("1234", explicitWait*2);
+
+                await Misc.waitForTerminalText("Once the MySQL Router is started", explicitWait*2);
+
+                expect(await Misc.terminalHasErrors()).to.be.false;
+
+                await (await Misc.getActionButton(treeGlobalConn, "Reload Database Information")).click();
+
                 treeDBSection = await Misc.getSection(dbTreeSection);
-            } catch (e) {
-                await Misc.processFailure(this);
-            }
+
+                treeRouter = await treeDBSection.findItem(hostname());
+
+                expect(treeRouter).to.exist;
+
+            });
+
+            it("Bootstrap a running Local MySQL Router Instance", async () => {
+
+                expect(await Misc.isRouterInstalled(), "Please install MySQL Router manually").to.be.true;
+
+                await Misc.selectContextMenuItem(treeMySQLRESTService, "Bootstrap Local MySQL Router Instance");
+
+                await Misc.verifyNotification("Do you want to rename the existing directory and proceed");
+
+                const workbench = new Workbench();
+                const ntfs = await workbench.getNotifications();
+                await ntfs[ntfs.length - 1].takeAction("Yes");
+
+
+                await Misc.waitForTerminalText("Please enter MySQL password for root:", explicitWait*2);
+
+                await Misc.execOnTerminal(globalConn.password, explicitWait*2);
+
+                await Misc.waitForTerminalText("JWT secret:", explicitWait*2);
+
+                await Misc.execOnTerminal("1234", explicitWait*2);
+
+                await Misc.waitForTerminalText("Once the MySQL Router is started", explicitWait*2);
+
+                expect(await Misc.terminalHasErrors()).to.be.false;
+
+                await (await Misc.getActionButton(treeGlobalConn, "Reload Database Information")).click();
+
+                treeRouter = await treeDBSection.findItem(hostname());
+
+                expect(treeRouter).to.exist;
+
+            });
+
+            it("Start Local MySQL Router Instance", async () => {
+
+                await Misc.selectContextMenuItem(treeMySQLRESTService, "Start Local MySQL Router Instance");
+
+                await Misc.waitForTerminalText(
+                    "Start accepting connections for routing routing:bootstrap_x_rw listening on",
+                    explicitWait*2);
+
+                expect(await Misc.terminalHasErrors()).to.be.false;
+
+                await driver.wait(async () => {
+
+                    await (await Misc.getActionButton(treeGlobalConn, "Reload Database Information")).click();
+
+                    return (await Misc.isRouterActive(treeRouter)) === true;
+
+                }, explicitWait*2, `${await treeRouter.getLabel()} did not became inactive`);
+
+            });
+
+            it("Stop Local MySQL Router Instance", async () => {
+
+                await Misc.selectContextMenuItem(treeMySQLRESTService, "Stop Local MySQL Router Instance");
+
+
+                await Misc.waitForTerminalText("mysqlrouter\\stop", explicitWait*2);
+
+                expect(await Misc.terminalHasErrors()).to.be.false;
+
+                await driver.wait(async () => {
+
+                    await (await Misc.getActionButton(treeGlobalConn, "Reload Database Information")).click();
+
+                    return (await Misc.isRouterActive(treeRouter)) === false;
+
+                }, explicitWait*3, `${await treeRouter.getLabel()} did not became inactive`);
+
+            });
+
+            it("Browse the MySQL REST Service Documentation", async () => {
+
+                await Misc.selectContextMenuItem(treeMySQLRESTService, "Browse the MySQL REST Service Documentation");
+
+                await new EditorView().openEditor("MRS Docs");
+
+                await Misc.switchToWebView();
+                const titles = await driver.findElements(By.css("h1"));
+
+                for (const title of titles) {
+                    if (await title.getText() === "MRS Developer's Guide") {
+                        return true;
+                    }
+                }
+
+                throw new Error("Could not find the title 'MRS Developer's Guide'");
+
+            });
+
         });
 
-        afterEach(async function () {
-            await driver.switchTo().defaultContent();
-            if (this.currentTest?.state === "failed") {
-                const notifications = await new Workbench().getNotifications();
-                if (notifications.length > 0) {
-                    await notifications[notifications.length - 1].expand();
+        describe("Service Context Menus", () => {
+
+            let treeAuthApp: TreeItem;
+            let treeUser: TreeItem;
+
+            afterEach(async function () {
+                await driver.switchTo().defaultContent();
+                if (this.currentTest.state === "failed") {
+                    const notifications = await new Workbench().getNotifications();
+                    if (notifications.length > 0) {
+                        await notifications[notifications.length - 1].expand();
+                    }
+
+                    await Misc.processFailure(this);
+
+                    if (notifications.length > 0) {
+                        try {
+                            await notifications[notifications.length - 1].dismiss();
+                        } catch (e) {
+                            //continue
+                        }
+                    }
                 }
+                await new EditorView().closeAllEditors();
+            });
 
-                await Misc.processFailure(this);
+            it("Set as new DEFAULT REST Service", async () => {
 
-                if (notifications.length > 0) {
-                    await notifications[notifications.length - 1].dismiss();
-                }
-            }
+                await Misc.selectContextMenuItem(treeRandomService, "Set as New Default REST Service");
 
-            await new EditorView().closeAllEditors();
-        });
+                await Misc.verifyNotification("The MRS service has been set as the new default service.", true);
 
-        after(async function () {
-            try {
+                expect(await Misc.isDefaultItem(treeRandomService, "rest")).to.be.true;
+            });
 
-                const treeServMetadata = await treeDBSection.findItem("mysql_rest_service_metadata", dbMaxLevel);
-                await Misc.selectContextMenuItem(treeServMetadata, "Drop Schema...");
+            it("Edit REST Service", async () => {
 
-                const ntf = await driver.findElements(By.css(".notifications-toasts.visible"));
-                if (ntf.length > 0) {
-                    await ntf[0].findElement(By.xpath(
-                        `//a[contains(@title, 'Drop mysql_rest_service_metadata')]`)).click();
-                } else {
-                    const dialog = new ModalDialog();
-                    await dialog.pushButton(`Drop mysql_rest_service_metadata`);
-                }
+                await Misc.selectContextMenuItem(treeRandomService, "Edit REST Service...");
+
+                await Misc.switchToWebView();
+
+                await Database.setRestService(`/edited${randomService}`, "edited",
+                    "localhost", [], false, false);
+
+                await driver.switchTo().defaultContent();
+
+                await Misc.verifyNotification("The MRS service has been successfully updated.", true);
+
+                await driver.wait(async () => {
+                    await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
+                    treeRandomService = await treeDBSection.findItem(`/edited${randomService}`);
+
+                    return treeRandomService;
+                }, 3000, `/edited${randomService} was not displayed on the tree`);
+
+                await Misc.selectContextMenuItem(treeRandomService, "Edit REST Service...");
+
+                await Misc.switchToWebView();
+
+                const dialog = await driver.wait(until.elementLocated(By.id("mrsServiceDialog")),
+                    explicitWait, "MRS Service dialog was not displayed");
+                const inputServPath = await dialog.findElement(By.id("servicePath"));
+                const inputComments = await dialog.findElement(By.id("comments"));
+                const inputHost = await dialog.findElement(By.id("hostName"));
+
+                const protocols = await dialog.findElements(By.css("#protocols label.tag"));
+                const inputMrsEnabled = await dialog.findElement(By.id("enabled"));
+
+                const mrsEnabledClasses = (await inputMrsEnabled.getAttribute("class")).split(" ");
+
+                expect(protocols.length).to.equals(0);
+                expect(await inputServPath.getAttribute("value")).equals(`/edited${randomService}`);
+                expect(await inputComments.getAttribute("value")).equals("edited");
+                expect(await inputHost.getAttribute("value")).equals("localhost");
+                expect(mrsEnabledClasses).to.include("unchecked");
+
+            });
+
+            it("Add a REST Service Schema", async () => {
+
+                const randomServiceLabel = await treeRandomService.getLabel();
+
+                const treeSakila = await treeDBSection.findItem("sakila");
+
+                await Misc.selectContextMenuItem(treeSakila, "Add Schema to REST Service");
+
+                await Misc.switchToWebView();
+
+                await Database.setRestSchema("sakila",
+                    `localhost${String(randomServiceLabel)}`, "/sakila", 1, true, true, "sakila");
+
+                await driver.switchTo().defaultContent();
+
+                await Misc.verifyNotification("The MRS schema has been added successfully.", true);
+
+                await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
+
+                const treeService = await treeDBSection.findItem(String(randomServiceLabel));
+
+                await treeService.expand();
+
+                treeMySQLRESTSchema = await driver.wait(treeDBSection.findItem("sakila (/sakila)"),
+                    explicitWait, `'sakila (/sakila)' does not exist on the tree`);
+
+            });
+
+            it("Edit REST Schema", async () => {
+
+                const randomServiceLabel = await treeRandomService.getLabel();
+
+                const treeService = await treeDBSection.findItem(String(randomServiceLabel));
+
+                await treeService.expand();
+
+                await Misc.selectContextMenuItem(treeMySQLRESTSchema, "Edit REST Schema...");
+
+                await Misc.switchToWebView();
+
+                await Database.setRestSchema("sakila",
+                    `localhost${String(randomServiceLabel)}`, "/edited", 5, false, false, "edited");
+
+                await driver.switchTo().defaultContent();
+
+                await Misc.verifyNotification("The MRS schema has been updated successfully.", true);
+
+                await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
+
+                const treeSakilaEdited = await treeDBSection.findItem("sakila (/edited)");
+
+                await Misc.selectContextMenuItem(treeSakilaEdited, "Edit REST Schema...");
+
+                await Misc.switchToWebView();
+
+                const dialog = await driver.wait(until.elementLocated(By.id("mrsSchemaDialog")),
+                    explicitWait, "MRS Schema dialog was not displayed");
+
+                const inputSchemaName = await dialog.findElement(By.id("name"));
+                const inputRequestPath = await dialog.findElement(By.id("requestPath"));
+                const inputRequiresAuth = await dialog.findElement(By.id("requiresAuth"));
+                const inputEnabled = await dialog.findElement(By.id("enabled"));
+                const inputItemsPerPage = await dialog.findElement(By.css("#itemsPerPage"));
+                const inputComments = await dialog.findElement(By.id("comments"));
+                const inputRequiresAuthClasses = (await inputRequiresAuth.getAttribute("class")).split(" ");
+                const inputEnabledClasses = (await inputEnabled.getAttribute("class")).split(" ");
+
+                expect(await inputSchemaName.getAttribute("value")).equals("sakila");
+                expect(await inputRequestPath.getAttribute("value")).equals("/edited");
+                expect(inputRequiresAuthClasses).to.include("unchecked");
+                expect(inputEnabledClasses).to.include("unchecked");
+                expect(await inputItemsPerPage.getAttribute("value")).equals("5");
+                expect(await inputComments.getAttribute("value")).equals("edited");
+
+            });
+
+            it("Add Table to REST Service", async () => {
+
+                const treeSakilaEdited = await treeDBSection.findItem("sakila (/edited)");
+                await treeSakilaEdited.collapse();
+
+                const treeSakila = await treeDBSection.findItem("sakila");
+                await treeSakila.expand();
+
+                const treeTables = await treeDBSection.findItem("Tables");
+                await treeTables.expand();
+
+                const treeActor = await treeDBSection.findItem("actor");
+
+                await Misc.selectContextMenuItem(treeActor, "Add Database Object to REST Service");
+
+                await Misc.switchToWebView();
+
+                const dialog = await driver.wait(until.elementLocated(By.id("mrsSchemaDialog")),
+                    explicitWait, "MRS Schema dialog was not displayed");
+
+                await dialog.findElement(By.id("ok")).click();
+
+                await driver.switchTo().defaultContent();
+
+                await Misc.verifyNotification("The MRS Database Object actor has been added successfully", true);
+
+                await treeSakilaEdited.expand();
+
+                expect(await treeDBSection.findItem("actor (/actor)")).to.exist;
+
+            });
+
+            it("Add New Authentication App", async () => {
+
+                await Misc.selectContextMenuItem(treeRandomService, "Add New Authentication App");
+
+                await Misc.switchToWebView();
+
+                await Database.setAuthenticationApp(
+                    "MRS",
+                    undefined,
+                    "new app",
+                    "1234",
+                    "123",
+                    "testing",
+                    "guiTesting123",
+                    "empty",
+                    false,
+                    false);
+
+                await driver.switchTo().defaultContent();
+
+                await Misc.verifyNotification("The MRS Authentication App has been added", true);
+
+                await (await Misc.getActionButton(treeGlobalConn, "Reload Database Information")).click();
+
+                await treeRandomService.expand();
+
+                treeAuthApp = await treeDBSection.findItem("MRS (MRS)");
+
+                expect(treeAuthApp).to.exist;
+
+            });
+
+            it("Add User", async () => {
+
+                await Misc.selectContextMenuItem(treeAuthApp, "Add User");
+
+                await Misc.switchToWebView();
+
+                await Database.setUser(
+                    "gui",
+                    "testing",
+                    undefined,
+                    "as@as.com",
+                    undefined,
+                    false,
+                    "{\"user\": \"test\"}",
+                    "123",
+                    "guiMapped");
+
+
+                await driver.switchTo().defaultContent();
+
+                await Misc.verifyNotification("The MRS User has been added", true);
+
+                await (await Misc.getActionButton(treeGlobalConn ,"Reload Database Information")).click();
+
+                await treeAuthApp.expand();
+
+                treeDBSection = await Misc.getSection(dbTreeSection);
+
+                treeUser = await treeDBSection.findItem("gui");
+
+                expect(treeUser).to.exist;
+
+            });
+
+            it("Edit Authentication App", async () => {
+
+                await Misc.selectContextMenuItem(treeAuthApp, "Edit Authentication App");
+
+                await Misc.switchToWebView();
+
+                await Database.setAuthenticationApp(
+                    undefined,
+                    "MRSedited",
+                    "edited app",
+                    "4321",
+                    "321",
+                    "editedTesting",
+                    "guiEdited123",
+                    "Full Access",
+                    true,
+                    true);
+
+                await driver.switchTo().defaultContent();
+
+                await Misc.verifyNotification("The MRS Authentication App has been updated", true);
+
+                await (await Misc.getActionButton(treeGlobalConn, "Reload Database Information")).click();
+
+                treeAuthApp = await treeDBSection.findItem("MRSedited (MRS)");
+
+                expect(treeAuthApp).to.exist;
+
+                await Misc.selectContextMenuItem(treeAuthApp, "Edit Authentication App");
+
+                await Misc.switchToWebView();
+                const dialog = await driver.wait(until.elementLocated(By.id("mrsAuthenticationAppDialog")),
+                    explicitWait, "Authentication App dialog was not displayed");
+                expect(await dialog.findElement(By.css("#authVendorName label")).getText()).to.equals("MRS");
+                expect(await dialog.findElement(By.id("name")).getAttribute("value")).to.equals("MRSedited");
+                expect(await dialog.findElement(By.id("description"))
+                    .getAttribute("value")).to.equals("edited app");
+                expect(await dialog.findElement(By.id("accessToken")).getAttribute("value")).to.equals("4321");
+                expect(await dialog.findElement(By.id("appId")).getAttribute("value")).to.equals("321");
+                expect(await dialog.findElement(By.id("url")).getAttribute("value")).to.equals("editedTesting");
+                expect(await dialog.findElement(By.id("urlDirectAuth"))
+                    .getAttribute("value")).to.equals("guiEdited123");
+                expect(await dialog.findElement(By.css("#defaultRoleName label")).getText())
+                    .to.equals("Full Access");
+                expect(await dialog.findElement(By.id("enabled"))
+                    .getAttribute("class")).to.include("checked valueEditor");
+                expect(await dialog.findElement(By.id("limitToRegisteredUsers"))
+                    .getAttribute("class")).to.include("checked valueEditor");
+
+            });
+
+            it("Edit User", async () => {
+
+                treeAuthApp = await treeDBSection.findItem("MRSedited (MRS)");
+
+                await treeAuthApp.expand();
+
+                treeUser = await treeDBSection.findItem("gui");
+
+                await Misc.selectContextMenuItem(treeUser, "Edit User");
+
+                await Misc.switchToWebView();
+
+                await Database.setUser(
+                    "test",
+                    "editPass",
+                    undefined,
+                    "as1@as1.com",
+                    undefined,
+                    true,
+                    "{\"user\": \"edited\"}",
+                    "321",
+                    "editedMapped");
+
+                await driver.switchTo().defaultContent();
+
+                await Misc.verifyNotification(`The MRS User has been updated`, true);
+
+                await (await Misc.getActionButton(treeGlobalConn ,"Reload Database Information")).click();
+
+                treeDBSection = await Misc.getSection(dbTreeSection);
+
+                treeUser = await treeDBSection.findItem("test");
+
+                expect(treeUser).to.exist;
+
+                await Misc.selectContextMenuItem(treeUser, "Edit User");
+
+                await Misc.switchToWebView();
+
+                const dialog = await driver.wait(until.elementLocated(By.id("mrsUserDialog")),
+                    explicitWait, "User dialog was not displayed");
+                expect(await dialog.findElement(By.id("name")).getAttribute("value")).to.equals("test");
+                expect(await dialog.findElement(By.css("#authApp label")).getText()).to.equals("MRSedited");
+                expect(await dialog.findElement(By.id("email")).getAttribute("value")).to.equals("as1@as1.com");
+                expect(await dialog.findElement(By.id("email")).getAttribute("value")).to.equals("as1@as1.com");
+                expect(await dialog.findElement(By.css("#roles label")).getText()).to.equals("Full Access");
+                expect(await dialog.findElement(By.id("loginPermitted"))
+                    .getAttribute("class")).to.include("checked valueEditor");
+                expect(await dialog.findElement(By.id("appOptions")).getAttribute("value"))
+                    .to.equals("{\"user\":\"edited\"}");
+                expect(await dialog.findElement(By.id("vendorUserId")).getAttribute("value")).to.equals("321");
+                expect(await dialog.findElement(By.id("mappedUserId")).getAttribute("value")).to.equals("editedMapped");
+
+            });
+
+            it("MRS Service Documentation", async () => {
+
+                await Misc.selectContextMenuItem(treeRandomService, "MRS Service Documentation");
+
+                await new EditorView().openEditor("MRS Docs");
+
+                await Misc.switchToWebView();
+
+                await driver.findElement(By.id("rest-service-properties"));
+
+            });
+
+            it("Delete User", async () => {
+
+                treeUser = await treeDBSection.findItem("test");
+
+                await Misc.selectContextMenuItem(treeUser, "Delete User");
+
+                await Misc.verifyNotification(
+                    `Are you sure the MRS user ${await treeUser.getLabel()} should be deleted`);
+
+                const workbench = new Workbench();
+
+                const ntfs = await workbench.getNotifications();
+
+                await ntfs[ntfs.length - 1].takeAction("Yes");
 
                 await Misc
-                    .verifyNotification("The object mysql_rest_service_metadata has been dropped successfully.", true);
+                    .verifyNotification(`The MRS User ${await treeUser.getLabel()} has been deleted`, true);
 
-            } catch (e) {
-                await Misc.processFailure(this);
-                throw e;
-            }
-        });
+                await (await Misc.getActionButton(treeGlobalConn ,"Reload Database Information")).click();
 
-        it("Set as new DEFAULT REST Service", async () => {
+                treeDBSection = await Misc.getSection(dbTreeSection);
 
-            await Misc.selectContextMenuItem(treeRandomService, "Set as New Default REST Service");
+                expect(await treeDBSection.findItem("test")).to.not.exist;
 
-            await Misc.verifyNotification("The MRS service has been set as the new default service.", true);
+            });
 
-            expect(await Misc.isDefaultItem(treeRandomService, "rest")).to.be.true;
-        });
+            it("Delete Authentication App", async () => {
 
-        it("Edit REST Service", async () => {
+                treeAuthApp = await treeDBSection.findItem("MRSedited (MRS)");
 
-            await Misc.selectContextMenuItem(treeRandomService, "Edit REST Service...");
+                await Misc.selectContextMenuItem(treeAuthApp, "Delete Authentication App");
 
-            await Misc.switchToWebView();
+                await Misc.verifyNotification(
+                    `Are you sure the MRS authentication app ${(await treeAuthApp.getLabel())
+                        .replace(" (MRS)", "")} should be deleted`);
 
-            await Database.setRestService(`/edited${randomService}`, "edited",
-                "localhost", [], false, false);
+                const workbench = new Workbench();
 
-            await driver.switchTo().defaultContent();
+                const ntfs = await workbench.getNotifications();
 
-            await Misc.verifyNotification("The MRS service has been successfully updated.", true);
+                await ntfs[ntfs.length - 1].takeAction("Yes");
 
-            await driver.wait(async () => {
+                await Misc.verifyNotification(`The MRS Authentication App MRSedited has been deleted`, true);
+
+                await (await Misc.getActionButton(treeGlobalConn ,"Reload Database Information")).click();
+
+                treeDBSection = await Misc.getSection(dbTreeSection);
+
+                expect(await treeDBSection.findItem("MRSedited (MRS)")).to.not.exist;
+
+            });
+
+            it("Delete REST Schema", async () => {
+
+                await treeRandomService.expand();
+
+                const label = await treeMySQLRESTSchema.getLabel();
+
+                await Misc.selectContextMenuItem(treeMySQLRESTSchema, "Delete REST Schema...");
+
+                await Misc.verifyNotification("Are you sure the MRS schema sakila should be deleted", false);
+
+                const workbench = new Workbench();
+
+                const ntfs = await workbench.getNotifications();
+
+                await ntfs[ntfs.length - 1].takeAction("Yes");
+
+                await Misc.verifyNotification("The MRS schema has been deleted successfully", true);
+
                 await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
-                treeRandomService = await treeDBSection.findItem(`/edited${randomService}`, dbMaxLevel);
 
-                return treeRandomService;
-            }, 3000, `/edited${randomService} was not displayed on the tree`);
+                treeDBSection = await Misc.getSection(dbTreeSection);
 
-            await Misc.selectContextMenuItem(treeRandomService, "Edit REST Service...");
+                expect(await treeDBSection.findItem(label)).to.not.exist;
 
-            await Misc.switchToWebView();
+            });
 
-            const dialog = await driver.wait(until.elementLocated(By.id("mrsServiceDialog")),
-                explicitWait, "MRS Service dialog was not displayed");
-            const inputServPath = await dialog.findElement(By.id("servicePath"));
-            const inputComments = await dialog.findElement(By.id("comments"));
-            const inputHost = await dialog.findElement(By.id("hostName"));
+            it("Delete REST Service", async () => {
 
-            const protocols = await dialog.findElements(By.css("#protocols label.tag"));
-            const inputMrsEnabled = await dialog.findElement(By.id("enabled"));
+                await Misc.selectContextMenuItem(treeRandomService, "Delete REST Service...");
 
-            const mrsEnabledClasses = (await inputMrsEnabled.getAttribute("class")).split(" ");
+                const label = await treeRandomService.getLabel();
 
-            expect(protocols.length).to.equals(0);
-            expect(await inputServPath.getAttribute("value")).equals(`/edited${randomService}`);
-            expect(await inputComments.getAttribute("value")).equals("edited");
-            expect(await inputHost.getAttribute("value")).equals("localhost");
-            expect(mrsEnabledClasses).to.include("unchecked");
+                await Misc.verifyNotification(`Are you sure the MRS service ${String(label)} should be deleted`);
 
-        });
+                const workbench = new Workbench();
+                const ntfs = await workbench.getNotifications();
 
-        it("Add a REST Service Schema", async () => {
+                await ntfs[ntfs.length - 1].takeAction("Yes");
 
-            const randomServiceLabel = await treeRandomService.getLabel();
+                await Misc.verifyNotification("The MRS service has been deleted successfully", true);
 
-            const treeSakila = await treeDBSection.findItem("sakila", dbMaxLevel);
+                await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
 
-            await Misc.selectContextMenuItem(treeSakila, "Add Schema to REST Service");
+                treeDBSection = await Misc.getSection(dbTreeSection);
 
-            await Misc.switchToWebView();
+                expect(await treeDBSection.findItem(label)).to.not.exist;
 
-            await Database.setRestSchema("sakila",
-                `localhost${String(randomServiceLabel)}`, "/sakila", 1, true, true, "sakila");
+            });
 
-            await driver.switchTo().defaultContent();
-
-            await Misc.verifyNotification("The MRS schema has been added successfully.", true);
-
-            await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
-
-            await (await treeDBSection.findItem(String(randomServiceLabel), dbMaxLevel)).expand();
-
-            treeMySQLRESTSchema = await driver.wait(treeDBSection.findItem("sakila (/sakila)", dbMaxLevel),
-                explicitWait, `'sakila (/sakila)' does not exist on the tree`);
-
-        });
-
-        it("Edit REST Schema", async () => {
-
-            const randomServiceLabel = await treeRandomService.getLabel();
-
-            await (await treeDBSection.findItem(String(randomServiceLabel), dbMaxLevel)).expand();
-
-            await Misc.selectContextMenuItem(treeMySQLRESTSchema, "Edit REST Schema...");
-
-            await Misc.switchToWebView();
-
-            await Database.setRestSchema("sakila",
-                `localhost${String(randomServiceLabel)}`, "/edited", 5, false, false, "edited");
-
-            await driver.switchTo().defaultContent();
-
-            await Misc.verifyNotification("The MRS schema has been updated successfully.", true);
-
-            await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
-
-            treeDBSection = await Misc.getSection(dbTreeSection);
-
-            const treeSakilaEdited = await treeDBSection.findItem("sakila (/edited)", dbMaxLevel);
-
-            await Misc.selectContextMenuItem(treeSakilaEdited, "Edit REST Schema...");
-
-            await Misc.switchToWebView();
-
-            const dialog = await driver.wait(until.elementLocated(By.id("mrsSchemaDialog")),
-                explicitWait, "MRS Schema dialog was not displayed");
-
-            const inputSchemaName = await dialog.findElement(By.id("name"));
-            const inputRequestPath = await dialog.findElement(By.id("requestPath"));
-            const inputRequiresAuth = await dialog.findElement(By.id("requiresAuth"));
-            const inputEnabled = await dialog.findElement(By.id("enabled"));
-            const inputItemsPerPage = await dialog.findElement(By.css("#itemsPerPage"));
-            const inputComments = await dialog.findElement(By.id("comments"));
-            const inputRequiresAuthClasses = (await inputRequiresAuth.getAttribute("class")).split(" ");
-            const inputEnabledClasses = (await inputEnabled.getAttribute("class")).split(" ");
-
-            expect(await inputSchemaName.getAttribute("value")).equals("sakila");
-            expect(await inputRequestPath.getAttribute("value")).equals("/edited");
-            expect(inputRequiresAuthClasses).to.include("unchecked");
-            expect(inputEnabledClasses).to.include("unchecked");
-            expect(await inputItemsPerPage.getAttribute("value")).equals("5");
-            expect(await inputComments.getAttribute("value")).equals("edited");
-
-        });
-
-        it("Add Table to REST Service", async () => {
-
-            await (await treeDBSection.findItem("sakila", dbMaxLevel)).expand();
-
-            await (await treeDBSection.findItem("Tables", dbMaxLevel)).expand();
-
-            const treeActor = await treeDBSection.findItem("actor", dbMaxLevel);
-
-            await Misc.selectContextMenuItem(treeActor, "Add Database Object to REST Service");
-
-            await Misc.switchToWebView();
-
-            const dialog = await driver.wait(until.elementLocated(By.id("mrsSchemaDialog")),
-                explicitWait, "MRS Schema dialog was not displayed");
-
-            await dialog.findElement(By.id("ok")).click();
-
-            await Misc.verifyNotification("The MRS Database Object actor has been added successfully", true);
-
-            const treeSakilaEdited = await treeDBSection.findItem("sakila (/edited)", dbMaxLevel);
-
-            await treeSakilaEdited.expand();
-
-            expect(await treeDBSection.findItem("actor (/actor)", dbMaxLevel)).to.exist;
-        });
-
-        it("Delete REST Schema", async () => {
-
-            await treeRandomService.expand();
-
-            treeMySQLRESTSchema = await treeDBSection.findItem("sakila (/edited)", dbMaxLevel);
-
-            await Misc.selectContextMenuItem(treeMySQLRESTSchema, "Delete REST Schema...");
-
-            await Misc.verifyNotification("Are you sure the MRS schema sakila should be deleted?", false);
-
-            const workbench = new Workbench();
-            const ntfs = await workbench.getNotifications();
-
-            await ntfs[ntfs.length - 1].takeAction("Yes");
-
-            await Misc.verifyNotification("The MRS schema has been deleted successfully");
-
-            await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
-
-            treeDBSection = await Misc.getSection(dbTreeSection);
-
-            expect(await treeDBSection.findItem("sakila (/sakila)", dbMaxLevel)).to.not.exist;
-
-        });
-
-        it("Delete REST Service", async () => {
-
-            await Misc.selectContextMenuItem(treeRandomService, "Delete REST Service...");
-
-            const label = await treeRandomService.getLabel();
-
-            await Misc.verifyNotification(`Are you sure the MRS service ${String(label)} should be deleted?`);
-
-            const workbench = new Workbench();
-            const ntfs = await workbench.getNotifications();
-
-            await ntfs[ntfs.length - 1].takeAction("Yes");
-
-            await Misc.verifyNotification("The MRS service has been deleted successfully", true);
-
-            await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
-
-            treeDBSection = await Misc.getSection(dbTreeSection);
-
-            expect(await treeDBSection.findItem(label, dbMaxLevel)).to.not.exist;
         });
     });
 

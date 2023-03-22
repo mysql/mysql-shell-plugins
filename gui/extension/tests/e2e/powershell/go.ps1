@@ -104,6 +104,15 @@ try {
         writeMsg "SKIPPED. Not found"
     }
 
+    if ($env:TEST_SUITE -eq "rest"){
+        $mysqlrouterConfig = Join-Path $env:APPDATA "MySQL" "mysqlrouter"
+        $mysqlrouterConfigOld = Join-Path $env:APPDATA "MySQL" "mysqlrouter_old"
+        writeMsg "Removing router config folder..."
+        Remove-Item -Path $mysqlrouterConfig -Force -Recurse
+        Remove-Item -Path $mysqlrouterConfigOld -Force -Recurse
+        writeMsg "DONE"
+    }
+
     # EXECUTE TESTS
     writeMsg "Executing GUI tests for $env:TEST_SUITE suite..."
     $prcExecTests = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests", "--", "-s $testResources", "-e $extPath", "-f", "./output/tests/ui-$env:TEST_SUITE.js" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\resultsExt-$env:TEST_SUITE.log" -RedirectStandardError "$env:WORKSPACE\resultsExtErr-$env:TEST_SUITE.log"
