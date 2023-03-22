@@ -91,6 +91,21 @@ export class MRSCommandHandler {
                 await this.startStopLocalRouter(context, item);
             }));
 
+        context.subscriptions.push(commands.registerCommand("msg.mrs.killLocalRouters",
+            (item?: MrsTreeItem) => {
+                let term = window.terminals.find((t) => { return t.name === "MySQL Router MRS"; });
+                if (term === undefined) {
+                    term = window.createTerminal("MySQL Router MRS");
+                }
+
+                if (os.platform() === "win32") {
+                    term.sendText("taskkill /IM mysqlrouter.exe /F", true);
+                } else {
+                    term.sendText("killall mysqlrouter", true);
+                }
+            }));
+
+
         context.subscriptions.push(commands.registerCommand("msg.mrs.stopLocalRouter",
             async (item?: MrsTreeItem) => {
                 await this.startStopLocalRouter(context, item, false);
