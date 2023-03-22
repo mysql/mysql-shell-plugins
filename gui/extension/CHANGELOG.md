@@ -4,11 +4,14 @@
 
 ### Fixes
 
-- 
-
-### Additions
-
-- 
+- The "Requires Authentication" option should default to FALSE when creating a new MRS schema
+- Fixed horizontal layout of action output to become vertical again.
+- Fixed size and position of the copy button in action output, which was wrong in script editors (but ok in Notebooks).
+- Changed display of open editors in the extension sidebar when only one provider and one connection is open.
+- Fixed an error in the MRS interface.
+- Fixed the connection refresh regression.
+- Fixed action output scroll into view regression.
+- Updated tests for the changes.
 
 ## Changes in 1.9.0+8.0.32
 
