@@ -991,7 +991,7 @@ export class MRSCommandHandler {
                     "Yes", "No");
                 if (answer === "Yes") {
                     dbObject.dbSchemaId = await backend.mrs.addSchema(service.id,
-                        item.schema, `/${item.schema}`, true, null, null, undefined);
+                        item.schema, `/${item.schema}`, false, null, null, undefined);
 
                     void commands.executeCommand("msg.refreshConnections");
                     showMessageWithTimeout(`The MRS schema ${item.schema} has been added successfully.`, 5000);
@@ -1095,9 +1095,10 @@ export class MRSCommandHandler {
                     });
 
                     void commands.executeCommand("msg.refreshConnections");
-                    showMessageWithTimeout("The MRS Authentication App has been added.", 5000);
+                    showMessageWithTimeout("The MRS Authentication App has been updated.", 5000);
                 } catch (error) {
-                    void window.showErrorMessage(`Error while adding MySQL REST Authentication App: ${String(error)}`);
+                    void window.showErrorMessage(
+                        `Error while updating MySQL REST Authentication App: ${String(error)}`);
                 }
             }
         } else {
@@ -1119,7 +1120,7 @@ export class MRSCommandHandler {
                     }
 
                     void commands.executeCommand("msg.refreshConnections");
-                    showMessageWithTimeout("The MRS Authentication App has been updated.", 5000);
+                    showMessageWithTimeout("The MRS Authentication App has been added.", 5000);
                 } catch (error) {
                     void window.showErrorMessage(`Error while adding MySQL REST Authentication App: ${String(error)}`);
                 }
@@ -1470,7 +1471,7 @@ export class MRSCommandHandler {
                     serviceId: schema?.serviceId,
                     name: schema?.name ?? schemaName,
                     requestPath: schema?.requestPath ?? `/${schemaName ?? ""}`,
-                    requiresAuth: !schema || schema?.requiresAuth === 1,
+                    requiresAuth: schema?.requiresAuth === 1,
                     enabled: !schema || schema.enabled === 1,
                     itemsPerPage: schema?.itemsPerPage,
                     comments: schema?.comments ?? "",

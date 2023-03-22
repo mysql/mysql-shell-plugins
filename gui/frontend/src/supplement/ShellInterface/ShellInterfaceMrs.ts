@@ -374,7 +374,7 @@ export class ShellInterfaceMrs {
     }
 
     public async updateSchema(schemaId: string, schemaName: string, requestPath: string,
-        requiresAuth: boolean, enabled: boolean, itemsPerPage: number, comments: string,
+        requiresAuth: boolean, enabled: boolean, itemsPerPage: number | null, comments: string,
         options: IShellDictionary | null): Promise<void> {
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsUpdateSchema,
