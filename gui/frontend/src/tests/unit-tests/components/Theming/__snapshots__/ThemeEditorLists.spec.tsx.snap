@@ -1084,7 +1084,7 @@ exports[`Theme editor lists testing Render test 1`] = `
                     },
                     {
                       "children": undefined,
-                      "color": "#222225",
+                      "color": "#1E1E1E",
                       "description": "Background color of a selected item in an active group",
                       "id": "tab.activeBackground",
                       "preview": true,
@@ -6581,7 +6581,7 @@ exports[`Theme editor lists testing Render test 1`] = `
                       },
                       {
                         "children": undefined,
-                        "color": "#222225",
+                        "color": "#1E1E1E",
                         "description": "Background color of a selected item in an active group",
                         "id": "tab.activeBackground",
                         "preview": true,
