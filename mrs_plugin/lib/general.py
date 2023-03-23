@@ -21,7 +21,7 @@
 
 
 # Define plugin version
-VERSION = "1.9.1"
+VERSION = "1.9.2"
 
 DB_VERSION = [1, 0, 32]
 DB_VERSION_STR = '%d.%d.%d' % tuple(DB_VERSION)
