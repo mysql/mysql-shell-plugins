@@ -50,6 +50,7 @@ import {
     dbConnectionsLabel,
     openEditorsDBNotebook,
     dbEditorDefaultName,
+    ociExplicitWait,
 } from "../lib/misc";
 
 import { Shell } from "../lib/shell";
@@ -114,6 +115,15 @@ describe("DATABASE CONNECTIONS", () => {
             }
 
             await Misc.toggleBottomBar(false);
+
+            await driver.wait(new Condition("", async () => {
+                const editors = await new EditorView().getOpenEditorTitles();
+                if (editors.length > 0) {
+                    await new EditorView().closeAllEditors();
+
+                    return (await new EditorView().getOpenEditorTitles()).length === 0;
+                }
+            }), ociExplicitWait);
 
             const randomCaption = String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000));
             globalConn.caption += randomCaption;

@@ -73,6 +73,11 @@
                     ],
                     "description": "Sets different verbosity levels for the communication log between the extension and MySQL Shell. To see this log, open the OUTPUT channel MySQL Shell for VS Code."
                 },
+                "msg.startup.showDbConnectionsTab": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Open the DB Connections Overview Editor when selecting the MySQL Shell for VS Code extension icon in the Activity Bar for the first time after VS Code startup."
+                },
                 "msg.workers.minWorkerCount": {
                     "type": "number",
                     "default": 3,
