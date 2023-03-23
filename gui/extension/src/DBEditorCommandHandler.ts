@@ -75,6 +75,9 @@ export class DBEditorCommandHandler {
 
     private openEditorsTreeDataProvider: OpenEditorsTreeDataProvider;
 
+    private initialDisplayOfOpenEditorsView = true;
+    private displayDbConnectionOverviewWhenConnected = false;
+
     public constructor(private connectionsProvider: ConnectionsTreeDataProvider) { }
 
     public setup(context: ExtensionContext, host: ExtensionHost): void {
@@ -109,6 +112,26 @@ export class DBEditorCommandHandler {
         this.openEditorsTreeDataProvider.onSelect = (item: IOpenEditorBaseEntry): void => {
             void openEditorsTreeView.reveal(item, { select: true, focus: false, expand: 3 });
         };
+
+        // Display the DB Connections overview together with the initial display of the OPEN EDITORS view
+        openEditorsTreeView.onDidChangeVisibility((e) => {
+            // Get the user setting for msg.startup.showDbConnectionsTab
+            const showDbConnectionsTab = workspace.getConfiguration(`msg.startup`)
+                .get<boolean>("showDbConnectionsTab", true);
+
+            if (e.visible && this.initialDisplayOfOpenEditorsView && showDbConnectionsTab) {
+                this.initialDisplayOfOpenEditorsView = false;
+
+                // If the extension is already connected to the MySQL Shell websocket,
+                // open the DB Connections overview right away
+                if (this.url) {
+                    void commands.executeCommand("msg.openDBBrowser");
+                } else {
+                    // Otherwise open the DB Connections overview when connected
+                    this.displayDbConnectionOverviewWhenConnected = true;
+                }
+            }
+        });
 
         requisitions.register("connectedToUrl", this.connectedToUrl);
         requisitions.register("editorRunQuery", this.editorRunQuery);
@@ -555,6 +578,11 @@ export class DBEditorCommandHandler {
     private connectedToUrl = (url?: URL): Promise<boolean> => {
         this.url = url;
         this.closeProviders();
+
+        if (this.displayDbConnectionOverviewWhenConnected) {
+            this.displayDbConnectionOverviewWhenConnected = false;
+            void commands.executeCommand("msg.openDBBrowser");
+        }
 
         return Promise.resolve(true);
     };
