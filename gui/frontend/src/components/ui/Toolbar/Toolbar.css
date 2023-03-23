@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,9 +22,12 @@
  */
 
 .msg.toolbar {
-    background-color: var(--titleBar-inactiveBackground);
+    background-color: var(--tab-activeBackground);
     color: var(--titleBar-inactiveForeground);
     border: 1px solid transparent;
+
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .1));
+
 
     min-width: 60px;
     min-height: 20px;

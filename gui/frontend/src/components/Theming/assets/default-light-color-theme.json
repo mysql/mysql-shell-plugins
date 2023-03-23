@@ -420,7 +420,7 @@
         "symbolIcon.typeParameterForeground": "#616161",
         "symbolIcon.unitForeground": "#616161",
         "symbolIcon.variableForeground": "#007ACC",
-        "tab.activeBackground": "#F8F8F8",
+        "tab.activeBackground": "#FFFFFF",
         "tab.activeBorder": "#FFFFFF",
         "tab.activeBorderTop": "#007ACC",
         "tab.activeForeground": "#333333",

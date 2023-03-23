@@ -24,6 +24,7 @@
 .msg.frontPage {
     user-select: none;
     padding: 0 40px;
+    height: 100%;
 }
 
 .msg.frontPage.embedded {
