@@ -42,7 +42,7 @@ import {
 } from "../lib/misc";
 
 import { hostname } from "os";
-import { IDBConnection, Database } from "../lib/db";
+import { IDBConnection, Database, IConnBasicMySQL } from "../lib/db";
 
 describe("MRS", () => {
 
@@ -62,19 +62,20 @@ describe("MRS", () => {
         throw new Error("Please define the environment variable DBPORTX");
     }
 
-    const globalConn: IDBConnection = {
-        caption: "conn",
-        description: "Local connection",
+    const globalBasicInfo: IConnBasicMySQL = {
         hostname: String(process.env.DBHOSTNAME),
         username: String(process.env.DBUSERNAME),
         port: Number(process.env.DBPORT),
         portX: Number(process.env.DBPORTX),
         schema: "sakila",
         password: String(process.env.DBPASSWORD),
-        sslMode: undefined,
-        sslCA: undefined,
-        sslClientCert: undefined,
-        sslClientKey: undefined,
+    };
+
+    const globalConn: IDBConnection = {
+        dbType: "MySQL",
+        caption: "conn",
+        description: "Local connection",
+        basic: globalBasicInfo,
     };
 
     let treeDBSection: CustomTreeSection;
@@ -95,7 +96,7 @@ describe("MRS", () => {
             const randomCaption = String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000));
             globalConn.caption += randomCaption;
             treeDBSection = await Misc.getSection(dbTreeSection);
-            await Database.createConnection(treeDBSection, globalConn, false);
+            await Database.createConnection(globalConn);
             expect(await Database.getWebViewConnection(globalConn.caption)).to.exist;
             const edView = new EditorView();
             await edView.closeAllEditors();
@@ -137,11 +138,11 @@ describe("MRS", () => {
 
                 const randomCaption = String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000));
                 await treeGlobalConn.expand();
-                await Misc.setInputPassword(globalConn.password);
+                await Misc.setInputPassword((globalConn.basic as IConnBasicMySQL).password);
 
                 await Misc.selectContextMenuItem(treeGlobalConn, "Configure Instance for MySQL REST Service Support");
 
-                await Misc.setInputPassword(globalConn.password);
+                await Misc.setInputPassword((globalConn.basic as IConnBasicMySQL).password);
 
                 await Misc.verifyNotification("MySQL REST Service configured successfully.", true);
 
@@ -221,7 +222,7 @@ describe("MRS", () => {
 
                 await Misc.selectContextMenuItem(treeMySQLRESTService, "Disable MySQL REST Service");
 
-                await Misc.setInputPassword(globalConn.password);
+                await Misc.setInputPassword((globalConn.basic as IConnBasicMySQL).password);
 
                 await Misc.verifyNotification("MySQL REST Service configured successfully.", true);
 
@@ -232,7 +233,7 @@ describe("MRS", () => {
 
                 await Misc.selectContextMenuItem(treeMySQLRESTService, "Enable MySQL REST Service");
 
-                await Misc.setInputPassword(globalConn.password);
+                await Misc.setInputPassword((globalConn.basic as IConnBasicMySQL).password);
 
                 await Misc.verifyNotification("MySQL REST Service configured successfully.", true);
 
@@ -248,7 +249,7 @@ describe("MRS", () => {
 
                 await Misc.waitForTerminalText("Please enter MySQL password for root:", explicitWait*2);
 
-                await Misc.execOnTerminal(globalConn.password, explicitWait*2);
+                await Misc.execOnTerminal((globalConn.basic as IConnBasicMySQL).password, explicitWait*2);
 
                 await Misc.waitForTerminalText("JWT secret:", explicitWait*2);
 
@@ -283,7 +284,7 @@ describe("MRS", () => {
 
                 await Misc.waitForTerminalText("Please enter MySQL password for root:", explicitWait*2);
 
-                await Misc.execOnTerminal(globalConn.password, explicitWait*2);
+                await Misc.execOnTerminal((globalConn.basic as IConnBasicMySQL).password, explicitWait*2);
 
                 await Misc.waitForTerminalText("JWT secret:", explicitWait*2);
 

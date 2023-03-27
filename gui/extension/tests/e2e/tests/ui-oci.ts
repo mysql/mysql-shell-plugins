@@ -50,9 +50,11 @@ import {
     tasksTreeSection,
     dbConnectionsLabel,
     openEditorsMaxLevel,
+    dbTreeSection,
+    dbMaxLevel,
 } from "../lib/misc";
 
-import { Database } from "../lib/db";
+import { Database, IConnMDS, IDBConnection, IConnBasicMySQL } from "../lib/db";
 import { Shell } from "../lib/shell";
 import { homedir } from "os";
 import { join } from "path";
@@ -448,6 +450,9 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
     describe("Bastion", () => {
 
         let treeBastion: TreeItem | undefined;
+        let mdsEndPoint = "";
+        let dbSystemOCID = "";
+        let bastionOCID = "";
 
         before(async function () {
             try {
@@ -594,6 +599,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             await outputView.clearText();
 
+            await bottomBar.toggle(false);
+
         });
 
         it("Create connection with Bastion Service", async function () {
@@ -621,8 +628,9 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 expect(await newConDialog.findElement(By.id("description")).getAttribute("value"))
                     .to.equal("DB System used to test the MySQL Shell for VSCode Extension.");
 
-                expect(await newConDialog.findElement(By.id("hostName")).getAttribute("value"))
-                    .to.match(/(\d+).(\d+).(\d+).(\d+)/);
+                mdsEndPoint = await newConDialog.findElement(By.id("hostName")).getAttribute("value");
+
+                expect(mdsEndPoint).to.match(/(\d+).(\d+).(\d+).(\d+)/);
 
                 await newConDialog.findElement(By.id("userName")).sendKeys("dba");
 
@@ -636,9 +644,13 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                     return await driver.findElement(By.id("mysqlDbSystemId")).getAttribute("value") !== "";
                 }, 3000, "DbSystemID field was not set");
 
+                dbSystemOCID = await driver.findElement(By.id("mysqlDbSystemId")).getAttribute("value");
+
                 await driver.wait(async () => {
                     return await driver.findElement(By.id("bastionId")).getAttribute("value") !== "";
                 }, 3000, "BastionID field was not set");
+
+                bastionOCID = await driver.findElement(By.id("bastionId")).getAttribute("value");
 
                 await newConDialog.findElement(By.id("ok")).click();
 
@@ -647,7 +659,6 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 const mds = await Database.getWebViewConnection("MDSforVSCodeExtension");
 
                 expect(mds).to.exist;
-
 
                 await Misc.switchToWebView();
 
@@ -700,6 +711,103 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
                 this.skip();
             }
+
+        });
+
+        it("Edit an existing MDS Connection", async () => {
+
+            const localMDSInfo: IConnMDS = {
+                profile: "E2ETESTS",
+                // eslint-disable-next-line max-len
+                dbSystemOCID: "ocid1.mysqldbsystem.oc1.iad.aaaaaaaamggf5754p2fjtqhkguxpu6zgzzjyknx2irdh2exhdhkjy6y4s7va",
+            };
+
+            const mdsConn: IDBConnection = {
+                dbType: "MySQL",
+                caption: "MDSEdited",
+                mds: localMDSInfo,
+            };
+
+
+            await Misc.sectionFocus(dbTreeSection);
+
+            const treeDBSection = await Misc.getSection(dbTreeSection);
+
+            const treeMDSConn = await treeDBSection.findItem("MDSforVSCodeExtension", dbMaxLevel);
+
+            await Misc.selectContextMenuItem(treeMDSConn, "Edit DB Connection");
+
+            await new EditorView().openEditor(dbEditorDefaultName);
+
+            await Misc.switchToWebView();
+
+            await Database.setConnection(
+                "MySQL",
+                mdsConn.caption,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                localMDSInfo,
+            );
+
+            await driver.switchTo().defaultContent();
+
+            await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
+
+            expect(await treeDBSection.findItem(mdsConn.caption, dbMaxLevel)).to.exist;
+
+        });
+
+        it("Create a new MDS Connection", async () => {
+
+            const localBasicInfo: IConnBasicMySQL = {
+                hostname: mdsEndPoint,
+                username: "dba",
+                password: "MySQLR0cks!",
+                port: 3306,
+                ociBastion: true,
+            };
+
+            const localMDSInfo: IConnMDS = {
+                profile: "E2ETESTS",
+                sshPrivKey: "id_rsa_mysql_shell",
+                sshPubKey: "id_rsa_mysql_shell.pub",
+                dbSystemOCID: String(dbSystemOCID),
+                bastionOCID: String(bastionOCID),
+            };
+
+            const localConn: IDBConnection = {
+                dbType: "MySQL",
+                caption: "LocalMDSConnection",
+                description: "Local connection",
+                basic: localBasicInfo,
+                mds: localMDSInfo,
+            };
+
+            await Misc.sectionFocus(dbTreeSection);
+
+            await Database.createConnection(localConn);
+            const treeDBSection = await Misc.getSection(dbTreeSection);
+            await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
+            const treeLocalConn = await treeDBSection.findItem(localConn.caption, dbMaxLevel);
+            expect(treeLocalConn).to.exist;
+
+            await new EditorView().closeAllEditors();
+
+            await (await Misc.getActionButton(treeLocalConn, "Connect to Database")).click();
+
+            await Misc.switchToWebView();
+            await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
+            await Database.setPassword(localConn);
+            try {
+                await Misc.setConfirmDialog(localConn, "no", 30000);
+            } catch (e) {
+                // continue
+            }
+
+            const result = await Misc.execCmd("select version();", undefined, 10000);
+            expect(result[0]).to.include("OK");
 
         });
 
