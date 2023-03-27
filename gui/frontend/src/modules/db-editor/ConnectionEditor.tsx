@@ -1143,7 +1143,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
     };
 
     private handleTabSelect = (id: string): void => {
-        if (id === "MDS") {
+        if (id === "MDS/Bastion Service") {
             this.shellSession.mds.getMdsConfigProfiles().then((profiles) => {
                 this.fillProfileDropdown(profiles);
             }).catch((reason) => {

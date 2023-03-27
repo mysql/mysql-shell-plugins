@@ -27,7 +27,6 @@ import {
     until,
     Key as selKey,
     error,
-    CustomTreeSection,
     Condition,
 } from "vscode-extension-tester";
 import { expect } from "chai";
@@ -35,61 +34,235 @@ import { basename } from "path";
 
 import { driver, Misc, dbTreeSection, explicitWait, ociExplicitWait } from "./misc";
 
+export interface IConnBasicMySQL {
+    hostname?: string;
+    protocol?: string;
+    port?: number;
+    portX?: number;
+    username?: string;
+    password?: string;
+    schema?: string;
+    sshTunnel?: boolean;
+    ociBastion?: boolean;
+}
+
+export interface IConnBasicSqlite {
+    dbPath?: string;
+    dbName?: string;
+    advanced?: IConnAdvancedSqlite;
+}
+
+export interface IConnAdvancedSqlite {
+    params?: string;
+}
+
+export interface IConnSSL{
+    mode?: string;
+    ciphers?: string;
+    caPath?: string;
+    clientCertPath?: string;
+    clientKeyPath?: string;
+}
+
+export interface IConnAdvanced{
+    mode?: string;
+    timeout?: number;
+    compression?: string;
+    compLevel?: string;
+    compAlgorithms?: string;
+    disableHW?: boolean;
+}
+
+export interface IConnMDS{
+    profile?: string;
+    sshPrivKey?: string;
+    sshPubKey?: string;
+    dbSystemOCID?: string;
+    bastionOCID?: string;
+}
+
 export interface IDBConnection {
-    caption: string;
-    description: string;
-    hostname: string;
-    username: string;
-    port: number;
-    portX: number;
-    schema: string;
-    password: string;
-    sslMode: string | undefined;
-    sslCA: string | undefined;
-    sslClientCert: string | undefined;
-    sslClientKey: string | undefined;
+    dbType?: string;
+    caption?: string;
+    description?: string;
+    basic?: IConnBasicMySQL | IConnBasicSqlite;
+    ssl?: IConnSSL;
+    advanced?: IConnAdvanced;
+    mds?: IConnMDS;
 }
 
 export class Database {
 
-    public static createConnection = async (scope: CustomTreeSection, dbConfig: IDBConnection,
-        storePassword = false): Promise<void> => {
+    public static setConnection = async (
+        dbType: string | undefined,
+        caption: string | undefined,
+        description: string | undefined,
+        basic: IConnBasicMySQL | IConnBasicSqlite | undefined,
+        ssl?: IConnSSL,
+        advanced?: IConnAdvanced,
+        mds?: IConnMDS,
+    ): Promise <void> => {
 
-        await Misc.clickSectionToolbarButton(scope, "Create New DB Connection");
+        const dialog = await driver.wait(until.elementLocated(By.css(".visible.valueEditDialog")),
+            explicitWait, "Connection dialog was not displayed");
+
+        if (dbType) {
+            const inDBType = await dialog.findElement(By.id("databaseType"));
+            await inDBType.click();
+            const popup = await driver.findElement(By.id("databaseTypePopup"));
+            await popup.findElement(By.id(dbType)).click();
+        }
+
+        if (caption) {
+            const inCaption = await dialog.findElement(By.id("caption"));
+            await inCaption.clear();
+            await inCaption.sendKeys(caption);
+        }
+
+        if (description) {
+            const inDesc = await dialog.findElement(By.id("description"));
+            await inDesc.clear();
+            await inDesc.sendKeys(description);
+        }
+
+        if (dbType === "MySQL") {
+
+            if (basic) {
+                await dialog.findElement(By.id("page0")).click();
+                if ((basic as IConnBasicMySQL).hostname) {
+                    const inHostname = await dialog.findElement(By.id("hostName"));
+                    await inHostname.clear();
+                    await inHostname.sendKeys((basic as IConnBasicMySQL).hostname);
+                }
+                if ((basic as IConnBasicMySQL).username) {
+                    const inUserName = await dialog.findElement(By.id("userName"));
+                    await inUserName.clear();
+                    await inUserName.sendKeys((basic as IConnBasicMySQL).username);
+                }
+                if ((basic as IConnBasicMySQL).schema) {
+                    const inSchema = await dialog.findElement(By.id("defaultSchema"));
+                    await inSchema.clear();
+                    await inSchema.sendKeys((basic as IConnBasicMySQL).schema);
+                }
+                if ((basic as IConnBasicMySQL).ociBastion !== undefined) {
+                    const inBastion = await dialog.findElement(By.id("useMDS"));
+                    const classes = await inBastion.getAttribute("class");
+                    if (classes.includes("unchecked")) {
+                        if ((basic as IConnBasicMySQL).ociBastion) {
+                            await inBastion.click();
+                        }
+                    } else {
+                        if (!(basic as IConnBasicMySQL).ociBastion) {
+                            await inBastion.click();
+                        }
+                    }
+                }
+            }
+
+            if (ssl) {
+                await dialog.findElement(By.id("page1")).click();
+                if (ssl.mode) {
+                    const inMode = await dialog.findElement(By.id("sslMode"));
+                    await inMode.click();
+                    const popup = await driver.findElement(By.id("sslModePopup"));
+                    await popup.findElement(By.id(ssl.mode)).click();
+                }
+                if (ssl.caPath) {
+                    const inCaPath = await dialog.findElement(By.id("sslCaFile"));
+                    await inCaPath.clear();
+                    await inCaPath.sendKeys(ssl.caPath);
+                }
+                if (ssl.clientCertPath) {
+                    const inClientCertPath = await dialog.findElement(By.id("sslCertFile"));
+                    await inClientCertPath.clear();
+                    await inClientCertPath.sendKeys(ssl.clientCertPath);
+                }
+                if (ssl.clientKeyPath) {
+                    const inClientKeyPath = await dialog.findElement(By.id("sslKeyFile"));
+                    await inClientKeyPath.clear();
+                    await inClientKeyPath.sendKeys(ssl.clientKeyPath);
+                }
+            }
+
+            if (mds) {
+                await dialog.findElement(By.id("page3")).click();
+                if (mds.profile) {
+                    const inProfile = await dialog.findElement(By.id("profileName"));
+                    await inProfile.click();
+                    const popup = await driver.findElement(By.id("profileNamePopup"));
+                    await popup.findElement(By.id(mds.profile)).click();
+                }
+                if (mds.dbSystemOCID) {
+                    const inDBSystem = await dialog.findElement(By.id("mysqlDbSystemId"));
+                    await inDBSystem.clear();
+                    await inDBSystem.sendKeys(mds.dbSystemOCID);
+
+                    await dialog.click();
+                    const dbSystemName = dialog.findElement(By.id("mysqlDbSystemName"));
+                    await driver.wait(new Condition("", async () => {
+                        return !(await dbSystemName.getAttribute("value")).includes("Loading");
+                    }), ociExplicitWait, "DB System name is still loading");
+                }
+                if (mds.bastionOCID) {
+                    const inDBSystem = await dialog.findElement(By.id("bastionId"));
+                    await inDBSystem.clear();
+                    await inDBSystem.sendKeys(mds.bastionOCID);
+
+                    await dialog.click();
+                    const bastionName = dialog.findElement(By.id("bastionName"));
+                    await driver.wait(new Condition("", async () => {
+                        return !(await bastionName.getAttribute("value")).includes("Loading");
+                    }), ociExplicitWait, "Bastion name is still loading");
+                }
+            }
+
+        } else if (dbType === "Sqlite") {
+
+            if (basic) {
+                await dialog.findElement(By.id("page0")).click();
+                if ((basic as IConnBasicSqlite).dbPath) {
+                    const inPath = await dialog.findElement(By.id("dbFilePath"));
+                    await inPath.clear();
+                    await inPath.sendKeys((basic as IConnBasicSqlite).dbPath);
+                }
+                if ((basic as IConnBasicSqlite).dbName) {
+                    const indbName = await dialog.findElement(By.id("dbName"));
+                    await indbName.clear();
+                    await indbName.sendKeys((basic as IConnBasicSqlite).dbName);
+                }
+            }
+
+            if (advanced) {
+                await dialog.findElement(By.id("page1")).click();
+                if ((basic as IConnBasicSqlite).dbPath) {
+                    const inParams = await dialog.findElement(By.id("otherParameters"));
+                    await inParams.clear();
+                    await inParams.sendKeys((basic as IConnBasicSqlite).advanced.params);
+                }
+            }
+        } else {
+            throw new Error("Unknown DB Type");
+        }
+
+        await dialog.findElement(By.id("ok")).click();
+    };
+
+    public static createConnection = async (dbConfig: IDBConnection): Promise<void> => {
+
+        await Misc.clickSectionToolbarButton(await Misc.getSection(dbTreeSection), "Create New DB Connection");
 
         await Misc.switchToWebView();
 
-        const newConDialog = await driver.wait(until.elementLocated(By.css(".valueEditDialog")),
-            10000, "Connection dialog was not loaded");
-        await driver.wait(async () => {
-            await newConDialog.findElement(By.id("caption")).clear();
+        await Database.setConnection(
+            dbConfig.dbType,
+            dbConfig.caption,
+            dbConfig.description,
+            dbConfig.basic,
+            dbConfig.ssl,
+            undefined,
+            dbConfig.mds,
+        );
 
-            return !(await driver.executeScript("return document.querySelector('#caption').value"));
-        }, 3000, "caption was not cleared in time");
-        await newConDialog.findElement(By.id("caption")).sendKeys(dbConfig.caption);
-        await newConDialog.findElement(By.id("description")).clear();
-        await newConDialog
-            .findElement(By.id("description"))
-            .sendKeys(dbConfig.description);
-        await newConDialog.findElement(By.id("hostName")).clear();
-        await newConDialog.findElement(By.id("hostName")).sendKeys(dbConfig.hostname);
-        await driver.findElement(By.css("#port input")).clear();
-        await driver.findElement(By.css("#port input")).sendKeys(dbConfig.port);
-        await newConDialog.findElement(By.id("userName")).sendKeys(dbConfig.username);
-        await newConDialog
-            .findElement(By.id("defaultSchema"))
-            .sendKeys(dbConfig.schema);
-
-        if (storePassword) {
-            await newConDialog.findElement(By.id("storePassword")).click();
-            const passwordDialog = await driver.findElement(By.css(".passwordDialog"));
-            await passwordDialog.findElement(By.css("input")).sendKeys(dbConfig.password);
-            await passwordDialog.findElement(By.id("ok")).click();
-        }
-
-        const okBtn = await driver.findElement(By.id("ok"));
-        await driver.executeScript("arguments[0].scrollIntoView(true)", okBtn);
-        await okBtn.click();
         await driver.switchTo().defaultContent();
     };
 
@@ -139,12 +312,16 @@ export class Database {
             }
         }
 
-        expect(service).to.equals(`${dbConfig.username}@${dbConfig.hostname}:${dbConfig.port}`);
-        expect(username).to.equals(dbConfig.username);
+        let uri = `${String((dbConfig.basic as IConnBasicMySQL).username)}`;
+        uri += `@${String((dbConfig.basic as IConnBasicMySQL).hostname)}:`;
+        uri += (dbConfig.basic as IConnBasicMySQL).port;
+
+        expect(service).to.equals(uri);
+        expect(username).to.equals((dbConfig.basic as IConnBasicMySQL).username);
 
         expect(await title.getText()).to.equals("Open MySQL Connection");
 
-        await dialog.findElement(By.css("input")).sendKeys(dbConfig.password);
+        await dialog.findElement(By.css("input")).sendKeys((dbConfig.basic as IConnBasicMySQL).password);
         await dialog.findElement(By.id("ok")).click();
     };
 

@@ -46,7 +46,7 @@ import { expect } from "chai";
 import { ChildProcess, spawn } from "child_process";
 import addContext from "mochawesome/addContext";
 import fs from "fs/promises";
-import { Database, IDBConnection } from "./db";
+import { Database, IConnBasicMySQL, IDBConnection } from "./db";
 import { join } from "path";
 
 export const dbTreeSection = "DATABASE CONNECTIONS";
@@ -540,17 +540,21 @@ export class Misc {
     };
 
 
-    public static setConfirmDialog = async (dbConfig: IDBConnection, value: string): Promise<void> => {
+    public static setConfirmDialog = async (dbConfig: IDBConnection, value: string,
+        timeoutDialog = 500): Promise<void> => {
 
         await driver.wait(until.elementsLocated(By.css(".confirmDialog")),
-            500, "No confirm dialog was found");
+            timeoutDialog, "No confirm dialog was found");
 
         const confirmDialog = await driver.findElement(By.css(".confirmDialog"));
 
         expect(await confirmDialog.findElement(By.css(".title label")).getText()).to.equals("Confirm");
 
-        let uri = `Save password for '${String(dbConfig.username)}@${String(dbConfig.hostname)}:`;
-        uri += `${String(dbConfig.port)}'?`;
+        const username = String((dbConfig.basic as IConnBasicMySQL).username);
+        const hostname = String((dbConfig.basic as IConnBasicMySQL).hostname);
+        const port = String((dbConfig.basic as IConnBasicMySQL).port);
+
+        const uri = `Save password for '${username}@${hostname}:${port}'?`;
 
         expect(await confirmDialog.findElement(By.id("dialogMessage")).getText()).to.contain(uri);
 
