@@ -541,30 +541,12 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
     };
 
     private handleUpdateConnection = (details: IConnectionDetails): void => {
-        void ShellInterface.dbConnections.updateDbConnection(webSession.currentProfileId, details)
-            .then(() => {
-                this.forceUpdate();
-                requisitions.executeRemote("refreshConnections", undefined);
-            });
-
-        ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId, details, "").then((connectionId) => {
-            if (connectionId !== undefined) {
-                const { connections } = this.state;
-
-                const index = connections.findIndex((value: IConnectionDetails) => {
-                    return value.id === connectionId;
-                });
-
-                if (index > -1) {
-                    connections[index] = details;
-                }
-
-                this.setState({ connections });
-                requisitions.executeRemote("refreshConnections", undefined);
-            }
+        ShellInterface.dbConnections.updateDbConnection(webSession.currentProfileId, details).then(() => {
+            this.forceUpdate();
+            requisitions.executeRemote("refreshConnections", undefined);
         }).catch((event) => {
             void requisitions.execute("showError",
-                ["Add Connection Error", "Cannot add DB connection:", String(event.message)]);
+                ["Update Connection Error", "Cannot update DB connection:", String(event.message)]);
 
         });
     };
