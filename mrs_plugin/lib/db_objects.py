@@ -227,7 +227,7 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
     enabled, items_per_page, requires_auth,
     row_user_ownership_enforced, row_user_ownership_column, crud_operations,
     crud_operation_format, comments, media_type, auto_detect_media_type, auth_stored_procedure,
-    options, fields):
+    options, fields, db_object_id = None, reuse_ids = False):
 
     options = core.convert_json(options)
     fields = core.convert_json(fields)
@@ -275,7 +275,8 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
     if db_object_type == "PROCEDURE":
         crud_operations = []
 
-    db_object_id = core.get_sequence_id(session)
+    if db_object_id is None:
+        db_object_id = core.get_sequence_id(session)
     core.insert(table="db_object", values={
         "id": db_object_id,
         "db_schema_id": schema_id,
@@ -293,11 +294,15 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
         "media_type": media_type,
         "auto_detect_media_type": int(auto_detect_media_type),
         "auth_stored_procedure": auth_stored_procedure,
-        "options": options
+        "options": options,
     }).exec(session)
 
     for field in fields:
-        field["id"] = core.get_sequence_id(session)
+        if reuse_ids and 'id' in field:
+            field["id"] = core.id_to_binary(field["id"], "")
+        else:
+            field["id"] = core.get_sequence_id(session)
+            
         field["db_object_id"] = db_object_id
         core.insert(table="field", values=field).exec(session)
 

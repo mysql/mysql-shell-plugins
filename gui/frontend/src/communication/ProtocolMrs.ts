@@ -922,6 +922,8 @@ export interface IShellMrsLoadSchemaKwargs {
     serviceId?: string;
     /** The name of the target service. */
     serviceName?: string;
+    /** Indicates whether the existing ids should be reused. */
+    reuseIds?: boolean;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
@@ -935,6 +937,8 @@ export interface IShellMrsLoadObjectKwargs {
     schemaId?: string;
     /** The name of the target schema. */
     schemaName?: string;
+    /** Indicates whether the existing ids should be reused. */
+    reuseIds?: boolean;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }

@@ -212,7 +212,7 @@ def get_schema(session, schema_id: bytes=None, service_id: bytes=None,
 
 
 def add_schema(session, schema_name, service_id: bytes=None, request_path=None, requires_auth=None,
-    enabled=True, items_per_page=None, comments=None, options=None):
+    enabled=True, items_per_page=None, comments=None, options=None, schema_id = None):
     """Add a schema to the given MRS service
 
     Args:
@@ -259,7 +259,8 @@ def add_schema(session, schema_name, service_id: bytes=None, request_path=None, 
     if options is None:
         options = ""
 
-    schema_id = core.get_sequence_id(session)
+    if schema_id is None:
+        schema_id = core.get_sequence_id(session)
     core.insert(table="db_schema", values={
         "id": schema_id,
         "service_id": service_id,
