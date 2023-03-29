@@ -25,12 +25,12 @@ import "./Button.css";
 
 import { ComponentChild, createRef } from "preact";
 
-import { ComponentBase, IComponentProperties, MouseEventType } from "../Component/ComponentBase";
+import { ComponentBase, DragEventType, IComponentProperties, MouseEventType } from "../Component/ComponentBase";
 import { Orientation } from "../Container/Container";
 import { IRequestTypeMap, requisitions } from "../../../supplement/Requisitions";
 
 export interface IButtonProperties extends IComponentProperties {
-    innerRef?: preact.RefObject<HTMLButtonElement>;
+    innerRef?: preact.RefObject<HTMLDivElement>;
 
     caption?: string;
     round?: boolean;
@@ -50,7 +50,8 @@ export interface IButtonProperties extends IComponentProperties {
 
 export class Button extends ComponentBase<IButtonProperties> {
 
-    private buttonRef: preact.RefObject<HTMLButtonElement>;
+    private buttonRef: preact.RefObject<HTMLDivElement>;
+    private dragInsideCounter = 0;
 
     public constructor(props: IButtonProperties) {
         super(props);
@@ -63,7 +64,11 @@ export class Button extends ComponentBase<IButtonProperties> {
         }
         this.connectEvents("onMouseDown");
 
-        this.buttonRef = props.innerRef ?? createRef<HTMLButtonElement>();
+        if (props.draggable) {
+            this.connectDragEvents();
+        }
+
+        this.buttonRef = props.innerRef ?? createRef<HTMLDivElement>();
     }
 
     public componentDidMount(): void {
@@ -88,25 +93,27 @@ export class Button extends ComponentBase<IButtonProperties> {
         };
 
         return (
-            <button
+            // Using a div here instead of a button because we want to be able to not allow focus
+            // but still be able to drag the button.
+            <div
                 ref={this.buttonRef}
                 style={newStyle}
                 className={className}
                 tabIndex={0}
+                draggable
+                role="button"
                 {...this.unhandledProperties}
             >
                 {content}
-            </button >
+            </div >
         );
     }
 
-    protected handleMouseEvent(type: MouseEventType, e: MouseEvent): boolean {
+    protected handleMouseEvent(type: MouseEventType): boolean {
         switch (type) {
             case MouseEventType.Down: {
                 const { focusOnClick } = this.mergedProps;
-                if (!focusOnClick) {
-                    e.preventDefault();
-                } else {
+                if (focusOnClick) {
                     this.buttonRef?.current?.focus();
                 }
 
@@ -132,4 +139,62 @@ export class Button extends ComponentBase<IButtonProperties> {
 
         return true;
     }
+
+    protected handleDragEvent(type: DragEventType, e: DragEvent): boolean {
+        const element = e.currentTarget as HTMLElement;
+        if (!e.dataTransfer) {
+            return true;
+        }
+
+        switch (type) {
+            case DragEventType.Start: {
+                e.dataTransfer.setData(`sourceid:${(e.target as HTMLElement).id}`, "");
+                e.dataTransfer.effectAllowed = "move";
+                e.stopPropagation();
+
+                break;
+            }
+
+            case DragEventType.Over: {
+                e.preventDefault();
+                break;
+            }
+
+            case DragEventType.Enter: {
+                if (this.dragInsideCounter === 0) {
+                    element.classList.add("dropTarget");
+                }
+                ++this.dragInsideCounter;
+                e.stopPropagation();
+
+                break;
+            }
+
+            case DragEventType.Leave: {
+                --this.dragInsideCounter;
+                if (this.dragInsideCounter === 0) {
+                    element.classList.remove("dropTarget");
+                }
+                e.stopPropagation();
+
+                break;
+            }
+
+            case DragEventType.Drop: {
+                this.dragInsideCounter = 0;
+                element.classList.remove("dropTarget");
+                e.stopPropagation();
+                e.preventDefault();
+
+                break;
+            }
+
+            default: {
+                break;
+            }
+        }
+
+        return true;
+    }
+
 }

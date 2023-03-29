@@ -26,7 +26,7 @@ import { mount } from "enzyme";
 import { MessageType } from "../../../../../app-logic/Types";
 import { ResultStatus } from "../../../../../components/ResultView/ResultStatus";
 import { ResultTabView } from "../../../../../components/ResultView/ResultTabView";
-import { SelectorItem } from "../../../../../components/ui/Selector/SelectorItem";
+import { Button } from "../../../../../components/ui/Button/Button";
 import { IResultSets } from "../../../../../script-execution";
 import { nextProcessTick, nextRunLoop } from "../../../test-helpers";
 
@@ -40,7 +40,8 @@ describe("Result Tabview Tests", (): void => {
                     sets: [],
                 }}
                 contextId="ec123"
-                hideSingleTab={true}
+                hideTabs="single"
+                showMaximizeButton="never"
             />,
         );
 
@@ -61,7 +62,8 @@ describe("Result Tabview Tests", (): void => {
                     sets: [],
                 }}
                 contextId="ec123"
-                hideSingleTab={false}
+                hideTabs="never"
+                showMaximizeButton="never"
             />,
         );
 
@@ -107,7 +109,8 @@ describe("Result Tabview Tests", (): void => {
                     ],
                 }}
                 contextId="ec123"
-                hideSingleTab={true}
+                hideTabs="single"
+                showMaximizeButton="tab"
             />,
         );
 
@@ -142,12 +145,14 @@ describe("Result Tabview Tests", (): void => {
                     }],
                 }}
                 contextId="ec123"
-                hideSingleTab={false}
+                hideTabs="never"
+                showMaximizeButton="statusBar"
+
             />,
         );
 
-        let tabs = component.find(SelectorItem);
-        expect(tabs).toHaveLength(4); // Two result sets and the two scroll buttons.
+        let tabs = component.find(Button);
+        expect(tabs).toHaveLength(2);
 
         let found = false;
         tabs.forEach((tab) => {
@@ -234,8 +239,8 @@ describe("Result Tabview Tests", (): void => {
         expect(status).toHaveLength(1);
 
         // Check the output tab.
-        tabs = component.find(SelectorItem);
-        expect(tabs).toHaveLength(5); // Like before, but now with the output tab.
+        tabs = component.find(Button);
+        expect(tabs).toHaveLength(3); // Like before, but now with the output tab.
 
         found = false;
         tabs.forEach((tab) => {
@@ -295,7 +300,8 @@ describe("Result Tabview Tests", (): void => {
             <ResultTabView
                 resultSets={resultSets}
                 contextId="ec123"
-                hideSingleTab={true}
+                hideTabs="single"
+                showMaximizeButton="tab"
                 onResultPageChange={onResultPageChange}
             />,
         );
@@ -303,7 +309,7 @@ describe("Result Tabview Tests", (): void => {
         await nextProcessTick();
 
         // Select the second result set.
-        const tabs = component.find(SelectorItem);
+        const tabs = component.find(Button);
         expect(tabs).toHaveLength(5);
 
         let found = false;
@@ -321,10 +327,10 @@ describe("Result Tabview Tests", (): void => {
         expect(toolbars).toHaveLength(1);
 
         const buttons = component.getDOMNode().getElementsByClassName("button");
-        expect(buttons).toHaveLength(6);
+        expect(buttons).toHaveLength(10);
 
         const dividers = component.getDOMNode().getElementsByClassName("divider");
-        expect(dividers).toHaveLength(4);
+        expect(dividers).toHaveLength(3);
 
         // Click all buttons:
 
@@ -372,10 +378,10 @@ describe("Result Tabview Tests", (): void => {
         expect(button.getAttribute("data-tooltip")).toBe("Revert Changes");
 
         // Maximize.
-        button = buttons.namedItem("maximizeResultSetButton") as HTMLButtonElement;
+        button = buttons.namedItem("toggleStateButton") as HTMLButtonElement;
         expect(button).toBeDefined();
         expect(button.hasAttribute("disabled")).toBeFalsy(); // The button is not disabled, but does nothing yet.
-        expect(button.getAttribute("data-tooltip")).toBe("Maximize Result Set View");
+        expect(button.getAttribute("data-tooltip")).toBe("Maximize Result Tab");
 
         // Menu.
         button = buttons.namedItem("showActionMenu") as HTMLButtonElement;

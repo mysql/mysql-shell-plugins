@@ -3,7 +3,7 @@
 exports[`Result Tabview Tests Rendering Only Output 1`] = `
 <ResultTabView
   contextId="ec123"
-  hideSingleTab={false}
+  hideTabs="never"
   resultSets={
     {
       "output": [
@@ -20,6 +20,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
       "type": "resultSets",
     }
   }
+  showMaximizeButton="never"
 >
   <Container
     className="msg resultHost"
@@ -37,6 +38,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
       }
     >
       <Tabview
+        canReorderTabs={true}
         className="resultTabview"
         hideSingleTab={false}
         onSelectTab={[Function]}
@@ -71,6 +73,11 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
       >
         <Container
           className="msg tabview top resultTabview"
+          onDragEnter={[Function]}
+          onDragLeave={[Function]}
+          onDragOver={[Function]}
+          onDragStart={[Function]}
+          onDrop={[Function]}
           orientation="column"
           style={
             {
@@ -81,6 +88,11 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
         >
           <div
             className="msg container fixedScrollbar tabview top resultTabview"
+            onDragEnter={[Function]}
+            onDragLeave={[Function]}
+            onDragOver={[Function]}
+            onDragStart={[Function]}
+            onDrop={[Function]}
             style={
               {
                 "--content-separator-width": "0px",
@@ -92,169 +104,41 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
               }
             }
           >
-            <Selector
-              activeItemId="output"
-              className="tabArea"
-              entryOrientation="row"
-              items={
-                [
-                  {
-                    "auxillary": undefined,
-                    "canReorder": undefined,
-                    "caption": "Output",
-                    "icon": undefined,
-                    "id": "output",
-                    "tooltip": undefined,
-                  },
-                ]
-              }
-              onDrop={[Function]}
-              onSelect={[Function]}
+            <Container
+              className="tabAreaContainer"
+              fixedScrollbars={false}
               orientation="row"
-              smoothScroll={false}
-              wrapNavigation={false}
             >
-              <Container
-                className="msg selector horizontal tabArea"
-                innerRef={
+              <div
+                className="msg container tabAreaContainer"
+                style={
                   {
-                    "current": <div
-                      class="msg container fixedScrollbar selector horizontal tabArea"
-                      style="flex-direction: row;"
-                    >
-                      <div
-                        class="msg container fixedScrollbar selectorItem stepDown"
-                        id="selectorItemstepDown"
-                        style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-                      />
-                      <div
-                        class="msg container fixedScrollbar selectorItem selected normal"
-                        id="output"
-                        style="flex-direction: row; justify-content: center; align-items: center;"
-                      >
-                        <label
-                          class="msg label"
-                          data-tooltip="inherit"
-                        >
-                          Output
-                        </label>
-                      </div>
-                      <div
-                        class="msg container fixedScrollbar selectorItem stepUp"
-                        id="selectorItemstepUp"
-                        style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-                      />
-                    </div>,
+                    "alignItems": undefined,
+                    "flexDirection": "row",
+                    "flexWrap": undefined,
+                    "justifyContent": undefined,
                   }
                 }
-                onDragEnter={[Function]}
-                onDragLeave={[Function]}
-                onDragOver={[Function]}
-                onDragStart={[Function]}
-                onDrop={[Function]}
-                orientation="row"
               >
                 <div
-                  className="msg container fixedScrollbar selector horizontal tabArea"
-                  onDragEnter={[Function]}
-                  onDragLeave={[Function]}
-                  onDragOver={[Function]}
-                  onDragStart={[Function]}
-                  onDrop={[Function]}
-                  style={
-                    {
-                      "alignItems": undefined,
-                      "flexDirection": "row",
-                      "flexWrap": undefined,
-                      "justifyContent": undefined,
-                    }
-                  }
+                  className="scrollable"
+                  onWheel={[Function]}
                 >
-                  <SelectorItem
-                    disabled={false}
-                    id="selectorItemstepDown"
+                  <Container
+                    className="tabArea"
+                    fixedScrollbars={false}
                     innerRef={
                       {
                         "current": <div
-                          class="msg container fixedScrollbar selectorItem stepDown"
-                          id="selectorItemstepDown"
-                          style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-                        />,
-                      }
-                    }
-                    onClick={[Function]}
-                    orientation="row"
-                    type="stepDown"
-                  >
-                    <Container
-                      className="msg selectorItem stepDown"
-                      crossAlignment="center"
-                      id="selectorItemstepDown"
-                      innerRef={
-                        {
-                          "current": <div
-                            class="msg container fixedScrollbar selectorItem stepDown"
-                            id="selectorItemstepDown"
-                            style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-                          />,
-                        }
-                      }
-                      mainAlignment="center"
-                      onClick={[Function]}
-                      orientation="row"
-                    >
-                      <div
-                        className="msg container fixedScrollbar selectorItem stepDown"
-                        id="selectorItemstepDown"
-                        onClick={[Function]}
-                        style={
-                          {
-                            "alignItems": "center",
-                            "flexDirection": "row",
-                            "flexWrap": undefined,
-                            "justifyContent": "center",
-                          }
-                        }
-                      />
-                    </Container>
-                  </SelectorItem>
-                  <SelectorItem
-                    caption="Output"
-                    disabled={false}
-                    id="output"
-                    innerRef={
-                      {
-                        "current": <div
-                          class="msg container fixedScrollbar selectorItem selected normal"
-                          id="output"
-                          style="flex-direction: row; justify-content: center; align-items: center;"
+                          class="msg container tabArea"
+                          style="flex-direction: row;"
                         >
-                          <label
-                            class="msg label"
-                            data-tooltip="inherit"
-                          >
-                            Output
-                          </label>
-                        </div>,
-                      }
-                    }
-                    key="output"
-                    onClick={[Function]}
-                    onDrop={[Function]}
-                    orientation="row"
-                    selected={true}
-                    type="normal"
-                  >
-                    <Container
-                      className="msg selectorItem selected normal"
-                      crossAlignment="center"
-                      id="output"
-                      innerRef={
-                        {
-                          "current": <div
-                            class="msg container fixedScrollbar selectorItem selected normal"
+                          <div
+                            class="msg button tabItem selected"
+                            draggable="true"
                             id="output"
-                            style="flex-direction: row; justify-content: center; align-items: center;"
+                            role="button"
+                            tabindex="-1"
                           >
                             <label
                               class="msg label"
@@ -262,93 +146,85 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                             >
                               Output
                             </label>
-                          </div>,
-                        }
-                      }
-                      mainAlignment="center"
-                      onClick={[Function]}
-                      onDrop={[Function]}
-                      orientation="row"
-                    >
-                      <div
-                        className="msg container fixedScrollbar selectorItem selected normal"
-                        id="output"
-                        onClick={[Function]}
-                        onDrop={[Function]}
-                        style={
-                          {
-                            "alignItems": "center",
-                            "flexDirection": "row",
-                            "flexWrap": undefined,
-                            "justifyContent": "center",
-                          }
-                        }
-                      >
-                        <Label
-                          data-tooltip="inherit"
-                        >
-                          <label
-                            className="msg label"
-                            data-tooltip="inherit"
-                            style={{}}
-                          >
-                            Output
-                          </label>
-                        </Label>
-                      </div>
-                    </Container>
-                  </SelectorItem>
-                  <SelectorItem
-                    disabled={false}
-                    id="selectorItemstepUp"
-                    innerRef={
-                      {
-                        "current": <div
-                          class="msg container fixedScrollbar selectorItem stepUp"
-                          id="selectorItemstepUp"
-                          style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-                        />,
+                          </div>
+                        </div>,
                       }
                     }
-                    onClick={[Function]}
+                    onDragOver={[Function]}
+                    onDrop={[Function]}
                     orientation="row"
-                    type="stepUp"
                   >
-                    <Container
-                      className="msg selectorItem stepUp"
-                      crossAlignment="center"
-                      id="selectorItemstepUp"
-                      innerRef={
+                    <div
+                      className="msg container tabArea"
+                      onDragOver={[Function]}
+                      onDrop={[Function]}
+                      style={
                         {
-                          "current": <div
-                            class="msg container fixedScrollbar selectorItem stepUp"
-                            id="selectorItemstepUp"
-                            style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-                          />,
+                          "alignItems": undefined,
+                          "flexDirection": "row",
+                          "flexWrap": undefined,
+                          "justifyContent": undefined,
                         }
                       }
-                      mainAlignment="center"
-                      onClick={[Function]}
-                      orientation="row"
                     >
-                      <div
-                        className="msg container fixedScrollbar selectorItem stepUp"
-                        id="selectorItemstepUp"
+                      <Button
+                        className="tabItem selected"
+                        draggable={true}
+                        focusOnClick={false}
+                        id="output"
+                        key="output"
                         onClick={[Function]}
-                        style={
-                          {
-                            "alignItems": "center",
-                            "flexDirection": "row",
-                            "flexWrap": undefined,
-                            "justifyContent": "center",
+                        onDragEnter={[Function]}
+                        onDrop={[Function]}
+                        tabIndex={-1}
+                      >
+                        <div
+                          className="msg button tabItem selected"
+                          draggable={true}
+                          id="output"
+                          onClick={[Function]}
+                          onDragEnter={[Function]}
+                          onDragLeave={[Function]}
+                          onDragOver={[Function]}
+                          onDragStart={[Function]}
+                          onDrop={[Function]}
+                          onMouseDown={[Function]}
+                          role="button"
+                          style={
+                            {
+                              "flexDirection": undefined,
+                            }
                           }
-                        }
-                      />
-                    </Container>
-                  </SelectorItem>
+                          tabIndex={-1}
+                        >
+                          <Label
+                            data-tooltip="inherit"
+                          >
+                            <label
+                              className="msg label"
+                              data-tooltip="inherit"
+                              style={{}}
+                            >
+                              Output
+                            </label>
+                          </Label>
+                        </div>
+                      </Button>
+                    </div>
+                  </Container>
+                  <div
+                    className="scrollbar"
+                  >
+                    <div
+                      className="slider"
+                      onPointerDown={[Function]}
+                      onPointerMove={[Function]}
+                      onPointerUp={[Function]}
+                    />
+                  </div>
                 </div>
-              </Container>
-            </Selector>
+              </div>
+            </Container>
             <Container
               className="content"
               innerRef={
@@ -357,16 +233,18 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                     class="msg container fixedScrollbar content"
                     style="flex-direction: column;"
                   >
-                    <button
+                    <div
                       class="msg button imageOnly copyButton"
                       data-tooltip="Copy result to clipboard"
+                      draggable="true"
+                      role="button"
                       tabindex="-1"
                     >
                       <span
                         class="msg icon codicon codicon-copy"
                         data-tooltip="inherit"
                       />
-                    </button>
+                    </div>
                     <div
                       class="msg container fixedScrollbar actionOutput"
                       style="flex-direction: column;"
@@ -454,11 +332,13 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                     onPointerDown={[Function]}
                     tabIndex={-1}
                   >
-                    <button
+                    <div
                       className="msg button imageOnly copyButton"
                       data-tooltip="Copy result to clipboard"
+                      draggable={true}
                       onMouseDown={[Function]}
                       onPointerDown={[Function]}
+                      role="button"
                       style={
                         {
                           "flexDirection": undefined,
@@ -476,7 +356,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                           data-tooltip="inherit"
                         />
                       </Icon>
-                    </button>
+                    </div>
                   </Button>
                   <Container
                     className="msg actionOutput"
@@ -679,13 +559,14 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
 exports[`Result Tabview Tests Standard Rendering 1`] = `
 <ResultTabView
   contextId="ec123"
-  hideSingleTab={true}
+  hideTabs="single"
   resultSets={
     {
       "sets": [],
       "type": "resultSets",
     }
   }
+  showMaximizeButton="never"
 >
   <Container
     className="msg resultHost"
@@ -703,6 +584,7 @@ exports[`Result Tabview Tests Standard Rendering 1`] = `
       }
     >
       <Tabview
+        canReorderTabs={true}
         className="resultTabview"
         hideSingleTab={true}
         onSelectTab={[Function]}
@@ -714,6 +596,11 @@ exports[`Result Tabview Tests Standard Rendering 1`] = `
       >
         <Container
           className="msg tabview top resultTabview"
+          onDragEnter={[Function]}
+          onDragLeave={[Function]}
+          onDragOver={[Function]}
+          onDragStart={[Function]}
+          onDrop={[Function]}
           orientation="column"
           style={
             {
@@ -724,6 +611,11 @@ exports[`Result Tabview Tests Standard Rendering 1`] = `
         >
           <div
             className="msg container fixedScrollbar tabview top resultTabview"
+            onDragEnter={[Function]}
+            onDragLeave={[Function]}
+            onDragOver={[Function]}
+            onDragStart={[Function]}
+            onDrop={[Function]}
             style={
               {
                 "--content-separator-width": "0px",
@@ -803,7 +695,7 @@ exports[`Result Tabview Tests Standard Rendering 1`] = `
 exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
 <ResultTabView
   contextId="ec123"
-  hideSingleTab={true}
+  hideTabs="single"
   resultSets={
     {
       "output": [
@@ -842,6 +734,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
       "type": "resultSets",
     }
   }
+  showMaximizeButton="tab"
 >
   <Container
     className="msg resultHost"
@@ -859,6 +752,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
       }
     >
       <Tabview
+        canReorderTabs={true}
         className="resultTabview"
         hideSingleTab={true}
         onSelectTab={[Function]}
@@ -882,6 +776,18 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
               "id": "output",
             },
             {
+              "auxillary": <Button
+                data-tooltip="Maximize Result Tab"
+                id="toggleStateButton"
+                imageOnly={true}
+                onClick={[Function]}
+              >
+                <Icon
+                  data-tooltip="inherit"
+                  disabled={false}
+                  src="toolbar-maximize.svg"
+                />
+              </Button>,
               "caption": "Result #1",
               "content": <ResultView
                 onEdit={[Function]}
@@ -905,6 +811,18 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
               "id": "123",
             },
             {
+              "auxillary": <Button
+                data-tooltip="Maximize Result Tab"
+                id="toggleStateButton"
+                imageOnly={true}
+                onClick={[Function]}
+              >
+                <Icon
+                  data-tooltip="inherit"
+                  disabled={false}
+                  src="toolbar-maximize.svg"
+                />
+              </Button>,
               "caption": "Result #2",
               "content": <ResultView
                 onEdit={[Function]}
@@ -932,6 +850,11 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
       >
         <Container
           className="msg tabview top resultTabview"
+          onDragEnter={[Function]}
+          onDragLeave={[Function]}
+          onDragOver={[Function]}
+          onDragStart={[Function]}
+          onDrop={[Function]}
           orientation="column"
           style={
             {
@@ -942,6 +865,11 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
         >
           <div
             className="msg container fixedScrollbar tabview top resultTabview"
+            onDragEnter={[Function]}
+            onDragLeave={[Function]}
+            onDragOver={[Function]}
+            onDragStart={[Function]}
+            onDrop={[Function]}
             style={
               {
                 "--content-separator-width": "0px",
@@ -953,257 +881,55 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
               }
             }
           >
-            <Selector
-              activeItemId="123"
-              className="tabArea"
-              entryOrientation="row"
-              items={
-                [
-                  {
-                    "auxillary": undefined,
-                    "canReorder": undefined,
-                    "caption": "Output",
-                    "icon": undefined,
-                    "id": "output",
-                    "tooltip": undefined,
-                  },
-                  {
-                    "auxillary": undefined,
-                    "canReorder": undefined,
-                    "caption": "Result #1",
-                    "icon": undefined,
-                    "id": "123",
-                    "tooltip": undefined,
-                  },
-                  {
-                    "auxillary": undefined,
-                    "canReorder": undefined,
-                    "caption": "Result #2",
-                    "icon": undefined,
-                    "id": "456",
-                    "tooltip": undefined,
-                  },
-                ]
-              }
-              onDrop={[Function]}
-              onSelect={[Function]}
+            <Container
+              className="tabAreaContainer"
+              fixedScrollbars={false}
               orientation="row"
-              smoothScroll={false}
-              wrapNavigation={false}
             >
-              <Container
-                className="msg selector horizontal tabArea"
-                innerRef={
+              <div
+                className="msg container tabAreaContainer"
+                style={
                   {
-                    "current": <div
-                      class="msg container fixedScrollbar selector horizontal tabArea"
-                      style="flex-direction: row;"
-                    >
-                      <div
-                        class="msg container fixedScrollbar selectorItem stepDown"
-                        id="selectorItemstepDown"
-                        style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-                      />
-                      <div
-                        class="msg container fixedScrollbar selectorItem normal"
-                        id="output"
-                        style="flex-direction: row; justify-content: center; align-items: center;"
-                      >
-                        <label
-                          class="msg label"
-                          data-tooltip="inherit"
-                        >
-                          Output
-                        </label>
-                      </div>
-                      <div
-                        class="msg container fixedScrollbar selectorItem selected normal"
-                        id="123"
-                        style="flex-direction: row; justify-content: center; align-items: center;"
-                      >
-                        <label
-                          class="msg label"
-                          data-tooltip="inherit"
-                        >
-                          Result #1
-                        </label>
-                      </div>
-                      <div
-                        class="msg container fixedScrollbar selectorItem normal"
-                        id="456"
-                        style="flex-direction: row; justify-content: center; align-items: center;"
-                      >
-                        <label
-                          class="msg label"
-                          data-tooltip="inherit"
-                        >
-                          Result #2
-                        </label>
-                      </div>
-                      <div
-                        class="msg container fixedScrollbar selectorItem stepUp"
-                        id="selectorItemstepUp"
-                        style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-                      />
-                    </div>,
+                    "alignItems": undefined,
+                    "flexDirection": "row",
+                    "flexWrap": undefined,
+                    "justifyContent": undefined,
                   }
                 }
-                onDragEnter={[Function]}
-                onDragLeave={[Function]}
-                onDragOver={[Function]}
-                onDragStart={[Function]}
-                onDrop={[Function]}
-                orientation="row"
               >
                 <div
-                  className="msg container fixedScrollbar selector horizontal tabArea"
-                  onDragEnter={[Function]}
-                  onDragLeave={[Function]}
-                  onDragOver={[Function]}
-                  onDragStart={[Function]}
-                  onDrop={[Function]}
-                  style={
-                    {
-                      "alignItems": undefined,
-                      "flexDirection": "row",
-                      "flexWrap": undefined,
-                      "justifyContent": undefined,
-                    }
-                  }
+                  className="scrollable"
+                  onWheel={[Function]}
                 >
-                  <SelectorItem
-                    disabled={false}
-                    id="selectorItemstepDown"
+                  <Container
+                    className="tabArea"
+                    fixedScrollbars={false}
                     innerRef={
                       {
                         "current": <div
-                          class="msg container fixedScrollbar selectorItem stepDown"
-                          id="selectorItemstepDown"
-                          style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-                        />,
-                      }
-                    }
-                    onClick={[Function]}
-                    orientation="row"
-                    type="stepDown"
-                  >
-                    <Container
-                      className="msg selectorItem stepDown"
-                      crossAlignment="center"
-                      id="selectorItemstepDown"
-                      innerRef={
-                        {
-                          "current": <div
-                            class="msg container fixedScrollbar selectorItem stepDown"
-                            id="selectorItemstepDown"
-                            style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-                          />,
-                        }
-                      }
-                      mainAlignment="center"
-                      onClick={[Function]}
-                      orientation="row"
-                    >
-                      <div
-                        className="msg container fixedScrollbar selectorItem stepDown"
-                        id="selectorItemstepDown"
-                        onClick={[Function]}
-                        style={
-                          {
-                            "alignItems": "center",
-                            "flexDirection": "row",
-                            "flexWrap": undefined,
-                            "justifyContent": "center",
-                          }
-                        }
-                      />
-                    </Container>
-                  </SelectorItem>
-                  <SelectorItem
-                    caption="Output"
-                    disabled={false}
-                    id="output"
-                    key="output"
-                    onClick={[Function]}
-                    onDrop={[Function]}
-                    orientation="row"
-                    selected={false}
-                    type="normal"
-                  >
-                    <Container
-                      className="msg selectorItem normal"
-                      crossAlignment="center"
-                      id="output"
-                      mainAlignment="center"
-                      onClick={[Function]}
-                      onDrop={[Function]}
-                      orientation="row"
-                    >
-                      <div
-                        className="msg container fixedScrollbar selectorItem normal"
-                        id="output"
-                        onClick={[Function]}
-                        onDrop={[Function]}
-                        style={
-                          {
-                            "alignItems": "center",
-                            "flexDirection": "row",
-                            "flexWrap": undefined,
-                            "justifyContent": "center",
-                          }
-                        }
-                      >
-                        <Label
-                          data-tooltip="inherit"
+                          class="msg container tabArea"
+                          style="flex-direction: row;"
                         >
-                          <label
-                            className="msg label"
-                            data-tooltip="inherit"
-                            style={{}}
+                          <div
+                            class="msg button tabItem"
+                            draggable="true"
+                            id="output"
+                            role="button"
+                            tabindex="-1"
                           >
-                            Output
-                          </label>
-                        </Label>
-                      </div>
-                    </Container>
-                  </SelectorItem>
-                  <SelectorItem
-                    caption="Result #1"
-                    disabled={false}
-                    id="123"
-                    innerRef={
-                      {
-                        "current": <div
-                          class="msg container fixedScrollbar selectorItem selected normal"
-                          id="123"
-                          style="flex-direction: row; justify-content: center; align-items: center;"
-                        >
-                          <label
-                            class="msg label"
-                            data-tooltip="inherit"
-                          >
-                            Result #1
-                          </label>
-                        </div>,
-                      }
-                    }
-                    key="123"
-                    onClick={[Function]}
-                    onDrop={[Function]}
-                    orientation="row"
-                    selected={true}
-                    type="normal"
-                  >
-                    <Container
-                      className="msg selectorItem selected normal"
-                      crossAlignment="center"
-                      id="123"
-                      innerRef={
-                        {
-                          "current": <div
-                            class="msg container fixedScrollbar selectorItem selected normal"
+                            <label
+                              class="msg label"
+                              data-tooltip="inherit"
+                            >
+                              Output
+                            </label>
+                          </div>
+                          <div
+                            class="msg button tabItem hasAuxillary selected"
+                            draggable="true"
                             id="123"
-                            style="flex-direction: row; justify-content: center; align-items: center;"
+                            role="button"
+                            tabindex="-1"
                           >
                             <label
                               class="msg label"
@@ -1211,141 +937,313 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                             >
                               Result #1
                             </label>
-                          </div>,
-                        }
-                      }
-                      mainAlignment="center"
-                      onClick={[Function]}
-                      onDrop={[Function]}
-                      orientation="row"
-                    >
-                      <div
-                        className="msg container fixedScrollbar selectorItem selected normal"
-                        id="123"
-                        onClick={[Function]}
-                        onDrop={[Function]}
-                        style={
-                          {
-                            "alignItems": "center",
-                            "flexDirection": "row",
-                            "flexWrap": undefined,
-                            "justifyContent": "center",
-                          }
-                        }
-                      >
-                        <Label
-                          data-tooltip="inherit"
-                        >
-                          <label
-                            className="msg label"
-                            data-tooltip="inherit"
-                            style={{}}
+                            <span
+                              id="auxillary"
+                            >
+                              <div
+                                class="msg button imageOnly"
+                                data-tooltip="Maximize Result Tab"
+                                draggable="true"
+                                id="toggleStateButton"
+                                role="button"
+                                tabindex="0"
+                              >
+                                <span
+                                  class="msg icon"
+                                  data-tooltip="inherit"
+                                  style="mask-image: url(toolbar-maximize.svg);"
+                                />
+                              </div>
+                            </span>
+                          </div>
+                          <div
+                            class="msg button tabItem hasAuxillary"
+                            draggable="true"
+                            id="456"
+                            role="button"
+                            tabindex="-1"
                           >
-                            Result #1
-                          </label>
-                        </Label>
-                      </div>
-                    </Container>
-                  </SelectorItem>
-                  <SelectorItem
-                    caption="Result #2"
-                    disabled={false}
-                    id="456"
-                    key="456"
-                    onClick={[Function]}
-                    onDrop={[Function]}
-                    orientation="row"
-                    selected={false}
-                    type="normal"
-                  >
-                    <Container
-                      className="msg selectorItem normal"
-                      crossAlignment="center"
-                      id="456"
-                      mainAlignment="center"
-                      onClick={[Function]}
-                      onDrop={[Function]}
-                      orientation="row"
-                    >
-                      <div
-                        className="msg container fixedScrollbar selectorItem normal"
-                        id="456"
-                        onClick={[Function]}
-                        onDrop={[Function]}
-                        style={
-                          {
-                            "alignItems": "center",
-                            "flexDirection": "row",
-                            "flexWrap": undefined,
-                            "justifyContent": "center",
-                          }
-                        }
-                      >
-                        <Label
-                          data-tooltip="inherit"
-                        >
-                          <label
-                            className="msg label"
-                            data-tooltip="inherit"
-                            style={{}}
-                          >
-                            Result #2
-                          </label>
-                        </Label>
-                      </div>
-                    </Container>
-                  </SelectorItem>
-                  <SelectorItem
-                    disabled={false}
-                    id="selectorItemstepUp"
-                    innerRef={
-                      {
-                        "current": <div
-                          class="msg container fixedScrollbar selectorItem stepUp"
-                          id="selectorItemstepUp"
-                          style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-                        />,
+                            <label
+                              class="msg label"
+                              data-tooltip="inherit"
+                            >
+                              Result #2
+                            </label>
+                            <span
+                              id="auxillary"
+                            >
+                              <div
+                                class="msg button imageOnly"
+                                data-tooltip="Maximize Result Tab"
+                                draggable="true"
+                                id="toggleStateButton"
+                                role="button"
+                                tabindex="0"
+                              >
+                                <span
+                                  class="msg icon"
+                                  data-tooltip="inherit"
+                                  style="mask-image: url(toolbar-maximize.svg);"
+                                />
+                              </div>
+                            </span>
+                          </div>
+                        </div>,
                       }
                     }
-                    onClick={[Function]}
+                    onDragOver={[Function]}
+                    onDrop={[Function]}
                     orientation="row"
-                    type="stepUp"
                   >
-                    <Container
-                      className="msg selectorItem stepUp"
-                      crossAlignment="center"
-                      id="selectorItemstepUp"
-                      innerRef={
+                    <div
+                      className="msg container tabArea"
+                      onDragOver={[Function]}
+                      onDrop={[Function]}
+                      style={
                         {
-                          "current": <div
-                            class="msg container fixedScrollbar selectorItem stepUp"
-                            id="selectorItemstepUp"
-                            style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-                          />,
+                          "alignItems": undefined,
+                          "flexDirection": "row",
+                          "flexWrap": undefined,
+                          "justifyContent": undefined,
                         }
                       }
-                      mainAlignment="center"
-                      onClick={[Function]}
-                      orientation="row"
                     >
-                      <div
-                        className="msg container fixedScrollbar selectorItem stepUp"
-                        id="selectorItemstepUp"
+                      <Button
+                        className="tabItem"
+                        draggable={true}
+                        focusOnClick={false}
+                        id="output"
+                        key="output"
                         onClick={[Function]}
-                        style={
-                          {
-                            "alignItems": "center",
-                            "flexDirection": "row",
-                            "flexWrap": undefined,
-                            "justifyContent": "center",
+                        onDragEnter={[Function]}
+                        onDrop={[Function]}
+                        tabIndex={-1}
+                      >
+                        <div
+                          className="msg button tabItem"
+                          draggable={true}
+                          id="output"
+                          onClick={[Function]}
+                          onDragEnter={[Function]}
+                          onDragLeave={[Function]}
+                          onDragOver={[Function]}
+                          onDragStart={[Function]}
+                          onDrop={[Function]}
+                          onMouseDown={[Function]}
+                          role="button"
+                          style={
+                            {
+                              "flexDirection": undefined,
+                            }
                           }
-                        }
-                      />
-                    </Container>
-                  </SelectorItem>
+                          tabIndex={-1}
+                        >
+                          <Label
+                            data-tooltip="inherit"
+                          >
+                            <label
+                              className="msg label"
+                              data-tooltip="inherit"
+                              style={{}}
+                            >
+                              Output
+                            </label>
+                          </Label>
+                        </div>
+                      </Button>
+                      <Button
+                        className="tabItem hasAuxillary selected"
+                        draggable={true}
+                        focusOnClick={false}
+                        id="123"
+                        key="123"
+                        onClick={[Function]}
+                        onDragEnter={[Function]}
+                        onDrop={[Function]}
+                        tabIndex={-1}
+                      >
+                        <div
+                          className="msg button tabItem hasAuxillary selected"
+                          draggable={true}
+                          id="123"
+                          onClick={[Function]}
+                          onDragEnter={[Function]}
+                          onDragLeave={[Function]}
+                          onDragOver={[Function]}
+                          onDragStart={[Function]}
+                          onDrop={[Function]}
+                          onMouseDown={[Function]}
+                          role="button"
+                          style={
+                            {
+                              "flexDirection": undefined,
+                            }
+                          }
+                          tabIndex={-1}
+                        >
+                          <Label
+                            data-tooltip="inherit"
+                          >
+                            <label
+                              className="msg label"
+                              data-tooltip="inherit"
+                              style={{}}
+                            >
+                              Result #1
+                            </label>
+                          </Label>
+                          <span
+                            id="auxillary"
+                          >
+                            <Button
+                              data-tooltip="Maximize Result Tab"
+                              id="toggleStateButton"
+                              imageOnly={true}
+                              onClick={[Function]}
+                            >
+                              <div
+                                className="msg button imageOnly"
+                                data-tooltip="Maximize Result Tab"
+                                draggable={true}
+                                id="toggleStateButton"
+                                onClick={[Function]}
+                                onMouseDown={[Function]}
+                                role="button"
+                                style={
+                                  {
+                                    "flexDirection": undefined,
+                                  }
+                                }
+                                tabIndex={0}
+                              >
+                                <Icon
+                                  data-tooltip="inherit"
+                                  disabled={false}
+                                  src="toolbar-maximize.svg"
+                                >
+                                  <span
+                                    className="msg icon"
+                                    data-tooltip="inherit"
+                                    style={
+                                      {
+                                        "WebkitMaskImage": "url(toolbar-maximize.svg)",
+                                        "backgroundColor": undefined,
+                                        "height": undefined,
+                                        "maskImage": "url(toolbar-maximize.svg)",
+                                        "width": undefined,
+                                      }
+                                    }
+                                  />
+                                </Icon>
+                              </div>
+                            </Button>
+                          </span>
+                        </div>
+                      </Button>
+                      <Button
+                        className="tabItem hasAuxillary"
+                        draggable={true}
+                        focusOnClick={false}
+                        id="456"
+                        key="456"
+                        onClick={[Function]}
+                        onDragEnter={[Function]}
+                        onDrop={[Function]}
+                        tabIndex={-1}
+                      >
+                        <div
+                          className="msg button tabItem hasAuxillary"
+                          draggable={true}
+                          id="456"
+                          onClick={[Function]}
+                          onDragEnter={[Function]}
+                          onDragLeave={[Function]}
+                          onDragOver={[Function]}
+                          onDragStart={[Function]}
+                          onDrop={[Function]}
+                          onMouseDown={[Function]}
+                          role="button"
+                          style={
+                            {
+                              "flexDirection": undefined,
+                            }
+                          }
+                          tabIndex={-1}
+                        >
+                          <Label
+                            data-tooltip="inherit"
+                          >
+                            <label
+                              className="msg label"
+                              data-tooltip="inherit"
+                              style={{}}
+                            >
+                              Result #2
+                            </label>
+                          </Label>
+                          <span
+                            id="auxillary"
+                          >
+                            <Button
+                              data-tooltip="Maximize Result Tab"
+                              id="toggleStateButton"
+                              imageOnly={true}
+                              onClick={[Function]}
+                            >
+                              <div
+                                className="msg button imageOnly"
+                                data-tooltip="Maximize Result Tab"
+                                draggable={true}
+                                id="toggleStateButton"
+                                onClick={[Function]}
+                                onMouseDown={[Function]}
+                                role="button"
+                                style={
+                                  {
+                                    "flexDirection": undefined,
+                                  }
+                                }
+                                tabIndex={0}
+                              >
+                                <Icon
+                                  data-tooltip="inherit"
+                                  disabled={false}
+                                  src="toolbar-maximize.svg"
+                                >
+                                  <span
+                                    className="msg icon"
+                                    data-tooltip="inherit"
+                                    style={
+                                      {
+                                        "WebkitMaskImage": "url(toolbar-maximize.svg)",
+                                        "backgroundColor": undefined,
+                                        "height": undefined,
+                                        "maskImage": "url(toolbar-maximize.svg)",
+                                        "width": undefined,
+                                      }
+                                    }
+                                  />
+                                </Icon>
+                              </div>
+                            </Button>
+                          </span>
+                        </div>
+                      </Button>
+                    </div>
+                  </Container>
+                  <div
+                    className="scrollbar"
+                  >
+                    <div
+                      className="slider"
+                      onPointerDown={[Function]}
+                      onPointerMove={[Function]}
+                      onPointerUp={[Function]}
+                    />
+                  </div>
                 </div>
-              </Container>
-            </Selector>
+              </div>
+            </Container>
             <Container
               className="content"
               innerRef={

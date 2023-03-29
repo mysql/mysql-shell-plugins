@@ -43,11 +43,13 @@ exports[`CalendarView testing Render test 1`] = `
               id="prevMonthButton"
               onClick={[Function]}
             >
-              <button
+              <div
                 className="msg button"
+                draggable={true}
                 id="prevMonthButton"
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -125,11 +127,13 @@ exports[`CalendarView testing Render test 1`] = `
               id="nextMonthButton"
               onClick={[Function]}
             >
-              <button
+              <div
                 className="msg button"
+                draggable={true}
                 id="nextMonthButton"
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -458,11 +462,13 @@ exports[`CalendarView testing Render test 1`] = `
               caption="1"
               onClick={[Function]}
             >
-              <button
+              <div
                 caption="1"
                 className="msg button"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -471,7 +477,7 @@ exports[`CalendarView testing Render test 1`] = `
                 tabIndex={0}
               >
                 1
-              </button>
+              </div>
             </Button>
           </div>
         </Container>
@@ -499,11 +505,13 @@ exports[`CalendarView testing Render test 1`] = `
               caption="2"
               onClick={[Function]}
             >
-              <button
+              <div
                 caption="2"
                 className="msg button"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -512,7 +520,7 @@ exports[`CalendarView testing Render test 1`] = `
                 tabIndex={0}
               >
                 2
-              </button>
+              </div>
             </Button>
           </div>
         </Container>
@@ -540,11 +548,13 @@ exports[`CalendarView testing Render test 1`] = `
               caption="3"
               onClick={[Function]}
             >
-              <button
+              <div
                 caption="3"
                 className="msg button"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -553,7 +563,7 @@ exports[`CalendarView testing Render test 1`] = `
                 tabIndex={0}
               >
                 3
-              </button>
+              </div>
             </Button>
           </div>
         </Container>
@@ -581,11 +591,13 @@ exports[`CalendarView testing Render test 1`] = `
               caption="4"
               onClick={[Function]}
             >
-              <button
+              <div
                 caption="4"
                 className="msg button"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -594,7 +606,7 @@ exports[`CalendarView testing Render test 1`] = `
                 tabIndex={0}
               >
                 4
-              </button>
+              </div>
             </Button>
           </div>
         </Container>
@@ -622,11 +634,13 @@ exports[`CalendarView testing Render test 1`] = `
               caption="5"
               onClick={[Function]}
             >
-              <button
+              <div
                 caption="5"
                 className="msg button"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -635,7 +649,7 @@ exports[`CalendarView testing Render test 1`] = `
                 tabIndex={0}
               >
                 5
-              </button>
+              </div>
             </Button>
           </div>
         </Container>
@@ -663,11 +677,13 @@ exports[`CalendarView testing Render test 1`] = `
               caption="6"
               onClick={[Function]}
             >
-              <button
+              <div
                 caption="6"
                 className="msg button"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -676,7 +692,7 @@ exports[`CalendarView testing Render test 1`] = `
                 tabIndex={0}
               >
                 6
-              </button>
+              </div>
             </Button>
           </div>
         </Container>
@@ -704,11 +720,13 @@ exports[`CalendarView testing Render test 1`] = `
               caption="7"
               onClick={[Function]}
             >
-              <button
+              <div
                 caption="7"
                 className="msg button"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -717,7 +735,7 @@ exports[`CalendarView testing Render test 1`] = `
                 tabIndex={0}
               >
                 7
-              </button>
+              </div>
             </Button>
           </div>
         </Container>
@@ -745,11 +763,13 @@ exports[`CalendarView testing Render test 1`] = `
               caption="8"
               onClick={[Function]}
             >
-              <button
+              <div
                 caption="8"
                 className="msg button"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -758,7 +778,7 @@ exports[`CalendarView testing Render test 1`] = `
                 tabIndex={0}
               >
                 8
-              </button>
+              </div>
             </Button>
           </div>
         </Container>
@@ -786,11 +806,13 @@ exports[`CalendarView testing Render test 1`] = `
               caption="9"
               onClick={[Function]}
             >
-              <button
+              <div
                 caption="9"
                 className="msg button"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -799,7 +821,7 @@ exports[`CalendarView testing Render test 1`] = `
                 tabIndex={0}
               >
                 9
-              </button>
+              </div>
             </Button>
           </div>
         </Container>
@@ -827,11 +849,13 @@ exports[`CalendarView testing Render test 1`] = `
               caption="10"
               onClick={[Function]}
             >
-              <button
+              <div
                 caption="10"
                 className="msg button"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -840,7 +864,7 @@ exports[`CalendarView testing Render test 1`] = `
                 tabIndex={0}
               >
                 10
-              </button>
+              </div>
             </Button>
           </div>
         </Container>
@@ -868,11 +892,13 @@ exports[`CalendarView testing Render test 1`] = `
               caption="11"
               onClick={[Function]}
             >
-              <button
+              <div
                 caption="11"
                 className="msg button"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -881,7 +907,7 @@ exports[`CalendarView testing Render test 1`] = `
                 tabIndex={0}
               >
                 11
-              </button>
+              </div>
             </Button>
           </div>
         </Container>
@@ -909,11 +935,13 @@ exports[`CalendarView testing Render test 1`] = `
               caption="12"
               onClick={[Function]}
             >
-              <button
+              <div
                 caption="12"
                 className="msg button"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -922,7 +950,7 @@ exports[`CalendarView testing Render test 1`] = `
                 tabIndex={0}
               >
                 12
-              </button>
+              </div>
             </Button>
           </div>
         </Container>
@@ -950,11 +978,13 @@ exports[`CalendarView testing Render test 1`] = `
               caption="13"
               onClick={[Function]}
             >
-              <button
+              <div
                 caption="13"
                 className="msg button"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -963,7 +993,7 @@ exports[`CalendarView testing Render test 1`] = `
                 tabIndex={0}
               >
                 13
-              </button>
+              </div>
             </Button>
           </div>
         </Container>
@@ -991,11 +1021,13 @@ exports[`CalendarView testing Render test 1`] = `
               caption="14"
               onClick={[Function]}
             >
-              <button
+              <div
                 caption="14"
                 className="msg button"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -1004,7 +1036,7 @@ exports[`CalendarView testing Render test 1`] = `
                 tabIndex={0}
               >
                 14
-              </button>
+              </div>
             </Button>
           </div>
         </Container>
@@ -1032,11 +1064,13 @@ exports[`CalendarView testing Render test 1`] = `
               caption="15"
               onClick={[Function]}
             >
-              <button
+              <div
                 caption="15"
                 className="msg button"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -1045,7 +1079,7 @@ exports[`CalendarView testing Render test 1`] = `
                 tabIndex={0}
               >
                 15
-              </button>
+              </div>
             </Button>
           </div>
         </Container>
@@ -1073,11 +1107,13 @@ exports[`CalendarView testing Render test 1`] = `
               caption="16"
               onClick={[Function]}
             >
-              <button
+              <div
                 caption="16"
                 className="msg button"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -1086,7 +1122,7 @@ exports[`CalendarView testing Render test 1`] = `
                 tabIndex={0}
               >
                 16
-              </button>
+              </div>
             </Button>
           </div>
         </Container>
@@ -1114,11 +1150,13 @@ exports[`CalendarView testing Render test 1`] = `
               caption="17"
               onClick={[Function]}
             >
-              <button
+              <div
                 caption="17"
                 className="msg button"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -1127,7 +1165,7 @@ exports[`CalendarView testing Render test 1`] = `
                 tabIndex={0}
               >
                 17
-              </button>
+              </div>
             </Button>
           </div>
         </Container>
@@ -1155,11 +1193,13 @@ exports[`CalendarView testing Render test 1`] = `
               caption="18"
               onClick={[Function]}
             >
-              <button
+              <div
                 caption="18"
                 className="msg button"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -1168,7 +1208,7 @@ exports[`CalendarView testing Render test 1`] = `
                 tabIndex={0}
               >
                 18
-              </button>
+              </div>
             </Button>
           </div>
         </Container>
@@ -1196,11 +1236,13 @@ exports[`CalendarView testing Render test 1`] = `
               caption="19"
               onClick={[Function]}
             >
-              <button
+              <div
                 caption="19"
                 className="msg button"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -1209,7 +1251,7 @@ exports[`CalendarView testing Render test 1`] = `
                 tabIndex={0}
               >
                 19
-              </button>
+              </div>
             </Button>
           </div>
         </Container>
@@ -1237,11 +1279,13 @@ exports[`CalendarView testing Render test 1`] = `
               caption="20"
               onClick={[Function]}
             >
-              <button
+              <div
                 caption="20"
                 className="msg button"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -1250,7 +1294,7 @@ exports[`CalendarView testing Render test 1`] = `
                 tabIndex={0}
               >
                 20
-              </button>
+              </div>
             </Button>
           </div>
         </Container>
@@ -1278,11 +1322,13 @@ exports[`CalendarView testing Render test 1`] = `
               caption="21"
               onClick={[Function]}
             >
-              <button
+              <div
                 caption="21"
                 className="msg button"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -1291,7 +1337,7 @@ exports[`CalendarView testing Render test 1`] = `
                 tabIndex={0}
               >
                 21
-              </button>
+              </div>
             </Button>
           </div>
         </Container>
@@ -1319,11 +1365,13 @@ exports[`CalendarView testing Render test 1`] = `
               caption="22"
               onClick={[Function]}
             >
-              <button
+              <div
                 caption="22"
                 className="msg button"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -1332,7 +1380,7 @@ exports[`CalendarView testing Render test 1`] = `
                 tabIndex={0}
               >
                 22
-              </button>
+              </div>
             </Button>
           </div>
         </Container>
@@ -1360,11 +1408,13 @@ exports[`CalendarView testing Render test 1`] = `
               caption="23"
               onClick={[Function]}
             >
-              <button
+              <div
                 caption="23"
                 className="msg button"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -1373,7 +1423,7 @@ exports[`CalendarView testing Render test 1`] = `
                 tabIndex={0}
               >
                 23
-              </button>
+              </div>
             </Button>
           </div>
         </Container>
@@ -1401,11 +1451,13 @@ exports[`CalendarView testing Render test 1`] = `
               caption="24"
               onClick={[Function]}
             >
-              <button
+              <div
                 caption="24"
                 className="msg button"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -1414,7 +1466,7 @@ exports[`CalendarView testing Render test 1`] = `
                 tabIndex={0}
               >
                 24
-              </button>
+              </div>
             </Button>
           </div>
         </Container>
@@ -1442,11 +1494,13 @@ exports[`CalendarView testing Render test 1`] = `
               caption="25"
               onClick={[Function]}
             >
-              <button
+              <div
                 caption="25"
                 className="msg button"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -1455,7 +1509,7 @@ exports[`CalendarView testing Render test 1`] = `
                 tabIndex={0}
               >
                 25
-              </button>
+              </div>
             </Button>
           </div>
         </Container>
@@ -1483,11 +1537,13 @@ exports[`CalendarView testing Render test 1`] = `
               caption="26"
               onClick={[Function]}
             >
-              <button
+              <div
                 caption="26"
                 className="msg button"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -1496,7 +1552,7 @@ exports[`CalendarView testing Render test 1`] = `
                 tabIndex={0}
               >
                 26
-              </button>
+              </div>
             </Button>
           </div>
         </Container>
@@ -1524,11 +1580,13 @@ exports[`CalendarView testing Render test 1`] = `
               caption="27"
               onClick={[Function]}
             >
-              <button
+              <div
                 caption="27"
                 className="msg button"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -1537,7 +1595,7 @@ exports[`CalendarView testing Render test 1`] = `
                 tabIndex={0}
               >
                 27
-              </button>
+              </div>
             </Button>
           </div>
         </Container>
@@ -1565,11 +1623,13 @@ exports[`CalendarView testing Render test 1`] = `
               caption="28"
               onClick={[Function]}
             >
-              <button
+              <div
                 caption="28"
                 className="msg button"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -1578,7 +1638,7 @@ exports[`CalendarView testing Render test 1`] = `
                 tabIndex={0}
               >
                 28
-              </button>
+              </div>
             </Button>
           </div>
         </Container>
@@ -1606,11 +1666,13 @@ exports[`CalendarView testing Render test 1`] = `
               caption="29"
               onClick={[Function]}
             >
-              <button
+              <div
                 caption="29"
                 className="msg button"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -1619,7 +1681,7 @@ exports[`CalendarView testing Render test 1`] = `
                 tabIndex={0}
               >
                 29
-              </button>
+              </div>
             </Button>
           </div>
         </Container>
@@ -1647,11 +1709,13 @@ exports[`CalendarView testing Render test 1`] = `
               caption="30"
               onClick={[Function]}
             >
-              <button
+              <div
                 caption="30"
                 className="msg button"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -1660,7 +1724,7 @@ exports[`CalendarView testing Render test 1`] = `
                 tabIndex={0}
               >
                 30
-              </button>
+              </div>
             </Button>
           </div>
         </Container>
@@ -1688,11 +1752,13 @@ exports[`CalendarView testing Render test 1`] = `
               caption="31"
               onClick={[Function]}
             >
-              <button
+              <div
                 caption="31"
                 className="msg button"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -1701,7 +1767,7 @@ exports[`CalendarView testing Render test 1`] = `
                 tabIndex={0}
               >
                 31
-              </button>
+              </div>
             </Button>
           </div>
         </Container>

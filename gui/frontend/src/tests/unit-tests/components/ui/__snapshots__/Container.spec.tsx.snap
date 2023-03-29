@@ -163,9 +163,11 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
         <Button
           round={true}
         >
-          <button
+          <div
             className="msg button round"
+            draggable={true}
             onMouseDown={[Function]}
+            role="button"
             style={
               {
                 "flexDirection": undefined,
@@ -174,14 +176,16 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
             tabIndex={0}
           >
             M
-          </button>
+          </div>
         </Button>
         <Button
           round={true}
         >
-          <button
+          <div
             className="msg button round"
+            draggable={true}
             onMouseDown={[Function]}
+            role="button"
             style={
               {
                 "flexDirection": undefined,
@@ -190,14 +194,16 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
             tabIndex={0}
           >
             M
-          </button>
+          </div>
         </Button>
         <Button
           round={true}
         >
-          <button
+          <div
             className="msg button round"
+            draggable={true}
             onMouseDown={[Function]}
+            role="button"
             style={
               {
                 "flexDirection": undefined,
@@ -206,14 +212,16 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
             tabIndex={0}
           >
             M
-          </button>
+          </div>
         </Button>
         <Button
           round={true}
         >
-          <button
+          <div
             className="msg button round"
+            draggable={true}
             onMouseDown={[Function]}
+            role="button"
             style={
               {
                 "flexDirection": undefined,
@@ -222,14 +230,16 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
             tabIndex={0}
           >
             M
-          </button>
+          </div>
         </Button>
         <Button
           round={true}
         >
-          <button
+          <div
             className="msg button round"
+            draggable={true}
             onMouseDown={[Function]}
+            role="button"
             style={
               {
                 "flexDirection": undefined,
@@ -238,7 +248,7 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
             tabIndex={0}
           >
             M
-          </button>
+          </div>
         </Button>
       </div>
     </Container>

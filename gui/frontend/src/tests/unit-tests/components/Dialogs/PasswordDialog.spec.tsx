@@ -145,11 +145,11 @@ describe("Password Dialog Tests", (): void => {
         await requisitions.execute("requestPassword", request);
         await nextProcessTick();
 
-        const buttons = portals[0].getElementsByTagName("button");
+        const buttons = portals[0].querySelectorAll("[role='button']");
         expect(buttons).toHaveLength(3);
         expect(buttons[1].id).toBe("ok");
         expect(buttons[2].id).toBe("cancel");
-        buttons[1].click();
+        (buttons[1] as HTMLButtonElement).click();
         await nextProcessTick();
 
         portals = document.getElementsByClassName("portal");

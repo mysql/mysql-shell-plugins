@@ -25,7 +25,7 @@ import { mount } from "enzyme";
 import { act } from "preact/test-utils";
 
 import { Breadcrumb, IBreadcrumbProperties } from "../../../../components/ui/Breadcrumb/Breadcrumb";
-import { Button, IButtonProperties } from "../../../../components/ui/Button/Button";
+import { Button } from "../../../../components/ui/Button/Button";
 import { Label } from "../../../../components/ui/Label/Label";
 
 import { mouseEventMock } from "../../__mocks__/MockEvents";
@@ -43,11 +43,11 @@ describe("Breadcrumb render testing", (): void => {
             />,
         );
         expect(component).toBeTruthy();
-        const buttons = component.find("button");
+        const buttons = component.find(Button);
         expect(buttons).toHaveLength(4);
         const instance = component.instance();
         const spyOnChange = jest.spyOn(instance.props as IBreadcrumbProperties, "onSelect");
-        const onClick = (buttons.first().props() as IButtonProperties).onClick;
+        const onClick = (buttons.first().props()).onClick;
         await act(() => {
             onClick?.(mouseEventMock, {});
         });

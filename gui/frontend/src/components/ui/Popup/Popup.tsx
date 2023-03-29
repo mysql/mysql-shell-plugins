@@ -25,7 +25,7 @@ import "./Popup.css";
 
 import { ComponentChild, createRef } from "preact";
 
-import { computeContentPosition } from "../Tools/HTMLHelpers";
+import { computeContentPosition } from "../html-helpers";
 import { ComponentPlacement, IComponentState, ComponentBase } from "../Component/ComponentBase";
 import { Orientation, Container } from "../Container/Container";
 import { IPortalProperties, Portal, IPortalOptions } from "../Portal/Portal";

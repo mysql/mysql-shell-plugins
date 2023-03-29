@@ -21,16 +21,18 @@ exports[`DialogHost Tests Show MRS DB Object Dialog (snapshot) 1`] = `
       >
         MySQL REST Object
       </label>
-      <button
+      <div
         class="msg button imageOnly"
+        draggable="true"
         id="closeButton"
+        role="button"
         tabindex="0"
       >
         <span
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
-      </button>
+      </div>
     </div>
     <div
       class="content fixedScrollbar"
@@ -237,67 +239,77 @@ exports[`DialogHost Tests Show MRS DB Object Dialog (snapshot) 1`] = `
             style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
           >
             <div
-              class="msg container fixedScrollbar selector horizontal tabArea stretched"
+              class="msg container tabAreaContainer"
               style="flex-direction: row;"
             >
               <div
-                class="msg container fixedScrollbar selectorItem stepDown"
-                id="selectorItemstepDown"
-                style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-              />
-              <div
-                class="msg container fixedScrollbar selectorItem selected normal"
-                id="page0"
-                style="flex-direction: row; justify-content: center; align-items: center;"
+                class="scrollable"
               >
-                <label
-                  class="msg label"
-                  data-tooltip="inherit"
+                <div
+                  class="msg container tabArea stretched"
+                  style="flex-direction: row;"
                 >
-                  Basic
-                </label>
-              </div>
-              <div
-                class="msg container fixedScrollbar selectorItem normal"
-                id="page1"
-                style="flex-direction: row; justify-content: center; align-items: center;"
-              >
-                <label
-                  class="msg label"
-                  data-tooltip="inherit"
+                  <div
+                    class="msg button tabItem selected"
+                    id="page0"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      Basic
+                    </label>
+                  </div>
+                  <div
+                    class="msg button tabItem"
+                    id="page1"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      Parameters
+                    </label>
+                  </div>
+                  <div
+                    class="msg button tabItem"
+                    id="page2"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      Advanced
+                    </label>
+                  </div>
+                  <div
+                    class="msg button tabItem"
+                    id="page3"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      Options
+                    </label>
+                  </div>
+                </div>
+                <div
+                  class="scrollbar"
                 >
-                  Parameters
-                </label>
+                  <div
+                    class="slider"
+                  />
+                </div>
               </div>
-              <div
-                class="msg container fixedScrollbar selectorItem normal"
-                id="page2"
-                style="flex-direction: row; justify-content: center; align-items: center;"
-              >
-                <label
-                  class="msg label"
-                  data-tooltip="inherit"
-                >
-                  Advanced
-                </label>
-              </div>
-              <div
-                class="msg container fixedScrollbar selectorItem normal"
-                id="page3"
-                style="flex-direction: row; justify-content: center; align-items: center;"
-              >
-                <label
-                  class="msg label"
-                  data-tooltip="inherit"
-                >
-                  Options
-                </label>
-              </div>
-              <div
-                class="msg container fixedScrollbar selectorItem stepUp"
-                id="selectorItemstepUp"
-                style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-              />
             </div>
             <div
               class="msg container fixedScrollbar content"
@@ -449,22 +461,26 @@ exports[`DialogHost Tests Show MRS DB Object Dialog (snapshot) 1`] = `
         class="msg container fixedScrollbar rightItems"
         style="flex-direction: row-reverse;"
       >
-        <button
+        <div
           caption="OK"
           class="msg button"
+          draggable="true"
           id="ok"
+          role="button"
           tabindex="0"
         >
           OK
-        </button>
-        <button
+        </div>
+        <div
           caption="Cancel"
           class="msg button"
+          draggable="true"
           id="cancel"
+          role="button"
           tabindex="0"
         >
           Cancel
-        </button>
+        </div>
       </div>
     </div>
   </div>
@@ -492,16 +508,18 @@ exports[`DialogHost Tests Show MRS Schema Dialog (snapshot) 1`] = `
       >
         MySQL REST Service
       </label>
-      <button
+      <div
         class="msg button imageOnly"
+        draggable="true"
         id="closeButton"
+        role="button"
         tabindex="0"
       >
         <span
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
-      </button>
+      </div>
     </div>
     <div
       class="content fixedScrollbar"
@@ -718,22 +736,26 @@ exports[`DialogHost Tests Show MRS Schema Dialog (snapshot) 1`] = `
         class="msg container fixedScrollbar rightItems"
         style="flex-direction: row-reverse;"
       >
-        <button
+        <div
           caption="OK"
           class="msg button"
+          draggable="true"
           id="ok"
+          role="button"
           tabindex="0"
         >
           OK
-        </button>
-        <button
+        </div>
+        <div
           caption="Cancel"
           class="msg button"
+          draggable="true"
           id="cancel"
+          role="button"
           tabindex="0"
         >
           Cancel
-        </button>
+        </div>
       </div>
     </div>
   </div>
@@ -761,16 +783,18 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
       >
         MySQL REST Service
       </label>
-      <button
+      <div
         class="msg button imageOnly"
+        draggable="true"
         id="closeButton"
+        role="button"
         tabindex="0"
       >
         <span
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
-      </button>
+      </div>
     </div>
     <div
       class="content fixedScrollbar"
@@ -927,55 +951,64 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
             style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
           >
             <div
-              class="msg container fixedScrollbar selector horizontal tabArea stretched"
+              class="msg container tabAreaContainer"
               style="flex-direction: row;"
             >
               <div
-                class="msg container fixedScrollbar selectorItem stepDown"
-                id="selectorItemstepDown"
-                style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-              />
-              <div
-                class="msg container fixedScrollbar selectorItem selected normal"
-                id="page0"
-                style="flex-direction: row; justify-content: center; align-items: center;"
+                class="scrollable"
               >
-                <label
-                  class="msg label"
-                  data-tooltip="inherit"
+                <div
+                  class="msg container tabArea stretched"
+                  style="flex-direction: row;"
                 >
-                  Options
-                </label>
-              </div>
-              <div
-                class="msg container fixedScrollbar selectorItem normal"
-                id="page1"
-                style="flex-direction: row; justify-content: center; align-items: center;"
-              >
-                <label
-                  class="msg label"
-                  data-tooltip="inherit"
+                  <div
+                    class="msg button tabItem selected"
+                    id="page0"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      Options
+                    </label>
+                  </div>
+                  <div
+                    class="msg button tabItem"
+                    id="page1"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      Authentication
+                    </label>
+                  </div>
+                  <div
+                    class="msg button tabItem"
+                    id="page2"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      Authentication Apps
+                    </label>
+                  </div>
+                </div>
+                <div
+                  class="scrollbar"
                 >
-                  Authentication
-                </label>
+                  <div
+                    class="slider"
+                  />
+                </div>
               </div>
-              <div
-                class="msg container fixedScrollbar selectorItem normal"
-                id="page2"
-                style="flex-direction: row; justify-content: center; align-items: center;"
-              >
-                <label
-                  class="msg label"
-                  data-tooltip="inherit"
-                >
-                  Authentication Apps
-                </label>
-              </div>
-              <div
-                class="msg container fixedScrollbar selectorItem stepUp"
-                id="selectorItemstepUp"
-                style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-              />
             </div>
             <div
               class="msg container fixedScrollbar content"
@@ -1024,22 +1057,26 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
         class="msg container fixedScrollbar rightItems"
         style="flex-direction: row-reverse;"
       >
-        <button
+        <div
           caption="OK"
           class="msg button"
+          draggable="true"
           id="ok"
+          role="button"
           tabindex="0"
         >
           OK
-        </button>
-        <button
+        </div>
+        <div
           caption="Cancel"
           class="msg button"
+          draggable="true"
           id="cancel"
+          role="button"
           tabindex="0"
         >
           Cancel
-        </button>
+        </div>
       </div>
     </div>
   </div>
@@ -1067,16 +1104,18 @@ exports[`DialogHost Tests Show Prompt Dialog (snapshot) 1`] = `
       >
         Feedback Requested
       </label>
-      <button
+      <div
         class="msg button imageOnly"
+        draggable="true"
         id="closeButton"
+        role="button"
         tabindex="0"
       >
         <span
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
-      </button>
+      </div>
     </div>
     <div
       class="content fixedScrollbar"
@@ -1120,22 +1159,26 @@ exports[`DialogHost Tests Show Prompt Dialog (snapshot) 1`] = `
         class="msg container fixedScrollbar rightItems"
         style="flex-direction: row-reverse;"
       >
-        <button
+        <div
           caption="OK"
           class="msg button"
+          draggable="true"
           id="ok"
+          role="button"
           tabindex="0"
         >
           OK
-        </button>
-        <button
+        </div>
+        <div
           caption="Cancel"
           class="msg button"
+          draggable="true"
           id="cancel"
+          role="button"
           tabindex="0"
         >
           Cancel
-        </button>
+        </div>
       </div>
     </div>
   </div>

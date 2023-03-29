@@ -46,146 +46,169 @@
     background-color: var(--tab-activeBackground)
 }
 
-.msg.tabview > .tabArea {
+.msg.tabview .tabAreaContainer {
     flex: 0 0 auto;
-    background-color: var(--editorGroupHeader-tabsBackground);
     color: var(--tab-activeForeground);
+    overflow: hidden;
 }
 
-.msg.tabview > .tabArea,
-.msg.tabview > .tabArea .selectorItem.normal,
-.msg.tabview > .tabArea * {
+.msg.tabview .tabAreaContainer,
+.msg.tabview .tabArea .tabItem,
+.msg.tabview .tabArea * {
     cursor: pointer;
 }
 
-.msg.tabview > .tabArea > .selectorItem.normal.dropTarget,
-.msg.tabview > .tabArea.dropTarget {
+.msg.tabview .tabAreaContainer {
+    background-color: var(--editorGroup-emptyBackground);
+}
+
+.msg.tabview .tabArea > .tabItem.dropTarget,
+.msg.tabview .tabArea.dropTarget {
     background-color: var(--tab-dropBackground);
 }
 
-.msg.tabview > .tabArea.stretched > .selectorItem.normal {
+.msg.tabview .tabArea.stretched > .tabItem {
     flex: 1 1 auto;
 }
 
-.msg.tabview > .tabArea > .selectorItem.normal {
+.msg.tabview .tabArea > .tabItem {
     border: var(--tabItem-border-width) solid transparent;
+
+    display: flex;
+
+    align-self: stretch;
+    justify-self: stretch;
+
+    flex: 1 0 20%;
+    padding: 0.25rem;
+
+    min-width: 32px;
+    min-height: 32px;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+
+    color: var(--button-foreground);
+    background-color: var(--button-background);
+
+    transition: background-color ease 200ms, border-color ease 200ms;
 }
 
-/* Tab separation lines. */
-.msg.tabview.top > .tabArea > .selectorItem.normal,
-.msg.tabview.bottom > .tabArea > .selectorItem.normal {
-    border-left-color: var(--tab-border);
-}
-
-.msg.tabview.top > .tabArea > .selectorItem.normal:nth-last-child(2),
-.msg.tabview.bottom > .tabArea > .selectorItem.normal:nth-last-child(2) {
-    border-right-color: var(--tab-border);
-}
-
-.msg.tabview.left > .tabArea > .selectorItem.normal,
-.msg.tabview.right > .tabArea > .selectorItem.normal {
-    border-bottom-color: var(--tab-border);
-}
-
-.msg.tabview.left > .tabArea > .selectorItem.normal:nth-last-child(2),
-.msg.tabview.right > .tabArea > .selectorItem.normal:nth-last-child(2) {
-    border-top-color: var(--tab-border);
-}
-
-/* Selection marker in 2 positions for 4 orientations. */
-.msg.tabview.top > .tabArea > .selectorItem.normal {
-    border-top-width: 2px;
-    border-bottom-color: var(--tab-border);
-}
-
-.msg.tabview.top > .tabArea > .selectorItem.normal.selected {
-    border-top-color: var(--tab-activeBorderTop);
-    border-bottom-color: var(--tab-activeBorder);
-}
-
-.msg.tabview.right > .tabArea > .selectorItem.normal {
-    border-right-width: 2px;
-    border-left: var(--tabItem-border-width) solid var(--tab-border);
-}
-
-.msg.tabview.right > .tabArea > .selectorItem.normal.selected {
-    border-right-color: var(--tab-activeBorderTop);
-    border-left-color: var(--tab-activeBorder);
-}
-
-.msg.tabview.bottom > .tabArea > .selectorItem.normal {
-    border-bottom-width: 2px;
-    border-top-color: var(--tab-border);
-}
-
-.msg.tabview.bottom > .tabArea > .selectorItem.normal.selected {
-    border-bottom-color: var(--tab-activeBorderTop);
-    border-top-color: var(--tab-activeBorder);
-}
-
-.msg.tabview.left > .tabArea > .selectorItem.normal {
-    border-left-width: 2px;
-    border-right: var(--tabItem-border-width) solid var(--tab-border);
-}
-
-.msg.tabview.left > .tabArea > .selectorItem.normal.selected {
-    border-left-color: var(--tab-activeBorderTop);
-    border-right-color: var(--tab-activeBorder);
-}
-
-.msg.tabview > .tabArea > .selectorItem.normal {
+.msg.tabview .tabArea > .tabItem {
     flex: 0 0 auto;
     min-height: fit-content;
     min-width: fit-content;
     padding: 4px 24px 4px 12px;
+    border-radius: 0;
+    margin: 0;
 
     font-size: 90%;
 
     color: var(--tab-inactiveForeground);
 }
 
-.msg.tabview > .tabArea > .selectorItem.normal.hasAuxillary {
+.msg.tabview .tabArea > .tabItem.active {
+    background-color: var(--button-pressedBackground);
+    transition: background-color ease 250ms;
+}
+
+/* Tab separation lines. */
+.msg.tabview.top .tabArea > .tabItem,
+.msg.tabview.bottom .tabArea > .tabItem {
+    border-left-color: var(--tab-border);
+}
+
+.msg.tabview.top .tabArea > .tabItem:nth-last-child(2),
+.msg.tabview.bottom .tabArea > .tabItem:nth-last-child(2) {
+    border-right-color: var(--tab-border);
+}
+
+.msg.tabview.left .tabArea > .tabItem,
+.msg.tabview.right .tabArea > .tabItem {
+    border-bottom-color: var(--tab-border);
+}
+
+.msg.tabview.left .tabArea > .tabItem:nth-last-child(2),
+.msg.tabview.right .tabArea > .tabItem:nth-last-child(2) {
+    border-top-color: var(--tab-border);
+}
+
+/* Selection marker in 2 positions for 4 orientations. */
+.msg.tabview.top .tabArea > .tabItem {
+    border-top-width: 2px;
+    border-bottom-color: var(--tab-border);
+}
+
+.msg.tabview.top .tabArea > .tabItem.selected {
+    border-top-color: var(--tab-activeBorderTop);
+    border-bottom-color: var(--tab-activeBorder);
+}
+
+.msg.tabview.right .tabArea > .tabItem {
+    border-right-width: 2px;
+    border-left: var(--tabItem-border-width) solid var(--tab-border);
+}
+
+.msg.tabview.right .tabArea > .tabItem.selected {
+    border-right-color: var(--tab-activeBorderTop);
+    border-left-color: var(--tab-activeBorder);
+}
+
+.msg.tabview.bottom .tabArea > .tabItem {
+    border-bottom-width: 2px;
+    border-top-color: var(--tab-border);
+}
+
+.msg.tabview.bottom .tabArea > .tabItem.selected {
+    border-bottom-color: var(--tab-activeBorderTop);
+    border-top-color: var(--tab-activeBorder);
+}
+
+.msg.tabview.left .tabArea > .tabItem {
+    border-left-width: 2px;
+    border-right: var(--tabItem-border-width) solid var(--tab-border);
+}
+
+.msg.tabview.left .tabArea > .tabItem.selected {
+    border-left-color: var(--tab-activeBorderTop);
+    border-right-color: var(--tab-activeBorder);
+}
+
+.msg.tabview .tabArea > .tabItem.hasAuxillary {
     padding: 4px 4px 4px 12px;
 }
 
-.msg.tabview > .tabArea > .selectorItem.normal:not(.dropTarget) {
+.msg.tabview .tabArea > .tabItem:not(.dropTarget) {
     background-color: var(--tab-inactiveBackground);
 }
 
 /* Item hovering, including special handling for outer borders of last tab items. */
-.msg.tabview > .tabArea > .selectorItem.normal:not(.selected):hover {
+.msg.tabview .tabArea > .tabItem:not(.selected):hover {
     border-color: var(--tab-hoverBorder);
 }
 
-.msg.tabview.top > .tabArea > .selectorItem.normal:hover:nth-last-child(2),
-.msg.tabview.bottom > .tabArea > .selectorItem.normal:hover:nth-last-child(2) {
+.msg.tabview.top .tabArea > .tabItem:hover:nth-last-child(2),
+.msg.tabview.bottom .tabArea > .tabItem:hover:nth-last-child(2) {
     border-right-color: var(--tab-hoverBorder);
 }
 
-.msg.tabview.left > .tabArea > .selectorItem.normal:hover:nth-last-child(2),
-.msg.tabview.right > .tabArea > .selectorItem.normal:hover:nth-last-child(2) {
+.msg.tabview.left .tabArea > .tabItem:hover:nth-last-child(2),
+.msg.tabview.right .tabArea > .tabItem:hover:nth-last-child(2) {
     border-top-color: var(--tab-hoverBorder);
 }
 
-.msg.tabview > .tabArea > .selectorItem.normal:hover:active:not(.dropTarget),
-.msg.tabview > .tabArea > .selectorItem.normal:hover:not(:active) {
+.msg.tabview .tabArea > .tabItem:hover:active:not(.dropTarget),
+.msg.tabview .tabArea > .tabItem:hover:not(:active) {
     background-color: var(--tab-hoverBackground);
 }
 
 /* Selected items */
-.msg.tabview > .tabArea > .selectorItem.normal.selected:not(.dropTarget) {
+.msg.tabview .tabArea > .tabItem.selected:not(.dropTarget) {
     background-color: var(--tab-activeBackground);
     color: var(--tab-activeForeground);
 }
 
-/* Rules for other sub elements of the tabs or the selector. */
-.msg.tabview > .tabArea > .selectorItem.stepUp,
-.msg.tabview > .tabArea > .selectorItem.stepDown {
-    background-color: var(--button-background);
-}
-
 /* Any icon on a tab. */
-.msg.tabview > .tabArea > .selectorItem.normal .icon {
+.msg.tabview .tabArea > .tabItem .icon {
     height: 16px;
     width: 16px;
     min-height: 16px;
@@ -195,24 +218,24 @@
     background-color: var(--tab-inactiveForeground);
 }
 
-.msg.tabview > .tabArea > .selectorItem.normal .icon.codicon {
+.msg.tabview .tabArea > .tabItem .icon.codicon {
     background: none;
     color: var(--tab-inactiveForeground);
 }
 
-.msg.tabview > .tabArea > .selectorItem.normal.selected .icon {
+.msg.tabview .tabArea > .tabItem.selected .icon {
     background-color: var(--tab-activeForeground);
 }
 
-.msg.tabview > .tabArea > .selectorItem.normal.selected .icon.codicon {
+.msg.tabview .tabArea > .tabItem.selected .icon.codicon {
     background: none;
     color: var(--tab-activeForeground);
 }
 
 /* Icons in the auxillary view. */
-.msg.tabview > .tabArea > .selectorItem.normal #auxillary .icon {
-    height: 12px;
-    width: 12px;
+.msg.tabview .tabArea > .tabItem #auxillary .icon {
+    height: 16px;
+    width: 16px;
     min-height: 12px;
     min-width: 12px;
     margin: 0;
@@ -220,11 +243,11 @@
     visibility: hidden;
 }
 
-.msg.tabview > .tabArea > .selectorItem.normal.selected #auxillary  .icon {
+.msg.tabview .tabArea > .tabItem.selected #auxillary .icon {
     visibility: visible;
 }
 
-.msg.tabview > .tabArea > .selectorItem.normal:hover:not(.selected) #auxillary  .icon {
+.msg.tabview .tabArea > .tabItem:hover:not(.selected) #auxillary .icon {
     background-color: var(--tab-inactiveForeground);
     visibility: visible;
 }
@@ -246,3 +269,46 @@
     border-left: var(--content-separator-width) solid var(--editorGroupHeader-tabsBorder)
 }
 
+.msg.tabview .tabAreaContainer {
+    overflow: hidden;
+    height: 27px;
+}
+
+.msg.tabview .tabAreaContainer .scrollable {
+    flex: auto;
+    overflow: hidden;
+}
+
+.msg.tabview .tabAreaContainer .auxillary {
+    flex: 0 0 auto;
+}
+
+.msg.tabview .tabAreaContainer .tabArea {
+    overflow: hidden;
+    height: 27px;
+}
+
+.msg.tabview .scrollable .scrollbar {
+    display: block;
+    position: absolute;
+    width: 100%;
+    height: 3px;
+    bottom: 0;
+
+    background: none;
+    z-index: 1;
+}
+
+.msg.tabview .scrollable .scrollbar > .slider {
+    position: absolute;
+    width: 500px;
+    height: 3px;
+    opacity: 0;
+    background-color: var(--scrollbarSlider-background);
+    transition: opacity 1000ms ease-out;
+}
+
+.msg.tabview .scrollable:hover .scrollbar > .slider {
+    opacity: 1;
+    transition: opacity 200ms ease-in;
+}

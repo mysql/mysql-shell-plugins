@@ -486,15 +486,7 @@
                 "accessibility": "explicit"
             }
         ],
-        "@typescript-eslint/indent": [
-            "error",
-            4,
-            {
-                "ignoreComments": true,
-                "SwitchCase": 1,
-                "MemberExpression": 1
-            }
-        ],
+        "@typescript-eslint/indent": "off",
         "@typescript-eslint/interface-name-prefix": "off",
         "@typescript-eslint/member-delimiter-style": "off",
         "@typescript-eslint/member-ordering": [

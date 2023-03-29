@@ -9,37 +9,44 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
         style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
       >
         <div
-          class="msg container fixedScrollbar selector horizontal tabArea"
+          class="msg container tabAreaContainer"
           style="flex-direction: row;"
         >
           <div
-            class="msg container fixedScrollbar selectorItem stepDown"
-            id="selectorItemstepDown"
-            style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-          />
-          <div
-            class="msg container fixedScrollbar selectorItem selected normal"
-            draggable="true"
-            id="progress"
-            style="flex-direction: row; justify-content: center; align-items: center;"
+            class="scrollable"
           >
-            <span
-              class="msg icon"
-              data-tooltip="inherit"
-              style="mask-image: url(overviewPage.svg);"
-            />
-            <label
-              class="msg label"
-              data-tooltip="inherit"
+            <div
+              class="msg container tabArea"
+              style="flex-direction: row;"
             >
-              Open Connection
-            </label>
+              <div
+                class="msg button tabItem selected"
+                draggable="true"
+                id="progress"
+                role="button"
+                tabindex="-1"
+              >
+                <span
+                  class="msg icon"
+                  data-tooltip="inherit"
+                  style="mask-image: url(overviewPage.svg);"
+                />
+                <label
+                  class="msg label"
+                  data-tooltip="inherit"
+                >
+                  Open Connection
+                </label>
+              </div>
+            </div>
+            <div
+              class="scrollbar"
+            >
+              <div
+                class="slider"
+              />
+            </div>
           </div>
-          <div
-            class="msg container fixedScrollbar selectorItem stepUp"
-            id="selectorItemstepUp"
-            style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-          />
         </div>
         <div
           class="msg container fixedScrollbar content"
@@ -86,37 +93,44 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
           style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
         >
           <div
-            class="msg container fixedScrollbar selector horizontal tabArea"
+            class="msg container tabAreaContainer"
             style="flex-direction: row;"
           >
             <div
-              class="msg container fixedScrollbar selectorItem stepDown"
-              id="selectorItemstepDown"
-              style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-            />
-            <div
-              class="msg container fixedScrollbar selectorItem selected normal"
-              draggable="true"
-              id="progress"
-              style="flex-direction: row; justify-content: center; align-items: center;"
+              class="scrollable"
             >
-              <span
-                class="msg icon"
-                data-tooltip="inherit"
-                style="mask-image: url(overviewPage.svg);"
-              />
-              <label
-                class="msg label"
-                data-tooltip="inherit"
+              <div
+                class="msg container tabArea"
+                style="flex-direction: row;"
               >
-                Open Connection
-              </label>
+                <div
+                  class="msg button tabItem selected"
+                  draggable="true"
+                  id="progress"
+                  role="button"
+                  tabindex="-1"
+                >
+                  <span
+                    class="msg icon"
+                    data-tooltip="inherit"
+                    style="mask-image: url(overviewPage.svg);"
+                  />
+                  <label
+                    class="msg label"
+                    data-tooltip="inherit"
+                  >
+                    Open Connection
+                  </label>
+                </div>
+              </div>
+              <div
+                class="scrollbar"
+              >
+                <div
+                  class="slider"
+                />
+              </div>
             </div>
-            <div
-              class="msg container fixedScrollbar selectorItem stepUp"
-              id="selectorItemstepUp"
-              style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-            />
           </div>
           <div
             class="msg container fixedScrollbar content"
@@ -186,37 +200,44 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
             style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
           >
             <div
-              class="msg container fixedScrollbar selector horizontal tabArea"
+              class="msg container tabAreaContainer"
               style="flex-direction: row;"
             >
               <div
-                class="msg container fixedScrollbar selectorItem stepDown"
-                id="selectorItemstepDown"
-                style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-              />
-              <div
-                class="msg container fixedScrollbar selectorItem selected normal"
-                draggable="true"
-                id="progress"
-                style="flex-direction: row; justify-content: center; align-items: center;"
+                class="scrollable"
               >
-                <span
-                  class="msg icon"
-                  data-tooltip="inherit"
-                  style="mask-image: url(overviewPage.svg);"
-                />
-                <label
-                  class="msg label"
-                  data-tooltip="inherit"
+                <div
+                  class="msg container tabArea"
+                  style="flex-direction: row;"
                 >
-                  Open Connection
-                </label>
+                  <div
+                    class="msg button tabItem selected"
+                    draggable="true"
+                    id="progress"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <span
+                      class="msg icon"
+                      data-tooltip="inherit"
+                      style="mask-image: url(overviewPage.svg);"
+                    />
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      Open Connection
+                    </label>
+                  </div>
+                </div>
+                <div
+                  class="scrollbar"
+                >
+                  <div
+                    class="slider"
+                  />
+                </div>
               </div>
-              <div
-                class="msg container fixedScrollbar selectorItem stepUp"
-                id="selectorItemstepUp"
-                style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-              />
             </div>
             <div
               class="msg container fixedScrollbar content"
@@ -251,6 +272,11 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
           </div>,
         }
       }
+      onDragEnter={[Function]}
+      onDragLeave={[Function]}
+      onDragOver={[Function]}
+      onDragStart={[Function]}
+      onDrop={[Function]}
       orientation="column"
       style={
         {
@@ -261,6 +287,11 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
     >
       <div
         className="msg container fixedScrollbar tabview top dbModuleTabview moduleHost"
+        onDragEnter={[Function]}
+        onDragLeave={[Function]}
+        onDragOver={[Function]}
+        onDragStart={[Function]}
+        onDrop={[Function]}
         style={
           {
             "--content-separator-width": "0px",
@@ -272,185 +303,41 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
           }
         }
       >
-        <Selector
-          activeItemId="progress"
-          className="tabArea"
-          entryOrientation="row"
-          items={
-            [
-              {
-                "auxillary": undefined,
-                "canReorder": true,
-                "caption": "Open Connection",
-                "icon": "overviewPage.svg",
-                "id": "progress",
-                "tooltip": undefined,
-              },
-            ]
-          }
-          onDrop={[Function]}
-          onSelect={[Function]}
+        <Container
+          className="tabAreaContainer"
+          fixedScrollbars={false}
           orientation="row"
-          smoothScroll={false}
-          wrapNavigation={false}
         >
-          <Container
-            className="msg selector horizontal tabArea"
-            innerRef={
+          <div
+            className="msg container tabAreaContainer"
+            style={
               {
-                "current": <div
-                  class="msg container fixedScrollbar selector horizontal tabArea"
-                  style="flex-direction: row;"
-                >
-                  <div
-                    class="msg container fixedScrollbar selectorItem stepDown"
-                    id="selectorItemstepDown"
-                    style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-                  />
-                  <div
-                    class="msg container fixedScrollbar selectorItem selected normal"
-                    draggable="true"
-                    id="progress"
-                    style="flex-direction: row; justify-content: center; align-items: center;"
-                  >
-                    <span
-                      class="msg icon"
-                      data-tooltip="inherit"
-                      style="mask-image: url(overviewPage.svg);"
-                    />
-                    <label
-                      class="msg label"
-                      data-tooltip="inherit"
-                    >
-                      Open Connection
-                    </label>
-                  </div>
-                  <div
-                    class="msg container fixedScrollbar selectorItem stepUp"
-                    id="selectorItemstepUp"
-                    style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-                  />
-                </div>,
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
               }
             }
-            onDragEnter={[Function]}
-            onDragLeave={[Function]}
-            onDragOver={[Function]}
-            onDragStart={[Function]}
-            onDrop={[Function]}
-            orientation="row"
           >
             <div
-              className="msg container fixedScrollbar selector horizontal tabArea"
-              onDragEnter={[Function]}
-              onDragLeave={[Function]}
-              onDragOver={[Function]}
-              onDragStart={[Function]}
-              onDrop={[Function]}
-              style={
-                {
-                  "alignItems": undefined,
-                  "flexDirection": "row",
-                  "flexWrap": undefined,
-                  "justifyContent": undefined,
-                }
-              }
+              className="scrollable"
+              onWheel={[Function]}
             >
-              <SelectorItem
-                disabled={false}
-                id="selectorItemstepDown"
+              <Container
+                className="tabArea"
+                fixedScrollbars={false}
                 innerRef={
                   {
                     "current": <div
-                      class="msg container fixedScrollbar selectorItem stepDown"
-                      id="selectorItemstepDown"
-                      style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-                    />,
-                  }
-                }
-                onClick={[Function]}
-                orientation="row"
-                type="stepDown"
-              >
-                <Container
-                  className="msg selectorItem stepDown"
-                  crossAlignment="center"
-                  id="selectorItemstepDown"
-                  innerRef={
-                    {
-                      "current": <div
-                        class="msg container fixedScrollbar selectorItem stepDown"
-                        id="selectorItemstepDown"
-                        style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-                      />,
-                    }
-                  }
-                  mainAlignment="center"
-                  onClick={[Function]}
-                  orientation="row"
-                >
-                  <div
-                    className="msg container fixedScrollbar selectorItem stepDown"
-                    id="selectorItemstepDown"
-                    onClick={[Function]}
-                    style={
-                      {
-                        "alignItems": "center",
-                        "flexDirection": "row",
-                        "flexWrap": undefined,
-                        "justifyContent": "center",
-                      }
-                    }
-                  />
-                </Container>
-              </SelectorItem>
-              <SelectorItem
-                caption="Open Connection"
-                disabled={false}
-                draggable={true}
-                id="progress"
-                image="overviewPage.svg"
-                innerRef={
-                  {
-                    "current": <div
-                      class="msg container fixedScrollbar selectorItem selected normal"
-                      draggable="true"
-                      id="progress"
-                      style="flex-direction: row; justify-content: center; align-items: center;"
+                      class="msg container tabArea"
+                      style="flex-direction: row;"
                     >
-                      <span
-                        class="msg icon"
-                        data-tooltip="inherit"
-                        style="mask-image: url(overviewPage.svg);"
-                      />
-                      <label
-                        class="msg label"
-                        data-tooltip="inherit"
-                      >
-                        Open Connection
-                      </label>
-                    </div>,
-                  }
-                }
-                key="progress"
-                onClick={[Function]}
-                onDrop={[Function]}
-                orientation="row"
-                selected={true}
-                type="normal"
-              >
-                <Container
-                  className="msg selectorItem selected normal"
-                  crossAlignment="center"
-                  draggable={true}
-                  id="progress"
-                  innerRef={
-                    {
-                      "current": <div
-                        class="msg container fixedScrollbar selectorItem selected normal"
+                      <div
+                        class="msg button tabItem selected"
                         draggable="true"
                         id="progress"
-                        style="flex-direction: row; justify-content: center; align-items: center;"
+                        role="button"
+                        tabindex="-1"
                       >
                         <span
                           class="msg icon"
@@ -463,121 +350,104 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
                         >
                           Open Connection
                         </label>
-                      </div>,
-                    }
-                  }
-                  mainAlignment="center"
-                  onClick={[Function]}
-                  onDragEnter={[Function]}
-                  onDragLeave={[Function]}
-                  onDragOver={[Function]}
-                  onDragStart={[Function]}
-                  onDrop={[Function]}
-                  orientation="row"
-                >
-                  <div
-                    className="msg container fixedScrollbar selectorItem selected normal"
-                    draggable={true}
-                    id="progress"
-                    onClick={[Function]}
-                    onDragEnter={[Function]}
-                    onDragLeave={[Function]}
-                    onDragOver={[Function]}
-                    onDragStart={[Function]}
-                    onDrop={[Function]}
-                    style={
-                      {
-                        "alignItems": "center",
-                        "flexDirection": "row",
-                        "flexWrap": undefined,
-                        "justifyContent": "center",
-                      }
-                    }
-                  >
-                    <Icon
-                      data-tooltip="inherit"
-                      disabled={false}
-                      src="overviewPage.svg"
-                    >
-                      <span
-                        className="msg icon"
-                        data-tooltip="inherit"
-                        style={
-                          {
-                            "WebkitMaskImage": "url(overviewPage.svg)",
-                            "backgroundColor": undefined,
-                            "height": undefined,
-                            "maskImage": "url(overviewPage.svg)",
-                            "width": undefined,
-                          }
-                        }
-                      />
-                    </Icon>
-                    <Label
-                      data-tooltip="inherit"
-                    >
-                      <label
-                        className="msg label"
-                        data-tooltip="inherit"
-                        style={{}}
-                      >
-                        Open Connection
-                      </label>
-                    </Label>
-                  </div>
-                </Container>
-              </SelectorItem>
-              <SelectorItem
-                disabled={false}
-                id="selectorItemstepUp"
-                innerRef={
-                  {
-                    "current": <div
-                      class="msg container fixedScrollbar selectorItem stepUp"
-                      id="selectorItemstepUp"
-                      style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-                    />,
+                      </div>
+                    </div>,
                   }
                 }
-                onClick={[Function]}
+                onDragOver={[Function]}
+                onDrop={[Function]}
                 orientation="row"
-                type="stepUp"
               >
-                <Container
-                  className="msg selectorItem stepUp"
-                  crossAlignment="center"
-                  id="selectorItemstepUp"
-                  innerRef={
+                <div
+                  className="msg container tabArea"
+                  onDragOver={[Function]}
+                  onDrop={[Function]}
+                  style={
                     {
-                      "current": <div
-                        class="msg container fixedScrollbar selectorItem stepUp"
-                        id="selectorItemstepUp"
-                        style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-                      />,
+                      "alignItems": undefined,
+                      "flexDirection": "row",
+                      "flexWrap": undefined,
+                      "justifyContent": undefined,
                     }
                   }
-                  mainAlignment="center"
-                  onClick={[Function]}
-                  orientation="row"
                 >
-                  <div
-                    className="msg container fixedScrollbar selectorItem stepUp"
-                    id="selectorItemstepUp"
+                  <Button
+                    className="tabItem selected"
+                    draggable={true}
+                    focusOnClick={false}
+                    id="progress"
+                    key="progress"
                     onClick={[Function]}
-                    style={
-                      {
-                        "alignItems": "center",
-                        "flexDirection": "row",
-                        "flexWrap": undefined,
-                        "justifyContent": "center",
+                    onDragEnter={[Function]}
+                    onDrop={[Function]}
+                    tabIndex={-1}
+                  >
+                    <div
+                      className="msg button tabItem selected"
+                      draggable={true}
+                      id="progress"
+                      onClick={[Function]}
+                      onDragEnter={[Function]}
+                      onDragLeave={[Function]}
+                      onDragOver={[Function]}
+                      onDragStart={[Function]}
+                      onDrop={[Function]}
+                      onMouseDown={[Function]}
+                      role="button"
+                      style={
+                        {
+                          "flexDirection": undefined,
+                        }
                       }
-                    }
-                  />
-                </Container>
-              </SelectorItem>
+                      tabIndex={-1}
+                    >
+                      <Icon
+                        data-tooltip="inherit"
+                        disabled={false}
+                        src="overviewPage.svg"
+                      >
+                        <span
+                          className="msg icon"
+                          data-tooltip="inherit"
+                          style={
+                            {
+                              "WebkitMaskImage": "url(overviewPage.svg)",
+                              "backgroundColor": undefined,
+                              "height": undefined,
+                              "maskImage": "url(overviewPage.svg)",
+                              "width": undefined,
+                            }
+                          }
+                        />
+                      </Icon>
+                      <Label
+                        data-tooltip="inherit"
+                      >
+                        <label
+                          className="msg label"
+                          data-tooltip="inherit"
+                          style={{}}
+                        >
+                          Open Connection
+                        </label>
+                      </Label>
+                    </div>
+                  </Button>
+                </div>
+              </Container>
+              <div
+                className="scrollbar"
+              >
+                <div
+                  className="slider"
+                  onPointerDown={[Function]}
+                  onPointerMove={[Function]}
+                  onPointerUp={[Function]}
+                />
+              </div>
             </div>
-          </Container>
-        </Selector>
+          </div>
+        </Container>
         <Container
           className="content"
           innerRef={

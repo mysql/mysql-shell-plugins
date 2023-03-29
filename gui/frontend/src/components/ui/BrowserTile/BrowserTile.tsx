@@ -39,7 +39,7 @@ export enum BrowserTileType {
 }
 
 export interface IBrowserTileProperties extends IComponentProperties {
-    innerRef?: preact.RefObject<HTMLButtonElement>;
+    innerRef?: preact.RefObject<HTMLDivElement>;
 
     tileId: number;
     caption: string;

@@ -129,9 +129,11 @@ exports[`UpDown render testing Test UpDown output (Snapshot) 1`] = `
             class="msg container fixedScrollbar gridCell"
             style="flex-direction: row;"
           >
-            <button
+            <div
               class="msg button"
+              draggable="true"
               id="up"
+              role="button"
               tabindex="-1"
             />
           </div>
@@ -139,9 +141,11 @@ exports[`UpDown render testing Test UpDown output (Snapshot) 1`] = `
             class="msg container fixedScrollbar gridCell"
             style="flex-direction: row;"
           >
-            <button
+            <div
               class="msg button"
+              draggable="true"
               id="down"
+              role="button"
               tabindex="-1"
             />
           </div>
@@ -576,11 +580,13 @@ exports[`UpDown render testing Test UpDown output (Snapshot) 1`] = `
               onClick={[Function]}
               tabIndex={-1}
             >
-              <button
+              <div
                 className="msg button"
+                draggable={true}
                 id="up"
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -615,11 +621,13 @@ exports[`UpDown render testing Test UpDown output (Snapshot) 1`] = `
               onClick={[Function]}
               tabIndex={-1}
             >
-              <button
+              <div
                 className="msg button"
+                draggable={true}
                 id="down"
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,

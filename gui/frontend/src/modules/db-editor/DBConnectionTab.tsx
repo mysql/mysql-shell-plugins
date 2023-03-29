@@ -69,17 +69,28 @@ interface IResultTimer {
     results: Array<[IExecutionResult, IResponseDataOptions]>;
 }
 
+/**
+ * Just the minimal information about existing editors.
+ */
+export interface ISavedEditorState {
+    editors: IOpenEditorState[];
+
+    activeEntry: string;
+
+    heatWaveEnabled: boolean;
+}
+
 export interface IOpenEditorState extends IEntityBase {
     state?: IEditorPersistentState;
 
-    // A copy of the script state data id, if this editor was created from a script.
+    /** A copy of the script state data id, if this editor was created from a script. */
     dbDataId?: number;
 
-    // The version number of the editor model when we last saved it (for entries that are actually saved).
+    /** The version number of the editor model when we last saved it (for entries that are actually saved). */
     currentVersion: number;
 }
 
-export interface IDBConnectionTabPersistentState {
+export interface IDBConnectionTabPersistentState extends ISavedEditorState {
     backend: ShellInterfaceSqlEditor;
 
     connectionId: number;
@@ -88,16 +99,13 @@ export interface IDBConnectionTabPersistentState {
     serverVersion: number;
     serverEdition: string;
     sqlMode: string;
-    heatWaveEnabled: boolean;
 
     dbType: DBType;
 
-    editors: IOpenEditorState[];
     scripts: IDBDataEntry[];
     schemaTree: ISchemaTreeEntry[];
     explorerState: Map<string, IExplorerSectionState>;
 
-    activeEntry: string;
     currentSchema: string;
 
     // The size to be used for the explorer pane.
@@ -134,7 +142,7 @@ interface IDBConnectionTabProperties extends IComponentProperties {
     savedState: IDBConnectionTabPersistentState;
     workerPool: ExecutionWorkerPool;
 
-    // Top level toolbar items, to be integrated with page specific ones.
+    /** Top level toolbar items, to be integrated with page specific ones. */
     toolbarItems?: IToolbarItems;
 
     showExplorer?: boolean; // If false, collapse the explorer split pane.
@@ -218,8 +226,10 @@ Execute \\help or \\? for help;`;
     // Timers to serialize asynchronously incoming results.
     private resultTimers = new Map<string, IResultTimer>();
 
-    private consoleRef = createRef<Notebook>();
-    private standaloneRef = createRef<ScriptEditor>();
+    private notebookRef = createRef<Notebook>();
+    private scriptRef = createRef<ScriptEditor>();
+
+    private scriptWaiting = false;
 
     public constructor(props: IDBConnectionTabProperties) {
         super(props);
@@ -247,7 +257,7 @@ Execute \\help or \\? for help;`;
         requisitions.register("editorEditScript", this.editorEditScript);
         requisitions.register("editorRenameScript", this.editorRenameScript);
 
-        this.consoleRef.current?.focus();
+        this.notebookRef.current?.focus();
     }
 
     public componentWillUnmount(): void {
@@ -286,74 +296,70 @@ Execute \\help or \\? for help;`;
 
         let document;
 
-        // Determine the editor to show from the editor state. There must always be at least a single editor.
-        // If we cannot find the given active editor then pick the first one unconditionally.
-        let activeEditor = savedState.editors.find(
-            (entry: IOpenEditorState): boolean => {
-                return entry.id === savedState.activeEntry;
-            },
-        );
+        const activeEditor = this.findActiveEditor();
+        const language = activeEditor?.state?.model.getLanguageId() ?? "";
 
-        if (!activeEditor) {
-            activeEditor = savedState.editors[0];
-        }
-
-        const language = activeEditor.state?.model.getLanguageId() ?? "";
         let addEditorToolbar = true;
-        switch (activeEditor.type) {
-            case EntityType.Notebook: {
-                document = <Notebook
-                    ref={this.consoleRef}
-                    editorState={activeEditor.state!}
-                    dbType={dbType}
-                    showAbout={showAbout}
-                    onHelpCommand={onHelpCommand}
-                    onScriptExecution={this.handleExecution}
-                />;
-                break;
+        if (activeEditor) {
+            switch (activeEditor.type) {
+                case EntityType.Notebook: {
+                    this.scriptRef.current = null;
+                    document = <Notebook
+                        ref={this.notebookRef}
+                        savedState={savedState}
+                        dbType={dbType}
+                        showAbout={showAbout}
+                        onHelpCommand={onHelpCommand}
+                        onScriptExecution={this.handleExecution}
+                    />;
+                    break;
+                }
+
+                case EntityType.Script: {
+                    addEditorToolbar = false;
+                    this.notebookRef.current = null;
+                    document = <ScriptEditor
+                        id={savedState.activeEntry}
+                        ref={this.scriptRef}
+                        savedState={savedState}
+                        toolbarItems={toolbarItems}
+                        onScriptExecution={this.handleExecution}
+                        onEdit={this.handleEdit}
+                    />;
+
+                    break;
+                }
+
+                case EntityType.Status: {
+                    // Admin pages render own toolbars, not the one for DB editors.
+                    addEditorToolbar = false;
+                    document = <ServerStatus backend={savedState.backend} toolbarItems={toolbarItems} />;
+
+                    break;
+                }
+
+                case EntityType.Connections: {
+                    addEditorToolbar = false;
+                    document = <ClientConnections backend={savedState.backend} toolbarItems={toolbarItems} />;
+
+                    break;
+                }
+
+                case EntityType.Dashboard: {
+                    addEditorToolbar = false;
+                    document = <PerformanceDashboard
+                        backend={savedState.backend}
+                        toolbarItems={toolbarItems}
+                        graphData={savedState.graphData}
+                        onGraphDataChange={this.handleGraphDataChange}
+                    //stopAfter={10}
+                    />;
+
+                    break;
+                }
+
+                default:
             }
-
-            case EntityType.Script: {
-                document = <ScriptEditor
-                    id={savedState.activeEntry}
-                    ref={this.standaloneRef}
-                    editorState={activeEditor.state!}
-                    onScriptExecution={this.handleExecution}
-                    onEdit={this.handleEdit}
-                />;
-
-                break;
-            }
-
-            case EntityType.Status: {
-                // Admin pages render own toolbars, not the one for DB editors.
-                addEditorToolbar = false;
-                document = <ServerStatus backend={savedState.backend} toolbarItems={toolbarItems} />;
-
-                break;
-            }
-
-            case EntityType.Connections: {
-                addEditorToolbar = false;
-                document = <ClientConnections backend={savedState.backend} toolbarItems={toolbarItems} />;
-
-                break;
-            }
-
-            case EntityType.Dashboard: {
-                addEditorToolbar = false;
-                document = <PerformanceDashboard
-                    backend={savedState.backend}
-                    toolbarItems={toolbarItems}
-                    graphData={savedState.graphData}
-                    onGraphDataChange={this.handleGraphDataChange}
-                //stopAfter={10}
-                />;
-
-                break;
-            }
-
-            default:
         }
 
         return (
@@ -474,24 +480,66 @@ Execute \\help or \\? for help;`;
         return true;
     };
 
+    /**
+     * Runs the given query in the active notebook. If no notebook is active, make one active.
+     *
+     * @param details The details about the query to run.
+     *
+     * @returns A promise that resolves to true if the query was run, false if the request could not be fulfilled,
+     *          because a notebook must be created first.
+     */
     private editorRunQuery = (details: IRunQueryRequest): Promise<boolean> => {
-        if (this.consoleRef.current) {
-            this.consoleRef.current.executeQuery(
+        if (this.notebookRef.current) {
+            this.notebookRef.current.executeQuery(
                 { source: details.query, params: details.parameters }, details.linkId);
-        } else if (this.standaloneRef.current) {
-            this.standaloneRef.current.executeQuery(details.query);
-        }
 
-        return Promise.resolve(true);
+            return Promise.resolve(true);
+        } else {
+            // Either we don't have an editor at all or the active editor is a script.
+            // In both cases, we need to activate or create a notebook first.
+
+            // Check first if we have a notebook in our editor list.
+            const { savedState } = this.props;
+            const notebook = savedState.editors.find((e) => {
+                return e.type === EntityType.Notebook;
+            });
+
+            if (notebook) {
+                // We have a notebook, so just activate it.
+                this.handleSelectItem(notebook.id, notebook.type);
+            } else {
+                // Otherwise, create a new notebook.
+                this.handleAddEditor();
+            }
+
+            // Return false to indicate that the request could not be fulfilled.
+            // The requisition pipeline will then try again in a moment.
+            return Promise.resolve(false);
+        }
     };
 
+    /**
+     * Runs the given query in the active script editor. If no script editor is active, make one active.
+     *
+     * @param details The details about the query to run.
+     *
+     * @returns A promise that resolves to true if the query was run, false if the request could not be fulfilled,
+     *          because a script editor must be created first.
+     */
     private editorRunScript = async (details: IScriptRequest): Promise<boolean> => {
-        if (this.consoleRef.current) {
-            return this.consoleRef.current.executeScript(details.content, details.forceSecondaryEngine);
-        } else if (this.standaloneRef.current) {
-            this.standaloneRef.current.executeQuery(details.content);
+        if (!this.scriptWaiting) {
+            this.scriptWaiting = true;
+            await this.editorEditScript(details); // Doesn't really wait for the document to be created.
 
-            return true;
+            return false;
+        }
+
+        if (this.scriptRef.current) {
+            this.scriptWaiting = false;
+
+            // Returns true when the script content validation was finished and the editor triggered the
+            // actual execution.
+            return this.scriptRef.current.executeScript(details.content, details.forceSecondaryEngine);
         }
 
         return false;
@@ -503,10 +551,10 @@ Execute \\help or \\? for help;`;
     }): Promise<boolean> => {
         try {
             const content = await ShellInterface.modules.getDataContent(data.resourceId);
-            if (this.consoleRef.current) {
-                this.consoleRef.current.insertScriptText(data.language, content);
-            } else if (this.standaloneRef.current) {
-                this.standaloneRef.current.insertScriptText(data.language, content);
+            if (this.notebookRef.current) {
+                this.notebookRef.current.insertScriptText(data.language, content);
+            } else if (this.scriptRef.current) {
+                this.scriptRef.current.insertScriptText(data.language, content);
             }
         } catch (reason) {
             await requisitions.execute("showError",
@@ -1671,4 +1719,24 @@ Execute \\help or \\? for help;`;
         return result;
     }
 
+    /**
+     * Goes through the list of open editors and returns the one that is currently active.
+     * If no editor is active, the first one is returned.
+     *
+     * @returns The active editor or undefined, if no editor is open.
+     */
+    private findActiveEditor = (): IOpenEditorState | undefined => {
+        const { savedState } = this.props;
+        let activeEditor = savedState.editors.find(
+            (entry: IOpenEditorState): boolean => {
+                return entry.id === savedState.activeEntry;
+            },
+        );
+
+        if (!activeEditor && savedState.editors.length > 0) {
+            activeEditor = savedState.editors[0];
+        }
+
+        return activeEditor;
+    };
 }

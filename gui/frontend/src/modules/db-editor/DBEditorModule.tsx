@@ -31,7 +31,8 @@ import overviewPageIcon from "../../assets/images/overviewPage.svg";
 import closeIcon from "../../assets/images/close2.svg";
 import saveIcon from "../../assets/images/toolbar/toolbar-save.svg";
 
-import newIcon from "../../assets/images/toolbar/toolbar-new-file-selector.svg";
+import newScriptIcon from "../../assets/images/toolbar/toolbar-new-file-selector.svg";
+import newConsoleIcon from "../../assets/images/toolbar/toolbar-new-shell-console.svg";
 import javascriptIcon from "../../assets/images/file-icons/scriptJs.svg";
 import sqliteIcon from "../../assets/images/file-icons/scriptSqlite.svg";
 import mysqlIcon from "../../assets/images/file-icons/scriptMysql.svg";
@@ -310,10 +311,22 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 right: [],
             };
 
-            if (selectedPage !== "connections") {
+            if (selectedPage === "connections") {
                 toolbarItems.left.push(
-                    <Button key="button1" id="newMenuButton" onClick={this.newButtonClick}>
-                        <Icon key="newIcon" src={newIcon} />
+                    <Button
+                        key="button1"
+                        id="newNewConsoleMenuButton"
+                        data-tooltip="Open New Shell Console"
+                        onClick={this.addNewConsole}
+                    >
+                        <Icon key="newIcon" src={newConsoleIcon} data-tooltip="inherit" />
+                    </Button>,
+                    <Divider key="divider2" id="actionDivider" vertical={true} thickness={1} />,
+                );
+            } else {
+                toolbarItems.left.push(
+                    <Button key="button1" id="newScriptMenuButton" onClick={this.addNewScript}>
+                        <Icon key="newIcon" src={newScriptIcon} />
                     </Button>,
                     <Divider key="divider2" id="actionDivider" vertical={true} thickness={1} />,
                 );
@@ -564,7 +577,8 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         }
     };
 
-    private showPage = (data: { module: string; page: string; suppressAbout?: boolean; }): Promise<boolean> => {
+    private showPage = (
+        data: { module: string; page: string; suppressAbout?: boolean; noEditor?: boolean; }): Promise<boolean> => {
         if (data.module === DBEditorModuleId) {
             const { connectionsLoaded, connections } = this.state;
 
@@ -574,7 +588,8 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 const id = parseInt(data.page, 10);
                 const connection = connections.find((candidate) => { return candidate.id === id; });
                 if (connection) {
-                    return this.addConnectionTab(connection, false, data.suppressAbout ?? false);
+                    return this.addConnectionTab(connection, false, data.suppressAbout ?? false,
+                        data.noEditor ?? false);
                 }
             }
         }
@@ -582,8 +597,11 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         return Promise.resolve(false);
     };
 
-    private openConnectionTab = (data: { details: IConnectionDetails; force: boolean; }): Promise<boolean> => {
-        return this.addConnectionTab(data.details, data.force, false);
+    private openConnectionTab = (data: {
+        details: IConnectionDetails; force: boolean;
+        noEditor?: boolean;
+    }): Promise<boolean> => {
+        return this.addConnectionTab(data.details, data.force, false, data.noEditor ?? false);
     };
 
     private setCurrentSchema = (data: { id: string; connectionId: number; schema: string; }): Promise<boolean> => {
@@ -686,11 +704,12 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
      * @param connection The connection for which to open/active the tab.
      * @param force If true then create a new tab, even if one for the same connection already exists.
      * @param suppressAbout If true then no about text is show when opening the tab.
+     * @param noEditor If true then do not create a default editor entry.
      *
      * @returns A promise fulfilled once the connect tab is added.
      */
     private addConnectionTab = (connection: IConnectionDetails, force: boolean,
-        suppressAbout: boolean): Promise<boolean> => {
+        suppressAbout: boolean, noEditor: boolean): Promise<boolean> => {
         return new Promise((resolve, reject) => {
             const { editorTabs } = this.state;
 
@@ -743,24 +762,26 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                         if (connection.dbType === DBType.Sqlite) {
                             const options = connection.options as ISqliteConnectionOptions;
                             ShellInterface.core.validatePath(options.dbFile).then(() => {
-                                void this.openNewConnection(backend, tabId, suffix, connection, suppressAbout)
-                                    .then((success) => {
-                                        handleOutcome(success);
-                                    });
+                                void this.openNewConnection(
+                                    backend, tabId, suffix, connection, suppressAbout, noEditor,
+                                ).then((success) => {
+                                    handleOutcome(success);
+                                });
                             }).catch(() => {
                                 // If the path is not ok then we might have to create the DB file first.
                                 ShellInterface.core.createDatabaseFile(options.dbFile).then(() => {
-                                    void this.openNewConnection(backend, tabId, suffix, connection, suppressAbout)
-                                        .then(() => {
-                                            resolve(true);
-                                        });
+                                    void this.openNewConnection(
+                                        backend, tabId, suffix, connection, suppressAbout, noEditor,
+                                    ).then(() => {
+                                        resolve(true);
+                                    });
                                 }).catch((reason) => {
                                     void requisitions.execute("showError",
                                         ["DB Creation Error", String(reason)]);
                                 });
                             });
                         } else {
-                            void this.openNewConnection(backend, tabId, suffix, connection, suppressAbout)
+                            void this.openNewConnection(backend, tabId, suffix, connection, suppressAbout, noEditor)
                                 .then((success) => {
                                     handleOutcome(success);
                                 });
@@ -794,11 +815,12 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
      * @param tabSuffix An additional string to add to the caption of the tab we are about to open.
      * @param connection The connection details.
      * @param suppressAbout If true then no about text is shown.
+     * @param noEditor If true then do not create a default editor entry.
      *
      * @returns A promise which fulfills once the connection is open.
      */
     private async openNewConnection(backend: ShellInterfaceSqlEditor, tabId: string, tabSuffix: string,
-        connection: IConnectionDetails, suppressAbout: boolean): Promise<boolean> {
+        connection: IConnectionDetails, suppressAbout: boolean, noEditor: boolean): Promise<boolean> {
 
         const { editorTabs } = this.state;
 
@@ -840,17 +862,22 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             const language: EditorLanguage = useNotebook ? "msg" : "mysql";
             const model = this.createEditorModel(backend, "", language, serverVersion, sqlMode, currentSchema);
 
-            const newState = {
-                id: entryId,
-                caption: editorCaption,
-                type: useNotebook ? EntityType.Notebook : EntityType.Script,
-                state: {
-                    model,
-                    viewState: null,
-                    options: defaultEditorOptions,
-                },
-                currentVersion: model.getVersionId(),
-            };
+            const editors: IOpenEditorState[] = [];
+            let newState;
+            if (!noEditor) {
+                newState = {
+                    id: entryId,
+                    caption: editorCaption,
+                    type: useNotebook ? EntityType.Notebook : EntityType.Script,
+                    state: {
+                        model,
+                        viewState: null,
+                        options: defaultEditorOptions,
+                    },
+                    currentVersion: model.getVersionId(),
+                };
+                editors.push(newState);
+            }
 
             const connectionState: IDBConnectionTabPersistentState = {
                 connectionId: connection.id,
@@ -859,7 +886,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 dbType: connection.dbType,
                 schemaTree: [],
                 explorerState: new Map(),
-                editors: [newState],
+                editors,
                 scripts: this.scriptsTree,
                 backend,
                 serverVersion,
@@ -888,10 +915,11 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 suppressAbout,
             });
 
-            this.notifyRemoteEditorOpen(connection.id, tabId, connection.dbType, language, newState);
+            if (newState) {
+                this.notifyRemoteEditorOpen(connection.id, tabId, connection.dbType, language, newState);
+            }
             this.hideProgress(false);
             await this.setStatePromise({ editorTabs, selectedPage: tabId, loading: false });
-
         } catch (reason) {
             void requisitions.execute("showError", ["Connection Error", String(reason)]);
 
@@ -1045,13 +1073,18 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         }
     };
 
-    private newButtonClick = (e: MouseEvent | KeyboardEvent): void => {
+    private addNewScript = (e: MouseEvent | KeyboardEvent): void => {
         e.stopPropagation();
 
         if (e.target instanceof HTMLElement) {
             const rect = e.target.getBoundingClientRect();
             this.actionMenuRef.current?.open(rect, false);
         }
+    };
+
+    private addNewConsole = (e: MouseEvent | KeyboardEvent): void => {
+        e.stopPropagation();
+        requisitions.executeRemote("newSession", { sessionId: -1 });
     };
 
     /**
@@ -1366,7 +1399,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
     private handleSelectEntry = (details: ISelectItemDetails): void => {
         const connectionState = this.connectionState.get(details.tabId);
         if (connectionState && connectionState.activeEntry !== details.itemId) {
-            // if there's a current editor. Save its content, if it represents a user script.
+            // If there's a current editor, save its content, if it represents a user script.
             const currentEditor = connectionState.editors.find((candidate: IOpenEditorState) => {
                 return candidate.id === connectionState.activeEntry;
             });

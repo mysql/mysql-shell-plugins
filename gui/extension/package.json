@@ -392,7 +392,11 @@
             },
             {
                 "command": "msg.showTableData",
-                "title": "Show Data..."
+                "title": "Show Data"
+            },
+            {
+                "command": "msg.selectTableRows",
+                "title": "Select Rows in DB Notebook"
             },
             {
                 "command": "msg.insertScript",
@@ -1124,9 +1128,19 @@
                     "group": "1_msg@1"
                 },
                 {
+                    "command": "msg.selectTableRows",
+                    "when": "view == msg.connections && viewItem =~ /^schemaTableItem.*/",
+                    "group": "1_msg@2"
+                },
+                {
                     "command": "msg.showTableData",
                     "when": "view == msg.connections && viewItem =~ /^schemaViewItem.*/",
                     "group": "1_msg@1"
+                },
+                {
+                    "command": "msg.selectTableRows",
+                    "when": "view == msg.connections && viewItem =~ /^schemaViewItem.*/",
+                    "group": "1_msg@2"
                 },
                 {
                     "command": "msg.openDBBrowser",

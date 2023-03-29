@@ -507,3 +507,8 @@ msg.connectionTabHost #dashboardToolbar .image {
 .msg#editorToolbarActionMenu .popup {
     min-width: auto;
 }
+
+.msg.codeEditor.scriptingConsole .line-numbers {
+    font-size: 12px;
+    padding-right: 10px;
+}

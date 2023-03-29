@@ -25,8 +25,10 @@ import { mount } from "enzyme";
 
 import { ScriptEditor } from "../../../modules/db-editor/ScriptEditor";
 import { CodeEditorMode, Monaco } from "../../../components/ui/CodeEditor";
-import { ICodeEditorModel, IEditorPersistentState } from "../../../components/ui/CodeEditor/CodeEditor";
+import { ICodeEditorModel } from "../../../components/ui/CodeEditor/CodeEditor";
 import { ExecutionContexts } from "../../../script-execution/ExecutionContexts";
+import { ISavedEditorState } from "../../../modules/db-editor/DBConnectionTab";
+import { EntityType } from "../../../modules/db-editor";
 
 describe("Script editor tests", (): void => {
 
@@ -47,18 +49,29 @@ describe("Script editor tests", (): void => {
     model.setValue(content);
 
     it("Script editor instantiation", () => {
-        const eps: IEditorPersistentState = {
-            viewState: null,
-            model,
-            options: {},
+        const savedState: ISavedEditorState = {
+            editors: [{
+                type: EntityType.Notebook,
+                id: "1",
+                caption: "Test",
+                currentVersion: 1,
+                state: {
+                    viewState: null,
+                    model,
+                    options: {},
+                },
+            }],
+            activeEntry: "1",
+            heatWaveEnabled: false,
         };
+
         const component = mount<ScriptEditor>(
             <ScriptEditor
-                editorState={eps}
+                savedState={savedState}
             />,
         );
         const props = component.props();
-        expect(props.editorState).toEqual(eps);
+        expect(props.savedState).toEqual(savedState);
         component.unmount();
     });
 });

@@ -57,12 +57,17 @@ export class StandalonePresentationInterface extends PresentationInterface {
         this.host.setState({ showResultPane: false });
     }
 
-    protected updateRenderTarget(height: number): void {
+    protected updateRenderTarget(height?: number): void {
         super.updateRenderTarget(height);
 
-        this.currentHeight = height;
+        if (height !== undefined) {
+            this.currentHeight = height;
+        }
 
-        this.host.forceUpdate();
+        this.host.setState({
+            showResultPane: true,
+            maximizeResultPane: this.maximizedResult ?? false,
+        });
     }
 
     protected defineRenderTarget(): HTMLDivElement {
@@ -94,5 +99,8 @@ export class StandalonePresentationInterface extends PresentationInterface {
 
         return this.target.current!;
     }
-}
 
+    protected override get hideTabs(): "always" | "single" | "never" {
+        return this.maximizedResult ? "always" : "never";
+    }
+}

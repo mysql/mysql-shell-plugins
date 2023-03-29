@@ -27,7 +27,7 @@ import { ComponentChild, createRef } from "preact";
 import { createPortal, CSSProperties } from "preact/compat";
 import keyboardKey from "keyboard-key";
 
-import { computeContentPosition } from "../Tools/HTMLHelpers";
+import { computeContentPosition } from "../html-helpers";
 import { ComponentBase, ComponentPlacement, IComponentProperties, IComponentState } from "../Component/ComponentBase";
 import { Container } from "../Container/Container";
 

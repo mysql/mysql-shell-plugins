@@ -29,7 +29,9 @@ import { Codicon } from "../Codicon";
 import { convertPropValue } from "../../../utilities/string-helpers";
 import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
 import { Orientation, Container } from "../Container/Container";
-import { Selector, ISelectorDef } from "../Selector/Selector";
+import { Button, IButtonProperties } from "../Button/Button";
+import { Icon } from "../Icon/Icon";
+import { Label } from "../Label/Label";
 
 export enum TabPosition {
     Top = "top",
@@ -38,14 +40,23 @@ export enum TabPosition {
     Left = "left",
 }
 
+/** The description for a tab page. */
 export interface ITabviewPage {
     id: string;
 
+    /** An image shown as the first entry on a tab, if assigned. */
     icon?: string | Codicon;
+
+    /** A tab's title. */
     caption: string;
-    tooltip?: string;            // Tooltip for the tab.
+
+    /** Tooltip for the tab. */
+    tooltip?: string;
+
+    /** Additional content that should be added on the right side of a tab. */
     auxillary?: ComponentChild;
 
+    /** The content to show in the tabview body, when this tab is active. */
     content: ComponentChild;
 }
 
@@ -72,11 +83,20 @@ interface ITabviewProperties extends IComponentProperties {
 
     /** If set to 0 or undefined no separator line is shown between content and tabs. */
     contentSeparatorWidth?: number;
+
+    /** If set to true then tabs can be re-ordered via drag and drop. */
     canReorderTabs?: boolean;
 
+    /** The pages to show. */
     pages: ITabviewPage[];
 
+    /** Additional content that should be added on the right side of a tab area. */
+    auxillary?: ComponentChild;
+
+    /** Triggered when the user selects a tab, even if it is the tab, which is already active. */
     onSelectTab?: (id: string) => void;
+
+    /** Triggered when the user drags a tab item to a new position. */
     onMoveTab?: (id: string, fromIndex: number, toIndex: number) => void;
 }
 
@@ -94,20 +114,45 @@ export class Tabview extends ComponentBase<ITabviewProperties> {
         showTabs: true,
     };
 
-    private selectorRef = createRef<Selector>();
     private contentRef = createRef<HTMLDivElement>();
+    private sliderRef = createRef<HTMLDivElement>();
+    private tabAreaRef = createRef<HTMLDivElement>();
+
+    private trackingSliderMove = false;
+    private lastSliderPosition: number;
+
+    private resizeObserver?: ResizeObserver;
 
     public constructor(props: ITabviewProperties) {
         super(props);
 
         this.addHandledProperties("tabPosition", "selectedId", "stretchTabs", "hideSingleTab", "showTabs", "pages",
             "onSelectTab", "tabBorderWidth", "style", "canReorderTabs", "contentSeparatorWidth", "onMoveTab");
+
+        // istanbul ignore next
+        if (typeof ResizeObserver !== "undefined") {
+            this.resizeObserver = new ResizeObserver(this.handleResize);
+        }
+
+        if (props.canReorderTabs) {
+            this.connectDragEvents();
+        }
+
+    }
+
+    public componentDidMount(): void {
+        this.resizeObserver?.observe(this.contentRef.current as Element);
+    }
+
+    public componentDidUpdate(): void {
+        this.scrollActiveItemIntoView();
+        this.handleResize();
     }
 
     public render(): ComponentChild {
         const {
-            tabPosition, stretchTabs, hideSingleTab, pages, tabBorderWidth, style, canReorderTabs,
-            contentSeparatorWidth, selectedId, showTabs,
+            tabPosition, stretchTabs, hideSingleTab, pages, tabBorderWidth, style, contentSeparatorWidth, selectedId,
+            showTabs, canReorderTabs, auxillary,
         } = this.mergedProps;
 
         const className = this.getEffectiveClassNames([
@@ -115,15 +160,30 @@ export class Tabview extends ComponentBase<ITabviewProperties> {
             tabPosition,
         ]);
 
-        const tabs = pages.map((page: ITabviewPage): ISelectorDef => {
-            return {
-                caption: page.caption,
-                tooltip: page.tooltip,
-                icon: page.icon,
-                auxillary: page.auxillary,
-                id: page.id,
-                canReorder: canReorderTabs,
-            };
+        const tabs = pages.map((page: ITabviewPage) => {
+            let buttonClassName = "tabItem" + (page.auxillary ? " hasAuxillary" : "");
+            if (page.id === selectedId) {
+                buttonClassName += " selected";
+            }
+
+            return (
+                <Button
+                    data-tooltip={page.tooltip}
+                    id={page.id}
+                    key={page.id}
+                    tabIndex={-1}
+                    className={buttonClassName}
+                    focusOnClick={false}
+                    draggable={canReorderTabs}
+                    onClick={this.selectTab}
+                    onDragEnter={this.handleTabItemDragEnter}
+                    onDrop={this.handleTabItemDrop}
+                >
+                    {page.icon && <Icon src={page.icon} data-tooltip="inherit" />}
+                    {page.caption && <Label data-tooltip="inherit">{page.caption}</Label>}
+                    {page.auxillary && <span id="auxillary">{page.auxillary}</span>}
+                </Button>
+            );
         });
 
         let content;
@@ -166,13 +226,13 @@ export class Tabview extends ComponentBase<ITabviewProperties> {
         const newStyle = {
             ...style, ...{
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                "--tabItem-border-width": convertPropValue(tabBorderWidth || 0),
+                "--tabItem-border-width": convertPropValue(tabBorderWidth ?? 0),
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                "--content-separator-width": convertPropValue(contentSeparatorWidth || 0),
+                "--content-separator-width": convertPropValue(contentSeparatorWidth ?? 0),
             },
         };
 
-        const selectorClassName = "tabArea" + (stretchTabs ? " stretched" : "");
+        const tabAreaClassName = "tabArea" + (stretchTabs ? " stretched" : "");
 
         return (
             <Container
@@ -182,28 +242,48 @@ export class Tabview extends ComponentBase<ITabviewProperties> {
                 {...this.unhandledProperties}
             >
                 {
-                    (showTabs && (!hideSingleTab || tabs.length > 1)) && <Selector
-                        ref={this.selectorRef}
-                        className={selectorClassName}
-                        items={tabs}
-                        orientation={tabOrientation}
-                        entryOrientation={Orientation.LeftToRight}
-                        wrapNavigation={false}
-                        onSelect={this.selectTab}
-                        activeItemId={selectedId}
-                        onDrop={this.handleSelectorDrop}
-                    >
-                    </Selector>
+                    (showTabs && (!hideSingleTab || tabs.length > 1)) && (
+                        <Container
+                            orientation={tabOrientation}
+                            className="tabAreaContainer"
+                            fixedScrollbars={false}
+                        >
+                            <div className="scrollable"
+                                onWheel={this.handleWheel}
+                            >
+                                <Container
+                                    innerRef={this.tabAreaRef}
+                                    className={tabAreaClassName}
+                                    orientation={tabOrientation}
+                                    fixedScrollbars={false}
+                                    onDragOver={this.handleTabviewDragOver}
+                                    onDrop={this.handleTabItemDrop}
+                                >
+                                    {tabs}
+                                </Container>
+                                <div className="scrollbar">
+                                    <div
+                                        className="slider"
+                                        ref={this.sliderRef}
+                                        onPointerDown={this.handleSliderDown}
+                                        onPointerMove={this.handleSliderMove}
+                                        onPointerUp={this.handleSliderUp}
+                                    />
+                                </div>
+                            </div>
+                            {auxillary && <span className="auxillary">{auxillary}</span>}
+                        </Container>
+                    )
                 }
                 <Container
                     innerRef={this.contentRef}
                     orientation={Orientation.TopDown}
                     className="content"
 
-                    onDrop={this.handleDrop}
-                    onDragEnter={this.handleDragEnter}
-                    onDragLeave={this.handleDragLeave}
-                    onDragOver={this.handleDragOver}
+                    onDrop={this.handleTabviewDrop}
+                    onDragEnter={this.handleTabviewDragEnter}
+                    onDragLeave={this.handleTabviewDragLeave}
+                    onDragOver={this.handleTabviewDragOver}
                 >
                     {content}
                 </Container>
@@ -211,39 +291,54 @@ export class Tabview extends ComponentBase<ITabviewProperties> {
         );
     }
 
-    private handleDragEnter = (e: DragEvent): void => {
+    private handleTabviewDragEnter = (e: DragEvent): void => {
         e.stopPropagation();
         e.preventDefault();
 
-        //replaceClass(e.currentTarget, "", "dropTarget");
+        (e.currentTarget as HTMLElement).classList.add("dropTarget");
     };
 
-    private handleDragLeave = (e: DragEvent): void => {
+    private handleTabviewDragLeave = (e: DragEvent): void => {
         e.stopPropagation();
         e.preventDefault();
 
-        //replaceClass(e.currentTarget, "dropTarget");
+        (e.currentTarget as HTMLElement).classList.remove("dropTarget");
     };
 
-    private handleDragOver = (e: DragEvent): void => {
+    private handleTabviewDragOver = (e: DragEvent): void => {
         e.preventDefault();
         e.stopPropagation();
     };
 
-    private handleDrop = (e: DragEvent, props: IComponentProperties): void => {
+    private handleTabviewDrop = (e: DragEvent, props: IComponentProperties): void => {
         e.stopPropagation();
         e.preventDefault();
-        //replaceClass(e.currentTarget, "dropTarget");
+
+        (e.currentTarget as HTMLElement).classList.remove("dropTarget");
 
         const { onDrop } = this.mergedProps;
 
         onDrop?.(e, props);
     };
 
-    private selectTab = (id: string): void => {
+    private selectTab = (event: MouseEvent | KeyboardEvent, props: IButtonProperties): void => {
         const { onSelectTab } = this.mergedProps;
 
-        onSelectTab?.(id);
+        onSelectTab?.(props.id!);
+    };
+
+    private handleTabItemDragEnter = (e: DragEvent, props: IButtonProperties): void => {
+        // Determine the drag effect for that button.
+        if (e.dataTransfer) {
+            const sourceId = this.getDragSourceId(e);
+            if (sourceId && sourceId !== props.id) {
+                e.dataTransfer.dropEffect = "move";
+                e.preventDefault();
+                e.stopPropagation();
+            } else {
+                e.dataTransfer.dropEffect = "none";
+            }
+        }
     };
 
     /**
@@ -253,38 +348,165 @@ export class Tabview extends ComponentBase<ITabviewProperties> {
      *
      * @param props The properties of the receiver of the drop operation.
      */
-    private handleSelectorDrop = (e: DragEvent, props: IComponentProperties): void => {
+    private handleTabItemDrop = (e: DragEvent, props: IComponentProperties): void => {
         // See if that is a request to change the order of the tabs.
+        // Note: the dropEffect field is not set by the browser.
+        if (!e.dataTransfer) {
+            return;
+        }
+
         const items = e.dataTransfer?.items;
 
         if (items) {
-            // The data transfer item list has no iterator, so we have to use a plain for loop.
-            // eslint-disable-next-line @typescript-eslint/prefer-for-of
-            for (let i = 0; i < items.length; ++i) {
-                const item = items[i];
-                if (item.kind === "string" && item.type === "sourceid") {
-                    const sourceId = e.dataTransfer.getData("sourceid");
+            const sourceId = this.getDragSourceId(e);
+            if (sourceId) {
+                const { pages, onMoveTab } = this.mergedProps;
+                const sourceIndex = pages.findIndex((page: ITabviewPage) => { return page.id === sourceId; });
+                if (sourceIndex > -1) {
+                    let targetIndex = pages.length - 1;
+                    if (props.id && props.id?.length > 0) {
+                        // Move the item to the position of the target item.
+                        targetIndex = pages.findIndex((page: ITabviewPage) => { return page.id === props.id; });
+                    }
 
-                    const { pages, onMoveTab } = this.mergedProps;
-                    const sourceIndex = pages.findIndex((page: ITabviewPage) => { return page.id === sourceId; });
-                    if (sourceIndex > -1) {
-                        let targetIndex = pages.length - 1;
-                        if (props.id !== "header") {
-                            // Move the item to the position of the target item.
-                            targetIndex = pages.findIndex((page: ITabviewPage) => { return page.id === props.id; });
-                        }
+                    if (targetIndex > -1 && sourceIndex !== targetIndex) {
+                        const page = pages[sourceIndex];
+                        pages.splice(sourceIndex, 1);
+                        pages.splice(targetIndex, 0, page);
 
-                        if (targetIndex > -1 && sourceIndex !== targetIndex) {
-                            const page = pages[sourceIndex];
-                            pages.splice(sourceIndex, 1);
-                            pages.splice(targetIndex, 0, page);
-
-                            onMoveTab?.(sourceId, sourceIndex, targetIndex);
-                            this.setState({ updated: true });
-                        }
+                        onMoveTab?.(sourceId, sourceIndex, targetIndex);
+                        this.setState({ updated: true });
                     }
                 }
             }
+        }
+    };
+
+    /**
+     * Checks the drag event for a source id, which denotes one of the tab buttons.
+     *
+     * @param e The drag event with the drag data to check.
+     *
+     * @returns The source id, if the data at least one entry which is a source id.
+     */
+    private getDragSourceId = (e: DragEvent): string | undefined => {
+        if (!e.dataTransfer) {
+            return undefined;
+        }
+
+        const items = e.dataTransfer?.items;
+
+        if (items && items.length > 0) {
+            const item = items[0];
+            if (item.kind === "string" && item.type.startsWith("sourceid:")) {
+                return item.type.substring("sourceid:".length);
+            }
+        }
+
+        return undefined;
+    };
+
+    /**
+     * Update the slider position when when the tab width changes.
+     */
+    private handleResize = (): void => {
+        if (this.sliderRef.current && this.tabAreaRef.current) {
+            const scrollWidth = this.tabAreaRef.current.scrollWidth;
+            const clientWidth = this.tabAreaRef.current.clientWidth;
+
+            if (scrollWidth > clientWidth) {
+                const sliderWidth = clientWidth * clientWidth / scrollWidth;
+                this.sliderRef.current.style.width = `${sliderWidth}px`;
+                this.sliderRef.current.style.display = "block";
+            } else {
+                this.sliderRef.current.style.display = "none";
+            }
+        }
+    };
+
+    /**
+     * Start tracking the slider movement on left mouse down and capture the mouse pointer.
+     *
+     * @param e The mouse event.
+     */
+    private handleSliderDown = (e: PointerEvent): void => {
+        if (e.buttons === 1) {
+            this.trackingSliderMove = true;
+            this.lastSliderPosition = e.clientX;
+            this.sliderRef.current?.setPointerCapture(e.pointerId);
+        }
+    };
+
+    /**
+     * In slider tracking mode update both the slider position and the tab are scroll position on pointer move.
+     *
+     * @param e The pointer event.
+     */
+    private handleSliderMove = (e: PointerEvent): void => {
+        if (this.trackingSliderMove && this.sliderRef.current && this.tabAreaRef.current) {
+            const clientWidth = this.tabAreaRef.current.clientWidth;
+            const sliderWidth = this.sliderRef.current?.clientWidth ?? 0;
+            const sliderLeftMax = clientWidth - sliderWidth;
+            const delta = e.clientX - this.lastSliderPosition;
+            let sliderLeft = this.sliderRef.current.offsetLeft + delta;
+            if (sliderLeft < 0) {
+                sliderLeft = 0;
+            }
+            if (sliderLeft > sliderLeftMax) {
+                sliderLeft = sliderLeftMax;
+            }
+
+            this.sliderRef.current.style.left = `${sliderLeft}px`;
+            this.lastSliderPosition = e.clientX;
+
+            const scrollLeftMax = this.tabAreaRef.current.scrollWidth - clientWidth;
+            const newScrollLeft = scrollLeftMax * sliderLeft / sliderLeftMax;
+            this.tabAreaRef.current.scrollLeft = newScrollLeft;
+        }
+    };
+
+    /**
+     * Stops slider tracking mode and releases the pointer capture.
+     *
+     * @param e The pointer event.
+     */
+    private handleSliderUp = (e: PointerEvent): void => {
+        this.trackingSliderMove = false;
+        this.sliderRef.current?.releasePointerCapture(e.pointerId);
+    };
+
+    /**
+     * Auto scrolls the active tab item into view. Updates both the tab area and the slider position.
+     */
+    private scrollActiveItemIntoView = (): void => {
+        const { selectedId } = this.mergedProps;
+
+        if (this.tabAreaRef.current && selectedId) {
+            const tabArea = this.tabAreaRef.current;
+            const activeTab = document.getElementById(`${selectedId}`);
+            if (activeTab) {
+                const tabAreaRect = tabArea.getBoundingClientRect();
+                const activeTabRect = activeTab.getBoundingClientRect();
+
+                if (activeTabRect.left < tabAreaRect.left) {
+                    tabArea.scrollLeft -= tabAreaRect.left - activeTabRect.left;
+                } else if (activeTabRect.right > tabAreaRect.right) {
+                    tabArea.scrollLeft += activeTabRect.right - tabAreaRect.right;
+                }
+
+                const sliderLeft = tabArea.scrollLeft * tabArea.clientWidth / tabArea.scrollWidth;
+                this.sliderRef.current!.style.left = `${sliderLeft}px`;
+            }
+        }
+    };
+
+    private handleWheel = (e: WheelEvent): void => {
+        if (this.tabAreaRef.current) {
+            const tabArea = this.tabAreaRef.current;
+            tabArea.scrollLeft += e.deltaX;
+
+            const sliderLeft = tabArea.scrollLeft * tabArea.clientWidth / tabArea.scrollWidth;
+            this.sliderRef.current!.style.left = `${sliderLeft}px`;
         }
     };
 }

@@ -165,10 +165,29 @@ export class DBEditorCommandHandler {
             const select = uppercaseKeywords ? "SELECT" : "select";
             const from = uppercaseKeywords ? "FROM" : "from";
 
+            const query = `${select} * ${from} \`${item.schema}\`.\`${item.label as string}\``;
+            const name = `${item.schema}.${item.label as string} - Data`;
+            void provider?.runScript(String(item.entry.details.id), {
+                scriptId: uuid(),
+                language: "mysql",
+                content: query,
+                name,
+            });
+        }));
+
+        context.subscriptions.push(commands.registerCommand("msg.selectTableRows", (item: SchemaTableTreeItem) => {
+            const provider = this.currentProvider;
+
+            const configuration = workspace.getConfiguration(`msg.dbEditor`);
+            const uppercaseKeywords = configuration.get("upperCaseKeywords", true);
+            const select = uppercaseKeywords ? "SELECT" : "select";
+            const from = uppercaseKeywords ? "FROM" : "from";
+
+            const query = `${select} * ${from} \`${item.schema}\`.\`${item.label as string}\``;
             void provider?.runQuery(String(item.entry.details.id), {
-                linkId: -1,
-                query: `${select} * ${from} \`${item.schema}\`.\`${item.label as string}\``,
+                query,
                 data: {},
+                linkId: -1,
                 parameters: [],
             });
         }));

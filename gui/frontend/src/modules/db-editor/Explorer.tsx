@@ -86,6 +86,8 @@ import { DBType } from "../../supplement/ShellInterface";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor";
 import { ISplitterPaneSizeInfo } from "../../components/ui/SplitContainer/SplitContainer";
 import { uuid } from "../../utilities/helpers";
+import { quote } from "../../utilities/string-helpers";
+import { Settings } from "../../supplement/Settings/Settings";
 
 /** Lookup for icons for a specific document type. */
 export const documentTypeToIcon: Map<EditorLanguage, string> = new Map([
@@ -662,7 +664,24 @@ export class Explorer extends ComponentBase<IExplorerProperties, IExplorerState>
         const data = payload as ISchemaTreeEntry;
         switch (props.id!) {
             case "selectRowsMenuItem": {
-                void requisitions.execute("explorerShowRows", data);
+                const schema = data.qualifiedName.schema;
+                const table = data.qualifiedName.table;
+
+                let query;
+
+                const tableName = `${quote(schema)}.${quote(table ?? "")}`;
+                const uppercaseKeywords = Settings.get("dbEditor.upperCaseKeywords", true);
+                const select = uppercaseKeywords ? "SELECT" : "select";
+                const from = uppercaseKeywords ? "FROM" : "from";
+                if (data.type === SchemaTreeType.Column) {
+                    query = `${select} ${tableName}.${quote(data.qualifiedName.name ?? "")} ${from} ${tableName}`;
+                } else {
+                    query = `${select} * ${from} ${tableName}`;
+                }
+
+                void requisitions.execute("job", [{
+                    requestType: "editorRunQuery", parameter: { query, data: {} },
+                }]);
 
                 break;
             }
@@ -1284,12 +1303,6 @@ export class Explorer extends ComponentBase<IExplorerProperties, IExplorerState>
 
         const data = payload as IDBDataEntry;
         switch (props.id!) {
-            case "selectRowsMenuItem": {
-                void requisitions.execute("explorerShowRows", data);
-
-                break;
-            }
-
             default: {
                 onContextMenuItemClick?.(id ?? "", props.id!, data);
 

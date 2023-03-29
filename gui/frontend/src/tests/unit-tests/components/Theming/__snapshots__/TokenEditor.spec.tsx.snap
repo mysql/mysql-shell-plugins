@@ -37,12 +37,14 @@ exports[`Token editor testing Render test 1`] = `
         onClick={[Function]}
         round={true}
       >
-        <button
+        <div
           className="msg button round styleEntryDeleteButton"
           data-tooltip="Delete this syntax entry"
+          draggable={true}
           id="tokenEditor1"
           onClick={[Function]}
           onMouseDown={[Function]}
+          role="button"
           style={
             {
               "flexDirection": undefined,
@@ -69,7 +71,7 @@ exports[`Token editor testing Render test 1`] = `
               }
             />
           </Icon>
-        </button>
+        </div>
       </Button>
       <Button
         className="styleEntryCloneButton"
@@ -78,12 +80,14 @@ exports[`Token editor testing Render test 1`] = `
         onClick={[Function]}
         round={true}
       >
-        <button
+        <div
           className="msg button round styleEntryCloneButton"
           data-tooltip="Clone this syntax entry"
+          draggable={true}
           id="tokenEditor1"
           onClick={[Function]}
           onMouseDown={[Function]}
+          role="button"
           style={
             {
               "flexDirection": undefined,
@@ -110,7 +114,7 @@ exports[`Token editor testing Render test 1`] = `
               }
             />
           </Icon>
-        </button>
+        </div>
       </Button>
       <Grid
         columnGap={16}
@@ -302,11 +306,13 @@ exports[`Token editor testing Render test 1`] = `
                             id="local"
                             onClick={[Function]}
                           >
-                            <button
+                            <div
                               className="msg button"
+                              draggable={true}
                               id="local"
                               onClick={[Function]}
                               onMouseDown={[Function]}
+                              role="button"
                               style={
                                 {
                                   "flexDirection": undefined,
@@ -331,7 +337,7 @@ exports[`Token editor testing Render test 1`] = `
                                   }
                                 />
                               </Icon>
-                            </button>
+                            </div>
                           </Button>
                         </label>
                       </Label>

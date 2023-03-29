@@ -583,13 +583,6 @@ export class PresentationInterface {
         this.renderResults(presentationOptions);
     }
 
-    /**
-     * Called when a visual update of the result should happen (e.g. to resize for changed data).
-     */
-    public updateResultDisplay = (): void => {
-        //this.updateRenderTarget();
-    };
-
     public markLines(lines: Set<number>, cssClass: string): void {
         this.markedLines = lines;
         this.markerClass = cssClass;
@@ -705,6 +698,15 @@ export class PresentationInterface {
         }
     }
 
+    /**
+     * Entry point to update the presentation of the result view (maximized or normal).
+     */
+    public toggleResultPane = (): void => {
+        this.maximizedResult = !this.maximizedResult;
+        this.renderResults();
+        this.updateRenderTarget(this.currentHeight);
+    };
+
     protected getMarginClass(line: number): string {
         if (this.markedLines.has(line)) {
             return this.markerClass;
@@ -722,6 +724,15 @@ export class PresentationInterface {
         return undefined;
     }
 
+    /**
+     * Allows descendants to modify the tab area presentation.
+     *
+     * @returns A string determining how to show the tab area.
+     */
+    protected get hideTabs(): "always" | "single" | "never" {
+        return this.maximizedResult ? "always" : "single";
+    }
+
     protected removeRenderTarget(): void {
         this.renderTarget = undefined;
         this.currentHeight = undefined;
@@ -729,13 +740,18 @@ export class PresentationInterface {
         this.manuallyResized = false;
     }
 
-    protected updateRenderTarget(_height: number): void {
+    protected updateRenderTarget(_height?: number): void {
         // Overridden by descendants.
     }
 
     protected defineRenderTarget(): HTMLDivElement | undefined {
         // Overridden by descendants.
         return undefined;
+    }
+
+    /** @returns a string determining where to show the maximize button. */
+    protected showMaximizeButton(): "never" | "tab" | "statusBar" {
+        return "statusBar";
     }
 
     /**
@@ -749,6 +765,16 @@ export class PresentationInterface {
 
             return;
         }
+
+        options ??= {
+            currentSet: this.currentSet,
+            manualHeight: this.currentHeight,
+            maximized: this.maximizedResult,
+        };
+
+        this.currentHeight = options.manualHeight;
+        this.currentSet = options.currentSet;
+        this.maximizedResult = options.maximized;
 
         let element: ComponentChild | undefined;
         const contextId = this.context.id;
@@ -766,10 +792,10 @@ export class PresentationInterface {
                         resultSets={data}
                         contextId={contextId}
                         currentSet={options?.currentSet}
-                        resultPaneMaximized={this.maximizedResult}
-                        hideSingleTab={false}
+                        showMaximizeButton={this.showMaximizeButton()}
+                        hideTabs={this.hideTabs}
                         onResultPageChange={this.handleResultPageChange}
-                        onSetResultPaneViewState={this.handleResultPaneChange}
+                        onToggleResultPaneViewState={this.toggleResultPane}
                         onSelectTab={this.handleSelectTab}
                     />;
 
@@ -800,10 +826,11 @@ export class PresentationInterface {
                     resultSets={this.resultData}
                     contextId={contextId}
                     currentSet={options?.currentSet}
-                    resultPaneMaximized={this.maximizedResult}
-                    hideSingleTab={!this.alwaysShowTab}
+                    showMaximizeButton={this.showMaximizeButton()}
+                    hideTabs={this.hideTabs}
+                    showMaximized={this.maximizedResult}
                     onResultPageChange={this.handleResultPageChange}
-                    onSetResultPaneViewState={this.handleResultPaneChange}
+                    onToggleResultPaneViewState={this.toggleResultPane}
                     onSelectTab={this.handleSelectTab}
                 />;
                 this.minHeight = 36;
@@ -822,13 +849,6 @@ export class PresentationInterface {
 
             default:
         }
-
-        if (options?.manualHeight) {
-            this.currentHeight = options?.manualHeight;
-        }
-
-        this.currentSet = options?.currentSet;
-        this.maximizedResult = options?.maximized;
 
         // Do we have a result view already?
         if (this.renderTarget) {
@@ -866,10 +886,6 @@ export class PresentationInterface {
         }
     };
 
-    private handleResultPaneChange = (maximized: boolean): void => {
-        this.maximizedResult = maximized;
-    };
-
     private handleSelectTab = (index: number): void => {
         this.currentSet = index;
     };
@@ -882,4 +898,5 @@ export class PresentationInterface {
             void requisitions.execute("editorContextStateChanged", this.context.id);
         }
     };
+
 }

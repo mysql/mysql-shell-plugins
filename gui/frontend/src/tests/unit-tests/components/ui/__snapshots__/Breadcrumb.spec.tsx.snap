@@ -35,11 +35,13 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 1 1`] = `
         id="root"
         onClick={[Function]}
       >
-        <button
+        <div
           className="msg button breadcrumbItem"
+          draggable={true}
           id="root"
           onClick={[Function]}
           onMouseDown={[Function]}
+          role="button"
           style={
             {
               "flexDirection": undefined,
@@ -48,7 +50,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 1 1`] = `
           tabIndex={0}
         >
           root
-        </button>
+        </div>
       </Button>
       <Label
         caption="❯"
@@ -67,11 +69,13 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 1 1`] = `
         id="folder"
         onClick={[Function]}
       >
-        <button
+        <div
           className="msg button breadcrumbItem"
+          draggable={true}
           id="folder"
           onClick={[Function]}
           onMouseDown={[Function]}
+          role="button"
           style={
             {
               "flexDirection": undefined,
@@ -80,7 +84,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 1 1`] = `
           tabIndex={0}
         >
           folder
-        </button>
+        </div>
       </Button>
       <Label
         caption="❯"
@@ -99,11 +103,13 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 1 1`] = `
         id="subfolder"
         onClick={[Function]}
       >
-        <button
+        <div
           className="msg button breadcrumbItem"
+          draggable={true}
           id="subfolder"
           onClick={[Function]}
           onMouseDown={[Function]}
+          role="button"
           style={
             {
               "flexDirection": undefined,
@@ -112,7 +118,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 1 1`] = `
           tabIndex={0}
         >
           subfolder
-        </button>
+        </div>
       </Button>
       <Label
         caption="❯"
@@ -131,10 +137,12 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 1 1`] = `
         className="picker"
         key="picker"
       >
-        <button
+        <div
           caption="..."
           className="msg button picker"
+          draggable={true}
           onMouseDown={[Function]}
+          role="button"
           style={
             {
               "flexDirection": undefined,
@@ -143,7 +151,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 1 1`] = `
           tabIndex={0}
         >
           ...
-        </button>
+        </div>
       </Button>
     </div>
   </Container>
@@ -185,11 +193,13 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
         id="root"
         onClick={[Function]}
       >
-        <button
+        <div
           className="msg button breadcrumbItem"
+          draggable={true}
           id="root"
           onClick={[Function]}
           onMouseDown={[Function]}
+          role="button"
           style={
             {
               "flexDirection": undefined,
@@ -198,7 +208,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
           tabIndex={0}
         >
           root
-        </button>
+        </div>
       </Button>
       <Label
         caption="☞"
@@ -217,11 +227,13 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
         id="folder"
         onClick={[Function]}
       >
-        <button
+        <div
           className="msg button breadcrumbItem"
+          draggable={true}
           id="folder"
           onClick={[Function]}
           onMouseDown={[Function]}
+          role="button"
           style={
             {
               "flexDirection": undefined,
@@ -230,7 +242,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
           tabIndex={0}
         >
           folder
-        </button>
+        </div>
       </Button>
       <Label
         caption="☞"
@@ -249,11 +261,13 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
         id="subfolder"
         onClick={[Function]}
       >
-        <button
+        <div
           className="msg button breadcrumbItem"
+          draggable={true}
           id="subfolder"
           onClick={[Function]}
           onMouseDown={[Function]}
+          role="button"
           style={
             {
               "flexDirection": undefined,
@@ -262,7 +276,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
           tabIndex={0}
         >
           subfolder
-        </button>
+        </div>
       </Button>
       <Label
         caption="☞"
@@ -281,11 +295,13 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
         id="subfolder2"
         onClick={[Function]}
       >
-        <button
+        <div
           className="msg button breadcrumbItem"
+          draggable={true}
           id="subfolder2"
           onClick={[Function]}
           onMouseDown={[Function]}
+          role="button"
           style={
             {
               "flexDirection": undefined,
@@ -294,7 +310,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
           tabIndex={0}
         >
           subfolder2
-        </button>
+        </div>
       </Button>
       <Label
         caption="☞"
@@ -313,10 +329,12 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
         className="picker"
         key="picker"
       >
-        <button
+        <div
           caption="..."
           className="msg button picker"
+          draggable={true}
           onMouseDown={[Function]}
+          role="button"
           style={
             {
               "flexDirection": undefined,
@@ -325,7 +343,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
           tabIndex={0}
         >
           ...
-        </button>
+        </div>
       </Button>
     </div>
   </Container>
@@ -367,9 +385,11 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
           }
         }
       >
-        <button
+        <div
           className="msg button"
+          draggable={true}
           onMouseDown={[Function]}
+          role="button"
           style={
             {
               "backgroundColor": "white",
@@ -396,7 +416,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
           >
             SQL
           </span>
-        </button>
+        </div>
       </Button>
       <Button
         style={
@@ -405,9 +425,11 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
           }
         }
       >
-        <button
+        <div
           className="msg button"
+          draggable={true}
           onMouseDown={[Function]}
+          role="button"
           style={
             {
               "backgroundColor": "#505050",
@@ -424,7 +446,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
               localhost:3307
             </label>
           </Label>
-        </button>
+        </div>
       </Button>
       <Button
         caption="mysql"
@@ -434,10 +456,12 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
           }
         }
       >
-        <button
+        <div
           caption="mysql"
           className="msg button"
+          draggable={true}
           onMouseDown={[Function]}
+          role="button"
           style={
             {
               "backgroundColor": "gray",
@@ -446,7 +470,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
           tabIndex={0}
         >
           mysql
-        </button>
+        </div>
       </Button>
       <Button
         caption="SQL"
@@ -457,10 +481,12 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
           }
         }
       >
-        <button
+        <div
           caption="SQL"
           className="msg button"
+          draggable={true}
           onMouseDown={[Function]}
+          role="button"
           style={
             {
               "backgroundColor": "darkorange",
@@ -470,7 +496,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
           tabIndex={0}
         >
           SQL
-        </button>
+        </div>
       </Button>
     </div>
   </Container>

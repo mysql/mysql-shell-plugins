@@ -71,16 +71,18 @@ exports[`Error Panel Tests Show Panel 1`] = `
       >
         Error
       </label>
-      <button
+      <div
         class="msg button imageOnly"
+        draggable="true"
         id="closeButton"
+        role="button"
         tabindex="0"
       >
         <span
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
-      </button>
+      </div>
     </div>
     <div
       class="content fixedScrollbar"
@@ -110,13 +112,15 @@ exports[`Error Panel Tests Show Panel 1`] = `
         class="msg container fixedScrollbar rightItems"
         style="flex-direction: row-reverse;"
       >
-        <button
+        <div
           caption="Close"
           class="msg button"
+          draggable="true"
+          role="button"
           tabindex="0"
         >
           Close
-        </button>
+        </div>
       </div>
     </div>
   </div>
@@ -143,16 +147,18 @@ exports[`Error Panel Tests Show Panel 2`] = `
       >
         Caption
       </label>
-      <button
+      <div
         class="msg button imageOnly"
+        draggable="true"
         id="closeButton"
+        role="button"
         tabindex="0"
       >
         <span
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
-      </button>
+      </div>
     </div>
     <div
       class="content fixedScrollbar"
@@ -183,13 +189,15 @@ Line 2
         class="msg container fixedScrollbar rightItems"
         style="flex-direction: row-reverse;"
       >
-        <button
+        <div
           caption="Close"
           class="msg button"
+          draggable="true"
+          role="button"
           tabindex="0"
         >
           Close
-        </button>
+        </div>
       </div>
     </div>
   </div>
