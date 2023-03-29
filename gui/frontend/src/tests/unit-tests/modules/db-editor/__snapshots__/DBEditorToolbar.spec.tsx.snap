@@ -37,12 +37,14 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
           key="executeFullBlock"
           onClick={[Function]}
         >
-          <button
+          <div
             className="msg button imageOnly"
             data-tooltip="Execute full script"
             disabled={false}
+            draggable={true}
             onClick={[Function]}
             onMouseDown={[Function]}
+            role="button"
             style={
               {
                 "flexDirection": undefined,
@@ -69,7 +71,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
                 }
               />
             </Icon>
-          </button>
+          </div>
         </Button>
         <Divider
           key="executionDivider"
@@ -93,11 +95,13 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
           key="editorFormatButton"
           requestType="editorFormat"
         >
-          <button
+          <div
             className="msg button imageOnly"
             data-tooltip="Format current block or script"
+            draggable={true}
             onClick={[Function]}
             onMouseDown={[Function]}
+            role="button"
             style={
               {
                 "flexDirection": undefined,
@@ -124,7 +128,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
                 }
               />
             </Icon>
-          </button>
+          </div>
         </Button>
         <Divider
           key="formatDivider"
@@ -148,11 +152,13 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
           key="editorFindButton"
           requestType="editorFind"
         >
-          <button
+          <div
             className="msg button imageOnly"
             data-tooltip="Find"
+            draggable={true}
             onClick={[Function]}
             onMouseDown={[Function]}
+            role="button"
             style={
               {
                 "flexDirection": undefined,
@@ -179,7 +185,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
                 }
               />
             </Icon>
-          </button>
+          </div>
         </Button>
         <Button
           data-tooltip="Show hidden characters"
@@ -187,11 +193,13 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
           key="editorShowHiddenButton"
           onClick={[Function]}
         >
-          <button
+          <div
             className="msg button imageOnly"
             data-tooltip="Show hidden characters"
+            draggable={true}
             onClick={[Function]}
             onMouseDown={[Function]}
+            role="button"
             style={
               {
                 "flexDirection": undefined,
@@ -218,7 +226,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
                 }
               />
             </Icon>
-          </button>
+          </div>
         </Button>
         <Button
           data-tooltip="Soft wrap lines"
@@ -226,11 +234,13 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
           key="editorToggleSoftWrapButton"
           onClick={[Function]}
         >
-          <button
+          <div
             className="msg button imageOnly"
             data-tooltip="Soft wrap lines"
+            draggable={true}
             onClick={[Function]}
             onMouseDown={[Function]}
+            role="button"
             style={
               {
                 "flexDirection": undefined,
@@ -257,7 +267,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
                 }
               />
             </Icon>
-          </button>
+          </div>
         </Button>
         <div
           className="expander"
@@ -305,12 +315,14 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
           key="executeFullBlock"
           onClick={[Function]}
         >
-          <button
+          <div
             className="msg button imageOnly"
             data-tooltip="Execute full script"
             disabled={false}
+            draggable={true}
             onClick={[Function]}
             onMouseDown={[Function]}
+            role="button"
             style={
               {
                 "flexDirection": undefined,
@@ -337,7 +349,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
                 }
               />
             </Icon>
-          </button>
+          </div>
         </Button>
         <Divider
           key="executionDivider"
@@ -361,11 +373,13 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
           key="editorFormatButton"
           requestType="editorFormat"
         >
-          <button
+          <div
             className="msg button imageOnly"
             data-tooltip="Format current block or script"
+            draggable={true}
             onClick={[Function]}
             onMouseDown={[Function]}
+            role="button"
             style={
               {
                 "flexDirection": undefined,
@@ -392,7 +406,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
                 }
               />
             </Icon>
-          </button>
+          </div>
         </Button>
         <Divider
           key="formatDivider"
@@ -416,11 +430,13 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
           key="editorFindButton"
           requestType="editorFind"
         >
-          <button
+          <div
             className="msg button imageOnly"
             data-tooltip="Find"
+            draggable={true}
             onClick={[Function]}
             onMouseDown={[Function]}
+            role="button"
             style={
               {
                 "flexDirection": undefined,
@@ -447,7 +463,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
                 }
               />
             </Icon>
-          </button>
+          </div>
         </Button>
         <Button
           data-tooltip="Show hidden characters"
@@ -455,11 +471,13 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
           key="editorShowHiddenButton"
           onClick={[Function]}
         >
-          <button
+          <div
             className="msg button imageOnly"
             data-tooltip="Show hidden characters"
+            draggable={true}
             onClick={[Function]}
             onMouseDown={[Function]}
+            role="button"
             style={
               {
                 "flexDirection": undefined,
@@ -486,7 +504,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
                 }
               />
             </Icon>
-          </button>
+          </div>
         </Button>
         <Button
           data-tooltip="Soft wrap lines"
@@ -494,11 +512,13 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
           key="editorToggleSoftWrapButton"
           onClick={[Function]}
         >
-          <button
+          <div
             className="msg button imageOnly"
             data-tooltip="Soft wrap lines"
+            draggable={true}
             onClick={[Function]}
             onMouseDown={[Function]}
+            role="button"
             style={
               {
                 "flexDirection": undefined,
@@ -525,7 +545,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
                 }
               />
             </Icon>
-          </button>
+          </div>
         </Button>
         <div
           className="expander"

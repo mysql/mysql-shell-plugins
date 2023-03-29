@@ -21,29 +21,45 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import normalizeIcon from "../../assets/images/toolbar/toolbar-normalize.svg";
+
 import { ComponentChild, createRef } from "preact";
 import { Position } from "monaco-editor";
 
-import { IEditorStatusInfo, ISchemaTreeEntry } from ".";
+import { IEditorStatusInfo, ISchemaTreeEntry, IToolbarItems } from ".";
 import { StandalonePresentationInterface } from "./execution/StandalonePresentationInterface";
 import { requisitions } from "../../supplement/Requisitions";
-import { CodeEditor, IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor";
+import { CodeEditor } from "../../components/ui/CodeEditor/CodeEditor";
 import { EditorLanguage } from "../../supplement";
 import { IScriptExecutionOptions } from "../../components/ui/CodeEditor";
 import { IComponentProperties, IComponentState, ComponentBase } from "../../components/ui/Component/ComponentBase";
-import { Orientation, Container } from "../../components/ui/Container/Container";
+import { Orientation, Container, ContentAlignment } from "../../components/ui/Container/Container";
 import { SplitContainer, ISplitterPaneSizeInfo } from "../../components/ui/SplitContainer/SplitContainer";
 import { ExecutionContext } from "../../script-execution/ExecutionContext";
 import { PresentationInterface } from "../../script-execution/PresentationInterface";
+import { DBEditorToolbar } from "./DBEditorToolbar";
+import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor";
+import { IOpenEditorState, ISavedEditorState } from "./DBConnectionTab";
+import { Toolbar } from "../../components/ui/Toolbar/Toolbar";
+import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext";
+import { Button } from "../../components/ui/Button/Button";
+import { Icon } from "../../components/ui/Icon/Icon";
+import { Divider } from "../../components/ui/Divider/Divider";
 
 interface IScriptEditorProperties extends IComponentProperties {
-    editorState: IEditorPersistentState;
+    toolbarItems?: IToolbarItems;
+
+    backend?: ShellInterfaceSqlEditor;
+    savedState: ISavedEditorState;
 
     onScriptExecution?: (context: ExecutionContext, options: IScriptExecutionOptions) => Promise<boolean>;
     onEdit?: (id?: string) => void;
 }
 
 interface IScriptEditorState extends IComponentState {
+    // The id of the currently displayed editor.
+    lastId: string;
+
     // These two fields are set via setState in the StandalonePresentationInterface.
     showResultPane: boolean;
     maximizeResultPane: boolean;
@@ -60,11 +76,29 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
         super(props);
 
         this.state = {
+            lastId: "",
             showResultPane: false,
             maximizeResultPane: false,
         };
 
-        this.addHandledProperties("editorState", "onScriptExecution", "onEdit");
+        this.addHandledProperties("toolbarItems", "backend", "onScriptExecution", "onEdit");
+    }
+
+    public static getDerivedStateFromProps(newProps: IScriptEditorProperties,
+        oldState: IScriptEditorState): Partial<IScriptEditorState> {
+
+        const { savedState } = newProps;
+        const { lastId } = oldState;
+
+        if (savedState.activeEntry !== lastId) {
+            return {
+                lastId: savedState.activeEntry,
+                showResultPane: false,
+                maximizeResultPane: false,
+            };
+        }
+
+        return {};
     }
 
     public componentDidMount(): void {
@@ -89,71 +123,190 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
     }
 
     public render(): ComponentChild {
-        const { editorState, onScriptExecution } = this.props;
+        const { savedState, toolbarItems, backend, onScriptExecution } = this.props;
         const { showResultPane, maximizeResultPane } = this.state;
 
         const className = this.getEffectiveClassNames(["standaloneScriptHost"]);
         const resultPaneHeight = this.presentationInterface?.currentHeight ?? 300;
 
-        return (
-            <SplitContainer
-                orientation={Orientation.TopDown}
-                className={className}
-                panes={[
-                    {
-                        id: "editorPane",
-                        minSize: maximizeResultPane ? 0 : 200,
-                        initialSize: maximizeResultPane ? 0 : undefined,
-                        stretch: !maximizeResultPane,
-                        resizable: showResultPane && !maximizeResultPane,
-                        content: <CodeEditor
-                            ref={this.editorRef}
-                            savedState={editorState}
-                            minimap={{
-                                enabled: true,
-                            }}
-                            allowSoftWrap={true}
-                            autoFocus={true}
-                            font={{
-                                fontFamily: "SourceCodePro+Powerline+Awesome+MySQL",
-                                fontSize: 15,
-                                lineHeight: 24,
-                            }}
-                            scrollbar={{
-                                useShadows: true,
-                                verticalHasArrows: false,
-                                horizontalHasArrows: false,
-                                vertical: "auto",
-                                horizontal: "auto",
+        const activeEditorState = this.getActiveEditorState();
+        const language = activeEditorState.state?.model.getLanguageId() ?? "";
 
-                                verticalScrollbarSize: 16,
-                                horizontalScrollbarSize: 16,
-                            }}
-                            onCursorChange={this.handleCursorChange}
-                            onScriptExecution={onScriptExecution}
-                            onModelChange={this.handleModelChange}
-                            createResultPresentation={this.createPresentation}
-                        />,
-                    },
-                    {
-                        id: "resultPane",
-                        minSize: showResultPane ? 200 : 0,
-                        initialSize: showResultPane ? resultPaneHeight : 0,
-                        stretch: maximizeResultPane,
-                        content: <Container
-                            innerRef={this.resultRef}
-                            className="renderTarget"
-                            orientation={Orientation.TopDown}
-                        />,
-                    },
-                ]}
-                onPaneResized={this.handlePaneResized}
-            />
+        let toolbar;
+        if (maximizeResultPane) {
+            const leftItems = [...toolbarItems?.left ?? []];
+            const rightItems = [...toolbarItems?.right ?? []];
+
+            // Add the normalize button before the close button here. We assume that the close button
+            // is the last button in the right items list.
+            const normalizeButton = <Button
+                id="normalizeResultStateButton"
+                imageOnly
+                data-tooltip="Normalize Result Tab"
+                onClick={this.toggleMaximizeResultPane}
+            >
+                <Icon src={normalizeIcon} data-tooltip="inherit" />
+            </Button>;
+
+            if (rightItems.length === 0) {
+                rightItems.push(normalizeButton);
+            } else {
+                rightItems.splice(rightItems.length - 1, 0, <Divider vertical />);
+                rightItems.splice(rightItems.length - 1, 0, normalizeButton);
+            }
+
+            toolbar = <Toolbar
+                id="dbEditorToolbar"
+                dropShadow={false}
+            >
+                {leftItems}
+                <div className="expander" />
+                {rightItems}
+            </Toolbar >;
+        } else {
+            toolbar = <DBEditorToolbar
+                toolbarItems={toolbarItems}
+                language={language}
+                activeEditor={savedState.activeEntry}
+                heatWaveEnabled={savedState.heatWaveEnabled}
+                editors={savedState.editors}
+                backend={backend}
+            />;
+        }
+
+        return (
+            <Container
+                orientation={Orientation.TopDown}
+                style={{
+                    flex: "1 1 auto",
+                }}
+                mainAlignment={ContentAlignment.Stretch}
+            >
+                {toolbar}
+                <SplitContainer
+                    orientation={Orientation.TopDown}
+                    className={className}
+                    panes={[
+                        {
+                            id: "editorPane",
+                            minSize: maximizeResultPane ? 0 : 200,
+                            initialSize: maximizeResultPane ? 0 : undefined,
+                            stretch: !maximizeResultPane,
+                            resizable: showResultPane && !maximizeResultPane,
+                            content: <CodeEditor
+                                ref={this.editorRef}
+                                savedState={activeEditorState.state}
+                                minimap={{
+                                    enabled: true,
+                                }}
+                                allowSoftWrap={true}
+                                autoFocus={true}
+                                font={{
+                                    fontFamily: "SourceCodePro+Powerline+Awesome+MySQL",
+                                    fontSize: 15,
+                                    lineHeight: 24,
+                                }}
+                                scrollbar={{
+                                    useShadows: true,
+                                    verticalHasArrows: false,
+                                    horizontalHasArrows: false,
+                                    vertical: "auto",
+                                    horizontal: "auto",
+
+                                    verticalScrollbarSize: 16,
+                                    horizontalScrollbarSize: 16,
+                                }}
+                                onCursorChange={this.handleCursorChange}
+                                onScriptExecution={onScriptExecution}
+                                onModelChange={this.handleModelChange}
+                                createResultPresentation={this.createPresentation}
+                            />,
+                        },
+                        {
+                            id: "resultPane",
+                            minSize: showResultPane ? 200 : 0,
+                            initialSize: showResultPane ? resultPaneHeight : 0,
+                            stretch: maximizeResultPane,
+                            content: <Container
+                                innerRef={this.resultRef}
+                                className="renderTarget"
+                                orientation={Orientation.TopDown}
+                            />,
+                        },
+                    ]}
+                    onPaneResized={this.handlePaneResized}
+                />
+            </Container>
         );
     }
 
+    /**
+     * Executes the given SQL statement(s), without waiting for the result.
+     *
+     * @param sql The SQL statement(s) to execute.
+     */
     public executeQuery(sql: string): void {
         this.editorRef.current?.appendText(sql);
+        const block = this.editorRef.current?.lastExecutionBlock;
+
+        if (block) {
+            setTimeout(() => {
+                const { onScriptExecution } = this.props;
+                void onScriptExecution?.(block, {}).then((executed) => {
+                    if (executed) {
+                        setTimeout(() => {
+                            this.toggleMaximizeResultPane();
+                        }, 100);
+                    }
+                });
+            }, 100);
+        }
+    }
+
+    /**
+     * A variant of executeQuery that waits for the result and maximizes the result pane.
+     * This is called when maximizing a result view in a notebook or when running a query from the host
+     * (if there's one, e.g. VS Code).
+     *
+     * @param sql The SQL statement(s) to execute.
+     * @param forceSecondaryEngine Tells the executor to add a hint to SELECT statements to use the secondary
+     *                             engine (usually HeatWave).
+     *
+     * @returns A promise that resolves to true when the execution is fully triggered.
+     */
+    public executeScript(sql: string, forceSecondaryEngine?: boolean): Promise<boolean> {
+        return new Promise((resolve) => {
+            if (this.editorRef.current) {
+                // There's only one block in a script editor.
+                const block = this.editorRef.current?.lastExecutionBlock;
+                if (block instanceof SQLExecutionContext) {
+                    const continueExecution = (id: string): Promise<boolean> => {
+                        if (this.editorRef.current && id === block.id) {
+                            requisitions.unregister("editorValidationDone", continueExecution);
+
+                            const { onScriptExecution } = this.props;
+                            void onScriptExecution?.(block, { forceSecondaryEngine }).then(() => {
+                                setTimeout(() => {
+                                    this.toggleMaximizeResultPane();
+                                }, 100);
+
+                                resolve(true); // For the outer promise.
+                            });
+
+                            return Promise.resolve(true);
+                        }
+
+                        resolve(false);
+
+                        return Promise.resolve(false);
+                    };
+
+                    this.editorRef.current.clear();
+                    requisitions.register("editorValidationDone", continueExecution);
+                    this.editorRef.current.appendText(sql);
+                }
+            }
+        });
     }
 
     /**
@@ -200,21 +353,24 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
 
     private sendStatusInfo = (): void => {
         if (this.editorRef.current) {
-            const { editorState } = this.props;
-            const position = editorState.viewState?.cursorState[0].position;
-            const language = editorState.model.getLanguageId() as EditorLanguage;
+            const activeEditor = this.getActiveEditorState();
+            const editorState = activeEditor.state;
+            if (editorState) {
+                const position = editorState.viewState?.cursorState[0].position;
+                const language = editorState.model.getLanguageId() as EditorLanguage;
 
-            const info: IEditorStatusInfo = {
-                insertSpaces: editorState.options.insertSpaces,
-                indentSize: editorState.options.indentSize ?? 4,
-                tabSize: editorState.options.tabSize ?? 4,
-                line: position?.lineNumber ?? 1,
-                column: position?.column ?? 1,
-                language,
-                eol: editorState.options.defaultEOL || "LF",
-            };
+                const info: IEditorStatusInfo = {
+                    insertSpaces: editorState.options.insertSpaces,
+                    indentSize: editorState.options.indentSize ?? 4,
+                    tabSize: editorState.options.tabSize ?? 4,
+                    line: position?.lineNumber ?? 1,
+                    column: position?.column ?? 1,
+                    language,
+                    eol: editorState.options.defaultEOL || "LF",
+                };
 
-            void requisitions.execute("editorInfoUpdated", info);
+                void requisitions.execute("editorInfoUpdated", info);
+            }
         }
     };
 
@@ -232,4 +388,31 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
         });
 
     };
+
+    private toggleMaximizeResultPane = (): void => {
+        this.presentationInterface?.toggleResultPane();
+    };
+
+    /**
+     * Determines the active editor state from the saved state.
+     * There must always be at least a single editor. If we cannot find the given active editor then pick the first
+     * one unconditionally.
+     *
+     * @returns The active editor state.
+     */
+    private getActiveEditorState(): IOpenEditorState {
+        const { savedState } = this.props;
+
+        let activeEditor = savedState.editors.find(
+            (entry: IOpenEditorState): boolean => {
+                return entry.id === savedState.activeEntry;
+            },
+        );
+
+        if (!activeEditor) {
+            activeEditor = savedState.editors[0];
+        }
+
+        return activeEditor;
+    }
 }

@@ -333,10 +333,6 @@
     mask-repeat: repeat-y;
 }
 
-.msg.connectionTabHost .renderTarget .resultStatus {
-    flex: 1 1 auto;
-}
-
 .msg.connectionTabHost .resultHost .actionOutput {
     padding: 4px;
 }
@@ -378,4 +374,16 @@
     padding: 2px;
     margin: 0 4px -22px 0;
     z-index: 1;
+}
+
+.renderTarget #toggleStateButton {
+    padding: 0;
+    border: none;
+    background: none;
+    margin: 4px;
+}
+
+.renderTarget #toggleStateButton .icon {
+    min-width: 20px;
+    min-height: 20px;
 }

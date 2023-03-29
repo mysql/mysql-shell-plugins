@@ -45,7 +45,7 @@ describe("ProfileSelector test", () => {
 
     it("Render Profile Selector and check properties", async () => {
         const actionMenuRef = createRef<ProfileSelector>();
-        const innerRef = createRef<HTMLButtonElement>();
+        const innerRef = createRef<HTMLDivElement>();
         const component = mount(
             <div>
                 <Button innerRef={innerRef} onClick={buttonClick}>

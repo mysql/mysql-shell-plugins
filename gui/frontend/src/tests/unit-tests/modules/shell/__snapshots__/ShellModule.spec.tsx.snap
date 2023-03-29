@@ -15,37 +15,44 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
           style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
         >
           <div
-            class="msg container fixedScrollbar selector horizontal tabArea"
+            class="msg container tabAreaContainer"
             style="flex-direction: row;"
           >
             <div
-              class="msg container fixedScrollbar selectorItem stepDown"
-              id="selectorItemstepDown"
-              style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-            />
-            <div
-              class="msg container fixedScrollbar selectorItem selected normal"
-              draggable="true"
-              id="sessions"
-              style="flex-direction: row; justify-content: center; align-items: center;"
+              class="scrollable"
             >
-              <span
-                class="msg icon"
-                data-tooltip="inherit"
-                style="mask-image: url(module-shell.svg);"
-              />
-              <label
-                class="msg label"
-                data-tooltip="inherit"
+              <div
+                class="msg container tabArea"
+                style="flex-direction: row;"
               >
-                GUI Console
-              </label>
+                <div
+                  class="msg button tabItem selected"
+                  draggable="true"
+                  id="sessions"
+                  role="button"
+                  tabindex="-1"
+                >
+                  <span
+                    class="msg icon"
+                    data-tooltip="inherit"
+                    style="mask-image: url(module-shell.svg);"
+                  />
+                  <label
+                    class="msg label"
+                    data-tooltip="inherit"
+                  >
+                    GUI Console
+                  </label>
+                </div>
+              </div>
+              <div
+                class="scrollbar"
+              >
+                <div
+                  class="slider"
+                />
+              </div>
             </div>
-            <div
-              class="msg container fixedScrollbar selectorItem stepUp"
-              id="selectorItemstepUp"
-              style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-            />
           </div>
           <div
             class="msg container fixedScrollbar content"
@@ -105,10 +112,12 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                     Read Docs &gt;
                   </a>
                 </div>
-                <button
+                <div
                   class="msg button round"
                   data-tooltip="Close Greeting"
+                  draggable="true"
                   id="closeButton"
+                  role="button"
                   tabindex="0"
                 >
                   <span
@@ -116,7 +125,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                     data-tooltip="inherit"
                     style="mask-image: url(close2.svg);"
                   />
-                </button>
+                </div>
                 <div
                   class="msg container fixedScrollbar"
                   style="flex-direction: column;"
@@ -133,9 +142,11 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                     id="tilesHost"
                     style="flex-direction: row; flex-wrap: wrap;"
                   >
-                    <button
+                    <div
                       class="msg button browserTile secondary sessionTile"
+                      draggable="true"
                       id="-1"
+                      role="button"
                       tabindex="0"
                     >
                       <span
@@ -159,7 +170,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                           Opens a new Shell instance tab
                         </label>
                       </div>
-                    </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -186,37 +197,44 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
             style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
           >
             <div
-              class="msg container fixedScrollbar selector horizontal tabArea"
+              class="msg container tabAreaContainer"
               style="flex-direction: row;"
             >
               <div
-                class="msg container fixedScrollbar selectorItem stepDown"
-                id="selectorItemstepDown"
-                style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-              />
-              <div
-                class="msg container fixedScrollbar selectorItem selected normal"
-                draggable="true"
-                id="sessions"
-                style="flex-direction: row; justify-content: center; align-items: center;"
+                class="scrollable"
               >
-                <span
-                  class="msg icon"
-                  data-tooltip="inherit"
-                  style="mask-image: url(module-shell.svg);"
-                />
-                <label
-                  class="msg label"
-                  data-tooltip="inherit"
+                <div
+                  class="msg container tabArea"
+                  style="flex-direction: row;"
                 >
-                  GUI Console
-                </label>
+                  <div
+                    class="msg button tabItem selected"
+                    draggable="true"
+                    id="sessions"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <span
+                      class="msg icon"
+                      data-tooltip="inherit"
+                      style="mask-image: url(module-shell.svg);"
+                    />
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      GUI Console
+                    </label>
+                  </div>
+                </div>
+                <div
+                  class="scrollbar"
+                >
+                  <div
+                    class="slider"
+                  />
+                </div>
               </div>
-              <div
-                class="msg container fixedScrollbar selectorItem stepUp"
-                id="selectorItemstepUp"
-                style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-              />
             </div>
             <div
               class="msg container fixedScrollbar content"
@@ -276,10 +294,12 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                       Read Docs &gt;
                     </a>
                   </div>
-                  <button
+                  <div
                     class="msg button round"
                     data-tooltip="Close Greeting"
+                    draggable="true"
                     id="closeButton"
+                    role="button"
                     tabindex="0"
                   >
                     <span
@@ -287,7 +307,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                       data-tooltip="inherit"
                       style="mask-image: url(close2.svg);"
                     />
-                  </button>
+                  </div>
                   <div
                     class="msg container fixedScrollbar"
                     style="flex-direction: column;"
@@ -304,9 +324,11 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                       id="tilesHost"
                       style="flex-direction: row; flex-wrap: wrap;"
                     >
-                      <button
+                      <div
                         class="msg button browserTile secondary sessionTile"
+                        draggable="true"
                         id="-1"
+                        role="button"
                         tabindex="0"
                       >
                         <span
@@ -330,7 +352,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                             Opens a new Shell instance tab
                           </label>
                         </div>
-                      </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -379,6 +401,11 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
         <Container
           className="msg tabview top"
           id="shellModuleTabview"
+          onDragEnter={[Function]}
+          onDragLeave={[Function]}
+          onDragOver={[Function]}
+          onDragStart={[Function]}
+          onDrop={[Function]}
           orientation="column"
           style={
             {
@@ -390,6 +417,11 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
           <div
             className="msg container fixedScrollbar tabview top"
             id="shellModuleTabview"
+            onDragEnter={[Function]}
+            onDragLeave={[Function]}
+            onDragOver={[Function]}
+            onDragStart={[Function]}
+            onDrop={[Function]}
             style={
               {
                 "--content-separator-width": "0px",
@@ -401,185 +433,41 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
               }
             }
           >
-            <Selector
-              activeItemId="sessions"
-              className="tabArea"
-              entryOrientation="row"
-              items={
-                [
-                  {
-                    "auxillary": undefined,
-                    "canReorder": true,
-                    "caption": "GUI Console",
-                    "icon": "module-shell.svg",
-                    "id": "sessions",
-                    "tooltip": undefined,
-                  },
-                ]
-              }
-              onDrop={[Function]}
-              onSelect={[Function]}
+            <Container
+              className="tabAreaContainer"
+              fixedScrollbars={false}
               orientation="row"
-              smoothScroll={false}
-              wrapNavigation={false}
             >
-              <Container
-                className="msg selector horizontal tabArea"
-                innerRef={
+              <div
+                className="msg container tabAreaContainer"
+                style={
                   {
-                    "current": <div
-                      class="msg container fixedScrollbar selector horizontal tabArea"
-                      style="flex-direction: row;"
-                    >
-                      <div
-                        class="msg container fixedScrollbar selectorItem stepDown"
-                        id="selectorItemstepDown"
-                        style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-                      />
-                      <div
-                        class="msg container fixedScrollbar selectorItem selected normal"
-                        draggable="true"
-                        id="sessions"
-                        style="flex-direction: row; justify-content: center; align-items: center;"
-                      >
-                        <span
-                          class="msg icon"
-                          data-tooltip="inherit"
-                          style="mask-image: url(module-shell.svg);"
-                        />
-                        <label
-                          class="msg label"
-                          data-tooltip="inherit"
-                        >
-                          GUI Console
-                        </label>
-                      </div>
-                      <div
-                        class="msg container fixedScrollbar selectorItem stepUp"
-                        id="selectorItemstepUp"
-                        style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-                      />
-                    </div>,
+                    "alignItems": undefined,
+                    "flexDirection": "row",
+                    "flexWrap": undefined,
+                    "justifyContent": undefined,
                   }
                 }
-                onDragEnter={[Function]}
-                onDragLeave={[Function]}
-                onDragOver={[Function]}
-                onDragStart={[Function]}
-                onDrop={[Function]}
-                orientation="row"
               >
                 <div
-                  className="msg container fixedScrollbar selector horizontal tabArea"
-                  onDragEnter={[Function]}
-                  onDragLeave={[Function]}
-                  onDragOver={[Function]}
-                  onDragStart={[Function]}
-                  onDrop={[Function]}
-                  style={
-                    {
-                      "alignItems": undefined,
-                      "flexDirection": "row",
-                      "flexWrap": undefined,
-                      "justifyContent": undefined,
-                    }
-                  }
+                  className="scrollable"
+                  onWheel={[Function]}
                 >
-                  <SelectorItem
-                    disabled={false}
-                    id="selectorItemstepDown"
+                  <Container
+                    className="tabArea"
+                    fixedScrollbars={false}
                     innerRef={
                       {
                         "current": <div
-                          class="msg container fixedScrollbar selectorItem stepDown"
-                          id="selectorItemstepDown"
-                          style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-                        />,
-                      }
-                    }
-                    onClick={[Function]}
-                    orientation="row"
-                    type="stepDown"
-                  >
-                    <Container
-                      className="msg selectorItem stepDown"
-                      crossAlignment="center"
-                      id="selectorItemstepDown"
-                      innerRef={
-                        {
-                          "current": <div
-                            class="msg container fixedScrollbar selectorItem stepDown"
-                            id="selectorItemstepDown"
-                            style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-                          />,
-                        }
-                      }
-                      mainAlignment="center"
-                      onClick={[Function]}
-                      orientation="row"
-                    >
-                      <div
-                        className="msg container fixedScrollbar selectorItem stepDown"
-                        id="selectorItemstepDown"
-                        onClick={[Function]}
-                        style={
-                          {
-                            "alignItems": "center",
-                            "flexDirection": "row",
-                            "flexWrap": undefined,
-                            "justifyContent": "center",
-                          }
-                        }
-                      />
-                    </Container>
-                  </SelectorItem>
-                  <SelectorItem
-                    caption="GUI Console"
-                    disabled={false}
-                    draggable={true}
-                    id="sessions"
-                    image="module-shell.svg"
-                    innerRef={
-                      {
-                        "current": <div
-                          class="msg container fixedScrollbar selectorItem selected normal"
-                          draggable="true"
-                          id="sessions"
-                          style="flex-direction: row; justify-content: center; align-items: center;"
+                          class="msg container tabArea"
+                          style="flex-direction: row;"
                         >
-                          <span
-                            class="msg icon"
-                            data-tooltip="inherit"
-                            style="mask-image: url(module-shell.svg);"
-                          />
-                          <label
-                            class="msg label"
-                            data-tooltip="inherit"
-                          >
-                            GUI Console
-                          </label>
-                        </div>,
-                      }
-                    }
-                    key="sessions"
-                    onClick={[Function]}
-                    onDrop={[Function]}
-                    orientation="row"
-                    selected={true}
-                    type="normal"
-                  >
-                    <Container
-                      className="msg selectorItem selected normal"
-                      crossAlignment="center"
-                      draggable={true}
-                      id="sessions"
-                      innerRef={
-                        {
-                          "current": <div
-                            class="msg container fixedScrollbar selectorItem selected normal"
+                          <div
+                            class="msg button tabItem selected"
                             draggable="true"
                             id="sessions"
-                            style="flex-direction: row; justify-content: center; align-items: center;"
+                            role="button"
+                            tabindex="-1"
                           >
                             <span
                               class="msg icon"
@@ -592,121 +480,104 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                             >
                               GUI Console
                             </label>
-                          </div>,
-                        }
-                      }
-                      mainAlignment="center"
-                      onClick={[Function]}
-                      onDragEnter={[Function]}
-                      onDragLeave={[Function]}
-                      onDragOver={[Function]}
-                      onDragStart={[Function]}
-                      onDrop={[Function]}
-                      orientation="row"
-                    >
-                      <div
-                        className="msg container fixedScrollbar selectorItem selected normal"
-                        draggable={true}
-                        id="sessions"
-                        onClick={[Function]}
-                        onDragEnter={[Function]}
-                        onDragLeave={[Function]}
-                        onDragOver={[Function]}
-                        onDragStart={[Function]}
-                        onDrop={[Function]}
-                        style={
-                          {
-                            "alignItems": "center",
-                            "flexDirection": "row",
-                            "flexWrap": undefined,
-                            "justifyContent": "center",
-                          }
-                        }
-                      >
-                        <Icon
-                          data-tooltip="inherit"
-                          disabled={false}
-                          src="module-shell.svg"
-                        >
-                          <span
-                            className="msg icon"
-                            data-tooltip="inherit"
-                            style={
-                              {
-                                "WebkitMaskImage": "url(module-shell.svg)",
-                                "backgroundColor": undefined,
-                                "height": undefined,
-                                "maskImage": "url(module-shell.svg)",
-                                "width": undefined,
-                              }
-                            }
-                          />
-                        </Icon>
-                        <Label
-                          data-tooltip="inherit"
-                        >
-                          <label
-                            className="msg label"
-                            data-tooltip="inherit"
-                            style={{}}
-                          >
-                            GUI Console
-                          </label>
-                        </Label>
-                      </div>
-                    </Container>
-                  </SelectorItem>
-                  <SelectorItem
-                    disabled={false}
-                    id="selectorItemstepUp"
-                    innerRef={
-                      {
-                        "current": <div
-                          class="msg container fixedScrollbar selectorItem stepUp"
-                          id="selectorItemstepUp"
-                          style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-                        />,
+                          </div>
+                        </div>,
                       }
                     }
-                    onClick={[Function]}
+                    onDragOver={[Function]}
+                    onDrop={[Function]}
                     orientation="row"
-                    type="stepUp"
                   >
-                    <Container
-                      className="msg selectorItem stepUp"
-                      crossAlignment="center"
-                      id="selectorItemstepUp"
-                      innerRef={
+                    <div
+                      className="msg container tabArea"
+                      onDragOver={[Function]}
+                      onDrop={[Function]}
+                      style={
                         {
-                          "current": <div
-                            class="msg container fixedScrollbar selectorItem stepUp"
-                            id="selectorItemstepUp"
-                            style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-                          />,
+                          "alignItems": undefined,
+                          "flexDirection": "row",
+                          "flexWrap": undefined,
+                          "justifyContent": undefined,
                         }
                       }
-                      mainAlignment="center"
-                      onClick={[Function]}
-                      orientation="row"
                     >
-                      <div
-                        className="msg container fixedScrollbar selectorItem stepUp"
-                        id="selectorItemstepUp"
+                      <Button
+                        className="tabItem selected"
+                        draggable={true}
+                        focusOnClick={false}
+                        id="sessions"
+                        key="sessions"
                         onClick={[Function]}
-                        style={
-                          {
-                            "alignItems": "center",
-                            "flexDirection": "row",
-                            "flexWrap": undefined,
-                            "justifyContent": "center",
+                        onDragEnter={[Function]}
+                        onDrop={[Function]}
+                        tabIndex={-1}
+                      >
+                        <div
+                          className="msg button tabItem selected"
+                          draggable={true}
+                          id="sessions"
+                          onClick={[Function]}
+                          onDragEnter={[Function]}
+                          onDragLeave={[Function]}
+                          onDragOver={[Function]}
+                          onDragStart={[Function]}
+                          onDrop={[Function]}
+                          onMouseDown={[Function]}
+                          role="button"
+                          style={
+                            {
+                              "flexDirection": undefined,
+                            }
                           }
-                        }
-                      />
-                    </Container>
-                  </SelectorItem>
+                          tabIndex={-1}
+                        >
+                          <Icon
+                            data-tooltip="inherit"
+                            disabled={false}
+                            src="module-shell.svg"
+                          >
+                            <span
+                              className="msg icon"
+                              data-tooltip="inherit"
+                              style={
+                                {
+                                  "WebkitMaskImage": "url(module-shell.svg)",
+                                  "backgroundColor": undefined,
+                                  "height": undefined,
+                                  "maskImage": "url(module-shell.svg)",
+                                  "width": undefined,
+                                }
+                              }
+                            />
+                          </Icon>
+                          <Label
+                            data-tooltip="inherit"
+                          >
+                            <label
+                              className="msg label"
+                              data-tooltip="inherit"
+                              style={{}}
+                            >
+                              GUI Console
+                            </label>
+                          </Label>
+                        </div>
+                      </Button>
+                    </div>
+                  </Container>
+                  <div
+                    className="scrollbar"
+                  >
+                    <div
+                      className="slider"
+                      onPointerDown={[Function]}
+                      onPointerMove={[Function]}
+                      onPointerUp={[Function]}
+                    />
+                  </div>
                 </div>
-              </Container>
-            </Selector>
+              </div>
+            </Container>
             <Container
               className="content"
               innerRef={
@@ -769,10 +640,12 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                             Read Docs &gt;
                           </a>
                         </div>
-                        <button
+                        <div
                           class="msg button round"
                           data-tooltip="Close Greeting"
+                          draggable="true"
                           id="closeButton"
+                          role="button"
                           tabindex="0"
                         >
                           <span
@@ -780,7 +653,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                             data-tooltip="inherit"
                             style="mask-image: url(close2.svg);"
                           />
-                        </button>
+                        </div>
                         <div
                           class="msg container fixedScrollbar"
                           style="flex-direction: column;"
@@ -797,9 +670,11 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                             id="tilesHost"
                             style="flex-direction: row; flex-wrap: wrap;"
                           >
-                            <button
+                            <div
                               class="msg button browserTile secondary sessionTile"
+                              draggable="true"
                               id="-1"
+                              role="button"
                               tabindex="0"
                             >
                               <span
@@ -823,7 +698,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                   Opens a new Shell instance tab
                                 </label>
                               </div>
-                            </button>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -989,12 +864,14 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                               onClick={[Function]}
                               round={true}
                             >
-                              <button
+                              <div
                                 className="msg button round"
                                 data-tooltip="Close Greeting"
+                                draggable={true}
                                 id="closeButton"
                                 onClick={[Function]}
                                 onMouseDown={[Function]}
+                                role="button"
                                 style={
                                   {
                                     "flexDirection": undefined,
@@ -1021,7 +898,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                     }
                                   />
                                 </Icon>
-                              </button>
+                              </div>
                             </Button>
                             <Container
                               orientation="column"
@@ -1081,9 +958,11 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                       icon="plus.svg"
                                       innerRef={
                                         {
-                                          "current": <button
+                                          "current": <div
                                             class="msg button browserTile secondary sessionTile"
+                                            draggable="true"
                                             id="-1"
+                                            role="button"
                                             tabindex="0"
                                           >
                                             <span
@@ -1107,7 +986,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                                 Opens a new Shell instance tab
                                               </label>
                                             </div>
-                                          </button>,
+                                          </div>,
                                         }
                                       }
                                       key="New Shell Session"
@@ -1120,9 +999,11 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                         id="-1"
                                         innerRef={
                                           {
-                                            "current": <button
+                                            "current": <div
                                               class="msg button browserTile secondary sessionTile"
+                                              draggable="true"
                                               id="-1"
+                                              role="button"
                                               tabindex="0"
                                             >
                                               <span
@@ -1146,7 +1027,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                                   Opens a new Shell instance tab
                                                 </label>
                                               </div>
-                                            </button>,
+                                            </div>,
                                           }
                                         }
                                         onClick={[Function]}
@@ -1157,8 +1038,9 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                         onDrop={[Function]}
                                         onKeyPress={[Function]}
                                       >
-                                        <button
+                                        <div
                                           className="msg button browserTile secondary sessionTile"
+                                          draggable={true}
                                           id="-1"
                                           onClick={[Function]}
                                           onDragEnter={[Function]}
@@ -1168,6 +1050,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                           onDrop={[Function]}
                                           onKeyPress={[Function]}
                                           onMouseDown={[Function]}
+                                          role="button"
                                           style={
                                             {
                                               "flexDirection": undefined,
@@ -1231,7 +1114,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                               </Label>
                                             </div>
                                           </Container>
-                                        </button>
+                                        </div>
                                       </Button>
                                     </SessionTile>
                                   </div>

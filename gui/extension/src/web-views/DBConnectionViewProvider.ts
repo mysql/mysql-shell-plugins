@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { Uri, window } from "vscode";
+import { commands, Uri, window } from "vscode";
 
 import {
     IEditorCloseChangeData, IEditorOpenChangeData, IOpenDialogOptions, IOpenFileDialogResult, requisitions,
@@ -32,6 +32,7 @@ import { DBEditorModuleId } from "../../../frontend/src/modules/ModuleInfo";
 import { EntityType, IDBEditorScriptState } from "../../../frontend/src/modules/db-editor";
 import { WebviewProvider } from "./WebviewProvider";
 import { EditorLanguage, INewScriptRequest, IRunQueryRequest, IScriptRequest } from "../../../frontend/src/supplement";
+import { IShellSessionDetails } from "../../../frontend/src/supplement/ShellInterface";
 
 export class DBConnectionViewProvider extends WebviewProvider {
     /**
@@ -93,7 +94,10 @@ export class DBConnectionViewProvider extends WebviewProvider {
     public runScript(page: string, details: IScriptRequest): Promise<boolean> {
         return this.runCommand("job", [
             { requestType: "showModule", parameter: DBEditorModuleId },
-            { requestType: "showPage", parameter: { module: DBEditorModuleId, page, suppressAbout: true } },
+            {
+                requestType: "showPage", parameter:
+                    { module: DBEditorModuleId, page, suppressAbout: true, noEditor: true },
+            },
             { requestType: "editorRunScript", parameter: details },
         ], "newConnection");
     }
@@ -251,6 +255,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
             this.requisitions.register("showOpenDialog", this.showOpenDialog);
             this.requisitions.register("editorSaveScript", this.editorSaveScript);
             this.requisitions.register("createNewScript", this.createNewScript);
+            this.requisitions.register("newSession", this.createNewSession);
             this.requisitions.register("closeInstance", this.closeInstance);
             this.requisitions.register("editorsChanged", this.editorsChanged);
             this.requisitions.register("editorSelect", this.editorSelect);
@@ -290,6 +295,12 @@ export class DBConnectionViewProvider extends WebviewProvider {
             provider: this,
             original: { requestType: "createNewScript", parameter: details },
         });
+    };
+
+    private createNewSession = async (_details: IShellSessionDetails): Promise<boolean> => {
+        await commands.executeCommand("msg.newSession");
+
+        return true;
     };
 
     private editorsChanged = (details: IEditorOpenChangeData | IEditorCloseChangeData): Promise<boolean> => {

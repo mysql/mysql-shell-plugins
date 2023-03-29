@@ -278,11 +278,13 @@ exports[`Login Page Tests Render Test 1`] = `
                   onClick={[Function]}
                   round={true}
                 >
-                  <button
+                  <div
                     className="msg button round"
+                    draggable={true}
                     id="loginButton"
                     onClick={[Function]}
                     onMouseDown={[Function]}
+                    role="button"
                     style={
                       {
                         "flexDirection": undefined,
@@ -307,7 +309,7 @@ exports[`Login Page Tests Render Test 1`] = `
                         }
                       />
                     </Icon>
-                  </button>
+                  </div>
                 </Button>
               </div>
             </Container>

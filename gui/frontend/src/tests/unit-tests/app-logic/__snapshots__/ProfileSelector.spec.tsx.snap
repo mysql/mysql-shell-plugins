@@ -5,10 +5,12 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
   <Button
     onClick={[Function]}
   >
-    <button
+    <div
       className="msg button"
+      draggable={true}
       onClick={[Function]}
       onMouseDown={[Function]}
+      role="button"
       style={
         {
           "flexDirection": undefined,
@@ -17,7 +19,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
       tabIndex={0}
     >
       Open Profile Selector
-    </button>
+    </div>
   </Button>
   <ProfileSelector>
     <ValueEditDialog

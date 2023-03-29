@@ -171,11 +171,13 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               key="hideSleepConn"
               onClick={[Function]}
             >
-              <button
+              <div
                 className="msg button imageOnly"
                 data-tooltip="Hide sleeping connections"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -202,7 +204,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                     }
                   />
                 </Icon>
-              </button>
+              </div>
             </Button>
             <Button
               data-tooltip="Hide background threads"
@@ -210,11 +212,13 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               key="hideBkgThreads"
               onClick={[Function]}
             >
-              <button
+              <div
                 className="msg button imageOnly"
                 data-tooltip="Hide background threads"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -241,7 +245,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                     }
                   />
                 </Icon>
-              </button>
+              </div>
             </Button>
             <Divider
               key="filterSeparator"
@@ -265,11 +269,13 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               key="noFullInfo"
               onClick={[Function]}
             >
-              <button
+              <div
                 className="msg button imageOnly"
                 data-tooltip="Don't load full thread info"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -296,7 +302,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                     }
                   />
                 </Icon>
-              </button>
+              </div>
             </Button>
             <Button
               data-tooltip="Show/Hide Details"
@@ -304,11 +310,13 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               key="showDetails"
               onClick={[Function]}
             >
-              <button
+              <div
                 className="msg button imageOnly"
                 data-tooltip="Show/Hide Details"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -335,7 +343,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                     }
                   />
                 </Icon>
-              </button>
+              </div>
             </Button>
             <Divider
               key="actionSeparator"
@@ -360,12 +368,14 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               key="killQuery"
               onClick={[Function]}
             >
-              <button
+              <div
                 className="msg button imageOnly"
                 data-tooltip="Kill Query"
                 disabled={true}
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -392,7 +402,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                     }
                   />
                 </Icon>
-              </button>
+              </div>
             </Button>
             <Button
               data-tooltip="Kill Connection"
@@ -401,12 +411,14 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               key="killCOnnection"
               onClick={[Function]}
             >
-              <button
+              <div
                 className="msg button imageOnly"
                 data-tooltip="Kill Connection"
                 disabled={true}
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -433,7 +445,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                     }
                   />
                 </Icon>
-              </button>
+              </div>
             </Button>
             <div
               className="expander"
@@ -824,11 +836,13 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               key="hideSleepConn"
               onClick={[Function]}
             >
-              <button
+              <div
                 className="msg button imageOnly"
                 data-tooltip="Hide sleeping connections"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -855,7 +869,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                     }
                   />
                 </Icon>
-              </button>
+              </div>
             </Button>
             <Button
               data-tooltip="Hide background threads"
@@ -863,11 +877,13 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               key="hideBkgThreads"
               onClick={[Function]}
             >
-              <button
+              <div
                 className="msg button imageOnly"
                 data-tooltip="Hide background threads"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -894,7 +910,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                     }
                   />
                 </Icon>
-              </button>
+              </div>
             </Button>
             <Divider
               key="filterSeparator"
@@ -918,11 +934,13 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               key="noFullInfo"
               onClick={[Function]}
             >
-              <button
+              <div
                 className="msg button imageOnly"
                 data-tooltip="Don't load full thread info"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -949,7 +967,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                     }
                   />
                 </Icon>
-              </button>
+              </div>
             </Button>
             <Button
               data-tooltip="Show/Hide Details"
@@ -957,11 +975,13 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               key="showDetails"
               onClick={[Function]}
             >
-              <button
+              <div
                 className="msg button imageOnly"
                 data-tooltip="Show/Hide Details"
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -988,7 +1008,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                     }
                   />
                 </Icon>
-              </button>
+              </div>
             </Button>
             <Divider
               key="actionSeparator"
@@ -1013,12 +1033,14 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               key="killQuery"
               onClick={[Function]}
             >
-              <button
+              <div
                 className="msg button imageOnly"
                 data-tooltip="Kill Query"
                 disabled={true}
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -1045,7 +1067,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                     }
                   />
                 </Icon>
-              </button>
+              </div>
             </Button>
             <Button
               data-tooltip="Kill Connection"
@@ -1054,12 +1076,14 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               key="killCOnnection"
               onClick={[Function]}
             >
-              <button
+              <div
                 className="msg button imageOnly"
                 data-tooltip="Kill Connection"
                 disabled={true}
+                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -1086,7 +1110,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                     }
                   />
                 </Icon>
-              </button>
+              </div>
             </Button>
             <div
               className="expander"

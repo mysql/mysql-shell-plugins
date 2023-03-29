@@ -45,7 +45,7 @@ interface ISessionBrowserProperties extends IComponentProperties {
 
 export class SessionBrowser extends ComponentBase<ISessionBrowserProperties> {
 
-    private newSessionTileRef = createRef<HTMLButtonElement>();
+    private newSessionTileRef = createRef<HTMLDivElement>();
 
     public componentDidMount(): void {
         requisitions.register("settingsChanged", this.settingsChanged);

@@ -1068,7 +1068,7 @@ exports[`Theme editor lists testing Render test 1`] = `
                     },
                     {
                       "children": undefined,
-                      "color": "#000000",
+                      "color": "#2C2C2C",
                       "description": "Background color of an empty editor group",
                       "id": "editorGroup.emptyBackground",
                       "preview": false,
@@ -3104,7 +3104,7 @@ exports[`Theme editor lists testing Render test 1`] = `
                     },
                     {
                       "children": undefined,
-                      "color": "#222222",
+                      "color": "#1E1E1E",
                       "description": "Inactive background color",
                       "id": "titleBar.inactiveBackground",
                       "preview": true,
@@ -5150,189 +5150,40 @@ exports[`Theme editor lists testing Render test 1`] = `
           }
         }
       >
-        <Selector
-          activeItemId="uiColors"
-          className="tabArea stretched"
-          entryOrientation="row"
-          items={
-            [
-              {
-                "auxillary": undefined,
-                "canReorder": undefined,
-                "caption": "UI Colors",
-                "icon": undefined,
-                "id": "uiColors",
-                "tooltip": undefined,
-              },
-              {
-                "auxillary": undefined,
-                "canReorder": undefined,
-                "caption": "Syntax Colors",
-                "icon": undefined,
-                "id": "syntaxColors",
-                "tooltip": undefined,
-              },
-            ]
-          }
-          onDrop={[Function]}
-          onSelect={[Function]}
+        <Container
+          className="tabAreaContainer"
+          fixedScrollbars={false}
           orientation="row"
-          smoothScroll={false}
-          wrapNavigation={false}
         >
-          <Container
-            className="msg selector horizontal tabArea stretched"
-            innerRef={
+          <div
+            className="msg container tabAreaContainer"
+            style={
               {
-                "current": <div
-                  class="msg container fixedScrollbar selector horizontal tabArea stretched"
-                  style="flex-direction: row;"
-                >
-                  <div
-                    class="msg container fixedScrollbar selectorItem stepDown"
-                    id="selectorItemstepDown"
-                    style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-                  />
-                  <div
-                    class="msg container fixedScrollbar selectorItem selected normal"
-                    id="uiColors"
-                    style="flex-direction: row; justify-content: center; align-items: center;"
-                  >
-                    <label
-                      class="msg label"
-                      data-tooltip="inherit"
-                    >
-                      UI Colors
-                    </label>
-                  </div>
-                  <div
-                    class="msg container fixedScrollbar selectorItem normal"
-                    id="syntaxColors"
-                    style="flex-direction: row; justify-content: center; align-items: center;"
-                  >
-                    <label
-                      class="msg label"
-                      data-tooltip="inherit"
-                    >
-                      Syntax Colors
-                    </label>
-                  </div>
-                  <div
-                    class="msg container fixedScrollbar selectorItem stepUp"
-                    id="selectorItemstepUp"
-                    style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-                  />
-                </div>,
+                "alignItems": undefined,
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
               }
             }
-            onDragEnter={[Function]}
-            onDragLeave={[Function]}
-            onDragOver={[Function]}
-            onDragStart={[Function]}
-            onDrop={[Function]}
-            orientation="row"
           >
             <div
-              className="msg container fixedScrollbar selector horizontal tabArea stretched"
-              onDragEnter={[Function]}
-              onDragLeave={[Function]}
-              onDragOver={[Function]}
-              onDragStart={[Function]}
-              onDrop={[Function]}
-              style={
-                {
-                  "alignItems": undefined,
-                  "flexDirection": "row",
-                  "flexWrap": undefined,
-                  "justifyContent": undefined,
-                }
-              }
+              className="scrollable"
+              onWheel={[Function]}
             >
-              <SelectorItem
-                disabled={false}
-                id="selectorItemstepDown"
+              <Container
+                className="tabArea stretched"
+                fixedScrollbars={false}
                 innerRef={
                   {
                     "current": <div
-                      class="msg container fixedScrollbar selectorItem stepDown"
-                      id="selectorItemstepDown"
-                      style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-                    />,
-                  }
-                }
-                onClick={[Function]}
-                orientation="row"
-                type="stepDown"
-              >
-                <Container
-                  className="msg selectorItem stepDown"
-                  crossAlignment="center"
-                  id="selectorItemstepDown"
-                  innerRef={
-                    {
-                      "current": <div
-                        class="msg container fixedScrollbar selectorItem stepDown"
-                        id="selectorItemstepDown"
-                        style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-                      />,
-                    }
-                  }
-                  mainAlignment="center"
-                  onClick={[Function]}
-                  orientation="row"
-                >
-                  <div
-                    className="msg container fixedScrollbar selectorItem stepDown"
-                    id="selectorItemstepDown"
-                    onClick={[Function]}
-                    style={
-                      {
-                        "alignItems": "center",
-                        "flexDirection": "row",
-                        "flexWrap": undefined,
-                        "justifyContent": "center",
-                      }
-                    }
-                  />
-                </Container>
-              </SelectorItem>
-              <SelectorItem
-                caption="UI Colors"
-                disabled={false}
-                id="uiColors"
-                innerRef={
-                  {
-                    "current": <div
-                      class="msg container fixedScrollbar selectorItem selected normal"
-                      id="uiColors"
-                      style="flex-direction: row; justify-content: center; align-items: center;"
+                      class="msg container tabArea stretched"
+                      style="flex-direction: row;"
                     >
-                      <label
-                        class="msg label"
-                        data-tooltip="inherit"
-                      >
-                        UI Colors
-                      </label>
-                    </div>,
-                  }
-                }
-                key="uiColors"
-                onClick={[Function]}
-                onDrop={[Function]}
-                orientation="row"
-                selected={true}
-                type="normal"
-              >
-                <Container
-                  className="msg selectorItem selected normal"
-                  crossAlignment="center"
-                  id="uiColors"
-                  innerRef={
-                    {
-                      "current": <div
-                        class="msg container fixedScrollbar selectorItem selected normal"
+                      <div
+                        class="msg button tabItem selected"
                         id="uiColors"
-                        style="flex-direction: row; justify-content: center; align-items: center;"
+                        role="button"
+                        tabindex="-1"
                       >
                         <label
                           class="msg label"
@@ -5340,141 +5191,131 @@ exports[`Theme editor lists testing Render test 1`] = `
                         >
                           UI Colors
                         </label>
-                      </div>,
-                    }
-                  }
-                  mainAlignment="center"
-                  onClick={[Function]}
-                  onDrop={[Function]}
-                  orientation="row"
-                >
-                  <div
-                    className="msg container fixedScrollbar selectorItem selected normal"
-                    id="uiColors"
-                    onClick={[Function]}
-                    onDrop={[Function]}
-                    style={
-                      {
-                        "alignItems": "center",
-                        "flexDirection": "row",
-                        "flexWrap": undefined,
-                        "justifyContent": "center",
-                      }
-                    }
-                  >
-                    <Label
-                      data-tooltip="inherit"
-                    >
-                      <label
-                        className="msg label"
-                        data-tooltip="inherit"
-                        style={{}}
+                      </div>
+                      <div
+                        class="msg button tabItem"
+                        id="syntaxColors"
+                        role="button"
+                        tabindex="-1"
                       >
-                        UI Colors
-                      </label>
-                    </Label>
-                  </div>
-                </Container>
-              </SelectorItem>
-              <SelectorItem
-                caption="Syntax Colors"
-                disabled={false}
-                id="syntaxColors"
-                key="syntaxColors"
-                onClick={[Function]}
-                onDrop={[Function]}
-                orientation="row"
-                selected={false}
-                type="normal"
-              >
-                <Container
-                  className="msg selectorItem normal"
-                  crossAlignment="center"
-                  id="syntaxColors"
-                  mainAlignment="center"
-                  onClick={[Function]}
-                  onDrop={[Function]}
-                  orientation="row"
-                >
-                  <div
-                    className="msg container fixedScrollbar selectorItem normal"
-                    id="syntaxColors"
-                    onClick={[Function]}
-                    onDrop={[Function]}
-                    style={
-                      {
-                        "alignItems": "center",
-                        "flexDirection": "row",
-                        "flexWrap": undefined,
-                        "justifyContent": "center",
-                      }
-                    }
-                  >
-                    <Label
-                      data-tooltip="inherit"
-                    >
-                      <label
-                        className="msg label"
-                        data-tooltip="inherit"
-                        style={{}}
-                      >
-                        Syntax Colors
-                      </label>
-                    </Label>
-                  </div>
-                </Container>
-              </SelectorItem>
-              <SelectorItem
-                disabled={false}
-                id="selectorItemstepUp"
-                innerRef={
-                  {
-                    "current": <div
-                      class="msg container fixedScrollbar selectorItem stepUp"
-                      id="selectorItemstepUp"
-                      style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-                    />,
+                        <label
+                          class="msg label"
+                          data-tooltip="inherit"
+                        >
+                          Syntax Colors
+                        </label>
+                      </div>
+                    </div>,
                   }
                 }
-                onClick={[Function]}
+                onDragOver={[Function]}
+                onDrop={[Function]}
                 orientation="row"
-                type="stepUp"
               >
-                <Container
-                  className="msg selectorItem stepUp"
-                  crossAlignment="center"
-                  id="selectorItemstepUp"
-                  innerRef={
+                <div
+                  className="msg container tabArea stretched"
+                  onDragOver={[Function]}
+                  onDrop={[Function]}
+                  style={
                     {
-                      "current": <div
-                        class="msg container fixedScrollbar selectorItem stepUp"
-                        id="selectorItemstepUp"
-                        style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-                      />,
+                      "alignItems": undefined,
+                      "flexDirection": "row",
+                      "flexWrap": undefined,
+                      "justifyContent": undefined,
                     }
                   }
-                  mainAlignment="center"
-                  onClick={[Function]}
-                  orientation="row"
                 >
-                  <div
-                    className="msg container fixedScrollbar selectorItem stepUp"
-                    id="selectorItemstepUp"
+                  <Button
+                    className="tabItem selected"
+                    focusOnClick={false}
+                    id="uiColors"
+                    key="uiColors"
                     onClick={[Function]}
-                    style={
-                      {
-                        "alignItems": "center",
-                        "flexDirection": "row",
-                        "flexWrap": undefined,
-                        "justifyContent": "center",
+                    onDragEnter={[Function]}
+                    onDrop={[Function]}
+                    tabIndex={-1}
+                  >
+                    <div
+                      className="msg button tabItem selected"
+                      id="uiColors"
+                      onClick={[Function]}
+                      onDragEnter={[Function]}
+                      onDrop={[Function]}
+                      onMouseDown={[Function]}
+                      role="button"
+                      style={
+                        {
+                          "flexDirection": undefined,
+                        }
                       }
-                    }
-                  />
-                </Container>
-              </SelectorItem>
+                      tabIndex={-1}
+                    >
+                      <Label
+                        data-tooltip="inherit"
+                      >
+                        <label
+                          className="msg label"
+                          data-tooltip="inherit"
+                          style={{}}
+                        >
+                          UI Colors
+                        </label>
+                      </Label>
+                    </div>
+                  </Button>
+                  <Button
+                    className="tabItem"
+                    focusOnClick={false}
+                    id="syntaxColors"
+                    key="syntaxColors"
+                    onClick={[Function]}
+                    onDragEnter={[Function]}
+                    onDrop={[Function]}
+                    tabIndex={-1}
+                  >
+                    <div
+                      className="msg button tabItem"
+                      id="syntaxColors"
+                      onClick={[Function]}
+                      onDragEnter={[Function]}
+                      onDrop={[Function]}
+                      onMouseDown={[Function]}
+                      role="button"
+                      style={
+                        {
+                          "flexDirection": undefined,
+                        }
+                      }
+                      tabIndex={-1}
+                    >
+                      <Label
+                        data-tooltip="inherit"
+                      >
+                        <label
+                          className="msg label"
+                          data-tooltip="inherit"
+                          style={{}}
+                        >
+                          Syntax Colors
+                        </label>
+                      </Label>
+                    </div>
+                  </Button>
+                </div>
+              </Container>
+              <div
+                className="scrollbar"
+              >
+                <div
+                  className="slider"
+                  onPointerDown={[Function]}
+                  onPointerMove={[Function]}
+                  onPointerUp={[Function]}
+                />
+              </div>
             </div>
-          </Container>
-        </Selector>
+          </div>
+        </Container>
         <Container
           className="content"
           innerRef={
@@ -6565,7 +6406,7 @@ exports[`Theme editor lists testing Render test 1`] = `
                       },
                       {
                         "children": undefined,
-                        "color": "#000000",
+                        "color": "#2C2C2C",
                         "description": "Background color of an empty editor group",
                         "id": "editorGroup.emptyBackground",
                         "preview": false,
@@ -8601,7 +8442,7 @@ exports[`Theme editor lists testing Render test 1`] = `
                       },
                       {
                         "children": undefined,
-                        "color": "#222222",
+                        "color": "#1E1E1E",
                         "description": "Inactive background color",
                         "id": "titleBar.inactiveBackground",
                         "preview": true,

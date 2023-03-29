@@ -97,8 +97,6 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
     private ociProfileNames?: IMdsProfileData[];
     private activeOciProfileName?: string;
 
-    private connectionId = -1;
-
     static #mysqlSslModeMap = new Map<MySQLSslMode, string>([
         [MySQLSslMode.Disabled, "Disable"],
         [MySQLSslMode.Preferred, "Preferred"],
@@ -180,7 +178,6 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
         this.liveUpdateFields.profileName = "";
         this.liveUpdateFields.bastionId.value = "";
         this.liveUpdateFields.dbSystemId = "";
-        this.connectionId = details?.id ?? -1;
 
         // Initializes useMDS/useSSH to have the tabs be shown or hidden based on the saved connection options.
         if (details?.dbType === DBType.MySQL) {

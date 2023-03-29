@@ -22,11 +22,13 @@ exports[`Action Output Tests Action Full Rendering 1`] = `
     onPointerDown={[Function]}
     tabIndex={-1}
   >
-    <button
+    <div
       className="msg button imageOnly copyButton"
       data-tooltip="Copy result to clipboard"
+      draggable={true}
       onMouseDown={[Function]}
       onPointerDown={[Function]}
+      role="button"
       style={
         {
           "flexDirection": undefined,
@@ -44,7 +46,7 @@ exports[`Action Output Tests Action Full Rendering 1`] = `
           data-tooltip="inherit"
         />
       </Icon>
-    </button>
+    </div>
   </Button>
   <Container
     className="msg actionOutput"
@@ -169,11 +171,13 @@ exports[`Action Output Tests Standard Rendering 1`] = `
     onPointerDown={[Function]}
     tabIndex={-1}
   >
-    <button
+    <div
       className="msg button imageOnly copyButton"
       data-tooltip="Copy result to clipboard"
+      draggable={true}
       onMouseDown={[Function]}
       onPointerDown={[Function]}
+      role="button"
       style={
         {
           "flexDirection": undefined,
@@ -191,7 +195,7 @@ exports[`Action Output Tests Standard Rendering 1`] = `
           data-tooltip="inherit"
         />
       </Icon>
-    </button>
+    </div>
   </Button>
   <Container
     className="msg actionOutput"

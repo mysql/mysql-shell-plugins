@@ -24,7 +24,8 @@
 import gridIcon from "../../assets/images/toolbar/toolbar-grid.svg";
 import commitIcon from "../../assets/images/toolbar/toolbar-commit.svg";
 import rollbackIcon from "../../assets/images/toolbar/toolbar-rollback.svg";
-import expandIcon from "../../assets/images/toolbar/toolbar-expand.svg";
+import maximizeIcon from "../../assets/images/toolbar/toolbar-maximize.svg";
+import normalizeIcon from "../../assets/images/toolbar/toolbar-normalize.svg";
 import menuIcon from "../../assets/images/toolbar/toolbar-menu.svg";
 import previousPageIcon from "../../assets/images/toolbar/toolbar-page_previous.svg";
 import nextPageIcon from "../../assets/images/toolbar/toolbar-page_next.svg";
@@ -48,6 +49,9 @@ import { ITabviewPage, Tabview, TabPosition } from "../ui/Tabview/Tabview";
 import { Toolbar } from "../ui/Toolbar/Toolbar";
 import { Button } from "../ui/Button/Button";
 import { ResultStatus } from "./ResultStatus";
+import { requisitions } from "../../supplement/Requisitions";
+import { IScriptRequest } from "../../supplement";
+import { uuid } from "../../utilities/helpers";
 
 interface IResultTabViewProperties extends IComponentProperties {
     /** One set per tab page. */
@@ -56,12 +60,20 @@ interface IResultTabViewProperties extends IComponentProperties {
     /** The ID of the executing context for this result view. */
     contextId: string;
 
+    /** Which of the result sets is currently selected? */
     currentSet?: number;
-    resultPaneMaximized?: boolean;
-    hideSingleTab: boolean;
+
+    /** Where to show the toggle state button. */
+    showMaximizeButton: "never" | "tab" | "statusBar";
+
+    /** When to hide the tab area? */
+    hideTabs: "never" | "single" | "always";
+
+    /** When set to true show only the selected result set. */
+    showMaximized?: boolean;
 
     onResultPageChange?: (resultId: string, currentPage: number, sql: string) => void;
-    onSetResultPaneViewState?: (maximized: boolean) => void;
+    onToggleResultPaneViewState?: () => void;
     onSelectTab?: (index: number) => void;
 }
 
@@ -70,9 +82,6 @@ interface IResultTabViewState extends IComponentState {
     manualTab: boolean;
 
     currentResultSet?: IResultSet;
-
-    /** Have to keep track locally as the presentation interface cannot re-render this component on toggle. */
-    resultPaneMaximized: boolean;
 }
 
 /** Holds a collection of result views and other output in a tabbed interface. */
@@ -92,11 +101,11 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
         this.state = {
             manualTab: false,
             currentResultSet: props.resultSets.sets.length > 0 ? props.resultSets.sets[0] : undefined,
-            resultPaneMaximized: props.resultPaneMaximized ?? false,
         };
 
-        this.addHandledProperties("resultSets", "contextId", "currentSet", "resultPaneMaximized", "hideSingleTab",
-            "onResultPageChange", "onSetResultPaneViewState", "onSelectTab");
+        this.addHandledProperties("resultSets", "contextId", "currentSet", "showMaximizeButton", "hideTabs",
+            "showMaximized",
+            "onResultPageChange", "onToggleResultPaneViewState", "onSelectTab");
     }
 
     public static getDerivedStateFromProps(newProps: IResultTabViewProperties,
@@ -111,12 +120,10 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
             };
 
         }
-        const resultPaneMaximized = newProps.resultPaneMaximized;
 
         if (resultSets.sets.length === 0) {
             return {
                 currentResultSet: undefined,
-                resultPaneMaximized,
             };
         }
 
@@ -132,7 +139,6 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
 
             return {
                 currentResultSet,
-                resultPaneMaximized,
             };
         }
 
@@ -142,19 +148,17 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
 
         if (found) {
             return {
-                resultPaneMaximized,
             };
         }
 
         return {
             currentResultSet: resultSets.sets.length > 0 ? newProps.resultSets.sets[0] : undefined,
-            resultPaneMaximized,
         };
     }
 
     public render(): ComponentChild {
-        const { resultSets, contextId, hideSingleTab } = this.props;
-        const { currentResultSet, resultPaneMaximized } = this.state;
+        const { resultSets, contextId, hideTabs, showMaximizeButton, showMaximized } = this.props;
+        const { currentResultSet } = this.state;
 
         const className = this.getEffectiveClassNames(["resultHost"]);
 
@@ -176,21 +180,33 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
             });
         }
 
+        const toggleStateButton = <Button
+            id="toggleStateButton"
+            imageOnly={true}
+            data-tooltip="Maximize Result Tab"
+            onClick={this.handleResultToggle}
+        >
+            <Icon src={showMaximized ? normalizeIcon : maximizeIcon} data-tooltip="inherit" />
+        </Button>;
+
         resultSets.sets.forEach((resultSet: IResultSet, index) => {
             const ref = createRef<ResultView>();
             this.viewRefs.set(resultSet.resultId, ref);
 
-            pages.push({
-                id: resultSet.resultId,
-                caption: `Result #${(resultSet.index ?? index) + 1}`,
-                content: (
-                    <ResultView
-                        ref={ref}
-                        resultSet={resultSet}
-                        onEdit={this.handleEdit}
-                    />
-                ),
-            });
+            if (!showMaximized || resultSet === currentResultSet) {
+                pages.push({
+                    id: resultSet.resultId,
+                    caption: `Result #${(resultSet.index ?? index) + 1}`,
+                    auxillary: showMaximizeButton === "tab" && toggleStateButton,
+                    content: (
+                        <ResultView
+                            ref={ref}
+                            resultSet={resultSet}
+                            onEdit={this.handleEdit}
+                        />
+                    ),
+                });
+            }
         });
 
 
@@ -216,10 +232,12 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                 <Tabview
                     className="resultTabview"
                     stretchTabs={false}
-                    hideSingleTab={hideSingleTab}
+                    hideSingleTab={hideTabs === "single"}
+                    showTabs={hideTabs !== "always"}
                     selectedId={currentResultSet?.resultId ?? "output"}
                     tabPosition={TabPosition.Top}
                     pages={pages}
+                    canReorderTabs={true}
 
                     onSelectTab={this.handleTabSelection}
                 />
@@ -265,18 +283,8 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                                     <Icon src={rollbackIcon} data-tooltip="inherit" />
                                 </Button>
                                 <Divider id="editSeparator" vertical={true} />
-                                <Button
-                                    id="maximizeResultSetButton"
-                                    imageOnly={true}
-                                    data-tooltip={resultPaneMaximized
-                                        ? "Normalize Result Set View"
-                                        : "Maximize Result Set View"
-                                    }
-                                    onClick={this.handleResultToggle}
-                                >
-                                    <Icon src={expandIcon} data-tooltip="inherit" />
-                                </Button>
-                                <Divider vertical={true} />
+                                {showMaximizeButton === "statusBar" && toggleStateButton}
+                                {showMaximizeButton === "statusBar" && <Divider vertical={true} />}
                                 <Dropdown
                                     id="viewStyleDropDown"
                                     selection="grid"
@@ -319,7 +327,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                     />
                 </Menu>
 
-            </Container>
+            </Container >
         );
     }
 
@@ -445,13 +453,39 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
         }
     };
 
+    /**
+     * Triggered by one of the toggle view state buttons.
+     * It triggers the corresponding action needed to either show the result pane maximized (if this result view
+     * is in a script editor) or to create a new script and show the result pane maximized.
+     */
     private handleResultToggle = (): void => {
-        const { onSetResultPaneViewState } = this.props;
-        const { resultPaneMaximized } = this.state;
+        const { onToggleResultPaneViewState, showMaximizeButton, showMaximized } = this.props;
+        const { currentResultSet } = this.state;
 
-        this.setState({ resultPaneMaximized: !resultPaneMaximized }, () => {
-            onSetResultPaneViewState?.(!resultPaneMaximized);
-        });
+        // If showMaximized is not yet use it means we are in a notebook that needs to run the script
+        // to show a separate script editor.
+        if (showMaximizeButton === "statusBar" && showMaximized === undefined) {
+            if (currentResultSet) {
+                const sql = currentResultSet.sql;
+                const name = `Result #${(currentResultSet.index ?? 0) + 1}`;
+                if (sql) {
+                    const request: IScriptRequest = {
+                        scriptId: uuid(),
+                        language: "mysql",
+                        name,
+                        content: sql,
+                    };
+
+                    // Run this as job (instead of a simple) requisition to allow it to be repeated until a script
+                    // editor is ready to take the request.
+                    void requisitions.execute("job", [
+                        { requestType: "editorRunScript", parameter: request },
+                    ]);
+                }
+            }
+        } else {
+            onToggleResultPaneViewState?.();
+        }
     };
 
     // Editing is not supported yet, so we cannot test it.

@@ -21,16 +21,18 @@ exports[`Value Edit Dialog Tests Footer, Heading, Description and Payload 1`] = 
       >
         Select Value
       </label>
-      <button
+      <div
         class="msg button imageOnly"
+        draggable="true"
         id="closeButton"
+        role="button"
         tabindex="0"
       >
         <span
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
-      </button>
+      </div>
     </div>
     <div
       class="content fixedScrollbar"
@@ -114,22 +116,26 @@ exports[`Value Edit Dialog Tests Footer, Heading, Description and Payload 1`] = 
         class="msg container fixedScrollbar rightItems"
         style="flex-direction: row-reverse;"
       >
-        <button
+        <div
           caption="OK"
           class="msg button"
+          draggable="true"
           id="ok"
+          role="button"
           tabindex="0"
         >
           OK
-        </button>
-        <button
+        </div>
+        <div
           caption="Cancel"
           class="msg button"
+          draggable="true"
           id="cancel"
+          role="button"
           tabindex="0"
         >
           Cancel
-        </button>
+        </div>
       </div>
     </div>
   </div>
@@ -157,16 +163,18 @@ exports[`Value Edit Dialog Tests Grouped Sections 1`] = `
       >
         Select Value
       </label>
-      <button
+      <div
         class="msg button imageOnly"
+        draggable="true"
         id="closeButton"
+        role="button"
         tabindex="0"
       >
         <span
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
-      </button>
+      </div>
     </div>
     <div
       class="content fixedScrollbar"
@@ -184,55 +192,64 @@ exports[`Value Edit Dialog Tests Grouped Sections 1`] = `
             style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
           >
             <div
-              class="msg container fixedScrollbar selector horizontal tabArea stretched"
+              class="msg container tabAreaContainer"
               style="flex-direction: row;"
             >
               <div
-                class="msg container fixedScrollbar selectorItem stepDown"
-                id="selectorItemstepDown"
-                style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-              />
-              <div
-                class="msg container fixedScrollbar selectorItem normal"
-                id="page0"
-                style="flex-direction: row; justify-content: center; align-items: center;"
+                class="scrollable"
               >
-                <label
-                  class="msg label"
-                  data-tooltip="inherit"
+                <div
+                  class="msg container tabArea stretched"
+                  style="flex-direction: row;"
                 >
-                  My First Section
-                </label>
-              </div>
-              <div
-                class="msg container fixedScrollbar selectorItem selected normal"
-                id="page1"
-                style="flex-direction: row; justify-content: center; align-items: center;"
-              >
-                <label
-                  class="msg label"
-                  data-tooltip="inherit"
+                  <div
+                    class="msg button tabItem"
+                    id="page0"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      My First Section
+                    </label>
+                  </div>
+                  <div
+                    class="msg button tabItem selected"
+                    id="page1"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      My Second Section
+                    </label>
+                  </div>
+                  <div
+                    class="msg button tabItem"
+                    id="page2"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      My Third Section
+                    </label>
+                  </div>
+                </div>
+                <div
+                  class="scrollbar"
                 >
-                  My Second Section
-                </label>
+                  <div
+                    class="slider"
+                  />
+                </div>
               </div>
-              <div
-                class="msg container fixedScrollbar selectorItem normal"
-                id="page2"
-                style="flex-direction: row; justify-content: center; align-items: center;"
-              >
-                <label
-                  class="msg label"
-                  data-tooltip="inherit"
-                >
-                  My Third Section
-                </label>
-              </div>
-              <div
-                class="msg container fixedScrollbar selectorItem stepUp"
-                id="selectorItemstepUp"
-                style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-              />
             </div>
             <div
               class="msg container fixedScrollbar content"
@@ -310,22 +327,26 @@ exports[`Value Edit Dialog Tests Grouped Sections 1`] = `
         class="msg container fixedScrollbar rightItems"
         style="flex-direction: row-reverse;"
       >
-        <button
+        <div
           caption="OK"
           class="msg button"
+          draggable="true"
           id="ok"
+          role="button"
           tabindex="0"
         >
           OK
-        </button>
-        <button
+        </div>
+        <div
           caption="Cancel"
           class="msg button"
+          draggable="true"
           id="cancel"
+          role="button"
           tabindex="0"
         >
           Cancel
-        </button>
+        </div>
       </div>
     </div>
   </div>
@@ -353,16 +374,18 @@ exports[`Value Edit Dialog Tests Grouped Sections 2`] = `
       >
         Select Value
       </label>
-      <button
+      <div
         class="msg button imageOnly"
+        draggable="true"
         id="closeButton"
+        role="button"
         tabindex="0"
       >
         <span
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
-      </button>
+      </div>
     </div>
     <div
       class="content fixedScrollbar"
@@ -380,55 +403,64 @@ exports[`Value Edit Dialog Tests Grouped Sections 2`] = `
             style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
           >
             <div
-              class="msg container fixedScrollbar selector horizontal tabArea stretched"
+              class="msg container tabAreaContainer"
               style="flex-direction: row;"
             >
               <div
-                class="msg container fixedScrollbar selectorItem stepDown"
-                id="selectorItemstepDown"
-                style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-              />
-              <div
-                class="msg container fixedScrollbar selectorItem normal"
-                id="page0"
-                style="flex-direction: row; justify-content: center; align-items: center;"
+                class="scrollable"
               >
-                <label
-                  class="msg label"
-                  data-tooltip="inherit"
+                <div
+                  class="msg container tabArea stretched"
+                  style="flex-direction: row;"
                 >
-                  My First Section
-                </label>
-              </div>
-              <div
-                class="msg container fixedScrollbar selectorItem selected normal"
-                id="page1"
-                style="flex-direction: row; justify-content: center; align-items: center;"
-              >
-                <label
-                  class="msg label"
-                  data-tooltip="inherit"
+                  <div
+                    class="msg button tabItem"
+                    id="page0"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      My First Section
+                    </label>
+                  </div>
+                  <div
+                    class="msg button tabItem selected"
+                    id="page1"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      My Second Section
+                    </label>
+                  </div>
+                  <div
+                    class="msg button tabItem"
+                    id="page2"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      My Third Section
+                    </label>
+                  </div>
+                </div>
+                <div
+                  class="scrollbar"
                 >
-                  My Second Section
-                </label>
+                  <div
+                    class="slider"
+                  />
+                </div>
               </div>
-              <div
-                class="msg container fixedScrollbar selectorItem normal"
-                id="page2"
-                style="flex-direction: row; justify-content: center; align-items: center;"
-              >
-                <label
-                  class="msg label"
-                  data-tooltip="inherit"
-                >
-                  My Third Section
-                </label>
-              </div>
-              <div
-                class="msg container fixedScrollbar selectorItem stepUp"
-                id="selectorItemstepUp"
-                style="flex-direction: row; justify-content: center; align-items: center; display: none;"
-              />
             </div>
             <div
               class="msg container fixedScrollbar content"
@@ -506,22 +538,26 @@ exports[`Value Edit Dialog Tests Grouped Sections 2`] = `
         class="msg container fixedScrollbar rightItems"
         style="flex-direction: row-reverse;"
       >
-        <button
+        <div
           caption="OK"
           class="msg button"
+          draggable="true"
           id="ok"
+          role="button"
           tabindex="0"
         >
           OK
-        </button>
-        <button
+        </div>
+        <div
           caption="Cancel"
           class="msg button"
+          draggable="true"
           id="cancel"
+          role="button"
           tabindex="0"
         >
           Cancel
-        </button>
+        </div>
       </div>
     </div>
   </div>
@@ -549,16 +585,18 @@ exports[`Value Edit Dialog Tests Grouped Values 1`] = `
       >
         Select Value
       </label>
-      <button
+      <div
         class="msg button imageOnly"
+        draggable="true"
         id="closeButton"
+        role="button"
         tabindex="0"
       >
         <span
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
-      </button>
+      </div>
     </div>
     <div
       class="content fixedScrollbar"
@@ -655,22 +693,26 @@ exports[`Value Edit Dialog Tests Grouped Values 1`] = `
         class="msg container fixedScrollbar rightItems"
         style="flex-direction: row-reverse;"
       >
-        <button
+        <div
           caption="OK"
           class="msg button"
+          draggable="true"
           id="ok"
+          role="button"
           tabindex="0"
         >
           OK
-        </button>
-        <button
+        </div>
+        <div
           caption="Cancel"
           class="msg button"
+          draggable="true"
           id="cancel"
+          role="button"
           tabindex="0"
         >
           Cancel
-        </button>
+        </div>
       </div>
     </div>
   </div>
@@ -780,16 +822,18 @@ exports[`Value Edit Dialog Tests Simple Dialog 1`] = `
       >
         Enter a name for the new theme
       </label>
-      <button
+      <div
         class="msg button imageOnly"
+        draggable="true"
         id="closeButton"
+        role="button"
         tabindex="0"
       >
         <span
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
-      </button>
+      </div>
     </div>
     <div
       class="content fixedScrollbar"
@@ -833,22 +877,26 @@ exports[`Value Edit Dialog Tests Simple Dialog 1`] = `
         class="msg container fixedScrollbar rightItems"
         style="flex-direction: row-reverse;"
       >
-        <button
+        <div
           caption="OK"
           class="msg button"
+          draggable="true"
           id="ok"
+          role="button"
           tabindex="0"
         >
           OK
-        </button>
-        <button
+        </div>
+        <div
           caption="Cancel"
           class="msg button"
+          draggable="true"
           id="cancel"
+          role="button"
           tabindex="0"
         >
           Cancel
-        </button>
+        </div>
       </div>
     </div>
   </div>
@@ -876,16 +924,18 @@ exports[`Value Edit Dialog Tests Update Contexts 1`] = `
       >
         Select Value
       </label>
-      <button
+      <div
         class="msg button imageOnly"
+        draggable="true"
         id="closeButton"
+        role="button"
         tabindex="0"
       >
         <span
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
-      </button>
+      </div>
     </div>
     <div
       class="content fixedScrollbar"
@@ -929,22 +979,26 @@ exports[`Value Edit Dialog Tests Update Contexts 1`] = `
         class="msg container fixedScrollbar rightItems"
         style="flex-direction: row-reverse;"
       >
-        <button
+        <div
           caption="OK"
           class="msg button"
+          draggable="true"
           id="ok"
+          role="button"
           tabindex="0"
         >
           OK
-        </button>
-        <button
+        </div>
+        <div
           caption="Cancel"
           class="msg button"
+          draggable="true"
           id="cancel"
+          role="button"
           tabindex="0"
         >
           Cancel
-        </button>
+        </div>
       </div>
     </div>
   </div>
@@ -972,16 +1026,18 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
       >
         Select Value
       </label>
-      <button
+      <div
         class="msg button imageOnly"
+        draggable="true"
         id="closeButton"
+        role="button"
         tabindex="0"
       >
         <span
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
-      </button>
+      </div>
     </div>
     <div
       class="content fixedScrollbar"
@@ -1081,14 +1137,16 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
               spellcheck="true"
               type="text"
             />
-            <button
+            <div
               caption="..."
               class="msg button"
+              draggable="true"
               id="fileBtn"
+              role="button"
               tabindex="0"
             >
               ...
-            </button>
+            </div>
           </div>
         </div>
         <div
@@ -1125,14 +1183,16 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
           >
             Do it!
           </label>
-          <button
+          <div
             caption="Do it!"
             class="msg button valueEditor"
+            draggable="true"
             id="clickMe"
+            role="button"
             tabindex="0"
           >
             Do it!
-          </button>
+          </div>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -1160,10 +1220,12 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
               id="matrixActions"
               style="flex-direction: row;"
             >
-              <button
+              <div
                 class="msg button"
                 data-tooltip="Add new property entry"
+                draggable="true"
                 id="buttonAddEntry"
+                role="button"
                 tabindex="0"
               >
                 <span
@@ -1171,11 +1233,13 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
                   data-tooltip="inherit"
                   style="mask-image: url(add.svg);"
                 />
-              </button>
-              <button
+              </div>
+              <div
                 class="msg button"
                 data-tooltip="Remove selected entries"
+                draggable="true"
                 id="buttonRemoveEntry"
+                role="button"
                 tabindex="0"
               >
                 <span
@@ -1183,7 +1247,7 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
                   data-tooltip="inherit"
                   style="mask-image: url(remove.svg);"
                 />
-              </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1214,9 +1278,11 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
               class="msg container fixedScrollbar gridCell"
               style="flex-direction: row;"
             >
-              <button
+              <div
                 class="msg button"
+                draggable="true"
                 id="up"
+                role="button"
                 tabindex="-1"
               />
             </div>
@@ -1224,9 +1290,11 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
               class="msg container fixedScrollbar gridCell"
               style="flex-direction: row;"
             >
-              <button
+              <div
                 class="msg button"
+                draggable="true"
                 id="down"
+                role="button"
                 tabindex="-1"
               />
             </div>
@@ -1375,22 +1443,26 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
         class="msg container fixedScrollbar rightItems"
         style="flex-direction: row-reverse;"
       >
-        <button
+        <div
           caption="OK"
           class="msg button"
+          draggable="true"
           id="ok"
+          role="button"
           tabindex="0"
         >
           OK
-        </button>
-        <button
+        </div>
+        <div
           caption="Cancel"
           class="msg button"
+          draggable="true"
           id="cancel"
+          role="button"
           tabindex="0"
         >
           Cancel
-        </button>
+        </div>
       </div>
     </div>
   </div>
@@ -1418,16 +1490,18 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
       >
         Select Value
       </label>
-      <button
+      <div
         class="msg button imageOnly"
+        draggable="true"
         id="closeButton"
+        role="button"
         tabindex="0"
       >
         <span
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
-      </button>
+      </div>
     </div>
     <div
       class="content fixedScrollbar"
@@ -1527,14 +1601,16 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
               spellcheck="true"
               type="text"
             />
-            <button
+            <div
               caption="..."
               class="msg button"
+              draggable="true"
               id="fileBtn"
+              role="button"
               tabindex="0"
             >
               ...
-            </button>
+            </div>
           </div>
         </div>
         <div
@@ -1571,14 +1647,16 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
           >
             Do it!
           </label>
-          <button
+          <div
             caption="Do it!"
             class="msg button valueEditor"
+            draggable="true"
             id="clickMe"
+            role="button"
             tabindex="0"
           >
             Do it!
-          </button>
+          </div>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -1606,10 +1684,12 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
               id="matrixActions"
               style="flex-direction: row;"
             >
-              <button
+              <div
                 class="msg button"
                 data-tooltip="Add new property entry"
+                draggable="true"
                 id="buttonAddEntry"
+                role="button"
                 tabindex="0"
               >
                 <span
@@ -1617,11 +1697,13 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
                   data-tooltip="inherit"
                   style="mask-image: url(add.svg);"
                 />
-              </button>
-              <button
+              </div>
+              <div
                 class="msg button"
                 data-tooltip="Remove selected entries"
+                draggable="true"
                 id="buttonRemoveEntry"
+                role="button"
                 tabindex="0"
               >
                 <span
@@ -1629,7 +1711,7 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
                   data-tooltip="inherit"
                   style="mask-image: url(remove.svg);"
                 />
-              </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1660,9 +1742,11 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
               class="msg container fixedScrollbar gridCell"
               style="flex-direction: row;"
             >
-              <button
+              <div
                 class="msg button"
+                draggable="true"
                 id="up"
+                role="button"
                 tabindex="-1"
               />
             </div>
@@ -1670,9 +1754,11 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
               class="msg container fixedScrollbar gridCell"
               style="flex-direction: row;"
             >
-              <button
+              <div
                 class="msg button"
+                draggable="true"
                 id="down"
+                role="button"
                 tabindex="-1"
               />
             </div>
@@ -1821,22 +1907,26 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
         class="msg container fixedScrollbar rightItems"
         style="flex-direction: row-reverse;"
       >
-        <button
+        <div
           caption="OK"
           class="msg button"
+          draggable="true"
           id="ok"
+          role="button"
           tabindex="0"
         >
           OK
-        </button>
-        <button
+        </div>
+        <div
           caption="Cancel"
           class="msg button"
+          draggable="true"
           id="cancel"
+          role="button"
           tabindex="0"
         >
           Cancel
-        </button>
+        </div>
       </div>
     </div>
   </div>

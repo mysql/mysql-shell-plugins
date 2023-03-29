@@ -34,7 +34,7 @@ import {
 import { IWebSessionData, IShellProfile, IShellPromptValues } from "../communication/ProtocolGui";
 
 import { IThemeChangeData } from "../components/Theming/ThemeManager";
-import { IEditorStatusInfo, IDBDataEntry, ISchemaTreeEntry, EntityType } from "../modules/db-editor";
+import { IEditorStatusInfo, ISchemaTreeEntry, EntityType } from "../modules/db-editor";
 import { RequisitionPipeline } from "./RequisitionPipeline";
 import { DBType, IConnectionDetails, IShellSessionDetails } from "./ShellInterface";
 
@@ -222,7 +222,8 @@ export interface IRequestTypeMap {
     "statusBarButtonClick": (values: { type: string; event: MouseEvent | KeyboardEvent; }) => Promise<boolean>;
     "editorInfoUpdated": (info: IEditorStatusInfo) => Promise<boolean>;
     "themeChanged": (data: IThemeChangeData) => Promise<boolean>;
-    "openConnectionTab": (data: { details: IConnectionDetails; force: boolean; }) => Promise<boolean>;
+    "openConnectionTab": (
+        data: { details: IConnectionDetails; force: boolean; noEditor?: boolean; }) => Promise<boolean>;
     "selectFile": (result: IOpenFileDialogResult) => Promise<boolean>;
     "showOpenDialog": (options: IOpenDialogOptions) => Promise<boolean>;
 
@@ -278,7 +279,6 @@ export interface IRequestTypeMap {
     "editConnection": (connectionId: number) => Promise<boolean>;
     "duplicateConnection": (connectionId: number) => Promise<boolean>;
 
-    "explorerShowRows": (entry: ISchemaTreeEntry | IDBDataEntry) => Promise<boolean>;
     "explorerDoubleClick": (entry: ISchemaTreeEntry) => Promise<boolean>;
 
     "requestPassword": (request: IServicePasswordRequest) => Promise<boolean>;
@@ -289,7 +289,7 @@ export interface IRequestTypeMap {
     "showThemeEditor": SimpleCallback;
     "showPreferences": SimpleCallback;
     "showModule": (module: string) => Promise<boolean>;
-    "showPage": (data: { module: string; page: string; }) => Promise<boolean>;
+    "showPage": (data: { module: string; page: string; noEditor?: boolean; }) => Promise<boolean>;
     "showPageSection": (details: { id: string, type: EntityType; }) => Promise<boolean>;
 
     "showDialog": (request: IDialogRequest) => Promise<boolean>;

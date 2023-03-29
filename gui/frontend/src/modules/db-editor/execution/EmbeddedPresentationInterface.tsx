@@ -238,15 +238,17 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
         super.removeRenderTarget();
     }
 
-    protected updateRenderTarget(height: number): void {
+    protected updateRenderTarget(height?: number): void {
         super.updateRenderTarget(height);
 
-        this.backend?.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
-            if (this.resultInfo && this.renderTarget) {
-                this.resultInfo.zone.heightInPx = Math.max(height, this.minHeight);
-                changeAccessor.layoutZone(this.resultInfo.zoneId);
-            }
-        });
+        if (height !== undefined) {
+            this.backend?.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
+                if (this.resultInfo && this.renderTarget) {
+                    this.resultInfo.zone.heightInPx = Math.max(height, this.minHeight);
+                    changeAccessor.layoutZone(this.resultInfo.zoneId);
+                }
+            });
+        }
     }
 
     /**
@@ -315,6 +317,10 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
         };
 
         return result;
+    }
+
+    protected override showMaximizeButton(): "never" | "tab" | "statusBar" {
+        return "statusBar";
     }
 
     private handleDividerPointerDown = (e: PointerEvent): void => {

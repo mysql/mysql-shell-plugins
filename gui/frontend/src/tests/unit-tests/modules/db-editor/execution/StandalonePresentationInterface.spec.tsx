@@ -21,18 +21,16 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { createRef } from "preact";
 import { mount } from "enzyme";
 
 import { ScriptEditor } from "../../../../../modules/db-editor/ScriptEditor";
 import { CodeEditorMode, Monaco } from "../../../../../components/ui/CodeEditor";
 import {
-    CodeEditor, ICodeEditorModel, IEditorPersistentState,
+    ICodeEditorModel, IEditorPersistentState,
 } from "../../../../../components/ui/CodeEditor/CodeEditor";
 import { ExecutionContexts } from "../../../../../script-execution/ExecutionContexts";
-import {
-    StandalonePresentationInterface,
-} from "../../../../../modules/db-editor/execution/StandalonePresentationInterface";
+import { EntityType } from "../../../../../modules/db-editor";
+import { ISavedEditorState } from "../../../../../modules/db-editor/DBConnectionTab";
 
 describe("Standalone presentation interface tests", (): void => {
 
@@ -47,24 +45,30 @@ describe("Standalone presentation interface tests", (): void => {
     model.setValue(content);
 
     it("Standalone presentation interface instantiation", () => {
-        const innerRef = createRef<HTMLDivElement>();
-        const eps: IEditorPersistentState = {
+        const editorState: IEditorPersistentState = {
             viewState: null,
             model,
             options: {},
         };
+
+        const savedState: ISavedEditorState = {
+            editors: [{
+                type: EntityType.Notebook,
+                id: "1",
+                caption: "Test",
+                currentVersion: 1,
+                state: editorState,
+            }],
+            activeEntry: "1",
+            heatWaveEnabled: false,
+        };
+
         const component = mount<ScriptEditor>(
             <ScriptEditor
-                editorState={eps}
+                savedState={savedState}
             />,
         );
-        const spi = new StandalonePresentationInterface(
-            new ScriptEditor({ editorState: eps }),
-            new CodeEditor({ allowSoftWrap: true }),
-            "sql",
-            innerRef,
-        );
-        expect(spi.language).toEqual("sql");
+
         component.unmount();
     });
 });

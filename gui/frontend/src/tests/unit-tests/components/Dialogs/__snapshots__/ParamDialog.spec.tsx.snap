@@ -139,16 +139,18 @@ exports[`Param Dialog Tests Show Panel and Escape 1`] = `
       >
         Parameters
       </label>
-      <button
+      <div
         class="msg button imageOnly"
+        draggable="true"
         id="closeButton"
+        role="button"
         tabindex="0"
       >
         <span
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
-      </button>
+      </div>
     </div>
     <div
       class="content fixedScrollbar"
@@ -225,22 +227,26 @@ exports[`Param Dialog Tests Show Panel and Escape 1`] = `
         class="msg container fixedScrollbar rightItems"
         style="flex-direction: row-reverse;"
       >
-        <button
+        <div
           caption="OK"
           class="msg button"
+          draggable="true"
           id="ok"
+          role="button"
           tabindex="0"
         >
           OK
-        </button>
-        <button
+        </div>
+        <div
           caption="Cancel"
           class="msg button"
+          draggable="true"
           id="cancel"
+          role="button"
           tabindex="0"
         >
           Cancel
-        </button>
+        </div>
       </div>
     </div>
   </div>
@@ -267,16 +273,18 @@ exports[`Param Dialog Tests Show Panel and Escape 2`] = `
       >
         Parameters
       </label>
-      <button
+      <div
         class="msg button imageOnly"
+        draggable="true"
         id="closeButton"
+        role="button"
         tabindex="0"
       >
         <span
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
-      </button>
+      </div>
     </div>
     <div
       class="content fixedScrollbar"
@@ -353,22 +361,26 @@ exports[`Param Dialog Tests Show Panel and Escape 2`] = `
         class="msg container fixedScrollbar rightItems"
         style="flex-direction: row-reverse;"
       >
-        <button
+        <div
           caption="OK"
           class="msg button"
+          draggable="true"
           id="ok"
+          role="button"
           tabindex="0"
         >
           OK
-        </button>
-        <button
+        </div>
+        <div
           caption="Cancel"
           class="msg button"
+          draggable="true"
           id="cancel"
+          role="button"
           tabindex="0"
         >
           Cancel
-        </button>
+        </div>
       </div>
     </div>
   </div>

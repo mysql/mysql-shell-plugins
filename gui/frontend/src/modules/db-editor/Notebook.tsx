@@ -21,26 +21,27 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import "./Notebook.css";
 import { Position } from "monaco-editor";
 import { ComponentChild, createRef } from "preact";
 
-import { IDBDataEntry, IEditorStatusInfo, ISchemaTreeEntry, SchemaTreeType } from ".";
+import { IEditorStatusInfo, ISchemaTreeEntry, IToolbarItems } from ".";
 import { IScriptExecutionOptions } from "../../components/ui/CodeEditor";
 import { CodeEditor, IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor";
 import { IComponentProperties, ComponentBase } from "../../components/ui/Component/ComponentBase";
 import { ExecutionContext } from "../../script-execution/ExecutionContext";
 import { PresentationInterface } from "../../script-execution/PresentationInterface";
-import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext";
 import { EditorLanguage } from "../../supplement";
 import { requisitions } from "../../supplement/Requisitions";
 import { Settings } from "../../supplement/Settings/Settings";
 import { DBType } from "../../supplement/ShellInterface";
-import { quote } from "../../utilities/string-helpers";
 import { EmbeddedPresentationInterface } from "./execution/EmbeddedPresentationInterface";
+import { IOpenEditorState, ISavedEditorState } from "./DBConnectionTab";
 
 interface INotebookProperties extends IComponentProperties {
-    editorState: IEditorPersistentState;
+    toolbarItems?: IToolbarItems;
+
+    savedState: ISavedEditorState;
+
     dbType: DBType;
     readOnly?: boolean;
     showAbout: boolean; // If true then show the about info text on first mount.
@@ -56,13 +57,12 @@ export class Notebook extends ComponentBase<INotebookProperties> {
     public constructor(props: INotebookProperties) {
         super(props);
 
-        this.addHandledProperties("editorState", "dbType", "readOnly", "showAbout", "onScriptExecution",
-            "onHelpCommand");
+        this.addHandledProperties("toolbarItems", "savedState", "dbType", "readOnly", "showAbout",
+            "onScriptExecution", "onHelpCommand");
     }
 
     public componentDidMount(): void {
         requisitions.register("explorerDoubleClick", this.explorerDoubleClick);
-        requisitions.register("explorerShowRows", this.explorerShowRows);
 
         this.initialSetup();
         this.sendStatusInfo();
@@ -82,18 +82,28 @@ export class Notebook extends ComponentBase<INotebookProperties> {
         ]);
 
         requisitions.unregister("explorerDoubleClick", this.explorerDoubleClick);
-        requisitions.unregister("explorerShowRows", this.explorerShowRows);
     }
 
     public render(): ComponentChild {
-        const { editorState, dbType, readOnly, onScriptExecution, onHelpCommand } = this.props;
+        const { savedState, dbType, readOnly, onScriptExecution, onHelpCommand } = this.props;
 
         const dialect = this.dialectFromDbType(dbType);
+        // Determine the editor to show from the editor state. There must always be at least a single editor.
+        // If we cannot find the given active editor then pick the first one unconditionally.
+        let activeEditor = savedState.editors.find(
+            (entry: IOpenEditorState): boolean => {
+                return entry.id === savedState.activeEntry;
+            },
+        );
+
+        if (!activeEditor) {
+            activeEditor = savedState.editors[0];
+        }
 
         return (
             <CodeEditor
                 ref={this.editorRef}
-                savedState={editorState}
+                savedState={activeEditor.state}
                 language="msg"
                 allowedLanguages={["javascript", "typescript", "sql"]}
                 sqlDialect={dialect}
@@ -169,58 +179,6 @@ export class Notebook extends ComponentBase<INotebookProperties> {
     }
 
     /**
-     * Executes an entire script (possible multiple statements).
-     *
-     * @param script The script
-     * @param forceSecondaryEngine Tells the executor to add a hint to SELECT statements to use the secondary
-     *                             engine (usually HeatWave).
-     *
-     * @returns A promise that resolves to true when the execution is fully triggered.
-     */
-    public executeScript(script: string, forceSecondaryEngine?: boolean): Promise<boolean> {
-        return new Promise((resolve) => {
-            if (this.editorRef.current) {
-                const { dbType } = this.props;
-
-                const lastBlock = this.editorRef.current.lastExecutionBlock;
-                let currentBlock: ExecutionContext | undefined;
-                if (!lastBlock || lastBlock.codeLength > 0 || !lastBlock.isSQLLike) {
-                    currentBlock = this.editorRef.current.prepareNextExecutionBlock(-1,
-                        dbType === DBType.MySQL ? "mysql" : "sql");
-                } else {
-                    currentBlock = lastBlock;
-                }
-
-                if (currentBlock instanceof SQLExecutionContext) {
-                    const continueExecution = (id: string): Promise<boolean> => {
-                        if (currentBlock && this.editorRef.current && id === currentBlock.id) {
-                            requisitions.unregister("editorValidationDone", continueExecution);
-
-
-                            const { onScriptExecution } = this.props;
-                            void onScriptExecution?.(currentBlock, { forceSecondaryEngine }).then(() => {
-                                this.editorRef.current?.prepareNextExecutionBlock(-1, lastBlock?.language);
-                                this.editorRef.current?.focus();
-
-                                resolve(true); // For the outer promise, which is a pending requisition call.
-                            });
-
-                            return Promise.resolve(true);
-                        }
-
-                        resolve(false);
-
-                        return Promise.resolve(false);
-                    };
-
-                    requisitions.register("editorValidationDone", continueExecution);
-                    this.editorRef.current.appendText(script);
-                }
-            }
-        });
-    }
-
-    /**
      * Inserts the given script into the current editor block, if that has the same language as that of the script
      * and if that block is empty.
      *
@@ -256,31 +214,6 @@ export class Notebook extends ComponentBase<INotebookProperties> {
         return Promise.resolve(true);
     };
 
-    private explorerShowRows = (entry: ISchemaTreeEntry | IDBDataEntry): Promise<boolean> => {
-        if ("qualifiedName" in entry) {
-            const schema = entry.qualifiedName.schema;
-            const table = entry.qualifiedName.table;
-
-            let sql;
-
-            const tableName = `${quote(schema)}.${quote(table ?? "")}`;
-            const uppercaseKeywords = Settings.get("dbEditor.upperCaseKeywords", true);
-            const select = uppercaseKeywords ? "SELECT" : "select";
-            const from = uppercaseKeywords ? "FROM" : "from";
-            if (entry.type === SchemaTreeType.Column) {
-                sql = `${select} ${tableName}.${quote(entry.qualifiedName.name ?? "")} ${from} ${tableName}`;
-            } else {
-                sql = `${select} * ${from} ${tableName}`;
-            }
-
-            this.executeQuery({ source: sql });
-
-            return Promise.resolve(true);
-        }
-
-        return Promise.resolve(false);
-    };
-
     private handleOptionsChanged = (): void => {
         if (this.editorRef.current) {
             const options = this.editorRef.current.options;
@@ -296,24 +229,27 @@ export class Notebook extends ComponentBase<INotebookProperties> {
 
     private sendStatusInfo = (): void => {
         if (this.editorRef.current) {
-            const { editorState, dbType } = this.props;
-            const position = editorState.viewState?.cursorState[0].position;
-            let language = editorState.model.getLanguageId();
-            if (language === "msg") {
-                language = `mixed/${this.dialectFromDbType(dbType)}`;
+            const { dbType } = this.props;
+            const editorState = this.getActiveEditorState();
+            if (editorState) {
+                const position = editorState.viewState?.cursorState[0].position;
+                let language = editorState.model.getLanguageId();
+                if (language === "msg") {
+                    language = `mixed/${this.dialectFromDbType(dbType)}`;
+                }
+
+                const info: IEditorStatusInfo = {
+                    insertSpaces: editorState.options.insertSpaces,
+                    indentSize: editorState.options.indentSize ?? 4,
+                    tabSize: editorState.options.tabSize ?? 4,
+                    line: position?.lineNumber ?? 1,
+                    column: position?.column ?? 1,
+                    language,
+                    eol: editorState.options.defaultEOL || "LF",
+                };
+
+                void requisitions.execute("editorInfoUpdated", info);
             }
-
-            const info: IEditorStatusInfo = {
-                insertSpaces: editorState.options.insertSpaces,
-                indentSize: editorState.options.indentSize ?? 4,
-                tabSize: editorState.options.tabSize ?? 4,
-                line: position?.lineNumber ?? 1,
-                column: position?.column ?? 1,
-                language,
-                eol: editorState.options.defaultEOL || "LF",
-            };
-
-            void requisitions.execute("editorInfoUpdated", info);
         }
     };
 
@@ -322,12 +258,15 @@ export class Notebook extends ComponentBase<INotebookProperties> {
     };
 
     private initialSetup(): void {
-        const { editorState, showAbout } = this.props;
-        const version = editorState.model.getVersionId();
-        if (version === 2 && showAbout) {
-            // If there was never a change in the editor so far it means that this is the first time it is shown.
-            // In this case we can run our one-time initialization.
-            this.editorRef.current?.executeText("\\about");
+        const { showAbout } = this.props;
+        const editorState = this.getActiveEditorState();
+        if (editorState) {
+            const version = editorState.model.getVersionId();
+            if (version === 2 && showAbout) {
+                // If there was never a change in the editor so far it means that this is the first time it is shown.
+                // In this case we can run our one-time initialization.
+                this.editorRef.current?.executeText("\\about");
+            }
         }
     }
 
@@ -360,17 +299,42 @@ export class Notebook extends ComponentBase<INotebookProperties> {
      * @returns The computed relative line number for the context at the original linenumber position.
      */
     private contextRelativeLineNumbers = (originalLineNumber: number): string => {
-        const { editorState } = this.props;
-        const contexts = editorState.model.executionContexts;
-        const context = contexts.contextFromPosition({ lineNumber: originalLineNumber, column: 1 });
-        if (context) {
-            if (context.endLine - context.startLine > 0) {
-                return (originalLineNumber - context.startLine + 1).toString();
-            } else {
-                return "";
+        const editorState = this.getActiveEditorState();
+        if (editorState) {
+            const contexts = editorState.model.executionContexts;
+            const context = contexts.contextFromPosition({ lineNumber: originalLineNumber, column: 1 });
+            if (context) {
+                if (context.endLine - context.startLine > 0) {
+                    return (originalLineNumber - context.startLine + 1).toString();
+                } else {
+                    return "";
+                }
             }
+
+            return originalLineNumber.toString();
         }
 
-        return originalLineNumber.toString();
+        return "";
     };
+
+    /**
+     * Determines the active editor state from the saved state.
+     *
+     * @returns The active editor state.
+     */
+    private getActiveEditorState(): IEditorPersistentState | undefined {
+        const { savedState } = this.props;
+
+        let activeEditor = savedState.editors.find(
+            (entry: IOpenEditorState): boolean => {
+                return entry.id === savedState.activeEntry;
+            },
+        );
+
+        if (!activeEditor) {
+            activeEditor = savedState.editors[0];
+        }
+
+        return activeEditor.state;
+    }
 }

@@ -70,6 +70,8 @@ import { Tabview, TabPosition } from "../../ui/Tabview/Tabview";
 import { TagInput } from "../../ui/TagInput/TagInput";
 import { Toolbar } from "../../ui/Toolbar/Toolbar";
 import { Button } from "../../ui/Button/Button";
+import { ISavedEditorState } from "../../../modules/db-editor/DBConnectionTab";
+import { EntityType } from "../../../modules/db-editor";
 
 interface IThemePreviewState extends IComponentState {
     editorLanguage: EditorLanguage;
@@ -78,8 +80,7 @@ interface IThemePreviewState extends IComponentState {
 
 /** A component that contains UI elements for preview in the theme editor. */
 export class ThemePreview extends ComponentBase<{}, IThemePreviewState> {
-
-    private readonly editorState: IEditorPersistentState;
+    #savedState: ISavedEditorState;
 
     public constructor(props: {}) {
         super(props);
@@ -129,7 +130,7 @@ export class ThemePreview extends ComponentBase<{}, IThemePreviewState> {
         model.editorMode = CodeEditorMode.Standard;
         model.setValue(content);
 
-        this.editorState = {
+        const editorState: IEditorPersistentState = {
             model,
             contextStates: exampleBlocks.map((block) => {
                 return {
@@ -149,6 +150,18 @@ export class ThemePreview extends ComponentBase<{}, IThemePreviewState> {
                 defaultEOL: "LF",
                 trimAutoWhitespace: true,
             },
+        };
+
+        this.#savedState = {
+            editors: [{
+                type: EntityType.Notebook,
+                id: "1",
+                caption: "Test",
+                currentVersion: 1,
+                state: editorState,
+            }],
+            activeEntry: "1",
+            heatWaveEnabled: false,
         };
     }
 
@@ -510,7 +523,7 @@ export class ThemePreview extends ComponentBase<{}, IThemePreviewState> {
                     style={{ height: "600px" }}
                 >
                     <Notebook
-                        editorState={this.editorState}
+                        savedState={this.#savedState}
                         dbType={DBType.MySQL}
                         readOnly={true}
                         showAbout={true}

@@ -20,11 +20,13 @@ exports[`Button component tests Test button output (Snapshot) 1`] = `
         caption="Normal Button"
         id="button1"
       >
-        <button
+        <div
           caption="Normal Button"
           className="msg button"
+          draggable={true}
           id="button1"
           onMouseDown={[Function]}
+          role="button"
           style={
             {
               "flexDirection": undefined,
@@ -33,19 +35,21 @@ exports[`Button component tests Test button output (Snapshot) 1`] = `
           tabIndex={0}
         >
           Normal Button
-        </button>
+        </div>
       </Button>
       <Button
         caption="Disabled Button"
         disabled={true}
         id="button2"
       >
-        <button
+        <div
           caption="Disabled Button"
           className="msg button"
           disabled={true}
+          draggable={true}
           id="button2"
           onMouseDown={[Function]}
+          role="button"
           style={
             {
               "flexDirection": undefined,
@@ -54,7 +58,7 @@ exports[`Button component tests Test button output (Snapshot) 1`] = `
           tabIndex={0}
         >
           Disabled Button
-        </button>
+        </div>
       </Button>
     </div>
   </Container>
@@ -76,10 +80,12 @@ exports[`Button component tests Test button output (Snapshot) 1`] = `
         id="button3"
         orientation="column"
       >
-        <button
+        <div
           className="msg button"
+          draggable={true}
           id="button3"
           onMouseDown={[Function]}
+          role="button"
           style={
             {
               "flexDirection": "column",
@@ -91,15 +97,17 @@ exports[`Button component tests Test button output (Snapshot) 1`] = `
           <h2>
             with content
           </h2>
-        </button>
+        </div>
       </Button>
       <Button
         id="button4"
       >
-        <button
+        <div
           className="msg button"
+          draggable={true}
           id="button4"
           onMouseDown={[Function]}
+          role="button"
           style={
             {
               "flexDirection": undefined,
@@ -117,7 +125,7 @@ exports[`Button component tests Test button output (Snapshot) 1`] = `
             />
           </Image>
           Image Button
-        </button>
+        </div>
       </Button>
     </div>
   </Container>
@@ -126,11 +134,13 @@ exports[`Button component tests Test button output (Snapshot) 1`] = `
     id="button5"
     size="big"
   >
-    <button
+    <div
       caption="Large Button"
       className="msg button big"
+      draggable={true}
       id="button5"
       onMouseDown={[Function]}
+      role="button"
       style={
         {
           "flexDirection": undefined,
@@ -139,7 +149,7 @@ exports[`Button component tests Test button output (Snapshot) 1`] = `
       tabIndex={0}
     >
       Large Button
-    </button>
+    </div>
   </Button>
   <Container
     orientation="row"
@@ -158,9 +168,11 @@ exports[`Button component tests Test button output (Snapshot) 1`] = `
       <Button
         round={true}
       >
-        <button
+        <div
           className="msg button round"
+          draggable={true}
           onMouseDown={[Function]}
+          role="button"
           style={
             {
               "flexDirection": undefined,
@@ -169,14 +181,16 @@ exports[`Button component tests Test button output (Snapshot) 1`] = `
           tabIndex={0}
         >
           M
-        </button>
+        </div>
       </Button>
       <Button
         round={true}
       >
-        <button
+        <div
           className="msg button round"
+          draggable={true}
           onMouseDown={[Function]}
+          role="button"
           style={
             {
               "flexDirection": undefined,
@@ -193,7 +207,7 @@ exports[`Button component tests Test button output (Snapshot) 1`] = `
               src="close.svg"
             />
           </Image>
-        </button>
+        </div>
       </Button>
     </div>
   </Container>

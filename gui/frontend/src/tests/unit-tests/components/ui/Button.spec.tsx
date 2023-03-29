@@ -99,7 +99,7 @@ describe("Button component tests", (): void => {
     });
 
     it("Test button click", async () => {
-        const innerRef = createRef<HTMLButtonElement>();
+        const innerRef = createRef<HTMLDivElement>();
         const component = mount(
             <Button innerRef={innerRef} onClick={buttonClick}>
                 Test button

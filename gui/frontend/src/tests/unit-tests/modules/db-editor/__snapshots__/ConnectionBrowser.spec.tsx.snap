@@ -396,12 +396,14 @@ DB Notebooks are modern editors for working with databases. You can use them to 
               onClick={[Function]}
               round={true}
             >
-              <button
+              <div
                 className="msg button round"
                 data-tooltip="Close Greeting"
+                draggable={true}
                 id="closeButton"
                 onClick={[Function]}
                 onMouseDown={[Function]}
+                role="button"
                 style={
                   {
                     "flexDirection": undefined,
@@ -428,7 +430,7 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                     }
                   />
                 </Icon>
-              </button>
+              </div>
             </Button>
             <Container
               orientation="column"
@@ -466,10 +468,11 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                         id="tilesHost"
                         style="flex-direction: row; flex-wrap: wrap;"
                       >
-                        <button
+                        <div
                           class="msg button browserTile connectionTile"
                           draggable="true"
                           id="0"
+                          role="button"
                           tabindex="0"
                         >
                           <span
@@ -506,10 +509,12 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                               …
                             </label>
                           </div>
-                        </button>
-                        <button
+                        </div>
+                        <div
                           class="msg button browserTile secondary connectionTile"
+                          draggable="true"
                           id="-1"
+                          role="button"
                           tabindex="0"
                         >
                           <span
@@ -533,7 +538,7 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                               Add a new database connection
                             </label>
                           </div>
-                        </button>
+                        </div>
                       </div>,
                     }
                   }
@@ -595,7 +600,7 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                         onDrop={[Function]}
                         onKeyPress={[Function]}
                       >
-                        <button
+                        <div
                           className="msg button browserTile connectionTile"
                           draggable={true}
                           id="0"
@@ -607,6 +612,7 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                           onDrop={[Function]}
                           onKeyPress={[Function]}
                           onMouseDown={[Function]}
+                          role="button"
                           style={
                             {
                               "flexDirection": undefined,
@@ -718,7 +724,7 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                               </Label>
                             </div>
                           </Container>
-                        </button>
+                        </div>
                       </Button>
                     </ConnectionTile>
                     <ConnectionTile
@@ -756,8 +762,9 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                         onDrop={[Function]}
                         onKeyPress={[Function]}
                       >
-                        <button
+                        <div
                           className="msg button browserTile secondary connectionTile"
+                          draggable={true}
                           id="-1"
                           onClick={[Function]}
                           onDragEnter={[Function]}
@@ -767,6 +774,7 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                           onDrop={[Function]}
                           onKeyPress={[Function]}
                           onMouseDown={[Function]}
+                          role="button"
                           style={
                             {
                               "flexDirection": undefined,
@@ -830,7 +838,7 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                               </Label>
                             </div>
                           </Container>
-                        </button>
+                        </div>
                       </Button>
                     </ConnectionTile>
                   </div>

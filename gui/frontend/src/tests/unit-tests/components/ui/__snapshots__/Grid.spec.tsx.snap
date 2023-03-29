@@ -153,10 +153,12 @@ exports[`Grid component test Standard Rendering 1`] = `
             id="loginButton"
             round={true}
           >
-            <button
+            <div
               className="msg button round"
+              draggable={true}
               id="loginButton"
               onMouseDown={[Function]}
+              role="button"
               style={
                 {
                   "flexDirection": undefined,
@@ -181,7 +183,7 @@ exports[`Grid component test Standard Rendering 1`] = `
                   }
                 />
               </Icon>
-            </button>
+            </div>
           </Button>
         </div>
       </Container>

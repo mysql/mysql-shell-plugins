@@ -575,10 +575,10 @@ describe("Value Edit Dialog Tests", (): void => {
 
         let portals = document.getElementsByClassName("portal");
         expect(portals).toHaveLength(1);
-        const buttons = portals[0].getElementsByTagName("button");
+        const buttons = portals[0].querySelectorAll("[role='button'");
         expect(buttons.length).toBe(9);
         expect(buttons[7].id).toBe("ok");
-        buttons[7].click();
+        (buttons[7] as HTMLButtonElement).click();
         await nextProcessTick();
 
         // Because we return error messages during validation, the dialog must not be closed.
@@ -735,8 +735,8 @@ describe("Value Edit Dialog Tests", (): void => {
         expect(portals).toHaveLength(1);
         expect(portals[0]).toMatchSnapshot();
 
-        const items = portals[0].getElementsByClassName("selectorItem");
-        expect(items).toHaveLength(5); // 3 pages and the 2 up/down paging items.
+        const items = portals[0].querySelectorAll("[role='button']");
+        expect(items).toHaveLength(6);
         expect(items[2].id).toBe("page1");
 
         // The items are actually not buttons, but simple div elements. However, they support the click event.
