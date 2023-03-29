@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -70,7 +70,11 @@ def get_service_dump(session, id):
     return service
 
 
-def load_object_dump(session, target_schema_id, object):
+def load_object_dump(session, target_schema_id, object, reuse_ids):
+    db_object_id = None
+    if reuse_ids:
+        db_object_id = lib.core.id_to_binary(object["id"], "object.id")
+
     return lib.db_objects.add_db_object(session, target_schema_id,
                                         object["name"],
                                         object["request_path"],
@@ -87,10 +91,16 @@ def load_object_dump(session, target_schema_id, object):
                                         object["auto_detect_media_type"],
                                         object["auth_stored_procedure"],
                                         object["options"],
-                                        object["fields"])  # object.fields)
+                                        object["fields"],
+                                        db_object_id=db_object_id,
+                                        reuse_ids=reuse_ids)  # object.fields)
 
 
-def load_schema_dump(session, target_service_id, schema):
+def load_schema_dump(session, target_service_id, schema, reuse_ids):
+    schema_id = None
+    if reuse_ids:
+        schema_id = lib.core.id_to_binary(schema["id"], "object.id")
+
     schema_id = lib.schemas.add_schema(session,
                                        schema["name"],
                                        target_service_id,
@@ -99,9 +109,10 @@ def load_schema_dump(session, target_service_id, schema):
                                        schema["enabled"],
                                        schema["items_per_page"],
                                        schema["comments"],
-                                       schema["options"])
+                                       schema["options"],
+                                       schema_id=schema_id)
 
     for object in schema["objects"]:
-        load_object_dump(session, schema_id, object)
+        load_object_dump(session, schema_id, object, reuse_ids)
 
     return schema_id

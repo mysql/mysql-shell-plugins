@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -136,9 +136,11 @@ def load(path, **kwargs):
         service_name (str): The name of the target service.
         schema_id (str): The ID of the target schema.
         schema_name (str): The name of the target schema.
+        reuse_ids (bool): Indicates whether the existing ids should be reused.
         session (object): The database session to use during the import.
     """
     session = kwargs.get('session', None)
+    reuse_ids = kwargs.get('reuse_ids', True)
 
     lib.core.convert_ids_to_binary(['service_id', 'schema_id'], kwargs)
 
@@ -199,13 +201,13 @@ def load(path, **kwargs):
                 service = lib.services.get_service(session, service_id=object_id)
                 lib.core.check_request_path(session, service["host_ctx"] + content["schema"]["request_path"])
                 lib.dump.load_schema_dump(
-                    session, object_id, content["schema"])
+                    session, object_id, content["schema"], reuse_ids)
             elif target_object == "schema":
                 schema = lib.schemas.get_schema(session, schema_id=object_id)
                 lib.core.check_request_path(session,
                     schema["host_ctx"] + schema["request_path"] + content["object"]["request_path"])
                 lib.dump.load_object_dump(
-                    session, object_id, content["object"])
+                    session, object_id, content["object"], reuse_ids)
 
 
 @plugin_function('mrs.load.schema', shell=True, cli=True, web=True)
@@ -218,6 +220,7 @@ def load_schema(path, **kwargs):
     Keyword Args:
         service_id (str): The ID of target service.
         service_name (str): The name of the target service.
+        reuse_ids (bool): Indicates whether the existing ids should be reused.
         session (object): The database session to use during the import.
     """
     load(path, **kwargs)
@@ -235,6 +238,7 @@ def load_object(path, **kwargs):
         service_name (str): The name of the target service.
         schema_id (str): The ID of the target schema.
         schema_name (str): The name of the target schema.
+        reuse_ids (bool): Indicates whether the existing ids should be reused.
         session (object): The database session to use during the import.
     """
     load(path, **kwargs)
