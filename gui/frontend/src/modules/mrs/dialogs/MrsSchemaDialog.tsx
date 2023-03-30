@@ -54,7 +54,7 @@ export class MrsSchemaDialog extends ValueDialogBase {
     private dialogValues(request: IDialogRequest, title: string, services: IMrsServiceData[]): IDialogValues {
 
         let selectedService = services.find((service) => {
-            return request.values?.serviceId === service.id;
+            return service.isCurrent === 1;
         });
 
         if (services.length > 0 && !selectedService) {
