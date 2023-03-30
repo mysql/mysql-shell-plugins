@@ -401,8 +401,9 @@ export class ShellInterfaceMrs {
         crudOperationFormat: string, requiresAuth: boolean,
         rowUserOwnershipEnforced: boolean, autoDetectMediaType: boolean,
         options: IShellDictionary | null,
+        itemsPerPage: number | null,
         rowUserOwnershipColumn?: string,
-        schemaId?: string, schemaName?: string, itemsPerPage?: number,
+        schemaId?: string, schemaName?: string,
         comments?: string, mediaType?: string,
         authStoredProcedure?: string,
         fields?: IMrsDbObjectFieldData[]): Promise<string> {

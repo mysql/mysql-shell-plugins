@@ -644,7 +644,7 @@ export interface IShellMrsAddDbObjectKwargs {
     /** Whether authentication is required to access the schema */
     requiresAuth?: boolean;
     /** The number of items returned per page */
-    itemsPerPage?: number;
+    itemsPerPage: number | null;
     /** Enable row ownership enforcement */
     rowUserOwnershipEnforced?: boolean;
     /** The column for row ownership enforcement */
@@ -767,7 +767,7 @@ export interface IShellMrsUpdateDbObjectKwargsValue {
     /** Whether authentication is required to access the database object */
     requiresAuth?: boolean;
     /** The number of items returned per page */
-    itemsPerPage?: number;
+    itemsPerPage: number | null;
     /** The request_path */
     requestPath?: string;
     /** Whether the media type should be detected automatically */

@@ -1607,7 +1607,7 @@ export class MRSCommandHandler {
                 requestPath: dbObject.requestPath,
                 requiresAuth: dbObject.requiresAuth === 1,
                 enabled: dbObject.enabled === 1,
-                itemsPerPage: dbObject.itemsPerPage,
+                itemsPerPage: dbObject.itemsPerPage ?? "",
                 comments: dbObject.comments ?? "",
                 rowUserOwnershipEnforced: dbObject.rowUserOwnershipEnforced === 1,
                 rowUserOwnershipColumn: dbObject.rowUserOwnershipColumn,
@@ -1633,7 +1633,7 @@ export class MRSCommandHandler {
         const name = response.data.name as string;
         const requestPath = response.data.requestPath as string;
         const requiresAuth = response.data.requiresAuth as boolean;
-        const itemsPerPage = response.data.itemsPerPage as number;
+        const itemsPerPage = response.data.itemsPerPage === "" ? null: response.data.itemsPerPage as number;
         const comments = response.data.comments as string;
         const enabled = response.data.enabled as boolean;
         const rowUserOwnershipEnforced = response.data.rowUserOwnershipEnforced as boolean;
@@ -1670,8 +1670,9 @@ export class MRSCommandHandler {
                     crudOperationFormat, requiresAuth,
                     rowUserOwnershipEnforced, autoDetectMediaType,
                     options,
+                    itemsPerPage,
                     rowUserOwnershipColumn,
-                    schemaId, undefined, itemsPerPage, comments,
+                    schemaId, undefined, comments,
                     mediaType, "",
                     fields);
 
