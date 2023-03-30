@@ -50,6 +50,27 @@ def test_add_db_object(phone_book, table_contents):
     assert id is not None
     assert db_objects_table.count == db_objects_table.snapshot.count + 1
 
+    assert db_objects_table.get("id", id) == {
+        "id": lib.core.id_to_binary(id, "id"),
+        "db_schema_id": lib.core.id_to_binary(phone_book["schema_id"], "schema_id"),
+        "name": db_object["db_object_name"],
+        "object_type": db_object["db_object_type"],
+        "request_path": db_object["request_path"],
+        "crud_operations": db_object["crud_operations"],
+        "requires_auth": int(db_object["requires_auth"]),
+        "items_per_page": db_object["items_per_page"],
+        "row_user_ownership_enforced": int(db_object["row_user_ownership_enforced"]),
+        "row_user_ownership_column": db_object["row_user_ownership_column"],
+        "comments": db_object["comments"],
+        "media_type": db_object["media_type"],
+        "auto_detect_media_type": int(db_object["auto_detect_media_type"]),
+        "auth_stored_procedure": db_object["auth_stored_procedure"],
+        "options": db_object["options"],
+        "enabled": 1,
+        "format": db_object["crud_operation_format"],
+        "details": None,
+    }
+
     db_object = {
         "schema_id": phone_book["schema_id"],
         "db_object_name": "GetAllContacts",
@@ -60,7 +81,7 @@ def test_add_db_object(phone_book, table_contents):
         "crud_operations": ['CREATE', 'READ', 'UPDATE'],
         "crud_operation_format": "FEED",
         "requires_auth": False,
-        "items_per_page": 10,
+        "items_per_page": None,
         "row_user_ownership_enforced": False,
         "row_user_ownership_column": "",
         "comments": "Test table",
@@ -279,6 +300,28 @@ def test_db_object_update(phone_book):
     assert db_object.get("row_user_ownership_column") == args["value"]["row_user_ownership_column"]
     assert db_object.get("comments") == args["value"]["comments"]
     assert db_object.get("options") == args["value"]["options"]
+
+    # specific test to update items_per_page
+    args["value"] = {
+        "items_per_page": None
+    }
+    update_db_object(**args)
+    db_object = get_db_object(**args)
+    db_object["items_per_page"] = None
+
+    args["value"] = {
+        "items_per_page": 50
+    }
+    update_db_object(**args)
+    db_object = get_db_object(**args)
+    db_object["items_per_page"] = 50
+
+    args["value"] = {
+        "items_per_page": None
+    }
+    update_db_object(**args)
+    db_object = get_db_object(**args)
+    db_object["items_per_page"] = None
 
 
 def test_delete(phone_book, table_contents):

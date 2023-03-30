@@ -256,10 +256,6 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
     if row_user_ownership_enforced and not row_user_ownership_column:
         raise ValueError('Operation cancelled.')
 
-    if not items_per_page:
-        items_per_page = 25
-        # raise ValueError("No valid value given as items per page.")
-
     if not comments:
         comments = ""
 
@@ -302,7 +298,7 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
             field["id"] = core.id_to_binary(field["id"], "")
         else:
             field["id"] = core.get_sequence_id(session)
-            
+
         field["db_object_id"] = db_object_id
         core.insert(table="field", values=field).exec(session)
 
@@ -444,16 +440,14 @@ def update_db_objects(session, db_object_ids, value):
         grant_privileges = map_crud_operations(value.get("crud_operations", []))
 
         # Grant privilege to the 'mysql_rest_service_data_provider' role
-        if not grant_privileges:
-            raise ValueError("No valid CRUD Operation specified")
+        if grant_privileges:
+            db_object = get_db_object(session, db_object_id)
+            schema = schemas.get_schema(session, db_object["db_schema_id"])
 
-        db_object = get_db_object(session, db_object_id)
-        schema = schemas.get_schema(session, db_object["db_schema_id"])
-
-        if db_object["object_type"] == "PROCEDURE":
-            database.grant_procedure(session, schema.get("name"), db_object['name'])
-        else:
-            database.grant_db_object(session, schema.get("name"), db_object['name'], grant_privileges)
+            if db_object["object_type"] == "PROCEDURE":
+                database.grant_procedure(session, schema.get("name"), db_object['name'])
+            else:
+                database.grant_db_object(session, schema.get("name"), db_object['name'], grant_privileges)
 
         if fields is not None:
             update_db_object_fields(session, db_object_id, fields)

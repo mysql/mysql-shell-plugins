@@ -93,7 +93,7 @@ def add_db_object(**kwargs):
         crud_operation_format (str): The format to use for the CRUD operation
         requires_auth (bool): Whether authentication is required to access
             the schema
-        items_per_page (int): The number of items returned per page
+        items_per_page (int,required): The number of items returned per page
         row_user_ownership_enforced (bool): Enable row ownership enforcement
         row_user_ownership_column (str): The column for row ownership enforcement
         comments (str): Comments for the schema
@@ -904,7 +904,7 @@ def update_db_object(**kwargs):
         crud_operation_format (str): The format to use for the CRUD operation
         requires_auth (bool): Whether authentication is required to access
             the database object
-        items_per_page (int): The number of items returned per page
+        items_per_page (int,required): The number of items returned per page
         request_path (str): The request_path
         auto_detect_media_type (bool): Whether the media type should be detected automatically
         row_user_ownership_enforced (bool): Enable row ownership enforcement
