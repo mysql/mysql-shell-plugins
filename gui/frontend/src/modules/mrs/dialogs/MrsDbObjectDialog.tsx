@@ -62,7 +62,7 @@ export class MrsDbObjectDialog extends ValueDialogBase {
         services: IMrsServiceData[], schemas: IMrsSchemaData[], rowOwnershipFields: string[]): IDialogValues {
 
         let selectedService = services.find((service) => {
-            return request.values?.serviceId === service.id;
+            return service.isCurrent === 1;
         });
 
         if (services.length > 0 && !selectedService) {
