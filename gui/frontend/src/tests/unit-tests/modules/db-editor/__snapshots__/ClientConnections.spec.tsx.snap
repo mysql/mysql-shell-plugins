@@ -190,7 +190,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                   disabled={false}
                   src="toolbar-sleeping_conns-active.svg"
                 >
-                  <span
+                  <div
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
@@ -231,7 +231,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                   disabled={false}
                   src="toolbar-background_threads-active.svg"
                 >
-                  <span
+                  <div
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
@@ -288,7 +288,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                   disabled={false}
                   src="toolbar-info-inactive.svg"
                 >
-                  <span
+                  <div
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
@@ -329,7 +329,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                   disabled={false}
                   src="toolbar-show_details-inactive.svg"
                 >
-                  <span
+                  <div
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
@@ -369,9 +369,8 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               onClick={[Function]}
             >
               <div
-                className="msg button imageOnly"
+                className="msg button imageOnly disabled"
                 data-tooltip="Kill Query"
-                disabled={true}
                 draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
@@ -388,7 +387,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                   disabled={false}
                   src="toolbar-kill_query.svg"
                 >
-                  <span
+                  <div
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
@@ -412,9 +411,8 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               onClick={[Function]}
             >
               <div
-                className="msg button imageOnly"
+                className="msg button imageOnly disabled"
                 data-tooltip="Kill Connection"
-                disabled={true}
                 draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
@@ -431,7 +429,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                   disabled={false}
                   src="toolbar-kill_connection.svg"
                 >
-                  <span
+                  <div
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
@@ -855,7 +853,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                   disabled={false}
                   src="toolbar-sleeping_conns-active.svg"
                 >
-                  <span
+                  <div
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
@@ -896,7 +894,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                   disabled={false}
                   src="toolbar-background_threads-active.svg"
                 >
-                  <span
+                  <div
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
@@ -953,7 +951,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                   disabled={false}
                   src="toolbar-info-inactive.svg"
                 >
-                  <span
+                  <div
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
@@ -994,7 +992,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                   disabled={false}
                   src="toolbar-show_details-inactive.svg"
                 >
-                  <span
+                  <div
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
@@ -1034,9 +1032,8 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               onClick={[Function]}
             >
               <div
-                className="msg button imageOnly"
+                className="msg button imageOnly disabled"
                 data-tooltip="Kill Query"
-                disabled={true}
                 draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
@@ -1053,7 +1050,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                   disabled={false}
                   src="toolbar-kill_query.svg"
                 >
-                  <span
+                  <div
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
@@ -1077,9 +1074,8 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               onClick={[Function]}
             >
               <div
-                className="msg button imageOnly"
+                className="msg button imageOnly disabled"
                 data-tooltip="Kill Connection"
-                disabled={true}
                 draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
@@ -1096,7 +1092,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                   disabled={false}
                   src="toolbar-kill_connection.svg"
                 >
-                  <span
+                  <div
                     className="msg icon"
                     data-tooltip="inherit"
                     style={

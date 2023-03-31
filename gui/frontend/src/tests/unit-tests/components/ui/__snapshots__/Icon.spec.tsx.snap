@@ -5,7 +5,7 @@ exports[`Icon component tests Standard Rendering 1`] = `
   disabled={false}
   src="close.svg"
 >
-  <span
+  <div
     className="msg icon"
     style={
       {

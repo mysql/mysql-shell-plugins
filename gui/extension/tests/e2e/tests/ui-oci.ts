@@ -112,7 +112,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             treeE2eTests = await treeOCISection.findItem("E2ETESTS (us-ashburn-1)", ociMaxLevel);
             await treeE2eTests?.expand();
 
-            await driver.wait(Misc.isNotLoading(treeOCISection), 200000,
+            await driver.wait(Misc.isNotLoading(treeOCISection), 250000,
                 `${await treeOCISection.getTitle()} is still loading`);
 
             const treeRoot = await treeOCISection.findItem("/ (Root Compartment)", ociMaxLevel);
@@ -453,6 +453,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         let mdsEndPoint = "";
         let dbSystemOCID = "";
         let bastionOCID = "";
+        let skip = false;
 
         before(async function () {
             try {
@@ -709,12 +710,18 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
                 await ntfs[ntfs.length - 1].takeAction("Yes");
 
+                skip = true;
+
                 this.skip();
             }
 
         });
 
-        it("Edit an existing MDS Connection", async () => {
+        it("Edit an existing MDS Connection", async function (){
+
+            if (skip) {
+                this.skip();
+            }
 
             const localMDSInfo: IConnMDS = {
                 profile: "E2ETESTS",
@@ -759,7 +766,11 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         });
 
-        it("Create a new MDS Connection", async () => {
+        it("Create a new MDS Connection", async function() {
+
+            if (skip) {
+                this.skip();
+            }
 
             const localBasicInfo: IConnBasicMySQL = {
                 hostname: mdsEndPoint,

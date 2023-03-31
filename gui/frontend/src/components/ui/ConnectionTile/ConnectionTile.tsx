@@ -23,9 +23,14 @@
 
 import { ComponentChild } from "preact";
 
+import toolbarMenuIcon from "../../../assets/images/toolbar/toolbar-menu.svg";
+import newNotebookIcon from "../../../assets/images/newNotebook.svg";
+import newScriptIcon from "../../../assets/images/newScript.svg";
+
 import { IConnectionDetails } from "../../../supplement/ShellInterface";
 import { BrowserTile, IBrowserTileProperties } from "../BrowserTile/BrowserTile";
-import { Label } from "../Label/Label";
+import { Button } from "../Button/Button";
+import { Icon } from "../Icon/Icon";
 
 export interface IConnectionTileProperties extends IBrowserTileProperties {
     details: IConnectionDetails;
@@ -49,11 +54,32 @@ export class ConnectionTile extends BrowserTile<IConnectionTileProperties> {
 
     protected renderTileActionUI = (): ComponentChild => {
         return (
-            <Label
-                id="triggerTileAction"
-                caption="…"
-                onClick={this.handleActionClick}
-            />
+            <>
+                <Button
+                    id="tileMoreActionsAction"
+                    data-tooltip="More Actions"
+                    imageOnly
+                    onClick={this.handleActionClick}
+                >
+                    <Icon src={toolbarMenuIcon} data-tooltip="inherit" />
+                </Button>
+                <Button
+                    id="tileNewNotebookAction"
+                    data-tooltip="Create New Notebook"
+                    imageOnly
+                    onClick={this.handleActionClick}
+                >
+                    <Icon src={newNotebookIcon} data-tooltip="inherit" />
+                </Button>
+                <Button
+                    id="tileNewScriptAction"
+                    data-tooltip="Create New Script"
+                    imageOnly
+                    onClick={this.handleActionClick}
+                >
+                    <Icon src={newScriptIcon} data-tooltip="inherit" />
+                </Button>
+            </>
         );
     };
 
@@ -61,7 +87,28 @@ export class ConnectionTile extends BrowserTile<IConnectionTileProperties> {
         const { onAction } = this.mergedProps;
 
         e.stopPropagation();
-        onAction?.("menu", this.mergedProps, { target: e.currentTarget });
+        const id = (e.currentTarget as HTMLElement).id;
+        switch (id) {
+            case "tileMoreActionsAction": {
+                onAction?.("menu", this.mergedProps, { target: e.currentTarget as HTMLElement });
+
+                break;
+            }
+
+            case "tileNewNotebookAction": {
+                onAction?.("open", this.mergedProps, { newTab: e.metaKey || e.altKey, editor: "notebook" });
+
+                break;
+            }
+
+            case "tileNewScriptAction": {
+                onAction?.("open", this.mergedProps, { newTab: e.metaKey || e.altKey, editor: "script" });
+
+                break;
+            }
+
+            default:
+        }
     };
 
 }

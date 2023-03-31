@@ -82,7 +82,8 @@ export class Label extends ComponentBase<ILabelProperties, ILabelState> {
 
         this.state = {};
         this.labelRef = props.innerRef ?? createRef<HTMLLabelElement>();
-        this.addHandledProperties("caption", "textAlignment", "quoted", "code", "heading", "innerRef", "style");
+        this.addHandledProperties("caption", "textAlignment", "quoted", "code", "heading", "language", "type",
+            "innerRef");
     }
 
     public componentDidMount(): void {

@@ -170,7 +170,7 @@ exports[`Grid component test Standard Rendering 1`] = `
                 disabled={false}
                 src="chevron-right.svg"
               >
-                <span
+                <div
                   className="msg icon"
                   style={
                     {

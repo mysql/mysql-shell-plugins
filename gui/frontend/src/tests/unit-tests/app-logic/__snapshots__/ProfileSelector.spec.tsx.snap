@@ -79,7 +79,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                   id="add"
                   style="flex-direction: row;"
                 >
-                  <span
+                  <div
                     class="msg icon"
                     style="mask-image: url(add.svg);"
                   />
@@ -95,7 +95,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                   id="edit"
                   style="flex-direction: row;"
                 >
-                  <span
+                  <div
                     class="msg icon"
                     style="mask-image: url(edit.svg);"
                   />
@@ -111,7 +111,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                   id="delete"
                   style="flex-direction: row;"
                 >
-                  <span
+                  <div
                     class="msg icon"
                     style="mask-image: url(close2.svg);"
                   />
@@ -160,7 +160,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                     id="add"
                     style="flex-direction: row;"
                   >
-                    <span
+                    <div
                       class="msg icon"
                       style="mask-image: url(add.svg);"
                     />
@@ -176,7 +176,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                     id="edit"
                     style="flex-direction: row;"
                   >
-                    <span
+                    <div
                       class="msg icon"
                       style="mask-image: url(edit.svg);"
                     />
@@ -192,7 +192,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                     id="delete"
                     style="flex-direction: row;"
                   >
-                    <span
+                    <div
                       class="msg icon"
                       style="mask-image: url(close2.svg);"
                     />
@@ -280,7 +280,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                   id="add"
                   style="flex-direction: row;"
                 >
-                  <span
+                  <div
                     class="msg icon"
                     style="mask-image: url(add.svg);"
                   />
@@ -296,7 +296,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                   id="edit"
                   style="flex-direction: row;"
                 >
-                  <span
+                  <div
                     class="msg icon"
                     style="mask-image: url(edit.svg);"
                   />
@@ -312,7 +312,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                   id="delete"
                   style="flex-direction: row;"
                 >
-                  <span
+                  <div
                     class="msg icon"
                     style="mask-image: url(close2.svg);"
                   />
@@ -364,7 +364,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                     id="add"
                     style="flex-direction: row;"
                   >
-                    <span
+                    <div
                       class="msg icon"
                       style="mask-image: url(add.svg);"
                     />
@@ -380,7 +380,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                     id="edit"
                     style="flex-direction: row;"
                   >
-                    <span
+                    <div
                       class="msg icon"
                       style="mask-image: url(edit.svg);"
                     />
@@ -396,7 +396,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                     id="delete"
                     style="flex-direction: row;"
                   >
-                    <span
+                    <div
                       class="msg icon"
                       style="mask-image: url(close2.svg);"
                     />

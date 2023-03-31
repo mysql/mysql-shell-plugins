@@ -62,7 +62,7 @@ exports[`Error Panel Tests Show Panel 1`] = `
     <div
       class="title verticalCenterContent"
     >
-      <span
+      <div
         class="msg icon codicon codicon-error"
       />
       <label
@@ -78,7 +78,7 @@ exports[`Error Panel Tests Show Panel 1`] = `
         role="button"
         tabindex="0"
       >
-        <span
+        <div
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
@@ -138,7 +138,7 @@ exports[`Error Panel Tests Show Panel 2`] = `
     <div
       class="title verticalCenterContent"
     >
-      <span
+      <div
         class="msg icon codicon codicon-error"
       />
       <label
@@ -154,7 +154,7 @@ exports[`Error Panel Tests Show Panel 2`] = `
         role="button"
         tabindex="0"
       >
-        <span
+        <div
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />

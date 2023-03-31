@@ -57,7 +57,7 @@ exports[`Token editor testing Render test 1`] = `
             disabled={false}
             src="close2.svg"
           >
-            <span
+            <div
               className="msg icon"
               data-tooltip="inherit"
               style={
@@ -100,7 +100,7 @@ exports[`Token editor testing Render test 1`] = `
             disabled={false}
             src="clone.svg"
           >
-            <span
+            <div
               className="msg icon"
               data-tooltip="inherit"
               style={
@@ -324,7 +324,7 @@ exports[`Token editor testing Render test 1`] = `
                                 disabled={false}
                                 src="close.svg"
                               >
-                                <span
+                                <div
                                   className="msg icon"
                                   style={
                                     {

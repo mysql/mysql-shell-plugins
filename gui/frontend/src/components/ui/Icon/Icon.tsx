@@ -75,7 +75,7 @@ export class Icon extends ComponentBase<IIconProperties> {
         }
 
         return (
-            <span
+            <div
                 className={className}
                 style={newStyle}
                 {...this.unhandledProperties}

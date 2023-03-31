@@ -321,7 +321,7 @@ describe("Notebook", () => {
 
             await DBConnection.writeSQL("select * from category limit 1;");
 
-            const lines = await driver.findElements(By.css("#contentHost .editorHost .view-line"));
+            let lines = await driver.findElements(By.css("#contentHost .editorHost .view-line"));
 
             let span2Click = await lines[lines.length - 2].findElement(By.css("span > span"));
 
@@ -339,6 +339,7 @@ describe("Notebook", () => {
 
             expect(await DBConnection.getResultColumnName("address_id")).toBeDefined();
 
+            lines = await driver.findElements(By.css("#contentHost .editorHost .view-line"));
             span2Click = await lines[lines.length - 3].findElement(By.css("span > span"));
 
             await span2Click.click();
@@ -355,6 +356,7 @@ describe("Notebook", () => {
 
             expect(await DBConnection.getResultColumnName("actor_id")).toBeDefined();
 
+            lines = await driver.findElements(By.css("#contentHost .editorHost .view-line"));
             span2Click = await lines[lines.length - 1].findElement(By.css("span > span"));
 
             await span2Click.click();
@@ -470,12 +472,14 @@ describe("Notebook", () => {
 
             await driver.wait(
                 async () => {
-                    return (
-                        (await commitBtn!.isEnabled()) === false &&
-                        (await rollBackBtn!.isEnabled()) === false
-                    );
+                    const commitBtn = await DBConnection.getToolbarButton("Commit DB changes");
+                    const rollBackBtn = await DBConnection.getToolbarButton("Rollback DB changes");
+
+                    return (await commitBtn?.getAttribute("class"))?.includes("disabled") &&
+                            (await rollBackBtn?.getAttribute("class"))?.includes("disabled");
+
                 },
-                5000,
+                explicitWait,
                 "Commit/Rollback DB changes button is still enabled ",
             );
         } catch (e) {
@@ -982,7 +986,7 @@ describe("Notebook", () => {
 
             expect(
                 await driver
-                    .findElement(By.css("#documentSelector span"))
+                    .findElement(By.css("#documentSelector .icon"))
                     .getAttribute("style"),
             ).toContain("notebook");
 

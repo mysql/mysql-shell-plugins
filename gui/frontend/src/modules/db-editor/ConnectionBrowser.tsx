@@ -40,7 +40,9 @@ import {
     DialogResponseClosure, DialogType, IDialogResponse, IDictionary, IServicePasswordRequest,
 } from "../../app-logic/Types";
 import { IToolbarItems } from ".";
-import { BrowserTileType, IBrowserTileProperties } from "../../components/ui/BrowserTile/BrowserTile";
+import {
+    BrowserTileType, IBrowserTileProperties, ITileActionOptions,
+} from "../../components/ui/BrowserTile/BrowserTile";
 import {
     IComponentProperties, ComponentBase, ComponentPlacement,
 } from "../../components/ui/Component/ComponentBase";
@@ -389,7 +391,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
     };
 
     private doHandleTileAction = (action: string, details: IConnectionDetails | undefined,
-        options?: IDictionary): void => {
+        options?: ITileActionOptions): void => {
         const dbType = details?.dbType ?? DBType.MySQL;
 
         switch (action) {
@@ -458,7 +460,11 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
             case "open": {
                 if (details) {
                     void requisitions.execute("openConnectionTab",
-                        { details, force: options?.newTab as boolean ?? false });
+                        {
+                            details,
+                            force: options?.newTab as boolean ?? false,
+                            initialEditor: options?.editor as ("notebook" | "script"),
+                        });
 
                     // Notify the wrapper, if there's one, in case it has to update UI for the changed page.
                     requisitions.executeRemote("selectConnectionTab", details?.caption);

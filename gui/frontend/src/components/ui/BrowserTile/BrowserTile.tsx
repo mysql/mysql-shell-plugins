@@ -38,6 +38,19 @@ export enum BrowserTileType {
     CreateNew,
 }
 
+export interface ITileActionOptions {
+    newTab?: boolean;
+    target?: HTMLElement | null;
+    editor?: "notebook" | "script";
+
+    id?: string;
+    endpoints?: Array<{ ipAddress: string; }>;
+    displayName?: string;
+    description?: string;
+    compartmentId?: string;
+    profileName?: string;
+}
+
 export interface IBrowserTileProperties extends IComponentProperties {
     innerRef?: preact.RefObject<HTMLDivElement>;
 
@@ -47,7 +60,7 @@ export interface IBrowserTileProperties extends IComponentProperties {
     type: BrowserTileType;
     icon: string;
 
-    onAction?: (action: string, props: IBrowserTileProperties, options: unknown) => void;
+    onAction?: (action: string, props: IBrowserTileProperties, options: ITileActionOptions) => void;
     onTileReorder?: (draggedTileId: number, props: unknown) => void;
 }
 
@@ -91,15 +104,18 @@ export abstract class BrowserTile<P extends IBrowserTileProperties> extends Comp
                     <Label className="tileDescription">{description}</Label>
                 </Container>
                 {type === BrowserTileType.Open &&
-                    <Container
-                        id="actions"
-                        orientation={Orientation.LeftToRight}
-                        mainAlignment={ContentAlignment.Center}
-                        crossAlignment={ContentAlignment.Center}
-                        innerRef={this.actionsRef}
-                    >
-                        {this.renderTileActionUI()}
-                    </Container>
+                    <>
+                        <Container id="actionsBackground" />
+                        <Container
+                            id="actions"
+                            orientation={Orientation.TopDown}
+                            mainAlignment={ContentAlignment.Center}
+                            crossAlignment={ContentAlignment.Center}
+                            innerRef={this.actionsRef}
+                        >
+                            {this.renderTileActionUI()}
+                        </Container>
+                    </>
                 }
             </Button>
         );

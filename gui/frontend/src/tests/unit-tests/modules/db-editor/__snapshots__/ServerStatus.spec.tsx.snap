@@ -91,7 +91,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       id="mysqlLogo"
                       src="mysql-logo.svg"
                     >
-                      <span
+                      <div
                         className="msg icon"
                         id="mysqlLogo"
                         style={
@@ -2494,7 +2494,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                       id="mysqlLogo"
                       src="mysql-logo.svg"
                     >
-                      <span
+                      <div
                         className="msg icon"
                         id="mysqlLogo"
                         style={

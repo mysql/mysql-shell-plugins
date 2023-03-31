@@ -25,7 +25,7 @@ exports[`Application tests Application readiness 1`] = `
             id="loginDialogSakilaLogo"
             src="module-shell.svg"
           >
-            <span
+            <div
               className="msg icon"
               id="loginDialogSakilaLogo"
               style={
@@ -298,7 +298,7 @@ exports[`Application tests Application readiness 1`] = `
                           disabled={false}
                           src="chevron-right.svg"
                         >
-                          <span
+                          <div
                             className="msg icon"
                             style={
                               {

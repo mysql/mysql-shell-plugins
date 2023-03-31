@@ -104,9 +104,11 @@ export class DBNotebooks {
             await newConDialog.findElement(By.id("clearPassword")).click();
             try {
                 const dialog = await driver.wait(until.elementsLocated(By.css(".errorPanel")), 500, "");
-                await dialog[0].findElement(By.css("button")).click();
+                await dialog[0].findElement(By.css(".button")).click();
             } catch (e) {
-            //continue
+                const clearDialog = await driver.wait(until.elementLocated(By.css(".visible.confirmDialog")),
+                explicitWait, "Password cleared dialog was not displayed");
+                await clearDialog.findElement(By.id("accept")).click();
             }
         }
         if (storePassword) {
@@ -143,7 +145,7 @@ export class DBNotebooks {
         expect((await driver.findElements(By.css(".valueEditDialog"))).length).toBe(0);
 
         return driver.wait(async () => {
-            const connections = await driver.findElements(By.css("#tilesHost button"));
+            const connections = await driver.findElements(By.css("#tilesHost .connectionTile"));
             for (const connection of connections) {
                 const el = await connection.findElement(By.css(".textHost .tileCaption"));
                 if ((await el.getAttribute("innerHTML")).includes(dbConfig.caption)) {
@@ -163,7 +165,7 @@ export class DBNotebooks {
     public static getConnection = async (name: string): Promise<WebElement | undefined> => {
 
         return driver.wait(async () => {
-            const connections = await driver.findElements(By.css("#tilesHost button"));
+            const connections = await driver.findElements(By.css("#tilesHost .connectionTile"));
             for (const connection of connections) {
                 const el = await connection.findElement(By.css(".textHost .tileCaption"));
                 if ((await el.getAttribute("innerHTML")).includes(name)) {
@@ -172,6 +174,43 @@ export class DBNotebooks {
             }
         }, 1500, "Could not find any connection");
 
+    };
+
+    public static clickConnectionItem = async (conn: WebElement, item: string): Promise <void> => {
+        const moreActions = await conn.findElement(By.id("tileMoreActionsAction"));
+        const moreActionsRect = await moreActions.getRect();
+        await driver.actions().move({x: parseInt(`${moreActionsRect.x}`, 10),
+            y: parseInt(`${moreActionsRect.y}`, 10)}).perform();
+        switch (item) {
+            case "notebook": {
+                await conn.findElement(By.id("tileNewNotebookAction")).click();
+                break;
+            }
+            case "script": {
+                await conn.findElement(By.id("tileNewScriptAction")).click();
+                break;
+            }
+            case "edit": {
+                await moreActions.click();
+                await driver.wait(until.elementLocated(By.id("edit")), explicitWait, "Edit button not found").click();
+                break;
+            }
+            case "duplicate": {
+                await moreActions.click();
+                await driver.wait(until.elementLocated(By.id("duplicate")),
+                    explicitWait, "Duplicate button not found").click();
+                break;
+            }
+            case "remove": {
+                await moreActions.click();
+                await driver.wait(until.elementLocated(By.id("remove")),
+                    explicitWait, "Remove button not found").click();
+                break;
+            }
+            default: {
+                break;
+            }
+        }
     };
 
     /**

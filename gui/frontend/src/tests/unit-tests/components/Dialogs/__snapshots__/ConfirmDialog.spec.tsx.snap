@@ -62,7 +62,7 @@ exports[`Confirm Dialog Tests Show Dialog with React Element 1`] = `
     <div
       class="title verticalCenterContent"
     >
-      <span
+      <div
         class="msg icon codicon codicon-question"
       />
       <label
@@ -78,7 +78,7 @@ exports[`Confirm Dialog Tests Show Dialog with React Element 1`] = `
         role="button"
         tabindex="0"
       >
-        <span
+        <div
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
@@ -157,7 +157,7 @@ exports[`Confirm Dialog Tests Show Dialog with simple and no message 1`] = `
     <div
       class="title verticalCenterContent"
     >
-      <span
+      <div
         class="msg icon codicon codicon-question"
       />
       <label
@@ -173,7 +173,7 @@ exports[`Confirm Dialog Tests Show Dialog with simple and no message 1`] = `
         role="button"
         tabindex="0"
       >
-        <span
+        <div
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
@@ -247,7 +247,7 @@ exports[`Confirm Dialog Tests Show Dialog with simple and no message 2`] = `
     <div
       class="title verticalCenterContent"
     >
-      <span
+      <div
         class="msg icon codicon codicon-question"
       />
       <label
@@ -263,7 +263,7 @@ exports[`Confirm Dialog Tests Show Dialog with simple and no message 2`] = `
         role="button"
         tabindex="0"
       >
-        <span
+        <div
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />

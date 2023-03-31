@@ -73,7 +73,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             id="selector1Item0"
             style="flex-direction: column; justify-content: center; align-items: center;"
           >
-            <span
+            <div
               class="msg icon"
               data-tooltip="inherit"
               style="mask-image: url(overviewPage.svg);"
@@ -90,7 +90,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             id="selector1Item1"
             style="flex-direction: column; justify-content: center; align-items: center;"
           >
-            <span
+            <div
               class="msg icon"
               data-tooltip="inherit"
               style="mask-image: url(overviewPage.svg);"
@@ -107,7 +107,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             id="selector1Item2"
             style="flex-direction: column; justify-content: center; align-items: center;"
           >
-            <span
+            <div
               class="msg icon"
               data-tooltip="inherit"
               style="mask-image: url(overviewPage.svg);"
@@ -124,7 +124,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             id="selector1Item3"
             style="flex-direction: column; justify-content: center; align-items: center;"
           >
-            <span
+            <div
               class="msg icon"
               data-tooltip="inherit"
               style="mask-image: url(overviewPage.svg);"
@@ -141,7 +141,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             id="selector1Item4"
             style="flex-direction: column; justify-content: center; align-items: center;"
           >
-            <span
+            <div
               class="msg icon"
               data-tooltip="inherit"
               style="mask-image: url(overviewPage.svg);"
@@ -158,7 +158,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             id="selector1Item5"
             style="flex-direction: column; justify-content: center; align-items: center;"
           >
-            <span
+            <div
               class="msg icon"
               data-tooltip="inherit"
               style="mask-image: url(overviewPage.svg);"
@@ -175,7 +175,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             id="selector1Item6"
             style="flex-direction: column; justify-content: center; align-items: center;"
           >
-            <span
+            <div
               class="msg icon"
               data-tooltip="inherit"
               style="mask-image: url(overviewPage.svg);"
@@ -192,7 +192,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             id="selector1Item7"
             style="flex-direction: column; justify-content: center; align-items: center;"
           >
-            <span
+            <div
               class="msg icon"
               data-tooltip="inherit"
               style="mask-image: url(overviewPage.svg);"
@@ -209,7 +209,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             id="selector1Item8"
             style="flex-direction: column; justify-content: center; align-items: center;"
           >
-            <span
+            <div
               class="msg icon"
               data-tooltip="inherit"
               style="mask-image: url(overviewPage.svg);"
@@ -226,7 +226,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             id="selector1Item9"
             style="flex-direction: column; justify-content: center; align-items: center;"
           >
-            <span
+            <div
               class="msg icon"
               data-tooltip="inherit"
               style="mask-image: url(overviewPage.svg);"
@@ -358,7 +358,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
               disabled={false}
               src="overviewPage.svg"
             >
-              <span
+              <div
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
@@ -426,7 +426,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
               disabled={false}
               src="overviewPage.svg"
             >
-              <span
+              <div
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
@@ -494,7 +494,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
               disabled={false}
               src="overviewPage.svg"
             >
-              <span
+              <div
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
@@ -562,7 +562,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
               disabled={false}
               src="overviewPage.svg"
             >
-              <span
+              <div
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
@@ -630,7 +630,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
               disabled={false}
               src="overviewPage.svg"
             >
-              <span
+              <div
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
@@ -698,7 +698,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
               disabled={false}
               src="overviewPage.svg"
             >
-              <span
+              <div
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
@@ -766,7 +766,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
               disabled={false}
               src="overviewPage.svg"
             >
-              <span
+              <div
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
@@ -834,7 +834,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
               disabled={false}
               src="overviewPage.svg"
             >
-              <span
+              <div
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
@@ -902,7 +902,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
               disabled={false}
               src="overviewPage.svg"
             >
-              <span
+              <div
                 className="msg icon"
                 data-tooltip="inherit"
                 style={
@@ -970,7 +970,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
               disabled={false}
               src="overviewPage.svg"
             >
-              <span
+              <div
                 className="msg icon"
                 data-tooltip="inherit"
                 style={

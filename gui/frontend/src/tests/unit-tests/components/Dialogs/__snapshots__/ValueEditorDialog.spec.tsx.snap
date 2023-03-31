@@ -12,7 +12,7 @@ exports[`Value Edit Dialog Tests Footer, Heading, Description and Payload 1`] = 
     <div
       class="title verticalCenterContent"
     >
-      <span
+      <div
         class="msg icon codicon codicon-terminal"
       />
       <label
@@ -28,7 +28,7 @@ exports[`Value Edit Dialog Tests Footer, Heading, Description and Payload 1`] = 
         role="button"
         tabindex="0"
       >
-        <span
+        <div
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
@@ -58,7 +58,6 @@ exports[`Value Edit Dialog Tests Footer, Heading, Description and Payload 1`] = 
                 data-lang="text"
                 data-tooltip="expand"
                 id="caption0"
-                language="text"
               >
                 Lorem Ipsum Dolor Sit Amet
               </label>
@@ -67,7 +66,6 @@ exports[`Value Edit Dialog Tests Footer, Heading, Description and Payload 1`] = 
                 data-lang="text"
                 data-tooltip="expand"
                 id="caption1"
-                language="text"
               >
                 Show this dialog to show a dialog
               </label>
@@ -154,7 +152,7 @@ exports[`Value Edit Dialog Tests Grouped Sections 1`] = `
     <div
       class="title verticalCenterContent"
     >
-      <span
+      <div
         class="msg icon codicon codicon-terminal"
       />
       <label
@@ -170,7 +168,7 @@ exports[`Value Edit Dialog Tests Grouped Sections 1`] = `
         role="button"
         tabindex="0"
       >
-        <span
+        <div
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
@@ -365,7 +363,7 @@ exports[`Value Edit Dialog Tests Grouped Sections 2`] = `
     <div
       class="title verticalCenterContent"
     >
-      <span
+      <div
         class="msg icon codicon codicon-terminal"
       />
       <label
@@ -381,7 +379,7 @@ exports[`Value Edit Dialog Tests Grouped Sections 2`] = `
         role="button"
         tabindex="0"
       >
-        <span
+        <div
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
@@ -576,7 +574,7 @@ exports[`Value Edit Dialog Tests Grouped Values 1`] = `
     <div
       class="title verticalCenterContent"
     >
-      <span
+      <div
         class="msg icon codicon codicon-terminal"
       />
       <label
@@ -592,7 +590,7 @@ exports[`Value Edit Dialog Tests Grouped Values 1`] = `
         role="button"
         tabindex="0"
       >
-        <span
+        <div
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
@@ -813,7 +811,7 @@ exports[`Value Edit Dialog Tests Simple Dialog 1`] = `
     <div
       class="title verticalCenterContent"
     >
-      <span
+      <div
         class="msg icon codicon codicon-terminal"
       />
       <label
@@ -829,7 +827,7 @@ exports[`Value Edit Dialog Tests Simple Dialog 1`] = `
         role="button"
         tabindex="0"
       >
-        <span
+        <div
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
@@ -915,7 +913,7 @@ exports[`Value Edit Dialog Tests Update Contexts 1`] = `
     <div
       class="title verticalCenterContent"
     >
-      <span
+      <div
         class="msg icon codicon codicon-terminal"
       />
       <label
@@ -931,7 +929,7 @@ exports[`Value Edit Dialog Tests Update Contexts 1`] = `
         role="button"
         tabindex="0"
       >
-        <span
+        <div
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
@@ -1017,7 +1015,7 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
     <div
       class="title verticalCenterContent"
     >
-      <span
+      <div
         class="msg icon codicon codicon-terminal"
       />
       <label
@@ -1033,7 +1031,7 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
         role="button"
         tabindex="0"
       >
-        <span
+        <div
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
@@ -1228,7 +1226,7 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
                 role="button"
                 tabindex="0"
               >
-                <span
+                <div
                   class="msg icon"
                   data-tooltip="inherit"
                   style="mask-image: url(add.svg);"
@@ -1242,7 +1240,7 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
                 role="button"
                 tabindex="0"
               >
-                <span
+                <div
                   class="msg icon"
                   data-tooltip="inherit"
                   style="mask-image: url(remove.svg);"
@@ -1481,7 +1479,7 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
     <div
       class="title verticalCenterContent"
     >
-      <span
+      <div
         class="msg icon codicon codicon-terminal"
       />
       <label
@@ -1497,7 +1495,7 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
         role="button"
         tabindex="0"
       >
-        <span
+        <div
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
@@ -1692,7 +1690,7 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
                 role="button"
                 tabindex="0"
               >
-                <span
+                <div
                   class="msg icon"
                   data-tooltip="inherit"
                   style="mask-image: url(add.svg);"
@@ -1706,7 +1704,7 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
                 role="button"
                 tabindex="0"
               >
-                <span
+                <div
                   class="msg icon"
                   data-tooltip="inherit"
                   style="mask-image: url(remove.svg);"

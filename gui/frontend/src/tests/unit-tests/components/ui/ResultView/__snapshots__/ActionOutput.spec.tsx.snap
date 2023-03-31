@@ -41,7 +41,7 @@ exports[`Action Output Tests Action Full Rendering 1`] = `
         disabled={false}
         src={65}
       >
-        <span
+        <div
           className="msg icon codicon codicon-copy"
           data-tooltip="inherit"
         />
@@ -61,10 +61,8 @@ exports[`Action Output Tests Action Full Rendering 1`] = `
           >
             <label
               class="msg resultText error actionLabel"
-              language="ansi"
               style="grid-column: span 2;"
               tabindex="-1"
-              type="0"
             >
               <span
                 class=""
@@ -119,7 +117,6 @@ exports[`Action Output Tests Action Full Rendering 1`] = `
         >
           <label
             className="msg resultText error actionLabel"
-            language="ansi"
             onClick={[Function]}
             style={
               {
@@ -127,7 +124,6 @@ exports[`Action Output Tests Action Full Rendering 1`] = `
               }
             }
             tabIndex={-1}
-            type={0}
           >
             <span
               className=""
@@ -150,7 +146,7 @@ exports[`Action Output Tests Action Full Rendering 1`] = `
 
 exports[`Action Output Tests Action Full Rendering 2`] = `
 HTMLCollection [
-  <span
+  <div
     class="msg icon codicon codicon-copy"
     data-tooltip="inherit"
   />,
@@ -190,7 +186,7 @@ exports[`Action Output Tests Standard Rendering 1`] = `
         disabled={false}
         src={65}
       >
-        <span
+        <div
           className="msg icon codicon codicon-copy"
           data-tooltip="inherit"
         />

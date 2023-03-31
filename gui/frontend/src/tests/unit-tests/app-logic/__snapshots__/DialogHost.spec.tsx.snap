@@ -12,7 +12,7 @@ exports[`DialogHost Tests Show MRS DB Object Dialog (snapshot) 1`] = `
     <div
       class="title verticalCenterContent"
     >
-      <span
+      <div
         class="msg icon codicon codicon-terminal"
       />
       <label
@@ -28,7 +28,7 @@ exports[`DialogHost Tests Show MRS DB Object Dialog (snapshot) 1`] = `
         role="button"
         tabindex="0"
       >
-        <span
+        <div
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
@@ -499,7 +499,7 @@ exports[`DialogHost Tests Show MRS Schema Dialog (snapshot) 1`] = `
     <div
       class="title verticalCenterContent"
     >
-      <span
+      <div
         class="msg icon codicon codicon-terminal"
       />
       <label
@@ -515,7 +515,7 @@ exports[`DialogHost Tests Show MRS Schema Dialog (snapshot) 1`] = `
         role="button"
         tabindex="0"
       >
-        <span
+        <div
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
@@ -774,7 +774,7 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
     <div
       class="title verticalCenterContent"
     >
-      <span
+      <div
         class="msg icon codicon codicon-terminal"
       />
       <label
@@ -790,7 +790,7 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
         role="button"
         tabindex="0"
       >
-        <span
+        <div
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
@@ -1095,7 +1095,7 @@ exports[`DialogHost Tests Show Prompt Dialog (snapshot) 1`] = `
     <div
       class="title verticalCenterContent"
     >
-      <span
+      <div
         class="msg icon codicon codicon-terminal"
       />
       <label
@@ -1111,7 +1111,7 @@ exports[`DialogHost Tests Show Prompt Dialog (snapshot) 1`] = `
         role="button"
         tabindex="0"
       >
-        <span
+        <div
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />

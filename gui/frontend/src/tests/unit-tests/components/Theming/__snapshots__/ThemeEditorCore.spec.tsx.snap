@@ -267,7 +267,7 @@ exports[`Theme editor core testing Render test 1`] = `
                                 disabled={false}
                                 src="import.svg"
                               >
-                                <span
+                                <div
                                   className="msg icon"
                                   data-tooltip="inherit"
                                   style={
@@ -328,7 +328,7 @@ exports[`Theme editor core testing Render test 1`] = `
                                 disabled={false}
                                 src="export.svg"
                               >
-                                <span
+                                <div
                                   className="msg icon"
                                   data-tooltip="inherit"
                                   style={
@@ -471,7 +471,7 @@ exports[`Theme editor core testing Render test 1`] = `
                                 disabled={false}
                                 src="add.svg"
                               >
-                                <span
+                                <div
                                   className="msg icon"
                                   data-tooltip="inherit"
                                   style={
@@ -516,7 +516,6 @@ exports[`Theme editor core testing Render test 1`] = `
                             <div
                               className="msg button"
                               data-tooltip="Delete current theme"
-                              disabled={false}
                               draggable={true}
                               id="button4"
                               onClick={[Function]}
@@ -534,7 +533,7 @@ exports[`Theme editor core testing Render test 1`] = `
                                 disabled={false}
                                 src="remove.svg"
                               >
-                                <span
+                                <div
                                   className="msg icon"
                                   data-tooltip="inherit"
                                   style={
