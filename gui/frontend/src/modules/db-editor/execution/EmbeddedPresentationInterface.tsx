@@ -163,6 +163,14 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
     public movePosition(delta: number): void {
         this.startLineNumber += delta;
         this.endLineNumber += delta;
+
+        // If we have a result assigned, update that as well.
+        if (this.resultInfo) {
+            this.resultInfo.zone.afterLineNumber = this.endLineNumber;
+            this.backend?.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
+                this.resultInfo && changeAccessor.layoutZone(this.resultInfo.zoneId);
+            });
+        }
     }
 
     public updateMarginDecorations(): void {
@@ -202,10 +210,9 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
                 this.promptOtherDecorationID = "";
             }
         }
-
         // If we have a result assigned, update that as well.
-        if (this.resultInfo) {
-            this.resultInfo.zone.afterLineNumber = this.endLine;
+        if (this.resultInfo && this.resultInfo.zone.afterLineNumber !== this.endLineNumber) {
+            this.resultInfo.zone.afterLineNumber = this.endLineNumber;
             this.backend?.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
                 this.resultInfo && changeAccessor.layoutZone(this.resultInfo.zoneId);
             });

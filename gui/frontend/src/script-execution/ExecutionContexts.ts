@@ -134,23 +134,6 @@ export class ExecutionContexts implements IContextProvider {
                         };
 
                         this.loadResultSets(state.result.list).then((resultSets) => {
-                            // Remove any result with no columns or rows and add their execution info
-                            // to the output list.
-                            /*resultSets.forEach((set) => {
-                                if (set.columns.length === 0 || set.data.rows.length === 0) {
-                                    result.output?.push({
-                                        type: set.data.executionInfo?.type ?? MessageType.Info,
-                                        index: set.index,
-                                        requestId: set.head.requestId,
-                                        content: set.data.executionInfo?.text ?? "",
-                                        language: "ansi",
-                                    });
-                                }
-                            });
-
-                            result.sets = resultSets.filter((value) => {
-                                return value.data.columns.length > 0 && value.data.rows.length > 0;
-                            });*/
                             result.sets = resultSets;
 
                             context.setResult(result, {
