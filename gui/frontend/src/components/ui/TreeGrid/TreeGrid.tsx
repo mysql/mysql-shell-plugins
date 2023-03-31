@@ -522,7 +522,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
 
     private handleTabulatorResize = (entries: readonly ResizeObserverEntry[]): void => {
         if (entries.length > 0) {
-            this.tabulator?.redraw();
+            this.tabulator?.redraw(true);
         }
     };
 
