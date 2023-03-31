@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -323,7 +323,7 @@ const getWelcomeWebviewContent = (rootPath: Uri, showVCRuntimePrompt: boolean): 
             <input id="cancelBtn" alt="Cancel" type="button" value="Cancel"></input>
             <input id="nextBtn" alt="Next" type="button" value="Next >"></input>
         </form>
-        <div class="CopyrightText">&copy; 2022, Oracle Corporation and/or its affiliates.</div>
+        <div class="CopyrightText">&copy; 2022, 2023, Oracle Corporation and/or its affiliates.</div>
     </div>
     <script>
         (function() {
@@ -493,7 +493,7 @@ export const setupInitialWelcomeWebview = (context: ExtensionContext): void => {
         const osName = platform();
         if (osName === "darwin" || osName === "win32") {
             const rel = release().match(/(\d*)\.(\d*)\.(\d*)/);
-            const mainVersion = (rel && rel.length > 1 && parseInt(rel[1], 10)) ?? 0;
+            const mainVersion = rel && rel.length > 1 ? parseInt(rel[1], 10) : 0;
             if (osName === "darwin" && mainVersion < 20) {
                 requirementsError = "This extension requires macOS 11 Big Sur or later.";
             } else if (osName === "win32" && mainVersion < 10) {
