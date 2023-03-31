@@ -44,8 +44,7 @@ exports[`Button component tests Test button output (Snapshot) 1`] = `
       >
         <div
           caption="Disabled Button"
-          className="msg button"
-          disabled={true}
+          className="msg button disabled"
           draggable={true}
           id="button2"
           onMouseDown={[Function]}

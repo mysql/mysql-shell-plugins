@@ -48,13 +48,13 @@ export class DBConnection {
     public static closeDBconnection = async (name: string): Promise<void> => {
         if (name === "current") {
             const tab = await driver.findElement(By.css(".hasAuxillary.selected"));
-            await tab.findElement(By.css("#auxillary > button")).click();
+            await tab.findElement(By.css("#auxillary .closeButton")).click();
         } else {
             const tabs = await driver.findElements(By.css(".hasAuxillary"));
             for (const tab of tabs) {
                 const text = await tab.findElement(By.css("label")).getAttribute("innerHTML");
                 if (text.trim() === name) {
-                    await tab.findElement(By.css("#auxillary > button")).click();
+                    await tab.findElement(By.css("#auxillary .closeButton")).click();
 
                     return;
                 }
@@ -71,7 +71,7 @@ export class DBConnection {
      * @returns Promise resolving with the Toolbar button
      */
     public static getToolbarButton = async (button: string): Promise<WebElement | undefined> => {
-        const buttons = await driver.findElements(By.css("#contentHost button"));
+        const buttons = await driver.findElements(By.css("#contentHost .button"));
         for (const btn of buttons) {
             if ((await btn.getAttribute("data-tooltip")) === button) {
                 return btn;
@@ -529,17 +529,18 @@ export class DBConnection {
             if (el.length > 0) {
                 type = await el[0].getAttribute("src");
             } else {
-                type = await item.findElement(By.css("span")).getAttribute("style");
+                type = await item.findElement(By.css(".msg.icon")).getAttribute("style");
             }
 
             if (name === editorName) {
                 if (type.indexOf(editorType) !== -1) {
                     await driver.wait(async () => {
                         await item.click();
+                        const selector = await driver.findElement(By.id("documentSelector"));
                         const selected = await selector.findElement(By.css("label")).getText();
 
                         return selected === editorName;
-                    }, 5000, `${editorName} with type ${editorType} was not properly selected`);
+                    }, explicitWait, `${editorName} with type ${editorType} was not properly selected`);
 
                     await driver.wait(
                         async () => {

@@ -921,6 +921,22 @@ export class Misc {
         return toReturn;
     };
 
+    private static getCmdResultToolbar = async (zoneHost: WebElement): Promise <WebElement | undefined> => {
+        let context;
+        if (zoneHost) {
+            context = zoneHost;
+        } else {
+            const blocks = await driver.wait(until.elementsLocated(By.css(".zoneHost")),
+                explicitWait, "No zone hosts were found");
+            context = blocks[blocks.length - 1];
+        }
+
+        const toolbar = await context.findElements(By.css(".resultStatus .toolbar"));
+        if (toolbar.length > 0) {
+            return toolbar[0];
+        }
+    };
+
     private static getCmdResult = async (
         cmd: string,
         blockId: string,
@@ -966,6 +982,7 @@ export class Misc {
                     }
                 });
 
+            toReturn.push(await Misc.getCmdResultToolbar(zoneHost));
         } else {
             await driver.wait(until.elementLocated(
                 By.xpath(`//div[@class='zoneHost' and @monaco-view-zone='d${blockId}']`)),

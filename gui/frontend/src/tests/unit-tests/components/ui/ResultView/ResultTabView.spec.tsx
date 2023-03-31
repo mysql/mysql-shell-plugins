@@ -161,7 +161,7 @@ describe("Result Tabview Tests", (): void => {
                 tab.getDOMNode<HTMLButtonElement>().click(); // Select the first as the current result set.
             }
         });
-        expect(found).toBeTruthy();
+        expect(found).toBe(true);
         expect(component.state().currentResultSet).toBeDefined();
         expect(component.state().currentResultSet?.resultId).toBe("123");
 
@@ -249,7 +249,7 @@ describe("Result Tabview Tests", (): void => {
                 tab.getDOMNode<HTMLButtonElement>().click(); // Select the first as the current result set.
             }
         });
-        expect(found).toBeTruthy();
+        expect(found).toBe(true);
         expect(component.state().currentResultSet).not.toBeDefined(); // No result set is selected anymore.
 
         component.unmount();
@@ -319,7 +319,7 @@ describe("Result Tabview Tests", (): void => {
                 tab.getDOMNode<HTMLButtonElement>().click();
             }
         });
-        expect(found).toBeTruthy();
+        expect(found).toBe(true);
         expect(component.state().currentResultSet).toBeDefined();
         await nextRunLoop();
 
@@ -338,7 +338,7 @@ describe("Result Tabview Tests", (): void => {
         let button = buttons.namedItem("previousPageButton") as HTMLButtonElement;
         expect(button).toBeDefined();
         expect(button.getAttribute("data-tooltip")).toBe("Previous Page");
-        expect(button.hasAttribute("disabled")).toBeFalsy();
+        expect(button.classList.contains("disabled")).toBe(false);
 
         // Clicking this button normally loads a new set of data in a callback (while still maintaining an internal
         // page counter for visual updates).
@@ -347,7 +347,7 @@ describe("Result Tabview Tests", (): void => {
         component.instance().forceUpdate();
         await nextRunLoop();
 
-        expect(button.hasAttribute("disabled")).toBeTruthy();
+        expect(button.classList.contains("disabled")).toBe(true);
         expect(resultSets.sets[1].data.currentPage).toBe(0);
         expect(onResultPageChange).toBeCalledTimes(1);
 
@@ -360,7 +360,7 @@ describe("Result Tabview Tests", (): void => {
         button = buttons.namedItem("nextPageButton") as HTMLButtonElement;
         expect(button).toBeDefined();
         expect(button.getAttribute("data-tooltip")).toBe("Next Page");
-        expect(button.hasAttribute("disabled")).toBeFalsy();
+        expect(button.classList.contains("disabled")).toBe(false);
         button.click();
         button.click();
         expect(resultSets.sets[1].data.currentPage).toBe(2);
@@ -368,26 +368,26 @@ describe("Result Tabview Tests", (): void => {
         // Apply.
         button = buttons.namedItem("applyButton") as HTMLButtonElement;
         expect(button).toBeDefined();
-        expect(button.hasAttribute("disabled")).toBeTruthy(); // The button is currently disabled.
+        expect(button.classList.contains("disabled")).toBe(true); // The button is currently disabled.
         expect(button.getAttribute("data-tooltip")).toBe("Apply Changes");
 
         // Revert.
         button = buttons.namedItem("revertButton") as HTMLButtonElement;
         expect(button).toBeDefined();
-        expect(button.hasAttribute("disabled")).toBeTruthy(); // The button is currently disabled.
+        expect(button.classList.contains("disabled")).toBe(true); // The button is currently disabled.
         expect(button.getAttribute("data-tooltip")).toBe("Revert Changes");
 
         // Maximize.
         button = buttons.namedItem("toggleStateButton") as HTMLButtonElement;
         expect(button).toBeDefined();
-        expect(button.hasAttribute("disabled")).toBeFalsy(); // The button is not disabled, but does nothing yet.
+        expect(button.classList.contains("disabled")).toBe(false); // The button is not disabled, but does nothing yet.
         expect(button.getAttribute("data-tooltip")).toBe("Maximize Result Tab");
 
         // Menu.
         button = buttons.namedItem("showActionMenu") as HTMLButtonElement;
         expect(button).toBeDefined();
         expect(button.getAttribute("data-tooltip")).toBe("Show Action Menu");
-        expect(button.hasAttribute("disabled")).toBeFalsy();
+        expect(button.classList.contains("disabled")).toBe(false);
 
         let portals = document.getElementsByClassName("portal");
         expect(portals).toHaveLength(0);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -104,7 +104,7 @@
 .msg.browserTile .textHost {
     flex: 1 1 auto;
     justify-content: center;
-    padding-right: 8px;
+    padding-right: 39px;
 }
 
 .msg.browserTile .label {
@@ -136,6 +136,22 @@
     background-color: var(--browserTileSecondary-foreground);
 }
 
+.msg.browserTile #actionsBackground {
+    visibility: hidden;
+    position: absolute;
+
+    top: 0;
+    right: 0;
+    margin: 0;
+
+    width: 39px;
+    height: 76px;
+
+    border: none;
+    background: var(--browserTile-border);
+    opacity: 35%;
+}
+
 .msg.browserTile #actions {
     display: flex;
     visibility: hidden;
@@ -146,20 +162,21 @@
     right: 0;
     margin: 0;
 
-    width: 24px;
-    height: 24px;
+    width: 39px;
+    height: 76px;
 
     border: none;
-    border-radius: 0 0 0 4px;
-    background: var(--browserTile-border);
+    background: none;
 }
 
 .msg.browserTile:focus #actions,
-.msg.browserTile:hover #actions {
+.msg.browserTile:hover #actions,
+.msg.browserTile:focus #actionsBackground,
+.msg.browserTile:hover #actionsBackground {
     visibility: visible;
 }
 
-.msg.browserTile #actions>#triggerEditMenu {
+.msg.browserTile #actions > #triggerEditMenu {
     flex: 1 1 auto;
 
     min-width: 0;
@@ -175,4 +192,17 @@
     text-align: center;
     border: none;
     background: var(--browserTile-border);
+}
+
+.msg.browserTile #actions .button {
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+    background: none;
+    border: none;
+    color: var(--browserTile--foreground);
+    width: 24px;
+    height: 24px;
+
+    opacity: 100%;
 }

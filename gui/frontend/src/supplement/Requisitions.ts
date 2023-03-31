@@ -202,6 +202,8 @@ export interface IProxyRequest {
     original: IRequestListEntry<keyof IRequestTypeMap>;
 }
 
+export type InitialEditor = "default" | "none" | "notebook" | "script";
+
 /**
  * The map containing possible requests and their associated callback.
  * The return value in the promise determines if the request was handled or not.
@@ -223,7 +225,7 @@ export interface IRequestTypeMap {
     "editorInfoUpdated": (info: IEditorStatusInfo) => Promise<boolean>;
     "themeChanged": (data: IThemeChangeData) => Promise<boolean>;
     "openConnectionTab": (
-        data: { details: IConnectionDetails; force: boolean; noEditor?: boolean; }) => Promise<boolean>;
+        data: { details: IConnectionDetails; force: boolean; initialEditor: InitialEditor; }) => Promise<boolean>;
     "selectFile": (result: IOpenFileDialogResult) => Promise<boolean>;
     "showOpenDialog": (options: IOpenDialogOptions) => Promise<boolean>;
 

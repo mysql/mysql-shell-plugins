@@ -40,7 +40,7 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
           disabled={false}
           src="overviewPage.svg"
         >
-          <span
+          <div
             className="msg icon"
             style={
               {
@@ -57,7 +57,7 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
           disabled={false}
           src="overviewPage.svg"
         >
-          <span
+          <div
             className="msg icon"
             style={
               {
@@ -74,7 +74,7 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
           disabled={false}
           src="overviewPage.svg"
         >
-          <span
+          <div
             className="msg icon"
             style={
               {
@@ -91,7 +91,7 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
           disabled={false}
           src="overviewPage.svg"
         >
-          <span
+          <div
             className="msg icon"
             style={
               {
@@ -108,7 +108,7 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
           disabled={false}
           src="overviewPage.svg"
         >
-          <span
+          <div
             className="msg icon"
             style={
               {
@@ -125,7 +125,7 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
           disabled={false}
           src="overviewPage.svg"
         >
-          <span
+          <div
             className="msg icon"
             style={
               {

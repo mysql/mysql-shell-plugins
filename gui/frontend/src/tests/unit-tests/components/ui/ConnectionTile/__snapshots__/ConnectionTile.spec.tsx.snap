@@ -54,7 +54,7 @@ exports[`ConnectionTile component tests Test ConnectionTile output (Snapshot) 1`
         disabled={false}
         src="scriptMysql.svg"
       >
-        <span
+        <div
           className="msg icon"
           style={
             {
@@ -107,6 +107,23 @@ exports[`ConnectionTile component tests Test ConnectionTile output (Snapshot) 1`
         </div>
       </Container>
       <Container
+        id="actionsBackground"
+        orientation="row"
+      >
+        <div
+          className="msg container fixedScrollbar"
+          id="actionsBackground"
+          style={
+            {
+              "alignItems": undefined,
+              "flexDirection": "row",
+              "flexWrap": undefined,
+              "justifyContent": undefined,
+            }
+          }
+        />
+      </Container>
+      <Container
         crossAlignment="center"
         id="actions"
         innerRef={
@@ -114,20 +131,55 @@ exports[`ConnectionTile component tests Test ConnectionTile output (Snapshot) 1`
             "current": <div
               class="msg container fixedScrollbar"
               id="actions"
-              style="flex-direction: row; justify-content: center; align-items: center;"
+              style="flex-direction: column; justify-content: center; align-items: center;"
             >
-              <label
-                class="msg label"
-                data-tooltip="expand"
-                id="triggerTileAction"
+              <div
+                class="msg button imageOnly"
+                data-tooltip="More Actions"
+                draggable="true"
+                id="tileMoreActionsAction"
+                role="button"
+                tabindex="0"
               >
-                …
-              </label>
+                <div
+                  class="msg icon"
+                  data-tooltip="inherit"
+                  style="mask-image: url(toolbar-menu.svg);"
+                />
+              </div>
+              <div
+                class="msg button imageOnly"
+                data-tooltip="Create New Notebook"
+                draggable="true"
+                id="tileNewNotebookAction"
+                role="button"
+                tabindex="0"
+              >
+                <div
+                  class="msg icon"
+                  data-tooltip="inherit"
+                  style="mask-image: url(newNotebook.svg);"
+                />
+              </div>
+              <div
+                class="msg button imageOnly"
+                data-tooltip="Create New Script"
+                draggable="true"
+                id="tileNewScriptAction"
+                role="button"
+                tabindex="0"
+              >
+                <div
+                  class="msg icon"
+                  data-tooltip="inherit"
+                  style="mask-image: url(newScript.svg);"
+                />
+              </div>
             </div>,
           }
         }
         mainAlignment="center"
-        orientation="row"
+        orientation="column"
       >
         <div
           className="msg container fixedScrollbar"
@@ -135,27 +187,138 @@ exports[`ConnectionTile component tests Test ConnectionTile output (Snapshot) 1`
           style={
             {
               "alignItems": "center",
-              "flexDirection": "row",
+              "flexDirection": "column",
               "flexWrap": undefined,
               "justifyContent": "center",
             }
           }
         >
-          <Label
-            caption="…"
-            id="triggerTileAction"
+          <Button
+            data-tooltip="More Actions"
+            id="tileMoreActionsAction"
+            imageOnly={true}
             onClick={[Function]}
           >
-            <label
-              className="msg label"
-              data-tooltip="expand"
-              id="triggerTileAction"
+            <div
+              className="msg button imageOnly"
+              data-tooltip="More Actions"
+              draggable={true}
+              id="tileMoreActionsAction"
               onClick={[Function]}
-              style={{}}
+              onMouseDown={[Function]}
+              role="button"
+              style={
+                {
+                  "flexDirection": undefined,
+                }
+              }
+              tabIndex={0}
             >
-              …
-            </label>
-          </Label>
+              <Icon
+                data-tooltip="inherit"
+                disabled={false}
+                src="toolbar-menu.svg"
+              >
+                <div
+                  className="msg icon"
+                  data-tooltip="inherit"
+                  style={
+                    {
+                      "WebkitMaskImage": "url(toolbar-menu.svg)",
+                      "backgroundColor": undefined,
+                      "height": undefined,
+                      "maskImage": "url(toolbar-menu.svg)",
+                      "width": undefined,
+                    }
+                  }
+                />
+              </Icon>
+            </div>
+          </Button>
+          <Button
+            data-tooltip="Create New Notebook"
+            id="tileNewNotebookAction"
+            imageOnly={true}
+            onClick={[Function]}
+          >
+            <div
+              className="msg button imageOnly"
+              data-tooltip="Create New Notebook"
+              draggable={true}
+              id="tileNewNotebookAction"
+              onClick={[Function]}
+              onMouseDown={[Function]}
+              role="button"
+              style={
+                {
+                  "flexDirection": undefined,
+                }
+              }
+              tabIndex={0}
+            >
+              <Icon
+                data-tooltip="inherit"
+                disabled={false}
+                src="newNotebook.svg"
+              >
+                <div
+                  className="msg icon"
+                  data-tooltip="inherit"
+                  style={
+                    {
+                      "WebkitMaskImage": "url(newNotebook.svg)",
+                      "backgroundColor": undefined,
+                      "height": undefined,
+                      "maskImage": "url(newNotebook.svg)",
+                      "width": undefined,
+                    }
+                  }
+                />
+              </Icon>
+            </div>
+          </Button>
+          <Button
+            data-tooltip="Create New Script"
+            id="tileNewScriptAction"
+            imageOnly={true}
+            onClick={[Function]}
+          >
+            <div
+              className="msg button imageOnly"
+              data-tooltip="Create New Script"
+              draggable={true}
+              id="tileNewScriptAction"
+              onClick={[Function]}
+              onMouseDown={[Function]}
+              role="button"
+              style={
+                {
+                  "flexDirection": undefined,
+                }
+              }
+              tabIndex={0}
+            >
+              <Icon
+                data-tooltip="inherit"
+                disabled={false}
+                src="newScript.svg"
+              >
+                <div
+                  className="msg icon"
+                  data-tooltip="inherit"
+                  style={
+                    {
+                      "WebkitMaskImage": "url(newScript.svg)",
+                      "backgroundColor": undefined,
+                      "height": undefined,
+                      "maskImage": "url(newScript.svg)",
+                      "width": undefined,
+                    }
+                  }
+                />
+              </Icon>
+            </div>
+          </Button>
         </div>
       </Container>
     </div>

@@ -91,23 +91,7 @@ describe("Database Connections", () => {
         try {
 
             const host = await DBNotebooks.getConnection(globalConn.caption);
-
-            await driver.executeScript(
-                "arguments[0].click();",
-                await host!.findElement(By.id("triggerTileAction")),
-            );
-
-            const contextMenu = await driver.wait(
-                until.elementLocated(By.css(".noArrow.menu")),
-                2000,
-            );
-
-            expect(contextMenu).toBeDefined();
-
-            await driver.executeScript(
-                "arguments[0].click();",
-                await contextMenu.findElement(By.id("edit")),
-            );
+            await DBNotebooks.clickConnectionItem(host!, "edit");
 
             const conDialog = await driver.wait(until.elementLocated(By.css(".valueEditDialog")),
                 explicitWait, "Dialog was not displayed");
@@ -131,8 +115,8 @@ describe("Database Connections", () => {
             const passwordDialog = await driver.wait(until.elementLocated(By.css(".passwordDialog")),
                 explicitWait, "Password dialog was not displayed");
             await passwordDialog.findElement(By.id("cancel")).click();
-            const error = await driver.wait(until.elementLocated(By.css(".errorPanel button")),
-                explicitWait, "Error panel was not displayed");
+            const error = await driver.wait(until.elementLocated(By.css(".errorPanel .button")),
+               explicitWait, "Error panel was not displayed");
 
             await error.click();
 
@@ -196,22 +180,7 @@ describe("Database Connections", () => {
 
             const host = await DBNotebooks.getConnection(globalConn.caption);
 
-            await driver.executeScript(
-                "arguments[0].click();",
-                await host!.findElement(By.id("triggerTileAction")),
-            );
-
-            const contextMenu = await driver.wait(
-                until.elementLocated(By.css(".noArrow.menu")),
-                2000,
-            );
-
-            expect(contextMenu).toBeDefined();
-
-            await driver.executeScript(
-                "arguments[0].click();",
-                await contextMenu.findElement(By.id("duplicate")),
-            );
+            await DBNotebooks.clickConnectionItem(host!, "duplicate");
 
             const conDialog = await driver.findElement(By.css(".valueEditDialog"));
 
@@ -271,22 +240,7 @@ describe("Database Connections", () => {
 
             let host = await DBNotebooks.createDBconnection(localConn);
 
-            await driver.executeScript(
-                "arguments[0].click();",
-                await host!.findElement(By.id("triggerTileAction")),
-            );
-
-            let contextMenu = await driver.wait(
-                until.elementLocated(By.css(".noArrow.menu")),
-                2000,
-            );
-
-            expect(contextMenu).toBeDefined();
-
-            await driver.executeScript(
-                "arguments[0].click();",
-                await contextMenu.findElement(By.id("edit")),
-            );
+            await DBNotebooks.clickConnectionItem(host!, "edit");
 
             let conDialog = await driver.findElement(By.css(".valueEditDialog"));
 
@@ -329,22 +283,7 @@ describe("Database Connections", () => {
 
             host = await DBNotebooks.getConnection(conName);
 
-            await driver.executeScript(
-                "arguments[0].click();",
-                await host!.findElement(By.id("triggerTileAction")),
-            );
-
-            contextMenu = await driver.wait(
-                until.elementLocated(By.css(".noArrow.menu")),
-                2000,
-            );
-
-            expect(contextMenu).toBeDefined();
-
-            await driver.executeScript(
-                "arguments[0].click();",
-                await contextMenu.findElement(By.id("edit")),
-            );
+            await DBNotebooks.clickConnectionItem(host!, "edit");
 
             conDialog = await driver.findElement(By.css(".valueEditDialog"));
 
@@ -382,22 +321,7 @@ describe("Database Connections", () => {
 
             const host = await DBNotebooks.getConnection(globalConn.caption);
 
-            await driver.executeScript(
-                "arguments[0].click();",
-                await host!.findElement(By.id("triggerTileAction")),
-            );
-
-            const contextMenu = await driver.wait(
-                until.elementLocated(By.css(".noArrow.menu")),
-                2000,
-            );
-
-            expect(contextMenu).toBeDefined();
-
-            await driver.executeScript(
-                "arguments[0].click();",
-                await contextMenu.findElement(By.id("edit")),
-            );
+            await DBNotebooks.clickConnectionItem(host!, "edit");
 
             const conDialog = await driver.findElement(By.css(".valueEditDialog"));
 
@@ -422,8 +346,6 @@ describe("Database Connections", () => {
 
             expect(await error.getText()).toBe("The caption cannot be empty");
 
-            expect(await conDialog.findElement(By.id("ok")).isEnabled()).toBe(false);
-
             await conDialog.findElement(By.id("caption")).sendKeys("WexQA");
 
             await customClear(await conDialog.findElement(By.id("hostName")));
@@ -433,8 +355,6 @@ describe("Database Connections", () => {
 
             expect(await conDialog.findElement(By.css(".message.error")).getText())
                 .toBe("Specify a valid host name or IP address");
-
-            expect(await conDialog.findElement(By.id("ok")).isEnabled()).toBe(false);
 
             await conDialog.findElement(By.id("hostName")).sendKeys("1.1.1.1");
 
@@ -447,7 +367,6 @@ describe("Database Connections", () => {
                 .toBe("The user name must not be empty");
 
             await driver.executeScript("arguments[0].scrollIntoView(true)", okBtn);
-            expect(await conDialog.findElement(By.id("ok")).isEnabled()).toBe(false);
 
             await driver.findElement(By.id("cancel")).click();
         } catch (e) {
@@ -479,22 +398,7 @@ describe("Database Connections", () => {
 
             const host = await DBNotebooks.createDBconnection(localConn);
 
-            await driver.executeScript(
-                "arguments[0].click();",
-                await host!.findElement(By.id("triggerTileAction")),
-            );
-
-            const contextMenu = await driver.wait(
-                until.elementLocated(By.css(".noArrow.menu")),
-                2000,
-            );
-
-            expect(contextMenu).toBeDefined();
-
-            await driver.executeScript(
-                "arguments[0].click();",
-                await contextMenu.findElement(By.id("remove")),
-            );
+            await DBNotebooks.clickConnectionItem(host!, "remove");
 
             const dialog = await driver.findElement(By.css(".confirmDialog"));
 

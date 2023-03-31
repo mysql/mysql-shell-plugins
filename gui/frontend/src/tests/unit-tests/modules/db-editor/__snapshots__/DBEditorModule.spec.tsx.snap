@@ -26,7 +26,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
                 role="button"
                 tabindex="-1"
               >
-                <span
+                <div
                   class="msg icon"
                   data-tooltip="inherit"
                   style="mask-image: url(overviewPage.svg);"
@@ -110,7 +110,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
                   role="button"
                   tabindex="-1"
                 >
-                  <span
+                  <div
                     class="msg icon"
                     data-tooltip="inherit"
                     style="mask-image: url(overviewPage.svg);"
@@ -217,7 +217,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
                     role="button"
                     tabindex="-1"
                   >
-                    <span
+                    <div
                       class="msg icon"
                       data-tooltip="inherit"
                       style="mask-image: url(overviewPage.svg);"
@@ -339,7 +339,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
                         role="button"
                         tabindex="-1"
                       >
-                        <span
+                        <div
                           class="msg icon"
                           data-tooltip="inherit"
                           style="mask-image: url(overviewPage.svg);"
@@ -406,7 +406,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
                         disabled={false}
                         src="overviewPage.svg"
                       >
-                        <span
+                        <div
                           className="msg icon"
                           data-tooltip="inherit"
                           style={

@@ -56,8 +56,9 @@ export class Button extends ComponentBase<IButtonProperties> {
     public constructor(props: IButtonProperties) {
         super(props);
 
+        // Have to handle the `disabled` property manually because we have to disable a div instead of a button element.
         this.addHandledProperties("innerRef", "round", "orientation", "imageOnly", "isDefault", "requestType",
-            "focusOnClick");
+            "disabled", "focusOnClick");
 
         if (props.requestType) {
             this.connectEvents("onClick");
@@ -79,11 +80,12 @@ export class Button extends ComponentBase<IButtonProperties> {
     }
 
     public render(): ComponentChild {
-        const { children, caption, style, orientation, round, imageOnly } = this.mergedProps;
+        const { children, caption, style, orientation, round, imageOnly, disabled } = this.mergedProps;
         const className = this.getEffectiveClassNames([
             "button",
             this.classFromProperty(round, "round"),
             this.classFromProperty(imageOnly, "imageOnly"),
+            this.classFromProperty(disabled, "disabled"),
         ]);
 
         const content = children ?? caption;

@@ -204,7 +204,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
 
-            treeConn = await treeDBSection.findItem(localConn.caption, dbMaxLevel);
+            treeConn = await treeDBSection.findItem(globalConn.caption, dbMaxLevel);
 
             expect(treeConn).to.exist;
 
@@ -212,11 +212,13 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Collapse All", async () => {
 
+            treeConn = await treeDBSection.findItem(globalConn.caption, dbMaxLevel);
+
             await treeConn.expand();
 
-            await Misc.setInputPassword((localConn.basic as IConnBasicMySQL).password);
+            await Misc.setInputPassword((globalConn.basic as IConnBasicMySQL).password);
 
-            const treeGlobalSchema = await treeDBSection.findItem((localConn.basic as IConnBasicMySQL).schema,
+            const treeGlobalSchema = await treeDBSection.findItem((globalConn.basic as IConnBasicMySQL).schema,
                 dbMaxLevel);
             await treeGlobalSchema.expand();
 
@@ -339,7 +341,7 @@ describe("DATABASE CONNECTIONS", () => {
             const host = await Database.getWebViewConnection(globalConn.caption, false);
             await driver.executeScript(
                 "arguments[0].click();",
-                await host.findElement(By.id("triggerTileAction")),
+                await host.findElement(By.id("tileMoreActionsAction")),
             );
 
             const contextMenu = await driver.wait(
@@ -375,8 +377,6 @@ describe("DATABASE CONNECTIONS", () => {
 
             expect(await error.getText()).to.equals("The caption cannot be empty");
 
-            expect(await conDialog.findElement(By.id("ok")).isEnabled()).to.be.false;
-
             await conDialog.findElement(By.id("caption")).sendKeys("WexQA");
 
             await customClear(await conDialog.findElement(By.id("hostName")));
@@ -386,8 +386,6 @@ describe("DATABASE CONNECTIONS", () => {
 
             expect(await conDialog.findElement(By.css(".message.error")).getText())
                 .to.equals("Specify a valid host name or IP address");
-
-            expect(await conDialog.findElement(By.id("ok")).isEnabled()).to.be.false;
 
             await conDialog.findElement(By.id("hostName")).sendKeys("1.1.1.1");
 
@@ -400,7 +398,6 @@ describe("DATABASE CONNECTIONS", () => {
                 .to.equals("The user name must not be empty");
 
             await driver.executeScript("arguments[0].scrollIntoView(true)", okBtn);
-            expect(await conDialog.findElement(By.id("ok")).isEnabled()).to.be.false;
 
             await driver.findElement(By.id("cancel")).click();
         });
@@ -477,7 +474,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             const treeDBConn = await treeDBSection.findItem("db_connection", dbMaxLevel);
 
-            await Misc.selectContextMenuItem(treeDBConn, "Show Data...");
+            await Misc.selectContextMenuItem(treeDBConn, "Select Rows in DB Notebook");
 
             await Misc.switchToWebView();
 
@@ -740,7 +737,7 @@ describe("DATABASE CONNECTIONS", () => {
         it("Connection toolbar buttons - Autocommit DB Changes", async () => {
 
             const autoCommit = await Database.getToolbarButton("Auto commit DB changes");
-            const style = await autoCommit.findElement(By.css("span")).getAttribute("style");
+            const style = await autoCommit.findElement(By.css(".icon")).getAttribute("style");
             if (style.includes("toolbar-auto_commit-active")) {
                 await autoCommit.click();
             }
@@ -756,36 +753,41 @@ describe("DATABASE CONNECTIONS", () => {
                 3000, "Commit button should be enabled");
 
             let result = await Misc
-                .execCmd(`INSERT INTO sakila.actor (first_name, last_name) VALUES ('${random}','${random}')`);
+                .execCmd(`INSERT INTO sakila.actor (first_name, last_name) VALUES ("${random}","${random}");`);
 
             expect(result[0]).to.include("OK");
 
             await rollBackBtn.click();
 
-            result = await Misc.execCmd(`SELECT * FROM sakila.actor WHERE first_name='${random}';`);
+            result = await Misc.execCmd(`SELECT * FROM sakila.actor WHERE first_name="${random}";`);
             expect(result[0]).to.include("OK, 0 records retrieved");
 
             result = await Misc
-                .execCmd(`INSERT INTO sakila.actor (first_name, last_name) VALUES ('${random}','${random}')`);
+                .execCmd(`INSERT INTO sakila.actor (first_name, last_name) VALUES ("${random}","${random}");`);
             expect(result[0]).to.include("OK");
 
             await commitBtn.click();
 
-            result = await Misc.execCmd(`SELECT * FROM sakila.actor WHERE first_name='${random}';`);
+            result = await Misc.execCmd(`SELECT * FROM sakila.actor WHERE first_name="${random}";`);
             expect(result[0]).to.include("OK, 1 record retrieved");
 
             await autoCommit.click();
 
             await driver.wait(
                 async () => {
-                    return (
-                        (await commitBtn.isEnabled()) === false &&
-                        (await rollBackBtn.isEnabled()) === false
-                    );
+                    const commitBtn = await Database.getToolbarButton("Commit DB changes");
+                    const rollBackBtn = await Database.getToolbarButton("Rollback DB changes");
+
+                    return (await commitBtn?.getAttribute("class"))?.includes("disabled") &&
+                            (await rollBackBtn?.getAttribute("class"))?.includes("disabled");
+
                 },
                 explicitWait,
                 "Commit/Rollback DB changes button is still enabled ",
             );
+
+            result = await Misc.execCmd(`DELETE FROM sakila.actor WHERE first_name="${random}";`);
+            expect(result[0]).to.include("OK");
         });
 
         it("Connection toolbar buttons - Find and Replace", async () => {
@@ -954,6 +956,32 @@ describe("DATABASE CONNECTIONS", () => {
 
         });
 
+        it("Maximize and Normalize Result tab", async () => {
+
+            const result = await Misc.execCmd("select * from sakila.actor;");
+            expect(result[0]).to.include("OK");
+
+            await (result[2] as WebElement).findElement(By.id("toggleStateButton")).click();
+
+            await driver.wait(new Condition("", async () => {
+                return Database.isResultTabMaximized();
+            }), explicitWait, "Resulta tab was not maxized");
+
+            expect(await Database.getCurrentEditor()).to.equals("Result #1");
+            try {
+                expect(await Database.isEditorStretched()).to.be.false;
+                let tabArea = await driver.findElements(By.css("#resultPaneHost .resultTabview .tabArea"));
+                expect(tabArea.length, "Result tab should not be visible").to.equals(0);
+                await driver.findElement(By.id("normalizeResultStateButton")).click();
+                expect(await Database.isEditorStretched()).to.be.true;
+                expect(await Database.isResultTabMaximized()).to.be.false;
+                tabArea = await driver.findElements(By.css("#resultPaneHost .resultTabview .tabArea"));
+                expect(tabArea.length, "Result tab should be visible").to.equals(1);
+            } finally {
+                await Database.selectCurrentEditor("DB Notebook", "notebook");
+            }
+        });
+
         it("Pie Graph based on DB table", async () => {
 
             let result = await Misc.execCmd("\\ts ");
@@ -985,23 +1013,27 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Schema autocomplete context menu", async () => {
 
-            const result = await Misc.execCmd("\\sql ");
-            expect(result[0]).to.include("Switched to MySQL mode");
+            try {
+                const result = await Misc.execCmd("\\sql ");
+                expect(result[0]).to.include("Switched to MySQL mode");
 
-            await Misc.writeCmd("select * from ");
+                await Misc.writeCmd("select * from ");
 
-            const textArea = await driver.findElement(By.css("textarea"));
+                const textArea = await driver.findElement(By.css("textarea"));
 
-            await textArea.sendKeys(Key.chord(Key.CONTROL, Key.SPACE));
+                await textArea.sendKeys(Key.chord(Key.CONTROL, Key.SPACE));
 
-            const els = await Database.getAutoCompleteMenuItems();
+                const els = await Database.getAutoCompleteMenuItems();
 
-            expect(els).to.include("information_schema");
-            expect(els).to.include("mysql");
-            expect(els).to.include("performance_schema");
-            expect(els).to.include("sakila");
-            expect(els).to.include("sys");
-            expect(els).to.include("world_x_cst");
+                expect(els).to.include("information_schema");
+                expect(els).to.include("mysql");
+                expect(els).to.include("performance_schema");
+                expect(els).to.include("sakila");
+                expect(els).to.include("sys");
+                expect(els).to.include("world_x_cst");
+            } finally {
+                clean = true;
+            }
 
         });
 
@@ -1593,13 +1625,9 @@ describe("DATABASE CONNECTIONS", () => {
         it("Connect to Database", async () => {
 
             await Misc.selectContextMenuItem(treeGlobalConn, "Connect to Database");
-
             await new EditorView().openEditor(dbEditorDefaultName);
-
             await Misc.switchToWebView();
-
             await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
-
             try {
                 await Database.setPassword(globalConn);
                 await Misc.setConfirmDialog(globalConn, "no");
@@ -1906,7 +1934,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         });
 
-        it("Table - Show Data", async () => {
+        it("Table - Select Rows in DB Notebook", async () => {
 
             treeGlobalSchema = await driver.wait(new Condition("", async () => {
                 return treeDBSection.findItem((globalConn.basic as IConnBasicMySQL).schema, dbMaxLevel);
@@ -1922,7 +1950,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             const actorTable = await treeDBSection.findItem("actor", dbMaxLevel);
 
-            await Misc.selectContextMenuItem(actorTable, "Show Data...");
+            await Misc.selectContextMenuItem(actorTable, "Select Rows in DB Notebook");
 
             try {
                 await new EditorView().openEditor(globalConn.caption);
@@ -2009,7 +2037,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         });
 
-        it("View - Show Data", async () => {
+        it("View - Select Rows in DB Notebook", async () => {
 
             treeGlobalSchemaViews = await driver.wait(new Condition("", async () => {
                 return treeDBSection.findItem("Views", dbMaxLevel);
@@ -2019,7 +2047,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             const treeTestView = await treeDBSection.findItem("test_view", dbMaxLevel);
 
-            await Misc.selectContextMenuItem(treeTestView, "Show Data...");
+            await Misc.selectContextMenuItem(treeTestView, "Select Rows in DB Notebook");
 
             await new EditorView().openEditor(globalConn.caption);
 
@@ -2105,6 +2133,36 @@ describe("DATABASE CONNECTIONS", () => {
             treeDBSection = await Misc.getSection(dbTreeSection);
 
             expect(await treeDBSection.findItem(testView, dbMaxLevel)).to.not.exist;
+
+        });
+
+        it("Table - Show Data", async () => {
+
+            const actorTable = await treeDBSection.findItem("actor", dbMaxLevel);
+            await Misc.selectContextMenuItem(actorTable, "Show Data");
+            await new EditorView().openEditor(globalConn.caption);
+            await Misc.switchToWebView();
+            await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
+            const result = await Database.getScriptResult();
+            expect(result[0]).to.match(/OK/);
+            await driver.wait(new Condition("", async () => {
+                return Database.isResultTabMaximized();
+            }), explicitWait, "Resulta tab was not maxized");
+
+        });
+
+        it("View - Show Data", async () => {
+
+            const treeTestView = await treeDBSection.findItem("test_view", dbMaxLevel);
+            await Misc.selectContextMenuItem(treeTestView, "Show Data");
+            await new EditorView().openEditor(globalConn.caption);
+            await Misc.switchToWebView();
+            await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
+            const result = await Database.getScriptResult();
+            expect(result[0]).to.match(/OK/);
+            await driver.wait(new Condition("", async () => {
+                return Database.isResultTabMaximized();
+            }), explicitWait, "Resulta tab was not maxized");
 
         });
 

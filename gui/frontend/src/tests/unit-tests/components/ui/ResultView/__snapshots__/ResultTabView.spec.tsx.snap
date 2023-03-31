@@ -240,7 +240,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                       role="button"
                       tabindex="-1"
                     >
-                      <span
+                      <div
                         class="msg icon codicon codicon-copy"
                         data-tooltip="inherit"
                       />
@@ -254,10 +254,8 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                       >
                         <label
                           class="msg resultText error actionLabel"
-                          language="ansi"
                           style="grid-column: span 2;"
                           tabindex="-1"
-                          type="0"
                         >
                           <span
                             class=""
@@ -271,10 +269,8 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                       >
                         <label
                           class="msg resultText response actionLabel"
-                          language="ansi"
                           style="grid-column: span 2;"
                           tabindex="-1"
-                          type="4"
                         >
                           <span
                             class=""
@@ -351,7 +347,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                         disabled={false}
                         src={65}
                       >
-                        <span
+                        <div
                           className="msg icon codicon codicon-copy"
                           data-tooltip="inherit"
                         />
@@ -371,10 +367,8 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                           >
                             <label
                               class="msg resultText error actionLabel"
-                              language="ansi"
                               style="grid-column: span 2;"
                               tabindex="-1"
-                              type="0"
                             >
                               <span
                                 class=""
@@ -388,10 +382,8 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                           >
                             <label
                               class="msg resultText response actionLabel"
-                              language="ansi"
                               style="grid-column: span 2;"
                               tabindex="-1"
-                              type="4"
                             >
                               <span
                                 class=""
@@ -446,7 +438,6 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                         >
                           <label
                             className="msg resultText error actionLabel"
-                            language="ansi"
                             onClick={[Function]}
                             style={
                               {
@@ -454,7 +445,6 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                               }
                             }
                             tabIndex={-1}
-                            type={0}
                           >
                             <span
                               className=""
@@ -494,7 +484,6 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                         >
                           <label
                             className="msg resultText response actionLabel"
-                            language="ansi"
                             onClick={[Function]}
                             style={
                               {
@@ -502,7 +491,6 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                               }
                             }
                             tabIndex={-1}
-                            type={4}
                           >
                             <span
                               className=""
@@ -948,7 +936,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                                 role="button"
                                 tabindex="0"
                               >
-                                <span
+                                <div
                                   class="msg icon"
                                   data-tooltip="inherit"
                                   style="mask-image: url(toolbar-maximize.svg);"
@@ -980,7 +968,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                                 role="button"
                                 tabindex="0"
                               >
-                                <span
+                                <div
                                   class="msg icon"
                                   data-tooltip="inherit"
                                   style="mask-image: url(toolbar-maximize.svg);"
@@ -1121,7 +1109,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                                   disabled={false}
                                   src="toolbar-maximize.svg"
                                 >
-                                  <span
+                                  <div
                                     className="msg icon"
                                     data-tooltip="inherit"
                                     style={
@@ -1210,7 +1198,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                                   disabled={false}
                                   src="toolbar-maximize.svg"
                                 >
-                                  <span
+                                  <div
                                     className="msg icon"
                                     data-tooltip="inherit"
                                     style={

@@ -273,10 +273,10 @@ export class Database {
         }
 
         const db = await driver.wait(async () => {
-            const hosts = await driver.findElements(By.css("#tilesHost button"));
+            const hosts = await driver.findElements(By.css("#tilesHost .connectionTile"));
             for (const host of hosts) {
                 try {
-                    const el = await host.findElement(By.css(".textHost .tileCaption"));
+                    const el = await host.findElement(By.css(".tileCaption"));
                     if ((await el.getText()) === name) {
                         return host;
                     }
@@ -330,8 +330,9 @@ export class Database {
             const st1 = await driver.findElements(By.css(".msg.portal"));
             const st2 = await driver.findElements(By.css("textarea"));
             const st3 = await driver.findElements(By.id("title"));
+            const st4 = await driver.findElements(By.id("resultPaneHost"));
 
-            return st1.length > 0 || st2.length > 0 || st3.length > 0;
+            return st1.length > 0 || st2.length > 0 || st3.length > 0 || st4.length > 0;
         });
     };
 
@@ -381,7 +382,7 @@ export class Database {
     };
 
     public static getToolbarButton = async (button: string): Promise<WebElement | undefined> => {
-        const buttons = await driver.findElements(By.css("#contentHost button"));
+        const buttons = await driver.findElements(By.css("#contentHost .msg.button"));
         for (const btn of buttons) {
             if ((await btn.getAttribute("data-tooltip")) === button) {
                 return btn;
@@ -695,7 +696,7 @@ export class Database {
 
             return srcPath.split(".")[0];
         } else {
-            const span = await selector.findElement(By.css("span"));
+            const span = await selector.findElement(By.css(".msg.icon"));
 
             return span.getAttribute("style");
         }
@@ -916,7 +917,7 @@ export class Database {
 
     public static addScript = async (scriptType: string): Promise<void> => {
         const curEditor = await this.getCurrentEditor();
-        const button = await driver.findElement(By.id("newMenuButton"));
+        const button = await driver.findElement(By.id("newScriptMenuButton"));
         await button.click();
         let locator = "";
         switch (scriptType) {
@@ -953,29 +954,7 @@ export class Database {
         await Misc.execOnEditor();
         timeout = timeout ?? 5000;
 
-        const toReturn: Array<string | WebElement> = [];
-        await driver.wait(async () => {
-            const resultHost = await driver.findElements(By.css(".resultHost"));
-            if (resultHost.length > 0) {
-                const resultStatus = await resultHost[0].findElements(By.css(".resultStatus .label"));
-                if (resultStatus.length > 0) {
-                    toReturn.push(await resultStatus[0].getAttribute("innerHTML"));
-                    toReturn.push(await resultHost[0].findElement(By.css(".resultTabview")));
-
-                    return true;
-                }
-
-
-                const content = await resultHost[0].findElements(By.css(".actionLabel span"));
-                if (content.length) {
-                    toReturn.push(await content[0].getAttribute("innerHTML"));
-
-                    return true;
-                }
-            }
-        }, timeout, `No results were found from the script execution - '${cmd}'`);
-
-        return toReturn;
+        return Database.getScriptResult(timeout);
     };
 
     public static getAutoCompleteMenuItems = async (): Promise<string[]> => {
@@ -1000,4 +979,95 @@ export class Database {
 
     };
 
+    public static isEditorStretched = async (): Promise <boolean> => {
+        const editor = await driver.findElement(By.id("editorPaneHost"));
+        const style = await editor.getCssValue("height");
+        const height = parseInt(style.trim().replace("px", ""), 10);
+
+        return height > 0;
+    };
+
+    public static getScriptResult = async (timeout?: number): Promise<Array<string | WebElement>> => {
+        const toReturn: Array<string | WebElement> = [];
+        await driver.wait(async () => {
+            const resultHost = await driver.findElements(By.css(".resultHost"));
+            if (resultHost.length > 0) {
+                const resultStatus = await resultHost[0].findElements(By.css(".resultStatus .label"));
+                if (resultStatus.length > 0) {
+                    toReturn.push(await resultStatus[0].getAttribute("innerHTML"));
+                    toReturn.push(await resultHost[0].findElement(By.css(".resultTabview")));
+
+                    return true;
+                }
+
+                const content = await resultHost[0].findElements(By.css(".actionLabel span"));
+                if (content.length) {
+                    toReturn.push(await content[0].getAttribute("innerHTML"));
+
+                    return true;
+                }
+            }
+        }, timeout, `No results were found`);
+
+        return toReturn;
+    };
+
+    public static isResultTabMaximized = async (): Promise <boolean> => {
+        return (await driver.findElements(By.id("normalizeResultStateButton"))).length > 0;
+    };
+
+    public static selectCurrentEditor = async (editorName: string, editorType: string): Promise<void> => {
+        const selector = await driver.findElement(By.id("documentSelector"));
+        await driver.executeScript("arguments[0].click()", selector);
+
+        await driver.wait(async () => {
+            return (await driver.findElements(By.css("div.visible.dropdownList > div"))).length > 1;
+        }, 2000, "No elements located on dropdown");
+
+        const dropDownItems = await driver.findElements(
+            By.css("div.visible.dropdownList > div"),
+        );
+
+        for (const item of dropDownItems) {
+            const name = await item.findElement(By.css("label")).getText();
+            const el = await item.findElements(By.css("img"));
+
+            let type = "";
+
+            if (el.length > 0) {
+                type = await el[0].getAttribute("src");
+            } else {
+                type = await item.findElement(By.css(".msg.icon")).getAttribute("style");
+            }
+
+            if (name === editorName) {
+                if (type.indexOf(editorType) !== -1) {
+                    await driver.wait(async () => {
+                        await item.click();
+                        const selector = await driver.findElement(By.id("documentSelector"));
+                        const selected = await selector.findElement(By.css("label")).getText();
+
+                        return selected === editorName;
+                    }, explicitWait, `${editorName} with type ${editorType} was not properly selected`);
+
+                    await driver.wait(
+                        async () => {
+                            return (
+                                (
+                                    await driver.findElements(
+                                        By.css("div.visible.dropdownList > div"),
+                                    )
+                                ).length === 0
+                            );
+                        },
+                        2000,
+                        "Dropdown list is still visible",
+                    );
+
+                    return;
+                }
+            }
+        }
+        throw new Error(`Coult not find ${editorName} with type ${editorType}`);
+    };
 }

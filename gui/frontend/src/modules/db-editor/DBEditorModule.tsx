@@ -50,7 +50,7 @@ import {
 import { ICodeEditorModel, CodeEditor } from "../../components/ui/CodeEditor/CodeEditor";
 import { CodeEditorMode, Monaco } from "../../components/ui/CodeEditor";
 import { ExecutionContexts } from "../../script-execution/ExecutionContexts";
-import { appParameters, requisitions } from "../../supplement/Requisitions";
+import { appParameters, InitialEditor, requisitions } from "../../supplement/Requisitions";
 import { Settings } from "../../supplement/Settings/Settings";
 import { DBType, IConnectionDetails } from "../../supplement/ShellInterface";
 import { EntityType, IDBDataEntry, IDBEditorScriptState, ISavedGraphData, ISchemaTreeEntry, IToolbarItems } from ".";
@@ -589,7 +589,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 const connection = connections.find((candidate) => { return candidate.id === id; });
                 if (connection) {
                     return this.addConnectionTab(connection, false, data.suppressAbout ?? false,
-                        data.noEditor ?? false);
+                        data.noEditor ? "none" : "default");
                 }
             }
         }
@@ -598,10 +598,9 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
     };
 
     private openConnectionTab = (data: {
-        details: IConnectionDetails; force: boolean;
-        noEditor?: boolean;
+        details: IConnectionDetails; force: boolean; initialEditor: InitialEditor;
     }): Promise<boolean> => {
-        return this.addConnectionTab(data.details, data.force, false, data.noEditor ?? false);
+        return this.addConnectionTab(data.details, data.force, false, data.initialEditor);
     };
 
     private setCurrentSchema = (data: { id: string; connectionId: number; schema: string; }): Promise<boolean> => {
@@ -704,12 +703,12 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
      * @param connection The connection for which to open/active the tab.
      * @param force If true then create a new tab, even if one for the same connection already exists.
      * @param suppressAbout If true then no about text is show when opening the tab.
-     * @param noEditor If true then do not create a default editor entry.
+     * @param initialEditor Indicates what type of editor to open initially.
      *
      * @returns A promise fulfilled once the connect tab is added.
      */
     private addConnectionTab = (connection: IConnectionDetails, force: boolean,
-        suppressAbout: boolean, noEditor: boolean): Promise<boolean> => {
+        suppressAbout: boolean, initialEditor: InitialEditor): Promise<boolean> => {
         return new Promise((resolve, reject) => {
             const { editorTabs } = this.state;
 
@@ -763,7 +762,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                             const options = connection.options as ISqliteConnectionOptions;
                             ShellInterface.core.validatePath(options.dbFile).then(() => {
                                 void this.openNewConnection(
-                                    backend, tabId, suffix, connection, suppressAbout, noEditor,
+                                    backend, tabId, suffix, connection, suppressAbout, initialEditor,
                                 ).then((success) => {
                                     handleOutcome(success);
                                 });
@@ -771,7 +770,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                                 // If the path is not ok then we might have to create the DB file first.
                                 ShellInterface.core.createDatabaseFile(options.dbFile).then(() => {
                                     void this.openNewConnection(
-                                        backend, tabId, suffix, connection, suppressAbout, noEditor,
+                                        backend, tabId, suffix, connection, suppressAbout, initialEditor,
                                     ).then(() => {
                                         resolve(true);
                                     });
@@ -781,7 +780,8 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                                 });
                             });
                         } else {
-                            void this.openNewConnection(backend, tabId, suffix, connection, suppressAbout, noEditor)
+                            void this.openNewConnection(backend, tabId, suffix, connection, suppressAbout,
+                                initialEditor)
                                 .then((success) => {
                                     handleOutcome(success);
                                 });
@@ -815,12 +815,12 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
      * @param tabSuffix An additional string to add to the caption of the tab we are about to open.
      * @param connection The connection details.
      * @param suppressAbout If true then no about text is shown.
-     * @param noEditor If true then do not create a default editor entry.
+     * @param initialEditor Determines what type of editor to open initially.
      *
      * @returns A promise which fulfills once the connection is open.
      */
     private async openNewConnection(backend: ShellInterfaceSqlEditor, tabId: string, tabSuffix: string,
-        connection: IConnectionDetails, suppressAbout: boolean, noEditor: boolean): Promise<boolean> {
+        connection: IConnectionDetails, suppressAbout: boolean, initialEditor: InitialEditor): Promise<boolean> {
 
         const { editorTabs } = this.state;
 
@@ -857,18 +857,26 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
             const entryId = uuid();
             const useNotebook = Settings.get("dbEditor.defaultEditor", "notebook") === "notebook";
-            const editorCaption = useNotebook ? "DB Notebook" : "Script";
 
-            const language: EditorLanguage = useNotebook ? "msg" : "mysql";
-            const model = this.createEditorModel(backend, "", language, serverVersion, sqlMode, currentSchema);
+            let type: EntityType;
+            if (initialEditor === undefined || initialEditor === "default") {
+                type = useNotebook ? EntityType.Notebook : EntityType.Script;
+            } else {
+                type = initialEditor === "notebook" ? EntityType.Notebook : EntityType.Script;
+            }
+
+            const language: EditorLanguage = type === EntityType.Notebook ? "msg" : "mysql";
 
             const editors: IOpenEditorState[] = [];
             let newState;
-            if (!noEditor) {
+            if (initialEditor !== "none") {
+                const model = this.createEditorModel(backend, "", language, serverVersion, sqlMode, currentSchema);
+
+                const editorCaption = type === EntityType.Script ? "Script" : "DB Notebook";
                 newState = {
                     id: entryId,
                     caption: editorCaption,
-                    type: useNotebook ? EntityType.Notebook : EntityType.Script,
+                    type,
                     state: {
                         model,
                         viewState: null,

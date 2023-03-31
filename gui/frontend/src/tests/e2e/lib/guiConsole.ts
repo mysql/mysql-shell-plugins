@@ -62,7 +62,7 @@ export class GuiConsole {
      */
     public static getSession = async (sessionNbr: string): Promise<WebElement | undefined> => {
         try {
-            const buttons = await driver.findElements(By.css("#shellModuleHost #tilesHost button"));
+            const buttons = await driver.findElements(By.css("#shellModuleHost #tilesHost .sessionTile"));
             for (const button of buttons) {
                 if ((await button.getAttribute("id")) === sessionNbr) {
                     return button;

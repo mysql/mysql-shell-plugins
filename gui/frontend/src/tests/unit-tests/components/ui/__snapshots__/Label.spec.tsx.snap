@@ -8,7 +8,6 @@ exports[`Label component test Label with ansi formatting 1`] = `
   <label
     className="msg resultText"
     data-tooltip="expand"
-    language="ansi"
     style={{}}
   >
     <span

@@ -32,7 +32,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                   role="button"
                   tabindex="-1"
                 >
-                  <span
+                  <div
                     class="msg icon"
                     data-tooltip="inherit"
                     style="mask-image: url(module-shell.svg);"
@@ -120,7 +120,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                   role="button"
                   tabindex="0"
                 >
-                  <span
+                  <div
                     class="msg icon"
                     data-tooltip="inherit"
                     style="mask-image: url(close2.svg);"
@@ -149,7 +149,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                       role="button"
                       tabindex="0"
                     >
-                      <span
+                      <div
                         class="msg icon"
                         style="mask-image: url(plus.svg);"
                       />
@@ -214,7 +214,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                     role="button"
                     tabindex="-1"
                   >
-                    <span
+                    <div
                       class="msg icon"
                       data-tooltip="inherit"
                       style="mask-image: url(module-shell.svg);"
@@ -302,7 +302,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                     role="button"
                     tabindex="0"
                   >
-                    <span
+                    <div
                       class="msg icon"
                       data-tooltip="inherit"
                       style="mask-image: url(close2.svg);"
@@ -331,7 +331,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                         role="button"
                         tabindex="0"
                       >
-                        <span
+                        <div
                           class="msg icon"
                           style="mask-image: url(plus.svg);"
                         />
@@ -469,7 +469,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                             role="button"
                             tabindex="-1"
                           >
-                            <span
+                            <div
                               class="msg icon"
                               data-tooltip="inherit"
                               style="mask-image: url(module-shell.svg);"
@@ -536,7 +536,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                             disabled={false}
                             src="module-shell.svg"
                           >
-                            <span
+                            <div
                               className="msg icon"
                               data-tooltip="inherit"
                               style={
@@ -648,7 +648,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                           role="button"
                           tabindex="0"
                         >
-                          <span
+                          <div
                             class="msg icon"
                             data-tooltip="inherit"
                             style="mask-image: url(close2.svg);"
@@ -677,7 +677,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                               role="button"
                               tabindex="0"
                             >
-                              <span
+                              <div
                                 class="msg icon"
                                 style="mask-image: url(plus.svg);"
                               />
@@ -884,7 +884,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                   disabled={false}
                                   src="close2.svg"
                                 >
-                                  <span
+                                  <div
                                     className="msg icon"
                                     data-tooltip="inherit"
                                     style={
@@ -965,7 +965,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                             role="button"
                                             tabindex="0"
                                           >
-                                            <span
+                                            <div
                                               class="msg icon"
                                               style="mask-image: url(plus.svg);"
                                             />
@@ -1006,7 +1006,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                               role="button"
                                               tabindex="0"
                                             >
-                                              <span
+                                              <div
                                                 class="msg icon"
                                                 style="mask-image: url(plus.svg);"
                                               />
@@ -1062,7 +1062,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                             disabled={false}
                                             src="plus.svg"
                                           >
-                                            <span
+                                            <div
                                               className="msg icon"
                                               style={
                                                 {

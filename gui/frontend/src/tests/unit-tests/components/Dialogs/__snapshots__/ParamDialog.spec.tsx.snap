@@ -130,7 +130,7 @@ exports[`Param Dialog Tests Show Panel and Escape 1`] = `
     <div
       class="title verticalCenterContent"
     >
-      <span
+      <div
         class="msg icon codicon codicon-pass-filled"
       />
       <label
@@ -146,7 +146,7 @@ exports[`Param Dialog Tests Show Panel and Escape 1`] = `
         role="button"
         tabindex="0"
       >
-        <span
+        <div
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
@@ -163,7 +163,7 @@ exports[`Param Dialog Tests Show Panel and Escape 1`] = `
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: row; grid-row: span 4;"
         >
-          <span
+          <div
             class="msg icon"
             style="mask-image: url(parameters.svg); width: 128px; height: 128px;"
           />
@@ -264,7 +264,7 @@ exports[`Param Dialog Tests Show Panel and Escape 2`] = `
     <div
       class="title verticalCenterContent"
     >
-      <span
+      <div
         class="msg icon codicon codicon-pass-filled"
       />
       <label
@@ -280,7 +280,7 @@ exports[`Param Dialog Tests Show Panel and Escape 2`] = `
         role="button"
         tabindex="0"
       >
-        <span
+        <div
           class="msg icon"
           style="mask-image: url(close2.svg);"
         />
@@ -297,7 +297,7 @@ exports[`Param Dialog Tests Show Panel and Escape 2`] = `
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: row; grid-row: span 4;"
         >
-          <span
+          <div
             class="msg icon"
             style="mask-image: url(parameters.svg); width: 128px; height: 128px;"
           />
