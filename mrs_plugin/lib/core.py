@@ -605,12 +605,12 @@ def prompt_for_comments():
     return prompt("Comments: ").strip()
 
 
-def get_sql_result_as_dict_list(res, binary_fomatter=None):
+def get_sql_result_as_dict_list(res, binary_formatter=None):
     """Returns the result set as a list of dicts
 
     Args:
         res: (object): The sql result set
-        binary_fomatter (callback): function receiving binary data and returning formatted value
+        binary_formatter (callback): function receiving binary data and returning formatted value
 
     Returns:
         A list of dicts
@@ -627,13 +627,16 @@ def get_sql_result_as_dict_list(res, binary_fomatter=None):
         for col in cols:
             col_name = col.get_column_label()
             field_val = row.get_field(col_name)
-            col_type = str(col.get_type())
-            if col_type == "<Type.SET>":
+            # The right way to get the column type is with "get_type().data". Using
+            # get_type() may return "Constant" or the data type depending if the shell
+            # is started in with --json or not.
+            col_type = col.get_type().data
+            if col_type == "SET":
                 item[col_name] = field_val.split(",") if field_val else []
-            elif col_type == "<Type.JSON>":
+            elif col_type == "JSON":
                 item[col_name] = json.loads(field_val) if field_val else None
-            elif binary_fomatter is not None and isinstance(field_val, bytes):
-                item[col_name] = binary_fomatter(field_val)
+            elif binary_formatter is not None and isinstance(field_val, bytes):
+                item[col_name] = binary_formatter(field_val)
             else:
                 item[col_name] = field_val
 
