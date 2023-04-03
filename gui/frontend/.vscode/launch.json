@@ -21,7 +21,7 @@
             "type": "firefox",
             "request": "launch",
             "name": "Launch MSG on FF - single user",
-            "url": "https://localhost:3001?token=236d84bc-5965-11eb-b3f9-003ee1ce36e8",
+            "url": "http://localhost:3001?token=1234",
             "webRoot": "${workspaceFolder}/src",
             "clearConsoleOnReload": true,
             "preLaunchTask": "tsc: watch",

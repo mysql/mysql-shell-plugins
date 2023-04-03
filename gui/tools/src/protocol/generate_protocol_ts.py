@@ -411,7 +411,7 @@ class ProtocolBuilder:
             output_dir, "frontend", "src", "communication", protocol_filename
         )
 
-        with open(protocol_path, "w", encoding="utf-8") as protocol_file:
+        with open(protocol_path, "w", encoding="utf-8", newline="\n") as protocol_file:
             protocol_file.write(self._protocol_file_content)
 
 
@@ -645,7 +645,6 @@ class TypeScriptFunction:
 
 def add_to_protocol_ts(definition: registrar.PluginRegistrar.FunctionData) -> None:
     """Adds a new definition to the protocol file."""
-
     # Only functions with web enabled make it to the protocols file
     if not definition.web:  # type: ignore
         return
@@ -656,7 +655,7 @@ def add_to_protocol_ts(definition: registrar.PluginRegistrar.FunctionData) -> No
     plugin_name = f"{name_path[0][0].upper()}{name_path[0][1:]}"
 
     base_plugin_path = Path(__file__).resolve(
-        strict=True).parents[2].as_posix()
+        strict=True).parents[3].as_posix()
 
     protocol_ts = ProtocolBuilder(plugin_name, definition)
     protocol_ts.build()

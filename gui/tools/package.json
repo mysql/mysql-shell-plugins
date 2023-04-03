@@ -10,7 +10,7 @@
         "xml-js": "^1.6.11"
     },
     "scripts": {
-        "update-protocols-file": "./update_gui_protocol_definitions.sh",
+        "update-protocols-file": "mysqlsh --py -f ./update_gui_protocol_definitions.py",
         "update-version": "./update_version.sh"
     }
 }
