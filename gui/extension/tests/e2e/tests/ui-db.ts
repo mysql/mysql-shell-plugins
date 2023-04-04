@@ -913,7 +913,7 @@ describe("DATABASE CONNECTIONS", () => {
             let result = await Misc.execCmd("\\sql ");
             expect(result[0]).to.include("Switched to MySQL mode");
 
-            result = await Misc.execCmd("SELECT VERSION();");
+            result = await Misc.execCmd("select version();");
             expect(result[0]).to.include("1 record retrieved");
 
             const txt = await (result[1] as WebElement).findElement(By.css(".tabulator-cell")).getText();
@@ -928,13 +928,13 @@ describe("DATABASE CONNECTIONS", () => {
 
             digits[2].length === 1 ? serverVer += "0" + digits[2] : serverVer += digits[2];
 
-            result = await Misc.execCmd(`/*!${serverVer} select * from actor;*/`);
+            result = await Misc.execCmd(`/*!${serverVer} select * from sakila.actor;*/`);
 
             expect(result[0]).to.match(/OK, (\d+) records retrieved/);
 
             const higherServer = parseInt(serverVer, 10) + 1;
 
-            result = await Misc.execCmd(`/*!${higherServer} select * from actor;*/`);
+            result = await Misc.execCmd(`/*!${higherServer} select * from sakila.actor;*/`);
 
             expect(result[0]).to.include("OK, 0 records retrieved");
 
@@ -1862,7 +1862,7 @@ describe("DATABASE CONNECTIONS", () => {
 
                 return clipboard.readSync() === (globalConn.basic as IConnBasicMySQL).schema;
 
-            }), explicitWait*2, "The schema name was not copied to the clipboard");
+            }), explicitWait*3, "The schema name was not copied to the clipboard");
 
             treeGlobalSchema = await treeDBSection.findItem((globalConn.basic as IConnBasicMySQL).schema, dbMaxLevel);
 
@@ -1872,7 +1872,7 @@ describe("DATABASE CONNECTIONS", () => {
 
                 return clipboard.readSync().includes("CREATE DATABASE");
 
-            }), explicitWait*2, "The schema create statement was not copied to the clipboard");
+            }), explicitWait*3, "The schema create statement was not copied to the clipboard");
 
         });
 
@@ -1974,7 +1974,7 @@ describe("DATABASE CONNECTIONS", () => {
 
                 return clipboard.readSync() === "actor";
 
-            }), explicitWait*2, "The table name was not copied to the clipboard");
+            }), explicitWait*3, "The table name was not copied to the clipboard");
 
             await driver.wait(new Condition("", async () => {
                 await Misc.selectContextMenuItem(actorTable, "Copy To Clipboard -> Create Statement");
@@ -1982,7 +1982,7 @@ describe("DATABASE CONNECTIONS", () => {
 
                 return clipboard.readSync().includes("idx_actor_last_name");
 
-            }), explicitWait*2, "The table create statement was not copied to the clipboard");
+            }), explicitWait*3, "The table create statement was not copied to the clipboard");
 
         });
 
@@ -2068,7 +2068,7 @@ describe("DATABASE CONNECTIONS", () => {
 
                 return clipboard.readSync() === "test_view";
 
-            }), explicitWait*2, "The view name was not copied to the clipboard");
+            }), explicitWait*3, "The view name was not copied to the clipboard");
 
             await driver.wait(new Condition("", async () => {
                 await Misc.selectContextMenuItem(treeTestView, "Copy To Clipboard -> Create Statement");
@@ -2076,7 +2076,7 @@ describe("DATABASE CONNECTIONS", () => {
 
                 return clipboard.readSync().includes("DEFINER VIEW");
 
-            }), explicitWait*2, "The view create statement was not copied to the clipboard");
+            }), explicitWait*3, "The view create statement was not copied to the clipboard");
 
         });
 

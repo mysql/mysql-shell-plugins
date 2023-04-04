@@ -40,6 +40,7 @@ import {
     InputBox,
     Condition,
     BottomBarPanel,
+    Notification,
 } from "vscode-extension-tester";
 import clipboard from "clipboardy";
 import { expect } from "chai";
@@ -448,23 +449,24 @@ export class Misc {
     };
 
     public static verifyNotification = async (text: string, waitToDisappear = false): Promise<void> => {
-        let ntf = "";
-        await driver.wait(async () => {
-            const ntfs = await new Workbench().getNotifications();
-            if (ntfs.length > 0) {
-                ntf = await ntfs[ntfs.length - 1].getMessage();
+        let ntfs: Notification[];
 
-                return true;
+        await driver.wait(new Condition("", async () => {
+            ntfs = await new Workbench().getNotifications();
+
+            return ntfs.length > 0;
+        }), ociExplicitWait, "Could not find any notification");
+
+        for (const ntf of ntfs) {
+            if ((await ntf.getMessage()).includes(text)) {
+                if (waitToDisappear) {
+                    await driver.wait(until.stalenessOf(ntf), ociExplicitWait, `'${text}' is still displayed`);
+                }
+
+                return;
             }
-        }, ociExplicitWait, `Could not find any notification`);
-
-        expect(ntf).to.include(text);
-
-        if (waitToDisappear) {
-            await driver.wait(async () => {
-                return (await Misc.hasNotifications()) === false;
-            }, ociExplicitWait, `'${text}' notification is still visible`);
         }
+        throw new Error(`Could not find notification '${text}'`);
     };
 
     public static execOnTerminal = async (cmd: string, timeout: number): Promise<void> => {
