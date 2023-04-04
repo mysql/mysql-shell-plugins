@@ -631,59 +631,71 @@ export class Database {
         await dialog.findElement(By.id("ok")).click();
     };
 
-    public static setRestSchema = async (schemaName: string,
-        mrsService: string, requestPath: string, itemsPerPage: number,
-        authentication: boolean, enabled: boolean, comments: string): Promise<void> => {
+    public static setRestSchema = async (
+        mrsService?: string,
+        schemaName?: string,
+        requestPath?: string,
+        itemsPerPage?: number,
+        authentication?: boolean,
+        enabled?: boolean,
+        comments?: string): Promise<void> => {
 
         const dialog = await driver.wait(until.elementLocated(By.id("mrsSchemaDialog")),
             explicitWait, "MRS Schema dialog was not displayed");
 
-        const inputSchemaName = await dialog.findElement(By.id("name"));
-        await inputSchemaName.clear();
-        await inputSchemaName.sendKeys(schemaName);
-
-        const selectService = await dialog.findElement(By.id("service"));
-        await selectService.click();
-        await driver.findElement(By.id(mrsService)).click();
-
-        const inputRequestPath = await dialog.findElement(By.id("requestPath"));
-        await inputRequestPath.clear();
-        await inputRequestPath.sendKeys(requestPath);
-
-        const inputRequiresAuth = await dialog.findElement(By.id("requiresAuth"));
-        const inputRequiresAuthClasses = await inputRequiresAuth.getAttribute("class");
-        let classes = inputRequiresAuthClasses.split(" ");
-        if (authentication === true) {
-            if (classes.includes("unchecked")) {
-                await inputRequiresAuth.findElement(By.css(".checkMark")).click();
-            }
-        } else {
-            if (classes.includes("checked")) {
-                await inputRequiresAuth.findElement(By.css(".checkMark")).click();
+        if (schemaName) {
+            const inputSchemaName = await dialog.findElement(By.id("name"));
+            await inputSchemaName.clear();
+            await inputSchemaName.sendKeys(schemaName);
+        }
+        if (mrsService) {
+            const selectService = await dialog.findElement(By.id("service"));
+            await selectService.click();
+            await driver.findElement(By.id(mrsService)).click();
+        }
+        if (requestPath) {
+            const inputRequestPath = await dialog.findElement(By.id("requestPath"));
+            await inputRequestPath.clear();
+            await inputRequestPath.sendKeys(requestPath);
+        }
+        if (authentication !== undefined) {
+            const inputRequiresAuth = await dialog.findElement(By.id("requiresAuth"));
+            const inputRequiresAuthClasses = await inputRequiresAuth.getAttribute("class");
+            const classes = inputRequiresAuthClasses.split(" ");
+            if (authentication === true) {
+                if (classes.includes("unchecked")) {
+                    await inputRequiresAuth.findElement(By.css(".checkMark")).click();
+                }
+            } else {
+                if (!classes.includes("unchecked")) {
+                    await inputRequiresAuth.findElement(By.css(".checkMark")).click();
+                }
             }
         }
-
-        const inputEnabled = await dialog.findElement(By.id("enabled"));
-        const inputEnabledClasses = await inputEnabled.getAttribute("class");
-        classes = inputEnabledClasses.split(" ");
-        if (enabled === true) {
-            if (classes.includes("unchecked")) {
-                await inputEnabled.findElement(By.css(".checkMark")).click();
-            }
-        } else {
-            if (classes.includes("checked")) {
-                await inputEnabled.findElement(By.css(".checkMark")).click();
+        if (enabled !== undefined) {
+            const inputEnabled = await dialog.findElement(By.id("enabled"));
+            const inputEnabledClasses = await inputEnabled.getAttribute("class");
+            const classes = inputEnabledClasses.split(" ");
+            if (enabled === true) {
+                if (classes.includes("unchecked")) {
+                    await inputEnabled.findElement(By.css(".checkMark")).click();
+                }
+            } else {
+                if (!classes.includes("unchecked")) {
+                    await inputEnabled.findElement(By.css(".checkMark")).click();
+                }
             }
         }
-
-        const inputItemsPerPage = await dialog.findElement(By.id("itemsPerPage"));
-        await inputItemsPerPage.clear();
-        await inputItemsPerPage.sendKeys(itemsPerPage);
-
-        const inputComments = await dialog.findElement(By.id("comments"));
-        await inputComments.clear();
-        await inputComments.sendKeys(comments);
-
+        if (itemsPerPage) {
+            const inputItemsPerPage = await dialog.findElement(By.id("itemsPerPage"));
+            await inputItemsPerPage.clear();
+            await inputItemsPerPage.sendKeys(itemsPerPage);
+        }
+        if (comments) {
+            const inputComments = await dialog.findElement(By.id("comments"));
+            await inputComments.clear();
+            await inputComments.sendKeys(comments);
+        }
         await dialog.findElement(By.id("ok")).click();
     };
 
@@ -890,6 +902,87 @@ export class Database {
 
         await dialog.findElement(By.id("ok")).click();
 
+    };
+
+    public static setRestObject = async (
+        service?: string,
+        restObjPath?: string,
+        dbObjName?: string,
+        crud?: string[],
+        enabled?: boolean,
+        requiresAuth?: boolean,
+    ): Promise <void> => {
+
+        const dialog = await driver.wait(until.elementLocated(By.id("mrsSchemaDialog")),
+            explicitWait*2, "Edit REST Object dialog was not displayed");
+
+        if (service) {
+            const inService = await dialog.findElement(By.id("service"));
+            await inService.click();
+            const popup = await driver.findElement(By.id("servicePopup"));
+            await popup.findElement(By.id(service)).click();
+        }
+        if (restObjPath) {
+            const inObjPath = await dialog.findElement(By.id("requestPath"));
+            await inObjPath.clear();
+            await inObjPath.sendKeys(restObjPath);
+        }
+        if (dbObjName) {
+            const inObjName = await dialog.findElement(By.id("name"));
+            await inObjName.clear();
+            await inObjName.sendKeys(restObjPath);
+        }
+        if (crud) {
+            await dialog.findElement(By.id("crudOperations")).click();
+            const availableCrud = await driver.findElements(By.css("#crudOperationsPopup .dropdownItem"));
+            for (const op of availableCrud) {
+                const item = await op.getAttribute("id");
+                if (crud.includes(item)) {
+                    const isUnchecked = (await (await op.findElement(By.css("label"))).getAttribute("class"))
+                        .includes("unchecked");
+                    if (isUnchecked) {
+                        await op.click();
+                    }
+                } else {
+                    const isUnchecked = (await (await op.findElement(By.css("label"))).getAttribute("class"))
+                        .includes("unchecked");
+                    if (!isUnchecked) {
+                        await op.click();
+                    }
+                }
+            }
+            await driver.actions().sendKeys(selKey.ESCAPE).perform();
+        }
+        if (enabled !== undefined) {
+            const inEnabled = await dialog.findElement(By.id("enabled"));
+            if (enabled === true) {
+                const isUnchecked = (await inEnabled.getAttribute("class")).includes("unchecked");
+                if (isUnchecked) {
+                    await inEnabled.click();
+                }
+            } else {
+                const isUnchecked = (await inEnabled.getAttribute("class")).includes("unchecked");
+                if (!isUnchecked) {
+                    await inEnabled.click();
+                }
+            }
+        }
+        if (requiresAuth !== undefined) {
+            const inAuth = await dialog.findElement(By.id("requiresAuth"));
+            if (requiresAuth === true) {
+                const isUnchecked = (await inAuth.getAttribute("class")).includes("unchecked");
+                if (isUnchecked) {
+                    await inAuth.click();
+                }
+            } else {
+                const isUnchecked = (await inAuth.getAttribute("class")).includes("unchecked");
+                if (!isUnchecked) {
+                    await inAuth.click();
+                }
+            }
+        }
+
+        await dialog.findElement(By.id("ok")).click();
     };
 
     public static getCurrentEditor = async (): Promise<string> => {

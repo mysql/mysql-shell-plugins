@@ -219,7 +219,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         beforeEach(async function () {
             try {
-                await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait,
+                await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait*3,
                     `${await treeOCISection.getTitle()} is still loading`);
             } catch (e) {
                 await Misc.processFailure(this);
@@ -315,7 +315,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             try {
                 await Misc.sectionFocus(ociTreeSection);
                 treeDbSystem = await treeOCISection.findItem("MDSforVSCodeExtension", ociMaxLevel);
-                await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait,
+                await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait*3,
                     `${await treeOCISection.getTitle()} is still loading`);
             } catch (e) {
                 await Misc.processFailure(this);
@@ -470,7 +470,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         beforeEach(async function () {
             try {
                 await Misc.sectionFocus(ociTreeSection);
-                await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait,
+                await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait*3,
                     `${await treeOCISection.getTitle()} is still loading`);
             } catch (e) {
                 await Misc.processFailure(this);
@@ -533,7 +533,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             await Misc.selectContextMenuItem(treeBastion!, "Set as Current Bastion");
 
-            await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait,
+            await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait*3,
                 `${await treeOCISection.getTitle()} is still loading`);
 
             expect(await Misc.isDefaultItem(treeBastion!, "bastion")).to.be.true;
