@@ -67,7 +67,9 @@ class DbModuleSession(ModuleSession):
         self._db_type = None
 
         if self._db_service_session is not None:
+            self._db_service_session.lock()
             self._db_service_session.close(after_fail)
+            self._db_service_session.release()
             self._db_service_session = None
 
     def reconnect(self):

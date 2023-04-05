@@ -49,7 +49,9 @@ class SqleditorModuleSession(DbModuleSession):
     def close_connection(self, after_fail=False):
         # do cleanup
         if self._db_user_session is not None:
+            self._db_user_session.lock()
             self._db_user_session.close()
+            self._db_user_session.release()
             self._db_user_session = None
 
         super().close_connection(after_fail)
