@@ -488,7 +488,7 @@ class TestDbMysqlSession:
             result = values['rows'][0]
 
             assert {'length': 21, 'name': 'cnt',
-                    'type': 'INTEGER'} in values["columns"]
+                    'type': 'INT'} in values["columns"]
 
             if count_callback.row_count == -1:
                 count_callback.row_count = result[0]
@@ -547,7 +547,7 @@ class TestDbMysqlSession:
             result = values['rows'][0]
 
             assert {'length': 21, 'name': 'cnt',
-                    'type': 'INTEGER'} in values['columns']
+                    'type': 'INT'} in values['columns']
 
             if count_callback.row_count == -1:
                 count_callback.row_count = result[0]

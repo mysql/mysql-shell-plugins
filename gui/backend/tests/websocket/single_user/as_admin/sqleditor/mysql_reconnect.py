@@ -92,7 +92,7 @@ ws.sendAndValidate({
             "request_id": ws.lastGeneratedRequestId,
             "result": {
                 "rows": [[1]],
-                "columns": [{"name": "result", "type": "INTEGER", "length": ws.ignore}],
+                "columns": [{"name": "result", "type": "INT", "length": ws.ignore}],
                 "total_row_count": 1,
                 "execution_time": ws.ignore
             }
