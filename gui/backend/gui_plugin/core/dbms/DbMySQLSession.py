@@ -289,16 +289,11 @@ class DbMysqlSession(DbSession):
             yield row
             row = self.cursor.fetch_one()
 
-    def _strip_type_name(self, type_name):
-        if not isinstance(type_name, str):
-            type_name = str(type_name)
-        return type_name[6:-1] if "<Type." in type_name else type_name
-
     def get_column_info(self, row=None):
         columns = []
         for column in self.cursor.get_columns():
             columns.append({"name": column.get_column_label(),
-                            "type": self._strip_type_name(column.get_type()),
+                            "type": column.get_type().data,
                             "length": column.get_length()})
 
         return columns
