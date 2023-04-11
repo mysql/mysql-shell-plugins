@@ -84,7 +84,7 @@ if (!process.env.DBUSERNAME) {
     exit(1);
 }
 
-if (!process.env.DBPASSWORD) {
+if (!('DBPASSWORD' in process.env)) {
     error("No value for environment var DBPASSWORD was provided");
     exit(1);
 }
