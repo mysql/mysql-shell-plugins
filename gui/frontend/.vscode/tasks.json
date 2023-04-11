@@ -1,6 +1,6 @@
 {
-	"version": "2.0.0",
-	"tasks": [
+    "version": "2.0.0",
+    "tasks": [
         {
             "type": "typescript",
             "tsconfig": "tsconfig.json",
@@ -10,6 +10,58 @@
             ],
             "group": "build",
             "label": "tsc: watch"
-        }
+        },
+        {
+            "label": "Setup and run e2e FE tests",
+            "type": "shell",
+            "command": "mysqlsh",
+            "args": [
+                "--py",
+                "-f",
+                "src/tests/e2e/setup_local_env_and_run.py",
+                "--test_to_run",
+                "${input:test_to_run}",
+                "--db_port",
+                "${input:db_port}",
+                "--db_root_user",
+                "${input:db_root_user}",
+                "--db_root_password",
+                "${input:db_root_password}",
+                "--headless",
+                "${input:headless}",
+            ],
+        },
+    ],
+    "inputs": [
+        {
+            "id": "test_to_run",
+            "description": "Test to run",
+            "type": "promptString",
+            "default": "ALL"
+        },
+        {
+            "id": "db_port",
+            "description": "Db port",
+            "type": "promptString",
+            "default": "3308"
+        },
+        {
+            "id": "db_root_user",
+            "description": "Db rot user name",
+            "type": "promptString",
+            "default": "root"
+        },
+        {
+            "id": "db_root_password",
+            "description": "Db root user password",
+            "type": "promptString",
+            "default": "-"
+        },
+        {
+            "id": "headless",
+            "description": "Headless mode",
+            "type": "promptString",
+            "default": "1"
+        },
     ]
 }
