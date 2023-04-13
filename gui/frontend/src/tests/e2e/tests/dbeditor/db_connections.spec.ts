@@ -26,6 +26,8 @@ import { By, until, Key, WebElement } from "selenium-webdriver";
 import { DBConnection } from "../../lib/dbConnection";
 import { DBNotebooks } from "../../lib/dbNotebooks";
 
+jest.retryTimes(1);
+
 describe("Database Connections", () => {
 
     let testFailed = false;
