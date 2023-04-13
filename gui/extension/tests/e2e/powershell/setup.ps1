@@ -181,12 +181,20 @@ try {
         installTestResources $env:VSCODE_VERSION
         writeMsg "DONE"
     } else {
-        writeMsg "It does! Skipping installation."
+        writeMsg "It does! Maybe skipping installation...."
         $version = getVSCodeVersion $testResourcesDb
         writeMsg "Checking VSCode version..." "-NoNewLine"
 
         if ($version -ne $env:VSCODE_VERSION) {
-            writeMsg "'$version', requested version is '$env:VSCODE_VERSION'. Updating..." "-NoNewLine"
+            writeMsg "'$version', requested version is '$env:VSCODE_VERSION'."
+            writeMsg "Removing all test resources..." "-NoNewLine"
+            Remove-Item -Path $testResourcesDb -Force -Recurse
+            Remove-Item -Path $testResourcesOci -Force -Recurse
+            Remove-Item -Path $testResourcesRest -Force -Recurse
+            Remove-Item -Path $testResourcesShell -Force -Recurse
+            writeMsg "DONE"
+
+            writeMsg "Start installing test-resources..." "-NoNewLine"
             installTestResources $env:VSCODE_VERSION
             writeMsg "DONE"
             $version = getVSCodeVersion $testResourcesDb

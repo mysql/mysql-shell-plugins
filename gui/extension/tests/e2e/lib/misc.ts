@@ -410,33 +410,37 @@ export class Misc {
     };
 
     public static switchToWebView = async (): Promise<void> => {
-        const iframeDivs = await driver.wait(until.elementsLocated(By.xpath("//div[contains(@id, 'webview-')]")),
-            ociExplicitWait, "No frames were found");
-        let refIframe: WebElement | undefined;
+        const visibleDiv = await driver.wait(async () => {
+            const divs = await driver.findElements(By.css(".file-icons-enabled > div"));
+            for (const div of divs) {
+                try {
+                    const id = await div.getAttribute("id");
+                    if (id !== "") {
+                        const visibility = await div.getCssValue("visibility");
+                        if (visibility.includes("visible")) {
+                            return div;
+                        }
+                    }
+                } catch (e) {
+                    // continue
+                }
+            }
+        }, explicitWait, "Could not find a visible iframe div");
 
-        for (const iframeDiv of iframeDivs) {
-            const style = await iframeDiv.getAttribute("style");
-            if (style.includes("visibility: visible")) {
-                refIframe = await iframeDiv.findElement(By.css("iframe"));
+        const expectedFrames = 2;
+
+        const firstIframe = await visibleDiv.findElement(By.css("iframe"));
+        await driver.wait(until.ableToSwitchToFrame(firstIframe));
+
+        for (let i=0; i <= expectedFrames - 1; i++) {
+            const frame = await driver.findElements(By.css("iframe"));
+            if (frame.length > 0) {
+                await driver.wait(until.ableToSwitchToFrame(frame[0]));
+            }
+            else {
                 break;
             }
         }
-
-        await driver.wait(until.ableToSwitchToFrame(refIframe as WebElement),
-            ociExplicitWait, "Not able to switch to first iframe");
-
-        await driver.wait(until.ableToSwitchToFrame(
-            By.id("active-frame")), ociExplicitWait, `Not able to switch to 'active-frame'`);
-
-        try {
-            const webViewFrame = await driver.findElement(By.css("iframe")).getAttribute("id");
-
-            await driver.wait(until.ableToSwitchToFrame(By.id(webViewFrame))
-                ,explicitWait, `Not able to switch to frame 'frame:${webViewFrame}'`);
-        } catch (e) {
-            //continue, no more iframes
-        }
-
     };
 
     public static isRouterInstalled = async (): Promise <boolean> => {
