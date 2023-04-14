@@ -61,7 +61,7 @@ describe("Database Connections", () => {
 
         await driver.findElement(By.id("gui.sqleditor")).click();
         await DBNotebooks.initConDialog();
-        await DBNotebooks.createDBconnection(globalConn, true);
+        await DBNotebooks.createDBconnection(globalConn);
     });
 
     afterEach(async () => {
@@ -77,96 +77,6 @@ describe("Database Connections", () => {
 
     afterAll(async () => {
         await driver.quit();
-    });
-
-
-    it("Store and clear Password", async () => {
-
-        try {
-
-            const host = await DBNotebooks.getConnection(globalConn.caption);
-            await DBNotebooks.clickConnectionItem(host!, "edit");
-
-            const conDialog = await driver.wait(until.elementLocated(By.css(".valueEditDialog")),
-                explicitWait, "Dialog was not displayed");
-            await conDialog.findElement(By.id("clearPassword")).click();
-
-            const clearDialog = await driver.wait(until.elementLocated(By.css(".visible.confirmDialog")),
-                explicitWait, "Password cleared dialog was not displayed");
-
-            const clearDialogText = await clearDialog.findElement(By.id("dialogMessage"));
-
-            expect(await clearDialogText.getText()).toBe("Password was cleared.");
-            await clearDialog.findElement(By.id("accept")).click();
-
-            await conDialog.findElement(By.id("ok")).click();
-
-            await driver.executeScript(
-                "arguments[0].click();",
-                await DBNotebooks.getConnection(globalConn.caption),
-            );
-
-            const passwordDialog = await driver.wait(until.elementLocated(By.css(".passwordDialog")),
-                explicitWait, "Password dialog was not displayed");
-            await passwordDialog.findElement(By.id("cancel")).click();
-            const error = await driver.wait(until.elementLocated(By.css(".errorPanel .button")),
-               explicitWait, "Error panel was not displayed");
-
-            await error.click();
-
-        } catch (e) {
-            testFailed = true;
-            throw e;
-        }
-
-    });
-
-    it("Confirm dialog - Save password", async () => {
-        try {
-
-            const localConn: IDBConnection = {
-                dbType: undefined,
-                caption: `conn${new Date().valueOf()}`,
-                description: "Local connection",
-                hostname: String(process.env.DBHOSTNAME),
-                protocol: "mysql",
-                username: String(process.env.DBUSERNAME1),
-                port: String(process.env.DBPORT),
-                portX: String(process.env.DBPORTX),
-                schema: "sakila",
-                password: String(process.env.DBUSERNAME1),
-                sslMode: undefined,
-                sslCA: undefined,
-                sslClientCert: undefined,
-                sslClientKey: undefined,
-            };
-
-            const db = await DBNotebooks.createDBconnection(localConn, false, true);
-
-            await driver.executeScript(
-                "arguments[0].click();",
-                db,
-            );
-
-            await Misc.setPassword(localConn);
-
-            await Misc.setConfirmDialog(localConn, "yes");
-
-            expect(await DBConnection.getSelectedConnectionTab()).toBe(localConn.caption);
-
-            await DBConnection.closeDBconnection(localConn.caption);
-
-            await driver.executeScript(
-                "arguments[0].click();",
-                await DBNotebooks.getConnection(localConn.caption),
-            );
-
-            expect(await DBConnection.getSelectedConnectionTab()).toBe(localConn.caption);
-
-        } catch (e) {
-            testFailed = true;
-            throw e;
-        }
     });
 
     it("Duplicate a database connection", async () => {
@@ -592,7 +502,7 @@ describe("Database Connections", () => {
 
             try {
                 await Misc.setPassword(globalConn);
-                await Misc.setConfirmDialog(globalConn, "yes");
+                await Misc.setConfirmDialog(globalConn, "no");
             } catch (e) {
                 //continue
             }

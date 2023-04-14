@@ -206,8 +206,23 @@ export class Misc {
         if (cmd !== "\\q" && cmd !== "\\d") {
             await driver.wait(async () => {
                 const blocks = await driver.findElements(By.css(".zoneHost"));
+                if (prevBlocks.length > 0) {
+                    if (blocks.length > 0) {
+                        const viewZone = await blocks[blocks.length - 1].getAttribute("monaco-view-zone");
+                        let prevViewZone = "";
+                        try {
+                            prevViewZone = await prevBlocks[prevBlocks.length - 1].getAttribute("monaco-view-zone");
+                        } catch (e) {
+                            if (!(e instanceof error.StaleElementReferenceError)) {
+                                throw e;
+                            }
+                        }
 
-                return blocks.length > prevBlocks.length;
+                        return blocks.length > prevBlocks.length || viewZone !== prevViewZone;
+                    }
+                } else {
+                    return blocks.length > prevBlocks.length;
+                }
             }, timeout, "Command '" + cmd + "' did not triggered a new results block");
         }
     };
@@ -366,12 +381,14 @@ export class Misc {
         await driver.wait(async () => {
             try {
                 const lines = await context.findElements(By.css(".view-lines.monaco-mouse-cursor-text .view-line"));
-                tags = await lines[lines.length - position].findElements(By.css("span > span"));
-                for (const tag of tags) {
-                    sentence += (await tag.getText()).replace("&nbsp;", " ");
-                }
+                if (lines.length > 0) {
+                    tags = await lines[lines.length - position].findElements(By.css("span > span"));
+                    for (const tag of tags) {
+                        sentence += (await tag.getText()).replace("&nbsp;", " ");
+                    }
 
-                return true;
+                    return true;
+                }
             } catch (e) {
                 if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
