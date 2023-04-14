@@ -68,13 +68,13 @@ describe("MySQL Administration", () => {
 
         if (!db) {
             await DBNotebooks.initConDialog();
-            db = await DBNotebooks.createDBconnection(globalConn, true);
+            db = await DBNotebooks.createDBconnection(globalConn);
         }
 
         try {
             await driver.executeScript("arguments[0].click();", db);
             await Misc.setPassword(globalConn);
-            await Misc.setConfirmDialog(globalConn, "yes");
+            await Misc.setConfirmDialog(globalConn, "no");
         } catch (e) {
             if (e instanceof Error) {
                 if (e.message.indexOf("dialog was found") === -1) {

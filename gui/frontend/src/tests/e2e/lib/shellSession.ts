@@ -82,13 +82,13 @@ export class ShellSession {
      * @returns Promise resolving with the result language
      */
     public static getLangResult = async (): Promise<string> => {
-        await driver.wait(until.elementLocated(By.css(".zoneHost")), 2000);
+        await driver.wait(until.elementLocated(By.css(".zoneHost")), explicitWait);
         const zoneHosts = await driver.findElements(By.css(".zoneHost"));
         const zoneHost = zoneHosts[zoneHosts.length - 1];
 
-        const dataLang = await (await zoneHost.findElement(By.css("label"))).getAttribute("data-lang");
+        const label = await zoneHost.findElement(By.css("label"));
 
-        return dataLang;
+        return label.getAttribute("data-lang");
     };
 
     /**

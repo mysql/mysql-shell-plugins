@@ -24,7 +24,8 @@
 import { Misc, driver, IDBConnection, explicitWait } from "../../lib/misc";
 import { DBConnection } from "../../lib/dbConnection";
 import { DBNotebooks } from "../../lib/dbNotebooks";
-import { By, WebElement } from "selenium-webdriver";
+import { By, WebElement, until } from "selenium-webdriver";
+
 
 describe("Scripts", () => {
 
@@ -68,13 +69,13 @@ describe("Scripts", () => {
 
         if (!db) {
             await DBNotebooks.initConDialog();
-            db = await DBNotebooks.createDBconnection(globalConn, true);
+            db = await DBNotebooks.createDBconnection(globalConn);
         }
 
         try {
             await driver.executeScript("arguments[0].click();", db);
             await Misc.setPassword(globalConn);
-            await Misc.setConfirmDialog(globalConn, "yes");
+            await Misc.setConfirmDialog(globalConn, "no");
         } catch (e) {
             if (e instanceof Error) {
                 if (e.message.indexOf("dialog was found") === -1) {
@@ -82,6 +83,7 @@ describe("Scripts", () => {
                 }
             }
         }
+        await driver.wait(until.elementLocated(By.id("dbEditorToolbar")), explicitWait*2, "Notebook was not loaded");
     });
 
     afterEach(async () => {

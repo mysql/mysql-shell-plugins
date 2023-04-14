@@ -25,7 +25,6 @@ import { Misc, driver, IDBConnection, explicitWait } from "../../lib/misc";
 import { By, WebElement } from "selenium-webdriver";
 import { GuiConsole } from "../../lib/guiConsole";
 import { ShellSession } from "../../lib/shellSession";
-import { Settings } from "../../lib/settings";
 
 describe("Sessions", () => {
 
@@ -59,7 +58,7 @@ describe("Sessions", () => {
             await driver.navigate().refresh();
             await Misc.waitForHomePage();
         }
-        await Settings.setStartLanguage("Shell Session", "javascript");
+
         await driver.findElement(By.id("gui.shell")).click();
         await GuiConsole.openSession();
 
@@ -114,7 +113,9 @@ describe("Sessions", () => {
 
             await Misc.execCmd(textArea, "db.countryinfo.find()");
 
-            expect(await ShellSession.getLangResult()).toBe("json");
+            await driver.wait(async () => {
+                return (await ShellSession.getLangResult()) === "json";
+            }, explicitWait, "JSON was not found on the result");
 
         } catch (e) {
             testFailed = true;

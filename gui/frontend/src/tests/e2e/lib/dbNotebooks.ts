@@ -70,13 +70,9 @@ export class DBNotebooks {
      * It verifies that the Connection dialog is closed, at the end.
      *
      * @param dbConfig SSL Mode
-     * @param storePassword true saves the password
-     * @param clearPassword true cleares the password
      * @returns Promise resolving with the connection created
      */
-    public static createDBconnection = async (dbConfig: IDBConnection,
-        storePassword?: boolean, clearPassword?: boolean): Promise<WebElement | undefined> => {
-
+    public static createDBconnection = async (dbConfig: IDBConnection): Promise<WebElement | undefined> => {
         const ctx = await driver.findElement(By.css(".connectionBrowser"));
         await ctx.findElement(By.id("-1")).click();
         const newConDialog = await driver.wait(until.elementLocated(By.css(".valueEditDialog")),
@@ -100,25 +96,6 @@ export class DBNotebooks {
         await newConDialog
             .findElement(By.id("defaultSchema"))
             .sendKeys(String(dbConfig.schema));
-        if (clearPassword) {
-            await newConDialog.findElement(By.id("clearPassword")).click();
-            try {
-                const dialog = await driver.wait(until.elementsLocated(By.css(".errorPanel")), 500, "");
-                await dialog[0].findElement(By.css(".button")).click();
-            } catch (e) {
-                const clearDialog = await driver.wait(until.elementLocated(By.css(".visible.confirmDialog")),
-                explicitWait, "Password cleared dialog was not displayed");
-                await clearDialog.findElement(By.id("accept")).click();
-            }
-        }
-        if (storePassword) {
-            const storeBtn = await newConDialog.findElement(By.id("storePassword"));
-            await storeBtn.click();
-            const dialog = await driver.wait(until.elementLocated(By.css(".passwordDialog")),
-                2000, "No password dialog was found");
-            await dialog.findElement(By.css("input")).sendKeys(String(dbConfig.password));
-            await dialog.findElement(By.id("ok")).click();
-        }
 
         if (dbConfig.dbType) {
             await DBNotebooks.selectDBType(dbConfig.dbType);

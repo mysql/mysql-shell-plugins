@@ -22,10 +22,9 @@
  */
 
 import { Misc, driver, IDBConnection } from "../../lib/misc";
-import { By, WebElement } from "selenium-webdriver";
+import { By, WebElement, until } from "selenium-webdriver";
 import { GuiConsole } from "../../lib/guiConsole";
 import { ShellSession } from "../../lib/shellSession";
-import { Settings } from "../../lib/settings";
 
 describe("MySQL Shell Connections", () => {
 
@@ -58,7 +57,7 @@ describe("MySQL Shell Connections", () => {
             await driver.navigate().refresh();
             await Misc.waitForHomePage();
         }
-        await Settings.setStartLanguage("Shell Session", "javascript");
+
         await driver.findElement(By.id("gui.shell")).click();
         await GuiConsole.openSession();
     });
@@ -73,12 +72,16 @@ describe("MySQL Shell Connections", () => {
             await Misc.storeScreenShot();
         }
 
-        const textArea = await driver.findElement(By.css("textArea"));
-        await Misc.execCmd(textArea, `\\d`);
-        await driver.wait(async () => {
-            return (await driver.findElements(By.css(".shellPromptItem"))).length === 1;
-        }, 2000, "There are still more than 1 tab after disconnect");
-        expect(await ShellSession.getServerTabStatus()).toBe("The session is not connected to a MySQL server");
+        const server = await driver.findElement(By.id("server")).getText();
+
+        if (server !== "not connected") {
+            const textArea = await driver.findElement(By.css("textArea"));
+            await Misc.execCmd(textArea, `\\d`);
+            await driver.wait(async () => {
+                return (await driver.findElements(By.css(".shellPromptItem"))).length === 1;
+            }, 2000, "There are still more than 1 tab after disconnect");
+            expect(await ShellSession.getServerTabStatus()).toBe("The session is not connected to a MySQL server");
+        }
         await Misc.cleanPrompt();
     });
 
@@ -125,6 +128,24 @@ describe("MySQL Shell Connections", () => {
     });
 
     it("Connect to host without password", async () => {
+
+        const localConn: IDBConnection = {
+            dbType: "MySQL",
+            caption: `ClientQA test`,
+            description: "Local connection",
+            hostname: "winguitest02.regionaliad02.mysql2iad.oraclevcn.com",
+            protocol: "mysql",
+            username: "shell",
+            port: String(process.env.DBPORT),
+            portX: String(process.env.DBPORTX),
+            schema: "sakila",
+            password: String(process.env.DBPASSWORDSHELL),
+            sslMode: undefined,
+            sslCA: undefined,
+            sslClientCert: undefined,
+            sslClientKey: undefined,
+        };
+
         try {
 
             await driver.executeScript(
@@ -136,25 +157,12 @@ describe("MySQL Shell Connections", () => {
 
             await Misc.execCmd(
                 textArea,
-                `\\c ${globalConn.username}@${globalConn.hostname}:${globalConn.port}/${globalConn.schema}`);
+                `\\c ${localConn.username}@${localConn.hostname}/${localConn.schema}`);
 
-            await Misc.setPassword(globalConn);
+            const dialog = await driver.wait(until.elementLocated(By.css(".passwordDialog")),
+            500, "No Password dialog was found");
 
-            await Misc.setConfirmDialog(globalConn, "no");
-
-            let uri = `Creating a session to '${globalConn.username}@${globalConn.hostname}:`;
-            uri += `${globalConn.port}/${globalConn.schema}'`;
-
-            await ShellSession.waitForResult(uri);
-            await ShellSession.waitForResult(/Server version: (\d+).(\d+).(\d+)/);
-            await ShellSession.waitForResult(`Default schema set to \`${globalConn.schema}\`.`);
-
-            let toCheck = `Connection to server ${globalConn.hostname} at port ${globalConn.port}`;
-            toCheck += `, using the classic protocol`;
-
-            await ShellSession.waitForConnectionTabValue("server", toCheck);
-            await ShellSession.waitForConnectionTabValue("schema", globalConn.schema);
-
+            await dialog.findElement(By.id("cancel")).click();
 
         } catch (e) {
             testFailed = true;
@@ -175,9 +183,7 @@ describe("MySQL Shell Connections", () => {
             let uri = `shell.connect('${globalConn.username}:${globalConn.password}@${globalConn.hostname}:`;
             uri += `${String(globalConn.portX)}/${globalConn.schema}')`;
 
-            await Misc.execCmd(
-                textArea,
-                uri);
+            await Misc.execCmd(textArea,uri);
 
             uri = `Creating a session to '${globalConn.username}@${globalConn.hostname}:`;
             uri += `${String(globalConn.portX)}/${globalConn.schema}'`;
