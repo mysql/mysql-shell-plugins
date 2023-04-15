@@ -136,6 +136,7 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
               showArrow={false}
             >
               <Portal
+                className="popupPortal"
                 onClose={[Function]}
                 onKeyDown={[Function]}
                 onOpen={[Function]}
@@ -263,6 +264,7 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
           showArrow={false}
         >
           <Portal
+            className="popupPortal"
             id="tileActionMenu"
             onClose={[Function]}
             onKeyDown={[Function]}

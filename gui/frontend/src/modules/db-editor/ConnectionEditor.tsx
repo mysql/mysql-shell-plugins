@@ -32,7 +32,8 @@ import { IMdsProfileData } from "../../communication/ProtocolMds";
 import { ISqliteConnectionOptions } from "../../communication/Sqlite";
 import { ConfirmDialog } from "../../components/Dialogs/ConfirmDialog";
 import {
-    CommonDialogValueOption, DialogValueType, IDialogSection, IDialogValidations, IDialogValues, ValueEditDialog,
+    CommonDialogValueOption, DialogValueType, IDialogSection, IDialogValidations, IDialogValues,
+    ValueEditDialog,
 } from "../../components/Dialogs/ValueEditDialog";
 import { CheckState, ICheckboxProperties } from "../../components/ui/Checkbox/Checkbox";
 
@@ -949,6 +950,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 },
             },
         };
+
 
         return {
             id: String(details.id),

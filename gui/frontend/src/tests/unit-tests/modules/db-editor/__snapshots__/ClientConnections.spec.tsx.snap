@@ -143,6 +143,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 showArrow={false}
               >
                 <Portal
+                  className="popupPortal"
                   id="refreshSelectorPopup"
                   onClose={[Function]}
                   onOpen={[Function]}
@@ -806,6 +807,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 showArrow={false}
               >
                 <Portal
+                  className="popupPortal"
                   id="refreshSelectorPopup"
                   onClose={[Function]}
                   onOpen={[Function]}

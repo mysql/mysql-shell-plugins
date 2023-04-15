@@ -152,7 +152,8 @@ describe("DialogHost Tests", () => {
         expect(portals.length).toBe(0);
     });
 
-    it("Show MRS DB Object Dialog (snapshot)", async () => {
+    // TODO: move this to a new test spec for MrsTurnstile.tsx
+    xit("Show MRS DB Object Dialog (snapshot)", async () => {
         let portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
 

@@ -26,6 +26,8 @@ import closeButton from "../../assets/images/close2.svg";
 import connectedIcon from "../../assets/images/connected.svg";
 import disconnectedIcon from "../../assets/images/disconnected.svg";
 
+import typings from "./debugger-runtime.d.ts?raw";
+
 import { ComponentChild, createRef, render } from "preact";
 import { CellComponent } from "tabulator-tables";
 
@@ -52,8 +54,6 @@ import { SplitContainer, ISplitterPaneSizeInfo, ISplitterPane } from "../ui/Spli
 import { ITabviewPage, Tabview } from "../ui/Tabview/Tabview";
 import { Toolbar } from "../ui/Toolbar/Toolbar";
 import { TreeGrid, ITreeGridOptions, SetDataAction } from "../ui/TreeGrid/TreeGrid";
-
-import typings from "./debugger-runtime.d.ts?raw";
 import { Button } from "../ui/Button/Button";
 import { Checkbox, CheckState } from "../ui/Checkbox/Checkbox";
 
@@ -130,8 +130,6 @@ export class CommunicationDebugger
         requisitions.register("webSessionStarted", this.webSessionStarted);
         requisitions.register("debugger", this.handleTraceEvent);
         requisitions.register("message", this.logMessage);
-
-        CodeEditor.addTypings(typings, "debugger");
 
         // In order to keep all text in the editor, even if the debugger is updated, we use 2 editor models.
         this.outputState = this.createEditorState("");
@@ -346,6 +344,7 @@ export class CommunicationDebugger
                     savedState={state}
                     lineDecorationsWidth={10}
                     readonly={readonly}
+                    extraLibs={[{ code: typings, path: "debugger" }]}
                 />
             </Container>
         );

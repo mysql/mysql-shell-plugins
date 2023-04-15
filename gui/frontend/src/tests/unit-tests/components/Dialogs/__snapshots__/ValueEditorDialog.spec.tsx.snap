@@ -790,6 +790,7 @@ exports[`Value Edit Dialog Tests Render with Defaults Test 1`] = `
       showArrow={false}
     >
       <Portal
+        className="popupPortal"
         onClose={[Function]}
         onKeyDown={[Function]}
         onOpen={[Function]}

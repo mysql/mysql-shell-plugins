@@ -22,6 +22,7 @@
  */
 
 import { IShellDictionary } from "./Protocol";
+import { IDictionary } from "../app-logic/Types";
 
 /* eslint-disable max-len */
 
@@ -60,10 +61,16 @@ export enum ShellAPIMrs {
     MrsUpdateService = "mrs.update.service",
     /** Checks the availability of a given request path for the given service */
     MrsGetServiceRequestPathAvailability = "mrs.get.service_request_path_availability",
-    /** Gets the id of the current service */
-    MrsGetCurrentServiceId = "mrs.get.current_service_id",
-    /** Sets the default MRS service id */
-    MrsSetCurrentServiceId = "mrs.set.current_service_id",
+    /** Gets information about the current service */
+    MrsGetCurrentServiceMetadata = "mrs.get.current_service_metadata",
+    /** Sets the default MRS service */
+    MrsSetCurrentService = "mrs.set.current_service",
+    /** Returns the SDK base classes source for the given language */
+    MrsGetSdkBaseClasses = "mrs.get.sdk_base_classes",
+    /** Returns the SDK service classes source for the given language */
+    MrsGetSdkServiceClasses = "mrs.get.sdk_service_classes",
+    /** Dumps the SDK service files for a REST Service */
+    MrsDumpSdkServiceFiles = "mrs.dump.sdk_service_files",
     /** Add a schema to the given MRS service */
     MrsAddSchema = "mrs.add.schema",
     /** Gets a specific MRS schema */
@@ -124,6 +131,14 @@ export enum ShellAPIMrs {
     MrsDeleteDbObject = "mrs.delete.db_object",
     /** Update a db_object */
     MrsUpdateDbObject = "mrs.update.db_object",
+    /** Gets the list of table columns and references */
+    MrsGetTableColumnsWithReferences = "mrs.get.table_columns_with_references",
+    /** Gets the list of objects for the given db_object */
+    MrsGetObjects = "mrs.get.objects",
+    /** Gets the list of object fields and references */
+    MrsGetObjectFieldsWithReferences = "mrs.get.object_fields_with_references",
+    /** Creates the MRS object together with its fields and references */
+    MrsSetObjectFieldsWithReferences = "mrs.set.object_fields_with_references",
     /** Adds content to the given MRS service */
     MrsAddContentSet = "mrs.add.content_set",
     /** Returns all content sets for the given MRS service */
@@ -355,18 +370,49 @@ export interface IShellMrsGetServiceRequestPathAvailabilityKwargs {
     moduleSessionId?: string;
 }
 
-export interface IShellMrsGetCurrentServiceIdKwargs {
+export interface IShellMrsGetCurrentServiceMetadataKwargs {
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
 
-export interface IShellMrsSetCurrentServiceIdKwargs {
+export interface IShellMrsSetCurrentServiceKwargs {
     /** The id of the service */
     serviceId?: string;
     /** The context root for this service */
     urlContextRoot?: string;
     /** The host name for this service */
     urlHostName?: string;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsGetSdkBaseClassesKwargs {
+    /** The SDK language to generate */
+    sdkLanguage?: string;
+    /** Prepare code to be used in Monaco at runtime */
+    prepareForRuntime?: boolean;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsGetSdkServiceClassesKwargs {
+    /** The id of the service */
+    serviceId?: string;
+    /** The SDK language to generate */
+    sdkLanguage?: string;
+    /** Prepare code to be used in Monaco at runtime */
+    prepareForRuntime?: boolean;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsDumpSdkServiceFilesKwargs {
+    /** The ID of the service the SDK should be generated for. If not specified, the default service is used. */
+    serviceId?: string;
+    /** The SDK language to generate */
+    sdkLanguage?: string;
+    /** The directory to store the .mrs.sdk folder with the files */
+    directory?: string;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
@@ -644,7 +690,7 @@ export interface IShellMrsAddDbObjectKwargs {
     /** Whether authentication is required to access the schema */
     requiresAuth?: boolean;
     /** The number of items returned per page */
-    itemsPerPage: number | null;
+    itemsPerPage?: number;
     /** Enable row ownership enforcement */
     rowUserOwnershipEnforced?: boolean;
     /** The column for row ownership enforcement */
@@ -799,6 +845,47 @@ export interface IShellMrsUpdateDbObjectKwargs {
     requestPath?: string;
     /** The values to update */
     value?: IShellMrsUpdateDbObjectKwargsValue;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsGetTableColumnsWithReferencesKwargs {
+    /** The name of the schema */
+    schemaName?: string;
+    /** The type of the db_object (TABLE, VIEW, PROCEDURE) */
+    dbObjectType?: string;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsGetObjectsKwargs {
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsGetObjectFieldsWithReferencesKwargs {
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsSetObjectFieldsWithReferencesKwargsObj {
+    /** The id of the object */
+    id?: string;
+    /** The id of the database object */
+    dbObjectId?: string;
+    /** The name of the object */
+    name?: string;
+    /** The position of the object */
+    position?: number;
+    /** The list of fields */
+    fields?: unknown[];
+    /** The comments */
+    comments?: string;
+}
+
+export interface IShellMrsSetObjectFieldsWithReferencesKwargs {
+    /** The object dict */
+    obj?: IShellMrsSetObjectFieldsWithReferencesKwargsObj;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
@@ -1041,8 +1128,11 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsSetServiceOptions]: { kwargs?: IShellMrsSetServiceOptionsKwargs; };
     [ShellAPIMrs.MrsUpdateService]: { kwargs?: IShellMrsUpdateServiceKwargs; };
     [ShellAPIMrs.MrsGetServiceRequestPathAvailability]: { kwargs?: IShellMrsGetServiceRequestPathAvailabilityKwargs; };
-    [ShellAPIMrs.MrsGetCurrentServiceId]: { kwargs?: IShellMrsGetCurrentServiceIdKwargs; };
-    [ShellAPIMrs.MrsSetCurrentServiceId]: { kwargs?: IShellMrsSetCurrentServiceIdKwargs; };
+    [ShellAPIMrs.MrsGetCurrentServiceMetadata]: { kwargs?: IShellMrsGetCurrentServiceMetadataKwargs; };
+    [ShellAPIMrs.MrsSetCurrentService]: { kwargs?: IShellMrsSetCurrentServiceKwargs; };
+    [ShellAPIMrs.MrsGetSdkBaseClasses]: { kwargs?: IShellMrsGetSdkBaseClassesKwargs; };
+    [ShellAPIMrs.MrsGetSdkServiceClasses]: { kwargs?: IShellMrsGetSdkServiceClassesKwargs; };
+    [ShellAPIMrs.MrsDumpSdkServiceFiles]: { kwargs?: IShellMrsDumpSdkServiceFilesKwargs; };
     [ShellAPIMrs.MrsAddSchema]: { kwargs?: IShellMrsAddSchemaKwargs; };
     [ShellAPIMrs.MrsGetSchema]: { kwargs?: IShellMrsGetSchemaKwargs; };
     [ShellAPIMrs.MrsListSchemas]: { args: { serviceId?: string; }; kwargs?: IShellMrsListSchemasKwargs; };
@@ -1073,6 +1163,10 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsDisableDbObject]: { args: { dbObjectName?: string; schemaId?: string; }; kwargs?: IShellMrsDisableDbObjectKwargs; };
     [ShellAPIMrs.MrsDeleteDbObject]: { args: { dbObjectName?: string; schemaId?: string; }; kwargs?: IShellMrsDeleteDbObjectKwargs; };
     [ShellAPIMrs.MrsUpdateDbObject]: { kwargs?: IShellMrsUpdateDbObjectKwargs; };
+    [ShellAPIMrs.MrsGetTableColumnsWithReferences]: { args: { dbObjectId?: string; schemaId?: string; requestPath?: string; dbObjectName?: string; }; kwargs?: IShellMrsGetTableColumnsWithReferencesKwargs; };
+    [ShellAPIMrs.MrsGetObjects]: { args: { dbObjectId?: string; }; kwargs?: IShellMrsGetObjectsKwargs; };
+    [ShellAPIMrs.MrsGetObjectFieldsWithReferences]: { args: { objectId?: string; }; kwargs?: IShellMrsGetObjectFieldsWithReferencesKwargs; };
+    [ShellAPIMrs.MrsSetObjectFieldsWithReferences]: { kwargs?: IShellMrsSetObjectFieldsWithReferencesKwargs; };
     [ShellAPIMrs.MrsAddContentSet]: { args: { serviceId?: string; contentDir?: string; }; kwargs?: IShellMrsAddContentSetKwargs; };
     [ShellAPIMrs.MrsListContentSets]: { args: { serviceId?: string; }; kwargs?: IShellMrsListContentSetsKwargs; };
     [ShellAPIMrs.MrsGetContentSet]: { kwargs?: IShellMrsGetContentSetKwargs; };
@@ -1112,7 +1206,7 @@ export interface IMrsDbObjectFieldData {
     comments?: string;
 }
 
-export interface IMrsDbObjectData {
+export interface IMrsDbObjectData extends IDictionary {
     changedAt?: string;
     comments: string;
     crudOperations: string[];
@@ -1269,6 +1363,107 @@ export interface IMrsRouterData {
     active: boolean,
 }
 
+export interface IMrsCurrentServiceMetadata {
+    id?: string,
+    metadataVersion?: string,
+}
+
+export interface IMrsTableColumn {
+    name: string,
+    datatype: string,
+    notNull: boolean,
+    isPrimary: boolean,
+    isUnique: boolean,
+    isGenerated: boolean,
+    autoInc: boolean,
+    privileges: string,
+    comment: string,
+}
+
+export interface IMrsColumnMapping {
+    [key: string]: string;
+}
+
+export interface IMrsTableReference {
+    kind: string,
+    constraint: string,
+    toMany: boolean,
+    referencedSchema: string,
+    referencedTable: string,
+    columnMapping: IMrsColumnMapping;
+}
+
+export interface IMrsTableColumnWithReference {
+    position: number,
+    name: string,
+    refColumnNames: string,
+    dbColumn?: IMrsTableColumn,
+    referenceMapping?: IMrsTableReference,
+    tableSchema: string,
+    tableName: string,
+}
+
+export interface IMrsObjectFieldSdkOptionsTs {
+    fieldName?: string;
+}
+
+export interface IMrsObjectFieldSdkOptions {
+    datatypeName?: string,
+    languageTs?: IMrsObjectFieldSdkOptionsTs,
+}
+
+export interface IMrsObjectReferenceSdkOptionsTs {
+    interfaceName?: string;
+}
+
+export interface IMrsObjectReferenceSdkOptions {
+    languageTs?: IMrsObjectReferenceSdkOptionsTs,
+}
+
+export interface IMrsObjectReference {
+    id: string,
+    reduceToValueOfFieldId?: string,
+    referenceMapping: IMrsTableReference,
+    unnest: boolean,
+    crudOperations: string,
+    sdkOptions?: IMrsObjectReferenceSdkOptions,
+    comments?: string,
+}
+
+export interface IMrsObjectFieldWithReference {
+    id: string,
+    objectId: string,
+    representsReferenceId?: string,
+    parentReferenceId?: string,
+    name: string,
+    position: number,
+    dbColumn?: IMrsTableColumn,
+    enabled: boolean,
+    allowFiltering: boolean,
+    noCheck: boolean,
+    sdkOptions?: IMrsObjectFieldSdkOptions,
+    comments?: string,
+    objectReference?: IMrsObjectReference,
+}
+
+export interface IMrsObjectSdkOptionsTs {
+    className: string,
+}
+
+export interface IMrsObjectSdkOptions extends IShellDictionary {
+    languageTs?: IMrsObjectSdkOptionsTs,
+}
+
+export interface IMrsObject {
+    id: string,
+    dbObjectId: string,
+    name: string,
+    position: number,
+    sdkOptions?: IMrsObjectSdkOptions,
+    comments?: string,
+    fields?: IMrsObjectFieldWithReference[],
+}
+
 export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsAddService]: { result: IMrsServiceData; };
     [ShellAPIMrs.MrsGetService]: {};
@@ -1276,8 +1471,8 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsEnableService]: {};
     [ShellAPIMrs.MrsDisableService]: {};
     [ShellAPIMrs.MrsDeleteService]: {};
-    [ShellAPIMrs.MrsSetCurrentServiceId]: {};
-    [ShellAPIMrs.MrsGetCurrentServiceId]: { result: string; };
+    [ShellAPIMrs.MrsSetCurrentService]: {};
+    [ShellAPIMrs.MrsGetCurrentServiceMetadata]: { result: IMrsCurrentServiceMetadata; };
     [ShellAPIMrs.MrsSetServiceContextPath]: {};
     [ShellAPIMrs.MrsSetServiceProtocol]: {};
     [ShellAPIMrs.MrsSetServiceComments]: {};
@@ -1344,6 +1539,12 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsListRouterIds]: { result: number[]; };
     [ShellAPIMrs.MrsListRouters]: { result: IMrsRouterData[]; };
     [ShellAPIMrs.MrsDeleteRouter]: {};
-
+    [ShellAPIMrs.MrsGetObjects]: { result: IMrsObject[]; };
+    [ShellAPIMrs.MrsGetSdkBaseClasses]: { result: string; };
+    [ShellAPIMrs.MrsGetSdkServiceClasses]: { result: string; };
+    [ShellAPIMrs.MrsGetTableColumnsWithReferences]: { result: IMrsTableColumnWithReference[]; };
+    [ShellAPIMrs.MrsGetObjectFieldsWithReferences]: { result: IMrsObjectFieldWithReference[]; };
+    [ShellAPIMrs.MrsSetObjectFieldsWithReferences]: {};
+    [ShellAPIMrs.MrsDumpSdkServiceFiles]: { result: boolean; };
 }
 

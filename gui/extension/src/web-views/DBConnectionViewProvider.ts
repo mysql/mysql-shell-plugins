@@ -24,7 +24,8 @@
 import { commands, Uri, window } from "vscode";
 
 import {
-    IEditorCloseChangeData, IEditorOpenChangeData, IOpenDialogOptions, IOpenFileDialogResult, requisitions,
+    IEditorCloseChangeData, IEditorOpenChangeData, IMrsDbObjectEditRequest, IOpenDialogOptions, IOpenFileDialogResult,
+    requisitions,
 } from "../../../frontend/src/supplement/Requisitions";
 
 import { IMySQLDbSystem } from "../../../frontend/src/communication";
@@ -33,6 +34,7 @@ import { EntityType, IDBEditorScriptState } from "../../../frontend/src/modules/
 import { WebviewProvider } from "./WebviewProvider";
 import { EditorLanguage, INewScriptRequest, IRunQueryRequest, IScriptRequest } from "../../../frontend/src/supplement";
 import { IShellSessionDetails } from "../../../frontend/src/supplement/ShellInterface";
+import { showMessageWithTimeout } from "../utilities";
 
 export class DBConnectionViewProvider extends WebviewProvider {
     /**
@@ -244,6 +246,22 @@ export class DBConnectionViewProvider extends WebviewProvider {
         });
     }
 
+    /**
+     * Shows the MRS DB object editor dialog.
+     *
+     * @param page The page to show.
+     * @param data Details of the object to edit.
+     *
+     * @returns A promise which resolves after the command was executed.
+     */
+    public editMrsDbObject(page: string, data: IMrsDbObjectEditRequest): Promise<boolean> {
+        return this.runCommand("job", [
+            { requestType: "showModule", parameter: DBEditorModuleId },
+            { requestType: "showPage", parameter: { module: DBEditorModuleId, page } },
+            { requestType: "showMrsDbObjectDialog", parameter: data },
+        ], "newConnection");
+    }
+
     protected requisitionsCreated(): void {
         super.requisitionsCreated();
 
@@ -259,6 +277,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
             this.requisitions.register("closeInstance", this.closeInstance);
             this.requisitions.register("editorsChanged", this.editorsChanged);
             this.requisitions.register("editorSelect", this.editorSelect);
+            this.requisitions.register("showInfo", this.showInfo);
         }
     }
 
@@ -315,6 +334,12 @@ export class DBConnectionViewProvider extends WebviewProvider {
             provider: this,
             original: { requestType: "editorSelect", parameter: details },
         });
+    };
+
+    private showInfo = (values: string[]): Promise<boolean> => {
+        showMessageWithTimeout(values.join("\n"), 5000);
+
+        return Promise.resolve(true);
     };
 
     private closeInstance = (): Promise<boolean> => {

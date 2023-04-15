@@ -27,10 +27,17 @@
     min-width: 750px;
 }
 
+.msg.dialog.valueEditDialog.autoResize {
+    min-width: 820px;
+    width: 85%;
+    min-height: 250px;
+    height: 85%;
+}
+
 .msg.dialog.valueEditDialog .gridCell {
     align-items: center;
     overflow: hidden;
-    display: flexbox;
+    display: flex;
 }
 
 .msg.dialog.valueEditDialog > .content {

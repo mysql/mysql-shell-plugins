@@ -198,6 +198,11 @@ export interface IComponentState {
     // Nothing in this base component.
 }
 
+/** A structure to define how a component snapshot may look like. */
+export interface IComponentSnapshot extends IDictionary {
+    scrollPosition: number;
+}
+
 /** The base of all our components. Provides some common functionality. */
 export abstract class ComponentBase<P extends IComponentProperties = {}, S extends IComponentState = {}>
     extends Component<P, S> {

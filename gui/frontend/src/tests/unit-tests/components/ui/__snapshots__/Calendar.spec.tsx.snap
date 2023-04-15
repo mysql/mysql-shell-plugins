@@ -13,6 +13,7 @@ exports[`Calendar render testing Test Calendar (Snapshot) 1`] = `
     showArrow={true}
   >
     <Portal
+      className="popupPortal"
       onClose={[Function]}
       onOpen={[Function]}
     />

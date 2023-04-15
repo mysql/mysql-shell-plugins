@@ -23,7 +23,6 @@ from mrs_plugin.lib import core, schemas, database
 import json
 
 
-
 def format_db_object_listing(db_objects, print_header=False):
     """Formats the listing of db_objects
 
@@ -32,7 +31,7 @@ def format_db_object_listing(db_objects, print_header=False):
         print_header (bool): If set to true, a header is printed
 
     Returns:
-        The formated list of services
+        The formatted list of services
     """
     if print_header:
         output = (f"{'ID':>3} {'PATH':35} {'OBJECT NAME':30} {'CRUD':4} "
@@ -64,6 +63,7 @@ def format_db_object_listing(db_objects, print_header=False):
 
     return output
 
+
 def map_crud_operations(crud_operations):
     grant_privileges = []
     for crud_operation in crud_operations:
@@ -77,8 +77,9 @@ def map_crud_operations(crud_operations):
             grant_privileges.append("DELETE")
         else:
             raise ValueError(f"The given CRUD operation {crud_operation} "
-                                "does not exist.")
+                             "does not exist.")
     return grant_privileges
+
 
 def validate_value(value, value_name):
     if not value and not isinstance(value, bool):
@@ -89,6 +90,7 @@ def validate_value(value, value_name):
 def add_where_clause(where, new):
     return f"{where} {'AND' if where else 'WHERE'} {new}"
 
+
 def delete_db_object(session, db_object_ids: list):
     # The list of db_objects to be changed
     if not db_object_ids:
@@ -97,13 +99,13 @@ def delete_db_object(session, db_object_ids: list):
     # Update all given services
     for db_object_id in db_object_ids:
         # remove all fields for this db_object
-        core.delete(table="field", where=["db_object_id=?"]).exec(session, [db_object_id])
+        core.delete(table="field", where=["db_object_id=?"]).exec(
+            session, [db_object_id])
 
         # remove the db_object
         core.delete(table="db_object",
-            where="id=?"
-        ).exec(session, [db_object_id]).success
-
+                    where="id=?"
+                    ).exec(session, [db_object_id]).success
 
 
 def enable_db_object(session, value: bool, db_object_ids: list):
@@ -114,9 +116,9 @@ def enable_db_object(session, value: bool, db_object_ids: list):
     # Update all given services
     for db_object_id in db_object_ids:
         result = core.update(table="db_object",
-            sets="enabled=?",
-            where="id=?"
-        ).exec(session, [value, db_object_id]).success
+                             sets="enabled=?",
+                             where="id=?"
+                             ).exec(session, [value, db_object_id]).success
 
         if not result:
             raise Exception(
@@ -125,7 +127,7 @@ def enable_db_object(session, value: bool, db_object_ids: list):
 
 
 def query_db_objects(session, db_object_id=None, schema_id=None, request_path=None,
-    db_object_name=None, include_enable_state=None):
+                     db_object_name=None, include_enable_state=None):
 
     # Build SQL based on which input has been provided
     sql = """
@@ -182,7 +184,7 @@ def query_db_objects(session, db_object_id=None, schema_id=None, request_path=No
     return core.MrsDbExec(sql, params).exec(session).items
 
 
-def get_db_object(session, db_object_id: bytes=None, schema_id: bytes=None, request_path=None, db_object_name=None):
+def get_db_object(session, db_object_id: bytes = None, schema_id: bytes = None, request_path=None, db_object_name=None):
     """Gets a specific MRS db_object
 
     Args:
@@ -201,9 +203,11 @@ def get_db_object(session, db_object_id: bytes=None, schema_id: bytes=None, requ
         result = query_db_objects(session=session, db_object_id=db_object_id)
     else:
         if request_path:
-            result = query_db_objects(session=session, schema_id=schema_id, request_path=request_path)
+            result = query_db_objects(
+                session=session, schema_id=schema_id, request_path=request_path)
         elif db_object_name:
-            result = query_db_objects(session=session, schema_id=schema_id, db_object_name=db_object_name)
+            result = query_db_objects(
+                session=session, schema_id=schema_id, db_object_name=db_object_name)
 
     return result[0] if result else None
 
@@ -224,10 +228,10 @@ def get_db_objects(session, schema_id: bytes, include_enable_state=None):
 
 
 def add_db_object(session, schema_id, db_object_name, request_path, db_object_type,
-    enabled, items_per_page, requires_auth,
-    row_user_ownership_enforced, row_user_ownership_column, crud_operations,
-    crud_operation_format, comments, media_type, auto_detect_media_type, auth_stored_procedure,
-    options, fields, db_object_id = None, reuse_ids = False):
+                  enabled, items_per_page, requires_auth,
+                  row_user_ownership_enforced, row_user_ownership_column, crud_operations,
+                  crud_operation_format, comments, media_type, auto_detect_media_type, auth_stored_procedure,
+                  options, fields, db_object_id=None, reuse_ids=False):
 
     options = core.convert_json(options)
     fields = core.convert_json(fields)
@@ -236,19 +240,20 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
         raise Exception('Invalid object name.')
 
     if db_object_type not in ["TABLE", "VIEW", "PROCEDURE"]:
-        raise ValueError('Invalid db_object_type. Only valid types are TABLE, VIEW and PROCEDURE.')
+        raise ValueError(
+            'Invalid db_object_type. Only valid types are TABLE, VIEW and PROCEDURE.')
 
     if not crud_operations:
         raise ValueError("No CRUD operations specified."
-                            "Operation cancelled.")
+                         "Operation cancelled.")
 
     if not isinstance(crud_operations, list):
         raise TypeError("The crud_operations parameter need to be specified as "
-                            "list. Operation cancelled.")
+                        "list. Operation cancelled.")
 
     if not crud_operation_format:
         raise ValueError("No CRUD operation format specified."
-                            "Operation cancelled.")
+                         "Operation cancelled.")
 
     if row_user_ownership_enforced is None:
         row_user_ownership_enforced = False
@@ -263,13 +268,13 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
         fields = []
 
     schema = schemas.get_schema(session=session,
-        schema_id=schema_id, auto_select_single=True)
+                                schema_id=schema_id, auto_select_single=True)
 
-    core.check_request_path(session, schema["host_ctx"] + schema["request_path"] + request_path)
-
+    core.check_request_path(
+        session, schema["host_ctx"] + schema["request_path"] + request_path)
 
     if db_object_type == "PROCEDURE":
-        crud_operations = []
+        crud_operations = ["UPDATE"]
 
     if db_object_id is None:
         db_object_id = core.get_sequence_id(session)
@@ -302,6 +307,20 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
         field["db_object_id"] = db_object_id
         core.insert(table="field", values=field).exec(session)
 
+    # TODO(miguel?): Issuing these grants in the middle of adding a DB object may
+    # lead to an inconsistent state. The identified case for this is when loading
+    # a DUMP. The entire load dump operation is done using a transaction with the
+    # purpose to keep consistency and ensure nothing is updated in case of error.
+    # For that, add_db_object might be called once or more (depending on the dump
+    # being loaded) and the operation will continue doing more data changes,
+    # however, this GRANT operation performs an implicit commit, meaning the transaction
+    # state is finished as soon as these grants are issued, if the operation fails
+    # after an object has been added, we end up with a partial load, so an inconsistent
+    # state.
+    # To fix this, the GRANT statements should be executed AFTER the primary transaction
+    # has finished. So this should be moved to a secondary function in this file and
+    # that secondary function should be called from the plugin's FE operation calling
+    # add_db_object once the data modification transaction is complete.
     if db_object_type == "PROCEDURE":
         database.grant_procedure(session, schema["name"], db_object_name)
     else:
@@ -311,7 +330,8 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
         if not grant_privileges:
             raise ValueError("No valid CRUD Operation specified")
 
-        database.grant_db_object(session, schema["name"], db_object_name, grant_privileges)
+        database.grant_db_object(
+            session, schema["name"], db_object_name, grant_privileges)
 
     return db_object_id
 
@@ -336,18 +356,18 @@ def set_crud_operations(session, db_object_id: bytes, crud_operations=None,
         raise Exception("The db_object was not found.")
 
     schema = schemas.get_schema(session,
-        schema_id=db_object.get("db_schema_id"), auto_select_single=True)
+                                schema_id=db_object.get("db_schema_id"), auto_select_single=True)
 
     if not schema:
         raise Exception('Schema not found.')
 
     if not crud_operations:
         raise ValueError("No CRUD operations specified."
-                             "Operation cancelled.")
+                         "Operation cancelled.")
 
     if not isinstance(crud_operations, list):
         raise ValueError("The crud_operations need to be specified as "
-                            "list. Operation cancelled.")
+                         "list. Operation cancelled.")
 
     for index in range(0, len(crud_operations)):
         crud_operation = crud_operations[index]
@@ -363,11 +383,11 @@ def set_crud_operations(session, db_object_id: bytes, crud_operations=None,
 
         if crud_operation not in ['CREATE', 'READ', 'UPDATE', 'DELETE']:
             raise ValueError(f"The given CRUD operation {crud_operation} "
-                                "does not exist.")
+                             "does not exist.")
 
     if not crud_operation_format:
         raise ValueError("No CRUD operation format specified."
-                            "Operation cancelled.")
+                         "Operation cancelled.")
 
     if crud_operation_format not in ['FEED', 'ITEM', 'MEDIA']:
         raise Exception(f'Invalid CRUD operation format.')
@@ -388,8 +408,8 @@ def set_crud_operations(session, db_object_id: bytes, crud_operations=None,
 
     with core.MrsDbTransaction(session):
         sql = (f"REVOKE IF EXISTS ALL ON  "
-            f"{schema.get('name')}.{db_object.get('name')} "
-            "FROM 'mysql_rest_service_data_provider'")
+               f"{schema.get('name')}.{db_object.get('name')} "
+               "FROM 'mysql_rest_service_data_provider'")
         session.run_sql(sql)
 
         core.update(table="db_object", sets={
@@ -400,8 +420,8 @@ def set_crud_operations(session, db_object_id: bytes, crud_operations=None,
         db_object = get_db_object(session, db_object_id=db_object_id)
 
         sql = (f"GRANT {','.join(grant_privileges)} ON "
-            f"{schema.get('name')}.{db_object.get('name')} "
-            "TO 'mysql_rest_service_data_provider'")
+               f"{schema.get('name')}.{db_object.get('name')} "
+               "TO 'mysql_rest_service_data_provider'")
 
         session.run_sql(sql)
 
@@ -409,21 +429,23 @@ def set_crud_operations(session, db_object_id: bytes, crud_operations=None,
 def get_available_db_object_row_ownership_fields(session, schema_name, db_object_name, db_object_type):
     if db_object_type == "PROCEDURE":
         sql = core.select(table="`INFORMATION_SCHEMA`.`PARAMETERS`",
-            cols="PARAMETER_NAME as name",
-            where=["SPECIFIC_SCHEMA = ?", "SPECIFIC_NAME = ?", "PARAMETER_MODE = 'IN'"],
-            order="ORDINAL_POSITION")
+                          cols="PARAMETER_NAME as name",
+                          where=["SPECIFIC_SCHEMA = ?",
+                                 "SPECIFIC_NAME = ?", "PARAMETER_MODE = 'IN'"],
+                          order="ORDINAL_POSITION")
     else:
         sql = core.select(table="`INFORMATION_SCHEMA`.`COLUMNS`",
-            cols="COLUMN_NAME as name",
-            where=["TABLE_SCHEMA = ?", "TABLE_NAME = ?", "GENERATION_EXPRESSION = ''"],
-            order="ORDINAL_POSITION")
+                          cols="COLUMN_NAME as name",
+                          where=["TABLE_SCHEMA = ?", "TABLE_NAME = ?",
+                                 "GENERATION_EXPRESSION = ''"],
+                          order="ORDINAL_POSITION")
 
     return [record["name"] for record in sql.exec(session, [schema_name, db_object_name]).items]
 
 
 def get_db_object_row_ownership_fields(session, db_object_id):
     return [record["name"] for record in core.select(table="field",
-        where="db_object_id=?").exec(session, [db_object_id]).items]
+                                                     where="db_object_id=?").exec(session, [db_object_id]).items]
 
 
 def update_db_objects(session, db_object_ids, value):
@@ -434,10 +456,11 @@ def update_db_objects(session, db_object_ids, value):
         fields = value.pop("fields", None)
 
         core.update("db_object",
-            sets=value,
-            where=["id=?"]).exec(session, [db_object_id])
+                    sets=value,
+                    where=["id=?"]).exec(session, [db_object_id])
 
-        grant_privileges = map_crud_operations(value.get("crud_operations", []))
+        grant_privileges = map_crud_operations(
+            value.get("crud_operations", []))
 
         # Grant privilege to the 'mysql_rest_service_data_provider' role
         if grant_privileges:
@@ -445,9 +468,11 @@ def update_db_objects(session, db_object_ids, value):
             schema = schemas.get_schema(session, db_object["db_schema_id"])
 
             if db_object["object_type"] == "PROCEDURE":
-                database.grant_procedure(session, schema.get("name"), db_object['name'])
+                database.grant_procedure(
+                    session, schema.get("name"), db_object['name'])
             else:
-                database.grant_db_object(session, schema.get("name"), db_object['name'], grant_privileges)
+                database.grant_db_object(session, schema.get(
+                    "name"), db_object['name'], grant_privileges)
 
         if fields is not None:
             update_db_object_fields(session, db_object_id, fields)
@@ -455,26 +480,29 @@ def update_db_objects(session, db_object_ids, value):
 
 def update_db_object_fields(session, db_object_id, fields):
     fields_in_db = core.select(table="field",
-        where="db_object_id=?"
-    ).exec(session, [db_object_id]).items
-
+                               where="db_object_id=?"
+                               ).exec(session, [db_object_id]).items
 
     for field_in_db in fields_in_db:
         if field_in_db["id"] not in [field["id"] for field in fields]:
-            core.delete(table="field", where="id=?").exec(session, [field_in_db["id"]])
+            core.delete(table="field", where="id=?").exec(
+                session, [field_in_db["id"]])
 
     for field in fields:
         id = field.pop("id", None)
-        field["db_object_id"] = db_object_id    # force the db_object_id to the current one
+        # force the db_object_id to the current one
+        field["db_object_id"] = db_object_id
 
         if id:
-            core.update(table="field", sets=field, where="id=?").exec(session, [id])
+            core.update(table="field", sets=field,
+                        where="id=?").exec(session, [id])
         else:
             field["id"] = core.get_sequence_id(session)
             core.insert(table="field", values=field).exec(session)
 
+
 def get_db_object_fields(session, db_object_id=None,
-    schema_name=None, db_object_name=None, db_object_type=None):
+                         schema_name=None, db_object_name=None, db_object_type=None):
 
     if db_object_id:
         db_object = get_db_object(session, db_object_id)
@@ -494,3 +522,112 @@ def get_db_object_fields(session, db_object_id=None,
 
     return database.get_db_object_fields(session, schema_name, db_object_name, db_object_type)
 
+
+def get_table_columns_with_references(session, db_object_id=None,
+                                      schema_name=None, db_object_name=None, db_object_type=None):
+
+    if db_object_id:
+        db_object = get_db_object(session, db_object_id)
+
+        if not db_object:
+            raise ValueError(
+                "The database object must be identified via schema_name, db_object_name and db_object_type "
+                "or via the request_path and db_object_name.")
+
+        schema_name = db_object["schema_name"]
+        db_object_name = db_object["name"]
+        db_object_type = db_object["object_type"]
+
+    if db_object_type not in ["TABLE", "VIEW"]:
+        raise ValueError(
+            "The object_type must be either set to TABLE or VIEW.")
+
+    return database.get_table_columns_with_references(session, schema_name, db_object_name, db_object_type)
+
+
+def get_objects(session, db_object_id):
+    return database.get_objects(session, db_object_id)
+
+
+def get_object_fields_with_references(session, object_id, binary_formatter=None):
+    return database.get_object_fields_with_references(session, object_id, binary_formatter=binary_formatter)
+
+
+def set_object_fields_with_references(session, obj):
+    with core.MrsDbTransaction(session):
+        # TODO(someone): this deletion, causes that a db_object can not
+        # have multiple objects associated to it, to SPs are not supported
+        sql = "DELETE FROM mysql_rest_service_metadata.object WHERE db_object_id = ?"
+        core.MrsDbExec(sql).exec(session, [core.id_to_binary(
+            obj.get("db_object_id"), "object.db_object_id")]).items
+
+        core.insert(table="object", values={
+            "id": core.id_to_binary(obj.get("id"), "object.id"),
+            "db_object_id": core.id_to_binary(obj.get("db_object_id"), "object.db_object_id"),
+            "name": obj.get("name"),
+            "position": obj.get("position"),
+            "sdk_options": core.convert_dict_to_json_string(obj.get("sdk_options")),
+            "comments": obj.get("comments"),
+        }).exec(session)
+
+        fields = obj.get("fields", [])
+
+        # Insert object_references first
+        inserted_object_references_ids = []
+        for field in fields:
+            obj_ref = field.get("object_reference")
+
+            if (obj_ref is not None and (not (obj_ref.get("id") in inserted_object_references_ids))):
+                inserted_object_references_ids.append(obj_ref.get("id"))
+
+                # make sure to covert the sub Dict with dict()
+                ref_map = obj_ref.get("reference_mapping")
+                if ref_map is not None:
+                    ref_map = dict(ref_map)
+                    ref_map["column_mapping"] = dict(ref_map["column_mapping"])
+                    ref_map_json = json.dumps(ref_map)
+
+                    # Execute GRANTs
+                    grant_privileges = map_crud_operations(
+                        obj_ref.get("crud_operations").split(","))
+                    database.grant_db_object(
+                        session,
+                        ref_map.get("referenced_schema"),
+                        ref_map.get("referenced_table"),
+                        grant_privileges)
+
+                core.insert(table="object_reference", values={
+                    "id": core.id_to_binary(obj_ref.get("id"), "objectReference.id"),
+                    "reduce_to_value_of_field_id": core.id_to_binary(
+                        obj_ref.get("reduce_to_value_of_field_id"),
+                        "objectReference.reduce_to_value_of_field_id", True),
+                    "reference_mapping": ref_map_json,
+                    "unnest": obj_ref.get("unnest"),
+                    "sdk_options": core.convert_dict_to_json_string(obj_ref.get("sdk_options")),
+                    "comments": obj_ref.get("comments"),
+                }).exec(session)
+
+        # Then insert object_fields
+        inserted_field_ids = []
+        for field in fields:
+            obj_ref = field.get("object_reference")
+
+            if (not (field.get("id") in inserted_field_ids)):
+                inserted_field_ids.append(field.get("id"))
+
+                core.insert(table="object_field", values={
+                    "id": core.id_to_binary(field.get("id"), "field.id"),
+                    "object_id": core.id_to_binary(field.get("object_id"), "field.object_id"),
+                    "parent_reference_id": core.id_to_binary(
+                        field.get("parent_reference_id"), "field.parent_reference_id", True),
+                    "represents_reference_id": core.id_to_binary(
+                        field.get("represents_reference_id"), "field.represents_reference_id", True),
+                    "name": field.get("name"),
+                    "position": field.get("position"),
+                    "db_column": core.convert_dict_to_json_string(field.get("db_column")),
+                    "enabled": field.get("enabled"),
+                    "allow_filtering": field.get("allow_filtering"),
+                    "no_check": field.get("no_check"),
+                    "sdk_options": core.convert_dict_to_json_string(field.get("sdk_options")),
+                    "comments": field.get("comments"),
+                }).exec(session)

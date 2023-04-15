@@ -721,7 +721,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                 // Get all MRS Schemas
                 const schemas = await element.entry.backend.mrs.listSchemas(element.value.id);
                 const schemaList: TreeItem[] = schemas.map((value) => {
-                    return new MrsSchemaTreeItem(`${value.name} (${value.requestPath})`, value, element.entry);
+                    return new MrsSchemaTreeItem(`${value.requestPath} (${value.name})`, value, element.entry);
                 });
 
                 // Get all MRS ContentSets
@@ -816,7 +816,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
             const objects = await element.entry.backend.mrs.listDbObjects(element.value.id);
 
             return objects.map((value) => {
-                return new MrsDbObjectTreeItem(`${value.name} (${value.requestPath})`, value, element.entry);
+                return new MrsDbObjectTreeItem(`${value.requestPath} (${value.name})`, value, element.entry);
             });
         }
 

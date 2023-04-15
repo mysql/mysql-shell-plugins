@@ -41,7 +41,6 @@ import { ShellModule } from "../modules/shell/ShellModule";
 import { DBEditorModule } from "../modules/db-editor/DBEditorModule";
 import { InnoDBClusterModule } from "../modules/innodb-cluster/InnoDBClusterModule";
 import { MDSModule } from "../modules/mds/MDSModule";
-import { MRSModule } from "../modules/mrs/MrsModule";
 import { ApplicationDB } from "./ApplicationDB";
 import { IDialogResponse } from "./Types";
 import { MessageScheduler } from "../communication/MessageScheduler";
@@ -50,7 +49,7 @@ import { ColorPopup } from "../components/ui/ColorPicker/ColorPopup";
 import { IComponentState } from "../components/ui/Component/ComponentBase";
 import { ProgressIndicator } from "../components/ui/ProgressIndicator/ProgressIndicator";
 import { IStatusbarItem, ControlType, Statusbar } from "../components/ui/Statusbar/Statusbar";
-import { ErrorPanel } from "../components/Dialogs/ErrorPanel";
+import { MessagePanel } from "../components/Dialogs/MessagePanel";
 
 interface IAppState extends IComponentState {
     explorerIsVisible: boolean;
@@ -222,7 +221,7 @@ export class App extends Component<{}, IAppState> {
             <ErrorBoundary>
                 {content}
 
-                <ErrorPanel />
+                <MessagePanel />
                 <TooltipProvider showDelay={200} />
 
                 {!appParameters.embedded && (
@@ -320,7 +319,6 @@ export class App extends Component<{}, IAppState> {
             ModuleRegistry.registerModule(DBEditorModule);
             ModuleRegistry.registerModule(ShellModule);
             ModuleRegistry.registerModule(MDSModule);
-            ModuleRegistry.registerModule(MRSModule);
             ModuleRegistry.registerModule(InnoDBClusterModule);
 
             list.forEach((id: string) => {

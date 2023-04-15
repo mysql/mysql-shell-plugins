@@ -23,7 +23,7 @@
 
 import "./Dropdown.css";
 
-import { cloneElement, ComponentChild, createRef, VNode } from "preact";
+import { cloneElement, ComponentChild, createRef } from "preact";
 import keyboardKey from "keyboard-key";
 
 import { DropdownItem, IDropdownItemProperties } from "./DropdownItem";
@@ -43,6 +43,7 @@ export interface IDropdownProperties extends IComponentProperties {
     showDescription?: boolean;
     multiSelect?: boolean;
     withoutArrow?: boolean;
+    placeholder?: string;
 
     autoFocus?: boolean;
 
@@ -51,8 +52,6 @@ export interface IDropdownProperties extends IComponentProperties {
 
 interface IDropdownState extends IComponentState {
     hotId?: string;
-
-    childArray: Array<VNode<IDropdownItemProperties>>;
 }
 
 export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState> {
@@ -78,7 +77,6 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
         super(props);
 
         this.state = {
-            childArray: collectVNodes<IDropdownItemProperties>(props.children),
         };
 
         this.addHandledProperties("selection", "defaultId", "optional", "showDescription", "multiSelect",
@@ -94,10 +92,8 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
         }
     }
 
-    public componentDidUpdate(prevProps: IDropdownProperties): void {
-        const { children } = this.mergedProps;
-
-        if (!this.popupRef.current?.isOpen && (this.containerRef.current != null)) {
+    public componentDidUpdate(): void {
+        if ((!this.popupRef.current || !this.popupRef.current.isOpen) && (this.containerRef.current != null)) {
             // Set back the focus to the drop down, once the popup was closed.
             // This is independent of the auto focus property, because for the popup to show
             // the dropdown had to have the focus anyway.
@@ -105,19 +101,20 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
                 this.containerRef.current.classList.remove("manualFocus");
                 this.containerRef.current.focus();
             }
+        } else if (this.containerRef.current) {
+            const boundingRect = this.containerRef.current.getBoundingClientRect();
+            this.popupRef.current?.updatePosition(boundingRect);
         }
 
-        if (prevProps.children !== children) {
-            this.setState({ childArray: collectVNodes<IDropdownItemProperties>(children) });
-        }
         this.currentSelectionIndex = this.indexOfFirstSelectedEntry;
     }
 
     public render(): ComponentChild {
         const {
-            id, defaultId, selection, optional, showDescription, withoutArrow, multiSelect,
+            children, id, defaultId, selection, optional, showDescription, withoutArrow, multiSelect,
+            placeholder,
         } = this.mergedProps;
-        const { hotId, childArray } = this.state;
+        const { hotId } = this.state;
 
         const currentSelection = typeof selection === "string" ? new Set([selection]) : selection;
         const currentDescription = this.descriptionFromId(hotId || currentSelection?.values().next().value as string);
@@ -130,6 +127,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
 
         const tags: ITag[] = [];
         let content = null;
+        const childArray = collectVNodes<IDropdownItemProperties>(children);
         content = childArray.map((child): ComponentChild => {
             let itemClassName = "";
             let checked = false;
@@ -145,7 +143,6 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
             }
 
             return cloneElement(child, {
-                key: childId,
                 onMouseEnter: this.handleItemMouseEnter,
                 onMouseLeave: this.handleItemMouseLeave,
                 onClick: this.handleItemClick,
@@ -200,6 +197,8 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
                 } else {
                     inputContent = <Label className="ellipsis">{tags[0].caption}</Label>;
                 }
+            } else if (placeholder) {
+                inputContent = <Label className="placeholder">{placeholder}</Label>;
             }
 
             inputControl =
@@ -248,7 +247,8 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
     };
 
     private readonly handleKeydown = (e: KeyboardEvent): void => {
-        const { childArray } = this.state;
+        const { children } = this.mergedProps;
+        const childArray = collectVNodes<IDropdownItemProperties>(children);
 
         const code = keyboardKey.getCode(e);
         const element = e.currentTarget as HTMLElement;
@@ -420,10 +420,13 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
         if (!multiSelect && cancelled) {
             this.restoreSelection();
         }
+
+        this.containerRef.current?.classList.remove("manualFocus");
     };
 
     private readonly handleTagAdd = (value: string): void => {
-        const { childArray } = this.state;
+        const { children } = this.mergedProps;
+        const childArray = collectVNodes<IDropdownItemProperties>(children);
 
         // See if we have a child with the value as caption and add its id to the current selection, if so.
         let id;
@@ -446,7 +449,9 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
     private descriptionFromId(id?: string): string {
         let result = "";
         if (id) {
-            const { childArray } = this.state;
+            const { children } = this.mergedProps;
+            const childArray = collectVNodes<IDropdownItemProperties>(children);
+
             childArray.forEach((child): void => {
                 if (child.props.id === id) {
                     result = child.props.description ?? "";
@@ -462,7 +467,8 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
      */
     private get indexOfFirstSelectedEntry(): number {
         const { selection } = this.mergedProps;
-        const { childArray } = this.state;
+        const { children } = this.mergedProps;
+        const childArray = collectVNodes<IDropdownItemProperties>(children);
 
         const currentSelection = typeof selection === "string" ? new Set<string>([selection]) : selection;
         if ((currentSelection != null) && currentSelection.size > 0) {

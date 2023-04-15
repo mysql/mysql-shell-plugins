@@ -34,6 +34,7 @@ export class PrivateWorker /*extends Worker*/ {
 
     /** Holds the inline source map, if one was found in the code to executed. */
     public sourceMap: string;
+    public libCodeLineNumbers = 0;
 
     public postContextMessage: (taskId: number, message: IConsoleWorkerResultData) => void;
 
@@ -75,6 +76,9 @@ export enum ScriptingApi {
     /** A graph definition. */
     Graph,
 
+    /** Triggers a MRS authentication process to get the global MRS JWT. */
+    MrsAuthenticate,
+
     /** A special API to denote that everything is done in the console worker and the task can be removed. */
     Done,
 }
@@ -83,6 +87,7 @@ export interface IConsoleWorkerTaskData {
     api: ScriptingApi;
     contextId?: string;
 
+    libCodeLineNumbers?: number;
     code?: string;
     params?: unknown;
     result?: unknown;
@@ -108,6 +113,12 @@ export interface IConsoleWorkerResultData extends IDictionary {
 
     // Graphs
     options?: IGraphOptions;
+
+    // mrsAuthentication
+    serviceUrl?: string;
+    authPath?: string;
+    authApp?: string;
+    userName?: string;
 }
 
 /** Same definition as in scripting-runtime.d.ts (modify in sync!). */

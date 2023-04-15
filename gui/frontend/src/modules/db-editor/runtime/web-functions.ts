@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,21 +21,31 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-.msg.dialog.errorPanel {
-    padding: 0;
-    color: var(--foreground);
-    min-height: 50px;
-    max-width: 300px;
+import { ScriptingApi } from "../console.worker-types";
+import { currentWorker } from "./execute";
+import { print } from "./simple-functions";
 
-    z-index: 30;
-}
+export const webFetch = (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    if (typeof window === "object") {
+        return window.fetch(input, init);
+    }
 
-.msg.dialog.errorPanel .content {
-    margin: 10px;
-}
+    return fetch(input, init);
+};
 
-.msg.dialog.errorPanel #errorMessage {
-    font-size: 1.1em;
-    color: var(--errorForeground);
-    white-space: normal;
-}
+export const mrsAuthenticate = (serviceUrl: string, authPath: string, authApp?: string, userName?: string): void => {
+    print("Staring MRS authentication ...");
+
+    currentWorker.postMessage({
+        taskId: currentWorker.currentTaskId,
+        data: {
+            api: ScriptingApi.MrsAuthenticate,
+            serviceUrl,
+            authPath,
+            authApp,
+            userName,
+            contextId: currentWorker.currentContext,
+            final: true,
+        },
+    });
+};

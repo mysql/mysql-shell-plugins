@@ -655,8 +655,8 @@
                 "title": "Add New Authentication App"
             },
             {
-                "command": "msg.mrs.setDefaultService",
-                "title": "Set as New Default REST Service"
+                "command": "msg.mrs.setCurrentService",
+                "title": "Set as Current REST Service"
             },
             {
                 "command": "msg.mrs.deleteService",
@@ -723,6 +723,10 @@
                 "title": "Open REST Object Request Path in Web Browser"
             },
             {
+                "command": "msg.mrs.openContentFileRequestPath",
+                "title": "Open Content File Request Path in Web Browser"
+            },
+            {
                 "command": "msg.mrs.deleteContentSet",
                 "title": "Delete REST Static Content Set"
             },
@@ -741,6 +745,10 @@
             {
                 "command": "msg.mrs.loadSchemaFromJSONFile",
                 "title": "Load REST Schema From JSON File..."
+            },
+            {
+                "command": "msg.mrs.exportServiceSdk",
+                "title": "Export REST Service SDK Files ..."
             },
             {
                 "command": "msg.mrs.loadObjectFromJSONFile",
@@ -1123,22 +1131,22 @@
                     "group": "9_msg@2"
                 },
                 {
-                    "command": "msg.showTableData",
+                    "command": "msg.selectTableRows",
                     "when": "view == msg.connections && viewItem =~ /^schemaTableItem.*/",
                     "group": "1_msg@1"
                 },
                 {
-                    "command": "msg.selectTableRows",
+                    "command": "msg.showTableData",
                     "when": "view == msg.connections && viewItem =~ /^schemaTableItem.*/",
                     "group": "1_msg@2"
                 },
                 {
-                    "command": "msg.showTableData",
+                    "command": "msg.selectTableRows",
                     "when": "view == msg.connections && viewItem =~ /^schemaViewItem.*/",
                     "group": "1_msg@1"
                 },
                 {
-                    "command": "msg.selectTableRows",
+                    "command": "msg.showTableData",
                     "when": "view == msg.connections && viewItem =~ /^schemaViewItem.*/",
                     "group": "1_msg@2"
                 },
@@ -1273,7 +1281,7 @@
                     "group": "1_msg@2"
                 },
                 {
-                    "command": "msg.mrs.setDefaultService",
+                    "command": "msg.mrs.setCurrentService",
                     "when": "view == msg.connections && viewItem == mrsService",
                     "group": "1_msg@2"
                 },
@@ -1368,6 +1376,11 @@
                     "group": "2_msg@1"
                 },
                 {
+                    "command": "msg.mrs.openContentFileRequestPath",
+                    "when": "viewItem == mrsContentFile",
+                    "group": "1_msg@1"
+                },
+                {
                     "command": "msg.mrs.dumpSchemaToJSONFile",
                     "when": "view == msg.connections && viewItem == mrsSchema",
                     "group": "2_msg@1"
@@ -1376,6 +1389,11 @@
                     "command": "msg.mrs.loadSchemaFromJSONFile",
                     "when": "view == msg.connections && viewItem == mrsService",
                     "group": "2_msg@1"
+                },
+                {
+                    "command": "msg.mrs.exportServiceSdk",
+                    "when": "view == msg.connections && viewItem == mrsService",
+                    "group": "2_msg@2"
                 },
                 {
                     "command": "msg.mrs.loadObjectFromJSONFile",

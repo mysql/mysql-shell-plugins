@@ -26,24 +26,24 @@ import keyboardKey from "keyboard-key";
 
 import { nextProcessTick, sendKeyPress } from "../../test-helpers";
 import { requisitions } from "../../../../supplement/Requisitions";
-import { ErrorPanel } from "../../../../components/Dialogs/ErrorPanel";
+import { MessagePanel } from "../../../../components/Dialogs/MessagePanel";
 
-describe("Error Panel Tests", (): void => {
+describe("Message Panel Tests", (): void => {
     it("Render Test", () => {
-        const component = mount<ErrorPanel>(
-            <ErrorPanel />,
+        const component = mount<MessagePanel>(
+            <MessagePanel />,
         );
 
         expect(component).toMatchSnapshot();
         component.unmount();
     });
 
-    it("Show Panel", async () => {
+    it("Show Error Panel", async () => {
         let portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
 
-        const component = mount<ErrorPanel>(
-            <ErrorPanel />,
+        const component = mount<MessagePanel>(
+            <MessagePanel />,
         );
 
         // No values, no dialog.

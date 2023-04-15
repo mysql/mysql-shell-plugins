@@ -24,16 +24,30 @@
 import { ComponentChild, createRef } from "preact";
 
 import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types";
-import { IMrsServiceData, IMrsSchemaData, IMrsDbObjectFieldData } from "../../../communication/ProtocolMrs";
+import {
+    IMrsServiceData, IMrsSchemaData, IMrsDbObjectFieldData,
+    IMrsObjectFieldWithReference,
+    IMrsDbObjectData,
+} from "../../../communication/ProtocolMrs";
 import { ValueDialogBase } from "../../../components/Dialogs/ValueDialogBase";
 import {
     ValueEditDialog, IDialogValues, IDialogSection, CommonDialogValueOption, IDialogValidations,
     IRelationDialogValue,
 } from "../../../components/Dialogs/ValueEditDialog";
+import {
+    IMrsObjectFieldEditorData, MrsObjectType, MrsObjectFieldEditor,
+    IMrsObjectFieldTreeEntry,
+    MrsObjectFieldTreeEntryType,
+} from "./MrsObjectFieldEditor";
+import { convertToPascalCase } from "../../../utilities/string-helpers";
+import { uuidBinary16Base64 } from "../../../utilities/helpers";
+import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor";
 
 export class MrsDbObjectDialog extends ValueDialogBase {
     private dialogRef = createRef<ValueEditDialog>();
+    private requestValue: IMrsDbObjectData;
     private objectType: string;
+    private backend: ShellInterfaceSqlEditor;
 
     public render(): ComponentChild {
         return (
@@ -46,20 +60,25 @@ export class MrsDbObjectDialog extends ValueDialogBase {
         );
     }
 
-    public show(request: IDialogRequest, title: string): void {
+    public show(request: IDialogRequest, title?: string): void {
+        this.requestValue = request.values as IMrsDbObjectData;
+
         const services = request.parameters?.services as IMrsServiceData[];
         const schemas = request.parameters?.schemas as IMrsSchemaData[];
         const rowOwnershipFields = request.parameters?.rowOwnershipFields as string[];
+        const payload = request.values?.payload as IDictionary;
         this.objectType = request.values?.objectType as string;
+        this.backend = payload.backend as ShellInterfaceSqlEditor;
 
         this.dialogRef.current?.show(
-            this.dialogValues(request, title, services, schemas, rowOwnershipFields),
-            { title: "MySQL REST Object" },
-            { services, schemas, rowOwnershipFields });
+            this.dialogValues(request, services, schemas, rowOwnershipFields, title),
+            { title: "MySQL REST Object", autoResize: this.requestValue.objectType !== "PROCEDURE" },
+            { ...payload, services, schemas, rowOwnershipFields });
     }
 
-    private dialogValues(request: IDialogRequest, title: string,
-        services: IMrsServiceData[], schemas: IMrsSchemaData[], rowOwnershipFields: string[]): IDialogValues {
+    private dialogValues(request: IDialogRequest,
+        services: IMrsServiceData[], schemas: IMrsSchemaData[], rowOwnershipFields: string[],
+        title?: string): IDialogValues {
 
         let selectedService = services.find((service) => {
             return service.isCurrent === 1;
@@ -81,8 +100,8 @@ export class MrsDbObjectDialog extends ValueDialogBase {
                     caption: "REST Service Path",
                     value: selectedService?.hostCtx,
                     choices: services.map((service) => { return service.hostCtx; }),
-                    horizontalSpan: 4,
-                    description: "The path of the REST Service this REST Object belongs to",
+                    horizontalSpan: this.requestValue.objectType !== "PROCEDURE" ? 2 : 3,
+                    description: "The path of the REST Service",
                 },
                 schema: {
                     type: "choice",
@@ -91,59 +110,103 @@ export class MrsDbObjectDialog extends ValueDialogBase {
                     choices: schemas.map((schema) => {
                         return schema.requestPath;
                     }),
-                    horizontalSpan: 4,
-                    description: "The path of the REST Schema this DB Object belongs to",
+                    horizontalSpan: this.requestValue.objectType !== "PROCEDURE" ? 2 : 3,
+                    description: "The path of the REST Schema",
                 },
-                requestPath: {
-                    type: "text",
-                    caption: "REST Object Path",
-                    value: request.values?.requestPath as string,
-                    horizontalSpan: 4,
-                    description: "The path to access the object, has to start with /",
-                    options: [CommonDialogValueOption.AutoFocus],
-                },
-                name: {
-                    type: "text",
-                    caption: "Database Object Name",
-                    value: request.values?.name as string,
-                    horizontalSpan: 4,
-                    description: "The name of the database object",
-                },
-                crudOperations: {
-                    type: "set",
-                    caption: "CRUD Operations",
-                    tagSet: (this.objectType !== "PROCEDURE") ? ["CREATE", "READ", "UPDATE", "DELETE"] :
-                        ["READ", "UPDATE"],
-                    value: request.values?.crudOperations as string[],
-                    horizontalSpan: 4,
-                    description: "The CURD operations allowed for this database object",
-                },
-                flags: {
-                    type: "description",
-                    caption: "Flags",
-                    horizontalSpan: 4,
-                    options: [
-                        CommonDialogValueOption.Grouped,
-                        CommonDialogValueOption.NewGroup,
-                    ],
-                },
-                enabled: {
-                    type: "boolean",
-                    caption: "Enabled",
-                    horizontalSpan: 4,
-                    value: (request.values?.enabled ?? true) as boolean,
-                    options: [
-                        CommonDialogValueOption.Grouped,
-                    ],
-                },
-                requiresAuth: {
-                    type: "boolean",
-                    caption: "Requires Authentication",
-                    horizontalSpan: 4,
-                    value: (request.values?.requiresAuth ?? true) as boolean,
-                    options: [
-                        CommonDialogValueOption.Grouped,
-                    ],
+            },
+        };
+
+        if (this.requestValue.objectType !== "PROCEDURE") {
+            mainSection.values.requestPath = {
+                type: "text",
+                caption: "REST Object Path",
+                value: request.values?.requestPath as string,
+                horizontalSpan: 2,
+                description: "The path, has to starts with /",
+                options: [CommonDialogValueOption.AutoFocus],
+            };
+        }
+        mainSection.values.flags = {
+            type: "description",
+            caption: "Flags",
+            horizontalSpan: 2,
+            options: [
+                CommonDialogValueOption.Grouped,
+                CommonDialogValueOption.NewGroup,
+            ],
+        };
+
+        mainSection.values.enabled = {
+            type: "boolean",
+            caption: "Enabled",
+            horizontalSpan: 2,
+            value: (request.values?.enabled ?? true) as boolean,
+            options: [
+                CommonDialogValueOption.Grouped,
+            ],
+        };
+
+        mainSection.values.requiresAuth = {
+            type: "boolean",
+            caption: "Requires Auth",
+            horizontalSpan: 2,
+            value: (request.values?.requiresAuth ?? true) as boolean,
+            options: [
+                CommonDialogValueOption.Grouped,
+            ],
+        };
+
+        if (this.requestValue.objectType === "PROCEDURE") {
+            mainSection.values.requestPath = {
+                type: "text",
+                caption: "REST Object Path",
+                value: request.values?.requestPath as string,
+                horizontalSpan: 4,
+                description: "The path, has to starts with /",
+                options: [CommonDialogValueOption.AutoFocus],
+            };
+
+            mainSection.values.name = {
+                type: "text",
+                caption: "Schema Object Name",
+                value: request.values?.name as string,
+                horizontalSpan: 4,
+                description: "The DB Schema Object name",
+            };
+        }
+
+        // ---------------------------------------------------------------------
+        // Add MrsRestObjectFieldEditor
+        const mrsObjectId = uuidBinary16Base64();
+        const customData: IMrsObjectFieldEditorData = {
+            dbSchemaName: selectedSchema?.name ?? "",
+            dbObjectName: this.requestValue.name,
+            dbObjectType: MrsObjectType.Table,
+            crudOperations: request.values?.crudOperations as string[],
+            mrsObjects: [{
+                id: mrsObjectId,
+                dbObjectId: this.requestValue.id,
+                name: convertToPascalCase(selectedService?.urlContextRoot ?? "") +
+                    convertToPascalCase(selectedSchema?.requestPath ?? "") +
+                    convertToPascalCase(this.requestValue.name),
+                position: 1,
+                sdkOptions: undefined,
+                comments: undefined,
+            }],
+            fieldTreeNodes: [],
+            listedTables: [],
+            currentMrsObjectId: mrsObjectId,
+        };
+
+        const mrsObjectSection: IDialogSection = {
+            caption: "JSON/Relational Duality",
+            groupName: "group1",
+            values: {
+                tree: {
+                    type: "custom",
+                    value: customData,
+                    component: <MrsObjectFieldEditor backend={this.backend} />,
+                    horizontalSpan: 8,
                 },
             },
         };
@@ -303,42 +366,56 @@ export class MrsDbObjectDialog extends ValueDialogBase {
             },
         };
 
-        return {
-            id: "mainSection",
-            sections: new Map<string, IDialogSection>([
-                ["mainSection", mainSection],
-                ["basicSection", basicSection],
-                ["parameterSection", parameterSection],
-                ["advancedSection", advancedSection],
-                ["optionsSection", optionsSection],
-            ]),
-        };
+        if (request.values?.objectType !== "PROCEDURE") {
+            return {
+                id: "mainSection",
+                sections: new Map<string, IDialogSection>([
+                    ["mainSection", mainSection],
+                    ["mrsObject", mrsObjectSection],
+                    ["basicSection", basicSection],
+                    ["parameterSection", parameterSection],
+                    ["advancedSection", advancedSection],
+                    ["optionsSection", optionsSection],
+                ]),
+            };
+        } else {
+            return {
+                id: "mainSection",
+                sections: new Map<string, IDialogSection>([
+                    ["mainSection", mainSection],
+                    ["basicSection", basicSection],
+                    ["parameterSection", parameterSection],
+                    ["advancedSection", advancedSection],
+                    ["optionsSection", optionsSection],
+                ]),
+            };
+        }
+
     }
 
     private handleCloseDialog = (closure: DialogResponseClosure, dialogValues: IDialogValues,
-        data?: IDictionary): void => {
+        payload?: IDictionary): void => {
         const { onClose } = this.props;
 
-        if (closure === DialogResponseClosure.Accept && data) {
-            const schemas = data.schemas as IMrsSchemaData[];
+        if (closure === DialogResponseClosure.Accept && payload) {
+            const schemas = payload.schemas as IMrsSchemaData[];
             const mainSection = dialogValues.sections.get("mainSection");
             const basicSection = dialogValues.sections.get("basicSection");
             const advancedSection = dialogValues.sections.get("advancedSection");
             const optionsSection = dialogValues.sections.get("optionsSection");
             const parameterSection = dialogValues.sections.get("parameterSection");
+            const mrsObjectSection = dialogValues.sections.get("mrsObject");
             if (mainSection && basicSection && advancedSection && optionsSection && parameterSection) {
                 const values: IDictionary = {};
                 values.objectType = this.objectType;
 
                 // mainSection
                 values.servicePath = mainSection.values.service.value as string;
-                values.name = mainSection.values.name.value as string;
                 values.dbSchemaPath = mainSection.values.schema.value as string;
                 values.dbSchemaId = schemas.find((schema) => {
                     return mainSection.values.schema.value === schema.requestPath;
                 })?.id;
                 values.requestPath = mainSection.values.requestPath.value as string;
-                values.crudOperations = mainSection.values.crudOperations.value as string[];
                 values.requiresAuth = mainSection.values.requiresAuth.value as boolean;
                 values.enabled = mainSection.values.enabled.value as boolean;
 
@@ -360,12 +437,51 @@ export class MrsDbObjectDialog extends ValueDialogBase {
                 // parameters
                 values.parameters = parameterSection.values.parameters.value;
 
+                // mrsObject - not available for PROCEDURES for now
+                if (mrsObjectSection) {
+                    const mrsObjectValue = mrsObjectSection.values.tree.value;
+                    const mrsObjectData = (mrsObjectValue as unknown) as IMrsObjectFieldEditorData;
+
+                    values.name = mrsObjectData.dbObjectName;
+                    values.crudOperations = mrsObjectData.crudOperations;
+
+                    const fieldList: IMrsObjectFieldWithReference[] = [];
+                    const walk = (node: IMrsObjectFieldTreeEntry): void => {
+                        if (node.children !== undefined) {
+                            // Process the list of mrsObjectData.fieldTreeNodes backwards
+                            for (let i = node.children.length - 1; i >= 0; i--) {
+                                walk(node.children[i]);
+                            }
+                            /*node.children.forEach((child) => {
+                                walk(child);
+                            });*/
+                        }
+                        if (node.type === MrsObjectFieldTreeEntryType.Field) {
+                            fieldList.push(node.field);
+                        }
+                    };
+
+                    // Process the list of mrsObjectData.fieldTreeNodes backwards
+                    for (let i = mrsObjectData.fieldTreeNodes.length - 1; i >= 0; i--) {
+                        walk(mrsObjectData.fieldTreeNodes[i]);
+                    }
+
+                    mrsObjectData.mrsObjects[0].fields = fieldList;
+                    values.mrsObject = mrsObjectData.mrsObjects[0];
+                } else {
+                    // Set back original values for PROCEDURES for now
+                    values.name = mainSection.values.name?.value ?? this.requestValue.name;
+                    values.crudOperations = this.requestValue.crudOperations;
+                }
+
+                values.payload = payload;
                 onClose(closure, values);
             }
         } else {
             onClose(closure);
         }
     };
+
 
     private validateInput = (closing: boolean, values: IDialogValues): IDialogValidations => {
         const result: IDialogValidations = {
@@ -376,10 +492,6 @@ export class MrsDbObjectDialog extends ValueDialogBase {
         if (closing) {
             const mainSection = values.sections.get("mainSection");
             if (mainSection) {
-                if (!mainSection.values.name.value) {
-                    result.messages.name = "The object name must not be empty.";
-                }
-
                 if (!mainSection.values.requestPath.value) {
                     result.messages.requestPath = "The request path must not be empty.";
                 } else {
@@ -387,6 +499,17 @@ export class MrsDbObjectDialog extends ValueDialogBase {
                     if (!requestPath.startsWith("/")) {
                         result.messages.requestPath = "The request path must start with '/'.";
                     }
+                }
+            }
+
+            const mrsObjectSection = values.sections.get("mrsObject");
+            if (mrsObjectSection) {
+                // mrsObject
+                const mrsObjectValue = mrsObjectSection.values.tree.value;
+                const mrsObjectData = (mrsObjectValue as unknown) as IMrsObjectFieldEditorData;
+
+                if (!mrsObjectData.dbObjectName) {
+                    result.messages.name = "The object name must not be empty.";
                 }
             }
         } else {

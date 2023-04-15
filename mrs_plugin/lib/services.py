@@ -29,8 +29,8 @@ def prompt_for_url_context_root(default=None):
         The url_context_root as str
     """
     return core.prompt(
-        "Please enter the context path for this service [/mrs]: ",
-        {'defaultValue': default if default else "/mrs"}).strip()
+        "Please enter the context path for this service [/myService]: ",
+        {'defaultValue': default if default else "/myService"}).strip()
 
 
 def prompt_for_service_protocol(default=None):

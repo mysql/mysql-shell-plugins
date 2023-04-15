@@ -93,7 +93,7 @@ def add_db_object(**kwargs):
         crud_operation_format (str): The format to use for the CRUD operation
         requires_auth (bool): Whether authentication is required to access
             the schema
-        items_per_page (int,required): The number of items returned per page
+        items_per_page (int): The number of items returned per page
         row_user_ownership_enforced (bool): Enable row ownership enforcement
         row_user_ownership_column (str): The column for row ownership enforcement
         comments (str): Comments for the schema
@@ -1008,6 +1008,133 @@ def update_db_object(**kwargs):
     return False
 
 
+@plugin_function('mrs.get.tableColumnsWithReferences', shell=True, cli=True, web=True)
+def get_table_columns_with_references(db_object_id=None, schema_id=None,
+    request_path=None, db_object_name=None, **kwargs):
+    """Gets the list of table columns and references
+
+    Args:
+        db_object_id (str): The id of the db_object
+        schema_id (str): The id of the schema
+        request_path (str): The request_path of the schema
+        db_object_name (str): The name of the db_object
+        **kwargs: Additional options
+
+    Keyword Args:
+        schema_name (str): The name of the schema
+        db_object_type (str): The type of the db_object (TABLE, VIEW, PROCEDURE)
+        session (object): The database session to use.
+
+    Returns:
+        The list of table columns and references
+    """
+    if db_object_id is not None:
+        db_object_id = lib.core.id_to_binary(db_object_id, "db_object_id")
+    if schema_id is not None:
+        schema_id = lib.core.id_to_binary(schema_id, "schema_id")
+
+    if request_path is not None:
+        lib.core.Validations.request_path(request_path)
+
+    schema_name = kwargs.get("schema_name")
+    db_object_type = kwargs.get("db_object_type")
+
+    # Guarantee we have upper case type
+    if db_object_type:
+        db_object_type = db_object_type.upper()
+
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        if db_object_id:
+            return lib.db_objects.get_table_columns_with_references(session, db_object_id)
+
+        if schema_id:
+            schema = lib.schemas.get_schema(session, schema_id=schema_id)
+            schema_name = schema.get("name")
+        else:
+            if not schema_name:
+                raise Exception("You must supply the schema name.")
+
+        return lib.db_objects.get_table_columns_with_references(session,
+            schema_name=schema_name,
+            db_object_name=db_object_name,
+            db_object_type=db_object_type)
+
+@plugin_function('mrs.get.objects', shell=True, cli=True, web=True)
+def get_result_object(db_object_id=None, **kwargs):
+    """Gets the list of objects for the given db_object
+
+    Args:
+        db_object_id (str): The id of the db_object
+        **kwargs: Additional options
+
+    Keyword Args:
+        session (object): The database session to use.
+
+    Returns:
+        The list of objects of the given db_object
+    """
+    if not db_object_id:
+        raise Exception("You must supply the db_object_id.")
+    
+    db_object_id = lib.core.id_to_binary(db_object_id, "db_object_id")
+
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        return lib.db_objects.get_objects(session, db_object_id=db_object_id)
+
+@plugin_function('mrs.get.objectFieldsWithReferences', shell=True, cli=True, web=True)
+def get_object_fields_with_references(object_id=None, **kwargs):
+    """Gets the list of object fields and references
+
+    Args:
+        object_id (str): The id of the db_object.object
+        **kwargs: Additional options
+
+    Keyword Args:
+        session (object): The database session to use.
+
+    Returns:
+        The list of object fields and references
+    """
+    if not object_id:
+        raise Exception("You must supply the object_id.")
+    
+    object_id = lib.core.id_to_binary(object_id, "object_id")
+
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        return lib.db_objects.get_object_fields_with_references(session, object_id=object_id)
+    
+        # kwargs["session"] = session
+        # kwargs = resolve_db_object_ids(**kwargs)
+        # if len(kwargs["db_object_ids"]) == 1:
+        #     id = kwargs["db_object_ids"][0]
+        #     print(f"{id=}")
+        #     return lib.db_objects.get_object_fields_with_references(session, object_id=id)
 
 
+@plugin_function('mrs.set.objectFieldsWithReferences', shell=True, cli=True, web=True)
+def set_object_fields_with_references(**kwargs):
+    """Creates the MRS object together with its fields and references
+
+    Args:
+        **kwargs: Additional options
+
+    Keyword Args:
+        obj (dict): The object dict
+        session (object): The database session to use.
+
+    Allowed options for obj:
+        id (str): The id of the object
+        db_object_id (str): The id of the database object
+        name (str): The name of the object
+        position (int): The position of the object
+        fields (list): The list of fields
+        comments (str): The comments
+
+    Returns:
+        None
+    """
+    obj = kwargs.get("obj")
+
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        lib.db_objects.set_object_fields_with_references(session, obj=obj)
 

@@ -338,7 +338,7 @@ exports[`Application tests Application readiness 1`] = `
         </div>
       </Container>
     </LoginPage>
-    <ErrorPanel>
+    <MessagePanel>
       <Dialog
         actions={
           {
@@ -354,7 +354,7 @@ exports[`Application tests Application readiness 1`] = `
           <p>
             <Icon
               disabled={false}
-              src={124}
+              src={190}
             />
             <Label>
               
@@ -385,7 +385,7 @@ exports[`Application tests Application readiness 1`] = `
           onOpen={[Function]}
         />
       </Dialog>
-    </ErrorPanel>
+    </MessagePanel>
     <TooltipProvider
       showDelay={200}
     />
@@ -569,6 +569,7 @@ exports[`Application tests Application readiness 1`] = `
             showArrow={false}
           >
             <Portal
+              className="popupPortal"
               onClose={[Function]}
               onKeyDown={[Function]}
               onOpen={[Function]}
@@ -645,6 +646,7 @@ exports[`Application tests Application readiness 1`] = `
           showArrow={false}
         >
           <Portal
+            className="popupPortal"
             id="tileActionMenu"
             onClose={[Function]}
             onKeyDown={[Function]}
@@ -663,6 +665,7 @@ exports[`Application tests Application readiness 1`] = `
         showArrow={true}
       >
         <Portal
+          className="popupPortal"
           onClose={[Function]}
           onOpen={[Function]}
         />

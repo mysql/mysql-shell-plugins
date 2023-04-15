@@ -32,3 +32,4 @@ from mrs_plugin.lib import users
 from mrs_plugin.lib import roles
 from mrs_plugin.lib import routers
 from mrs_plugin.lib import database
+from mrs_plugin.lib import sdk

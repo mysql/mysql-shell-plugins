@@ -10,6 +10,7 @@ exports[`Popup component tests Test Popup output (Snapshot) 1`] = `
   showArrow={false}
 >
   <Portal
+    className="popupPortal"
     onClose={[Function]}
     onOpen={[Function]}
   />

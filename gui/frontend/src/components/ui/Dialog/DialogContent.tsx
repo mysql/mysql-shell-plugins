@@ -23,9 +23,10 @@
 
 import closeButton from "../../../assets/images/close2.svg";
 
-import { ComponentChild } from "preact";
+import { ComponentChild, createRef } from "preact";
 import { isNil } from "lodash";
-import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
+
+import { IComponentProperties, ComponentBase, IComponentSnapshot } from "../Component/ComponentBase";
 import { Container, Orientation } from "../Container/Container";
 import { Icon } from "../Icon/Icon";
 import { IDialogActions } from "./Dialog";
@@ -42,11 +43,32 @@ interface IDialogContentProperties extends IComponentProperties {
 
 // This component is the separated-out content for a dialog, but can be rendered anywhere.
 export class DialogContent extends ComponentBase<IDialogContentProperties> {
+    #contentRef = createRef<HTMLDivElement>();
 
     public constructor(props: IDialogContentProperties) {
         super(props);
 
         this.addHandledProperties("content", "header", "caption", "actions", "onCloseClick");
+    }
+
+    public getSnapshotBeforeUpdate(): IComponentSnapshot | null {
+        if (this.#contentRef.current) {
+            const content = this.#contentRef.current;
+
+            return {
+                scrollPosition: content.scrollHeight - content.scrollTop,
+            };
+        }
+
+        return null;
+    }
+
+    public componentDidUpdate(prevProps: IDialogContentProperties, prevState: never,
+        snapshot: IComponentSnapshot | null): void {
+        if (snapshot !== null && this.#contentRef.current) {
+            const content = this.#contentRef.current;
+            content.scrollTop = content.scrollHeight - snapshot.scrollPosition;
+        }
     }
 
     public render(): ComponentChild {
@@ -70,7 +92,7 @@ export class DialogContent extends ComponentBase<IDialogContentProperties> {
                     </div>
                     }
                     {header && <div className="header">{header}</div>}
-                    {content && <div className="content fixedScrollbar">{content}</div>}
+                    {content && <div ref={this.#contentRef} className="content fixedScrollbar">{content}</div>}
                     {actions &&
                         <div className="footer verticalCenterContent">
                             <Container

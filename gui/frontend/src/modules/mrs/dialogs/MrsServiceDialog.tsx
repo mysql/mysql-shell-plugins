@@ -47,7 +47,8 @@ export class MrsServiceDialog extends ValueDialogBase {
     public show(request: IDialogRequest, title: string): void {
         const authVendors = request.parameters?.authVendors as IMrsAuthVendorData[];
 
-        this.dialogRef.current?.show(this.dialogValues(request, title, authVendors), { title: "MySQL REST Service" });
+        this.dialogRef.current?.show(this.dialogValues(request, title, authVendors), { title: "MySQL REST Service" },
+            request.parameters?.payload as IDictionary);
     }
 
     private dialogValues(request: IDialogRequest, title: string, authVendors: IMrsAuthVendorData[]): IDialogValues {
@@ -286,7 +287,8 @@ export class MrsServiceDialog extends ValueDialogBase {
         };
     }
 
-    private handleCloseDialog = (closure: DialogResponseClosure, dialogValues: IDialogValues): void => {
+    private handleCloseDialog = (closure: DialogResponseClosure, dialogValues: IDialogValues,
+        payload?: IDictionary): void => {
         const { onClose } = this.props;
 
         if (closure === DialogResponseClosure.Accept) {
@@ -309,6 +311,7 @@ export class MrsServiceDialog extends ValueDialogBase {
                 values.authCompletedUrl = authSection.values.authCompletedUrl.value as string;
                 values.authCompletedPageContent = authSection.values.authCompletedPageContent.value as string;
                 values.authApps = authAppSection.values.authApps.value as Array<IMrsAuthAppData & IDictionary>;
+                values.payload = payload;
 
                 onClose(closure, values);
             }

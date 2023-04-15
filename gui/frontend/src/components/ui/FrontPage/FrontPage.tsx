@@ -26,12 +26,17 @@ import closeButton from "../../../assets/images/close2.svg";
 
 import { ComponentChild } from "preact";
 
-import { appParameters } from "../../../supplement/Requisitions";
+import { appParameters, IMrsDbObjectEditRequest, requisitions } from "../../../supplement/Requisitions";
 import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
 import { Container, Orientation, ContentAlignment, ContentWrap } from "../Container/Container";
 import { Icon } from "../Icon/Icon";
 import { Label, TextAlignment } from "../Label/Label";
 import { Button } from "../Button/Button";
+import { DBEditorModuleId } from "../../../modules/ModuleInfo";
+import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor";
+import { ShellInterface } from "../../../supplement/ShellInterface/ShellInterface";
+import { uuid } from "../../../utilities/helpers";
+import { webSession } from "../../../supplement/WebSession";
 
 interface IFrontPageProperties extends IComponentProperties {
     showGreeting: boolean;
@@ -138,6 +143,78 @@ export class FrontPage extends ComponentBase<IFrontPageProperties> {
 
             // TODO: open the web page in the systems standard browser.
             // sendOutboundMessage({ source: "app", command: "openWebPage", data: url });
+        } else {
+            e.stopPropagation();
+            e.preventDefault();
+
+            // void this.openMrsDbObjectDlg();
+        }
+    };
+
+    private openMrsDbObjectDlg = async (): Promise<void> => {
+        // Get Connection list
+        const connections = await ShellInterface.dbConnections.listDbConnections(webSession.currentProfileId, "");
+        if (connections.length > 0) {
+            // Use first connection
+            const connection = connections[0];
+
+            // Create new ShellInterfaceSqlEditor
+            const backend = new ShellInterfaceSqlEditor();
+            await backend.startSession(String(connection.id));
+
+            try {
+                // Open Connection
+                const requestId = uuid();
+                await backend.openConnection(connection.id, requestId);
+
+                // Get first MRS DBObject
+                const schemas = await backend.mrs.listSchemas();
+                if (schemas.length > 0) {
+                    const dbObjects = await backend.mrs.listDbObjects(schemas[0].id);
+                    if (dbObjects?.length > 0) {
+                        const dbObject = dbObjects[0];
+                        const data: IMrsDbObjectEditRequest = {
+                            dbObject: {
+                                authStoredProcedure: "",
+                                autoDetectMediaType: 0,
+                                changedAt: "2023-04-05 17:30:15",
+                                comments: "",
+                                crudOperationFormat: dbObject.crudOperationFormat,
+                                crudOperations: dbObject.crudOperations,
+                                requiresAuth: 1,
+                                rowUserOwnershipColumn: undefined,
+                                rowUserOwnershipEnforced: 0,
+                                dbSchemaId: dbObject.dbSchemaId,
+                                enabled: 1,
+                                hostCtx: dbObject.hostCtx,
+                                id: dbObject.id,
+                                itemsPerPage: 25,
+                                mediaType: undefined,
+                                name: dbObject.name,
+                                objectType: dbObject.objectType,
+                                options: undefined,
+                                qualifiedName: dbObject.qualifiedName,
+                                requestPath: dbObject.requestPath,
+                                schemaRequestPath: dbObject.schemaRequestPath,
+                                serviceId: dbObject.serviceId,
+                            },
+                            createObject: false,
+                        };
+
+                        void requisitions.execute("job", [
+                            { requestType: "showModule", parameter: DBEditorModuleId },
+                            {
+                                requestType: "showPage",
+                                parameter: { module: DBEditorModuleId, page: String(connection.id) },
+                            },
+                            { requestType: "showMrsDbObjectDialog", parameter: data },
+                        ]);
+                    }
+                }
+
+            } finally {
+                await backend.closeSession();
+            }
         }
     };
 }

@@ -26,6 +26,7 @@ exports[`ScopeSelector testing Snapshot and properties 1`] = `
     showArrow={true}
   >
     <Portal
+      className="popupPortal"
       onClose={[Function]}
       onOpen={[Function]}
     />

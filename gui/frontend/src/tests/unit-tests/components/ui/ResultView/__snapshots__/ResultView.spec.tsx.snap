@@ -1019,6 +1019,7 @@ exports[`Result View Tests Render with Columns 1`] = `
           showArrow={false}
         >
           <Portal
+            className="popupPortal"
             id="cellContextMenu"
             onClose={[Function]}
             onKeyDown={[Function]}
@@ -1083,6 +1084,7 @@ exports[`Result View Tests Render with Error/Response 1`] = `
           showArrow={false}
         >
           <Portal
+            className="popupPortal"
             id="cellContextMenu"
             onClose={[Function]}
             onKeyDown={[Function]}
@@ -1173,6 +1175,7 @@ exports[`Result View Tests Standard Rendering 1`] = `
           showArrow={false}
         >
           <Portal
+            className="popupPortal"
             id="cellContextMenu"
             onClose={[Function]}
             onKeyDown={[Function]}

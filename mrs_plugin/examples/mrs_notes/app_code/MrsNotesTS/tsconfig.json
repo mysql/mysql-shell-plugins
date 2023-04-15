@@ -29,5 +29,8 @@
     "declaration.d.ts",
     "vite.config.ts",
     "vitest.setup.ts"
+  ],
+  "exclude": [
+    "src/tests"
   ]
 }

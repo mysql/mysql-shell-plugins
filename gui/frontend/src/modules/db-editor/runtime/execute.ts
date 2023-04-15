@@ -23,10 +23,22 @@
 
 /* eslint-disable max-classes-per-file */
 
+import { IDictionary } from "../../../app-logic/Types";
 import { PrivateWorker } from "../console.worker-types";
 
 // It's a global var only in the current worker and used for all user-visible APIs.
 export let currentWorker: PrivateWorker;
+
+export class CodeExecutionError extends Error {
+    public constructor(
+        public message: string,
+        public stack: string) {
+        super(message);
+
+        // Set the prototype explicitly.
+        Object.setPrototypeOf(this, CodeExecutionError.prototype);
+    }
+}
 
 /**
  * This function is the outer execution environment for JS/TS evaluation in SQL Notebooks.
@@ -47,6 +59,9 @@ export const execute = async (worker: PrivateWorker, code: string): Promise<unkn
     const { runSql, runSqlIterative } = await import("./query");
     const { print } = await import("./simple-functions");
 
+    const { webFetch: fetch } = await import("./web-functions");
+    const { mrsAuthenticate } = await import("./web-functions");
+
     // eslint-disable-next-line @typescript-eslint/naming-convention
     const { GraphProxy: Graph } = await import("./GraphProxy");
 
@@ -58,6 +73,18 @@ export const execute = async (worker: PrivateWorker, code: string): Promise<unkn
 
     /* eslint-enable @typescript-eslint/no-unused-vars */
 
-    // eslint-disable-next-line no-eval
-    return Promise.resolve(eval(code));
+    try {
+        // eslint-disable-next-line no-eval
+        const res = eval(code);
+
+        return Promise.resolve(res);
+    } catch (e: unknown) {
+        // Save stack, since it is not available in a lower code block like the if() below
+        const stack = String((e as IDictionary).stack);
+        if (stack !== "undefined") {
+            throw (new CodeExecutionError(String((e as IDictionary).message), stack));
+        }
+
+        throw(e);
+    }
 };

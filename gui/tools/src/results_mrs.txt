@@ -9,7 +9,7 @@ export interface IMrsDbObjectFieldData {
     comments?: string;
 }
 
-export interface IMrsDbObjectData {
+export interface IMrsDbObjectData extends IDictionary {
     changedAt?: string;
     comments: string;
     crudOperations: string[];
@@ -166,6 +166,107 @@ export interface IMrsRouterData {
     active: boolean,
 }
 
+export interface IMrsCurrentServiceMetadata {
+    id?: string,
+    metadataVersion?: string,
+}
+
+export interface IMrsTableColumn {
+    name: string,
+    datatype: string,
+    notNull: boolean,
+    isPrimary: boolean,
+    isUnique: boolean,
+    isGenerated: boolean,
+    autoInc: boolean,
+    privileges: string,
+    comment: string,
+}
+
+export interface IMrsColumnMapping {
+    [key: string]: string;
+}
+
+export interface IMrsTableReference {
+    kind: string,
+    constraint: string,
+    toMany: boolean,
+    referencedSchema: string,
+    referencedTable: string,
+    columnMapping: IMrsColumnMapping;
+}
+
+export interface IMrsTableColumnWithReference {
+    position: number,
+    name: string,
+    refColumnNames: string,
+    dbColumn?: IMrsTableColumn,
+    referenceMapping?: IMrsTableReference,
+    tableSchema: string,
+    tableName: string,
+}
+
+export interface IMrsObjectFieldSdkOptionsTs {
+    fieldName?: string;
+}
+
+export interface IMrsObjectFieldSdkOptions {
+    datatypeName?: string,
+    languageTs?: IMrsObjectFieldSdkOptionsTs,
+}
+
+export interface IMrsObjectReferenceSdkOptionsTs {
+    interfaceName?: string;
+}
+
+export interface IMrsObjectReferenceSdkOptions {
+    languageTs?: IMrsObjectReferenceSdkOptionsTs,
+}
+
+export interface IMrsObjectReference {
+    id: string,
+    reduceToValueOfFieldId?: string,
+    referenceMapping: IMrsTableReference,
+    unnest: boolean,
+    crudOperations: string,
+    sdkOptions?: IMrsObjectReferenceSdkOptions,
+    comments?: string,
+}
+
+export interface IMrsObjectFieldWithReference {
+    id: string,
+    objectId: string,
+    representsReferenceId?: string,
+    parentReferenceId?: string,
+    name: string,
+    position: number,
+    dbColumn?: IMrsTableColumn,
+    enabled: boolean,
+    allowFiltering: boolean,
+    noCheck: boolean,
+    sdkOptions?: IMrsObjectFieldSdkOptions,
+    comments?: string,
+    objectReference?: IMrsObjectReference,
+}
+
+export interface IMrsObjectSdkOptionsTs {
+    className: string,
+}
+
+export interface IMrsObjectSdkOptions extends IShellDictionary {
+    languageTs?: IMrsObjectSdkOptionsTs,
+}
+
+export interface IMrsObject {
+    id: string,
+    dbObjectId: string,
+    name: string,
+    position: number,
+    sdkOptions?: IMrsObjectSdkOptions,
+    comments?: string,
+    fields?: IMrsObjectFieldWithReference[],
+}
+
 export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsAddService]: { result: IMrsServiceData; };
     [ShellAPIMrs.MrsGetService]: {};
@@ -173,8 +274,8 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsEnableService]: {};
     [ShellAPIMrs.MrsDisableService]: {};
     [ShellAPIMrs.MrsDeleteService]: {};
-    [ShellAPIMrs.MrsSetCurrentServiceId]: {};
-    [ShellAPIMrs.MrsGetCurrentServiceId]: { result: string; };
+    [ShellAPIMrs.MrsSetCurrentService]: {};
+    [ShellAPIMrs.MrsGetCurrentServiceMetadata]: { result: IMrsCurrentServiceMetadata; };
     [ShellAPIMrs.MrsSetServiceContextPath]: {};
     [ShellAPIMrs.MrsSetServiceProtocol]: {};
     [ShellAPIMrs.MrsSetServiceComments]: {};
@@ -241,5 +342,11 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsListRouterIds]: { result: number[]; };
     [ShellAPIMrs.MrsListRouters]: { result: IMrsRouterData[]; };
     [ShellAPIMrs.MrsDeleteRouter]: {};
-
+    [ShellAPIMrs.MrsGetObjects]: { result: IMrsObject[]; };
+    [ShellAPIMrs.MrsGetSdkBaseClasses]: { result: string; };
+    [ShellAPIMrs.MrsGetSdkServiceClasses]: { result: string; };
+    [ShellAPIMrs.MrsGetTableColumnsWithReferences]: { result: IMrsTableColumnWithReference[]; };
+    [ShellAPIMrs.MrsGetObjectFieldsWithReferences]: { result: IMrsObjectFieldWithReference[]; };
+    [ShellAPIMrs.MrsSetObjectFieldsWithReferences]: {};
+    [ShellAPIMrs.MrsDumpSdkServiceFiles]: { result: boolean; };
 }

@@ -98,6 +98,7 @@
         "indexeddb",
         "keybcs",
         "keyfile",
+        "killall",
         "macce",
         "mochawesome",
         "multiselect",
@@ -115,13 +116,14 @@
         "sjis",
         "sqleditor",
         "tablespaces",
+        "taskkill",
         "ujis",
         "us-ashburn-1",
         "uuidv",
         "webrootpath",
-        "zstd",
         "winx",
-        "outdir"
+        "zstd",
+        "libcurl"
     ],
     "ignorePaths": [
         "./.eslintrc.json"

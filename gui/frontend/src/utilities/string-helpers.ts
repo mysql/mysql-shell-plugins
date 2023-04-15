@@ -23,6 +23,7 @@
 
 import { isNil } from "lodash";
 import { Buffer } from "buffer";
+import { convertCamelToTitleCase } from "./helpers";
 
 // A web worker friendly module for specific string handling.
 
@@ -218,6 +219,25 @@ export const formatBase64ToHex = (text: string, limit?: number): string => {
 };
 
 /**
+ * Converts the given HEX string to a base64 encoded string.
+ *
+ * @param hex The hex string to convert.
+ *
+ * @returns The base64 encoded string.
+ */
+export const convertHexToBase64 = (hex: string): string => {
+    // If strings starts with 0x remove that part
+    if (hex.startsWith("0x")) {
+        hex = hex.slice(2);
+    }
+
+    const buffer = Buffer.from(hex, "hex");
+    const bufString = buffer.toString("base64");
+
+    return bufString;
+};
+
+/**
  * A stricter check of a string, to see if it represents a number.
  * Taken from MDN.
  *
@@ -231,4 +251,58 @@ export const filterInt = (value: string): number => {
     } else {
         return NaN;
     }
+};
+
+/**
+ * Converts a given string from snake case to camel case
+ *
+ * @param str The string to convert.
+ * @returns The converted string.
+ */
+export const snakeToCamelCase = (str: string): string => {
+    if (str.includes("_") || str.includes("-")) {
+        return str.toLowerCase().replace(/([-_][a-z])/g, (group): string => {
+            return group
+                .toUpperCase()
+                .replace("-", "")
+                .replace("_", "");
+        });
+    } else {
+        return str;
+    }
+};
+
+/**
+ * Converts a given string to pascal case, filtering out problematic chars
+ *
+ * @param str The string to convert.
+ * @returns The converted string.
+ */
+export const convertToPascalCase = (str: string): string => {
+    str = str.replace(/[^\d\w,]/g, "");
+    if (str.includes("_")) {
+        str = snakeToCamelCase(str);
+    }
+
+    return convertCamelToTitleCase(str);
+};
+
+/**
+ * Converts a url path string to camel case, filtering out problematic chars
+ *
+ * @param str The string to convert.
+ * @returns The converted string.
+ */
+export const pathToCamelCase = (str: string): string => {
+    if (str.startsWith("/")) {
+        str = str.slice(1);
+    }
+    str.replaceAll("/", "_");
+
+    return str.replace(/([-_][a-z])/g, (group): string => {
+        return group
+            .toUpperCase()
+            .replace("-", "")
+            .replace("_", "");
+    });
 };

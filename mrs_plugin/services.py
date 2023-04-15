@@ -26,6 +26,8 @@
 from mysqlsh.plugin_manager import plugin_function
 import mrs_plugin.lib as lib
 from .interactive import resolve_service, resolve_options
+from pathlib import Path
+import os
 
 def verify_value_keys(**kwargs):
     for key in kwargs["value"].keys():
@@ -716,9 +718,13 @@ def get_service_request_path_availability(**kwargs):
         return True
 
 
-@plugin_function('mrs.get.currentServiceId', shell=True, cli=True, web=True)
-def get_current_service_id(**kwargs):
-    """Gets the id of the current service
+@plugin_function('mrs.get.currentServiceMetadata', shell=True, cli=True, web=True)
+def get_current_service_metadata(**kwargs):
+    """Gets information about the current service
+
+    This function returns the id of the current MRS service as well as the last id of the metadata audit_log
+    related to this MRS service as metadata_version. If there are no entries for the service in the audit_log, the
+    string noChange is returned instead.
 
     Args:
         **kwargs: Additional options
@@ -727,15 +733,30 @@ def get_current_service_id(**kwargs):
         session (object): The database session to use.
 
     Returns:
-        The ID of the current service or None
+        {id: string, metadata_version: string}
     """
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
-        return lib.services.get_current_service_id(session)
+        service_id = lib.services.get_current_service_id(session)
+        if not service_id:
+            return {}
+
+        # Lookup the last entry in the audit_log table that affects the service and use that as the 
+        # version int
+        res = session.run_sql(
+            """
+            SELECT max(id) AS version FROM `mysql_rest_service_metadata`.`audit_log`
+            """)
+        row = res.fetch_one()
+        if row:
+            return { "id": service_id, "metadata_version": row.get_field("version") }
+        else:
+            return { "id": service_id, "metadata_version": "noChange" }
+        
 
 
-@plugin_function('mrs.set.currentServiceId', shell=True, cli=True, web=True)
-def set_current_service_id(**kwargs):
-    """Sets the default MRS service id
+@plugin_function('mrs.set.currentService', shell=True, cli=True, web=True)
+def set_current_service(**kwargs):
+    """Sets the default MRS service
 
     Args:
         **kwargs: Additional options
@@ -772,4 +793,105 @@ def set_current_service_id(**kwargs):
 
     if lib.core.get_interactive_result():
         return "The service has been made the default."
+    return True
+
+@plugin_function('mrs.get.sdkBaseClasses', shell=True, cli=True, web=True)
+def get_sdk_base_classes(**kwargs):
+    """Returns the SDK base classes source for the given language
+
+    Args:
+        **kwargs: Options to determine what should be generated.
+
+    Keyword Args:
+        sdk_language (str): The SDK language to generate
+        prepare_for_runtime (bool): Prepare code to be used in Monaco at runtime
+        session (object): The database session to use.
+
+    Returns:
+        The SDK base classes source
+    """
+    sdk_language = kwargs.get("sdk_language", "TypeScript")
+    prepare_for_runtime = kwargs.get("prepare_for_runtime", False)
+
+    return lib.sdk.get_base_classes(sdk_language=sdk_language, prepare_for_runtime=prepare_for_runtime)
+
+@plugin_function('mrs.get.sdkServiceClasses', shell=True, cli=True, web=True)
+def get_sdk_service_classes(**kwargs):
+    """Returns the SDK service classes source for the given language
+
+    Args:
+        **kwargs: Options to determine what should be generated.
+
+    Keyword Args:
+        service_id (str): The id of the service
+        sdk_language (str): The SDK language to generate
+        prepare_for_runtime (bool): Prepare code to be used in Monaco at runtime
+        session (object): The database session to use.
+
+    Returns:
+        The SDK base classes source
+    """
+    lib.core.convert_ids_to_binary(["service_id"], kwargs)
+
+    service_id = kwargs.get("service_id")
+    sdk_language = kwargs.get("sdk_language", "TypeScript")
+    prepare_for_runtime = kwargs.get("prepare_for_runtime", False)
+
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        service = resolve_service(session, service_id, True, True)
+
+        return lib.sdk.generate_service_sdk(
+            service=service, sdk_language=sdk_language, session=session, prepare_for_runtime=prepare_for_runtime)
+
+@plugin_function('mrs.dump.sdkServiceFiles', shell=True, cli=True, web=True)
+def dump_sdk_service_files(**kwargs):
+    """Dumps the SDK service files for a REST Service
+
+    Args:
+        **kwargs: Options to determine what should be generated.
+
+    Keyword Args:
+        service_id (str): The ID of the service the SDK should be generated for. If not specified, the default service
+            is used.
+        sdk_language (str): The SDK language to generate
+        directory (str): The directory to store the .mrs.sdk folder with the files
+        session (object): The database session to use.
+
+    Returns:
+        True on success
+    """
+    lib.core.convert_ids_to_binary(["service_id"], kwargs)
+
+    service_id = kwargs.get("service_id")
+    sdk_language = kwargs.get("sdk_language", "TypeScript")
+    directory = kwargs.get("directory")
+
+    if not directory:
+        if lib.core.get_interactive_default():
+            directory = lib.core.prompt("Please enter the directory the folder with the SDK files should be placed:")
+            if not directory:
+                print("Cancelled.")
+                return False
+        else:
+            raise Exception("No directory given.")
+
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        service = resolve_service(session, service_id, True)
+        service_name = lib.core.convert_path_to_camel_case(service.get("url_context_root"))
+        sdk_folder = f"{service_name}.mrs.sdk"
+
+        if not directory.endswith(sdk_folder):
+            directory = os.path.join(directory, sdk_folder)
+
+        # Ensure the directory path exists
+        Path(directory).mkdir(parents=True, exist_ok=True)
+
+        base_classes = get_sdk_base_classes(sdk_language=sdk_language, session=session)
+        with open(os.path.join(directory, "MrsBaseClasses.ts"), 'w') as f:
+            f.write(base_classes)
+
+        service_classes = get_sdk_service_classes(service_id=service_id, sdk_language=sdk_language, session=session)
+        with open(os.path.join(directory, f"{service_name}.ts"), 'w') as f:
+            f.write(service_classes)
+
     return True
