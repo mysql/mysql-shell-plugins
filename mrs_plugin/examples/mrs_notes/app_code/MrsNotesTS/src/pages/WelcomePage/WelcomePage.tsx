@@ -102,6 +102,8 @@ export default class WelcomePage extends Component<IWelcomePageProps, IWelcomePa
                 const result = await response.json();
 
                 return result as IAuthApp[];
+            } else {
+                return [] as IAuthApp[];
             }
         } catch (e) {
             return [] as IAuthApp[];

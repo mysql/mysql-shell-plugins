@@ -61,7 +61,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
             theme="dark"
           >
             <div
-              class="msg portal"
+              class="msg portal popupPortal"
               id="tileActionMenu"
               style="--background-opacity: 0;"
             >
@@ -142,7 +142,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
               theme="dark"
             >
               <div
-                class="msg portal"
+                class="msg portal popupPortal"
                 id="tileActionMenu"
                 style="--background-opacity: 0;"
               >
@@ -228,6 +228,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
           showArrow={false}
         >
           <Portal
+            className="popupPortal"
             onClose={[Function]}
             onKeyDown={[Function]}
             onOpen={[Function]}
@@ -262,7 +263,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
             theme="dark"
           >
             <div
-              class="msg portal"
+              class="msg portal popupPortal"
               id="tileActionMenu"
               style="--background-opacity: 0;"
             >
@@ -346,7 +347,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
               theme="dark"
             >
               <div
-                class="msg portal"
+                class="msg portal popupPortal"
                 id="tileActionMenu"
                 style="--background-opacity: 0;"
               >
@@ -434,6 +435,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
         showArrow={false}
       >
         <Portal
+          className="popupPortal"
           id="tileActionMenu"
           onClose={[Function]}
           onKeyDown={[Function]}

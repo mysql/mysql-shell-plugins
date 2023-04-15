@@ -25,7 +25,7 @@ import "./ValueEditDialog.css";
 import addProperty from "../../assets/images/add.svg";
 import removeProperty from "../../assets/images/remove.svg";
 
-import { ComponentChild, createRef } from "preact";
+import { cloneElement, ComponentChild, createRef, VNode } from "preact";
 import { ColumnDefinition, RowComponent } from "tabulator-tables";
 
 import { DialogResponseClosure, IDictionary, MessageType } from "../../app-logic/Types";
@@ -54,6 +54,7 @@ import { ProgressIndicator } from "../ui/ProgressIndicator/ProgressIndicator";
 import { ITabviewPage, Tabview } from "../ui/Tabview/Tabview";
 import { ITreeGridOptions, TreeGrid } from "../ui/TreeGrid/TreeGrid";
 import { UpDown, IUpDownProperties } from "../ui/UpDown/UpDown";
+import { IValueEditCustomProperties, ValueEditCustom } from "./ValueEditCustom";
 
 interface IContextUpdateData {
     add?: string[];
@@ -65,7 +66,7 @@ interface IDialogListEntry {
     [key: string]: IComponentProperties;
 }
 
-export type DialogValueType = number | string | boolean | string[];
+export type DialogValueType = number | string | boolean | string[] | IDictionary;
 
 /** A collection of flags that influence the way a value is displayed or modifies its behavior. */
 export enum CommonDialogValueOption {
@@ -291,6 +292,21 @@ export interface IRelationDialogValue extends IBaseDialogValue {
     onChange?: (value: string, dialog: ValueEditDialog) => void;
 }
 
+/**
+ * This dialog value serves as placeholder for additional content, which either just visualizes something based on other
+ * content or is a complex editor with own functionality.
+ *
+ * This value type does not participate in the automatic validation handling.
+ */
+export interface ICustomDialogValue extends IBaseDialogValue {
+    type: "custom",
+    value: IDictionary,
+    component:
+    VNode<ValueEditCustom<IValueEditCustomProperties, IComponentState>> |
+    (() => VNode<ValueEditCustom<IValueEditCustomProperties, IComponentState>>),
+    //ref: RefObject<ValueEditCustom<IValueEditCustomProperties, IComponentState>>,
+}
+
 type IDialogValue =
     IDescriptionDialogValue
     | IChoiceDialogValue
@@ -303,6 +319,7 @@ type IDialogValue =
     | ICheckListDialogValue
     | ISetDialogValue
     | IKeyValueDialogValue
+    | ICustomDialogValue
     ;
 
 /** A set of keys and their associated values, which can be edited in this dialog. */
@@ -376,6 +393,9 @@ interface IValueEditDialogShowOptions {
 
     /** A list of strings to describe the information that must be entered. */
     description?: string[];
+
+    /** If set to true the dialog will auto resize based on the window size */
+    autoResize?: boolean;
 }
 
 interface IValueEditDialogProperties extends IComponentProperties {
@@ -400,6 +420,7 @@ interface IValueEditDialogState extends IComponentState {
     validations: IDialogValidations;
     preventConfirm: boolean;
     actionText?: string;
+    autoResize?: boolean;
 
     /** A list of ids that allow conditional rendering of sections and values. */
     activeContexts: Set<string>;
@@ -435,119 +456,10 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
             "customFooter", "onClose", "onValidate", "onToggleAdvanced");
     }
 
-    /**
-     * Makes the dialog visible with the given dialog values set.
-     *
-     * @param values The values to use to layout and initially fill the dialog.
-     * @param dialogOptions Details for the appearance of the dialog.
-     * @param data Anything that should be passed to the validation and close functions.
-     */
-    public show = (values: IDialogValues, dialogOptions?: IValueEditDialogShowOptions, data?: IDictionary): void => {
-        const activeContexts = new Set(dialogOptions?.contexts);
-
-        // Keep the advanced state/context if it was set before.
-        if (this.state.activeContexts.has("advanced")) {
-            activeContexts.add("advanced");
-        }
-
-        this.setState({
-            title: dialogOptions?.title,
-            heading: dialogOptions?.heading,
-            description: dialogOptions?.description,
-            values,
-            activeContexts,
-            validations: { messages: {} },
-            data,
-        }, () => {
-            return this.dialogRef.current?.open(dialogOptions?.options);
-        });
-    };
-
-    /**
-     * Updates the active contexts that are used during dialog rendering.
-     *
-     * @param contexts A structure to specify which contexts must be added and/or removed.
-     */
-    public updateActiveContexts = (contexts: IContextUpdateData): void => {
-        const { activeContexts } = this.state;
-
-        contexts.add?.forEach((context) => {
-            activeContexts.add(context);
-        });
-
-        contexts.remove?.forEach((context) => {
-            activeContexts.delete(context);
-        });
-
-        this.setState({ activeContexts });
-    };
-
-    public updateInputValue = (value: string, id: string): void => {
-        const { values, data } = this.state;
-
-        values.sections.forEach((section) => {
-            const entry = section.values[id];
-            if (entry && (entry.type === "text" || entry.type === "choice")) {
-                entry.value = value;
-                if (entry.type === "text") {
-                    entry.showLoading = false;
-                }
-
-                const { onValidate } = this.props;
-                const validations = onValidate?.(false, values, data) || { messages: {} };
-                this.setState({ values, validations });
-
-                return;
-            }
-        });
-    };
-
-    public changeAdvActionText = (actionText?: string): void => {
-        this.setState({ actionText });
-    };
-
-    public updateDropdownValue = (items: string[], active: string, id: string): void => {
-        const { values, data } = this.state;
-
-        values.sections.forEach((section) => {
-            const entry = section.values[id];
-            if (entry?.type === "choice") {
-                entry.choices = items;
-                entry.value = active;
-
-                const { onValidate } = this.props;
-                const validations = onValidate?.(false, values, data) || { messages: {} };
-                this.setState({ values, validations });
-
-                return;
-            }
-        });
-    };
-
-    public beginValueUpdating = (value: string, id: string): void => {
-        const { values, data } = this.state;
-
-        values.sections.forEach((section) => {
-            const entry = section.values[id];
-            if (entry?.type === "text") {
-                entry.value = value;
-                entry.showLoading = true;
-
-                const { onValidate } = this.props;
-                const validations = onValidate?.(false, values, data) || { messages: {} };
-                this.setState({ values, validations });
-            }
-        });
-    };
-
-    public preventConfirm = (preventConfirm: boolean): void => {
-        this.setState({ preventConfirm });
-    };
-
     public render(): ComponentChild {
         const { container, advancedActionCaption, advancedAction, customFooter } = this.props;
         const {
-            title, heading, actionText, description, validations, activeContexts, values, preventConfirm,
+            title, heading, actionText, description, validations, activeContexts, values, preventConfirm, autoResize,
         } = this.state;
 
         // Take over any context that is now required to show up due to validation issues.
@@ -558,7 +470,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
             validations.requiredContexts = undefined;
         }
 
-        const className = this.getEffectiveClassNames(["valueEditDialog"]);
+        const className = this.getEffectiveClassNames(["valueEditDialog", autoResize ? "autoResize" : undefined]);
         const groups = this.renderGroups();
 
         const customActions = [];
@@ -671,6 +583,116 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
             </>
         );
     }
+
+    /**
+     * Makes the dialog visible with the given dialog values set.
+     *
+     * @param values The values to use to layout and initially fill the dialog.
+     * @param dialogOptions Details for the appearance of the dialog.
+     * @param data Anything that should be passed to the validation and close functions.
+     */
+    public show = (values: IDialogValues, dialogOptions?: IValueEditDialogShowOptions, data?: IDictionary): void => {
+        const activeContexts = new Set(dialogOptions?.contexts);
+
+        // Keep the advanced state/context if it was set before.
+        if (this.state.activeContexts.has("advanced")) {
+            activeContexts.add("advanced");
+        }
+
+        this.setState({
+            title: dialogOptions?.title,
+            heading: dialogOptions?.heading,
+            description: dialogOptions?.description,
+            values,
+            activeContexts,
+            validations: { messages: {} },
+            data,
+            autoResize: dialogOptions?.autoResize,
+        }, () => {
+            return this.dialogRef.current?.open(dialogOptions?.options);
+        });
+    };
+
+    /**
+     * Updates the active contexts that are used during dialog rendering.
+     *
+     * @param contexts A structure to specify which contexts must be added and/or removed.
+     */
+    public updateActiveContexts = (contexts: IContextUpdateData): void => {
+        const { activeContexts } = this.state;
+
+        contexts.add?.forEach((context) => {
+            activeContexts.add(context);
+        });
+
+        contexts.remove?.forEach((context) => {
+            activeContexts.delete(context);
+        });
+
+        this.setState({ activeContexts });
+    };
+
+    public updateInputValue = (value: string, id: string): void => {
+        const { values, data } = this.state;
+
+        values.sections.forEach((section) => {
+            const entry = section.values[id];
+            if (entry && (entry.type === "text" || entry.type === "choice")) {
+                entry.value = value;
+                if (entry.type === "text") {
+                    entry.showLoading = false;
+                }
+
+                const { onValidate } = this.props;
+                const validations = onValidate?.(false, values, data) || { messages: {} };
+                this.setState({ values, validations });
+
+                return;
+            }
+        });
+    };
+
+    public changeAdvActionText = (actionText?: string): void => {
+        this.setState({ actionText });
+    };
+
+    public updateDropdownValue = (items: string[], active: string, id: string): void => {
+        const { values, data } = this.state;
+
+        values.sections.forEach((section) => {
+            const entry = section.values[id];
+            if (entry?.type === "choice") {
+                entry.choices = items;
+                entry.value = active;
+
+                const { onValidate } = this.props;
+                const validations = onValidate?.(false, values, data) || { messages: {} };
+                this.setState({ values, validations });
+
+                return;
+            }
+        });
+    };
+
+    public beginValueUpdating = (value: string, id: string): void => {
+        const { values, data } = this.state;
+
+        values.sections.forEach((section) => {
+            const entry = section.values[id];
+            if (entry?.type === "text") {
+                entry.value = value;
+                entry.showLoading = true;
+
+                const { onValidate } = this.props;
+                const validations = onValidate?.(false, values, data) || { messages: {} };
+                this.setState({ values, validations });
+            }
+        });
+    };
+
+    public preventConfirm = (preventConfirm: boolean): void => {
+        this.setState({ preventConfirm });
+    };
 
     /**
      * Renders all defined sections into groups. A section without a group name renders as single entry into a group.
@@ -1210,6 +1232,23 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                         break;
                     }
 
+                    case "custom": {
+                        let component;
+                        if (typeof entry.value.component === "function") {
+                            component = entry.value.component();
+                        } else {
+                            component = entry.value.component;
+                        }
+
+                        const clone = cloneElement(component, {
+                            values: entry.value.value,
+                            onDataChange: this.handleCustomControlChange.bind(this, sectionId, key),
+                        });
+                        result.push(clone);
+
+                        break;
+                    }
+
                     default: { // Text input.
                         const className = this.getEffectiveClassNames(["inputWithProgress"]);
                         let progress;
@@ -1306,6 +1345,20 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                 this.setState({ values, validations });
 
                 value.onChange?.(props.value, this);
+            }
+        }
+    };
+
+    private handleCustomControlChange = (sectionId: string, key: string, customControlData: IDictionary): void => {
+        const { onValidate } = this.props;
+        const { values, data } = this.state;
+
+        const section = values.sections.get(sectionId);
+        if (section && key) {
+            const value = this.setValue(key, customControlData, section) as ICustomDialogValue;
+            if (value) {
+                const validations = onValidate?.(false, values, data) || { messages: {} };
+                this.setState({ values, validations });
             }
         }
     };

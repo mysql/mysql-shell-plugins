@@ -59,6 +59,10 @@ import {
     IOpenEditorBaseEntry,
     IOpenEditorEntry, OpenEditorsTreeDataProvider,
 } from "./tree-providers/OpenEditorsTreeProvider/OpenEditorsTreeProvider";
+import { MrsDbObjectTreeItem } from "./tree-providers/ConnectionsTreeProvider/MrsDbObjectTreeItem";
+import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
+import { IMrsDbObjectData } from "../../frontend/src/communication/ProtocolMrs";
+import { showMessageWithTimeout } from "./utilities";
 
 // A class to handle all DB editor related commands and jobs.
 export class DBEditorCommandHandler {
@@ -337,8 +341,8 @@ export class DBEditorCommandHandler {
 
         context.subscriptions.push(commands.registerCommand("msg.editInScriptEditor", async (uri?: Uri) => {
             if (uri?.scheme === "file") {
-                if (!fs.existsSync(uri.path)) {
-                    void window.showErrorMessage(`The file ${uri.path} could not be found.`);
+                if (!fs.existsSync(uri.fsPath)) {
+                    void window.showErrorMessage(`The file ${uri.fsPath} could not be found.`);
                 } else {
                     const stat = await workspace.fs.stat(uri);
 
@@ -524,6 +528,34 @@ export class DBEditorCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.newScriptTs", (entry: IEditorConnectionEntry) => {
             void this.editorCreateNewScript({ page: String(entry.connectionId), language: "typescript" });
         }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.addDbObject", (item?: ConnectionsTreeBaseItem) => {
+            if (item?.entry.backend) {
+                const objectType = item.dbType.toUpperCase();
+
+                if (objectType === "TABLE" || objectType === "VIEW" || objectType === "PROCEDURE") {
+                    // First, create a new temporary dbObject, then call the DbObject dialog
+                    this.createNewDbObject(item.entry.backend, item, objectType).then((dbObject) => {
+                        const provider = this.currentProvider;
+                        void provider?.editMrsDbObject(String(item.entry.details.id),
+                            { dbObject, createObject: true, schemaName: item.schema });
+                    }).catch((reason) => {
+                        void window.showErrorMessage(`${String(reason)}`);
+                    });
+                } else {
+                    void window.showErrorMessage(
+                        `The database object type '${objectType}' is not supported at this time`);
+                }
+            }
+        }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.editDbObject", (item?: MrsDbObjectTreeItem) => {
+            if (item) {
+                const provider = this.currentProvider;
+                void provider?.editMrsDbObject(String(item.entry.details.id),
+                    { dbObject: item.value, createObject: false });
+            }
+        }));
     }
 
     /**
@@ -541,6 +573,107 @@ export class DBEditorCommandHandler {
         this.providers = [];
         this.openEditorsTreeDataProvider.clear();
     }
+
+    private createNewDbObject = async (backend: ShellInterfaceSqlEditor,
+        item: ConnectionsTreeBaseItem, objectType: string): Promise<IMrsDbObjectData> => {
+
+        const params = await backend.mrs.getDbObjectFields(undefined, item.name,
+            undefined, undefined, item.schema, item.dbType);
+
+        // Add entry for <new> item
+        params.push({
+            id: "",
+            dbObjectId: "0",
+            position: 0,
+            name: "<new>",
+            bindFieldName: "",
+            datatype: "STRING",
+            mode: "IN",
+            comments: "",
+        });
+
+        const dbObject: IMrsDbObjectData = {
+            comments: "",
+            crudOperations: (objectType === "PROCEDURE") ? ["UPDATE"] : ["READ"],
+            crudOperationFormat: "FEED",
+            dbSchemaId: "",
+            enabled: 1,
+            id: "",
+            name: item.name,
+            objectType,
+            requestPath: `/${item.name}`,
+            requiresAuth: 1,
+            rowUserOwnershipEnforced: 0,
+            serviceId: "",
+            autoDetectMediaType: 0,
+            fields: params,
+        };
+
+        const services = await backend.mrs.listServices();
+        let service;
+        if (services.length === 1) {
+            service = services[0];
+        } else if (services.length > 1) {
+            // Lookup default service
+            service = services.find((service) => {
+                return service.isCurrent;
+            });
+
+            if (!service) {
+                // No default connection set. Show a picker.
+                const items = services.map((s) => {
+                    return s.urlContextRoot;
+                });
+
+                const name = await window.showQuickPick(items, {
+                    title: "Select a connection for SQL execution",
+                    matchOnDescription: true,
+                    placeHolder: "Type the name of an existing DB connection",
+                });
+
+                if (name) {
+                    service = services.find((candidate) => {
+                        return candidate.urlContextRoot === name;
+                    });
+                }
+
+            }
+        }
+
+        if (service) {
+            const schemas = await backend.mrs.listSchemas(service.id);
+            const schema = schemas.find((schema) => {
+                return schema.name === item.schema;
+            });
+
+            // Check if the DbObject's schema is already exposed as an MRS schema
+            if (schema) {
+                dbObject.dbSchemaId = schema.id;
+            } else {
+                const answer = await window.showInformationMessage(
+                    `The database schema ${item.schema} has not been added to the `
+                    + "REST Service. Do you want to add the schema now?",
+                    "Yes", "No");
+                if (answer === "Yes") {
+                    dbObject.dbSchemaId = await backend.mrs.addSchema(service.id,
+                        item.schema, `/${item.schema}`, false, null, null, undefined);
+
+                    void commands.executeCommand("msg.refreshConnections");
+                    showMessageWithTimeout(`The MRS schema ${item.schema} has been added successfully.`, 5000);
+                } else {
+                    throw new Error("Operation cancelled.");
+                }
+            }
+        } else {
+            if (services.length === 0) {
+                throw new Error("Please create a REST Service before adding DB Objects.");
+            } else {
+                throw new Error("No REST Service selected.");
+            }
+        }
+
+        return dbObject;
+    };
 
     private get currentProvider(): DBConnectionViewProvider | undefined {
         if (this.lastActiveProvider) {

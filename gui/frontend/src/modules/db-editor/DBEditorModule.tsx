@@ -47,10 +47,10 @@ import { ConnectionBrowser } from "./ConnectionBrowser";
 import {
     DBConnectionTab, IDBConnectionTabPersistentState, IOpenEditorState, ISelectItemDetails,
 } from "./DBConnectionTab";
-import { ICodeEditorModel, CodeEditor } from "../../components/ui/CodeEditor/CodeEditor";
+import { ICodeEditorModel } from "../../components/ui/CodeEditor/CodeEditor";
 import { CodeEditorMode, Monaco } from "../../components/ui/CodeEditor";
 import { ExecutionContexts } from "../../script-execution/ExecutionContexts";
-import { appParameters, InitialEditor, requisitions } from "../../supplement/Requisitions";
+import { appParameters, IMrsDbObjectEditRequest, InitialEditor, requisitions } from "../../supplement/Requisitions";
 import { Settings } from "../../supplement/Settings/Settings";
 import { DBType, IConnectionDetails } from "../../supplement/ShellInterface";
 import { EntityType, IDBDataEntry, IDBEditorScriptState, ISavedGraphData, ISchemaTreeEntry, IToolbarItems } from ".";
@@ -83,8 +83,7 @@ import { ProgressIndicator } from "../../components/ui/ProgressIndicator/Progres
 import { ITabviewPage, Tabview, TabPosition } from "../../components/ui/Tabview/Tabview";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface";
 import { IOpenConnectionData, IShellPasswordFeedbackRequest } from "../../communication/ProtocolGui";
-
-import typings from "./assets/typings/scripting-runtime.d.ts?raw";
+import { MrsTurnstile } from "../mrs/MrsTurnstile";
 
 // Details generated while adding a new tab. These are used in the render method to fill the tab page details.
 interface IDBEditorTabInfo {
@@ -133,6 +132,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
     private pendingProgress: ReturnType<typeof setTimeout> | null;
 
     private actionMenuRef = createRef<Menu>();
+    private mrsTurnstileRef = createRef<MrsTurnstile>();
 
     public static get info(): IModuleInfo {
         return {
@@ -158,8 +158,6 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             loading: false,
             progressMessage: "",
         };
-
-        CodeEditor.addTypings(typings, "Runtime");
 
         void this.loadConnections();
         ShellInterface.modules.loadScriptsTree().then((tree) => {
@@ -199,6 +197,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         requisitions.register("editorClose", this.editorClose);
         requisitions.register("profileLoaded", this.profileLoaded);
         requisitions.register("webSessionStarted", this.webSessionStarted);
+        requisitions.register("showMrsDbObjectDialog", this.showMrsDbObjectDialog);
     }
 
     public componentWillUnmount(): void {
@@ -212,6 +211,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         requisitions.unregister("editorClose", this.editorClose);
         requisitions.unregister("profileLoaded", this.profileLoaded);
         requisitions.unregister("webSessionStarted", this.webSessionStarted);
+        requisitions.unregister("showMrsDbObjectDialog", this.showMrsDbObjectDialog);
     }
 
     public render(): ComponentChild {
@@ -514,6 +514,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     <MenuItem key="item4" id="addJSScript" caption="New JS Script" icon={javascriptIcon} />
                 </Menu>
             }
+            <MrsTurnstile ref={this.mrsTurnstileRef} />
         </>;
     }
 
@@ -695,6 +696,21 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         }
 
         return true;
+    };
+
+    private showMrsDbObjectDialog = async (request: IMrsDbObjectEditRequest): Promise<boolean> => {
+        if (this.mrsTurnstileRef.current) {
+            const { selectedPage, editorTabs } = this.state;
+            const tab = editorTabs.find((entry) => { return entry.tabId === selectedPage; });
+            if (tab) {
+                const state = this.connectionState.get(selectedPage);
+                if (state) {
+                    return this.mrsTurnstileRef.current.showMrsDbObjectDialog(state.backend, request);
+                }
+            }
+        }
+
+        return false;
     };
 
     /**

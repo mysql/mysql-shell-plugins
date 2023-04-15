@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -20,6 +20,7 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 from mrs_plugin.lib import core
 import os
+
 
 def sizeof_fmt(num, suffix="B"):
     for unit in ["", "K", "M", "G", "T", "P", "E", "Z"]:
@@ -78,7 +79,7 @@ def get_content_files(session, content_set_id: bytes, include_enable_state=False
         A list of dicts representing the db_objects of the schema
     """
     if not content_set_id:
-            raise ValueError("No content set specified.")
+        raise ValueError("No content set specified.")
 
     sql = """
         SELECT f.id, f.content_set_id, f.request_path,
@@ -121,8 +122,12 @@ def add_content_dir(session, content_set_id, content_dir, requires_auth):
             with open(fullname, 'rb') as f:
                 data = f.read()
 
+            request_path = fullname[len(content_dir):]
+            if os.name == 'nt':
+                request_path = request_path.replace("\\", "/")
+
             add_content_file(session, content_set_id,
-                fullname[len(content_dir):], requires_auth, data)
+                             request_path, requires_auth, data)
 
     return file_list
 

@@ -85,6 +85,7 @@ export class Popup extends ComponentBase<IPopupProperties, IPopupStates> {
         return (
             <Portal
                 ref={this.portalRef}
+                className="popupPortal"
                 onClose={this.handleClose}
                 onOpen={this.handleOpen}
                 {...this.unhandledProperties}
@@ -126,6 +127,10 @@ export class Popup extends ComponentBase<IPopupProperties, IPopupStates> {
         }
 
         return undefined;
+    }
+
+    public updatePosition(newTarget: DOMRect): void {
+        this.setState({ currentTarget: newTarget }, this.handleOpen);
     }
 
     private handleClose = (cancelled: boolean): void => {

@@ -47,7 +47,7 @@
 
     touch-action: none;
     pointer-events: auto;
-    z-index: 15;
+    z-index: 5;
 }
 
 .msg.splitContainer .sashContainer > .sash.disabled {

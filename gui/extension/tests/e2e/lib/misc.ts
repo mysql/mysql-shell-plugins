@@ -395,7 +395,7 @@ export class Misc {
     public static processFailure = async (testContext: Mocha.Context): Promise<void> => {
 
         const img = await driver.takeScreenshot();
-        const testName = testContext.currentTest?.title;
+        const testName = testContext.currentTest?.title ?? String(process.env.TEST_SUITE);
         const ssDir = `${String(process.env.WORKSPACE)}/screenshots`;
         try {
             await fs.access(ssDir);

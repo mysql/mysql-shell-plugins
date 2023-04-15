@@ -44,7 +44,12 @@ interface INotebookProperties extends IComponentProperties {
 
     dbType: DBType;
     readOnly?: boolean;
-    showAbout: boolean; // If true then show the about info text on first mount.
+
+    /** If true then show the about info text on first mount. */
+    showAbout: boolean;
+
+    /** Extra libraries for the code editor that don't change. */
+    extraLibs?: Array<{ code: string, path: string; }>;
 
     onScriptExecution?: (context: ExecutionContext, options: IScriptExecutionOptions) => Promise<boolean>;
     onHelpCommand?: (command: string, currentLanguage: EditorLanguage) => string | undefined;
@@ -57,7 +62,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
     public constructor(props: INotebookProperties) {
         super(props);
 
-        this.addHandledProperties("toolbarItems", "savedState", "dbType", "readOnly", "showAbout",
+        this.addHandledProperties("toolbarItems", "savedState", "dbType", "readOnly", "showAbout", "extraLibs",
             "onScriptExecution", "onHelpCommand");
     }
 
@@ -85,7 +90,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
     }
 
     public render(): ComponentChild {
-        const { savedState, dbType, readOnly, onScriptExecution, onHelpCommand } = this.props;
+        const { savedState, dbType, readOnly, extraLibs, onScriptExecution, onHelpCommand } = this.props;
 
         const dialect = this.dialectFromDbType(dbType);
         // Determine the editor to show from the editor state. There must always be at least a single editor.
@@ -104,6 +109,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
             <CodeEditor
                 ref={this.editorRef}
                 savedState={activeEditor.state}
+                extraLibs={extraLibs}
                 language="msg"
                 allowedLanguages={["javascript", "typescript", "sql"]}
                 sqlDialect={dialect}
@@ -137,6 +143,10 @@ export class Notebook extends ComponentBase<INotebookProperties> {
                 onOptionsChanged={this.handleOptionsChanged}
                 createResultPresentation={this.createPresentation}
             />);
+    }
+
+    public addOrUpdateExtraLib(content: string, filePath: string): void {
+        this.editorRef.current?.addOrUpdateExtraLib(content, filePath);
     }
 
     public focus(): void {
@@ -198,13 +208,24 @@ export class Notebook extends ComponentBase<INotebookProperties> {
     }
 
     private handleCursorChange = (position: Position): void => {
-        const info: IEditorStatusInfo = {
-            line: position.lineNumber,
-            column: position.column,
-        };
+        const { savedState } = this.props;
 
-        void requisitions.execute("editorInfoUpdated", info);
+        const activeEditor = savedState.editors.find(
+            (entry: IOpenEditorState): boolean => {
+                return entry.id === savedState.activeEntry;
+            },
+        );
+        if (activeEditor && activeEditor.state) {
+            const contexts = activeEditor.state.model.executionContexts;
+            const context = contexts.contextFromPosition({ lineNumber: position.lineNumber, column: 1 });
 
+            const info: IEditorStatusInfo = {
+                line: (context !== undefined ? position.lineNumber - (context.startLine - 1) : 1),
+                column: position.column,
+            };
+
+            void requisitions.execute("editorInfoUpdated", info);
+        }
     };
 
     private explorerDoubleClick = (entry: ISchemaTreeEntry): Promise<boolean> => {

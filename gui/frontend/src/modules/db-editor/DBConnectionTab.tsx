@@ -42,7 +42,9 @@ import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool";
 import { ScriptingLanguageServices } from "../../script-execution/ScriptingLanguageServices";
 import { QueryType } from "../../parsing/parser-common";
 import { DBEditorToolbar } from "./DBEditorToolbar";
-import { DBDataType, IColumnInfo, IDictionary, IExecutionInfo, MessageType } from "../../app-logic/Types";
+import {
+    DBDataType, IColumnInfo, IDictionary, IExecutionInfo, IServicePasswordRequest, MessageType,
+} from "../../app-logic/Types";
 import { Settings } from "../../supplement/Settings/Settings";
 import { ApplicationDB } from "../../app-logic/ApplicationDB";
 import {
@@ -63,6 +65,8 @@ import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellIn
 import { IExecutionResult, IResponseDataOptions, ITextResultEntry } from "../../script-execution";
 import { ExecutionContext } from "../../script-execution/ExecutionContext";
 import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext";
+import { IMrsLoginResult } from "../mrs/sdk/MrsBaseClasses";
+import { IMrsAuthRequestPayload } from "../mrs/types";
 
 interface IResultTimer {
     timer: SetIntervalAsyncTimer<unknown[]>;
@@ -148,6 +152,9 @@ interface IDBConnectionTabProperties extends IComponentProperties {
     showExplorer?: boolean; // If false, collapse the explorer split pane.
     showAbout: boolean;
 
+    /** Extra libraries for the code editor that don't change. */
+    extraLibs?: Array<{ code: string, path: string; }>;
+
     onHelpCommand?: (command: string, currentLanguage: EditorLanguage) => string | undefined;
 
     onAddEditor?: (id: string) => string | undefined;
@@ -211,6 +218,16 @@ interface IQueryExecutionOptions {
     showAsText: boolean;
 }
 
+/** Metadata for the MRS SDK of the current MRS Service. */
+interface IMrsServiceSdkMetadata {
+    baseClasses?: string,
+    code?: string,
+    codeLineCount?: number;
+    typeDefinitions?: string,
+    schemaId?: string,
+    schemaMetadataVersion?: string,
+}
+
 // A tab page for a single connection (managed by the scripting module).
 export class DBConnectionTab extends ComponentBase<IDBConnectionTabProperties, IDBConnectionTabState> {
     private static aboutMessage = `Welcome to the MySQL Shell - DB Notebook.
@@ -231,6 +248,9 @@ Execute \\help or \\? for help;`;
 
     private scriptWaiting = false;
 
+    private cachedMrsServiceSdk: IMrsServiceSdkMetadata = {};
+    private mrsLoginResult?: IMrsLoginResult;
+
     public constructor(props: IDBConnectionTabProperties) {
         super(props);
 
@@ -239,7 +259,7 @@ Execute \\help or \\? for help;`;
         };
 
         this.addHandledProperties("connectionId", "dbType", "savedState", "workerPool", "toolbarInset", "showExplorer",
-            "showAbout",
+            "showAbout", "extraLibs",
             "onHelpCommand", "onAddEditor", "onRemoveEditor", "onSelectEditor", "onChangeEditor", "onAddScript",
             "onSaveSchemaTree", "onSaveExplorerState", "onExplorerResize", "onExplorerMenuAction");
 
@@ -256,8 +276,14 @@ Execute \\help or \\? for help;`;
         requisitions.register("showPageSection", this.showPageSection);
         requisitions.register("editorEditScript", this.editorEditScript);
         requisitions.register("editorRenameScript", this.editorRenameScript);
+        requisitions.register("acceptMrsAuthentication", this.acceptMrsAuthentication);
+        requisitions.register("cancelMrsAuthentication", this.cancelMrsAuthentication);
+        requisitions.register("refreshMrsServiceSdk", this.updateMrsServiceSdkCache);
 
         this.notebookRef.current?.focus();
+
+        // Update the cachedMrsServiceSdk for the first time
+        void this.updateMrsServiceSdkCache();
     }
 
     public componentWillUnmount(): void {
@@ -276,6 +302,9 @@ Execute \\help or \\? for help;`;
         requisitions.unregister("showPageSection", this.showPageSection);
         requisitions.unregister("editorEditScript", this.editorEditScript);
         requisitions.unregister("editorRenameScript", this.editorRenameScript);
+        requisitions.unregister("acceptMrsAuthentication", this.acceptMrsAuthentication);
+        requisitions.unregister("cancelMrsAuthentication", this.cancelMrsAuthentication);
+        requisitions.unregister("refreshMrsServiceSdk", this.updateMrsServiceSdkCache);
     }
 
     public componentDidUpdate(prevProps: IDBConnectionTabProperties): void {
@@ -289,7 +318,9 @@ Execute \\help or \\? for help;`;
     }
 
     public render(): ComponentChild {
-        const { toolbarItems, id, savedState, dbType, showExplorer = true, onHelpCommand, showAbout } = this.props;
+        const {
+            toolbarItems, id, savedState, dbType, showExplorer = true, onHelpCommand, showAbout, extraLibs,
+        } = this.props;
         const { backend } = this.state;
 
         const className = this.getEffectiveClassNames(["connectionTabHost"]);
@@ -309,6 +340,7 @@ Execute \\help or \\? for help;`;
                         savedState={savedState}
                         dbType={dbType}
                         showAbout={showAbout}
+                        extraLibs={extraLibs}
                         onHelpCommand={onHelpCommand}
                         onScriptExecution={this.handleExecution}
                     />;
@@ -321,6 +353,7 @@ Execute \\help or \\? for help;`;
                     document = <ScriptEditor
                         id={savedState.activeEntry}
                         ref={this.scriptRef}
+                        extraLibs={extraLibs}
                         savedState={savedState}
                         toolbarItems={toolbarItems}
                         onScriptExecution={this.handleExecution}
@@ -594,6 +627,68 @@ Execute \\help or \\? for help;`;
         onEditorRename?.(id ?? "", details.scriptId, details.name ?? "<untitled>");
 
         return Promise.resolve(true);
+    };
+
+    private addContextResultMessage = (contextId: string, message: string) => {
+        const context = this.runningContexts.get(contextId);
+
+        if (context) {
+            void context.addResultData({
+                type: "text",
+                text: [{
+                    type: MessageType.Info,
+                    content: message,
+                }],
+            }, { resultId: "" });
+        }
+    };
+
+    private cancelMrsAuthentication = (request: IServicePasswordRequest): Promise<boolean> => {
+        this.notebookRef.current?.focus();
+
+        // Clear mrsLoginResult
+        this.mrsLoginResult = undefined;
+
+        // Get payload
+        const payload: IMrsAuthRequestPayload = request.payload as IMrsAuthRequestPayload;
+        if (payload?.contextId) {
+            this.addContextResultMessage(payload.contextId, `\nAuthentication cancelled.`);
+
+            return Promise.resolve(true);
+        } else {
+            return Promise.resolve(false);
+        }
+    };
+
+    private acceptMrsAuthentication = (
+        data: { request: IServicePasswordRequest; password: string; }): Promise<boolean> => {
+
+        this.notebookRef.current?.focus();
+
+        try {
+            // Get payload
+            const payload: IMrsAuthRequestPayload = data.request.payload as IMrsAuthRequestPayload;
+
+            if (data.request.service && payload.loginResult) {
+                // Set mrsLoginResult so it can be appended to each following execution context
+                this.mrsLoginResult = payload.loginResult;
+
+                if (payload.contextId && data.request.user) {
+                    this.addContextResultMessage(payload.contextId,
+                        `\nUser '${data.request.user}' logged in successfully.`);
+
+                    return Promise.resolve(true);
+                }
+            } else {
+                if (payload.contextId) {
+                    this.addContextResultMessage(payload.contextId, `\nAuthentication cancelled.`);
+                }
+            }
+        } catch (reason) {
+            void requisitions.execute("showError", ["Accept Password Error", String(reason)]);
+        }
+
+        return Promise.resolve(false);
     };
 
     /**
@@ -1024,6 +1119,58 @@ Execute \\help or \\? for help;`;
         }
     };
 
+    private updateMrsServiceSdkCache = async (): Promise<boolean> => {
+        const { backend } = this.state;
+
+        if (backend !== undefined) {
+            // Check if there is an current MRS Service set and if so, get the corresponding MRSruntime SDK
+            // for that MRS Service
+            try {
+                const serviceMetadata = await backend.mrs.getCurrentServiceMetadata();
+
+                // Check if there is a current MRS service set and if the cached
+                if (serviceMetadata.id !== undefined) {
+                    if (this.cachedMrsServiceSdk.schemaId !== serviceMetadata.id ||
+                        this.cachedMrsServiceSdk.schemaMetadataVersion !== serviceMetadata.metadataVersion) {
+                        // Fetch SDK BaseClasses only once
+                        if (this.cachedMrsServiceSdk.baseClasses === undefined) {
+                            this.cachedMrsServiceSdk.baseClasses =
+                                await backend.mrs.getSdkBaseClasses("TypeScript", true);
+                        }
+
+                        // Fetch new SDK Service Classes and build full code
+                        const code = this.cachedMrsServiceSdk.baseClasses + "\n" +
+                            await backend.mrs.getSdkServiceClasses(serviceMetadata.id, "TypeScript", true);
+
+                        // Update this.cachedMrsServiceSdk
+                        this.cachedMrsServiceSdk = {
+                            code,
+                            codeLineCount: (code.match(/\n/gm) || []).length,
+                            typeDefinitions: code,
+                            schemaId: serviceMetadata.id,
+                            schemaMetadataVersion: serviceMetadata.metadataVersion,
+                        };
+
+                        this.notebookRef.current?.addOrUpdateExtraLib(code,
+                            `file:///node_modules/@types/mrsServiceSdk.d.ts`);
+                        this.scriptRef.current?.addOrUpdateExtraLib(code,
+                            `file:///node_modules/@types/mrsServiceSdk.d.ts`);
+                    }
+                } else {
+                    // If no current MRS service set, clean the cachedMrsServiceSdk
+                    this.cachedMrsServiceSdk = {};
+                }
+
+                return true;
+            } catch (_e) {
+                // Ignore exception when MRS is not configured
+                return false;
+            }
+        } else {
+            return false;
+        }
+    };
+
     /**
      * Handles all incoming execution requests from the editors.
      *
@@ -1088,14 +1235,44 @@ Execute \\help or \\? for help;`;
             }
 
             case "typescript": {
+                await this.updateMrsServiceSdkCache();
+
+                let mrsServiceSdkCode = "";
+                let libCodeLineNumbers = 0;
+
+                // Set the mrsLoginResult constant
+                if (this.mrsLoginResult && this.mrsLoginResult.authApp && this.mrsLoginResult.jwt) {
+                    mrsServiceSdkCode += "const mrsLoginResult = { " +
+                        `authApp: "${this.mrsLoginResult.authApp}", jwt: "${this.mrsLoginResult.jwt}" };\n`;
+                    libCodeLineNumbers += 1;
+                }
+
+                // Get the mrsServiceSdkCode that needs to be added before the code block
+                if (this.cachedMrsServiceSdk.code !== undefined) {
+                    mrsServiceSdkCode += this.cachedMrsServiceSdk.code + "\n";
+                    libCodeLineNumbers += this.cachedMrsServiceSdk.codeLineCount ?? 0;
+
+                }
+
+                const usesAwait = context.code.includes("await ");
+
+                // Execute the code
                 workerPool.runTask({
                     api: ScriptingApi.Request,
-                    code: ts.transpile(context.code,
-                        {
-                            alwaysStrict: true,
-                            target: ScriptTarget.ES2022,
-                            inlineSourceMap: true,
-                        }),
+                    // Detect if the code includes "await " and if so, wrap the code in a self-executing async function.
+                    // This is done to allow direct execution of awaits on async functions.
+                    // Further, the temporary string "\nexport{}\n" is removed from the code.
+                    // Please note that the libCodeLineNumbers need to be adjusted accordingly.
+                    // See EmbeddedPresentationInterface.tsx for details.
+                    libCodeLineNumbers: libCodeLineNumbers + (usesAwait ? 1 - 2 + 2 : 0) + 1,
+                    code: ts.transpile(mrsServiceSdkCode +
+                        (usesAwait
+                            ? "(async () => {\n" + context.code.replace("\nexport{}\n", "") + "})()"
+                            : context.code), {
+                        alwaysStrict: true,
+                        target: ScriptTarget.ES2022,
+                        inlineSourceMap: true,
+                    }),
                     contextId: context.id,
                 }).then((taskId: number, data: IConsoleWorkerResultData) => {
                     void this.handleTaskResult(taskId, data);
@@ -1399,6 +1576,22 @@ Execute \\help or \\? for help;`;
                         type: "graphData",
                         options: data.options,
                     }, { resultId: "" });
+
+                    break;
+                }
+
+                case ScriptingApi.MrsAuthenticate: {
+                    const passwordRequest: IServicePasswordRequest = {
+                        requestId: "userInput",
+                        service: data.serviceUrl,
+                        user: data.userName,
+                        payload: {
+                            authPath: data.authPath,
+                            authApp: data.authApp,
+                            contextId: data.contextId,
+                        },
+                    };
+                    void requisitions.execute("requestMrsAuthentication", passwordRequest);
 
                     break;
                 }

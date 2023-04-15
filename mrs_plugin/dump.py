@@ -65,9 +65,9 @@ def dump(path, **kwargs):
         if target_object == "service":
             export['service'] = lib.dump.get_service_dump(session, object_id)
         elif target_object == "schema":
-            export['schema'] = lib.dump.get_schema_dump(session, object_id)
+            export['schema'] = lib.dump.get_db_schema_dump(session, object_id)
         else:
-            export['object'] = lib.dump.get_object_dump(session, object_id)
+            export['object'] = lib.dump.get_db_object_dump(session, object_id)
 
         with open(path, 'w') as file:
             file.write(json.dumps(export, indent=4))
@@ -198,14 +198,16 @@ def load(path, **kwargs):
 
         with lib.core.MrsDbTransaction(session):
             if target_object == "service":
-                service = lib.services.get_service(session, service_id=object_id)
-                lib.core.check_request_path(session, service["host_ctx"] + content["schema"]["request_path"])
+                service = lib.services.get_service(
+                    session, service_id=object_id)
+                lib.core.check_request_path(
+                    session, service["host_ctx"] + content["schema"]["request_path"])
                 lib.dump.load_schema_dump(
                     session, object_id, content["schema"], reuse_ids)
             elif target_object == "schema":
                 schema = lib.schemas.get_schema(session, schema_id=object_id)
                 lib.core.check_request_path(session,
-                    schema["host_ctx"] + schema["request_path"] + content["object"]["request_path"])
+                                            schema["host_ctx"] + schema["request_path"] + content["object"]["request_path"])
                 lib.dump.load_object_dump(
                     session, object_id, content["object"], reuse_ids)
 

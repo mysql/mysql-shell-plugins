@@ -455,11 +455,11 @@ export class MessageScheduler {
      * @param event Event that gives more info about the error.
      */
     private onError = (options: IConnectionOptions, reject: (reason?: string) => void, event: Event): void => {
-        if ("message" in event) {
+        /*if ("message" in event) {
             reject(event.message as string);
-        } else {
-            reject(JSON.stringify(event, undefined, 4));
-        }
+        } else {*/
+        reject(JSON.stringify(event, undefined, 4));
+        /*}*/
 
         this.reconnectTimeout *= 2;
         if (this.reconnectTimer) {

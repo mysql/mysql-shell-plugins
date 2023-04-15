@@ -348,3 +348,12 @@ declare enum PieGraphLayout {
 declare class PieGraph {
     public static render(data: IDataRecord[], layout?: PieGraphLayout, keys?: { name: string; value: string; }): void;
 }
+
+/**
+ * Triggers the interactive MRS authentication process.
+ *
+ * @param serviceUrl The URL of the MRS service
+ * @param authApp The name of the authApp to authenticate against
+ * @param userName The name of the user
+ */
+declare function mrsAuthenticate(serviceUrl: string, authApp?: string, userName?: string): void;

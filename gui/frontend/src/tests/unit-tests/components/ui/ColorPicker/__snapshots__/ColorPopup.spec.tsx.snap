@@ -11,6 +11,7 @@ exports[`ColorPopup component tests Test ColorPopup output (snapshot) 1`] = `
     showArrow={true}
   >
     <Portal
+      className="popupPortal"
       onClose={[Function]}
       onOpen={[Function]}
     />

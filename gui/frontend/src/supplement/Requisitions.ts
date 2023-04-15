@@ -32,6 +32,7 @@ import {
     IEmbeddedMessage, IEmbeddedSourceType, IMySQLDbSystem,
 } from "../communication";
 import { IWebSessionData, IShellProfile, IShellPromptValues } from "../communication/ProtocolGui";
+import { IMrsDbObjectData } from "../communication/ProtocolMrs";
 
 import { IThemeChangeData } from "../components/Theming/ThemeManager";
 import { IEditorStatusInfo, ISchemaTreeEntry, EntityType } from "../modules/db-editor";
@@ -204,6 +205,12 @@ export interface IProxyRequest {
 
 export type InitialEditor = "default" | "none" | "notebook" | "script";
 
+export interface IMrsDbObjectEditRequest extends IDictionary {
+    dbObject: IMrsDbObjectData,
+    createObject: boolean,
+    schemaName?: string;
+}
+
 /**
  * The map containing possible requests and their associated callback.
  * The return value in the promise determines if the request was handled or not.
@@ -284,8 +291,13 @@ export interface IRequestTypeMap {
     "explorerDoubleClick": (entry: ISchemaTreeEntry) => Promise<boolean>;
 
     "requestPassword": (request: IServicePasswordRequest) => Promise<boolean>;
-    "acceptPassword": (result: { request: IServicePasswordRequest; password: string; }) => Promise<boolean>;
+    "acceptPassword": (data: { request: IServicePasswordRequest; password: string; }) => Promise<boolean>;
     "cancelPassword": (request: IServicePasswordRequest) => Promise<boolean>;
+
+    "requestMrsAuthentication": (request: IServicePasswordRequest) => Promise<boolean>;
+    "acceptMrsAuthentication": (data: { request: IServicePasswordRequest; password: string; }) => Promise<boolean>;
+    "cancelMrsAuthentication": (request: IServicePasswordRequest) => Promise<boolean>;
+    "refreshMrsServiceSdk": SimpleCallback;
 
     "showAbout": SimpleCallback;
     "showThemeEditor": SimpleCallback;
@@ -307,6 +319,7 @@ export interface IRequestTypeMap {
     "codeBlocksUpdate": (data: { linkId: number; code: string; }) => Promise<boolean>;
 
     "showError": (values: string[]) => Promise<boolean>;
+    "showInfo": (values: string[]) => Promise<boolean>;
 
     "connectedToUrl": (url?: URL) => Promise<boolean>;
     "refreshSessions": (sessions: IShellSessionDetails[]) => Promise<boolean>;
@@ -316,6 +329,9 @@ export interface IRequestTypeMap {
     "dbFileDropped": (fileName: string) => Promise<boolean>;
 
     "hostThemeChange": (data: { css: string; themeClass: string; }) => Promise<boolean>;
+
+    /** Shows the dialog to create or update a MRS DB object. */
+    "showMrsDbObjectDialog": (data: IMrsDbObjectEditRequest) => Promise<boolean>;
 
     /** A list of requests that must be executed sequentially. */
     "job": (job: Array<IRequestListEntry<keyof IRequestTypeMap>>) => Promise<boolean>;

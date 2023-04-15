@@ -25,6 +25,7 @@ exports[`ColorField component tests Interaction tests: 1 1`] = `
         showArrow={true}
       >
         <Portal
+          className="popupPortal"
           onClose={[Function]}
           onOpen={[Function]}
         />
@@ -98,6 +99,7 @@ exports[`ColorField component tests Interaction tests: 2 1`] = `
         showArrow={true}
       >
         <Portal
+          className="popupPortal"
           onClose={[Function]}
           onOpen={[Function]}
         />

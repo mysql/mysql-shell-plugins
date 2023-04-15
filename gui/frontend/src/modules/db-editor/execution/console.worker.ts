@@ -44,74 +44,6 @@ worker.postContextMessage = (taskId: number, data: IConsoleWorkerResultData): vo
     });
 };
 
-worker.addEventListener("message", (event: MessageEvent) => {
-    const { taskId, data }: { taskId: number; data: IConsoleWorkerTaskData; } = event.data;
-
-    worker.currentContext = data.contextId ?? "";
-    worker.currentTaskId = taskId;
-
-    if (data.code) {
-        let sourceMap = "";
-        let code = data.code;
-        const index = code.indexOf(sourceMapSignature);
-        if (index >= 0) {
-            sourceMap = code.substring(index + sourceMapSignature.length);
-            code = code.substring(0, index);
-        }
-
-        worker.sourceMap = sourceMap;
-
-        execute(worker, code).then((result) => {
-            if (typeof result === "object" || typeof result === "function" || Array.isArray(result)) {
-                result = String(result);
-            }
-
-            worker.postContextMessage(taskId, {
-                api: ScriptingApi.Result,
-                contextId: data.contextId!,
-                result,
-                final: true,
-            });
-        }).catch((reason) => {
-            worker.postContextMessage(taskId, {
-                api: ScriptingApi.Result,
-                contextId: data.contextId ?? "",
-                result: reason.message,
-                isError: true,
-                final: true,
-            });
-
-        });
-    } else if (data.result) {
-        // Query data sent back from the application.
-        const callback = worker.pendingRequests.get(data.contextId!);
-        if (callback) {
-            callback(data.result);
-            if (data.final) {
-                worker.pendingRequests.delete(data.contextId!);
-
-                worker.postContextMessage(taskId, {
-                    api: ScriptingApi.Done,
-                    contextId: data.contextId!,
-                    final: true,
-                });
-            }
-        } else {
-            let value = data.result;
-            if (typeof value !== "string") {
-                value = JSON.stringify(value, null, "\t");
-            }
-
-            worker.postContextMessage(taskId, {
-                api: ScriptingApi.Print,
-                contextId: data.contextId ?? "",
-                value,
-                final: data.final,
-            });
-        }
-    }
-});
-
 // Handling for source maps.
 
 type SourceMappingPosition = number[];
@@ -234,33 +166,122 @@ const extractSourceMappings = (sourceMap: string): SourceMappings => {
     }
 };
 
-worker.addEventListener("error", (event: ErrorEvent) => {
-    let lineInfo = "";
-    if (event.filename.length === 0) {
-        // Construct line info only for the passed-in code.
-        const line = event.lineno - 1;
+/**
+ * Looks up the original error position in the SourceMappings
+ *
+ * @param lineno The line number to look up
+ * @param colno  The column number to look up
+ * @returns The error position in a string of format (Ln X, Col Y)
+ */
+const getErrorLineInfo = (lineno: number, colno: number) => {
+    // Construct line info only for the passed-in code.
+    const line = lineno - 1;
 
-        const mappings = extractSourceMappings(worker.sourceMap);
-        if (mappings.length >= line) {
-            const lineMapping = mappings[line];
-            const column = event.colno - 1;
-            const position = lineMapping.find((candidate) => {
-                return (candidate[0] === column);
-            });
+    const mappings = extractSourceMappings(worker.sourceMap);
+    if (mappings.length >= line) {
+        const lineMapping = mappings[line];
+        const column = colno - 1;
+        const position = lineMapping.find((candidate) => {
+            return (candidate[0] === column);
+        });
 
-            if (position && position.length > 3) {
-                lineInfo = ` (${position[2] + 1}:${position[3] + 1})`;
-            }
+        if (position && position.length > 3) {
+            return `(Ln ${position[2] + 1 - worker.libCodeLineNumbers}, Col ${position[3] + 1})`;
         }
     }
 
+    return "";
+};
+
+worker.addEventListener("error", (event: ErrorEvent) => {
     worker.postContextMessage(worker.currentTaskId, {
         api: ScriptingApi.Result,
         contextId: worker.currentContext,
-        result: `${event.message}${lineInfo}`,
+        result: `ERROR: ${event.message} ${getErrorLineInfo(event.lineno, event.colno)}`,
         isError: true,
         final: true,
     });
 
     event.preventDefault();
+});
+
+worker.addEventListener("message", (event: MessageEvent) => {
+    const { taskId, data }: { taskId: number; data: IConsoleWorkerTaskData; } = event.data;
+
+    worker.currentContext = data.contextId ?? "";
+    worker.currentTaskId = taskId;
+    worker.libCodeLineNumbers = data.libCodeLineNumbers ?? 0;
+
+    if (data.code) {
+        let sourceMap = "";
+        let code = data.code;
+        const index = code.indexOf(sourceMapSignature);
+        if (index >= 0) {
+            sourceMap = code.substring(index + sourceMapSignature.length);
+            code = code.substring(0, index);
+        }
+
+        worker.sourceMap = sourceMap;
+
+        execute(worker, code).then((result) => {
+            if (typeof result === "function") {
+                result = String(result);
+            } else if (typeof result === "object" || Array.isArray(result)) {
+                result = JSON.stringify(result, undefined, 4);
+            }
+
+            worker.postContextMessage(taskId, {
+                api: ScriptingApi.Result,
+                contextId: data.contextId!,
+                result,
+                final: true,
+            });
+        }).catch((e) => {
+            let lineInfo = "";
+            // Extract lineInfo from exception stack
+            const stack = String((e as IDictionary).stack);
+            if (stack !== "undefined") {
+                const matches = String(stack).matchAll(/<anonymous>:(\d*?):(\d*?)\)/gm);
+                const groups = Array.from(matches)[0];
+                if (groups.length === 3) {
+                    lineInfo = getErrorLineInfo(parseInt(groups[1], 10), parseInt(groups[2], 10));
+                }
+            }
+
+            worker.postContextMessage(worker.currentTaskId, {
+                api: ScriptingApi.Result,
+                contextId: worker.currentContext,
+                result: `ERROR: ${String(e.message)} ${lineInfo}`,
+                isError: true,
+                final: true,
+            });
+        });
+    } else if (data.result) {
+        // Query data sent back from the application.
+        const callback = worker.pendingRequests.get(data.contextId!);
+        if (callback) {
+            callback(data.result);
+            if (data.final) {
+                worker.pendingRequests.delete(data.contextId!);
+
+                worker.postContextMessage(taskId, {
+                    api: ScriptingApi.Done,
+                    contextId: data.contextId!,
+                    final: true,
+                });
+            }
+        } else {
+            let value = data.result;
+            if (typeof value !== "string") {
+                value = JSON.stringify(value, null, "\t");
+            }
+
+            worker.postContextMessage(taskId, {
+                api: ScriptingApi.Print,
+                contextId: data.contextId ?? "",
+                value,
+                final: data.final,
+            });
+        }
+    }
 });

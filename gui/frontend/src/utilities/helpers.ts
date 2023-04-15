@@ -25,6 +25,7 @@ import _ from "lodash";
 import Anser from "anser";
 
 import { IDictionary } from "../app-logic/Types";
+import { convertHexToBase64 } from "./string-helpers";
 
 /**
  * Allows the user to select a local file.
@@ -139,6 +140,18 @@ export const uuid = (): string => {
 
         return (c === "x" ? r : ((r & 0x7) | 0x8)).toString(16);
     });
+};
+
+/**
+ * Generates a random UUID that fits into a BINARY(16) column
+ * Uses uuid() so the same limitations apply.
+ *
+ * @returns The generated UUID, Base64 encoded.
+ */
+export const uuidBinary16Base64 = (): string => {
+    const id = uuid().replaceAll("-", "");
+
+    return convertHexToBase64(id);
 };
 
 /**

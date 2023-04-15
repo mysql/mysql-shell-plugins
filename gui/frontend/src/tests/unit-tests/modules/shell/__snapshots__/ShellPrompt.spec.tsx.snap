@@ -95,6 +95,7 @@ exports[`Shell prompt tests ShellPrompt output test 1`] = `
       showArrow={false}
     >
       <Portal
+        className="popupPortal"
         onClose={[Function]}
         onKeyDown={[Function]}
         onOpen={[Function]}

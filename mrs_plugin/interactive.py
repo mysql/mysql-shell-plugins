@@ -21,7 +21,7 @@
 import mrs_plugin.lib as lib
 import json
 
-def resolve_service(session, service_id=None, required=True):
+def resolve_service(session, service_id=None, required=True, auto_select_single=False):
     service = None
 
     if service_id:
@@ -32,9 +32,14 @@ def resolve_service(session, service_id=None, required=True):
     if not service:
         service = lib.services.get_current_service(session)
 
+    services = lib.services.get_services(session)
+    if len(services) == 1 and auto_select_single:
+        # If there only is one service and auto_select_single is True, take the single service
+        service = services[0]
+
     if not service and lib.core.get_interactive_default():
         print("MRS - Service Listing\n")
-        services = lib.services.get_services(session)
+        
         service = lib.core.prompt_for_list_item(
             item_list=services,
             prompt_caption=("Please select a service index or type "

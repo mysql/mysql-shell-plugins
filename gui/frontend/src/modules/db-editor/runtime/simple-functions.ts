@@ -32,7 +32,7 @@ import { currentWorker } from "./execute";
  */
 export const print = (value: unknown): void => {
     if (typeof value !== "string") {
-        value = JSON.stringify(value, null, "\t");
+        value = JSON.stringify(value, null, 4);
     }
 
     currentWorker.postContextMessage(currentWorker.currentTaskId, {

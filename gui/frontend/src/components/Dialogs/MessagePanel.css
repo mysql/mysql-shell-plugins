@@ -21,27 +21,27 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import icon from "./../../assets/images/modules/module-mrs.svg";
+.msg.dialog.errorPanel {
+    padding: 0;
+    color: var(--foreground);
+    min-height: 50px;
+    max-width: 300px;
 
-import { ComponentChild } from "preact";
+    z-index: 30;
+}
 
-import { ModuleBase, IModuleInfo, IModuleProperties } from "../ModuleBase";
-import { MRSModuleId } from "../ModuleInfo";
+.msg.dialog.errorPanel .content {
+    margin: 10px;
+}
 
-export class MRSModule extends ModuleBase<IModuleProperties, {}> {
+.msg.dialog.errorPanel #errorMessage {
+    font-size: 1.1em;
+    color: var(--errorForeground);
+    white-space: normal;
+}
 
-    public static get info(): IModuleInfo {
-        return {
-            id: MRSModuleId,
-            caption: "MRS",
-            icon,
-        };
-    }
-
-    public render(): ComponentChild {
-        return (
-            <>
-            </>
-        );
-    }
+.msg.dialog.errorPanel #infoMessage {
+    font-size: 1.1em;
+    color: var(--foreground);
+    white-space: normal;
 }

@@ -19,6 +19,9 @@
         "mysqlrouter",
         "myservice",
         "AREST",
-        "ORDS"
+        "ORDS",
+        "unnest",
+        "tinyint",
+        "mediumint"
     ]
 }

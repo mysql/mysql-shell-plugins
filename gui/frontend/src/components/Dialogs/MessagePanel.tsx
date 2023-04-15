@@ -21,11 +21,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import "./ErrorPanel.css";
+import "./MessagePanel.css";
 
 import { ComponentChild, createRef } from "preact";
 
-import { requisitions } from "../../supplement/Requisitions";
+import { appParameters, requisitions } from "../../supplement/Requisitions";
 import { Codicon } from "../ui/Codicon";
 import { IComponentState, ComponentBase } from "../ui/Component/ComponentBase";
 import { Container, Orientation } from "../ui/Container/Container";
@@ -34,12 +34,13 @@ import { Icon } from "../ui/Icon/Icon";
 import { Label } from "../ui/Label/Label";
 import { Button } from "../ui/Button/Button";
 
-interface IErrorPanelState extends IComponentState {
+interface IMessagePanelState extends IComponentState {
+    isError: boolean;
     caption: string;
     message: string;
 }
 
-export class ErrorPanel extends ComponentBase<{}, IErrorPanelState> {
+export class MessagePanel extends ComponentBase<{}, IMessagePanelState> {
 
     private dialogRef = createRef<Dialog>();
 
@@ -49,19 +50,22 @@ export class ErrorPanel extends ComponentBase<{}, IErrorPanelState> {
         this.state = {
             caption: "",
             message: "",
+            isError: false,
         };
     }
 
     public componentDidMount(): void {
-        requisitions.register("showError", this.show);
+        requisitions.register("showError", this.showError);
+        requisitions.register("showInfo", this.showInfo);
     }
 
     public componentWillUnmount(): void {
-        requisitions.unregister("showError", this.show);
+        requisitions.unregister("showError", this.showError);
+        requisitions.unregister("showInfo", this.showInfo);
     }
 
     public render(): ComponentChild {
-        const { caption, message } = this.state;
+        const { isError, caption, message } = this.state;
 
         const className = this.getEffectiveClassNames(["errorPanel"]);
 
@@ -71,14 +75,14 @@ export class ErrorPanel extends ComponentBase<{}, IErrorPanelState> {
                 className={className}
                 caption={
                     <>
-                        <Icon src={Codicon.Error} />
+                        <Icon src={isError ? Codicon.Error : Codicon.Info} />
                         <Label>{caption}</Label>
                     </>
                 }
                 content={
                     <Container orientation={Orientation.TopDown}>
                         {message && <Label
-                            id="errorMessage"
+                            id={isError ? "errorMessage" : "infoMessage"}
                             caption={message}
                             style={{ whiteSpace: "pre-line" }}
                         />}
@@ -98,10 +102,26 @@ export class ErrorPanel extends ComponentBase<{}, IErrorPanelState> {
         );
     }
 
-    private show = (values: string[]): Promise<boolean> => {
+    private showError = (values: string[]): Promise<boolean> => {
+        return this.show(true, values);
+    };
+
+    private showInfo = (values: string[]): Promise<boolean> => {
+        return this.show(false, values);
+    };
+
+    private show = (isError: boolean, values: string[]): Promise<boolean> => {
+        // Forward info messages to the hosting application.
+        if (!isError && appParameters.embedded) {
+            const result = requisitions.executeRemote("showInfo", values);
+            if (result) {
+                return Promise.resolve(true);
+            }
+        }
+
         return new Promise((resolve) => {
             if (values.length > 0) {
-                let caption = "Error";
+                let caption = isError ? "Error" : "Information";
                 let message = values[0];
 
                 if (values.length > 1) {
@@ -109,7 +129,7 @@ export class ErrorPanel extends ComponentBase<{}, IErrorPanelState> {
                     message = values.slice(1).join("\n");
                 }
 
-                this.setState({ caption, message }, () => {
+                this.setState({ isError, caption, message }, () => {
                     this.dialogRef.current?.open();
                     resolve(true);
                 });

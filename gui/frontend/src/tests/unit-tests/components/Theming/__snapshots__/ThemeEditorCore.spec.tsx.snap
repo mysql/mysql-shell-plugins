@@ -180,6 +180,7 @@ exports[`Theme editor core testing Render test 1`] = `
                     showArrow={false}
                   >
                     <Portal
+                      className="popupPortal"
                       id="Popup"
                       onClose={[Function]}
                       onOpen={[Function]}
@@ -439,6 +440,7 @@ exports[`Theme editor core testing Render test 1`] = `
                                 showArrow={false}
                               >
                                 <Portal
+                                  className="popupPortal"
                                   onClose={[Function]}
                                   onKeyDown={[Function]}
                                   onOpen={[Function]}

@@ -26,9 +26,7 @@ import { ComponentChild, createRef, RefObject } from "preact";
 import { ComponentBase } from "../components/ui/Component/ComponentBase";
 import { MdsHWClusterDialog } from "../modules/mds/dialogs/MdsHWClusterDialog";
 import { MdsHWLoadDataDialog } from "../modules/mds/dialogs/MdsHWLoadDataDialog";
-import { MrsDbObjectDialog } from "../modules/mrs/dialogs/MrsDbObjectDialog";
 import { MrsSchemaDialog } from "../modules/mrs/dialogs/MrsSchemaDialog";
-import { MrsServiceDialog } from "../modules/mrs/dialogs/MrsServiceDialog";
 import { MrsContentSetDialog } from "../modules/mrs/dialogs/MrsContentSetDialog";
 import { MrsAuthenticationAppDialog } from "../modules/mrs/dialogs/MrsAuthenticationAppDialog";
 import { MrsUserDialog } from "../modules/mrs/dialogs/MrsUserDialog";
@@ -36,10 +34,12 @@ import { requisitions } from "../supplement/Requisitions";
 import { DialogResponseClosure, DialogType, IDialogRequest, IDialogResponse, IDictionary } from "./Types";
 import { ConfirmDialog } from "../components/Dialogs/ConfirmDialog";
 import { PasswordDialog } from "../components/Dialogs/PasswordDialog";
+import { MrsAuthDialog } from "../modules/mrs/dialogs/MrsAuthDialog";
 import { ValueDialogBase } from "../components/Dialogs/ValueDialogBase";
 import {
     ValueEditDialog, IDialogSection, CommonDialogValueOption, IDialogValues, IChoiceDialogValue,
 } from "../components/Dialogs/ValueEditDialog";
+import { MrsServiceDialog } from "../modules/mrs/dialogs/MrsServiceDialog";
 
 /**
  * A component to host certain application wide dialogs in a central place.
@@ -67,6 +67,9 @@ export class DialogHost extends ComponentBase {
         const dialogs: ComponentChild[] = [
             // The password dialog has it's own command handling. Just host it here.
             <PasswordDialog key="passwordDialog" />,
+
+            // The password dialog has it's own command handling. Just host it here.
+            <MrsAuthDialog key="mrsAuthDialog" />,
 
             // The value edit dialog has a different value handling, so it's not added to the dialogRefs list.
             <ValueEditDialog
@@ -96,14 +99,6 @@ export class DialogHost extends ComponentBase {
             key="mrsSchemaDialog"
             ref={refMrs2}
             onClose={this.handleDialogClose.bind(this, DialogType.MrsSchema)}
-        />);
-
-        const refMrs3 = createRef<MrsDbObjectDialog>();
-        this.dialogRefs.set(DialogType.MrsDbObject, refMrs3);
-        dialogs.push(<MrsDbObjectDialog
-            key="mrsDbObjectDialog"
-            ref={refMrs3}
-            onClose={this.handleDialogClose.bind(this, DialogType.MrsDbObject)}
         />);
 
         const refMrs4 = createRef<MrsContentSetDialog>();

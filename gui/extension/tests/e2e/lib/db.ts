@@ -933,25 +933,31 @@ export class Database {
             await inObjName.sendKeys(restObjPath);
         }
         if (crud) {
-            await dialog.findElement(By.id("crudOperations")).click();
-            const availableCrud = await driver.findElements(By.css("#crudOperationsPopup .dropdownItem"));
-            for (const op of availableCrud) {
-                const item = await op.getAttribute("id");
-                if (crud.includes(item)) {
-                    const isUnchecked = (await (await op.findElement(By.css("label"))).getAttribute("class"))
-                        .includes("unchecked");
-                    if (isUnchecked) {
-                        await op.click();
+            const els2click = [];
+            const crudDivs = await dialog.findElements(By.css(".crudIconsDiv img"));
+            for (const crudDiv of crudDivs) {
+                const isActive = (await crudDiv.getAttribute("src")).includes("Active");
+                const name = await crudDiv.getAttribute("data-tooltip");
+                if (crud.includes(name)) {
+                    if(!isActive) {
+                        els2click.push(name);
                     }
                 } else {
-                    const isUnchecked = (await (await op.findElement(By.css("label"))).getAttribute("class"))
-                        .includes("unchecked");
-                    if (!isUnchecked) {
-                        await op.click();
+                    if(isActive) {
+                        els2click.push(name);
                     }
                 }
             }
-            await driver.actions().sendKeys(selKey.ESCAPE).perform();
+            for (const el of els2click) {
+                const crudDivs = await dialog.findElements(By.css(".crudIconsDiv img"));
+                for (const crudDiv of crudDivs) {
+                    const name = await crudDiv.getAttribute("data-tooltip");
+                    if (name === el) {
+                        await crudDiv.click();
+                        break;
+                    }
+                }
+            }
         }
         if (enabled !== undefined) {
             const inEnabled = await dialog.findElement(By.id("enabled"));

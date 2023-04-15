@@ -28,9 +28,10 @@ import {
     TreeItem,
     CustomTreeSection,
     BottomBarPanel,
+    Condition,
 } from "vscode-extension-tester";
 
-import { before, after, afterEach } from "mocha";
+import { before, afterEach } from "mocha";
 import { expect } from "chai";
 import {
     dbTreeSection,
@@ -385,9 +386,9 @@ describe("MySQL REST Service", () => {
             await new EditorView().closeAllEditors();
         });
 
-        it("Set as new DEFAULT REST Service", async () => {
+        it("Set as Current REST Service", async () => {
 
-            await Misc.selectContextMenuItem(treeRandomService, "Set as New Default REST Service");
+            await Misc.selectContextMenuItem(treeRandomService, "Set as Current REST Service");
 
             await Misc.verifyNotification("The MRS service has been set as the new default service.", true);
 
@@ -459,8 +460,9 @@ describe("MySQL REST Service", () => {
 
             await treeService.expand();
 
-            treeMySQLRESTSchema = await driver.wait(treeDBSection.findItem("sakila (/sakila)"),
-                explicitWait, `'sakila (/sakila)' does not exist on the tree`);
+            await driver.wait(new Condition("", async () => {
+                return (await treeDBSection.findItem("/sakila (sakila)", dbMaxLevel)) !== undefined;
+            }), explicitWait, `'/sakila (sakila)' does not exist on the tree`);
 
         });
 
@@ -471,6 +473,8 @@ describe("MySQL REST Service", () => {
             const treeService = await treeDBSection.findItem(String(randomServiceLabel));
 
             await treeService.expand();
+
+            treeMySQLRESTSchema = await treeDBSection.findItem("/sakila (sakila)", dbMaxLevel);
 
             await Misc.selectContextMenuItem(treeMySQLRESTSchema, "Edit REST Schema...");
 
@@ -484,7 +488,7 @@ describe("MySQL REST Service", () => {
 
             await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
 
-            const treeSakilaEdited = await treeDBSection.findItem("sakila (/edited)");
+            const treeSakilaEdited = await treeDBSection.findItem("/edited (sakila)");
 
             await Misc.selectContextMenuItem(treeSakilaEdited, "Edit REST Schema...");
 
@@ -513,7 +517,7 @@ describe("MySQL REST Service", () => {
 
         it("Add Table to REST Service", async () => {
 
-            const treeSakilaEdited = await treeDBSection.findItem("sakila (/edited)");
+            const treeSakilaEdited = await treeDBSection.findItem("/edited (sakila)");
             await treeSakilaEdited.collapse();
 
             const treeSakila = await treeDBSection.findItem("sakila");
@@ -528,15 +532,23 @@ describe("MySQL REST Service", () => {
 
             await Misc.switchToWebView();
 
+            await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
+            await Database.setPassword(globalConn);
+            try {
+                await Misc.setConfirmDialog(globalConn, "no");
+            } catch (e) {
+                // continue
+            }
+
             await Database.setRestObject(`localhost/edited${service}`);
 
             await driver.switchTo().defaultContent();
 
-            await Misc.verifyNotification("The MRS Database Object actor has been added successfully", true);
+            await new EditorView().closeAllEditors();
 
             await treeSakilaEdited.expand();
 
-            expect(await treeDBSection.findItem("actor (/actor)")).to.exist;
+            expect(await treeDBSection.findItem("/actor (actor)")).to.exist;
 
         });
 
@@ -864,11 +876,18 @@ describe("MySQL REST Service", () => {
                 const ntfs = await workbench.getNotifications();
                 await ntfs[ntfs.length - 1].takeAction("Yes");
                 await Misc.switchToWebView();
+                await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
+                await Database.setPassword(globalConn);
+                    try {
+                        await Misc.setConfirmDialog(globalConn, "no");
+                    } catch (e) {
+                        // continue
+                    }
                 await Database.setRestObject(`${hostName}/${service}`,undefined, undefined,
                     ["CREATE", "READ", "UPDATE", "DELETE"], undefined, false);
                 await driver.switchTo().defaultContent();
-                await Misc.verifyNotification("The MRS schema sakila has been added successfully");
-                await Misc.verifyNotification("The MRS Database Object actor has been added successfully", true);
+
+                await new EditorView().closeAllEditors();
 
                 treeRouter = await treeDBSection.findItem(hostname());
                 expect(treeRouter).to.exist;

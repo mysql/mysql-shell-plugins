@@ -88,6 +88,7 @@ exports[`Dropdown render testing Standard Rendering 1`] = `
     showArrow={false}
   >
     <Portal
+      className="popupPortal"
       id="Popup"
       onClose={[Function]}
       onOpen={[Function]}

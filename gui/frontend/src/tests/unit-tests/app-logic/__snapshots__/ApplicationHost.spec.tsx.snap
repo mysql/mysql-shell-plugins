@@ -1529,6 +1529,9 @@ exports[`Application host tests Rendering About 1`] = `
         <PasswordDialog
           key="passwordDialog"
         />
+        <MrsAuthDialog
+          key="mrsAuthDialog"
+        />
         <ValueEditDialog
           key="valueEditDialog"
           onClose={[Function]}
@@ -1604,6 +1607,7 @@ exports[`Application host tests Rendering About 1`] = `
               showArrow={false}
             >
               <Portal
+                className="popupPortal"
                 onClose={[Function]}
                 onKeyDown={[Function]}
                 onOpen={[Function]}
@@ -1742,6 +1746,7 @@ exports[`Application host tests Rendering About 1`] = `
                 showArrow={false}
               >
                 <Portal
+                  className="popupPortal"
                   onClose={[Function]}
                   onKeyDown={[Function]}
                   onOpen={[Function]}
@@ -1830,6 +1835,7 @@ exports[`Application host tests Rendering About 1`] = `
                 showArrow={false}
               >
                 <Portal
+                  className="popupPortal"
                   onClose={[Function]}
                   onKeyDown={[Function]}
                   onOpen={[Function]}
@@ -1838,94 +1844,6 @@ exports[`Application host tests Rendering About 1`] = `
             </Menu>
           </ValueEditDialog>
         </MrsSchemaDialog>
-        <MrsDbObjectDialog
-          key="mrsDbObjectDialog"
-          onClose={[Function]}
-        >
-          <ValueEditDialog
-            id="mrsSchemaDialog"
-            onClose={[Function]}
-            onValidate={[Function]}
-          >
-            <Dialog
-              actions={
-                {
-                  "begin": [],
-                  "end": [
-                    <Button
-                      caption="OK"
-                      disabled={false}
-                      id="ok"
-                      onClick={[Function]}
-                    />,
-                    <Button
-                      caption="Cancel"
-                      id="cancel"
-                      onClick={[Function]}
-                    />,
-                  ],
-                }
-              }
-              caption={
-                <p>
-                  <Icon
-                    disabled={false}
-                    src={389}
-                  />
-                  <Label />
-                </p>
-              }
-              className="msg valueEditDialog"
-              container={
-                <body
-                  theme="dark"
-                />
-              }
-              content={
-                <Grid
-                  columnGap={16}
-                  columns={8}
-                  rowGap={16}
-                />
-              }
-              id="mrsSchemaDialog"
-              onClose={[Function]}
-            >
-              <Portal
-                container={
-                  <body
-                    theme="dark"
-                  />
-                }
-                id="mrsSchemaDialog"
-                onClose={[Function]}
-                onOpen={[Function]}
-              />
-            </Dialog>
-            <Menu
-              onItemClick={[Function]}
-              orientation="column"
-              placement="right-start"
-            >
-              <Popup
-                className="msg menu"
-                onClose={[Function]}
-                onKeyDown={[Function]}
-                onOpen={[Function]}
-                orientation="column"
-                pinned={false}
-                placement="right-start"
-                showArrow={false}
-              >
-                <Portal
-                  onClose={[Function]}
-                  onKeyDown={[Function]}
-                  onOpen={[Function]}
-                />
-              </Popup>
-            </Menu>
-          </ValueEditDialog>
-        </MrsDbObjectDialog>
         <MrsContentSetDialog
           key="mrsContentSetDialog"
           onClose={[Function]}
@@ -2006,6 +1924,7 @@ exports[`Application host tests Rendering About 1`] = `
                 showArrow={false}
               >
                 <Portal
+                  className="popupPortal"
                   onClose={[Function]}
                   onKeyDown={[Function]}
                   onOpen={[Function]}
@@ -2094,6 +2013,7 @@ exports[`Application host tests Rendering About 1`] = `
                 showArrow={false}
               >
                 <Portal
+                  className="popupPortal"
                   onClose={[Function]}
                   onKeyDown={[Function]}
                   onOpen={[Function]}
@@ -2182,6 +2102,7 @@ exports[`Application host tests Rendering About 1`] = `
                 showArrow={false}
               >
                 <Portal
+                  className="popupPortal"
                   onClose={[Function]}
                   onKeyDown={[Function]}
                   onOpen={[Function]}
@@ -2269,6 +2190,7 @@ exports[`Application host tests Rendering About 1`] = `
                 showArrow={false}
               >
                 <Portal
+                  className="popupPortal"
                   onClose={[Function]}
                   onKeyDown={[Function]}
                   onOpen={[Function]}
@@ -2356,6 +2278,7 @@ exports[`Application host tests Rendering About 1`] = `
                 showArrow={false}
               >
                 <Portal
+                  className="popupPortal"
                   onClose={[Function]}
                   onKeyDown={[Function]}
                   onOpen={[Function]}
@@ -3899,6 +3822,9 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
         <PasswordDialog
           key="passwordDialog"
         />
+        <MrsAuthDialog
+          key="mrsAuthDialog"
+        />
         <ValueEditDialog
           key="valueEditDialog"
           onClose={[Function]}
@@ -3974,6 +3900,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
               showArrow={false}
             >
               <Portal
+                className="popupPortal"
                 onClose={[Function]}
                 onKeyDown={[Function]}
                 onOpen={[Function]}
@@ -4112,6 +4039,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                 showArrow={false}
               >
                 <Portal
+                  className="popupPortal"
                   onClose={[Function]}
                   onKeyDown={[Function]}
                   onOpen={[Function]}
@@ -4200,6 +4128,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                 showArrow={false}
               >
                 <Portal
+                  className="popupPortal"
                   onClose={[Function]}
                   onKeyDown={[Function]}
                   onOpen={[Function]}
@@ -4208,94 +4137,6 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
             </Menu>
           </ValueEditDialog>
         </MrsSchemaDialog>
-        <MrsDbObjectDialog
-          key="mrsDbObjectDialog"
-          onClose={[Function]}
-        >
-          <ValueEditDialog
-            id="mrsSchemaDialog"
-            onClose={[Function]}
-            onValidate={[Function]}
-          >
-            <Dialog
-              actions={
-                {
-                  "begin": [],
-                  "end": [
-                    <Button
-                      caption="OK"
-                      disabled={false}
-                      id="ok"
-                      onClick={[Function]}
-                    />,
-                    <Button
-                      caption="Cancel"
-                      id="cancel"
-                      onClick={[Function]}
-                    />,
-                  ],
-                }
-              }
-              caption={
-                <p>
-                  <Icon
-                    disabled={false}
-                    src={389}
-                  />
-                  <Label />
-                </p>
-              }
-              className="msg valueEditDialog"
-              container={
-                <body
-                  theme="dark"
-                />
-              }
-              content={
-                <Grid
-                  columnGap={16}
-                  columns={8}
-                  rowGap={16}
-                />
-              }
-              id="mrsSchemaDialog"
-              onClose={[Function]}
-            >
-              <Portal
-                container={
-                  <body
-                    theme="dark"
-                  />
-                }
-                id="mrsSchemaDialog"
-                onClose={[Function]}
-                onOpen={[Function]}
-              />
-            </Dialog>
-            <Menu
-              onItemClick={[Function]}
-              orientation="column"
-              placement="right-start"
-            >
-              <Popup
-                className="msg menu"
-                onClose={[Function]}
-                onKeyDown={[Function]}
-                onOpen={[Function]}
-                orientation="column"
-                pinned={false}
-                placement="right-start"
-                showArrow={false}
-              >
-                <Portal
-                  onClose={[Function]}
-                  onKeyDown={[Function]}
-                  onOpen={[Function]}
-                />
-              </Popup>
-            </Menu>
-          </ValueEditDialog>
-        </MrsDbObjectDialog>
         <MrsContentSetDialog
           key="mrsContentSetDialog"
           onClose={[Function]}
@@ -4376,6 +4217,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                 showArrow={false}
               >
                 <Portal
+                  className="popupPortal"
                   onClose={[Function]}
                   onKeyDown={[Function]}
                   onOpen={[Function]}
@@ -4464,6 +4306,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                 showArrow={false}
               >
                 <Portal
+                  className="popupPortal"
                   onClose={[Function]}
                   onKeyDown={[Function]}
                   onOpen={[Function]}
@@ -4552,6 +4395,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                 showArrow={false}
               >
                 <Portal
+                  className="popupPortal"
                   onClose={[Function]}
                   onKeyDown={[Function]}
                   onOpen={[Function]}
@@ -4639,6 +4483,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                 showArrow={false}
               >
                 <Portal
+                  className="popupPortal"
                   onClose={[Function]}
                   onKeyDown={[Function]}
                   onOpen={[Function]}
@@ -4726,6 +4571,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                 showArrow={false}
               >
                 <Portal
+                  className="popupPortal"
                   onClose={[Function]}
                   onKeyDown={[Function]}
                   onOpen={[Function]}
@@ -6269,6 +6115,9 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
         <PasswordDialog
           key="passwordDialog"
         />
+        <MrsAuthDialog
+          key="mrsAuthDialog"
+        />
         <ValueEditDialog
           key="valueEditDialog"
           onClose={[Function]}
@@ -6344,6 +6193,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
               showArrow={false}
             >
               <Portal
+                className="popupPortal"
                 onClose={[Function]}
                 onKeyDown={[Function]}
                 onOpen={[Function]}
@@ -6482,6 +6332,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                 showArrow={false}
               >
                 <Portal
+                  className="popupPortal"
                   onClose={[Function]}
                   onKeyDown={[Function]}
                   onOpen={[Function]}
@@ -6570,6 +6421,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                 showArrow={false}
               >
                 <Portal
+                  className="popupPortal"
                   onClose={[Function]}
                   onKeyDown={[Function]}
                   onOpen={[Function]}
@@ -6578,94 +6430,6 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
             </Menu>
           </ValueEditDialog>
         </MrsSchemaDialog>
-        <MrsDbObjectDialog
-          key="mrsDbObjectDialog"
-          onClose={[Function]}
-        >
-          <ValueEditDialog
-            id="mrsSchemaDialog"
-            onClose={[Function]}
-            onValidate={[Function]}
-          >
-            <Dialog
-              actions={
-                {
-                  "begin": [],
-                  "end": [
-                    <Button
-                      caption="OK"
-                      disabled={false}
-                      id="ok"
-                      onClick={[Function]}
-                    />,
-                    <Button
-                      caption="Cancel"
-                      id="cancel"
-                      onClick={[Function]}
-                    />,
-                  ],
-                }
-              }
-              caption={
-                <p>
-                  <Icon
-                    disabled={false}
-                    src={389}
-                  />
-                  <Label />
-                </p>
-              }
-              className="msg valueEditDialog"
-              container={
-                <body
-                  theme="dark"
-                />
-              }
-              content={
-                <Grid
-                  columnGap={16}
-                  columns={8}
-                  rowGap={16}
-                />
-              }
-              id="mrsSchemaDialog"
-              onClose={[Function]}
-            >
-              <Portal
-                container={
-                  <body
-                    theme="dark"
-                  />
-                }
-                id="mrsSchemaDialog"
-                onClose={[Function]}
-                onOpen={[Function]}
-              />
-            </Dialog>
-            <Menu
-              onItemClick={[Function]}
-              orientation="column"
-              placement="right-start"
-            >
-              <Popup
-                className="msg menu"
-                onClose={[Function]}
-                onKeyDown={[Function]}
-                onOpen={[Function]}
-                orientation="column"
-                pinned={false}
-                placement="right-start"
-                showArrow={false}
-              >
-                <Portal
-                  onClose={[Function]}
-                  onKeyDown={[Function]}
-                  onOpen={[Function]}
-                />
-              </Popup>
-            </Menu>
-          </ValueEditDialog>
-        </MrsDbObjectDialog>
         <MrsContentSetDialog
           key="mrsContentSetDialog"
           onClose={[Function]}
@@ -6746,6 +6510,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                 showArrow={false}
               >
                 <Portal
+                  className="popupPortal"
                   onClose={[Function]}
                   onKeyDown={[Function]}
                   onOpen={[Function]}
@@ -6834,6 +6599,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                 showArrow={false}
               >
                 <Portal
+                  className="popupPortal"
                   onClose={[Function]}
                   onKeyDown={[Function]}
                   onOpen={[Function]}
@@ -6922,6 +6688,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                 showArrow={false}
               >
                 <Portal
+                  className="popupPortal"
                   onClose={[Function]}
                   onKeyDown={[Function]}
                   onOpen={[Function]}
@@ -7009,6 +6776,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                 showArrow={false}
               >
                 <Portal
+                  className="popupPortal"
                   onClose={[Function]}
                   onKeyDown={[Function]}
                   onOpen={[Function]}
@@ -7096,6 +6864,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                 showArrow={false}
               >
                 <Portal
+                  className="popupPortal"
                   onClose={[Function]}
                   onKeyDown={[Function]}
                   onOpen={[Function]}

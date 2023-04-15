@@ -52,6 +52,9 @@ interface IScriptEditorProperties extends IComponentProperties {
     backend?: ShellInterfaceSqlEditor;
     savedState: ISavedEditorState;
 
+    /** Extra libraries for the code editor that don't change. */
+    extraLibs?: Array<{ code: string, path: string; }>;
+
     onScriptExecution?: (context: ExecutionContext, options: IScriptExecutionOptions) => Promise<boolean>;
     onEdit?: (id?: string) => void;
 }
@@ -81,7 +84,7 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
             maximizeResultPane: false,
         };
 
-        this.addHandledProperties("toolbarItems", "backend", "onScriptExecution", "onEdit");
+        this.addHandledProperties("toolbarItems", "extraLibs", "backend", "onScriptExecution", "onEdit");
     }
 
     public static getDerivedStateFromProps(newProps: IScriptEditorProperties,
@@ -123,7 +126,7 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
     }
 
     public render(): ComponentChild {
-        const { savedState, toolbarItems, backend, onScriptExecution } = this.props;
+        const { savedState, toolbarItems, backend, extraLibs, onScriptExecution } = this.props;
         const { showResultPane, maximizeResultPane } = this.state;
 
         const className = this.getEffectiveClassNames(["standaloneScriptHost"]);
@@ -196,6 +199,7 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
                             content: <CodeEditor
                                 ref={this.editorRef}
                                 savedState={activeEditorState.state}
+                                extraLibs={extraLibs}
                                 minimap={{
                                     enabled: true,
                                 }}
@@ -238,6 +242,10 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
                 />
             </Container>
         );
+    }
+
+    public addOrUpdateExtraLib(content: string, filePath: string): void {
+        this.editorRef.current?.addOrUpdateExtraLib(content, filePath);
     }
 
     /**

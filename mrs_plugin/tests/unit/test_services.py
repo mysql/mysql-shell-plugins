@@ -169,7 +169,7 @@ def test_change_service(phone_book):
         service2 = get_service(**args_for_get_service)
         assert service2["enabled"]
 
-        assert set_current_service_id(**args) == True
+        assert set_current_service(**args) == True
 
 
         with pytest.raises(Exception) as exc_info:

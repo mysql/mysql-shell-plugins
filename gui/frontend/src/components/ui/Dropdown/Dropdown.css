@@ -52,6 +52,14 @@
     text-overflow: ellipsis;
 }
 
+.msg.dropdown:not(.multiSelect) > .label.placeholder {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--input-placeholderForeground);
+    font-weight: 200;
+}
+
 .msg.dropdown.multiSelect {
     height: auto;
 }

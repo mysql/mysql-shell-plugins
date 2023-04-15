@@ -107,6 +107,15 @@ interface ICodeEditorProperties extends IComponentProperties {
     initialContent?: string;
     executeInitialContent?: boolean;
 
+    /**
+     * A set of either type definitions or full library code that should be loaded when this editor is mounted.
+     * (will be automatically removed when the editor is unmounted).
+     *
+     * These extra libs are only useful for Javascript and Typescript and allow the editor to provide additional
+     * code completion and type information.
+     */
+    extraLibs?: Array<{ code: string, path: string; }>;
+
     /** The language to be used when creating a default model. If a model is given, the language is taken from that. */
     language?: EditorLanguage;
 
@@ -199,7 +208,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
     // Automatic re-layout on host resize.
     private resizeObserver?: ResizeObserver;
 
-    // All allocated event handlers that must be explicitly disposed off.
+    // All allocated event handlers and other Monaco resources that must be explicitly disposed off.
     private disposables: IDisposable[] = [];
 
     public constructor(props: ICodeEditorProperties) {
@@ -207,7 +216,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
 
         this.addHandledProperties("initialContent", "executeInitialContent", "language", "allowedLanguages",
             "sqlDialect", "readonly", "detectLinks", "showHidden", "useTabStops", "showHidden", "autoFocus",
-            "allowSoftWrap",
+            "allowSoftWrap", "typeDefinitions",
             "componentMinWidth", "lineDecorationsWidth", "lineDecorationsWidth", "renderLineHighlight",
             "showIndentGuides", "lineNumbers", "minimap", "suggest", "font", "scrollbar",
             "onScriptExecution", "onHelpCommand", "onCursorChange", "onOptionsChanged", "createResultPresentation",
@@ -216,13 +225,6 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         // istanbul ignore next
         if (typeof ResizeObserver !== "undefined") {
             this.resizeObserver = new ResizeObserver(this.handleEditorResize);
-        }
-    }
-
-    public static addTypings(typings: string, source: string): void {
-        if (languages.typescript) {
-            languages.typescript.javascriptDefaults.addExtraLib(typings, source);
-            languages.typescript.typescriptDefaults.addExtraLib(typings, source);
         }
     }
 
@@ -353,7 +355,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         const {
             language, initialContent, savedState, autoFocus, createResultPresentation,
             readonly, minimap, detectLinks, suggest, showIndentGuides, renderLineHighlight, useTabStops,
-            font, scrollbar, lineNumbers, lineDecorationsWidth, allowSoftWrap,
+            font, scrollbar, lineNumbers, lineDecorationsWidth, allowSoftWrap, extraLibs,
         } = this.mergedProps;
 
         const className = this.getEffectiveClassNames([
@@ -481,6 +483,12 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         if (savedState?.viewState) {
             const position = savedState.viewState.viewState.firstPosition.lineNumber ?? 0;
             this.editor.revealLineNearTop(position, Monaco.ScrollType.Immediate);
+        }
+
+        if (languages.typescript) {
+            extraLibs?.forEach((entry) => {
+                this.disposables.push(languages.typescript.typescriptDefaults.addExtraLib(entry.code, entry.path));
+            });
         }
 
         Monaco.remeasureFonts();
@@ -629,6 +637,20 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             if (value.defaultEOL) {
                 model.setEOL(value.defaultEOL === "LF" ? Monaco.EndOfLineSequence.LF : Monaco.EndOfLineSequence.CRLF);
             }
+        }
+    }
+
+    /**
+     * This method provides a separate way to add extra libs to the editor. Usually they are set via properties.
+     * Libs set here are automatically disposed when the editor is unmounted.
+     * If a lib with the same path is already added, it will be replaced.
+     *
+     * @param code The code of the extra lib.
+     * @param path A unique id or path to identify the extra lib.
+     */
+    public addOrUpdateExtraLib(code: string, path: string): void {
+        if (languages.typescript) {
+            this.disposables.push(languages.typescript.typescriptDefaults.addExtraLib(code, path));
         }
     }
 

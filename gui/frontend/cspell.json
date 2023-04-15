@@ -176,7 +176,10 @@
         "webrootpath",
         "xdescribe",
         "xpto",
-        "zstd"
+        "zstd",
+        "unnest",
+        "unnested",
+        "tinyint"
     ],
     "ignorePaths": [
         ".eslintrc.json",

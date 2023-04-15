@@ -576,5 +576,96 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
       </div>
     </Container>
   </Tabview>
+  <MrsTurnstile>
+    <MrsDbObjectDialog
+      key="mrsDbObjectDialog"
+      onClose={[Function]}
+    >
+      <ValueEditDialog
+        id="mrsSchemaDialog"
+        onClose={[Function]}
+        onValidate={[Function]}
+      >
+        <Dialog
+          actions={
+            {
+              "begin": [],
+              "end": [
+                <Button
+                  caption="OK"
+                  disabled={false}
+                  id="ok"
+                  onClick={[Function]}
+                />,
+                <Button
+                  caption="Cancel"
+                  id="cancel"
+                  onClick={[Function]}
+                />,
+              ],
+            }
+          }
+          caption={
+            <p>
+              <Icon
+                disabled={false}
+                src={389}
+              />
+              <Label />
+            </p>
+          }
+          className="msg valueEditDialog"
+          container={
+            <body
+              theme="dark"
+            />
+          }
+          content={
+            <Grid
+              columnGap={16}
+              columns={8}
+              rowGap={16}
+            />
+          }
+          id="mrsSchemaDialog"
+          onClose={[Function]}
+        >
+          <Portal
+            container={
+              <body
+                theme="dark"
+              />
+            }
+            id="mrsSchemaDialog"
+            onClose={[Function]}
+            onOpen={[Function]}
+          />
+        </Dialog>
+        <Menu
+          onItemClick={[Function]}
+          orientation="column"
+          placement="right-start"
+        >
+          <Popup
+            className="msg menu"
+            onClose={[Function]}
+            onKeyDown={[Function]}
+            onOpen={[Function]}
+            orientation="column"
+            pinned={false}
+            placement="right-start"
+            showArrow={false}
+          >
+            <Portal
+              className="popupPortal"
+              onClose={[Function]}
+              onKeyDown={[Function]}
+              onOpen={[Function]}
+            />
+          </Popup>
+        </Menu>
+      </ValueEditDialog>
+    </MrsDbObjectDialog>
+  </MrsTurnstile>
 </DBEditorModule>
 `;

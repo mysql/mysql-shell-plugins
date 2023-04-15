@@ -27,10 +27,8 @@ import {
     ShellAPIMrs, IMrsStatusData, IMrsServiceData, IMrsAuthAppData, IMrsAuthVendorData, IMrsSchemaData,
     IMrsDbObjectFieldData, IShellMrsUpdateDbObjectKwargsValue, IMrsDbObjectData, IMrsAddContentSetData,
     IMrsContentSetData, IMrsContentFileData, IShellMrsUpdateAuthenticationAppKwargsValue, IMrsUserData,
-    IShellMrsUpdateUserKwargsValue,
-    IMrsRoleData,
-    IMrsUserRoleData,
-    IMrsRouterData,
+    IShellMrsUpdateUserKwargsValue, IMrsRoleData, IMrsUserRoleData,
+    IMrsRouterData, IMrsCurrentServiceMetadata, IMrsTableColumnWithReference, IMrsObjectFieldWithReference, IMrsObject,
 } from "../../communication/ProtocolMrs";
 import { webSession } from "../WebSession";
 
@@ -137,7 +135,7 @@ export class ShellInterfaceMrs {
 
     public async setCurrentService(serviceId: string): Promise<void> {
         await MessageScheduler.get.sendRequest({
-            requestType: ShellAPIMrs.MrsSetCurrentServiceId,
+            requestType: ShellAPIMrs.MrsSetCurrentService,
             parameters: {
                 kwargs: {
                     serviceId,
@@ -147,9 +145,9 @@ export class ShellInterfaceMrs {
         });
     }
 
-    public async getCurrentService(): Promise<string> {
+    public async getCurrentServiceMetadata(): Promise<IMrsCurrentServiceMetadata> {
         const response = await MessageScheduler.get.sendRequest({
-            requestType: ShellAPIMrs.MrsGetCurrentServiceId,
+            requestType: ShellAPIMrs.MrsGetCurrentServiceMetadata,
             parameters: {
                 kwargs: {
                     moduleSessionId: this.moduleSessionId,
@@ -422,7 +420,7 @@ export class ShellInterfaceMrs {
                     crudOperations,
                     crudOperationFormat,
                     requiresAuth,
-                    itemsPerPage,
+                    itemsPerPage: itemsPerPage === null ? undefined : itemsPerPage,
                     rowUserOwnershipEnforced,
                     rowUserOwnershipColumn,
                     comments,
@@ -784,6 +782,106 @@ export class ShellInterfaceMrs {
             parameters: {
                 args: {
                     routerId,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+    }
+
+    public async getSdkBaseClasses(
+        sdkLanguage?: string, prepareForRuntime?: boolean): Promise<string> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsGetSdkBaseClasses,
+            parameters: {
+                kwargs: {
+                    sdkLanguage,
+                    prepareForRuntime,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    public async getSdkServiceClasses(
+        serviceId?: string, sdkLanguage?: string, prepareForRuntime?: boolean): Promise<string> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsGetSdkServiceClasses,
+            parameters: {
+                kwargs: {
+                    serviceId,
+                    sdkLanguage,
+                    prepareForRuntime,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    public async dumpSdkServiceFiles(serviceId: string, sdkLanguage: string, directory: string): Promise<boolean> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsDumpSdkServiceFiles,
+            parameters: {
+                kwargs: {
+                    serviceId,
+                    sdkLanguage,
+                    directory,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    public async getTableColumnsWithReferences(requestPath?: string, dbObjectName?: string,
+        dbObjectId?: string, schemaId?: string, schemaName?: string,
+        dbObjectType?: string): Promise<IMrsTableColumnWithReference[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsGetTableColumnsWithReferences,
+            parameters: {
+                args: {
+                    dbObjectId,
+                    schemaId,
+                    requestPath,
+                    dbObjectName,
+                },
+                kwargs: {
+                    moduleSessionId: this.moduleSessionId,
+                    schemaName,
+                    dbObjectType,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    public async getObjectFieldsWithReferences(objectId?: string): Promise<IMrsObjectFieldWithReference[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsGetObjectFieldsWithReferences,
+            parameters: {
+                args: {
+                    objectId,
+                },
+                kwargs: {
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    public async setObjectFieldsWithReferences(obj: IMrsObject): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsSetObjectFieldsWithReferences,
+            parameters: {
+                kwargs: {
+                    obj,
                     moduleSessionId: this.moduleSessionId,
                 },
             },

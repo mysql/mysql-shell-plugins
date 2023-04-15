@@ -1,0 +1,371 @@
+/*
+ * Copyright (c) 2023, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+body[theme=dark] {
+    --mrs-rest-object-field-name: #9cdcfe;
+    --mrs-rest-object-field-datatype: #4ec9b0;
+    --mrs-rest-object-field-header-color: rgba(0, 157, 255, 0.200);
+    --mrs-rest-object-field-border-color: rgba(0, 157, 255, 0.300);
+    --mrs-rest-object-field-background-color: rgb(255, 255, 255, 0.04);
+}
+
+body[theme=light] {
+    --mrs-rest-object-field-name: #001080;
+    --mrs-rest-object-field-datatype: #267f99;
+    --mrs-rest-object-field-header-color: rgba(0, 157, 255, 0.280);
+    --mrs-rest-object-field-border-color: rgba(0, 157, 255, 0.400);
+    --mrs-rest-object-field-background-color: rgb(0, 0, 0, 0.04);
+}
+
+.mrsObjectFieldEditor {
+    min-height: 180px;
+    /*max-height: 510px;*/
+}
+
+.mrsObjectFieldEditor .settings {
+    gap: 16px;
+    min-height: 30px;
+}
+
+.mrsObjectFieldEditor .settingsMain {
+    gap: 16px;
+    min-height: 30px;
+    width: 100%;
+}
+
+.mrsObjectFieldEditor .settings .interface {
+    width: 40%;
+}
+
+.mrsObjectFieldEditor .settings #interfaceName {
+    width: 100%;
+}
+
+.mrsObjectFieldEditor .settings .label {
+    padding-right: 5px;
+    color: var(--text-dimmedForeground);
+}
+
+.mrsObjectFieldEditor .settingsRight {
+    min-width: 170px;
+}
+
+.mrsObjectFieldEditor .showSdkOptions #sdkLanguage {
+    min-width: 130px;
+}
+
+.mrsObjectFieldEditor .cellDescription {
+    padding-top: 3px;
+    padding-bottom: 3px;
+    font-size: 10px;
+    white-space: initial;
+    color: var(--tag-background);
+}
+
+.mrsObjectTreeGrid {
+    width: 100%;
+}
+
+.mrsObjectTreeGrid .tabulator-row .tabulator-cell .tabulator-data-tree-branch {
+    margin-right: unset;
+}
+
+.mrsObjectTreeGrid .tabulator-header {
+    font-weight: 400;
+    height: 24px;
+}
+
+.mrsObjectTreeGrid .tabulator-col {
+    padding: 0 4px 0 10px;
+}
+
+.mrsObjectTreeGrid .tabulator-row {
+    min-height: 24px;
+    display: flex;
+    padding-left: 2px;
+}
+
+/* the whole JSON/Relational table */
+.mrsObjectTreeGrid .tabulator-table {
+    background-color: var(--mrs-rest-object-field-background-color);
+    border: 1px solid var(--input-border);
+    border-radius: 8px;
+    width: calc(100% - 2px);
+}
+
+/* regular row */
+.mrsObjectFieldEditor.showSdkOptions .msg.treeGrid.tabulator .tabulator-row.tabulator-row-even:not(.tabulator-tree-level-0) {
+    background-color: var(--mrs-rest-object-field-background-color);
+    border-left: 1px solid var(--mrs-rest-object-field-border-color);
+    border-right: 1px solid var(--mrs-rest-object-field-border-color);
+}
+
+.mrsObjectFieldEditor.showSdkOptions .msg.treeGrid.tabulator .tabulator-row.tabulator-row-odd:not(.tabulator-tree-level-0) {
+    background-color: var(--mrs-rest-object-field-background-color);
+    border-left: 1px solid var(--mrs-rest-object-field-border-color);
+    border-right: 1px solid var(--mrs-rest-object-field-border-color);
+}
+
+/* firstItem row */
+.mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row.tabulator-row-odd.firstItem.tabulator-tree-level-0 {
+    background-color: var(--mrs-rest-object-field-header-color);
+}
+
+.mrsObjectFieldEditor.showSdkOptions .msg.treeGrid.tabulator .tabulator-row.tabulator-row-even.firstItem {
+    background-color: var(--mrs-rest-object-field-header-color);
+}
+
+.mrsObjectFieldEditor.showSdkOptions .msg.treeGrid.tabulator .tabulator-row.tabulator-row-odd.firstItem {
+    background-color: var(--mrs-rest-object-field-header-color);
+}
+
+.mrsObjectFieldEditor.showSdkOptions .msg.treeGrid.tabulator .tabulator-row.tabulator-row-even.firstItem:not(.tabulator-tree-level-0) {
+    border-top: 1px solid var(--mrs-rest-object-field-border-color);
+    border-left: 1px solid var(--mrs-rest-object-field-border-color);
+    border-right: 1px solid var(--mrs-rest-object-field-border-color);
+}
+
+.mrsObjectFieldEditor.showSdkOptions .msg.treeGrid.tabulator .tabulator-row.tabulator-row-odd.firstItem:not(.tabulator-tree-level-0) {
+    border-top: 1px solid var(--mrs-rest-object-field-border-color);
+    border-left: 1px solid var(--mrs-rest-object-field-border-color);
+    border-right: 1px solid var(--mrs-rest-object-field-border-color);
+}
+
+.mrsObjectFieldEditor.showSdkOptions .msg.treeGrid.tabulator .tabulator-row.firstItem:not(.tabulator-tree-level-0) {
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+.mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row.firstItem.tabulator-tree-level-0 {
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+}
+
+/* lastItem row */
+.mrsObjectFieldEditor.showSdkOptions .msg.treeGrid.tabulator .tabulator-row.lastItem:not(.tabulator-tree-level-0) {
+    margin-bottom: 4px;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    border-bottom: 1px solid var(--mrs-rest-object-field-border-color);
+    border-left: 1px solid var(--mrs-rest-object-field-border-color);
+    border-right: 1px solid var(--mrs-rest-object-field-border-color);
+}
+
+/* expanded row */
+.mrsObjectFieldEditor.showSdkOptions .msg.treeGrid.tabulator .tabulator-row.referenceRow.expanded {
+    margin-bottom: 4px;
+}
+
+/*.mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row.referenceRow.expanded::after {
+    display: block;
+    position: absolute;
+    content: "";
+    top: 25px;
+    left: 3px;
+    width: 20px;
+    height: 25px;
+    background: url(../../../assets/images/schemaTableForeignKey1NTopToRight.svg);
+    background-size: 20px 25px;
+}*/
+
+.mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row.referenceRow.expanded.fk11::after {
+    background: url(../../../assets/images/schemaTableForeignKey11TopToRight.svg);
+}
+
+.mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row.referenceRow.expanded.fkN1::after {
+    background: url(../../../assets/images/schemaTableForeignKeyN1TopToRight.svg);
+}
+
+body[theme=dark] .mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row.referenceRow.expanded::after {
+    filter: invert(100%);
+    -webkit-filter: invert(100%);
+}
+
+.mrsObjectTreeGrid .tabulator-row .tabulator-cell {
+    padding: 0px 2px;
+    display: flex;
+    min-height: 24px;
+}
+
+.mrsObjectJsonFieldDiv {
+    display: flex;
+    align-items: center;
+    padding: 2px 0px 2px 2px;
+    gap: 5px;
+    max-height: 24px;
+}
+
+.withoutChildren {
+    padding-left: 21px;
+}
+
+.mrsObjectJsonFieldDiv .tableName {
+    color: var(--text-captionForeground);
+}
+
+.mrsObjectJsonFieldDiv .jsonField {
+    color: var(--mrs-rest-object-field-name);
+}
+
+.mrsObjectJsonFieldDiv .jsonFieldDisabled {
+    color: var(--tag-background);
+}
+
+.mrsObjectJsonFieldDiv .referenceFieldName {
+    color: var(--tag-background);
+}
+
+.mrsObjectJsonFieldDiv .msg.icon.unnestedIcon {
+    background-color: var(--tag-background);
+    margin-top: 2px;
+    margin-right: 1px;
+}
+
+.mrsObjectJsonDatatypeFieldDiv {
+    color: var(--mrs-rest-object-field-datatype);
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mrsObjectFieldEditor .crudIconsDiv {
+    background-color: var(--input-background);
+    border: 1px solid var(--mrs-rest-object-field-border-color);
+    border-radius: 8px;
+    height: 18px;
+    overflow: hidden;
+}
+
+.mrsObjectFieldEditor .unnestIconDiv {
+    background-color: var(--input-background);
+    border: 1px solid var(--mrs-rest-object-field-border-color);
+    border-radius: 8px;
+    height: 18px;
+    overflow: hidden;
+    margin-left: 11px;
+}
+
+.mrsObjectFieldEditor .bracket {
+    padding-left: 2px;
+}
+
+.mrsObjectFieldEditor:not(.showSdkOptions) .bracket {
+    padding-left: 2px;
+}
+
+.mrsObjectDbColumnFieldDiv {
+    display: flex;
+}
+
+.mrsObjectDbColumnFieldDiv .columnName {
+    max-width: 250px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mrsObjectDbColumnFieldDiv .tableName {
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-left: 1px;
+    padding-right: 4px;
+    font-style: italic;
+}
+
+.mrsObjectDbColumnFieldDiv .reduceToDropdown {
+    width: 150px;
+}
+
+.mrsObjectFieldEditor .datatype {
+    color: var(--mrs-rest-object-field-datatype);
+}
+
+.mrsObjectDbColumnFieldDiv .crudDropdown {
+    width: 130px;
+    margin-right: 8px;
+}
+
+.mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row.tabulator-tree-level-0 {
+    width: 100%;
+}
+
+.mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row.tabulator-tree-level-1 {
+    margin-left: 24px;
+    margin-right: -24px;
+    width: calc(100% - 24px - 4px);
+}
+
+.mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row.tabulator-tree-level-2 {
+    margin-left: 48px;
+    margin-right: -48px;
+    width: calc(100% - 48px - 4px);
+}
+
+.mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row.tabulator-tree-level-3 {
+    margin-left: 72px;
+    margin-right: -72px;
+    width: calc(100% - 72px - 4px);
+}
+
+.mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row.tabulator-tree-level-4 {
+    margin-left: 96px;
+    margin-right: -96px;
+    width: calc(100% - 96px - 4px);
+}
+
+.mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row.tabulator-tree-level-5 {
+    margin-left: 120px;
+    margin-right: -120px;
+    width: calc(100% - 120px - 4px);
+}
+
+.mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row.tabulator-tree-level-6 {
+    margin-left: 144px;
+    margin-right: -144px;
+    width: calc(100% - 144px - 4px);
+}
+
+.mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row.tabulator-tree-level-7 {
+    margin-left: 168px;
+    margin-right: -168px;
+    width: calc(100% - 168px - 4px);
+}
+
+.mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row.tabulator-tree-level-8 {
+    margin-left: 192px;
+    margin-right: -192px;
+    width: calc(100% - 192px - 4px);
+}
+
+.mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row.tabulator-tree-level-9 {
+    margin-left: 216px;
+    margin-right: -216px;
+    width: calc(100% - 216px - 4px);
+}
+
+.mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row.tabulator-tree-level-10 {
+    margin-left: 240px;
+    margin-right: -240px;
+    width: calc(100% - 240px - 4px);
+}

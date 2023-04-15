@@ -532,6 +532,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
           showArrow={false}
         >
           <Portal
+            className="popupPortal"
             id="actionMenu"
             onClose={[Function]}
             onKeyDown={[Function]}
@@ -668,6 +669,7 @@ exports[`Result Tabview Tests Standard Rendering 1`] = `
           showArrow={false}
         >
           <Portal
+            className="popupPortal"
             id="actionMenu"
             onClose={[Function]}
             onKeyDown={[Function]}
@@ -1320,6 +1322,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                           showArrow={false}
                         >
                           <Portal
+                            className="popupPortal"
                             id="cellContextMenu"
                             onClose={[Function]}
                             onKeyDown={[Function]}
@@ -1388,6 +1391,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
           showArrow={false}
         >
           <Portal
+            className="popupPortal"
             id="actionMenu"
             onClose={[Function]}
             onKeyDown={[Function]}

@@ -1,3 +1,4 @@
 import { IShellDictionary } from "./Protocol";
+import { IDictionary } from "../app-logic/Types";
 
 /* eslint-disable max-len */

@@ -43,19 +43,19 @@ import { openSqlEditorSessionAndConnection, openSqlEditorConnection } from "./ut
 import { DialogWebviewManager } from "./web-views/DialogWebviewProvider";
 import { IShellDictionary } from "../../frontend/src/communication/Protocol";
 import {
-    IMrsDbObjectData, IMrsServiceData, IMrsAuthAppData, IMrsSchemaData, IMrsDbObjectFieldData, IMrsContentSetData,
-    IMrsUserData,
-    IMrsUserRoleData,
+    IMrsServiceData, IMrsAuthAppData, IMrsSchemaData, IMrsContentSetData, IMrsUserData, IMrsUserRoleData,
 } from "../../frontend/src/communication/ProtocolMrs";
 import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
 import { ConnectionMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvider/ConnectionMySQLTreeItem";
-import { ConnectionsTreeBaseItem } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeBaseItem";
 import { MrsDbObjectTreeItem } from "./tree-providers/ConnectionsTreeProvider/MrsDbObjectTreeItem";
 import { MrsAuthAppTreeItem } from "./tree-providers/ConnectionsTreeProvider/MrsAuthAppTreeItem";
 import { MySQLShellLauncher } from "../../frontend/src/utilities/MySQLShellLauncher";
 import { IMySQLConnectionOptions, MySQLConnectionScheme } from "../../frontend/src/communication/MySQL";
 import { MrsUserTreeItem } from "./tree-providers/ConnectionsTreeProvider/MrsUserTreeItem";
 import { findExecutable } from "../../frontend/src/utilities/file-utilities";
+import { pathToCamelCase } from "../../frontend/src/utilities/string-helpers";
+import { MrsContentFileTreeItem } from "./tree-providers/ConnectionsTreeProvider/MrsContentFileTreeItem";
+import { MessageScheduler } from "../../frontend/src/communication/MessageScheduler";
 
 export class MRSCommandHandler {
     protected docsWebviewPanel?: WebviewPanel;
@@ -92,7 +92,7 @@ export class MRSCommandHandler {
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.killLocalRouters",
-            (item?: MrsTreeItem) => {
+            () => {
                 let term = window.terminals.find((t) => { return t.name === "MySQL Router MRS"; });
                 if (term === undefined) {
                     term = window.createTerminal("MySQL Router MRS");
@@ -172,7 +172,7 @@ export class MRSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.setDefaultService",
+        context.subscriptions.push(commands.registerCommand("msg.mrs.setCurrentService",
             async (item?: MrsServiceTreeItem) => {
                 if (item) {
                     try {
@@ -183,6 +183,30 @@ export class MRSCommandHandler {
                     } catch (reason) {
                         void window.showErrorMessage(`Error setting the default MRS service: ${String(reason)}`);
                     }
+                }
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.exportServiceSdk",
+            async (item?: MrsServiceTreeItem) => {
+                if (item && item?.entry.backend && item.value) {
+                    const backend = item.entry.backend;
+
+                    await window.showSaveDialog({
+                        title: "Export REST Service SDK Files...",
+                        defaultUri: Uri.file(`${os.homedir()}/${pathToCamelCase(item.value.urlContextRoot)}.mrs.sdk`),
+                        saveLabel: "Export SDK Files",
+                    }).then(async (value) => {
+                        if (value !== undefined) {
+                            try {
+                                const path = value.fsPath;
+                                await backend.mrs.dumpSdkServiceFiles(item.value.id, "TypeScript", path);
+                                showMessageWithTimeout("MRS Service REST Files exported successfully.");
+                            } catch (error) {
+                                void window.showErrorMessage(
+                                    `Error while exporting the REST Service SDK Files: ${String(error)}`);
+                            }
+                        }
+                    });
                 }
             }));
 
@@ -243,6 +267,22 @@ export class MRSCommandHandler {
                     await env.openExternal(Uri.parse(url));
                 }
             }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.openContentFileRequestPath",
+        async (item?: MrsContentFileTreeItem) => {
+            if (item?.entry.backend && item.value) {
+                const i = item.value;
+                let url = (i.hostCtx ?? "") + (i.contentSetRequestPath ?? "") + i.requestPath;
+
+                if (url.startsWith("/")) {
+                    url = `https://localhost:8443${url}`;
+                } else {
+                    url = `https://${url}`;
+                }
+
+                await env.openExternal(Uri.parse(url));
+            }
+        }));
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.deleteDbObject",
             async (item?: MrsDbObjectTreeItem) => {
@@ -369,36 +409,6 @@ export class MRSCommandHandler {
                     void window.showErrorMessage(`Error adding a new User: ${String(reason)}`);
                 }
             }));
-
-        context.subscriptions.push(commands.registerCommand("msg.mrs.editDbObject", (item?: MrsDbObjectTreeItem) => {
-            if (item?.entry.backend) {
-                this.showMrsDbObjectDialog(item.entry.backend, item.value, false).catch((reason) => {
-                    void window.showErrorMessage(`${String(reason)}`);
-                });
-            }
-        }));
-
-        context.subscriptions.push(commands.registerCommand("msg.mrs.addDbObject", (item?: ConnectionsTreeBaseItem) => {
-            if (item?.entry.backend) {
-                const backend = item.entry.backend;
-                const objectType = item.dbType.toUpperCase();
-
-                if (objectType === "TABLE" || objectType === "VIEW" || objectType === "PROCEDURE") {
-                    // First, create a new temporary dbObject, then call the DbObject dialog
-                    this.createNewDbObject(backend, item, objectType).then((dbObject) => {
-                        this.showMrsDbObjectDialog(backend, dbObject, true, item.schema).catch((reason) => {
-                            void window.showErrorMessage(`${String(reason)}`);
-                        });
-                    }).catch((reason) => {
-                        void window.showErrorMessage(`${String(reason)}`);
-                    });
-                } else {
-                    void window.showErrorMessage(
-                        `The database object type '${objectType}' is not supported at this time`);
-                }
-
-            }
-        }));
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.addFolderAsContentSet",
             async (directory?: Uri) => {
@@ -603,7 +613,7 @@ export class MRSCommandHandler {
 
                             if (service !== undefined) {
                                 statusbarItem.text = "$(loading~spin) Loading REST Schema ...";
-                                await sqlEditor.mrs.loadSchema(item.path, service.id);
+                                await sqlEditor.mrs.loadSchema(item.fsPath, service.id);
                                 void commands.executeCommand("msg.refreshConnections");
                                 showMessageWithTimeout("The REST Schema has been loaded successfully.");
                             }
@@ -656,7 +666,12 @@ export class MRSCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.mrs.saveExampleProject",
             async (exampleCodePath: Uri) => {
                 const path = exampleCodePath.fsPath;
-                const m = path.match(/([^/]*)\/*$/);
+                let m;
+                if (os.platform() === "win32"){
+                    m = path.match(/([^\\]*)\/*$/);
+                }else{
+                    m = path.match(/([^/]*)\/*$/);
+                }
                 if (m === null) {
                     void window.showErrorMessage(
                         `Error storing the MRS Project: Project folder contains no path.`);
@@ -922,107 +937,6 @@ export class MRSCommandHandler {
                 }
             }
         }
-    };
-
-    private createNewDbObject = async (backend: ShellInterfaceSqlEditor,
-        item: ConnectionsTreeBaseItem, objectType: string): Promise<IMrsDbObjectData> => {
-
-        const params = await backend.mrs.getDbObjectFields(undefined, item.name,
-            undefined, undefined, item.schema, item.dbType);
-
-        // Add entry for <new> item
-        params.push({
-            id: "",
-            dbObjectId: "0",
-            position: 0,
-            name: "<new>",
-            bindFieldName: "",
-            datatype: "STRING",
-            mode: "IN",
-            comments: "",
-        });
-
-        const dbObject: IMrsDbObjectData = {
-            comments: "",
-            crudOperations: (objectType === "PROCEDURE") ? ["UPDATE"] : ["READ"],
-            crudOperationFormat: "FEED",
-            dbSchemaId: "",
-            enabled: 1,
-            id: "",
-            name: item.name,
-            objectType,
-            requestPath: `/${item.name}`,
-            requiresAuth: 1,
-            rowUserOwnershipEnforced: 0,
-            serviceId: "",
-            autoDetectMediaType: 0,
-            fields: params,
-        };
-
-        const services = await backend.mrs.listServices();
-        let service;
-        if (services.length === 1) {
-            service = services[0];
-        } else if (services.length > 1) {
-            // Lookup default service
-            service = services.find((service) => {
-                return service.isCurrent;
-            });
-
-            if (!service) {
-                // No default connection set. Show a picker.
-                const items = services.map((s) => {
-                    return s.urlContextRoot;
-                });
-
-                const name = await window.showQuickPick(items, {
-                    title: "Select a connection for SQL execution",
-                    matchOnDescription: true,
-                    placeHolder: "Type the name of an existing DB connection",
-                });
-
-                if (name) {
-                    service = services.find((candidate) => {
-                        return candidate.urlContextRoot === name;
-                    });
-                }
-
-            }
-        }
-
-        if (service) {
-            const schemas = await backend.mrs.listSchemas(service.id);
-            const schema = schemas.find((schema) => {
-                return schema.name === item.schema;
-            });
-
-            // Check if the DbObject's schema is already exposed as an MRS schema
-            if (schema) {
-                dbObject.dbSchemaId = schema.id;
-            } else {
-                const answer = await window.showInformationMessage(
-                    `The database schema ${item.schema} has not been added to the `
-                    + "REST Service. Do you want to add the schema now?",
-                    "Yes", "No");
-                if (answer === "Yes") {
-                    dbObject.dbSchemaId = await backend.mrs.addSchema(service.id,
-                        item.schema, `/${item.schema}`, false, null, null, undefined);
-
-                    void commands.executeCommand("msg.refreshConnections");
-                    showMessageWithTimeout(`The MRS schema ${item.schema} has been added successfully.`, 5000);
-                } else {
-                    throw new Error("Operation cancelled.");
-                }
-            }
-        } else {
-            if (services.length === 0) {
-                throw new Error("Please create a REST Service before adding DB Objects.");
-            } else {
-                throw new Error("No REST Service selected.");
-            }
-        }
-
-        return dbObject;
     };
 
     /**
@@ -1355,7 +1269,7 @@ export class MRSCommandHandler {
             },
             values: {
                 serviceId: service?.id ?? 0,
-                servicePath: service?.urlContextRoot ?? "/mrs",
+                servicePath: service?.urlContextRoot ?? "/myService",
                 hostName: service?.urlHostName,
                 protocols: service?.urlProtocol ?? ["HTTPS"],
                 isCurrent: !service || service.isCurrent === 1,
@@ -1546,181 +1460,6 @@ export class MRSCommandHandler {
     };
 
     /**
-     * Shows a dialog to create a new or edit an existing MRS schema.
-     *
-     * @param backend The interface for sending the requests.
-     * @param dbObject The DbObject to create or to edit.
-     * @param createObject Whether a new DbObject should be created.
-     * @param schemaName The name of the DbObject's schema, needed when creating a new DbObject
-     */
-    private showMrsDbObjectDialog = async (backend: ShellInterfaceSqlEditor, dbObject: IMrsDbObjectData,
-        createObject: boolean, schemaName?: string): Promise<void> => {
-
-        if (createObject && schemaName === undefined) {
-            void window.showErrorMessage("When creating a new DB Object the schema name must be valid.");
-
-            return;
-        }
-
-        const services = await backend.mrs.listServices();
-        const schemas = await backend.mrs.listSchemas(dbObject.serviceId === "" ? undefined : dbObject.serviceId);
-        const rowOwnershipFields = await backend.mrs.getDbObjectRowOwnershipFields(dbObject.requestPath,
-            dbObject.name,
-            dbObject.id === "" ? undefined : dbObject.id,
-            dbObject.dbSchemaId === "" ? undefined : dbObject.dbSchemaId,
-            schemaName, dbObject.objectType);
-
-        const title = dbObject
-            ? "Adjust the REST Object Configuration"
-            : "Enter Configuration Values for the New REST Object";
-        const tabTitle = dbObject
-            ? "Edit REST Object"
-            : "Add REST Object";
-        const parameterNewItem: IMrsDbObjectFieldData = {
-            id: "",
-            dbObjectId: dbObject.id,
-            position: 0,
-            name: "<new>",
-            bindFieldName: "",
-            datatype: "STRING",
-            mode: "IN",
-            comments: "",
-        };
-
-        if (dbObject.id && (!dbObject.fields)) {
-            dbObject.fields = await backend.mrs.getDbObjectSelectedFields(dbObject.requestPath, dbObject.name,
-                dbObject.id, dbObject.dbSchemaId, schemaName);
-
-            // Add entry for <new> item.
-            dbObject.fields.push(parameterNewItem);
-        }
-
-        const request = {
-            id: "mrsDbObjectDialog",
-            type: DialogType.MrsDbObject,
-            title,
-            parameters: { services, schemas, rowOwnershipFields },
-            values: {
-                serviceId: dbObject.serviceId,
-                dbSchemaId: dbObject.dbSchemaId,
-                name: dbObject.name,
-                requestPath: dbObject.requestPath,
-                requiresAuth: dbObject.requiresAuth === 1,
-                enabled: dbObject.enabled === 1,
-                itemsPerPage: dbObject.itemsPerPage ?? "",
-                comments: dbObject.comments ?? "",
-                rowUserOwnershipEnforced: dbObject.rowUserOwnershipEnforced === 1,
-                rowUserOwnershipColumn: dbObject.rowUserOwnershipColumn,
-                objectType: dbObject.objectType,
-                crudOperations: dbObject.crudOperations,
-                crudOperationFormat: dbObject.crudOperationFormat,
-                autoDetectMediaType: dbObject.autoDetectMediaType === 1,
-                mediaType: dbObject.mediaType,
-                options: dbObject?.options ? JSON.stringify(dbObject?.options) : "",
-                authStoredProcedure: dbObject.authStoredProcedure,
-                parameters: dbObject.fields ?? [parameterNewItem],
-            },
-        };
-
-        const response = await this.dialogManager.showDialog(request, tabTitle);
-        if (!response || response.closure !== DialogResponseClosure.Accept || !response.data) {
-            return;
-        }
-
-        const servicePath = response.data.servicePath as string;
-        const schemaId = response.data.dbSchemaId as string;
-        const schemaPath = response.data.dbSchemaPath as string;
-        const name = response.data.name as string;
-        const requestPath = response.data.requestPath as string;
-        const requiresAuth = response.data.requiresAuth as boolean;
-        const itemsPerPage = response.data.itemsPerPage === "" ? null: response.data.itemsPerPage as number;
-        const comments = response.data.comments as string;
-        const enabled = response.data.enabled as boolean;
-        const rowUserOwnershipEnforced = response.data.rowUserOwnershipEnforced as boolean;
-        const rowUserOwnershipColumn = response.data.rowUserOwnershipColumn as string;
-        const objectType = response.data.objectType as string;
-        const crudOperations = response.data.crudOperations as string[] ?? ["READ"];
-        const crudOperationFormat = response.data.crudOperationFormat as string ?? "FEED";
-        const mediaType = response.data.mediaType as string;
-        const autoDetectMediaType = response.data.autoDetectMediaType as boolean;
-        const authStoredProcedure = response.data.authStoredProcedure as string;
-        const options = response.data.options === "" ?
-            null : JSON.parse(response.data.options as string) as IShellDictionary;
-
-        // Remove entry for <new> item
-        const fields = (response.data.parameters as IMrsDbObjectFieldData[]).filter(
-            (p: IMrsDbObjectFieldData) => {
-                return p.id !== "";
-            });
-
-        const newService = services.find((service) => {
-            return service.urlContextRoot === servicePath;
-        });
-
-        const serviceSchemas = await backend.mrs.listSchemas(newService?.id);
-        const newSchema = serviceSchemas.find((schema) => {
-            return schema.requestPath === schemaPath;
-        });
-
-        if (createObject) {
-            // Create new DB Object
-            try {
-                await backend.mrs.addDbObject(name, objectType,
-                    false, requestPath, enabled, crudOperations,
-                    crudOperationFormat, requiresAuth,
-                    rowUserOwnershipEnforced, autoDetectMediaType,
-                    options,
-                    itemsPerPage,
-                    rowUserOwnershipColumn,
-                    schemaId, undefined, comments,
-                    mediaType, "",
-                    fields);
-
-                void commands.executeCommand("msg.refreshConnections");
-                showMessageWithTimeout(
-                    `The MRS Database Object ${name} has been added successfully.`, 5000);
-            } catch (error) {
-                void window.showErrorMessage(
-                    `The MRS Database Object ${name} could not be created. ${String(error)}`);
-            }
-        } else {
-            // Update existing DB Object
-            try {
-                await backend.mrs.updateDbObject(
-                    dbObject.id, dbObject.name,
-                    dbObject.requestPath,
-                    schemaId,
-                    {
-                        name,
-                        dbSchemaId: newSchema?.id,
-                        requestPath,
-                        requiresAuth,
-                        autoDetectMediaType,
-                        enabled,
-                        rowUserOwnershipEnforced,
-                        rowUserOwnershipColumn,
-                        itemsPerPage,
-                        comments,
-                        mediaType,
-                        authStoredProcedure,
-                        crudOperations,
-                        crudOperationFormat,
-                        options,
-                        fields,
-                    });
-
-                void commands.executeCommand("msg.refreshConnections");
-                showMessageWithTimeout(
-                    `The MRS Database Object ${name} has been updated successfully.`, 5000);
-            } catch (error) {
-                void window.showErrorMessage(
-                    `The MRS Database Object ${name} could not be updated. ${String(error)}`);
-            }
-
-        }
-    };
-
-    /**
      * Shows a dialog to create a new or edit an existing MRS content set.
      *
      * @param backend The interface for sending the requests.
@@ -1865,13 +1604,19 @@ export class MRSCommandHandler {
         if (!this.docsWebviewPanel) {
             try {
                 let data;
-                let mrsPluginDir = path.join(this.context.extensionPath, "/shell/lib/mysqlsh/plugins/mrs_plugin/");
-                let indexPath = path.join(mrsPluginDir, "docs/index.html");
+                let mrsPluginDir = path.join(this.context.extensionPath, "shell", "lib",
+                    "mysqlsh", "plugins", "mrs_plugin");
+                let indexPath = path.join(mrsPluginDir, "docs", "index.html");
                 if (fs.existsSync(indexPath)) {
                     data = fs.readFileSync(indexPath, "utf8");
                 } else {
-                    mrsPluginDir = path.join(os.homedir(), ".mysqlsh/plugins/mrs_plugin");
-                    indexPath = path.join(mrsPluginDir, "docs/index.html");
+                    if (os.platform() === "win32") {
+                        mrsPluginDir = path.join(os.homedir(), "AppData", "Roaming", "MySQL", "mysqlsh",
+                            "plugins", "mrs_plugin");
+                    } else {
+                        mrsPluginDir = path.join(os.homedir(), ".mysqlsh", "plugins", "mrs_plugin");
+                    }
+                    indexPath = path.join(mrsPluginDir, "docs", "index.html");
 
                     if (fs.existsSync(indexPath)) {
                         data = fs.readFileSync(indexPath, "utf8");
@@ -1897,6 +1642,9 @@ export class MRSCommandHandler {
                 // Handle messages from the webview
                 this.docsWebviewPanel.webview.onDidReceiveMessage(
                     (message) => {
+                        if (os.platform() === "win32") {
+                            message.path = String(message.path).replaceAll("/", "\\");
+                        }
                         switch (message.command) {
                             case "openSqlFile": {
                                 if (message.path && typeof message.path === "string") {

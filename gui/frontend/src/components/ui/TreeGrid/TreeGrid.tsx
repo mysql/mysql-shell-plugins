@@ -78,6 +78,9 @@ export interface ITreeGridOptions {
      */
     treeColumn?: string;
 
+    /** The number of pixels child nodes should be indented */
+    treeChildIndent?: number;
+
     /** Determines how columns are initially layed out (default: none). */
     layout?: "fitData" | "fitDataFill" | "fitDataStretch" | "fitDataTable" | "fitColumns";
 
@@ -423,12 +426,13 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
             data: tableData,
 
             dataTree: !isNil(options?.treeColumn),
+            dataTreeChildIndent: options?.treeChildIndent ?? 0,
             dataTreeChildField: options?.childKey ?? "children",
             dataTreeElementColumn: options?.treeColumn,
             dataTreeExpandElement: "<span class='treeToggle' />",
             dataTreeCollapseElement: "<span class='treeToggle expanded' />",
             dataTreeBranchElement: true,
-            dataTreeChildIndent: 0,
+            // dataTreeChildIndent: 0,
             dataTreeStartExpanded: options?.expandedLevels ?? false,
 
             rowFormatter: onFormatRow,

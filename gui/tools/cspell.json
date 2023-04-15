@@ -1,0 +1,10 @@
+{
+    "version": "0.2",
+    "words": [
+    ],
+    "ignoreWords": [
+        "unnest"
+    ],
+    "ignorePaths": [
+    ]
+}

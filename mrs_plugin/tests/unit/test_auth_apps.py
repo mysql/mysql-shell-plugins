@@ -34,28 +34,28 @@ def test_add_auth_vendors(phone_book, table_contents):
         'enabled': 1,
         'id': lib.core.id_to_binary("0x30000000000000000000000000000000", ""),
         'name': 'MRS',
-        'validation_url': 'NULL'
+        'validation_url': None
     },
     {
         'comments': 'Provides basic authentication via MySQL Server accounts',
         'enabled': 1,
         'id': lib.core.id_to_binary("0x31000000000000000000000000000000", ""),
         'name': 'MySQL Internal',
-        'validation_url': 'NULL'
+        'validation_url': None
     },
     {
         'comments': 'Uses the Facebook Login OAuth2 service',
         'enabled': 1,
         'id': lib.core.id_to_binary("0x32000000000000000000000000000000", ""),
         'name': 'Facebook',
-        'validation_url': 'NULL'
+        'validation_url': None
     },
     {
         'comments': 'Uses the Google OAuth2 service',
         'enabled': 1,
         'id': lib.core.id_to_binary("0x34000000000000000000000000000000", ""),
         'name': 'Google',
-        'validation_url': 'NULL'
+        'validation_url': None
     }]
 
 

@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Error Panel Tests Render Test 1`] = `
-<ErrorPanel>
+exports[`Message Panel Tests Render Test 1`] = `
+<MessagePanel>
   <Dialog
     actions={
       {
@@ -17,7 +17,7 @@ exports[`Error Panel Tests Render Test 1`] = `
       <p>
         <Icon
           disabled={false}
-          src={124}
+          src={190}
         />
         <Label>
           
@@ -48,10 +48,10 @@ exports[`Error Panel Tests Render Test 1`] = `
       onOpen={[Function]}
     />
   </Dialog>
-</ErrorPanel>
+</MessagePanel>
 `;
 
-exports[`Error Panel Tests Show Panel 1`] = `
+exports[`Message Panel Tests Show Error Panel 1`] = `
 <div
   class="msg portal"
   style="--background-opacity: 0.5;"
@@ -127,7 +127,7 @@ exports[`Error Panel Tests Show Panel 1`] = `
 </div>
 `;
 
-exports[`Error Panel Tests Show Panel 2`] = `
+exports[`Message Panel Tests Show Error Panel 2`] = `
 <div
   class="msg portal"
   style="--background-opacity: 0.5;"

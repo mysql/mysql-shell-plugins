@@ -399,6 +399,7 @@ def update_rds_metadata_schema(session, current_db_version_str):
 
                         version_to_update = update_to_version
                     except (mysqlsh.DBError, Exception) as e:
+                        print(f"Failed to upgrade {f}: {e}")
                         raise Exception(
                             "The MRS metadata database schema could not "
                             f"be updated.\n{current_cmd}\n{e}")
@@ -770,7 +771,9 @@ def convert_json(value) -> dict:
     return json.loads(value_str)
 
 
-def id_to_binary(id: str, context: str):
+def id_to_binary(id: str, context: str, allowNone = False):
+    if allowNone and id is None:
+        return None
     if isinstance(id, bytes):
         return id
     elif isinstance(id, str):
@@ -801,6 +804,11 @@ def convert_ids_to_binary(id_options, kwargs):
 
 def convert_id_to_string(id) -> str:
     return f"0x{id.hex()}"
+
+def convert_dict_to_json_string(dic) -> str:
+    if dic is None:
+        return None
+    return json.dumps(dict(dic))
 
 def _generate_where(where):
     if where:
@@ -1110,3 +1118,15 @@ def get_session_uri(session):
     uri = uri.split('?')[0]
 
     return uri
+
+def convert_path_to_camel_case(path):
+    if (path.startswith("/")):
+        path = path[1:]
+    path.replace("/", "_")
+
+    parts = path.split('_')
+    return parts[0] + ''.join(x.title() for x in parts[1:])
+
+def convert_path_to_pascal_case(path):
+    s = convert_path_to_camel_case(path)
+    return s[0].upper() + s[1:]
