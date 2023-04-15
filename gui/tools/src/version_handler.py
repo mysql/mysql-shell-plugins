@@ -117,11 +117,11 @@ def update_changelog_version(e_version, s_version):
     new_lines = [
         f'## Changes in {target_e_version}+{target_s_version}\n',
         '\n',
-        '### Fixes\n',
+        '### Additions\n',
         '\n',
         '- \n',
         '\n',
-        '### Additions\n',
+        '### Fixes\n',
         '\n',
         '- \n',
         '\n'
