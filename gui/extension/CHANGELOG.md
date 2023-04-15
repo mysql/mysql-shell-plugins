@@ -1,14 +1,17 @@
 # MySQL Shell for VS Code Change Log
 
-## Changes in 1.9.2+8.0.32
-
-### Fixes
-
-- 
+## Changes in 1.10.0+8.0.32
 
 ### Additions
 
-- 
+- JSON/Relational Duality support and SDK generation
+
+### Fixes
+
+- Bug #35115512 Wrong default value for Rest object pagination in MRS
+- Bug#35209790 mrs.list.services() incorrectly displays the supported protocols
+- Bug #35240130 Current REST Service in Schemas and Objects
+- Misc UI layout improvements and bugfixes
 
 ## Changes in 1.9.1+8.0.32
 
