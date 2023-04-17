@@ -4,11 +4,11 @@
 
 ### Fixes
 
-- 
+- Fixes an issue that caused the MySQL REST Service metadata database schema to be auto-created at connection time.
 
 ### Additions
 
-- 
+- Added an additional confirmation dialog before creating the MySQL REST Service metadata database schema.
 
 ## Changes in 1.10.0+8.0.32
 

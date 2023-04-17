@@ -715,13 +715,26 @@ export class MRSCommandHandler {
     };
 
     private configureMrs = async (item?: ConnectionMySQLTreeItem, enableMrs?: boolean): Promise<void> => {
-        if (item) {
+        const answer = await window.showInformationMessage(
+            `Do you want configure this instance for MySQL REST Service Support? ` +
+            `This operation will create the MRS metadata database schema.`, "Yes", "No");
+
+        if (item && answer === "Yes") {
             const sqlEditor = new ShellInterfaceSqlEditor();
             try {
                 await openSqlEditorSessionAndConnection(sqlEditor, item.entry.details.id,
                     "msg.mrs.configureMySQLRestService");
 
-                await sqlEditor.mrs.configure(enableMrs);
+                const statusbarItem = window.createStatusBarItem();
+                try {
+                    statusbarItem.text = "$(loading~spin) Configuring the MySQL REST Service " +
+                        "Metadata Schema ...";
+                    statusbarItem.show();
+
+                    await sqlEditor.mrs.configure(enableMrs);
+                } finally {
+                    statusbarItem.hide();
+                }
 
                 void commands.executeCommand("msg.refreshConnections");
                 showMessageWithTimeout("MySQL REST Service configured successfully.");

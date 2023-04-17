@@ -1331,10 +1331,10 @@ export interface IMrsSchemaData {
 }
 
 export interface IMrsStatusData {
-    enabled: boolean;
     serviceConfigured: boolean;
-    serviceEnabled: boolean;
     serviceCount: number;
+    serviceEnabled: boolean;
+    serviceUpgradeable: boolean;
 }
 
 export interface IMrsRoleData {

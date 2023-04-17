@@ -6,6 +6,7 @@
         "struct",
         "symlink",
         "unregister",
+        "UPDATEPROCEDURE",
         "urandom"
     ],
     "flagWords": [

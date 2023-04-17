@@ -51,7 +51,8 @@
             "Shell Plugin Tools",
             "MySQL Database Service Plugin",
             "VSCode Extension"
-        ]
+        ],
+        "msg.editor.defaultDbConnection": "Localhost 8.0"
     },
     "launch": {
         "version": "0.2.0",

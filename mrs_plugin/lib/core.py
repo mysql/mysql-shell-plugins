@@ -298,46 +298,14 @@ def get_mrs_schema_version(session):
     return [row["major"], row["minor"], row["patch"]]
 
 
-def _ensure_mrs_metadata_schema(session, raise_requires_upgrade):
-    """Creates or updates the MRS metadata schema
+def mrs_metadata_schema_exists(session):
+    row = MrsDbExec("""
+        SELECT COUNT(*) AS schema_exists
+        FROM INFORMATION_SCHEMA.SCHEMATA
+        WHERE SCHEMA_NAME = 'mysql_rest_service_metadata'
+    """).exec(session).first
 
-    Raises exception on failure
-
-    Args:
-        session (object): The database session to use
-
-    Returns:
-        True if the metadata schema has been changed
-    """
-    _metadata_schema_updated = False
-
-    # Check if the MRS metadata schema already exists
-    row = select(table="INFORMATION_SCHEMA.SCHEMATA", cols="COUNT(*) AS schema_exists",
-                 where="SCHEMA_NAME = 'mysql_rest_service_metadata'"
-                 ).exec(session).first
-
-    if row["schema_exists"] == 0:
-        create_rds_metadata_schema(session)
-        return True
-
-    # If it exists, check the version number
-    row = select(table="schema_version", cols=["major", "minor", "patch", "CONCAT(major, '.', minor, '.', patch) AS version"]
-                 ).exec(session).first
-
-    if not row:
-        raise Exception(
-            "Unable to fetch MRS metadata database schema version.")
-
-    current_db_version = get_mrs_schema_version(session)
-    if general.DB_VERSION < current_db_version:
-        raise Exception(
-            "Unsupported MRS metadata database schema "
-            f"version {'.'.join([str(item) for item in current_db_version])}. "
-            "Please update your MRS Shell Plugin.")
-    elif general.DB_VERSION > current_db_version and raise_requires_upgrade:
-        raise Exception("The MRS schema is outdated. Please run `mrs.configure()` to upgrade.")
-
-    return False
+    return row["schema_exists"]
 
 
 def update_rds_metadata_schema(session, current_db_version_str):
@@ -965,26 +933,11 @@ class MrsDbSession:
     def __init__(self, **kwargs) -> None:
         self._session = get_current_session(kwargs.get("session"))
         self._exception_handler = kwargs.get("exception_handler")
-
-        try:
-            _ensure_mrs_metadata_schema(self._session, kwargs.get("raise_requires_upgrade", True))
-        except:
+        check_version = kwargs.get("check_version", True)
+        if mrs_metadata_schema_exists(self._session) and check_version:
             current_db_version = get_mrs_schema_version(self._session)
-            if current_db_version < general.DB_VERSION and current_db_version[0] == general.DB_VERSION[0]:
-                # this is a minor version upgrade, so no need for user intervention
-
-                # if the major upgrade was accepted or it's a minor upgrade,
-                # proceed to execute it
-                current_db_version = [str(ver) for ver in current_db_version]
-
-                try:
-                    update_rds_metadata_schema(self._session, ".".join(current_db_version))
-                    _metadata_schema_updated = True
-                except:
-                    # be silent of errors when it fails to auto-upgrade
-                    pass
-            else:
-                raise
+            if current_db_version < general.DB_VERSION:
+                raise Exception("The MRS schema is outdated. Please run `mrs.configure()` to upgrade.")
 
 
     def __enter__(self):

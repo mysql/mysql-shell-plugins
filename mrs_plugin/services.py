@@ -735,12 +735,17 @@ def get_current_service_metadata(**kwargs):
     Returns:
         {id: string, metadata_version: string}
     """
+
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        status = lib.general.get_status(session)
+        if status.get("service_configured", False) == False:
+            return {}
+
         service_id = lib.services.get_current_service_id(session)
         if not service_id:
             return {}
 
-        # Lookup the last entry in the audit_log table that affects the service and use that as the 
+        # Lookup the last entry in the audit_log table that affects the service and use that as the
         # version int
         res = session.run_sql(
             """
@@ -751,7 +756,7 @@ def get_current_service_metadata(**kwargs):
             return { "id": service_id, "metadata_version": row.get_field("version") }
         else:
             return { "id": service_id, "metadata_version": "noChange" }
-        
+
 
 
 @plugin_function('mrs.set.currentService', shell=True, cli=True, web=True)
@@ -876,7 +881,7 @@ def dump_sdk_service_files(**kwargs):
             raise Exception("No directory given.")
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
-        service = resolve_service(session, service_id, True)
+        service = resolve_service(session, service_id, True, True)
         service_name = lib.core.convert_path_to_camel_case(service.get("url_context_root"))
         sdk_folder = f"{service_name}.mrs.sdk"
 

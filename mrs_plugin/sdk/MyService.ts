@@ -28,7 +28,7 @@
 /* eslint-disable no-underscore-dangle */
 
 import {
-    MrsBaseService, MrsBaseSchema, MrsBaseObject, MrsBaseObjectQuery, IMrsBaseObject,
+    MrsBaseService, MrsBaseSchema, MrsBaseObjectQuery, IMrsBaseObject,
     IMrsResultList, MrsBaseObjectUpdate, MrsBaseObjectCall, IMrsFetchData,
     MrsBaseObjectCreate, IMrsDeleteResult, MrsBaseObjectDelete,
     ICreateOptions, IDeleteOptions, IFindOptions, IUpdateOptions,
@@ -90,44 +90,35 @@ export class MyServiceMrsNotesObjectRequest {
     }
 }
 
-export class MyServiceMrsNotesNoteRequest extends MyServiceMrsNotesObjectRequest {
-    public get = <K extends keyof IMyServiceMrsNotesNote>(
-        ...args: K[]): MrsBaseObjectQuery<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteParams, MyServiceMrsNotesNote> => {
-        return new MrsBaseObjectQuery<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteParams, MyServiceMrsNotesNote>(
-            this.schema, MyServiceMrsNotesNote, MyServiceMrsNotesNote.requestPath, args);
-    };
-
-    public getAllExcept = <K extends keyof IMyServiceMrsNotesNote>(
-        ...args: K[]): MrsBaseObjectQuery<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteParams, MyServiceMrsNotesNote> => {
-        return new MrsBaseObjectQuery<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteParams, MyServiceMrsNotesNote>(
-            this.schema, MyServiceMrsNotesNote, MyServiceMrsNotesNote.requestPath, [], args);
-    };
-
-    public put = (
-        note: IMyServiceMrsNotesNote | MyServiceMrsNotesNote,
-        key?: string[]): MrsBaseObjectUpdate<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteParams> => {
-        if (note instanceof MyServiceMrsNotesNote) {
-            return new MrsBaseObjectUpdate<IMyServiceMrsNotesNote, MyServiceMrsNotesNote>(
-                this.schema, MyServiceMrsNotesNote.requestPath, note, key !== undefined ? key : [String(note.id)]);
-        } else {
-            return new MrsBaseObjectUpdate<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteParams>(
-                this.schema, MyServiceMrsNotesNote.requestPath, note, key !== undefined ? key : [String(note.id)]);
-        }
-    };
-}
-
-export class MyServiceMrsNotesNoteUpdateRequest extends MyServiceMrsNotesObjectRequest {
-    public put = (
-        noteUpdateParams: IMyServiceMrsNotesNoteUpdateParams,
-    ): MrsBaseObjectCall<IMyServiceMrsNotesNoteUpdate, IMyServiceMrsNotesNoteUpdateParams> => {
-        return new MrsBaseObjectCall<IMyServiceMrsNotesNoteUpdate, IMyServiceMrsNotesNoteUpdateParams>(
-            this.schema, "/noteUpdate", noteUpdateParams);
-    };
-}
 
 /*
  * MRS Object /myService/mrsNotes/note (Table)
  */
+
+export class MyServiceMrsNotesNoteRequest extends MyServiceMrsNotesObjectRequest {
+
+    public static readonly schemaRequestPath = "/mrsNotes";
+    public static readonly requestPath = "/note";
+
+    public get = <K extends keyof IMyServiceMrsNotesNote>(
+        ...args: K[]): MrsBaseObjectQuery<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteParams> => {
+        return new MrsBaseObjectQuery<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteParams>(
+            this.schema, MyServiceMrsNotesNoteRequest.requestPath, args);
+    };
+
+    public getAllExcept = <K extends keyof IMyServiceMrsNotesNote>(
+        ...args: K[]): MrsBaseObjectQuery<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteParams> => {
+        return new MrsBaseObjectQuery<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteParams>(
+            this.schema, MyServiceMrsNotesNoteRequest.requestPath, [], args);
+    };
+
+    public put = (
+        note: IMyServiceMrsNotesNote,
+        key?: string[]): MrsBaseObjectUpdate<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteParams> => {
+        return new MrsBaseObjectUpdate<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteParams>(
+            this.schema, MyServiceMrsNotesNoteRequest.requestPath, note, key !== undefined ? key : [String(note.id)]);
+    };
+}
 
 export interface IMyServiceMrsNotesNote extends IMrsBaseObject {
     contentBeginning?: string,
@@ -160,67 +151,23 @@ export interface IMyServiceMrsNotesNoteParams {
     content?: string,
 }
 
-export class MyServiceMrsNotesNote
-    extends MrsBaseObject<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteParams>
-    implements IMyServiceMrsNotesNote {
-    public static readonly schemaRequestPath = "/mrsNotes";
-    public static readonly requestPath = "/note";
-
-    public constructor(
-        fields: IMyServiceMrsNotesNote) {
-        super(fields);
-    }
-
-    public static fromResultList = (
-        resultList: IMrsResultList<IMyServiceSakilaCountry>): MyServiceSakilaCountry[] => {
-        return resultList.items.map((item) => {
-            return new MyServiceSakilaCountry(item);
-        });
-    };
-
-    public get contentBeginning(): string | undefined { return this.fieldsNew.contentBeginning ?? this.fields.contentBeginning; }
-    public set contentBeginning(s: string | undefined) { this.fieldsNew.contentBeginning = s; }
-
-    public get createDate(): string | undefined { return this.fieldsNew.createDate ?? this.fields.createDate; }
-    public set createDate(s: string | undefined) { this.fieldsNew.createDate = s; }
-
-    public get id(): number | undefined { return this.fieldsNew.id ?? this.fields.id; }
-    public set id(n: number | undefined) { this.fieldsNew.id = n; }
-
-    public get lastUpdate(): string | undefined { return this.fieldsNew.lastUpdate ?? this.fields.lastUpdate; }
-    public set lastUpdate(s: string | undefined) { this.fieldsNew.lastUpdate = s; }
-
-    public get lockedDown(): number | undefined { return this.fieldsNew.lockedDown ?? this.fields.lockedDown; }
-    public set lockedDown(n: number | undefined) { this.fieldsNew.lockedDown = n; }
-
-    public get ownNote(): number | undefined { return this.fieldsNew.ownNote ?? this.fields.ownNote; }
-    public set ownNote(n: number | undefined) { this.fieldsNew.ownNote = n; }
-
-    public get pinned(): number | undefined { return this.fieldsNew.pinned ?? this.fields.pinned; }
-    public set pinned(n: number | undefined) { this.fieldsNew.pinned = n; }
-
-    public get shared(): number | undefined { return this.fieldsNew.shared ?? this.fields.shared; }
-    public set shared(n: number | undefined) { this.fieldsNew.shared = n; }
-
-    public get tags(): object | undefined { return this.fieldsNew.tags ?? this.fields.tags; }
-    public set tags(n: object | undefined) { this.fieldsNew.tags = n; }
-
-    public get title(): string | undefined { return this.fieldsNew.title ?? this.fields.title; }
-    public set title(s: string | undefined) { this.fieldsNew.title = s; }
-
-    public get userId(): string | undefined { return this.fieldsNew.userId ?? this.fields.userId; }
-    public set userId(s: string | undefined) { this.fieldsNew.userId = s; }
-
-    public get viewOnly(): number | undefined { return this.fieldsNew.viewOnly ?? this.fields.viewOnly; }
-    public set viewOnly(n: number | undefined) { this.fieldsNew.viewOnly = n; }
-
-    public get content(): string | undefined { return this.fieldsNew.content ?? this.fields.content; }
-    public set content(s: string | undefined) { this.fieldsNew.content = s; }
-}
 
 /*
  * MRS Object /myService/mrsNotes/noteUpdate (Procedure)
  */
+
+export class MyServiceMrsNotesNoteUpdateRequest extends MyServiceMrsNotesObjectRequest {
+
+    public static readonly schemaRequestPath = "/mrsNotes";
+    public static readonly requestPath = "/note";
+
+    public call = (
+        noteUpdateParams: IMyServiceMrsNotesNoteUpdateParams,
+    ): MrsBaseObjectCall<IMyServiceMrsNotesNoteUpdate, IMyServiceMrsNotesNoteUpdateParams> => {
+        return new MrsBaseObjectCall<IMyServiceMrsNotesNoteUpdate, IMyServiceMrsNotesNoteUpdateParams>(
+            this.schema, MyServiceMrsNotesNoteUpdateRequest.requestPath, noteUpdateParams);
+    };
+}
 
 export interface IMyServiceMrsNotesNoteUpdateParams extends IMrsFetchData {
     userId?: string,
@@ -232,7 +179,7 @@ export interface IMyServiceMrsNotesNoteUpdateParams extends IMrsFetchData {
     tags: object,
 }
 
-export interface IMyServiceMrsNotesNoteUpdate {
+export interface IMyServiceMrsNotesNoteUpdate extends IMrsFetchData {
     success?: string,
     message?: string,
 }
@@ -241,7 +188,7 @@ export interface IMyServiceMrsNotesNoteUpdate {
  * MRS Schema /myService/sakila
  */
 
-class MyServiceSakilaCountryQueryClass extends MrsBaseObjectQuery<IMyServiceSakilaCountry, IMyServiceSakilaCountryParams, MyServiceSakilaCountry> { }
+class MyServiceSakilaCountryQueryClass extends MrsBaseObjectQuery<IMyServiceSakilaCountry, IMyServiceSakilaCountryParams> { }
 
 export class MyServiceSakila extends MrsBaseSchema {
     private _actor?: MyServiceSakilaActorRequest;
@@ -258,39 +205,37 @@ export class MyServiceSakilaObjectRequest {
 }
 
 export class MyServiceSakilaActorRequest extends MyServiceSakilaObjectRequest {
+
+    public static readonly schemaRequestPath = "/saklia";
+    public static readonly requestPath = "/actor";
+
     public rest = {
         get: <K extends keyof IMyServiceSakilaActor>(
-            ...args: K[]): MrsBaseObjectQuery<IMyServiceSakilaActor, IMyServiceSakilaActorParams, MyServiceSakilaActor> => {
-            return new MrsBaseObjectQuery<IMyServiceSakilaActor, IMyServiceSakilaActorParams, MyServiceSakilaActor>(
-                this.schema, MyServiceSakilaActor, MyServiceSakilaActor.requestPath, args);
+            ...args: K[]): MrsBaseObjectQuery<IMyServiceSakilaActor, IMyServiceSakilaActorParams> => {
+            return new MrsBaseObjectQuery<IMyServiceSakilaActor, IMyServiceSakilaActorParams>(
+                this.schema, MyServiceSakilaActorRequest.requestPath, args);
         },
 
         put: (
-            actor: IMyServiceSakilaActor | MyServiceSakilaActor,
+            actor: IMyServiceSakilaActor,
             key?: string[]): MrsBaseObjectUpdate<IMyServiceSakilaActor, IMyServiceSakilaActorParams> => {
-            if (actor instanceof MyServiceSakilaActor) {
-                // Rui: I do not understand this. The client app should implement the contract we provide.
-                return new MrsBaseObjectUpdate<IMyServiceSakilaActor, MyServiceSakilaActor>(
-                    this.schema, MyServiceSakilaActor.requestPath, actor, key !== undefined ? key : [String(actor.actor_id)]);
-            } else {
-                return new MrsBaseObjectUpdate<IMyServiceSakilaActor, IMyServiceSakilaActorParams>(
-                    this.schema, MyServiceSakilaActor.requestPath, actor, key !== undefined ? key : [String(actor.actor_id)]);
-            }
+            return new MrsBaseObjectUpdate<IMyServiceSakilaActor, IMyServiceSakilaActorParams>(
+                this.schema, MyServiceSakilaActorRequest.requestPath, actor, key !== undefined ? key : [String(actor.actor_id)]);
         },
 
         post: (actor: IMyServiceSakilaActor): MrsBaseObjectCreate<IMyServiceSakilaActor> => {
-            return new MrsBaseObjectCreate<IMyServiceSakilaActor>(this.schema, MyServiceSakilaActor.requestPath, actor);
+            return new MrsBaseObjectCreate<IMyServiceSakilaActor>(this.schema, MyServiceSakilaActorRequest.requestPath, actor);
         },
 
         delete: (): MrsBaseObjectDelete<IMyServiceSakilaActorParams> => {
-            return new MrsBaseObjectDelete<IMyServiceSakilaActorParams>(this.schema, MyServiceSakilaActor.requestPath);
+            return new MrsBaseObjectDelete<IMyServiceSakilaActorParams>(this.schema, MyServiceSakilaActorRequest.requestPath);
         },
     };
 
     public getAllExcept = <K extends keyof IMyServiceSakilaActor>(
-        ...args: K[]): MrsBaseObjectQuery<IMyServiceSakilaActor, IMyServiceSakilaActorParams, MyServiceSakilaActor> => {
-        return new MrsBaseObjectQuery<IMyServiceSakilaActor, IMyServiceSakilaActorParams, MyServiceSakilaActor>(
-            this.schema, MyServiceSakilaActor, MyServiceSakilaActor.requestPath, args);
+        ...args: K[]): MrsBaseObjectQuery<IMyServiceSakilaActor, IMyServiceSakilaActorParams> => {
+        return new MrsBaseObjectQuery<IMyServiceSakilaActor, IMyServiceSakilaActorParams>(
+            this.schema, MyServiceSakilaActorRequest.requestPath, args);
     };
 
     public create = async (args: ICreateOptions<IMyServiceSakilaActor>): Promise<IMyServiceSakilaActor> => {
@@ -324,8 +269,8 @@ export class MyServiceSakilaActorRequest extends MyServiceSakilaObjectRequest {
     };
 
     public findMany = async (args?: IFindOptions<IMyServiceSakilaActor, IMyServiceSakilaActorParams>): Promise<IMrsResultList<IMyServiceSakilaActor>> => {
-        const request = new MrsBaseObjectQuery<IMyServiceSakilaActor, IMyServiceSakilaActorParams, MyServiceSakilaActor>(
-            this.schema, MyServiceSakilaActor, MyServiceSakilaActor.requestPath, args?.select)
+        const request = new MrsBaseObjectQuery<IMyServiceSakilaActor, IMyServiceSakilaActorParams>(
+            this.schema, MyServiceSakilaActorRequest.requestPath, args?.select)
             .where(args?.where).orderBy(args?.orderBy).limit(args?.take).offset(args?.skip);
         let response;
         if (args?.fetchAll && typeof args?.fetchAll === "boolean" && args?.fetchAll === true) {
@@ -339,8 +284,8 @@ export class MyServiceSakilaActorRequest extends MyServiceSakilaObjectRequest {
     };
 
     public findFirst = async (args?: IFindOptions<IMyServiceSakilaActor, IMyServiceSakilaActorParams>): Promise<IMyServiceSakilaActor | undefined> => {
-        const request = new MrsBaseObjectQuery<IMyServiceSakilaActor, IMyServiceSakilaActorParams, MyServiceSakilaActor>(
-            this.schema, MyServiceSakilaActor, MyServiceSakilaActor.requestPath, args?.select);
+        const request = new MrsBaseObjectQuery<IMyServiceSakilaActor, IMyServiceSakilaActorParams>(
+            this.schema, MyServiceSakilaActorRequest.requestPath, args?.select);
         const response = await request.where(args?.where).orderBy(args?.orderBy).limit(args?.take).offset(args?.skip).fetchOne();
 
         return response;
@@ -367,28 +312,27 @@ export class MyServiceSakilaActorRequest extends MyServiceSakilaObjectRequest {
 }
 
 export class MyServiceSakilaCountryRequest extends MyServiceSakilaObjectRequest {
+
+    public static readonly schemaRequestPath = "/saklia";
+    public static readonly requestPath = "/country";
+
     public get = <K extends keyof IMyServiceSakilaCountry>(
         ...args: K[]): MyServiceSakilaCountryQueryClass => {
         return new MyServiceSakilaCountryQueryClass(
-            this.schema, MyServiceSakilaCountry, MyServiceSakilaCountry.requestPath, args);
+            this.schema, MyServiceSakilaCountryRequest.requestPath, args);
     };
 
     public getAllExcept = <K extends keyof IMyServiceSakilaCountry>(
         ...args: K[]): MyServiceSakilaCountryQueryClass => {
         return new MyServiceSakilaCountryQueryClass(
-            this.schema, MyServiceSakilaCountry, MyServiceSakilaCountry.requestPath, [], args);
+            this.schema, MyServiceSakilaCountryRequest.requestPath, [], args);
     };
 
     public put = (
-        actor: IMyServiceSakilaCountry | MyServiceSakilaCountry,
+        actor: IMyServiceSakilaCountry,
         key?: string): MrsBaseObjectUpdate<IMyServiceSakilaCountry, IMyServiceSakilaCountryParams> => {
-        if (actor instanceof MyServiceSakilaCountry) {
-            return new MrsBaseObjectUpdate<IMyServiceSakilaCountry, MyServiceSakilaCountry>(
-                this.schema, MyServiceSakilaCountry.requestPath, actor, key !== undefined ? [key] : [String(actor.country_id)]);
-        } else {
-            return new MrsBaseObjectUpdate<IMyServiceSakilaCountry, IMyServiceSakilaCountryParams>(
-                this.schema, MyServiceSakilaCountry.requestPath, actor, key !== undefined ? [key] : [String(actor.country_id)]);
-        }
+        return new MrsBaseObjectUpdate<IMyServiceSakilaCountry, IMyServiceSakilaCountryParams>(
+            this.schema, MyServiceSakilaCountryRequest.requestPath, actor, key !== undefined ? [key] : [String(actor.country_id)]);
     };
 }
 
@@ -418,36 +362,6 @@ export interface IMyServiceSakilaActorParams {
     last_update?: string,
 }
 
-export class MyServiceSakilaActor extends MrsBaseObject<IMyServiceSakilaActor, IMyServiceSakilaActorParams>
-    implements IMyServiceSakilaActor {
-    public static readonly schemaRequestPath = "/sakila";
-    public static readonly requestPath = "/actor";
-
-    public constructor(
-        fields: IMyServiceSakilaActor) {
-        super(fields);
-    }
-
-    public static fromResultList = (
-        resultList: IMrsResultList<IMyServiceSakilaActor>): MyServiceSakilaActor[] => {
-        return resultList.items.map((item) => {
-            return new MyServiceSakilaActor(item);
-        });
-    };
-
-    public get actor_id(): number | undefined { return this.fieldsNew.actor_id ?? this.fields.actor_id; }
-    public set actor_id(s: number | undefined) { this.fieldsNew.actor_id = s; }
-
-    public get last_name(): string | undefined { return this.fieldsNew.last_name ?? this.fields.last_name; }
-    public set last_name(s: string | undefined) { this.fieldsNew.last_name = s; }
-
-    public get first_name(): string | undefined { return this.fieldsNew.first_name ?? this.fields.first_name; }
-    public set first_name(s: string | undefined) { this.fieldsNew.first_name = s; }
-
-    public get last_update(): string | undefined { return this.fieldsNew.last_update ?? this.fields.last_update; }
-    public set last_update(s: string | undefined) { this.fieldsNew.last_update = s; }
-}
-
 /*
  * MRS Object - /myService/sakila/country (Table)
  */
@@ -462,33 +376,6 @@ export interface IMyServiceSakilaCountryParams {
     country_id?: number,
     country?: string,
     last_update?: string,
-}
-
-export class MyServiceSakilaCountry extends MrsBaseObject<IMyServiceSakilaCountry, IMyServiceSakilaCountryParams>
-    implements IMyServiceSakilaCountry {
-    public static readonly schemaRequestPath = "/sakila";
-    public static readonly requestPath = "/country";
-
-    public constructor(
-        fields: IMyServiceSakilaCountry) {
-        super(fields);
-    }
-
-    public static fromResultList = (
-        resultList: IMrsResultList<IMyServiceSakilaCountry>): MyServiceSakilaCountry[] => {
-        return resultList.items.map((item) => {
-            return new MyServiceSakilaCountry(item);
-        });
-    };
-
-    public get country_id(): number | undefined { return this.fieldsNew.country_id ?? this.fields.country_id; }
-    public set country_id(s: number | undefined) { this.fieldsNew.country_id = s; }
-
-    public get country(): string | undefined { return this.fieldsNew.country ?? this.fields.country; }
-    public set country(s: string | undefined) { this.fieldsNew.country = s; }
-
-    public get last_update(): string | undefined { return this.fieldsNew.last_update ?? this.fields.last_update; }
-    public set last_update(s: string | undefined) { this.fieldsNew.last_update = s; }
 }
 
 /* =============================================================================
@@ -583,26 +470,6 @@ export class test {
         result = await myService.sakila.actor.rest.get("first_name", "last_name")
             .where({ actor_id: 2 }).fetch();
         console.log(result);
-
-        // Fetch REST Object JSON and create MrsObject list
-        const items = await myService.sakila.actor.rest.get().whereOld("last_name", "like", "A%").fetchAll();
-        const actorObjectList = MyServiceSakilaActor.fromResultList(items);
-        console.log(actorObjectList);
-
-        // Update REST Object with JSON by key
-        let updateRes = await myService.sakila.actor.rest.put({ last_name: "Test1" }).whereKey(1).fetch();
-        console.log(updateRes);
-
-        // Update REST Object by passing a modified MrsObject
-        const actor = await myService.sakila.actor.rest.get().whereOld("actor_id", "=", "1").fetchObject();
-        if (actor !== undefined) {
-            actor.last_name = "Test2";
-
-            updateRes = await myService.sakila.actor.rest.put(actor).fetch();
-            console.log(updateRes);
-        } else {
-            console.log("Actor with actor_id = 1 not found.");
-        }
     };
 }
 

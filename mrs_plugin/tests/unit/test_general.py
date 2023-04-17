@@ -137,7 +137,8 @@ def test_status(phone_book):
     assert status_output == {
         'service_configured': True,
         'service_count': 1,
-        'service_enabled': 0
+        'service_enabled': 0,
+        'service_upgradeable': False
     }
 
 
@@ -154,7 +155,8 @@ def test_status(phone_book):
     assert status_output == {
         'service_configured': True,
         'service_count': 1,
-        'service_enabled': 1
+        'service_enabled': 1,
+        'service_upgradeable': False,
     }
 
     config_output = configure(phone_book["session"], enabled)
@@ -170,6 +172,7 @@ def test_status(phone_book):
     assert status_output == {
         'service_configured': True,
         'service_count': 1,
-        'service_enabled': enabled
+        'service_enabled': enabled,
+        'service_upgradeable': False
     }
 
