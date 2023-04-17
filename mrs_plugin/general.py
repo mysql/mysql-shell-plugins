@@ -35,7 +35,7 @@ def info():
         str
     """
     return (f"MySQL REST Data Service (MRS) Plugin Version {lib.general.VERSION} PREVIEW\n"
-             "Warning! For testing purposes only!")
+            "Warning! For testing purposes only!")
 
 
 @plugin_function('mrs.version', shell=True, cli=True, web=True)
@@ -74,7 +74,8 @@ def ls(path=None, session=None):
         else:
             service = lib.services.get_current_service(session=session)
             schema = lib.schemas.get_current_schema(session=session)
-            content_set = lib.content_sets.get_current_content_set(session=session)
+            content_set = lib.content_sets.get_current_content_set(
+                session=session)
 
         # If there is not current_service set, list all services
         if not service:
@@ -96,7 +97,8 @@ def ls(path=None, session=None):
             content_sets = lib.content_sets.get_content_sets(
                 service_id=service.get('id'), session=session)
 
-            auth_apps = lib.auth_apps.get_auth_apps(service_id=service.get('id'), session=session)
+            auth_apps = lib.auth_apps.get_auth_apps(
+                service_id=service.get('id'), session=session)
 
             if not schemas and not content_sets:
                 print("No schemas added to this service yet.\n\n"
@@ -172,13 +174,14 @@ def cd(path=None, session=None):
                 current_path += content_set.get("request_path")
 
             lib.core.set_current_objects(service=service, schema=schema,
-                                content_set=content_set)
+                                         content_set=content_set)
 
             print(f"Current path set to {current_path}")
             return
         # If an empty path was given, set the current path to root
         elif path == "":
-            lib.core.set_current_objects(service=None, schema=None, db_object=None)
+            lib.core.set_current_objects(
+                service=None, schema=None, db_object=None)
             print(f"Current path set to root.")
         # If no path was given, let the user choose
         else:
@@ -187,7 +190,8 @@ def cd(path=None, session=None):
             # If the current service has not been set, let the user select it
             if not current_service:
                 # Check if there already is at least one service
-                row = lib.core.select(table="service", cols="COUNT(*) as service_count").exec(session).first
+                row = lib.core.select(
+                    table="service", cols="COUNT(*) as service_count").exec(session).first
                 service_count = row["service_count"] if row else 0
 
                 # If there is exactly one service, set id to its id
@@ -212,7 +216,8 @@ def cd(path=None, session=None):
                     return
 
             current_schema = lib.schemas.get_current_schema(session=session)
-            current_content_set = lib.content_sets.get_current_content_set(session=session)
+            current_content_set = lib.content_sets.get_current_content_set(
+                session=session)
 
             if not current_schema and not current_content_set:
                 print(f"MRS Service {current_service.get('host_ctx')} - "
@@ -230,20 +235,20 @@ def cd(path=None, session=None):
                 if items:
                     selection = lib.core.prompt_for_list_item(
                         item_list=items, prompt_caption=("Please select a schema "
-                                                        "or content set: "),
+                                                         "or content set: "),
                         item_name_property='request_path', print_list=True)
 
                     # If there is a key called name, it is a schema
                     if 'name' in selection:
                         lib.core.set_current_objects(service=current_service,
-                                            schema=selection)
+                                                     schema=selection)
                     else:
                         lib.core.set_current_objects(service=current_service,
-                                            content_set=selection)
+                                                     content_set=selection)
 
                     if selection:
                         print(f"Current path set to {selection.get('host_ctx')}"
-                            f"{selection.get('request_path')}")
+                              f"{selection.get('request_path')}")
 
 
 @plugin_function('mrs.configure', shell=True, cli=True, web=True)
@@ -261,40 +266,53 @@ def configure(session=None, enable_mrs=None):
 
     if interactive:
         print("MySQL Rest Data Service configuration.\n\n"
-                "Checking MRS metadata schema and version...")
+              "Checking MRS metadata schema and version...")
 
-    raise_requires_upgrade = enable_mrs is not None
+    with lib.core.MrsDbSession(session=session, check_version=False) as session:
+        schema_changed = False
+        if lib.core.mrs_metadata_schema_exists(session):
+            # Make sure the MRS metadata schema exists and has the right version
+            schema_changed = lib.core.get_metadata_schema_updated()
 
-    with lib.core.MrsDbSession(session=session, raise_requires_upgrade=raise_requires_upgrade) as session:
-        # Make sure the MRS metadata schema exists and has the right version
-        schema_changed = lib.core.get_metadata_schema_updated()
+            current_db_version = lib.core.get_mrs_schema_version(session)
 
-        current_db_version = lib.core.get_mrs_schema_version(session)
-        if current_db_version[0] < lib.general.DB_VERSION[0]:
-            # this is a major version upgrade, so there must be user intervention
-            # to proceed with the upgrade
+            if lib.general.DB_VERSION < current_db_version:
+                raise Exception(
+                    "Unsupported MRS metadata database schema "
+                    f"version {lib.general.DB_VERSION_STR}. "
+                    "Please update your MRS Shell Plugin.")
 
-            if interactive:
-                if lib.core.prompt("An upgrade is available for the MRS schema. Upgrade? [y/N]: ",
-                    {'defaultValue': 'n'}).strip().lower() == 'n':
-                    raise Exception("The MRS schema is outdated. Please run `mrs.configure()` to upgrade.")
+            if current_db_version < lib.general.DB_VERSION:
+                # this is a major version upgrade, so there must be user intervention
+                # to proceed with the upgrade
+                if interactive:
+                    if lib.core.prompt("An upgrade is available for the MRS schema. Upgrade? [y/N]: ",
+                                       {'defaultValue': 'n'}).strip().lower() == 'n':
+                        raise Exception(
+                            "The MRS schema is outdated. Please run `mrs.configure()` to upgrade.")
 
-            # if the major upgrade was accepted or it's a minor upgrade,
-            # proceed to execute it
-            current_db_version = [str(ver) for ver in current_db_version]
+                # if the major upgrade was accepted or it's a minor upgrade,
+                # proceed to execute it
+                current_db_version = [str(ver) for ver in current_db_version]
 
-            lib.core.update_rds_metadata_schema(session, ".".join(current_db_version))
+                lib.core.update_rds_metadata_schema(
+                    session, ".".join(current_db_version))
 
-            if interactive:
-                print("The MRS metadata has been configured.")
+                if interactive:
+                    print("The MRS metadata has been configured.")
+            else:
+                if interactive:
+                    print("The MRS metadata is well configured, no changes "
+                          "performed.")
         else:
+            lib.core.create_rds_metadata_schema(session)
+            schema_changed = True
             if interactive:
-                print("The MRS metadata is well configured, no changes "
-                    "performed.")
+                print("The MRS metadata has been created.")
 
         if enable_mrs is not None:
             lib.core.update(table="config", sets="service_enabled=?", where="id=1"
-            ).exec(session, [1 if enable_mrs else 0])
+                            ).exec(session, [1 if enable_mrs else 0])
 
             if interactive:
                 if enable_mrs:
@@ -303,7 +321,7 @@ def configure(session=None, enable_mrs=None):
                     print(f"The MySQL REST Data Service has been disabled.")
         else:
             row = lib.core.select(table="config", cols="service_enabled", where="id=1"
-            ).exec(session).first
+                                  ).exec(session).first
             enable_mrs = row["service_enabled"] if row else 0
 
         if not interactive:
@@ -324,49 +342,24 @@ def status(session=None):
         None
     """
 
-    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, session=session) as session:
+    with lib.core.MrsDbSession(
+            exception_handler=lib.core.print_exception, session=session, check_version=False) as session:
         if lib.core.get_interactive_default():
             print("Checking the current status of the MRS...\n")
 
-        # Check if the MRS metadata schema already exists
-        row = lib.database.get_schema(session, "mysql_rest_service_metadata")
-        if row is None:
-            if lib.core.get_interactive_result():
-                print("The MySQL REST Data Service is not configured yet. "
-                      "Run mrs.configure() to configure the service.")
-            else:
-                return {
-                    'service_configured': False,
-                    'service_enabled': False,
-                    'service_count': 0,
-                    'service_upgradeable': 0,
-                }
-        else:
-            result = {'service_configured': True}
-
-        # Check if MRS is enabled
-        row = lib.core.select(table="config",
-            cols="service_enabled",
-            where="id=1"
-        ).exec(session).first
-        result['service_enabled'] = row["service_enabled"]
-
-        # Get the number of enabled services
-        row = lib.core.select(table="service",
-            cols="SUM(enabled) as service_count"
-        ).exec(session).first
-        result['service_count'] = 0 if row["service_count"] is None else int(row["service_count"])
+        status = lib.general.get_status(session)
 
         if lib.core.get_interactive_result():
-            if result['service_enabled']:
+            if status.get("service_configured", False) == False:
+                print("The MySQL REST Data Service is not configured yet. "
+                      "Run mrs.configure() to configure the service.")
+            elif status['service_enabled']:
                 print(f"The MySQL REST Data Service is enabled.")
                 print("Number of enabled MRS services: "
-                      f"{result['service_count']}")
-                if int(result['service_count']) == 0:
+                      f"{status['service_count']}")
+                if int(status['service_count']) == 0:
                     print("\nUse mrs.add.service() to add a new service.")
             else:
                 print(f"The MySQL REST Data Service is disabled.")
         else:
-            return result
-
-
+            return status

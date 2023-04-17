@@ -7,7 +7,7 @@
 /* eslint-disable no-underscore-dangle */
 
 import {
-    MrsBaseService, MrsBaseSchema, MrsBaseObject, MrsBaseObjectQuery, IMrsBaseObject,
+    MrsBaseService, MrsBaseSchema, MrsBaseObjectQuery, IMrsBaseObject,
     IMrsResultList, MrsBaseObjectUpdate, MrsBaseObjectCall, IMrsFetchData,
     MrsBaseObjectCreate, IMrsDeleteResult, MrsBaseObjectDelete,
     ICreateOptions, IDeleteOptions, IFindOptions, IUpdateOptions,
@@ -73,39 +73,55 @@ export class ${schema_class_name}ObjectRequest {
 
 // --- objectLoopStart
 /*
- * MRS Object - ${obj_full_request_path} (Table)
+ * MRS Object - ${obj_full_request_path} (${obj_type})
  */
 
 export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest {
+
+    public static readonly schemaRequestPath = "${schema_request_path}";
+    public static readonly requestPath = "${obj_request_path}";
+
     public rest = {
-        get: <K extends keyof I${obj_class_name}>(
-            ...args: K[]): MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Params, ${obj_class_name}> => {
-            return new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Params, ${obj_class_name}>(
-                this.schema, ${obj_class_name}, ${obj_class_name}.requestPath, args);
-        },
-
-        put: (
-            ${obj_name}: I${obj_class_name} | ${obj_class_name},
-            key?: string[]): MrsBaseObjectUpdate<I${obj_class_name}, I${obj_class_name}Params> => {
-            if (${obj_name} instanceof ${obj_class_name}) {
-                // Rui: I do not understand this. The client app should implement the contract we provide.
-                return new MrsBaseObjectUpdate<I${obj_class_name}, ${obj_class_name}>(
-                    this.schema, ${obj_class_name}.requestPath, ${obj_name}, key !== undefined ? key : [${obj_string_pk_list}]);
-            } else {
-                return new MrsBaseObjectUpdate<I${obj_class_name}, I${obj_class_name}Params>(
-                    this.schema, ${obj_class_name}.requestPath, ${obj_name}, key !== undefined ? key : [${obj_string_pk_list}]);
-            }
-        },
-
+        // --- crudCreateOnlyStart
         post: (${obj_name}: I${obj_class_name}): MrsBaseObjectCreate<I${obj_class_name}> => {
-            return new MrsBaseObjectCreate<I${obj_class_name}>(this.schema, ${obj_class_name}.requestPath, ${obj_name});
+            return new MrsBaseObjectCreate<I${obj_class_name}>(this.schema, ${obj_class_name}Request.requestPath, ${obj_name});
         },
+        // --- crudCreateOnlyEnd
 
-        delete: (): MrsBaseObjectDelete<I${obj_class_name}Params> => {
-            return new MrsBaseObjectDelete<I${obj_class_name}Params>(this.schema, ${obj_class_name}.requestPath);
+        // --- crudReadOnlyStart
+        get: <K extends keyof I${obj_class_name}>(
+            ...args: K[]): MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Params> => {
+            return new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Params>(
+                this.schema, ${obj_class_name}Request.requestPath, args);
         },
+        // --- crudReadOnlyEnd
+        // --- crudUpdateProcedureOnlyStart
+        put: (
+            ${obj_name}Params: I${obj_class_name}Params,
+        ): MrsBaseObjectCall<I${obj_class_name}, I${obj_class_name}Params> => {
+            return new MrsBaseObjectCall<I${obj_class_name}, I${obj_class_name}Params>(
+                this.schema, ${obj_class_name}Request.requestPath, ${obj_name}Params);
+        },
+        // --- crudUpdateProcedureOnlyEnd
+
+        // --- crudUpdateOnlyStart
+        put: (
+            ${obj_name}: I${obj_class_name},
+            key?: string[]): MrsBaseObjectUpdate<I${obj_class_name}, I${obj_class_name}Params> => {
+            return new MrsBaseObjectUpdate<I${obj_class_name}, I${obj_class_name}Params>(
+                this.schema, ${obj_class_name}Request.requestPath, ${obj_name}, key !== undefined ? key : [${obj_string_pk_list}]);
+        },
+        // --- crudUpdateOnlyEnd
+
+        // --- crudDeleteOnlyStart
+        delete: (): MrsBaseObjectDelete<I${obj_class_name}Params> => {
+            return new MrsBaseObjectDelete<I${obj_class_name}Params>(this.schema, ${obj_class_name}Request.requestPath);
+        },
+        // --- crudDeleteOnlyEnd
     };
 
+
+    // --- crudCreateOnlyStart
     public create = async (args: ICreateOptions<I${obj_class_name}>): Promise<I${obj_class_name}> => {
         const response = await this.rest.post(args.data).fetch();
 
@@ -123,22 +139,12 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
 
         return result;
     };
+    // --- crudCreateOnlyEnd
 
-    public delete = async (args: IDeleteOptions<I${obj_class_name}Params>): Promise<IMrsDeleteResult> => {
-        const response = await this.rest.delete().where(args.where).fetch();
-
-        return response;
-    };
-
-    public deleteMany = async (args: IDeleteOptions<I${obj_class_name}Params>): Promise<IMrsDeleteResult> => {
-        const response = await this.delete(args);
-
-        return response;
-    };
-
+    // --- crudReadOnlyStart
     public findMany = async (args?: IFindOptions<I${obj_class_name}, I${obj_class_name}Params>): Promise<IMrsResultList<I${obj_class_name}>> => {
-        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Params, ${obj_class_name}>(
-            this.schema, ${obj_class_name}, ${obj_class_name}.requestPath, args?.select)
+        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Params>(
+            this.schema, ${obj_class_name}Request.requestPath, args?.select)
             .where(args?.where).orderBy(args?.orderBy).limit(args?.take).offset(args?.skip);
         let response;
         if (args?.fetchAll && typeof args?.fetchAll === "boolean" && args?.fetchAll === true) {
@@ -152,13 +158,15 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
     };
 
     public findFirst = async (args?: IFindOptions<I${obj_class_name}, I${obj_class_name}Params>): Promise<I${obj_class_name} | undefined> => {
-        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Params, ${obj_class_name}>(
-            this.schema, ${obj_class_name}, ${obj_class_name}.requestPath, args?.select);
+        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Params>(
+            this.schema, ${obj_class_name}Request.requestPath, args?.select);
         const response = await request.where(args?.where).orderBy(args?.orderBy).limit(args?.take).offset(args?.skip).fetchOne();
 
         return response;
     };
+    // --- crudReadOnlyEnd
 
+    // --- crudUpdateOnlyStart
     public update = async (args: IUpdateOptions<I${obj_class_name}Params, [${obj_quoted_pk_list}], { batch: false }>): Promise<I${obj_class_name}> => {
         const response = await this.rest.put(args.data, [${obj_string_args_where_pk_list}])
             .fetch();
@@ -177,31 +185,31 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
 
         return result;
     };
+    // --- crudUpdateOnlyEnd
+    // --- crudUpdateProcedureOnlyStart
+    public call = (
+        ${obj_name}Params: I${obj_class_name}Params,
+    ): Promise<IMrsResultList<I${obj_class_name}>> => {
+        return this.rest.put(${obj_name}Params).fetch();
+    };
+    // --- crudUpdateProcedureOnlyEnd
+
+    // --- crudDeleteOnlyStart
+    public delete = async (args: IDeleteOptions<I${obj_class_name}Params>): Promise<IMrsDeleteResult> => {
+        const response = await this.rest.delete().where(args.where).fetch();
+
+        return response;
+    };
+
+    public deleteMany = async (args: IDeleteOptions<I${obj_class_name}Params>): Promise<IMrsDeleteResult> => {
+        const response = await this.delete(args);
+
+        return response;
+    };
+    // --- crudDeleteOnlyEnd
 }
 
 ${obj_interfaces}
-
-
-export class ${obj_class_name} extends MrsBaseObject<I${obj_class_name}, I${obj_class_name}Params>
-    implements I${obj_class_name} {
-    public static readonly schemaRequestPath = "${schema_request_path}";
-    public static readonly requestPath = "${obj_request_path}";
-
-    public constructor(
-        fields: I${obj_class_name}) {
-        super(fields);
-    }
-
-    public static fromResultList = (
-        resultList: IMrsResultList<I${obj_class_name}>): ${obj_class_name}[] => {
-        return resultList.items.map((item) => {
-            return new ${obj_class_name}(item);
-        });
-    };
-
-    // Getters and setters
-${obj_getters_setters}
-}
 
 // --- objectLoopEnd
 

@@ -19,6 +19,7 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
+from mrs_plugin import lib
 
 # Define plugin version
 VERSION = "1.10.1"
@@ -26,3 +27,35 @@ VERSION = "1.10.1"
 DB_VERSION = [1, 1, 2]
 DB_VERSION_STR = '%d.%d.%d' % tuple(DB_VERSION)
 DB_VERSION_NUM = DB_VERSION[0] * 100000 + DB_VERSION[1] * 1000 + DB_VERSION[2]
+
+
+def get_status(session):
+    # Check if the MRS metadata schema already exists
+    row = lib.database.get_schema(session, "mysql_rest_service_metadata")
+    if row is None:
+        return {
+            'service_configured': False,
+            'service_enabled': False,
+            'service_count': 0,
+            'service_upgradeable': 0,
+        }
+    else:
+        result = {'service_configured': True}
+
+    # Check if MRS is enabled
+    row = lib.core.select(table="config",
+                      cols="service_enabled",
+                      where="id=1"
+                      ).exec(session).first
+    result['service_enabled'] = row["service_enabled"]
+
+    # Get the number of enabled services
+    row = lib.core.select(table="service",
+                      cols="SUM(enabled) as service_count"
+                      ).exec(session).first
+    result['service_count'] = 0 if row["service_count"] is None else int(
+        row["service_count"])
+
+    result["service_upgradeable"] = DB_VERSION > lib.core.get_mrs_schema_version(session)
+
+    return result

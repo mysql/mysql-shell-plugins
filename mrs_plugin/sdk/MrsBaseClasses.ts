@@ -385,34 +385,6 @@ export interface IMrsBaseObject {
     links?: IMrsLink[];
 }
 
-export interface IMrsValidationResult {
-    fieldName: string;
-    validationError: string;
-}
-
-export class MrsBaseObject<C, P> implements IMrsBaseObject {
-    public links?: IMrsLink[];
-    protected param?: P;
-    protected fieldsNew: Partial<C> = {};
-
-    public constructor(
-        protected fields: C,
-        protected mrsSchema?: MrsBaseSchema) {
-    }
-
-    public getChangedFields = (): Partial<C> => {
-        return this.fieldsNew;
-    };
-
-    public validate = (): IMrsValidationResult[] => {
-        return [];
-    };
-
-    /*protected get = <K extends keyof P>(...args: K[]): void => {
-        // ToDO
-    };*/
-}
-
 export interface IMrsOperator {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     "=": "$eq",
@@ -539,7 +511,7 @@ export type UpdateMatch<T, Keys extends Array<string & keyof T>> = {
     [K in keyof Pick<T, Keys[number]>]-?: T[K]
 };
 
-export class MrsBaseObjectQuery<C, P, O extends MrsBaseObject<C, P>> {
+export class MrsBaseObjectQuery<C, P> {
     // This needs to be extended in order to hold AND, OR, etc. based on the actual grammar
     protected whereCondition?: string;
     protected offsetCondition?: number;
@@ -548,8 +520,6 @@ export class MrsBaseObjectQuery<C, P, O extends MrsBaseObject<C, P>> {
 
     public constructor(
         private readonly schema: MrsBaseSchema,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/naming-convention
-        private readonly T: new (...args: any[]) => O,
         private readonly requestPath: string,
         private readonly fieldsToGet?: string[] | ResultFields<C> | ColumnNames<C>,
         private readonly fieldsToOmit?: string[]) {
@@ -762,31 +732,6 @@ export class MrsBaseObjectQuery<C, P, O extends MrsBaseObject<C, P>> {
             return undefined;
         }
     };
-
-    public fetchObject = async (): Promise<O | undefined> => {
-        const result = await this.fetchOne();
-
-        if (result !== undefined) {
-            return new this.T(result);
-        } else {
-            return undefined;
-        }
-    };
-
-    public fetchAllObjects = async (): Promise<O[] | undefined> => {
-        const result = await this.fetch();
-
-        if (result !== undefined) {
-            const objList: O[] = [];
-            result.items.forEach((item) => {
-                objList.push(new this.T(item));
-            });
-
-            return objList;
-        } else {
-            return undefined;
-        }
-    };
 }
 
 export class MrsBaseObjectCreate<T> {
@@ -874,7 +819,7 @@ export class MrsBaseObjectUpdate<T, P extends object | undefined> {
         const res = await this.schema.service.session.doFetch({
             input,
             method: "PUT",
-            body: (this.fieldsToSet instanceof MrsBaseObject) ? this.fieldsToSet.getChangedFields() : this.fieldsToSet,
+            body: this.fieldsToSet,
             errorMsg: "Failed to update item.",
         });
 

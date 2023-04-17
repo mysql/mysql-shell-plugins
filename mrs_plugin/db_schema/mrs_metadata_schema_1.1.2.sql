@@ -1288,7 +1288,7 @@ CREATE FUNCTION `mysql_rest_service_metadata`.`get_sequence_id`() RETURNS BINARY
 RETURN UUID_TO_BIN(UUID(), 1)$$
 
 CREATE EVENT `mysql_rest_service_metadata`.`delete_old_audit_log_entries` ON SCHEDULE EVERY 1 DAY DO 
-DELETE FROM `mysql_rest_service_metadata`.`audit_log` WHERE changed_at < UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 14 DAY))$$
+DELETE FROM `mysql_rest_service_metadata`.`audit_log` WHERE changed_at < TIMESTAMP(DATE_SUB(NOW(), INTERVAL 14 DAY))$$
 
 
 CREATE FUNCTION `mysql_rest_service_metadata`.`valid_request_path`(path VARCHAR(255)) 

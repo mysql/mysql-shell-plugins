@@ -72,6 +72,7 @@ import { MrsAuthAppTreeItem } from "./MrsAuthAppTreeItem";
 import { MrsUserTreeItem } from "./MrsUserTreeItem";
 import { MrsRouterTreeItem } from "./MrsRouterTreeItem";
 import { uuid } from "../../../../frontend/src/utilities/helpers";
+import { showMessageWithTimeout } from "../../utilities";
 
 export interface IConnectionEntry {
     id: string;
@@ -488,14 +489,33 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                             try {
                                 const status = await backend.mrs.status();
 
-                                const mrsTreeItem =
-                                    new MrsTreeItem("MySQL REST Service", schema, entry, true, status.serviceEnabled);
-                                schemaList.unshift(mrsTreeItem);
-                                // Store the mrsTreeItem in the IConnectionEntry so it can be accessed later on
-                                entry.mrsTreeItem = mrsTreeItem;
+                                if (status.serviceUpgradeable) {
+                                    const statusbarItem = window.createStatusBarItem();
+                                    try {
+                                        statusbarItem.text = "$(loading~spin) Updating the MySQL REST Service " +
+                                            "Metadata Schema ...";
+                                        statusbarItem.show();
+
+                                        await backend.mrs.configure();
+
+                                        showMessageWithTimeout(
+                                            "The MySQL REST Service Metadata Schema has been updated.");
+                                    } finally {
+                                        statusbarItem.hide();
+                                    }
+                                } else {
+                                    const mrsTreeItem =
+                                        new MrsTreeItem("MySQL REST Service", schema, entry, true,
+                                            status.serviceEnabled);
+                                    schemaList.unshift(mrsTreeItem);
+                                    // Store the mrsTreeItem in the IConnectionEntry so it can be accessed later on
+                                    entry.mrsTreeItem = mrsTreeItem;
+                                }
+
                             } catch (reason) {
                                 void window.showErrorMessage(
-                                    `MySQL REST Service: ${reason instanceof Error ? reason.message : String(reason)}`);
+                                    "Failed to check and upgrade the MySQL REST Service Schema. " +
+                                    `Error: ${reason instanceof Error ? reason.message : String(reason)}`);
                             }
                         }
                         // Only show system schemas if the options is set
