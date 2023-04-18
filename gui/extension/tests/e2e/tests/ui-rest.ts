@@ -125,6 +125,13 @@ describe("MySQL REST Service", () => {
             await treeGlobalConn.expand();
             await Misc.setInputPassword((globalConn.basic as IConnBasicMySQL).password);
             await Misc.selectContextMenuItem(treeGlobalConn, "Configure Instance for MySQL REST Service Support");
+
+            await Misc.verifyNotification(
+                `Do you want to configure this instance for MySQL REST Service Support?`);
+            const workbench = new Workbench();
+            const ntfs = await workbench.getNotifications();
+            await ntfs[ntfs.length - 1].takeAction("Yes");
+
             await Misc.setInputPassword((globalConn.basic as IConnBasicMySQL).password);
             await Misc.verifyNotification("MySQL REST Service configured successfully.", true);
 

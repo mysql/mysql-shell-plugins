@@ -715,9 +715,13 @@ export class MRSCommandHandler {
     };
 
     private configureMrs = async (item?: ConnectionMySQLTreeItem, enableMrs?: boolean): Promise<void> => {
-        const answer = await window.showInformationMessage(
-            `Do you want configure this instance for MySQL REST Service Support? ` +
-            `This operation will create the MRS metadata database schema.`, "Yes", "No");
+        let answer: string | undefined = "Yes";
+
+        if (enableMrs === undefined) {
+            answer = await window.showInformationMessage(
+                `Do you want to configure this instance for MySQL REST Service Support? ` +
+                `This operation will create the MRS metadata database schema.`, "Yes", "No");
+        }
 
         if (item && answer === "Yes") {
             const sqlEditor = new ShellInterfaceSqlEditor();
