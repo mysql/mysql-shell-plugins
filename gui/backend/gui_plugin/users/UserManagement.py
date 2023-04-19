@@ -352,10 +352,10 @@ def update_profile(profile, be_session=None):
             where the operation will be performed.
 
     Allowed options for profile:
-        id (int,required): The id of profile
-        name (str,required): The profile name
-        description (str,required): A longer description for profile
-        options (dict,required): The options specific for the profile
+        id (int): The id of profile
+        name (str): The profile name
+        description (str): A longer description for profile
+        options (dict): The options specific for the profile
 
     Returns:
         None
@@ -385,9 +385,9 @@ def add_profile(user_id, profile, be_session=None):
             where the operation will be performed.
 
     Allowed options for profile:
-        name (str,required): The profile name
-        description (str,required): A longer description for profile
-        options (dict,required): The options specific for the profile
+        name (str): The profile name
+        description (str): A longer description for profile
+        options (dict): The options specific for the profile
 
     Returns:
         int: the profile ID.

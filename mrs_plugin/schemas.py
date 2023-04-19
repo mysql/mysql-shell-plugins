@@ -204,9 +204,9 @@ def add_schema(**kwargs):
         requires_auth (bool): Whether authentication is required to access
             the schema
         enabled (bool): The enabled state
-        items_per_page (int,required): The number of items returned per page
+        items_per_page (int): The number of items returned per page
         comments (str): Comments for the schema
-        options (dict,required): The options for the schema
+        options (dict): The options for the schema
         session (object): The database session to use.
 
     Returns:
@@ -291,11 +291,11 @@ def get_schema(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        service_id (str,required): The id of the service
-        request_path (str,required): The request_path of the schema
-        schema_name (str,required): The name of the schema
-        schema_id (str,required): The id of the schema
-        auto_select_single (bool,required): If there is a single service only, use that
+        service_id (str): The id of the service
+        request_path (str): The request_path of the schema
+        schema_name (str): The name of the schema
+        schema_id (str): The id of the schema
+        auto_select_single (bool): If there is a single service only, use that
         session (object): The database session to use.
 
     Returns:
@@ -373,9 +373,9 @@ def enable_schema(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        schema_id (str,required): The id of the schema
-        service_id (str,required): The id of the service
-        schema_name (str,required): The name of the schema
+        schema_id (str): The id of the schema
+        service_id (str): The id of the service
+        schema_name (str): The name of the schema
         session (object): The database session to use.
 
     Returns:
@@ -396,9 +396,9 @@ def disable_schema(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        schema_id (str,required): The id of the schema
-        service_id (str,required): The id of the service
-        schema_name (str,required): The name of the schema
+        schema_id (str): The id of the schema
+        service_id (str): The id of the service
+        schema_name (str): The name of the schema
         session (object): The database session to use.
 
     Returns:
@@ -419,9 +419,9 @@ def delete_schema(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        schema_id (str,required): The id of the schema
-        service_id (str,required): The id of the service
-        schema_name (str,required): The name of the schema
+        schema_id (str): The id of the schema
+        service_id (str): The id of the service
+        schema_name (str): The name of the schema
         session (object): The database session to use.
 
     Returns:
@@ -440,10 +440,10 @@ def set_name(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        schema_id (str,required): The id of the schema
-        service_id (str,required): The id of the service
-        schema_name (str,required): The name of the schema
-        value (str,required): The value
+        schema_id (str): The id of the schema
+        service_id (str): The id of the service
+        schema_name (str): The name of the schema
+        value (str): The value
         session (object): The database session to use.
 
     Returns:
@@ -464,10 +464,10 @@ def set_request_path(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        schema_id (str,required): The id of the schema
-        service_id (str,required): The id of the service
-        schema_name (str,required): The name of the schema
-        value (str,required): The value
+        schema_id (str): The id of the schema
+        service_id (str): The id of the service
+        schema_name (str): The name of the schema
+        value (str): The value
         session (object): The database session to use.
 
     Returns:
@@ -488,10 +488,10 @@ def set_require_auth(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        schema_id (str,required): The id of the schema
-        service_id (str,required): The id of the service
-        schema_name (str,required): The name of the schema
-        value (bool,required): The value
+        schema_id (str): The id of the schema
+        service_id (str): The id of the service
+        schema_name (str): The name of the schema
+        value (bool): The value
         session (object): The database session to use.
 
     Returns:
@@ -513,10 +513,10 @@ def set_items_per_page(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        schema_id (str,required): The id of the schema
-        service_id (str,required): The id of the service
-        schema_name (str,required): The name of the schema
-        value (int,required): The value
+        schema_id (str): The id of the schema
+        service_id (str): The id of the service
+        schema_name (str): The name of the schema
+        value (int): The value
         session (object): The database session to use.
 
     Returns:
@@ -538,10 +538,10 @@ def set_comments(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        schema_id (str,required): The id of the schema
-        service_id (str,required): The id of the service
-        schema_name (str,required): The name of the schema
-        value (str,required): The value
+        schema_id (str): The id of the schema
+        service_id (str): The id of the service
+        schema_name (str): The name of the schema
+        value (str): The value
         session (object): The database session to use.
 
     Returns:
@@ -567,7 +567,7 @@ def update_schema(**kwargs):
         schema_id (str): The id of the schema
         service_id (str): The id of the service
         schema_name (str): The name of the schema
-        value (dict,required): The values as dict #TODO: check why dicts cannot be passed
+        value (dict): The values as dict #TODO: check why dicts cannot be passed
         session (object): The database session to use.
 
     Allowed options for value:
@@ -576,9 +576,9 @@ def update_schema(**kwargs):
         requires_auth (bool): Whether authentication is required to access
             the schema
         enabled (bool): The enabled state
-        items_per_page (int,required): The number of items returned per page
+        items_per_page (int): The number of items returned per page
         comments (str): Comments for the schema
-        options (dict,required): The options for the schema
+        options (dict): The options for the schema
 
     Returns:
         The result message as string

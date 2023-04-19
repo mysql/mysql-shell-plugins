@@ -87,7 +87,7 @@ def add_user(**kwargs):
         vendor_user_id (str): The id of the vendor.
         login_permitted (bool): If permission is permitted by this user
         mapped_user_id (str): The id for the mapped user
-        app_options (dict,required): The authentication app options for this user
+        app_options (dict): The authentication app options for this user
         auth_string (str): The authentication string for the user.
         user_roles (list): The list of user roles for this user. This needs to be in the following format
             {
@@ -185,13 +185,13 @@ def update_user(**kwargs):
 
     Allowed options for value:
         auth_app_id (str): The id of the auth_app for which the user is being created for.
-        name (str,required): The name of the user.
-        email (str,required): The email of the user
-        vendor_user_id (str,required): The id of the vendor.
+        name (str): The name of the user.
+        email (str): The email of the user
+        vendor_user_id (str): The id of the vendor.
         login_permitted (bool): If permission is permitted by this user
-        mapped_user_id (str,required): The id for the mapped user
-        app_options (dict,required): The authentication app options for this user
-        auth_string (str,required): The authentication string for the user.
+        mapped_user_id (str): The id for the mapped user
+        app_options (dict): The authentication app options for this user
+        auth_string (str): The authentication string for the user.
 
     Returns:
         None

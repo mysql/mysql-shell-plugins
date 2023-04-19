@@ -66,7 +66,7 @@ def add_auth_app(app_name=None, service_id=None, **kwargs):
         app_id (str): app_id of the app
         limit_to_registered_users (bool): Limit access to registered users
         registered_users (list): List of registered users, separated by ,
-        default_role_id (str,required): The default role to be assigned to new users
+        default_role_id (str): The default role to be assigned to new users
         session (object): The database session to use
 
     Returns:
@@ -277,21 +277,21 @@ def update_auth_app(**kwargs):
 
     Keyword Args:
         app_id (str): The application id
-        value (dict,required): The values as dict
+        value (dict): The values as dict
         service_id (str): The id of the service that this auth_app belongs to
         auth_app_name (str): The name of the auth_app to update
         session (object): The database session to use
 
     Allowed options for value:
-        name (str,optional): The new name for the app
-        description (str,optional): The new description
-        url (str,optional): The new url for the app
-        url_direct_auth (str,optional): The new url direct auth for the app
-        access_token (str,optional): The new access token
-        app_id (str,optional): The new application id
-        enabled (bool,optional): Set if it's enabled or not
-        limit_to_registered_users (bool,optional): Set if limited to registered users
-        default_role_id (str,required): The new default role id
+        name (str): The new name for the app
+        description (str): The new description
+        url (str): The new url for the app
+        url_direct_auth (str): The new url direct auth for the app
+        access_token (str): The new access token
+        app_id (str): The new application id
+        enabled (bool): Set if it's enabled or not
+        limit_to_registered_users (bool): Set if limited to registered users
+        default_role_id (str): The new default role id
 
     Returns:
         A dict with content_set_id and number_of_files_uploaded

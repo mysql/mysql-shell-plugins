@@ -26,9 +26,10 @@ import mysqlsh
 from pathlib import Path, PurePath
 from gui_plugin.core.Error import MSGException
 import gui_plugin.core.Error as Error
+import typing
 
 
-def resolve_path(path: str, _user_id: int) -> tuple[str, str]:
+def resolve_path(path: str, _user_id: int) -> typing.Tuple[str, str]:
     "This function returns a tuple (full path, relative path) with the resolved paths"
     if PurePath(Path(path).name.split(",")[0]).is_reserved():
         raise MSGException(Error.CORE_RESERVED_NOT_ALLOWED,

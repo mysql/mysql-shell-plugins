@@ -197,7 +197,7 @@ def get_schema(session, schema_id: bytes=None, service_id: bytes=None,
     """Gets a specific MRS schema
 
     Args:
-        session (object,required): The database session to use.
+        session (object): The database session to use.
         request_path (str): The request_path of the schema
         schema_name (str): The name of the schema
         schema_id: The id of the schema
@@ -280,7 +280,7 @@ def get_current_schema(session):
     """Returns the current schema
 
     Args:
-        session (object,required): The database session to use.
+        session (object): The database session to use.
 
     Returns:
         The current or default service or None if no default is set

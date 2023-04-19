@@ -215,7 +215,7 @@ def add_service(**kwargs):
         enabled (bool): Whether the new service should be enabled
         url_protocol (list): The protocols supported by this service
         comments (str): Comments about the service
-        options (dict,required): Options for the service
+        options (dict): Options for the service
         auth_path (str): The authentication path
         auth_completed_url (str): The redirection URL called after authentication
         auth_completed_url_validation (str): The regular expression that validates the
@@ -334,11 +334,11 @@ def get_service(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        service_id (str,required): The id of the service
-        url_context_root (str,required): The context root for this service
-        url_host_name (str,required): The host name for this service
-        get_default (bool,required): Whether to return the default service
-        auto_select_single (bool,required): If there is a single service only, use that
+        service_id (str): The id of the service
+        url_context_root (str): The context root for this service
+        url_host_name (str): The host name for this service
+        get_default (bool): Whether to return the default service
+        auto_select_single (bool): If there is a single service only, use that
         session (object): The database session to use.
 
     Returns:
@@ -432,9 +432,9 @@ def enable_service(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        service_id (str,required): The id of the service
-        url_context_root (str,required): The context root for this service
-        url_host_name (str,required): The host name for this service
+        service_id (str): The id of the service
+        url_context_root (str): The context root for this service
+        url_host_name (str): The host name for this service
         session (object): The database session to use.
 
     Returns:
@@ -456,9 +456,9 @@ def disable_service(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        service_id (str,required): The id of the service
-        url_context_root (str,required): The context root for this service
-        url_host_name (str,required): The host name for this service
+        service_id (str): The id of the service
+        url_context_root (str): The context root for this service
+        url_host_name (str): The host name for this service
         session (object): The database session to use.
 
     Returns:
@@ -480,9 +480,9 @@ def delete_service(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        service_id (str,required): The id of the service
-        url_context_root (str,required): The context root for this service
-        url_host_name (str,required): The host name for this service
+        service_id (str): The id of the service
+        url_context_root (str): The context root for this service
+        url_host_name (str): The host name for this service
         session (object): The database session to use.
 
     Returns:
@@ -515,10 +515,10 @@ def set_url_context_root(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        service_id (str,required): The id of the service
-        url_context_root (str,required): The context root for this service
-        url_host_name (str,required): The host name for this service
-        value (str,required): The context_path
+        service_id (str): The id of the service
+        url_context_root (str): The context root for this service
+        url_host_name (str): The host name for this service
+        value (str): The context_path
         session (object): The database session to use.
 
     Returns:
@@ -543,10 +543,10 @@ def set_protocol(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        service_id (str,required): The id of the service
-        url_context_root (str,required): The context root for this service
-        url_host_name (str,required): The host name for this service
-        value (str,required): The protocol either 'HTTP', 'HTTPS' or 'HTTP,HTTPS'
+        service_id (str): The id of the service
+        url_context_root (str): The context root for this service
+        url_host_name (str): The host name for this service
+        value (str): The protocol either 'HTTP', 'HTTPS' or 'HTTP,HTTPS'
         session (object): The database session to use.
 
     Returns:
@@ -571,10 +571,10 @@ def set_comments(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        service_id (str,required): The id of the service
-        url_context_root (str,required): The context root for this service
-        url_host_name (str,required): The host name for this service
-        value (str,required): The comments
+        service_id (str): The id of the service
+        url_context_root (str): The context root for this service
+        url_host_name (str): The host name for this service
+        value (str): The comments
         session (object): The database session to use.
 
     Returns:
@@ -628,26 +628,26 @@ def update_service(**kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        service_id (str,required): The id of the service
-        url_context_root (str,required): The context root for this service
-        url_host_name (str,required): The host name for this service
-        value (dict,required): The values as dict
+        service_id (str): The id of the service
+        url_context_root (str): The context root for this service
+        url_host_name (str): The host name for this service
+        value (dict): The values as dict
         session (object): The database session to use.
 
     Allowed options for value:
-        url_context_root (str,optional): The context root for this service
-        url_protocol (list,optional): The protocol either 'HTTP', 'HTTPS' or 'HTTP,HTTPS'
-        url_host_name (str,optional): The host name for this service
-        enabled (bool,optional): Whether the service should be enabled
-        comments (str,optional): Comments about the service
-        options (dict,optional): Options of the service
-        auth_path (str,optional): The authentication path
-        auth_completed_url (str,optional): The redirection URL called after authentication
-        auth_completed_url_validation (str,optional): The regular expression that validates the
+        url_context_root (str): The context root for this service
+        url_protocol (list): The protocol either 'HTTP', 'HTTPS' or 'HTTP,HTTPS'
+        url_host_name (str): The host name for this service
+        enabled (bool): Whether the service should be enabled
+        comments (str): Comments about the service
+        options (dict): Options of the service
+        auth_path (str): The authentication path
+        auth_completed_url (str): The redirection URL called after authentication
+        auth_completed_url_validation (str): The regular expression that validates the
             app redirection URL specified by the /login?onCompletionRedirect parameter
-        auth_completed_page_content (str,optional): The custom page content to use of the
+        auth_completed_page_content (str): The custom page content to use of the
             authentication completed page
-        auth_apps (list,optional): The list of auth_apps in JSON format
+        auth_apps (list): The list of auth_apps in JSON format
 
     Returns:
         The result message as string

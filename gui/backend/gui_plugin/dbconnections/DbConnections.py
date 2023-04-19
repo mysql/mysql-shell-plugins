@@ -50,10 +50,10 @@ def add_db_connection(profile_id, connection, folder_path='',
             where the operation will be performed.
 
     Allowed options for connection:
-        db_type (str,required): The db type name
-        caption (str,required): A name for this connection
-        description (str,required): A longer description for this connection
-        options (dict,required): The options specific for the current database type
+        db_type (str): The db type name
+        caption (str): A name for this connection
+        description (str): A longer description for this connection
+        options (dict): The options specific for the current database type
 
     Returns:
         int: The connection ID
@@ -122,10 +122,10 @@ def update_db_connection(profile_id, connection_id, connection, folder_path='', 
             where the operation will be performed.
 
     Allowed options for connection:
-        db_type (str,required): The db type name
-        caption (str,required): A name for this connection
-        description (str,required): A longer description for this connection
-        options (dict,required): The options specific for the current database type
+        db_type (str): The db type name
+        caption (str): A name for this connection
+        description (str): A longer description for this connection
+        options (dict): The options specific for the current database type
 
     Returns:
         None
@@ -298,8 +298,8 @@ def test_connection(connection, password=None):
         password (str): The password to use when opening the connection. If not supplied, then use the password defined in the database options.
 
     Allowed options for connection:
-        db_type (str,required): The db type name
-        options (dict,required): The options specific for the current database type
+        db_type (str): The db type name
+        options (dict): The options specific for the current database type
 
     Returns:
         None
