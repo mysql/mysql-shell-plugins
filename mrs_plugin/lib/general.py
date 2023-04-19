@@ -22,7 +22,7 @@
 from mrs_plugin import lib
 
 # Define plugin version
-VERSION = "1.10.1"
+VERSION = "1.10.2"
 
 DB_VERSION = [1, 1, 2]
 DB_VERSION_STR = '%d.%d.%d' % tuple(DB_VERSION)
