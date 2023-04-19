@@ -28,7 +28,7 @@ def get_roles(service_id=None, session=None):
     """List the roles for the specified service
 
     Args:
-        service_id (str,required): The id of the service
+        service_id (str): The id of the service
         session (object): The database session to use.
 
     Returns:

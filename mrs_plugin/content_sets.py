@@ -153,12 +153,12 @@ def add_content_set(service_id=None, content_dir=None, **kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        request_path (str,required): The request_path
-        requires_auth (bool,required): Whether authentication is required to access
+        request_path (str): The request_path
+        requires_auth (bool): Whether authentication is required to access
             the content
         comments (str): Comments about the content
         enabled (bool): Whether to enable the content set after all files are uploaded
-        options (dict,required): The options as JSON string
+        options (dict): The options as JSON string
         replace_existing (bool): Whether to replace a content set that uses the same request_path
         session (object): The database session to use.
 

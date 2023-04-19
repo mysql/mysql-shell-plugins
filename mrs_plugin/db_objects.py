@@ -100,20 +100,20 @@ def add_db_object(**kwargs):
         media_type (str): The media_type of the db object
         auto_detect_media_type (bool): Whether to automatically detect the media type
         auth_stored_procedure (str): The stored procedure that implements the authentication check for this db object
-        options (dict,required): The options of this db object
+        options (dict): The options of this db object
         fields (list): The fields definition in JSON format
         session (object): The database session to use.
 
     Allowed options for fields:
-        id (int,optional): The id of the fields or a negative value when it is a new field
-        db_object_id (str,optional): The id of the corresponding db object
+        id (int): The id of the fields or a negative value when it is a new field
+        db_object_id (str): The id of the corresponding db object
         position (int): The position of the field;
         name (str): The name of the field;
         bind_field_name (str): The column name of the TABLE or VIEW or field name the PROCEDURE
             this field maps to
         datatype (str): The datatype, 'STRING', 'INT', 'DOUBLE', 'BOOLEAN', 'LONG', 'TIMESTAMP', 'JSON'
         mode (str): The field mode, "IN", "OUT", "INOUT"
-        comments (str,optional): The comments for the field
+        comments (str): The comments for the field
 
     Returns:
         None
@@ -719,8 +719,8 @@ def set_crud_operations(db_object_id=None, crud_operations=None,
 
     Args:
         db_object_id (str): The id of the schema to list the db_objects from
-        crud_operations (list,required): The allowed CRUD operations for the object
-        crud_operation_format (str,required): The format to use for the CRUD operation
+        crud_operations (list): The allowed CRUD operations for the object
+        crud_operation_format (str): The format to use for the CRUD operation
         **kwargs: Additional options
 
     Keyword Args:
@@ -782,7 +782,7 @@ def enable_db_object(db_object_name=None, schema_id=None,
         **kwargs: Additional options
 
     Keyword Args:
-        db_object_id (str,required): The id of the db_object
+        db_object_id (str): The id of the db_object
         session (object): The database session to use.
 
     Returns:
@@ -817,7 +817,7 @@ def disable_db_object(db_object_name=None, schema_id=None, **kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        db_object_id (str,required): The id of the db_object
+        db_object_id (str): The id of the db_object
         session (object): The database session to use.
 
     Returns:
@@ -855,7 +855,7 @@ def delete_db_object(db_object_name=None, schema_id=None, **kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        db_object_id (str,required): The id of the db_object
+        db_object_id (str): The id of the db_object
         session (object): The database session to use.
 
     Returns:
@@ -904,7 +904,7 @@ def update_db_object(**kwargs):
         crud_operation_format (str): The format to use for the CRUD operation
         requires_auth (bool): Whether authentication is required to access
             the database object
-        items_per_page (int,required): The number of items returned per page
+        items_per_page (int): The number of items returned per page
         request_path (str): The request_path
         auto_detect_media_type (bool): Whether the media type should be detected automatically
         row_user_ownership_enforced (bool): Enable row ownership enforcement
@@ -912,7 +912,7 @@ def update_db_object(**kwargs):
         comments (str): Comments for the database object
         media_type (str): The media_type of the db object
         auth_stored_procedure (str): The stored procedure that implements the authentication check for this db object
-        options (dict,required): The options of this db object
+        options (dict): The options of this db object
         fields (list): The database object fields as JSON string
 
     Returns:
