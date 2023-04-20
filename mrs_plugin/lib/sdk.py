@@ -187,7 +187,7 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
                             crud_loop.group(), "")
 
             # Todo: Handle SDK Options
-            name = lib.core.convert_path_to_camel_case(db_obj.get("name"))
+            name = lib.core.convert_path_to_camel_case(db_obj.get("request_path"))
             class_name = (service_class_name + schema_class_name +
                           lib.core.convert_path_to_pascal_case(db_obj.get("request_path")))
 
@@ -250,19 +250,20 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
 
     return template
 
+
 def get_datatype_mapping(db_datatype, sdk_language):
     db_datatype = db_datatype.lower()
     if (sdk_language == "TypeScript"):
         if (db_datatype == "tinyint(1)"):
             datatype = "boolean"
         elif (db_datatype.startswith("tinyint") or
-            db_datatype.startswith("smallint") or
-            db_datatype.startswith("mediumint") or
-            db_datatype.startswith("int") or
-            db_datatype.startswith("bigint") or
-            db_datatype.startswith("decimal") or
-            db_datatype.startswith("numeric") or
-            db_datatype.startswith("float") or
+              db_datatype.startswith("smallint") or
+              db_datatype.startswith("mediumint") or
+              db_datatype.startswith("int") or
+              db_datatype.startswith("bigint") or
+              db_datatype.startswith("decimal") or
+              db_datatype.startswith("numeric") or
+              db_datatype.startswith("float") or
                 db_datatype.startswith("double")):
             datatype = "number"
         elif (db_datatype == "json"):
@@ -273,6 +274,7 @@ def get_datatype_mapping(db_datatype, sdk_language):
         return datatype
     else:
         return "UNKNOWN"
+
 
 def get_procedure_datatype_mapping(sp_datatype, sdk_language):
     if (sdk_language == "TypeScript"):
@@ -289,6 +291,7 @@ def get_procedure_datatype_mapping(sp_datatype, sdk_language):
         return datatype
     else:
         return "UNKNOWN"
+
 
 def get_interface_datatype(field, sdk_language, class_name="", reference_class_name_postfix=""):
     db_column_info = field.get("db_column")
@@ -311,9 +314,45 @@ def field_is_pk(field):
     return False
 
 
+def get_field_by_id(fields, id):
+    for field in fields:
+        if field.get("id") == id:
+            return field
+
+    return None
+
+
+def get_reduced_field_interface_datatype(field, fields, sdk_language, class_name):
+    if field.get("represents_reference_id"):
+        obj_ref = field.get("object_reference")
+
+        # Check if the field should be reduced to the value of another field
+        ref_field_id = obj_ref.get("reduce_to_value_of_field_id")
+        if obj_ref and ref_field_id:
+            # Convert id to binary
+            ref_field_id = lib.core.id_to_binary(
+                ref_field_id, "reduce_to_value_of_field_id")
+
+            # Lookup the field to reduce to
+            ref_field = get_field_by_id(fields, ref_field_id)
+            if ref_field:
+                datatype = get_interface_datatype(
+                    ref_field, sdk_language, class_name)
+
+                # If the reference mapping is "to_many", use an array
+                ref_mapping = obj_ref.get("reference_mapping")
+                is_array = "[]" if ref_mapping and ref_mapping.get(
+                    "to_many") == True else ""
+
+                return datatype + is_array
+
+    return None
+
+
 def generate_interfaces(db_obj, fields, class_name, sdk_language, session):
-    obj_interfaces = ""
-    fields_listing = ""
+    obj_interfaces = []
+    interface_fields = []
+    param_interface_fields = []
 
     # The I{class_name} and I{class_name}Params interfaces
     if (db_obj.get("object_type") == "PROCEDURE"):
@@ -321,62 +360,107 @@ def generate_interfaces(db_obj, fields, class_name, sdk_language, session):
         for field in fields:
             mode = field.get("mode")
             if (mode == "IN" or mode == "INOUT"):
-                datatype = get_procedure_datatype_mapping(field.get("datatype"), sdk_language)
-                fields_listing += f'    {field.get("name")}?: {datatype},\n'
+                datatype = get_procedure_datatype_mapping(
+                    field.get("datatype"), sdk_language)
+                interface_fields.append(
+                    f'    {field.get("name")}?: {datatype},\n')
 
-        obj_interfaces += (f"export interface I{class_name} extends IMrsFetchData {{\n"
-                           "    success?: string,\n"
-                           "    message?: string,\n"
-                           "}\n\n")
-        obj_interfaces += (
+        obj_interfaces.append(f"export interface I{class_name} extends IMrsFetchData {{\n"
+                              "    success?: string,\n"
+                              "    message?: string,\n"
+                              "}\n\n")
+        obj_interfaces.append(
             f"export interface I{class_name}Params extends IMrsFetchData {{\n" +
-            fields_listing +
+            "".join(interface_fields) +
             "}\n\n")
     else:
         for field in fields:
-            if (field.get("lev") == 1):
+            if field.get("lev") == 1 and field.get("enabled"):
                 datatype = get_interface_datatype(
                     field, sdk_language, class_name)
-                fields_listing += f'    {field.get("name")}?: {datatype},\n'
+
+                # Handle references
                 if field.get("represents_reference_id"):
-                    # ToDo: Add reduce-to support
-                    obj_interfaces += generate_nested_interfaces(
-                        reference_id=field.get("represents_reference_id"),
-                        reference_class_name_postfix=lib.core.convert_path_to_pascal_case(
-                            field.get("name")),
-                        fields=fields, class_name=class_name, sdk_language=sdk_language)
+                    # Check if the field should be reduced to the value of another field
+                    reduced_to_datatype = get_reduced_field_interface_datatype(
+                        field, fields, sdk_language, class_name)
+                    if reduced_to_datatype:
+                        interface_fields.append(
+                            f'    {field.get("name")}?: {reduced_to_datatype},\n')
+                    else:
+                        obj_ref = field.get("object_reference")
+                        # Add field if the referred table is not unnested
+                        if not obj_ref.get("unnest"):
+                            interface_fields.append(
+                                f'    {field.get("name")}?: {datatype},\n')
 
-        obj_interfaces += (
+                        # Call recursive interface generation
+                        generate_nested_interfaces(
+                            obj_interfaces, interface_fields, field,
+                            reference_class_name_postfix=lib.core.convert_path_to_pascal_case(
+                                field.get("name")),
+                            fields=fields, class_name=class_name, sdk_language=sdk_language)
+                else:
+                    interface_fields.append(
+                        f'    {field.get("name")}?: {datatype},\n')
+                    if field.get("allow_filtering"):
+                        param_interface_fields.append(
+                            f'    {field.get("name")}?: {datatype},\n')
+
+        obj_interfaces.append(
             f"export interface I{class_name} extends IMrsBaseObject {{\n" +
-            fields_listing +
+            "".join(interface_fields) +
             "}\n\n")
-        obj_interfaces += (
+        obj_interfaces.append(
             f"export interface I{class_name}Params {{\n" +
-            fields_listing +
+            "".join(param_interface_fields) +
             "}\n\n")
 
-    return obj_interfaces
+    return "".join(obj_interfaces)
 
 
-def generate_nested_interfaces(reference_id, reference_class_name_postfix, fields, class_name, sdk_language):
-    obj_interfaces = ""
+def generate_nested_interfaces(
+        obj_interfaces, parent_interface_fields, parent_field,
+        reference_class_name_postfix,
+        fields, class_name, sdk_language):
+    # Build interface name
     interface_name = f'I{class_name}{reference_class_name_postfix}'
 
-    fields_listing = ""
+    # Check if the reference has unnest set, and if so, use the parent_interface_fields
+    parent_obj_ref = parent_field.get("object_reference")
+    interface_fields = [] if not parent_obj_ref.get(
+        "unnest") else parent_interface_fields
+
     for field in fields:
-        if (field.get("parent_reference_id") == reference_id):
-            if field.get("db_column"):
+        if (field.get("parent_reference_id") == parent_field.get("represents_reference_id") and
+                field.get("enabled")):
+
+            # Handle references
+            if field.get("represents_reference_id"):
+                # Check if the field should be reduced to the value of another field
+                reduced_to_datatype = get_reduced_field_interface_datatype(
+                    field, fields, sdk_language, class_name)
+                if reduced_to_datatype:
+                    interface_fields.append(
+                        f'    {field.get("name")}?: {reduced_to_datatype},\n')
+                else:
+                    obj_ref = field.get("object_reference")
+                    # Add field if the referred table is not unnested
+                    if not obj_ref.get("unnest"):
+                        interface_fields.append(
+                            f'    {field.get("name")}?: {datatype},\n')
+
+                    # If not, do recursive call
+                    generate_nested_interfaces(
+                        obj_interfaces, interface_fields, field,
+                        reference_class_name_postfix=reference_class_name_postfix +
+                        field.get("name"),
+                        fields=fields, class_name=class_name, sdk_language=sdk_language)
+            else:
                 datatype = get_interface_datatype(field, sdk_language)
-                fields_listing += f'    {field.get("name")}?: {datatype},\n'
-            elif field.get("represents_reference_id"):
-                obj_interfaces += generate_nested_interfaces(
-                    reference_id=field.get("represents_reference_id"),
-                    reference_class_name_postfix=interface_name,
-                    fields=fields, class_name=class_name, sdk_language=sdk_language)
+                interface_fields.append(
+                    f'    {field.get("name")}?: {datatype},\n')
 
-    obj_interfaces += (
-        f"export interface {interface_name} {{\n" +
-        fields_listing +
-        "}\n\n")
-
-    return obj_interfaces
+    if not parent_obj_ref.get("unnest"):
+        obj_interfaces.append(
+            f"export interface {interface_name} {{\n{''.join(interface_fields)}}}\n\n")

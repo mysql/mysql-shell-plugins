@@ -213,6 +213,36 @@ body[theme=dark] .mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row.re
     padding: 2px 0px 2px 2px;
     gap: 5px;
     max-height: 24px;
+    width: 100%;
+}
+
+.mrsObjectJsonFieldDiv .fieldInfo {
+    flex: 1;
+}
+
+.mrsObjectJsonFieldDiv .fieldOptions {
+    gap: 5px;
+}
+
+.mrsObjectJsonFieldDiv .fieldOptions .selected {
+    opacity: 1;
+}
+
+.mrsObjectJsonFieldDiv .fieldOptions .notSelected {
+    display: none;
+}
+
+.mrsObjectJsonFieldDiv:hover .fieldOptions .notSelected {
+    display: block;
+    opacity: 0.1;
+}
+
+.mrsObjectJsonFieldDiv .unnestedDiv {
+    padding-left: 5px;
+}
+
+.mrsObjectJsonFieldDiv .datatype {
+    padding-left: 5px;
 }
 
 .withoutChildren {

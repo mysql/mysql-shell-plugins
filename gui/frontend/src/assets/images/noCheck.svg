@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1,0,0,1,-894,-1024)">
+        <g id="Options" transform="matrix(1,0,0,1,177,119)">
+            <g id="InOut">
+            </g>
+            <g id="Out">
+            </g>
+            <g id="In">
+            </g>
+            <g id="NoCheck" transform="matrix(2.31546,0,0,2.31546,714.702,902.735)">
+                <g transform="matrix(1.15154,0,0,1.18421,-1.03148,-1.59285)">
+                    <path d="M6.27,10.87L6.98,10.87L11.54,6.31L10.83,5.6L6.63,9.81L4.71,7.89L4,8.6L6.27,10.87Z" style="fill-rule:nonzero;"/>
+                </g>
+                <g transform="matrix(1,0,0,1,18.1389,0)">
+                    <path d="M-10.237,0.978C-6.423,0.978 -3.326,4.075 -3.326,7.888C-3.326,11.702 -6.423,14.799 -10.237,14.799C-14.05,14.799 -17.147,11.702 -17.147,7.888C-17.147,4.075 -14.05,0.978 -10.237,0.978ZM-10.237,1.842C-13.574,1.842 -16.283,4.551 -16.283,7.888C-16.283,11.226 -13.574,13.935 -10.237,13.935C-6.899,13.935 -4.19,11.226 -4.19,7.888C-4.19,4.551 -6.899,1.842 -10.237,1.842Z"/>
+                </g>
+                <g transform="matrix(0.108079,0.108079,-0.349011,0.349011,263.927,-418.487)">
+                    <rect x="806" y="976" width="24" height="4"/>
+                </g>
+                <g transform="matrix(0.168358,0.168358,-0.349011,0.349011,209.072,-473.342)">
+                    <rect x="806" y="976" width="24" height="4"/>
+                </g>
+            </g>
+            <g id="rowOwnership">
+            </g>
+            <g id="NoUpdate">
+            </g>
+            <g id="NoFilter">
+            </g>
+            <g id="Unnest">
+            </g>
+        </g>
+        <g id="Unnest1" serif:id="Unnest">
+        </g>
+        <g id="CRUD">
+        </g>
+    </g>
+</svg>

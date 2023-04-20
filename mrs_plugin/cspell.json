@@ -23,6 +23,7 @@
         "ORDS",
         "unnest",
         "tinyint",
-        "mediumint"
+        "mediumint",
+        "unnested"
     ]
 }

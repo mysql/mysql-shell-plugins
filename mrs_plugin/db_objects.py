@@ -29,13 +29,13 @@ import mrs_plugin.lib as lib
 from .interactive import resolve_schema
 
 
-
 def resolve_db_object_ids(db_object_name=None, schema_id=None, request_path=None, **kwargs):
     session = kwargs.get("session")
 
     db_object_id = kwargs.pop("db_object_id", None)
 
-    kwargs["db_object_ids"] = [db_object_id] if db_object_id is not None else []
+    kwargs["db_object_ids"] = [
+        db_object_id] if db_object_id is not None else []
 
     if not db_object_id:
         schema = resolve_schema(session, schema_id)
@@ -44,7 +44,7 @@ def resolve_db_object_ids(db_object_name=None, schema_id=None, request_path=None
         if db_object_name:
             # Lookup the db_object name
             rows = lib.core.select(table="db_object", cols="id", where=["name=?", "db_schema_id=?"]
-            ).exec(session, [db_object_name, schema_id]).items
+                                   ).exec(session, [db_object_name, schema_id]).items
 
             for row in rows:
                 kwargs["db_object_ids"].append(row["id"])
@@ -53,10 +53,10 @@ def resolve_db_object_ids(db_object_name=None, schema_id=None, request_path=None
                 session=session,
                 schema_id=schema_id,
                 include_enable_state=None
-                )
+            )
             caption = ("Please select a db_object index, type "
-                        "the request_path or type '*' "
-                        "to select all: ")
+                       "the request_path or type '*' "
+                       "to select all: ")
             selection = lib.core.prompt_for_list_item(
                 item_list=db_objects,
                 prompt_caption=caption,
@@ -68,7 +68,6 @@ def resolve_db_object_ids(db_object_name=None, schema_id=None, request_path=None
                 raise ValueError("Operation cancelled.")
 
             kwargs["db_object_ids"] = [item["id"] for item in selection]
-
 
     return kwargs
 
@@ -171,17 +170,20 @@ def add_db_object(**kwargs):
                     schema_id = schema.get("id")
                 except:
                     schema_id = lib.schemas.add_schema(schema_name=schema_name,
-                        request_path=f"/{schema_name}",
-                        requires_auth=True if requires_auth else False,
-                        session=session)
+                                                       request_path=f"/{schema_name}",
+                                                       requires_auth=True if requires_auth else False,
+                                                       session=session)
 
             schema = resolve_schema(session, schema_id)
 
             if not db_object_type and interactive:
                 # Get object counts per type
-                table_count = lib.database.get_object_type_count(session, schema.get("name"), "TABLE")
-                view_count = lib.database.get_object_type_count(session, schema.get("name"), "VIEW")
-                proc_count = lib.database.get_object_type_count(session, schema.get("name"), "PROCEDURE")
+                table_count = lib.database.get_object_type_count(
+                    session, schema.get("name"), "TABLE")
+                view_count = lib.database.get_object_type_count(
+                    session, schema.get("name"), "VIEW")
+                proc_count = lib.database.get_object_type_count(
+                    session, schema.get("name"), "PROCEDURE")
 
                 db_object_types = []
                 if table_count > 0:
@@ -193,7 +195,7 @@ def add_db_object(**kwargs):
 
                 if len(db_object_types) == 0:
                     raise ValueError("No database objects in the database schema "
-                                    f"{schema.get('name')}")
+                                     f"{schema.get('name')}")
 
                 caption = (
                     "Please enter the name or index of a database object type"
@@ -208,7 +210,8 @@ def add_db_object(**kwargs):
                     raise ValueError('Operation cancelled.')
 
             if not db_object_name and interactive:
-                db_objects = lib.database.get_db_objects(session, schema.get("name"), db_object_type)
+                db_objects = lib.database.get_db_objects(
+                    session, schema.get("name"), db_object_type)
 
                 if len(db_objects) == 0:
                     raise ValueError(
@@ -216,7 +219,8 @@ def add_db_object(**kwargs):
                         f"database schema {schema.get('name')}")
 
                 db_object_name = lib.core.prompt_for_list_item(
-                    item_list=[db_object["OBJECT_NAME"] for db_object in db_objects],
+                    item_list=[db_object["OBJECT_NAME"]
+                               for db_object in db_objects],
                     prompt_caption=("Please enter the name or index of a "
                                     "database object: "),
                     print_list=True)
@@ -225,7 +229,8 @@ def add_db_object(**kwargs):
                     raise ValueError('Operation cancelled.')
             # If a schema name has been provided, check if that schema exists
             elif db_object_name and db_object_type:
-                db_object = lib.database.get_db_object(session, schema.get("name"), db_object_name, db_object_type)
+                db_object = lib.database.get_db_object(
+                    session, schema.get("name"), db_object_name, db_object_type)
 
                 if not db_object:
                     raise ValueError(
@@ -246,9 +251,9 @@ def add_db_object(**kwargs):
             if not request_path.startswith('/'):
                 raise Exception("The request_path has to start with '/'.")
 
-
             # Check if the request_path starts with / and is unique for the schema
-            lib.core.check_request_path(session, schema["host_ctx"] + schema['request_path'] + request_path)
+            lib.core.check_request_path(
+                session, schema["host_ctx"] + schema['request_path'] + request_path)
 
             # Get crud_operations
             if not crud_operations and interactive:
@@ -266,7 +271,7 @@ def add_db_object(**kwargs):
                     allow_multi_select=True)
             if not crud_operations:
                 raise ValueError("No CRUD operations specified."
-                                "Operation cancelled.")
+                                 "Operation cancelled.")
 
             if not crud_operation_format and interactive:
                 crud_operation_format_options = [
@@ -281,11 +286,11 @@ def add_db_object(**kwargs):
                     print_list=True)
             if not crud_operation_format:
                 raise ValueError("No CRUD operation format specified."
-                                "Operation cancelled.")
+                                 "Operation cancelled.")
 
             if type(crud_operations) != list:
                 raise ValueError("The crud_operations need to be specified as "
-                                "list. Operation cancelled.")
+                                 "list. Operation cancelled.")
 
             # Get requires_auth
             if requires_auth is None:
@@ -320,7 +325,8 @@ def add_db_object(**kwargs):
                     print("List of available fields:")
                     row_user_ownership_column = lib.core.prompt_for_list_item(
                         item_list=available_fields, prompt_caption="Which "
-                        + ("parameter" if db_object_type == "PROCEDURE" else "column")
+                        + ("parameter" if db_object_type ==
+                           "PROCEDURE" else "column")
                         + " should be used for row ownership checks",
                         print_list=True)
 
@@ -337,7 +343,7 @@ def add_db_object(**kwargs):
                                 items_per_page = int(items_per_page)
                             except:
                                 raise ValueError("No valid value given."
-                                                "Operation cancelled.")
+                                                 "Operation cancelled.")
                         else:
                             items_per_page = None
 
@@ -350,14 +356,14 @@ def add_db_object(**kwargs):
                     comments = ""
 
             db_object_id = lib.db_objects.add_db_object(session=session, schema_id=schema.get("id"),
-                db_object_name=db_object_name, request_path=request_path, enabled=enabled,
-                db_object_type=db_object_type,
-                items_per_page=items_per_page, requires_auth=requires_auth,
-                row_user_ownership_enforced=row_user_ownership_enforced,
-                row_user_ownership_column=row_user_ownership_column,
-                crud_operations=crud_operations, crud_operation_format=crud_operation_format,
-                comments=comments, media_type=media_type, auto_detect_media_type=auto_detect_media_type,
-                auth_stored_procedure=auth_stored_procedure, options=options, fields=fields)
+                                                        db_object_name=db_object_name, request_path=request_path, enabled=enabled,
+                                                        db_object_type=db_object_type,
+                                                        items_per_page=items_per_page, requires_auth=requires_auth,
+                                                        row_user_ownership_enforced=row_user_ownership_enforced,
+                                                        row_user_ownership_column=row_user_ownership_column,
+                                                        crud_operations=crud_operations, crud_operation_format=crud_operation_format,
+                                                        comments=comments, media_type=media_type, auto_detect_media_type=auto_detect_media_type,
+                                                        auth_stored_procedure=auth_stored_procedure, options=options, fields=fields)
 
             if lib.core.get_interactive_result():
                 return "\n" + "Object added successfully."
@@ -403,9 +409,11 @@ def get_db_object(request_path=None, db_object_name=None, **kwargs):
             return lib.db_objects.get_db_object(session=session, db_object_id=db_object_id)
 
         if schema_id:
-            schema = lib.schemas.get_schema(schema_id=schema_id, session=session)
+            schema = lib.schemas.get_schema(
+                schema_id=schema_id, session=session)
         elif schema_name:
-            schema = lib.schemas.get_schema(schema_name=schema_name, session=session)
+            schema = lib.schemas.get_schema(
+                schema_name=schema_name, session=session)
         elif interactive:
             rows = lib.database.get_schemas(session)
 
@@ -418,18 +426,19 @@ def get_db_object(request_path=None, db_object_name=None, **kwargs):
                 item_list=schemas,
                 prompt_caption='Please enter the name or index of a schema: ',
                 print_list=True)
-            schema = lib.schemas.get_schema(schema_name=schema_name, session=session)
+            schema = lib.schemas.get_schema(
+                schema_name=schema_name, session=session)
 
         if not schema:
             raise ValueError("Unable to find the schema.")
 
         if request_path:
             return lib.db_objects.get_db_object(session=session, schema_id=schema.get("id"),
-                request_path=request_path)
+                                                request_path=request_path)
 
         if db_object_name:
             return lib.db_objects.get_db_object(session=session, schema_id=schema.get("id"),
-                db_object_name=db_object_name)
+                                                db_object_name=db_object_name)
 
         if interactive:
             schema_id = schema.get("id")
@@ -452,7 +461,7 @@ def get_db_object(request_path=None, db_object_name=None, **kwargs):
             raise ValueError("Unable to search DB object.")
 
         return lib.db_objects.get_db_object(session=session, schema_id=schema.get("id"),
-            request_path=request_path)
+                                            request_path=request_path)
 
 
 @plugin_function('mrs.get.dbObjectRowOwnershipFields', shell=True, cli=True, web=True)
@@ -495,24 +504,24 @@ def get_db_object_row_ownership_fields(**kwargs):
             raise ValueError(
                 "The object_type must be either set to TABLE, VIEW or PROCEDURE.")
 
-        schema = lib.schemas.get_schema(schema_id=schema_id, schema_name=schema_name, session=session)
+        schema = lib.schemas.get_schema(
+            schema_id=schema_id, schema_name=schema_name, session=session)
         if schema:
             schema_id = schema.get("id")
             schema_name = schema.get("name")
 
         db_object = lib.db_objects.get_db_object(session=session, schema_id=schema_id,
-                                                db_object_id=db_object_id,
-                                                request_path=request_path,
-                                                db_object_name=db_object_name)
+                                                 db_object_id=db_object_id,
+                                                 request_path=request_path,
+                                                 db_object_name=db_object_name)
 
         if db_object:
             return lib.db_objects.get_db_object_row_ownership_fields(session, db_object["id"])
 
         return lib.db_objects.get_available_db_object_row_ownership_fields(session,
-                                                                            schema_name,
-                                                                            db_object_name,
-                                                                            db_object_type)
-
+                                                                           schema_name,
+                                                                           db_object_name,
+                                                                           db_object_type)
 
 
 @plugin_function('mrs.list.dbObjects', shell=True, cli=True, web=True)
@@ -539,7 +548,7 @@ def get_db_objects(**kwargs):
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         db_objects = lib.db_objects.get_db_objects(session=session, schema_id=schema_id,
-            include_enable_state=include_enable_state)
+                                                   include_enable_state=include_enable_state)
 
         if lib.core.get_interactive_result():
             return lib.db_objects.format_db_object_listing(db_objects, print_header=True)
@@ -578,8 +587,8 @@ def get_db_object_selected_fields(request_path=None, db_object_name=None, **kwar
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         if not db_object_id:
             db_object = lib.db_objects.get_db_object(request_path=request_path,
-                                      db_object_name=db_object_name,
-                                      schema_id=schema_id, session=session)
+                                                     db_object_name=db_object_name,
+                                                     schema_id=schema_id, session=session)
             db_object_id = db_object["id"]
 
         if not db_object_id:
@@ -587,17 +596,16 @@ def get_db_object_selected_fields(request_path=None, db_object_name=None, **kwar
                 "The given DB Object could not be found.")
 
         results = lib.core.select(table="field",
-            where="db_object_id=?",
-            order="id, position"
-        ).exec(session, [db_object_id]).items
+                                  where="db_object_id=?",
+                                  order="id, position"
+                                  ).exec(session, [db_object_id]).items
 
         return results
 
 
-
 @plugin_function('mrs.get.dbObjectFields', shell=True, cli=True, web=True)
 def get_db_object_fields(db_object_id=None, schema_id=None,
-    request_path=None, db_object_name=None, **kwargs):
+                         request_path=None, db_object_name=None, **kwargs):
     """Gets the list of available row ownership fields for the given db_object
 
     Args:
@@ -642,9 +650,9 @@ def get_db_object_fields(db_object_id=None, schema_id=None,
                 raise Exception("You must supply the schema name.")
 
         return lib.db_objects.get_db_object_fields(session,
-            schema_name=schema_name,
-            db_object_name=db_object_name,
-            db_object_type=db_object_type)
+                                                   schema_name=schema_name,
+                                                   db_object_name=db_object_name,
+                                                   db_object_type=db_object_type)
 
 
 @plugin_function('mrs.set.dbObject.requestPath', shell=True, cli=True, web=True)
@@ -674,7 +682,8 @@ def set_request_path(db_object_id=None, request_path=None, **kwargs):
         kwargs["session"] = session
 
         # Get the object with the given id or let the user select it
-        db_object = lib.db_objects.get_db_object(session=session, db_object_id=db_object_id)
+        db_object = lib.db_objects.get_db_object(
+            session=session, db_object_id=db_object_id)
 
         if not db_object:
             return
@@ -695,11 +704,12 @@ def set_request_path(db_object_id=None, request_path=None, **kwargs):
         schema = lib.schemas.get_schema(
             schema_id=db_object.get("db_schema_id"),
             session=session)
-        lib.core.check_request_path(session, schema["host_ctx"] + schema['request_path'] + request_path)
+        lib.core.check_request_path(
+            session, schema["host_ctx"] + schema['request_path'] + request_path)
 
         res = lib.core.update(table="db_object", sets="request_path=?",
-            where="id=?"
-        ).exec(session, [request_path, db_object.get("id")])
+                              where="id=?"
+                              ).exec(session, [request_path, db_object.get("id")])
 
         if not res.success:
             raise Exception("Could not update the db_object.")
@@ -709,7 +719,6 @@ def set_request_path(db_object_id=None, request_path=None, **kwargs):
                   "successfully.")
         return True
     return False
-
 
 
 @plugin_function('mrs.set.dbObject.crudOperations', shell=True, cli=True, web=True)
@@ -762,13 +771,13 @@ def set_crud_operations(db_object_id=None, crud_operations=None,
                 print_list=True)
 
         lib.db_objects.set_crud_operations(session=session, db_object_id=db_object_id,
-            crud_operations=crud_operations, crud_operation_format=crud_operation_format)
+                                           crud_operations=crud_operations, crud_operation_format=crud_operation_format)
 
-        db_object = lib.db_objects.get_db_object(session, db_object_id=db_object_id)
+        db_object = lib.db_objects.get_db_object(
+            session, db_object_id=db_object_id)
         if lib.core.get_interactive_result():
             return f"The db_object {db_object.get('name')} was updated successfully."
         return db_object
-
 
 
 @plugin_function('mrs.enable.dbObject', shell=True, cli=True, web=True)
@@ -790,7 +799,7 @@ def enable_db_object(db_object_name=None, schema_id=None,
     """
     lib.core.convert_ids_to_binary(["schema_id", "db_object_id"], kwargs)
 
-    kwargs["value"] =True
+    kwargs["value"] = True
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         kwargs["session"] = session
@@ -927,7 +936,7 @@ def update_db_object(**kwargs):
         # the ids to insert have the value of position * -1, otherwise, it comes
         # with the id to update. To avoid issues, for inserts, we're marking
         # the id to None
-        ids=['db_object_id']
+        ids = ['db_object_id']
 
         if field["id"].startswith("-"):
             field["id"] = None
@@ -954,16 +963,19 @@ def update_db_object(**kwargs):
         # verify the objects exist in the schema
         for object_id in kwargs["db_object_ids"]:
 
-            db_object = lib.db_objects.get_db_object(session=session, db_object_id=object_id)
+            db_object = lib.db_objects.get_db_object(
+                session=session, db_object_id=object_id)
             target_name = kwargs["value"].get("name") or db_object["name"]
 
             # get the target schema
             if kwargs["value"].get("db_schema_id") or schema_name:
                 target_schema = lib.schemas.get_schema(session,
-                    schema_id=kwargs["value"].get("db_schema_id"),
-                    schema_name=schema_name)
+                                                       schema_id=kwargs["value"].get(
+                                                           "db_schema_id"),
+                                                       schema_name=schema_name)
             else:
-                target_schema = lib.schemas.get_schema(session, db_object["db_schema_id"])
+                target_schema = lib.schemas.get_schema(
+                    session, db_object["db_schema_id"])
 
             if not target_schema:
                 raise ValueError("The target schema does not exist.")
@@ -971,7 +983,8 @@ def update_db_object(**kwargs):
             # check for request_path collisions
             if kwargs["value"].get("request_path"):
                 if db_object["request_path"] != kwargs["value"]["request_path"]:
-                    lib.core.check_request_path(session, target_schema["host_ctx"] + target_schema['request_path'] + kwargs["value"]["request_path"])
+                    lib.core.check_request_path(
+                        session, target_schema["host_ctx"] + target_schema['request_path'] + kwargs["value"]["request_path"])
 
             # check if the target object exists in the target schema
             if not lib.database.get_db_object(session, target_schema["name"], target_name, db_object["object_type"]):
@@ -982,23 +995,24 @@ def update_db_object(**kwargs):
             # check if the MRS db_object already exists in the target MRS schema
             if db_object["db_schema_id"] != target_schema["id"]:
                 if lib.db_objects.get_db_object(session, schema_id=target_schema["id"], db_object_name=target_name):
-                    raise ValueError("The object already exists in the target schema.")
+                    raise ValueError(
+                        "The object already exists in the target schema.")
 
             # check if the current fields are a sub-set of the existing ones
             if "fields" in kwargs["value"]:
                 fields_in_object = lib.database.get_db_object_fields(session,
-                    target_schema["name"], target_name, db_object["object_type"])
+                                                                     target_schema["name"], target_name, db_object["object_type"])
                 fields_in_object = [item["name"] for item in fields_in_object]
                 for new_field in kwargs["value"]["fields"]:
                     if new_field["name"] not in fields_in_object:
-                        raise ValueError(f"Field '{new_field['name']}' does not exist in {fields_in_object}.")
-
+                        raise ValueError(
+                            f"Field '{new_field['name']}' does not exist in {fields_in_object}.")
 
             kwargs["value"]["db_schema_id"] = target_schema["id"]
 
         with lib.core.MrsDbTransaction(session):
             lib.db_objects.update_db_objects(session=session,
-                db_object_ids=kwargs["db_object_ids"], value=kwargs["value"])
+                                             db_object_ids=kwargs["db_object_ids"], value=kwargs["value"])
 
             if lib.core.get_interactive_result():
                 if len(kwargs['db_object_ids']) == 1:
@@ -1010,7 +1024,7 @@ def update_db_object(**kwargs):
 
 @plugin_function('mrs.get.tableColumnsWithReferences', shell=True, cli=True, web=True)
 def get_table_columns_with_references(db_object_id=None, schema_id=None,
-    request_path=None, db_object_name=None, **kwargs):
+                                      request_path=None, db_object_name=None, **kwargs):
     """Gets the list of table columns and references
 
     Args:
@@ -1055,9 +1069,10 @@ def get_table_columns_with_references(db_object_id=None, schema_id=None,
                 raise Exception("You must supply the schema name.")
 
         return lib.db_objects.get_table_columns_with_references(session,
-            schema_name=schema_name,
-            db_object_name=db_object_name,
-            db_object_type=db_object_type)
+                                                                schema_name=schema_name,
+                                                                db_object_name=db_object_name,
+                                                                db_object_type=db_object_type)
+
 
 @plugin_function('mrs.get.objects', shell=True, cli=True, web=True)
 def get_result_object(db_object_id=None, **kwargs):
@@ -1075,11 +1090,12 @@ def get_result_object(db_object_id=None, **kwargs):
     """
     if not db_object_id:
         raise Exception("You must supply the db_object_id.")
-    
+
     db_object_id = lib.core.id_to_binary(db_object_id, "db_object_id")
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         return lib.db_objects.get_objects(session, db_object_id=db_object_id)
+
 
 @plugin_function('mrs.get.objectFieldsWithReferences', shell=True, cli=True, web=True)
 def get_object_fields_with_references(object_id=None, **kwargs):
@@ -1097,12 +1113,12 @@ def get_object_fields_with_references(object_id=None, **kwargs):
     """
     if not object_id:
         raise Exception("You must supply the object_id.")
-    
+
     object_id = lib.core.id_to_binary(object_id, "object_id")
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         return lib.db_objects.get_object_fields_with_references(session, object_id=object_id)
-    
+
         # kwargs["session"] = session
         # kwargs = resolve_db_object_ids(**kwargs)
         # if len(kwargs["db_object_ids"]) == 1:
@@ -1129,6 +1145,7 @@ def set_object_fields_with_references(**kwargs):
         position (int): The position of the object
         fields (list): The list of fields
         comments (str): The comments
+        sdk_options (dict): The SDK options
 
     Returns:
         None
@@ -1137,4 +1154,3 @@ def set_object_fields_with_references(**kwargs):
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         lib.db_objects.set_object_fields_with_references(session, obj=obj)
-

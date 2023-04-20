@@ -174,30 +174,7 @@ export class FrontPage extends ComponentBase<IFrontPageProperties> {
                     if (dbObjects?.length > 0) {
                         const dbObject = dbObjects[0];
                         const data: IMrsDbObjectEditRequest = {
-                            dbObject: {
-                                authStoredProcedure: "",
-                                autoDetectMediaType: 0,
-                                changedAt: "2023-04-05 17:30:15",
-                                comments: "",
-                                crudOperationFormat: dbObject.crudOperationFormat,
-                                crudOperations: dbObject.crudOperations,
-                                requiresAuth: 1,
-                                rowUserOwnershipColumn: undefined,
-                                rowUserOwnershipEnforced: 0,
-                                dbSchemaId: dbObject.dbSchemaId,
-                                enabled: 1,
-                                hostCtx: dbObject.hostCtx,
-                                id: dbObject.id,
-                                itemsPerPage: 25,
-                                mediaType: undefined,
-                                name: dbObject.name,
-                                objectType: dbObject.objectType,
-                                options: undefined,
-                                qualifiedName: dbObject.qualifiedName,
-                                requestPath: dbObject.requestPath,
-                                schemaRequestPath: dbObject.schemaRequestPath,
-                                serviceId: dbObject.serviceId,
-                            },
+                            dbObject,
                             createObject: false,
                         };
 
