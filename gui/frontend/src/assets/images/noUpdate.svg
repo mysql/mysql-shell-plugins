@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1,0,0,1,-806,-1024)">
+        <g id="Options" transform="matrix(1,0,0,1,177,119)">
+            <g id="InOut">
+            </g>
+            <g id="Out">
+            </g>
+            <g id="In">
+            </g>
+            <g id="NoCheck">
+            </g>
+            <g id="rowOwnership">
+            </g>
+            <g id="NoUpdate" transform="matrix(2.31546,0,0,2.31546,626.702,902.735)">
+                <g transform="matrix(1,0,0,1,18.1389,0)">
+                    <path d="M-10.237,0.978C-6.423,0.978 -3.326,4.075 -3.326,7.888C-3.326,11.702 -6.423,14.799 -10.237,14.799C-14.05,14.799 -17.147,11.702 -17.147,7.888C-17.147,4.075 -14.05,0.978 -10.237,0.978ZM-10.237,1.842C-13.574,1.842 -16.283,4.551 -16.283,7.888C-16.283,11.226 -13.574,13.935 -10.237,13.935C-6.899,13.935 -4.19,11.226 -4.19,7.888C-4.19,4.551 -6.899,1.842 -10.237,1.842Z"/>
+                </g>
+                <g id="Pen" transform="matrix(0.305385,-0.305385,0.305385,0.305385,-551.27,-51.0811)">
+                    <g transform="matrix(0.870711,0,-3.49737e-17,0.5,104.983,503)">
+                        <rect x="812" y="1012" width="20" height="2"/>
+                    </g>
+                    <g transform="matrix(0.870711,0,-3.49737e-17,0.5,104.983,508)">
+                        <rect x="812" y="1012" width="20" height="2"/>
+                    </g>
+                    <g transform="matrix(0.866025,-0.5,0.5,0.866025,-394.215,543.777)">
+                        <path d="M812,1006L806,1006L806.586,1007L812,1007L812,1006Z"/>
+                    </g>
+                    <g transform="matrix(0.866025,0.5,0.5,-0.866025,-394.211,1480.22)">
+                        <path d="M812,1006L806,1006L806.57,1007L812,1007L812,1006Z"/>
+                    </g>
+                    <g transform="matrix(1,0,-6.4267e-17,1,1.41421,3)">
+                        <rect x="827" y="1007" width="1" height="4"/>
+                    </g>
+                    <g transform="matrix(1,0,0,1,-1.41421,3)">
+                        <rect x="827" y="1007" width="1" height="4"/>
+                    </g>
+                    <g transform="matrix(1,0,-6.4267e-17,1,-1.92801e-16,3)">
+                        <rect x="812" y="1007" width="1" height="4"/>
+                    </g>
+                </g>
+                <g transform="matrix(0.120535,0.120535,-0.349011,0.349011,253.588,-428.826)">
+                    <rect x="806" y="976" width="24" height="4"/>
+                </g>
+                <g transform="matrix(0.112949,0.112949,-0.349011,0.349011,253.731,-428.683)">
+                    <rect x="806" y="976" width="24" height="4"/>
+                </g>
+            </g>
+            <g id="NoFilter">
+            </g>
+            <g id="Unnest">
+            </g>
+        </g>
+        <g id="Unnest1" serif:id="Unnest">
+        </g>
+        <g id="CRUD">
+        </g>
+    </g>
+</svg>

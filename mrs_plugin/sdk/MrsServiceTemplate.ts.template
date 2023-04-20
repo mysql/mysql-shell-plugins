@@ -78,13 +78,13 @@ export class ${schema_class_name}ObjectRequest {
 
 export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest {
 
-    public static readonly schemaRequestPath = "${schema_request_path}";
-    public static readonly requestPath = "${obj_request_path}";
+    static readonly #schemaRequestPath = "${schema_request_path}";
+    static readonly #requestPath = "${obj_request_path}";
 
     public rest = {
         // --- crudCreateOnlyStart
         post: (${obj_name}: I${obj_class_name}): MrsBaseObjectCreate<I${obj_class_name}> => {
-            return new MrsBaseObjectCreate<I${obj_class_name}>(this.schema, ${obj_class_name}Request.requestPath, ${obj_name});
+            return new MrsBaseObjectCreate<I${obj_class_name}>(this.schema, ${obj_class_name}Request.#requestPath, ${obj_name});
         },
         // --- crudCreateOnlyEnd
 
@@ -92,7 +92,7 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
         get: <K extends keyof I${obj_class_name}>(
             ...args: K[]): MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Params> => {
             return new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Params>(
-                this.schema, ${obj_class_name}Request.requestPath, args);
+                this.schema, ${obj_class_name}Request.#requestPath, args);
         },
         // --- crudReadOnlyEnd
         // --- crudUpdateProcedureOnlyStart
@@ -100,7 +100,7 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
             ${obj_name}Params: I${obj_class_name}Params,
         ): MrsBaseObjectCall<I${obj_class_name}, I${obj_class_name}Params> => {
             return new MrsBaseObjectCall<I${obj_class_name}, I${obj_class_name}Params>(
-                this.schema, ${obj_class_name}Request.requestPath, ${obj_name}Params);
+                this.schema, ${obj_class_name}Request.#requestPath, ${obj_name}Params);
         },
         // --- crudUpdateProcedureOnlyEnd
 
@@ -109,13 +109,13 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
             ${obj_name}: I${obj_class_name},
             key?: string[]): MrsBaseObjectUpdate<I${obj_class_name}, I${obj_class_name}Params> => {
             return new MrsBaseObjectUpdate<I${obj_class_name}, I${obj_class_name}Params>(
-                this.schema, ${obj_class_name}Request.requestPath, ${obj_name}, key !== undefined ? key : [${obj_string_pk_list}]);
+                this.schema, ${obj_class_name}Request.#requestPath, ${obj_name}, key !== undefined ? key : [${obj_string_pk_list}]);
         },
         // --- crudUpdateOnlyEnd
 
         // --- crudDeleteOnlyStart
         delete: (): MrsBaseObjectDelete<I${obj_class_name}Params> => {
-            return new MrsBaseObjectDelete<I${obj_class_name}Params>(this.schema, ${obj_class_name}Request.requestPath);
+            return new MrsBaseObjectDelete<I${obj_class_name}Params>(this.schema, ${obj_class_name}Request.#requestPath);
         },
         // --- crudDeleteOnlyEnd
     };
@@ -144,7 +144,7 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
     // --- crudReadOnlyStart
     public findMany = async (args?: IFindOptions<I${obj_class_name}, I${obj_class_name}Params>): Promise<IMrsResultList<I${obj_class_name}>> => {
         const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Params>(
-            this.schema, ${obj_class_name}Request.requestPath, args?.select)
+            this.schema, ${obj_class_name}Request.#requestPath, args?.select)
             .where(args?.where).orderBy(args?.orderBy).limit(args?.take).offset(args?.skip);
         let response;
         if (args?.fetchAll && typeof args?.fetchAll === "boolean" && args?.fetchAll === true) {
@@ -159,7 +159,7 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
 
     public findFirst = async (args?: IFindOptions<I${obj_class_name}, I${obj_class_name}Params>): Promise<I${obj_class_name} | undefined> => {
         const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Params>(
-            this.schema, ${obj_class_name}Request.requestPath, args?.select);
+            this.schema, ${obj_class_name}Request.#requestPath, args?.select);
         const response = await request.where(args?.where).orderBy(args?.orderBy).limit(args?.take).offset(args?.skip).fetchOne();
 
         return response;

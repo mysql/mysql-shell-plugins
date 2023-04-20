@@ -3,11 +3,11 @@
     "version": {
         "major": 1,
         "minor": 1,
-        "patch": 2
+        "patch": 3
     },
     "schema": {
         "id": "0x11ed77ef44e64a1badfb020017059995",
-        "service_id": "0x11eddb1be4eec7809e6500059a3c7a00",
+        "service_id": "0x11eddec66adf5e2cb9ff5934f73b4298",
         "name": "mrs_notes",
         "request_path": "/mrsNotes",
         "requires_auth": 0,
@@ -154,15 +154,15 @@
                 ],
                 "objects": [
                     {
-                        "id": "0x2007f1afbd0b4568812cc50e8640e2d2",
+                        "id": "0xdb2e6de6c6704ca78d144ad0c0fd8c1f",
                         "db_object_id": "0x11ed77ef50371abcadfb020017059995",
                         "name": "MyServiceMrsNotesNote",
                         "position": 1,
                         "fields": [
                             {
                                 "position": 5,
-                                "id": "0x2312eac2570444d8a9235cd9e1f7f0f8",
-                                "object_id": "0x2007f1afbd0b4568812cc50e8640e2d2",
+                                "id": "0x245e7241f2544455ff00993dd97d4855",
+                                "object_id": "0xdb2e6de6c6704ca78d144ad0c0fd8c1f",
                                 "name": "lastUpdate",
                                 "db_column": {
                                     "name": "lastUpdate",
@@ -175,160 +175,15 @@
                                     "privileges": "select,insert,update,references",
                                     "is_generated": false
                                 },
-                                "enabled": 1,
-                                "allow_filtering": 1,
-                                "no_check": 0
-                            },
-                            {
-                                "position": 10,
-                                "id": "0x652a857d1908497ee16f3e312a2869ad",
-                                "object_id": "0x2007f1afbd0b4568812cc50e8640e2d2",
-                                "name": "tags",
-                                "db_column": {
-                                    "name": "tags",
-                                    "comment": "",
-                                    "auto_inc": false,
-                                    "datatype": "json",
-                                    "not_null": false,
-                                    "is_unique": false,
-                                    "is_primary": false,
-                                    "privileges": "select,insert,update,references",
-                                    "is_generated": false
-                                },
-                                "enabled": 1,
-                                "allow_filtering": 1,
-                                "no_check": 0
-                            },
-                            {
-                                "position": 1,
-                                "id": "0x6718d7dcbfe34cdeeeb0a26ba07faede",
-                                "object_id": "0x2007f1afbd0b4568812cc50e8640e2d2",
-                                "name": "id",
-                                "db_column": {
-                                    "name": "id",
-                                    "comment": "",
-                                    "auto_inc": true,
-                                    "datatype": "int unsigned",
-                                    "not_null": true,
-                                    "is_unique": false,
-                                    "is_primary": true,
-                                    "privileges": "select,insert,update,references",
-                                    "is_generated": false
-                                },
-                                "enabled": 1,
-                                "allow_filtering": 1,
-                                "no_check": 0
-                            },
-                            {
-                                "position": 7,
-                                "id": "0x6983c9df5adf4f0f9f52d04d8d31b296",
-                                "object_id": "0x2007f1afbd0b4568812cc50e8640e2d2",
-                                "name": "lockedDown",
-                                "db_column": {
-                                    "name": "lockedDown",
-                                    "comment": "",
-                                    "auto_inc": false,
-                                    "datatype": "tinyint(1)",
-                                    "not_null": true,
-                                    "is_unique": false,
-                                    "is_primary": false,
-                                    "privileges": "select,insert,update,references",
-                                    "is_generated": false
-                                },
-                                "enabled": 1,
-                                "allow_filtering": 1,
-                                "no_check": 0
-                            },
-                            {
-                                "position": 4,
-                                "id": "0x6b65419f9aff499f832f046f59cbddce",
-                                "object_id": "0x2007f1afbd0b4568812cc50e8640e2d2",
-                                "name": "createDate",
-                                "db_column": {
-                                    "name": "createDate",
-                                    "comment": "",
-                                    "auto_inc": false,
-                                    "datatype": "datetime",
-                                    "not_null": true,
-                                    "is_unique": false,
-                                    "is_primary": false,
-                                    "privileges": "select,insert,update,references",
-                                    "is_generated": false
-                                },
-                                "enabled": 1,
-                                "allow_filtering": 1,
-                                "no_check": 0
-                            },
-                            {
-                                "position": 102,
-                                "id": "0x6d86781b7b0a4354e6e1e11e44e91758",
-                                "represents_reference_id": "0x598c32b9abe241f88014d376cc73f707",
-                                "object_id": "0x2007f1afbd0b4568812cc50e8640e2d2",
-                                "name": "user",
-                                "db_column": null,
-                                "enabled": 0,
-                                "allow_filtering": 1,
-                                "no_check": 0,
-                                "object_reference": {
-                                    "unnest": 0,
-                                    "crud_operations": "READ",
-                                    "reference_mapping": {
-                                        "kind": "n:1",
-                                        "to_many": false,
-                                        "constraint": "mrs_notes.fk_note_user1",
-                                        "column_mapping": {
-                                            "user_id": "id"
-                                        },
-                                        "referenced_table": "user",
-                                        "referenced_schema": "mrs_notes"
-                                    },
-                                    "id": "0x598c32b9abe241f88014d376cc73f707"
-                                }
-                            },
-                            {
-                                "position": 9,
-                                "id": "0x76b2617fe41b4ea1f03abe275e6c78fb",
-                                "object_id": "0x2007f1afbd0b4568812cc50e8640e2d2",
-                                "name": "content",
-                                "db_column": {
-                                    "name": "content",
-                                    "comment": "",
-                                    "auto_inc": false,
-                                    "datatype": "varchar(2000)",
-                                    "not_null": false,
-                                    "is_unique": false,
-                                    "is_primary": false,
-                                    "privileges": "select,insert,update,references",
-                                    "is_generated": false
-                                },
-                                "enabled": 1,
-                                "allow_filtering": 1,
-                                "no_check": 0
-                            },
-                            {
-                                "position": 2,
-                                "id": "0xc9d51cb2466f4ffcc29f5c67cad457c3",
-                                "object_id": "0x2007f1afbd0b4568812cc50e8640e2d2",
-                                "name": "userId",
-                                "db_column": {
-                                    "name": "userId",
-                                    "comment": "",
-                                    "auto_inc": false,
-                                    "datatype": "binary(16)",
-                                    "not_null": true,
-                                    "is_unique": false,
-                                    "is_primary": false,
-                                    "privileges": "select,insert,update,references",
-                                    "is_generated": false
-                                },
-                                "enabled": 1,
-                                "allow_filtering": 1,
-                                "no_check": 0
+                                "enabled": true,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false
                             },
                             {
                                 "position": 3,
-                                "id": "0xcd91db4aea514129ac7854e9fbfca222",
-                                "object_id": "0x2007f1afbd0b4568812cc50e8640e2d2",
+                                "id": "0x34478193a765414fd8631bb5be2bc160",
+                                "object_id": "0xdb2e6de6c6704ca78d144ad0c0fd8c1f",
                                 "name": "title",
                                 "db_column": {
                                     "name": "title",
@@ -341,34 +196,87 @@
                                     "privileges": "select,insert,update,references",
                                     "is_generated": false
                                 },
-                                "enabled": 1,
-                                "allow_filtering": 1,
-                                "no_check": 0
+                                "enabled": true,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false
                             },
                             {
-                                "position": 8,
-                                "id": "0xd8e83680420b41d7fc004547dc427aab",
-                                "object_id": "0x2007f1afbd0b4568812cc50e8640e2d2",
-                                "name": "shared",
+                                "position": 1001,
+                                "id": "0x378516d2fcb24388d3eed8b5140e6468",
+                                "represents_reference_id": "0x3250959cee384509c28fda800b3c5399",
+                                "object_id": "0xdb2e6de6c6704ca78d144ad0c0fd8c1f",
+                                "name": "userHasNote",
+                                "db_column": null,
+                                "enabled": false,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false,
+                                "object_reference": {
+                                    "unnest": false,
+                                    "crud_operations": "READ",
+                                    "reference_mapping": {
+                                        "kind": "1:n",
+                                        "to_many": true,
+                                        "constraint": "mrs_notes.fk_note",
+                                        "column_mapping": [
+                                            {
+                                                "ref": "noteId",
+                                                "base": "id"
+                                            }
+                                        ],
+                                        "referenced_table": "userHasNote",
+                                        "referenced_schema": "mrs_notes"
+                                    },
+                                    "id": "0x3250959cee384509c28fda800b3c5399"
+                                }
+                            },
+                            {
+                                "position": 4,
+                                "id": "0x4e7b0c3bef8a487ca1e6cfd55a1efa9c",
+                                "object_id": "0xdb2e6de6c6704ca78d144ad0c0fd8c1f",
+                                "name": "createDate",
                                 "db_column": {
-                                    "name": "shared",
-                                    "comment": "The shared column is automatically updated by AFTER INSERT / DELETE triggers on userHasNote.",
+                                    "name": "createDate",
+                                    "comment": "",
                                     "auto_inc": false,
-                                    "datatype": "tinyint(1)",
+                                    "datatype": "datetime",
                                     "not_null": true,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "privileges": "select,insert,update,references",
                                     "is_generated": false
                                 },
-                                "enabled": 1,
-                                "allow_filtering": 1,
-                                "no_check": 0
+                                "enabled": true,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false
+                            },
+                            {
+                                "position": 9,
+                                "id": "0x520f40dcfcb247bcda3e56cfc84a33ac",
+                                "object_id": "0xdb2e6de6c6704ca78d144ad0c0fd8c1f",
+                                "name": "content",
+                                "db_column": {
+                                    "name": "content",
+                                    "comment": "",
+                                    "auto_inc": false,
+                                    "datatype": "varchar(2000)",
+                                    "not_null": false,
+                                    "is_unique": false,
+                                    "is_primary": false,
+                                    "privileges": "select,insert,update,references",
+                                    "is_generated": false
+                                },
+                                "enabled": true,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false
                             },
                             {
                                 "position": 6,
-                                "id": "0xdfe5b381a0bf4823d94888404e7df8b4",
-                                "object_id": "0x2007f1afbd0b4568812cc50e8640e2d2",
+                                "id": "0x6be2a0d148dc4005dfdf00ea41999d95",
+                                "object_id": "0xdb2e6de6c6704ca78d144ad0c0fd8c1f",
                                 "name": "pinned",
                                 "db_column": {
                                     "name": "pinned",
@@ -381,35 +289,145 @@
                                     "privileges": "select,insert,update,references",
                                     "is_generated": false
                                 },
-                                "enabled": 1,
-                                "allow_filtering": 1,
-                                "no_check": 0
+                                "enabled": true,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false
                             },
                             {
-                                "position": 1001,
-                                "id": "0xfabb6c895a5949fe813d7e266b34133e",
-                                "represents_reference_id": "0x5c99400b5bcb4d74caa4233c1f2c38ab",
-                                "object_id": "0x2007f1afbd0b4568812cc50e8640e2d2",
-                                "name": "userHasNote",
+                                "position": 8,
+                                "id": "0x8432232bf3064a1ec391f5cea6053e61",
+                                "object_id": "0xdb2e6de6c6704ca78d144ad0c0fd8c1f",
+                                "name": "shared",
+                                "db_column": {
+                                    "name": "shared",
+                                    "comment": "The shared column is automatically updated by AFTER INSERT / DELETE triggers on userHasNote.",
+                                    "auto_inc": false,
+                                    "datatype": "tinyint(1)",
+                                    "not_null": true,
+                                    "is_unique": false,
+                                    "is_primary": false,
+                                    "privileges": "select,insert,update,references",
+                                    "is_generated": false
+                                },
+                                "enabled": true,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false
+                            },
+                            {
+                                "position": 10,
+                                "id": "0x8a4ee06e24dd4a12919cce677a344337",
+                                "object_id": "0xdb2e6de6c6704ca78d144ad0c0fd8c1f",
+                                "name": "tags",
+                                "db_column": {
+                                    "name": "tags",
+                                    "comment": "",
+                                    "auto_inc": false,
+                                    "datatype": "json",
+                                    "not_null": false,
+                                    "is_unique": false,
+                                    "is_primary": false,
+                                    "privileges": "select,insert,update,references",
+                                    "is_generated": false
+                                },
+                                "enabled": true,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false
+                            },
+                            {
+                                "position": 1,
+                                "id": "0x9d6c508995dc4aa3b632c528dcc8378a",
+                                "object_id": "0xdb2e6de6c6704ca78d144ad0c0fd8c1f",
+                                "name": "id",
+                                "db_column": {
+                                    "name": "id",
+                                    "comment": "",
+                                    "auto_inc": true,
+                                    "datatype": "int unsigned",
+                                    "not_null": true,
+                                    "is_unique": false,
+                                    "is_primary": true,
+                                    "privileges": "select,insert,update,references",
+                                    "is_generated": false
+                                },
+                                "enabled": true,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false
+                            },
+                            {
+                                "position": 102,
+                                "id": "0xa6b7a56d7b9049b899f065ed87375ecb",
+                                "represents_reference_id": "0x95e85ce35a1449e6eb6e0a026fe999b3",
+                                "object_id": "0xdb2e6de6c6704ca78d144ad0c0fd8c1f",
+                                "name": "user",
                                 "db_column": null,
-                                "enabled": 0,
-                                "allow_filtering": 1,
-                                "no_check": 0,
+                                "enabled": false,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false,
                                 "object_reference": {
-                                    "unnest": 0,
+                                    "unnest": false,
                                     "crud_operations": "READ",
                                     "reference_mapping": {
-                                        "kind": "1:n",
-                                        "to_many": true,
-                                        "constraint": "mrs_notes.fk_note",
-                                        "column_mapping": {
-                                            "note_id": "id"
-                                        },
-                                        "referenced_table": "userHasNote",
+                                        "kind": "n:1",
+                                        "to_many": false,
+                                        "constraint": "mrs_notes.fk_note_user1",
+                                        "column_mapping": [
+                                            {
+                                                "ref": "id",
+                                                "base": "userId"
+                                            }
+                                        ],
+                                        "referenced_table": "user",
                                         "referenced_schema": "mrs_notes"
                                     },
-                                    "id": "0x5c99400b5bcb4d74caa4233c1f2c38ab"
+                                    "id": "0x95e85ce35a1449e6eb6e0a026fe999b3"
                                 }
+                            },
+                            {
+                                "position": 2,
+                                "id": "0xa8db74fa4fde4d0198be152050619cc9",
+                                "object_id": "0xdb2e6de6c6704ca78d144ad0c0fd8c1f",
+                                "name": "userId",
+                                "db_column": {
+                                    "name": "userId",
+                                    "comment": "",
+                                    "auto_inc": false,
+                                    "datatype": "binary(16)",
+                                    "not_null": true,
+                                    "is_unique": false,
+                                    "is_primary": false,
+                                    "privileges": "select,insert,update,references",
+                                    "is_generated": false
+                                },
+                                "enabled": true,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false
+                            },
+                            {
+                                "position": 7,
+                                "id": "0xfa49e814283043d1a53dd407d777bccf",
+                                "object_id": "0xdb2e6de6c6704ca78d144ad0c0fd8c1f",
+                                "name": "lockedDown",
+                                "db_column": {
+                                    "name": "lockedDown",
+                                    "comment": "",
+                                    "auto_inc": false,
+                                    "datatype": "tinyint(1)",
+                                    "not_null": true,
+                                    "is_unique": false,
+                                    "is_primary": false,
+                                    "privileges": "select,insert,update,references",
+                                    "is_generated": false
+                                },
+                                "enabled": true,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false
                             }
                         ]
                     }
@@ -476,81 +494,15 @@
                 ],
                 "objects": [
                     {
-                        "id": "0x3f1084d20a814dc7f41b775fe5175483",
+                        "id": "0x23a2ddbe590d48b9b51ca602b8a52a3d",
                         "db_object_id": "0x11ed77ef5b0ff2c4adfb020017059995",
                         "name": "MyServiceMrsNotesUser",
                         "position": 1,
                         "fields": [
                             {
-                                "position": 2,
-                                "id": "0x0235c734f8a74a84d11a1f53edf11afc",
-                                "object_id": "0x3f1084d20a814dc7f41b775fe5175483",
-                                "name": "nickname",
-                                "db_column": {
-                                    "name": "nickname",
-                                    "comment": "",
-                                    "auto_inc": false,
-                                    "datatype": "varchar(255)",
-                                    "not_null": true,
-                                    "is_unique": false,
-                                    "is_primary": false,
-                                    "privileges": "select,insert,update,references",
-                                    "is_generated": false
-                                },
-                                "enabled": 1,
-                                "allow_filtering": 1,
-                                "no_check": 0
-                            },
-                            {
-                                "position": 1,
-                                "id": "0x04268ba3787d4cf1e3808db48c8944d2",
-                                "object_id": "0x3f1084d20a814dc7f41b775fe5175483",
-                                "name": "id",
-                                "db_column": {
-                                    "name": "id",
-                                    "comment": "",
-                                    "auto_inc": false,
-                                    "datatype": "binary(16)",
-                                    "not_null": true,
-                                    "is_unique": false,
-                                    "is_primary": true,
-                                    "privileges": "select,insert,update,references",
-                                    "is_generated": false
-                                },
-                                "enabled": 1,
-                                "allow_filtering": 1,
-                                "no_check": 0
-                            },
-                            {
-                                "position": 1002,
-                                "id": "0x1b28cf5e5d6e4579902aee9e19c66f35",
-                                "represents_reference_id": "0x63db1693f0f04324a6356392eec79cde",
-                                "object_id": "0x3f1084d20a814dc7f41b775fe5175483",
-                                "name": "note",
-                                "db_column": null,
-                                "enabled": 0,
-                                "allow_filtering": 1,
-                                "no_check": 0,
-                                "object_reference": {
-                                    "unnest": 0,
-                                    "crud_operations": "READ",
-                                    "reference_mapping": {
-                                        "kind": "1:n",
-                                        "to_many": true,
-                                        "constraint": "mrs_notes.fk_note_user1",
-                                        "column_mapping": {
-                                            "user_id": "id"
-                                        },
-                                        "referenced_table": "note",
-                                        "referenced_schema": "mrs_notes"
-                                    },
-                                    "id": "0x63db1693f0f04324a6356392eec79cde"
-                                }
-                            },
-                            {
                                 "position": 3,
-                                "id": "0x21af2817a6934545c7845f54a7e172bd",
-                                "object_id": "0x3f1084d20a814dc7f41b775fe5175483",
+                                "id": "0x00a3025a93b84ffcec0d604969a7604f",
+                                "object_id": "0x23a2ddbe590d48b9b51ca602b8a52a3d",
                                 "name": "email",
                                 "db_column": {
                                     "name": "email",
@@ -563,35 +515,112 @@
                                     "privileges": "select,insert,update,references",
                                     "is_generated": false
                                 },
-                                "enabled": 1,
-                                "allow_filtering": 1,
-                                "no_check": 0
+                                "enabled": true,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false
                             },
                             {
                                 "position": 1002,
-                                "id": "0xd2dbf7d1ceed4581d5b15c1a1a969d29",
-                                "represents_reference_id": "0x34519c0ed2f24f13b16fe45193b0f845",
-                                "object_id": "0x3f1084d20a814dc7f41b775fe5175483",
+                                "id": "0x6c5a3387d33e4219f36691afd18897ce",
+                                "represents_reference_id": "0x16cf1a1646964472d62efda9b48878d1",
+                                "object_id": "0x23a2ddbe590d48b9b51ca602b8a52a3d",
                                 "name": "userHasNote",
                                 "db_column": null,
-                                "enabled": 0,
-                                "allow_filtering": 1,
-                                "no_check": 0,
+                                "enabled": false,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false,
                                 "object_reference": {
-                                    "unnest": 0,
+                                    "unnest": false,
                                     "crud_operations": "READ",
                                     "reference_mapping": {
                                         "kind": "1:n",
                                         "to_many": true,
                                         "constraint": "mrs_notes.fk_userHasNote_user1",
-                                        "column_mapping": {
-                                            "user_id": "id"
-                                        },
+                                        "column_mapping": [
+                                            {
+                                                "ref": "userId",
+                                                "base": "id"
+                                            }
+                                        ],
                                         "referenced_table": "userHasNote",
                                         "referenced_schema": "mrs_notes"
                                     },
-                                    "id": "0x34519c0ed2f24f13b16fe45193b0f845"
+                                    "id": "0x16cf1a1646964472d62efda9b48878d1"
                                 }
+                            },
+                            {
+                                "position": 1,
+                                "id": "0x7722bec674a14ef2a1bf5299f55fb6ad",
+                                "object_id": "0x23a2ddbe590d48b9b51ca602b8a52a3d",
+                                "name": "id",
+                                "db_column": {
+                                    "name": "id",
+                                    "comment": "",
+                                    "auto_inc": false,
+                                    "datatype": "binary(16)",
+                                    "not_null": true,
+                                    "is_unique": false,
+                                    "is_primary": true,
+                                    "privileges": "select,insert,update,references",
+                                    "is_generated": false
+                                },
+                                "enabled": true,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false
+                            },
+                            {
+                                "position": 1002,
+                                "id": "0x94cf6a5ce27c4f7fbfac2ba9d700541e",
+                                "represents_reference_id": "0xca95bc882f074af9df946358474281b9",
+                                "object_id": "0x23a2ddbe590d48b9b51ca602b8a52a3d",
+                                "name": "note",
+                                "db_column": null,
+                                "enabled": false,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false,
+                                "object_reference": {
+                                    "unnest": false,
+                                    "crud_operations": "READ",
+                                    "reference_mapping": {
+                                        "kind": "1:n",
+                                        "to_many": true,
+                                        "constraint": "mrs_notes.fk_note_user1",
+                                        "column_mapping": [
+                                            {
+                                                "ref": "userId",
+                                                "base": "id"
+                                            }
+                                        ],
+                                        "referenced_table": "note",
+                                        "referenced_schema": "mrs_notes"
+                                    },
+                                    "id": "0xca95bc882f074af9df946358474281b9"
+                                }
+                            },
+                            {
+                                "position": 2,
+                                "id": "0xbebec937f24042038a3afcc61d5d5ea0",
+                                "object_id": "0x23a2ddbe590d48b9b51ca602b8a52a3d",
+                                "name": "nickname",
+                                "db_column": {
+                                    "name": "nickname",
+                                    "comment": "",
+                                    "auto_inc": false,
+                                    "datatype": "varchar(255)",
+                                    "not_null": true,
+                                    "is_unique": false,
+                                    "is_primary": false,
+                                    "privileges": "select,insert,update,references",
+                                    "is_generated": false
+                                },
+                                "enabled": true,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false
                             }
                         ]
                     }
@@ -765,235 +794,15 @@
                 ],
                 "objects": [
                     {
-                        "id": "0xcd654fa2e3a94df28b839f6aa7c55fc6",
+                        "id": "0x4e0de0ef4787406c811840404c99758f",
                         "db_object_id": "0x11ed77ef6a560602adfb020017059995",
                         "name": "MyServiceMrsNotesNotesAll",
                         "position": 1,
                         "fields": [
                             {
-                                "position": 7,
-                                "id": "0x3be1a7908d0a4c28fcd73324c5f74656",
-                                "object_id": "0xcd654fa2e3a94df28b839f6aa7c55fc6",
-                                "name": "shared",
-                                "db_column": {
-                                    "name": "shared",
-                                    "comment": "The shared column is automatically updated by AFTER INSERT / DELETE triggers on userHasNote.",
-                                    "auto_inc": false,
-                                    "datatype": "tinyint(1)",
-                                    "not_null": true,
-                                    "is_unique": false,
-                                    "is_primary": false,
-                                    "privileges": "select,insert,update,references",
-                                    "is_generated": false
-                                },
-                                "enabled": 1,
-                                "allow_filtering": 1,
-                                "no_check": 0
-                            },
-                            {
-                                "position": 10,
-                                "id": "0x5a5c638285b44d5b9c45655a932f19b2",
-                                "object_id": "0xcd654fa2e3a94df28b839f6aa7c55fc6",
-                                "name": "userId",
-                                "db_column": {
-                                    "name": "userId",
-                                    "comment": "",
-                                    "auto_inc": false,
-                                    "datatype": "binary(16)",
-                                    "not_null": true,
-                                    "is_unique": false,
-                                    "is_primary": false,
-                                    "privileges": "select,insert,update,references",
-                                    "is_generated": false
-                                },
-                                "enabled": 1,
-                                "allow_filtering": 1,
-                                "no_check": 0
-                            },
-                            {
-                                "position": 1,
-                                "id": "0x6277993381c54860c8d4a0d0225519f1",
-                                "object_id": "0xcd654fa2e3a94df28b839f6aa7c55fc6",
-                                "name": "id",
-                                "db_column": {
-                                    "name": "id",
-                                    "comment": "",
-                                    "auto_inc": false,
-                                    "datatype": "int unsigned",
-                                    "not_null": true,
-                                    "is_unique": false,
-                                    "is_primary": false,
-                                    "privileges": "select,insert,update,references",
-                                    "is_generated": false
-                                },
-                                "enabled": 1,
-                                "allow_filtering": 1,
-                                "no_check": 0
-                            },
-                            {
-                                "position": 4,
-                                "id": "0x7416eb5b2c264353d00af807195fec0b",
-                                "object_id": "0xcd654fa2e3a94df28b839f6aa7c55fc6",
-                                "name": "lastUpdate",
-                                "db_column": {
-                                    "name": "lastUpdate",
-                                    "comment": "",
-                                    "auto_inc": false,
-                                    "datatype": "datetime",
-                                    "not_null": true,
-                                    "is_unique": false,
-                                    "is_primary": false,
-                                    "privileges": "select,insert,update,references",
-                                    "is_generated": false
-                                },
-                                "enabled": 1,
-                                "allow_filtering": 1,
-                                "no_check": 0
-                            },
-                            {
-                                "position": 6,
-                                "id": "0x8f81d4f268e54f2abc3c25cfacdc4746",
-                                "object_id": "0xcd654fa2e3a94df28b839f6aa7c55fc6",
-                                "name": "lockedDown",
-                                "db_column": {
-                                    "name": "lockedDown",
-                                    "comment": "",
-                                    "auto_inc": false,
-                                    "datatype": "tinyint(1)",
-                                    "not_null": true,
-                                    "is_unique": false,
-                                    "is_primary": false,
-                                    "privileges": "select,insert,update,references",
-                                    "is_generated": false
-                                },
-                                "enabled": 1,
-                                "allow_filtering": 1,
-                                "no_check": 0
-                            },
-                            {
-                                "position": 2,
-                                "id": "0x9a9ecdc8e8074ec9d79428244f31e03d",
-                                "object_id": "0xcd654fa2e3a94df28b839f6aa7c55fc6",
-                                "name": "title",
-                                "db_column": {
-                                    "name": "title",
-                                    "comment": "",
-                                    "auto_inc": false,
-                                    "datatype": "varchar(255)",
-                                    "not_null": true,
-                                    "is_unique": false,
-                                    "is_primary": false,
-                                    "privileges": "select,insert,update,references",
-                                    "is_generated": false
-                                },
-                                "enabled": 1,
-                                "allow_filtering": 1,
-                                "no_check": 0
-                            },
-                            {
-                                "position": 5,
-                                "id": "0xb02d594c91334f67c609affbf0a86603",
-                                "object_id": "0xcd654fa2e3a94df28b839f6aa7c55fc6",
-                                "name": "pinned",
-                                "db_column": {
-                                    "name": "pinned",
-                                    "comment": "",
-                                    "auto_inc": false,
-                                    "datatype": "tinyint(1)",
-                                    "not_null": true,
-                                    "is_unique": false,
-                                    "is_primary": false,
-                                    "privileges": "select,insert,update,references",
-                                    "is_generated": false
-                                },
-                                "enabled": 1,
-                                "allow_filtering": 1,
-                                "no_check": 0
-                            },
-                            {
-                                "position": 3,
-                                "id": "0xbd4528ba43fd4724f690d5abcf3e9130",
-                                "object_id": "0xcd654fa2e3a94df28b839f6aa7c55fc6",
-                                "name": "createDate",
-                                "db_column": {
-                                    "name": "createDate",
-                                    "comment": "",
-                                    "auto_inc": false,
-                                    "datatype": "datetime",
-                                    "not_null": true,
-                                    "is_unique": false,
-                                    "is_primary": false,
-                                    "privileges": "select,insert,update,references",
-                                    "is_generated": false
-                                },
-                                "enabled": 1,
-                                "allow_filtering": 1,
-                                "no_check": 0
-                            },
-                            {
-                                "position": 11,
-                                "id": "0xc06e2459a2cc40938ab1dabf6d9e6c68",
-                                "object_id": "0xcd654fa2e3a94df28b839f6aa7c55fc6",
-                                "name": "viewOnly",
-                                "db_column": {
-                                    "name": "viewOnly",
-                                    "comment": "",
-                                    "auto_inc": false,
-                                    "datatype": "tinyint(1)",
-                                    "not_null": true,
-                                    "is_unique": false,
-                                    "is_primary": false,
-                                    "privileges": "select,insert,update,references",
-                                    "is_generated": false
-                                },
-                                "enabled": 1,
-                                "allow_filtering": 1,
-                                "no_check": 0
-                            },
-                            {
-                                "position": 12,
-                                "id": "0xd7c89ba645d941c38b7c8b3bcc29c572",
-                                "object_id": "0xcd654fa2e3a94df28b839f6aa7c55fc6",
-                                "name": "ownNote",
-                                "db_column": {
-                                    "name": "ownNote",
-                                    "comment": "",
-                                    "auto_inc": false,
-                                    "datatype": "int",
-                                    "not_null": true,
-                                    "is_unique": false,
-                                    "is_primary": false,
-                                    "privileges": "select,insert,update,references",
-                                    "is_generated": false
-                                },
-                                "enabled": 1,
-                                "allow_filtering": 1,
-                                "no_check": 0
-                            },
-                            {
-                                "position": 8,
-                                "id": "0xe6d9c729b39046828c92c06a506d0327",
-                                "object_id": "0xcd654fa2e3a94df28b839f6aa7c55fc6",
-                                "name": "content",
-                                "db_column": {
-                                    "name": "content",
-                                    "comment": "",
-                                    "auto_inc": false,
-                                    "datatype": "varchar(2000)",
-                                    "not_null": false,
-                                    "is_unique": false,
-                                    "is_primary": false,
-                                    "privileges": "select,insert,update,references",
-                                    "is_generated": false
-                                },
-                                "enabled": 1,
-                                "allow_filtering": 1,
-                                "no_check": 0
-                            },
-                            {
                                 "position": 13,
-                                "id": "0xf0453a1114624669b24c0fc33cff5f3c",
-                                "object_id": "0xcd654fa2e3a94df28b839f6aa7c55fc6",
+                                "id": "0x052b8aeba3c64b25cdce39ecd3c02dba",
+                                "object_id": "0x4e0de0ef4787406c811840404c99758f",
                                 "name": "contentBeginning",
                                 "db_column": {
                                     "name": "contentBeginning",
@@ -1006,14 +815,57 @@
                                     "privileges": "select,insert,update,references",
                                     "is_generated": false
                                 },
-                                "enabled": 1,
-                                "allow_filtering": 1,
-                                "no_check": 0
+                                "enabled": true,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false
+                            },
+                            {
+                                "position": 6,
+                                "id": "0x19b87c51962a4253c39b6760f0f2dc50",
+                                "object_id": "0x4e0de0ef4787406c811840404c99758f",
+                                "name": "lockedDown",
+                                "db_column": {
+                                    "name": "lockedDown",
+                                    "comment": "",
+                                    "auto_inc": false,
+                                    "datatype": "tinyint(1)",
+                                    "not_null": true,
+                                    "is_unique": false,
+                                    "is_primary": false,
+                                    "privileges": "select,insert,update,references",
+                                    "is_generated": false
+                                },
+                                "enabled": true,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false
+                            },
+                            {
+                                "position": 1,
+                                "id": "0x1fb6b3c567884a45e3efa01f65dbad7a",
+                                "object_id": "0x4e0de0ef4787406c811840404c99758f",
+                                "name": "id",
+                                "db_column": {
+                                    "name": "id",
+                                    "comment": "",
+                                    "auto_inc": false,
+                                    "datatype": "int unsigned",
+                                    "not_null": true,
+                                    "is_unique": false,
+                                    "is_primary": false,
+                                    "privileges": "select,insert,update,references",
+                                    "is_generated": false
+                                },
+                                "enabled": true,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false
                             },
                             {
                                 "position": 9,
-                                "id": "0xf0ea02a7ea864bccfdb312b585cbb564",
-                                "object_id": "0xcd654fa2e3a94df28b839f6aa7c55fc6",
+                                "id": "0x3385e60c4e6a4b84fff3044f6e732c81",
+                                "object_id": "0x4e0de0ef4787406c811840404c99758f",
                                 "name": "tags",
                                 "db_column": {
                                     "name": "tags",
@@ -1026,9 +878,199 @@
                                     "privileges": "select,insert,update,references",
                                     "is_generated": false
                                 },
-                                "enabled": 1,
-                                "allow_filtering": 1,
-                                "no_check": 0
+                                "enabled": true,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false
+                            },
+                            {
+                                "position": 11,
+                                "id": "0x4732cbb1ba9c45fbf8b3b258212c2018",
+                                "object_id": "0x4e0de0ef4787406c811840404c99758f",
+                                "name": "viewOnly",
+                                "db_column": {
+                                    "name": "viewOnly",
+                                    "comment": "",
+                                    "auto_inc": false,
+                                    "datatype": "tinyint(1)",
+                                    "not_null": true,
+                                    "is_unique": false,
+                                    "is_primary": false,
+                                    "privileges": "select,insert,update,references",
+                                    "is_generated": false
+                                },
+                                "enabled": true,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false
+                            },
+                            {
+                                "position": 8,
+                                "id": "0x93f854b758bc426ca71c506e91fb80ce",
+                                "object_id": "0x4e0de0ef4787406c811840404c99758f",
+                                "name": "content",
+                                "db_column": {
+                                    "name": "content",
+                                    "comment": "",
+                                    "auto_inc": false,
+                                    "datatype": "varchar(2000)",
+                                    "not_null": false,
+                                    "is_unique": false,
+                                    "is_primary": false,
+                                    "privileges": "select,insert,update,references",
+                                    "is_generated": false
+                                },
+                                "enabled": true,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false
+                            },
+                            {
+                                "position": 12,
+                                "id": "0x98e8e0d7e5d44c6f9e3c17147311e40f",
+                                "object_id": "0x4e0de0ef4787406c811840404c99758f",
+                                "name": "ownNote",
+                                "db_column": {
+                                    "name": "ownNote",
+                                    "comment": "",
+                                    "auto_inc": false,
+                                    "datatype": "int",
+                                    "not_null": true,
+                                    "is_unique": false,
+                                    "is_primary": false,
+                                    "privileges": "select,insert,update,references",
+                                    "is_generated": false
+                                },
+                                "enabled": true,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false
+                            },
+                            {
+                                "position": 10,
+                                "id": "0x9a0ed096fbfa489b9f651e49ebd29e1f",
+                                "object_id": "0x4e0de0ef4787406c811840404c99758f",
+                                "name": "userId",
+                                "db_column": {
+                                    "name": "userId",
+                                    "comment": "",
+                                    "auto_inc": false,
+                                    "datatype": "binary(16)",
+                                    "not_null": true,
+                                    "is_unique": false,
+                                    "is_primary": false,
+                                    "privileges": "select,insert,update,references",
+                                    "is_generated": false
+                                },
+                                "enabled": true,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false
+                            },
+                            {
+                                "position": 4,
+                                "id": "0xa324f7d57b5e41de8e2cfd6059b7cae7",
+                                "object_id": "0x4e0de0ef4787406c811840404c99758f",
+                                "name": "lastUpdate",
+                                "db_column": {
+                                    "name": "lastUpdate",
+                                    "comment": "",
+                                    "auto_inc": false,
+                                    "datatype": "datetime",
+                                    "not_null": true,
+                                    "is_unique": false,
+                                    "is_primary": false,
+                                    "privileges": "select,insert,update,references",
+                                    "is_generated": false
+                                },
+                                "enabled": true,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false
+                            },
+                            {
+                                "position": 3,
+                                "id": "0xba4db59606fa4a95a9e9a2ec3a4b319d",
+                                "object_id": "0x4e0de0ef4787406c811840404c99758f",
+                                "name": "createDate",
+                                "db_column": {
+                                    "name": "createDate",
+                                    "comment": "",
+                                    "auto_inc": false,
+                                    "datatype": "datetime",
+                                    "not_null": true,
+                                    "is_unique": false,
+                                    "is_primary": false,
+                                    "privileges": "select,insert,update,references",
+                                    "is_generated": false
+                                },
+                                "enabled": true,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false
+                            },
+                            {
+                                "position": 7,
+                                "id": "0xca4b9aa963374dc8bc0174f21fb48aee",
+                                "object_id": "0x4e0de0ef4787406c811840404c99758f",
+                                "name": "shared",
+                                "db_column": {
+                                    "name": "shared",
+                                    "comment": "The shared column is automatically updated by AFTER INSERT / DELETE triggers on userHasNote.",
+                                    "auto_inc": false,
+                                    "datatype": "tinyint(1)",
+                                    "not_null": true,
+                                    "is_unique": false,
+                                    "is_primary": false,
+                                    "privileges": "select,insert,update,references",
+                                    "is_generated": false
+                                },
+                                "enabled": true,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false
+                            },
+                            {
+                                "position": 5,
+                                "id": "0xd207d94e71054a13f947a26249f1f1dd",
+                                "object_id": "0x4e0de0ef4787406c811840404c99758f",
+                                "name": "pinned",
+                                "db_column": {
+                                    "name": "pinned",
+                                    "comment": "",
+                                    "auto_inc": false,
+                                    "datatype": "tinyint(1)",
+                                    "not_null": true,
+                                    "is_unique": false,
+                                    "is_primary": false,
+                                    "privileges": "select,insert,update,references",
+                                    "is_generated": false
+                                },
+                                "enabled": true,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false
+                            },
+                            {
+                                "position": 2,
+                                "id": "0xff342e252e1f46bed8689c19b29d437d",
+                                "object_id": "0x4e0de0ef4787406c811840404c99758f",
+                                "name": "title",
+                                "db_column": {
+                                    "name": "title",
+                                    "comment": "",
+                                    "auto_inc": false,
+                                    "datatype": "varchar(255)",
+                                    "not_null": true,
+                                    "is_unique": false,
+                                    "is_primary": false,
+                                    "privileges": "select,insert,update,references",
+                                    "is_generated": false
+                                },
+                                "enabled": true,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false
                             }
                         ]
                     }
@@ -1070,15 +1112,15 @@
                 ],
                 "objects": [
                     {
-                        "id": "0x49b22b7d05cc4e358e5361b445e6a8c0",
+                        "id": "0x955436f099df460fcfa3120a68e55686",
                         "db_object_id": "0x11ed77ef74537ca1adfb020017059995",
                         "name": "MyServiceMrsNotesNotesServed",
                         "position": 1,
                         "fields": [
                             {
                                 "position": 1,
-                                "id": "0xc97279e614f34c89e2f38f38db436c0c",
-                                "object_id": "0x49b22b7d05cc4e358e5361b445e6a8c0",
+                                "id": "0x509f3a8927ba41c2ce58cb0064c981aa",
+                                "object_id": "0x955436f099df460fcfa3120a68e55686",
                                 "name": "notesServed",
                                 "db_column": {
                                     "name": "notesServed",
@@ -1091,9 +1133,10 @@
                                     "privileges": "select,insert,update,references",
                                     "is_generated": false
                                 },
-                                "enabled": 1,
-                                "allow_filtering": 1,
-                                "no_check": 0
+                                "enabled": true,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false
                             }
                         ]
                     }
@@ -1466,15 +1509,15 @@
                 ],
                 "objects": [
                     {
-                        "id": "0xb57a9f664bfc4e19e5ea28b4bfc8f4c8",
+                        "id": "0x6f665f1f79814d1cdde1405dd36f42f7",
                         "db_object_id": "0x11ed77f135e39fa0adfb020017059995",
                         "name": "MyServiceMrsNotesUserHasNote",
                         "position": 1,
                         "fields": [
                             {
                                 "position": 5,
-                                "id": "0x4571c03b9ea24833c34ac1a03cee616f",
-                                "object_id": "0xb57a9f664bfc4e19e5ea28b4bfc8f4c8",
+                                "id": "0x17620ce61ec04543ebe7778e85adb447",
+                                "object_id": "0x6f665f1f79814d1cdde1405dd36f42f7",
                                 "name": "invitationKey",
                                 "db_column": {
                                     "name": "invitationKey",
@@ -1487,126 +1530,15 @@
                                     "privileges": "select,insert,update,references",
                                     "is_generated": false
                                 },
-                                "enabled": 1,
-                                "allow_filtering": 1,
-                                "no_check": 0
-                            },
-                            {
-                                "position": 101,
-                                "id": "0x58863f2746ec4b17b08940c23560d539",
-                                "represents_reference_id": "0xed978c44452746728b1e3c947fa8d80f",
-                                "object_id": "0xb57a9f664bfc4e19e5ea28b4bfc8f4c8",
-                                "name": "note",
-                                "db_column": null,
-                                "enabled": 0,
-                                "allow_filtering": 1,
-                                "no_check": 0,
-                                "object_reference": {
-                                    "unnest": 0,
-                                    "crud_operations": "READ",
-                                    "reference_mapping": {
-                                        "kind": "n:1",
-                                        "to_many": false,
-                                        "constraint": "mrs_notes.fk_note",
-                                        "column_mapping": {
-                                            "note_id": "id"
-                                        },
-                                        "referenced_table": "note",
-                                        "referenced_schema": "mrs_notes"
-                                    },
-                                    "id": "0xed978c44452746728b1e3c947fa8d80f"
-                                }
-                            },
-                            {
-                                "position": 6,
-                                "id": "0x5faea0e8b15a4372f4e6b63b963425ec",
-                                "object_id": "0xb57a9f664bfc4e19e5ea28b4bfc8f4c8",
-                                "name": "invitationAccepted",
-                                "db_column": {
-                                    "name": "invitationAccepted",
-                                    "comment": "",
-                                    "auto_inc": false,
-                                    "datatype": "tinyint(1)",
-                                    "not_null": true,
-                                    "is_unique": false,
-                                    "is_primary": false,
-                                    "privileges": "select,insert,update,references",
-                                    "is_generated": false
-                                },
-                                "enabled": 1,
-                                "allow_filtering": 1,
-                                "no_check": 0
-                            },
-                            {
-                                "position": 1,
-                                "id": "0x5fbc63334ad145bbb3d0e715410da2f8",
-                                "object_id": "0xb57a9f664bfc4e19e5ea28b4bfc8f4c8",
-                                "name": "noteId",
-                                "db_column": {
-                                    "name": "noteId",
-                                    "comment": "",
-                                    "auto_inc": false,
-                                    "datatype": "int unsigned",
-                                    "not_null": true,
-                                    "is_unique": false,
-                                    "is_primary": true,
-                                    "privileges": "select,insert,update,references",
-                                    "is_generated": false
-                                },
-                                "enabled": 1,
-                                "allow_filtering": 1,
-                                "no_check": 0
-                            },
-                            {
-                                "position": 102,
-                                "id": "0x88f536c461db4d05acabb0a9745a846d",
-                                "represents_reference_id": "0x04cc2ef2e9f84bd6dcde09692d199792",
-                                "object_id": "0xb57a9f664bfc4e19e5ea28b4bfc8f4c8",
-                                "name": "user",
-                                "db_column": null,
-                                "enabled": 0,
-                                "allow_filtering": 1,
-                                "no_check": 0,
-                                "object_reference": {
-                                    "unnest": 0,
-                                    "crud_operations": "READ",
-                                    "reference_mapping": {
-                                        "kind": "n:1",
-                                        "to_many": false,
-                                        "constraint": "mrs_notes.fk_userHasNote_user1",
-                                        "column_mapping": {
-                                            "user_id": "id"
-                                        },
-                                        "referenced_table": "user",
-                                        "referenced_schema": "mrs_notes"
-                                    },
-                                    "id": "0x04cc2ef2e9f84bd6dcde09692d199792"
-                                }
-                            },
-                            {
-                                "position": 2,
-                                "id": "0x8f6593bdfd39492efa9cece0caf84dd6",
-                                "object_id": "0xb57a9f664bfc4e19e5ea28b4bfc8f4c8",
-                                "name": "userId",
-                                "db_column": {
-                                    "name": "userId",
-                                    "comment": "",
-                                    "auto_inc": false,
-                                    "datatype": "binary(16)",
-                                    "not_null": true,
-                                    "is_unique": false,
-                                    "is_primary": true,
-                                    "privileges": "select,insert,update,references",
-                                    "is_generated": false
-                                },
-                                "enabled": 1,
-                                "allow_filtering": 1,
-                                "no_check": 0
+                                "enabled": true,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false
                             },
                             {
                                 "position": 3,
-                                "id": "0x948ac38f29484467de05e28ecc880371",
-                                "object_id": "0xb57a9f664bfc4e19e5ea28b4bfc8f4c8",
+                                "id": "0x35b4b64fff414561ba4c30b6d9da2160",
+                                "object_id": "0x6f665f1f79814d1cdde1405dd36f42f7",
                                 "name": "viewOnly",
                                 "db_column": {
                                     "name": "viewOnly",
@@ -1619,14 +1551,36 @@
                                     "privileges": "select,insert,update,references",
                                     "is_generated": false
                                 },
-                                "enabled": 1,
-                                "allow_filtering": 1,
-                                "no_check": 0
+                                "enabled": true,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false
+                            },
+                            {
+                                "position": 2,
+                                "id": "0x5648967fe5144bc5f04b17329ec13c49",
+                                "object_id": "0x6f665f1f79814d1cdde1405dd36f42f7",
+                                "name": "userId",
+                                "db_column": {
+                                    "name": "userId",
+                                    "comment": "",
+                                    "auto_inc": false,
+                                    "datatype": "binary(16)",
+                                    "not_null": true,
+                                    "is_unique": false,
+                                    "is_primary": true,
+                                    "privileges": "select,insert,update,references",
+                                    "is_generated": false
+                                },
+                                "enabled": true,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false
                             },
                             {
                                 "position": 4,
-                                "id": "0xcf2dfb81734b45418645c593dab53741",
-                                "object_id": "0xb57a9f664bfc4e19e5ea28b4bfc8f4c8",
+                                "id": "0x9571f34a65e34c1ff5b308fec5247d75",
+                                "object_id": "0x6f665f1f79814d1cdde1405dd36f42f7",
                                 "name": "canShare",
                                 "db_column": {
                                     "name": "canShare",
@@ -1639,9 +1593,112 @@
                                     "privileges": "select,insert,update,references",
                                     "is_generated": false
                                 },
-                                "enabled": 1,
-                                "allow_filtering": 1,
-                                "no_check": 0
+                                "enabled": true,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false
+                            },
+                            {
+                                "position": 1,
+                                "id": "0xa1cc87cdd19641848c8951c7682c3a03",
+                                "object_id": "0x6f665f1f79814d1cdde1405dd36f42f7",
+                                "name": "noteId",
+                                "db_column": {
+                                    "name": "noteId",
+                                    "comment": "",
+                                    "auto_inc": false,
+                                    "datatype": "int unsigned",
+                                    "not_null": true,
+                                    "is_unique": false,
+                                    "is_primary": true,
+                                    "privileges": "select,insert,update,references",
+                                    "is_generated": false
+                                },
+                                "enabled": true,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false
+                            },
+                            {
+                                "position": 102,
+                                "id": "0xc99856c878a44da8a3be424553b73fe6",
+                                "represents_reference_id": "0x83d7e564300d4c74d04456f3bdc1a2af",
+                                "object_id": "0x6f665f1f79814d1cdde1405dd36f42f7",
+                                "name": "user",
+                                "db_column": null,
+                                "enabled": false,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false,
+                                "object_reference": {
+                                    "unnest": false,
+                                    "crud_operations": "READ",
+                                    "reference_mapping": {
+                                        "kind": "n:1",
+                                        "to_many": false,
+                                        "constraint": "mrs_notes.fk_userHasNote_user1",
+                                        "column_mapping": [
+                                            {
+                                                "ref": "id",
+                                                "base": "userId"
+                                            }
+                                        ],
+                                        "referenced_table": "user",
+                                        "referenced_schema": "mrs_notes"
+                                    },
+                                    "id": "0x83d7e564300d4c74d04456f3bdc1a2af"
+                                }
+                            },
+                            {
+                                "position": 101,
+                                "id": "0xef4cd12bdac14218e24b4cc341570477",
+                                "represents_reference_id": "0xdf7d6e891849467faf4a36c2ae60f316",
+                                "object_id": "0x6f665f1f79814d1cdde1405dd36f42f7",
+                                "name": "note",
+                                "db_column": null,
+                                "enabled": false,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false,
+                                "object_reference": {
+                                    "unnest": false,
+                                    "crud_operations": "READ",
+                                    "reference_mapping": {
+                                        "kind": "n:1",
+                                        "to_many": false,
+                                        "constraint": "mrs_notes.fk_note",
+                                        "column_mapping": [
+                                            {
+                                                "ref": "id",
+                                                "base": "noteId"
+                                            }
+                                        ],
+                                        "referenced_table": "note",
+                                        "referenced_schema": "mrs_notes"
+                                    },
+                                    "id": "0xdf7d6e891849467faf4a36c2ae60f316"
+                                }
+                            },
+                            {
+                                "position": 6,
+                                "id": "0xfbbd311d017040bce330faf17c496d23",
+                                "object_id": "0x6f665f1f79814d1cdde1405dd36f42f7",
+                                "name": "invitationAccepted",
+                                "db_column": {
+                                    "name": "invitationAccepted",
+                                    "comment": "",
+                                    "auto_inc": false,
+                                    "datatype": "tinyint(1)",
+                                    "not_null": true,
+                                    "is_unique": false,
+                                    "is_primary": false,
+                                    "privileges": "select,insert,update,references",
+                                    "is_generated": false
+                                },
+                                "enabled": true,
+                                "allow_filtering": true,
+                                "no_check": false,
+                                "no_update": false
                             }
                         ]
                     }

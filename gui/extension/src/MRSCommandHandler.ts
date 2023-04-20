@@ -55,7 +55,6 @@ import { MrsUserTreeItem } from "./tree-providers/ConnectionsTreeProvider/MrsUse
 import { findExecutable } from "../../frontend/src/utilities/file-utilities";
 import { pathToCamelCase } from "../../frontend/src/utilities/string-helpers";
 import { MrsContentFileTreeItem } from "./tree-providers/ConnectionsTreeProvider/MrsContentFileTreeItem";
-import { MessageScheduler } from "../../frontend/src/communication/MessageScheduler";
 
 export class MRSCommandHandler {
     protected docsWebviewPanel?: WebviewPanel;
@@ -101,7 +100,7 @@ export class MRSCommandHandler {
                 if (os.platform() === "win32") {
                     term.sendText("taskkill /IM mysqlrouter.exe /F", true);
                 } else {
-                    term.sendText("killall mysqlrouter", true);
+                    term.sendText("killall -9 mysqlrouter", true);
                 }
             }));
 
@@ -477,7 +476,7 @@ export class MRSCommandHandler {
                     await window.showSaveDialog({
                         title: "REST Schema Dump...",
                         saveLabel: "Select the target file",
-                        defaultUri: Uri.file(`${os.homedir()}/${item.value.name}.mrs.json`),
+                        defaultUri: Uri.file(`${os.homedir()}/${pathToCamelCase(item.value.requestPath)}.mrs.json`),
                         filters: {
                             // eslint-disable-next-line @typescript-eslint/naming-convention
                             JSON: ["mrs.json"],

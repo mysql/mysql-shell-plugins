@@ -114,7 +114,6 @@ export class MrsUserDialog extends ValueDialogBase {
                     }),
                     value: rolesToDisplay,
                     horizontalSpan: 3,
-                    options: [CommonDialogValueOption.AutoFocus],
                     description: "Roles assign DB Object privileges to the user.",
                 },
                 loginPermittedTitle: {

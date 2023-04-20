@@ -881,6 +881,8 @@ export interface IShellMrsSetObjectFieldsWithReferencesKwargsObj {
     fields?: unknown[];
     /** The comments */
     comments?: string;
+    /** The SDK options */
+    sdkOptions?: IShellDictionary;
 }
 
 export interface IShellMrsSetObjectFieldsWithReferencesKwargs {
@@ -1381,7 +1383,8 @@ export interface IMrsTableColumn {
 }
 
 export interface IMrsColumnMapping {
-    [key: string]: string;
+    base: string;
+    ref: string;
 }
 
 export interface IMrsTableReference {
@@ -1390,7 +1393,7 @@ export interface IMrsTableReference {
     toMany: boolean,
     referencedSchema: string,
     referencedTable: string,
-    columnMapping: IMrsColumnMapping;
+    columnMapping: IMrsColumnMapping[];
 }
 
 export interface IMrsTableColumnWithReference {
@@ -1441,9 +1444,13 @@ export interface IMrsObjectFieldWithReference {
     enabled: boolean,
     allowFiltering: boolean,
     noCheck: boolean,
+    noUpdate: boolean,
     sdkOptions?: IMrsObjectFieldSdkOptions,
     comments?: string,
     objectReference?: IMrsObjectReference,
+    lev?: number,
+    caption?: string,
+    storedDbColumn?: IMrsTableColumn,
 }
 
 export interface IMrsObjectSdkOptionsTs {
@@ -1462,6 +1469,7 @@ export interface IMrsObject {
     sdkOptions?: IMrsObjectSdkOptions,
     comments?: string,
     fields?: IMrsObjectFieldWithReference[],
+    storedFields?: IMrsObjectFieldWithReference[],
 }
 
 export interface IProtocolMrsResults {

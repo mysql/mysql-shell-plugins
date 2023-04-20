@@ -241,10 +241,9 @@ worker.addEventListener("message", (event: MessageEvent) => {
             // Extract lineInfo from exception stack
             const stack = String((e as IDictionary).stack);
             if (stack !== "undefined") {
-                const matches = String(stack).matchAll(/<anonymous>:(\d*?):(\d*?)\)/gm);
-                const groups = Array.from(matches)[0];
-                if (groups.length === 3) {
-                    lineInfo = getErrorLineInfo(parseInt(groups[1], 10), parseInt(groups[2], 10));
+                const groups = [...stack.matchAll(/:(\d*?):(\d*?)\)/gm)][0];
+                if (groups?.length === 3) {
+                  lineInfo = getErrorLineInfo(parseInt(groups[1], 10), parseInt(groups[2], 10));
                 }
             }
 

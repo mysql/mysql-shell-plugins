@@ -577,14 +577,21 @@ def set_object_fields_with_references(session, obj):
         for field in fields:
             obj_ref = field.get("object_reference")
 
-            if (obj_ref is not None and (not (obj_ref.get("id") in inserted_object_references_ids))):
+            if (obj_ref is not None and
+                    (not (obj_ref.get("id") in inserted_object_references_ids))):
                 inserted_object_references_ids.append(obj_ref.get("id"))
 
                 # make sure to covert the sub Dict with dict()
                 ref_map = obj_ref.get("reference_mapping")
                 if ref_map is not None:
                     ref_map = dict(ref_map)
-                    ref_map["column_mapping"] = dict(ref_map["column_mapping"])
+
+                    # Convert column_mapping, which is a list of dict
+                    converted_col_mapping = []
+                    for cm in ref_map["column_mapping"]:
+                        converted_col_mapping.append(dict(cm))
+
+                    ref_map["column_mapping"] = converted_col_mapping
                     ref_map_json = json.dumps(ref_map)
 
                     # Execute GRANTs

@@ -600,7 +600,9 @@ def get_sql_result_as_dict_list(res, binary_formatter=None):
             # get_type() may return "Constant" or the data type depending if the shell
             # is started in with --json or not.
             col_type = col.get_type().data
-            if col_type == "SET":
+            if col_type == "BIT" and col.get_length() == 1:
+                item[col_name] = (field_val == 1)
+            elif col_type == "SET":
                 item[col_name] = field_val.split(",") if field_val else []
             elif col_type == "JSON":
                 item[col_name] = json.loads(field_val) if field_val else None

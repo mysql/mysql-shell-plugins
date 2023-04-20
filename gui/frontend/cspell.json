@@ -179,7 +179,9 @@
         "zstd",
         "unnest",
         "unnested",
-        "tinyint"
+        "tinyint",
+        "smallint",
+        "mediumint"
     ],
     "ignorePaths": [
         ".eslintrc.json",

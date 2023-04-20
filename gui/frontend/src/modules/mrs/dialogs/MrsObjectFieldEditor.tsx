@@ -40,7 +40,10 @@ import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/Shel
 import { Dropdown } from "../../../components/ui/Dropdown/Dropdown";
 import { Container, ContentAlignment, Orientation } from "../../../components/ui/Container/Container";
 import { CheckState, Checkbox } from "../../../components/ui/Checkbox/Checkbox";
-import { IMrsObject, IMrsObjectFieldWithReference, IMrsObjectReference } from "../../../communication/ProtocolMrs";
+import {
+    IMrsDbObjectData, IMrsObject, IMrsObjectFieldWithReference,
+    IMrsObjectReference,
+} from "../../../communication/ProtocolMrs";
 import { convertCamelToTitleCase, uuidBinary16Base64 } from "../../../utilities/helpers";
 import { convertToPascalCase, snakeToCamelCase } from "../../../utilities/string-helpers";
 import { Input } from "../../../components/ui/Input/Input";
@@ -67,33 +70,25 @@ import crudDIcon from "../../../assets/images/switches/crudDIcon.svg";
 import unnestActiveIcon from "../../../assets/images/switches/unnestActiveIcon.svg";
 import unnestIcon from "../../../assets/images/switches/unnestIcon.svg";
 import unnestedIcon from "../../../assets/images/unnest.svg";
-
-export enum MrsObjectType {
-    Table = "TABLE",
-    View = "VIEW",
-    Procedure = "PROCEDURE"
-}
+import noFilterIcon from "../../../assets/images/noFilter.svg";
+import noUpdateIcon from "../../../assets/images/noUpdate.svg";
+import rowOwnershipIcon from "../../../assets/images/rowOwnership.svg";
+import noCheckIcon from "../../../assets/images/noCheck.svg";
 
 export enum MrsSdkLanguage {
     TypeScript
 }
 
-interface IMrsObjectListedTables {
-    schemaName: string,
-    tableName: string,
-    pkColumns: string[],
-}
-
 export interface IMrsObjectFieldEditorData extends IDictionary {
     dbSchemaName: string;
-    dbObjectName: string;
-    dbObjectType: MrsObjectType;
+    dbObject: IMrsDbObjectData;
     crudOperations: string[];
+    createDbObject: boolean;
+    defaultMrsObjectName: string;
     mrsObjects: IMrsObject[];
-    currentMrsObjectId: string;
-    fieldTreeNodes: IMrsObjectFieldTreeEntry[];
-    listedTables: IMrsObjectListedTables[];
     showSdkOptions?: MrsSdkLanguage;
+    currentMrsObjectId?: string;
+    currentTreeItems: IMrsObjectFieldTreeItem[];
 }
 
 export interface IMrsObjectFieldEditorProperties extends IValueEditCustomProperties {
@@ -106,7 +101,7 @@ interface IMrsObjectFieldEditorState extends IComponentState {
 
 export enum MrsObjectFieldTreeEntryType {
     LoadPlaceholder,
-    Table,
+    TableOpen,
     Field,
     TableClose,
 }
@@ -114,9 +109,10 @@ export enum MrsObjectFieldTreeEntryType {
 export interface IMrsObjectFieldUnnested {
     schemaTable: string;
     referenceFieldName: string;
+    originalFieldName: string;
 }
 
-export interface IMrsObjectFieldTreeEntry {
+export interface IMrsObjectFieldTreeItem {
     type: MrsObjectFieldTreeEntryType;
     expanded: boolean;     // Currently expanded?
     expandedOnce: boolean; // Was expanded before?
@@ -127,12 +123,17 @@ export interface IMrsObjectFieldTreeEntry {
 
     field: IMrsObjectFieldWithReference;
 
-    children?: IMrsObjectFieldTreeEntry[];
+    parent?: IMrsObjectFieldTreeItem;
+    children?: IMrsObjectFieldTreeItem[];
 }
 
 export class MrsObjectFieldEditor extends ValueEditCustom<
     IMrsObjectFieldEditorProperties, IMrsObjectFieldEditorState> {
     private tableRef = createRef<TreeGrid>();
+
+    // Lists used for init tracking
+    private initTreeItemsToUnnest: IMrsObjectFieldTreeItem[] = [];
+    private initTreeItemsToReduce: IMrsObjectFieldTreeItem[] = [];
 
     public constructor(props: IMrsObjectFieldEditorProperties) {
         super(props);
@@ -147,21 +148,13 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
         this.state = {
         };
 
-        if (data.fieldTreeNodes.length === 0) {
-            void this.addTableColumnsToMrsObjectTreeList(
-                data.dbSchemaName, data.dbObjectName, data.dbObjectType);
-        }
-    }
-
-    public componentDidMount(): void {
-        //
+        // Load existing MRS Objects and their fields or create a new one if there is not one yet
+        void this.initMrsObjects();
     }
 
     public render(): ComponentChild {
         const { values } = this.props;
         const data = values as IMrsObjectFieldEditorData;
-
-        const treeItemList = data.fieldTreeNodes;
 
         const schemaTreeOptions: ITreeGridOptions = {
             treeColumn: "json",
@@ -283,7 +276,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                 ref={this.tableRef}
                 options={schemaTreeOptions}
                 columns={schemaTreeColumns}
-                tableData={treeItemList}
+                tableData={data.currentTreeItems}
 
                 onRowExpanded={this.handleRowExpanded}
                 onRowCollapsed={this.handleRowCollapsed}
@@ -308,30 +301,40 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
 
     private addTableColumnsToMrsObjectTreeList = async (
         dbSchemaName: string, dbObjectName: string, dbObjectType: string,
-        parentRow?: RowComponent): Promise<void> => {
+        parentTreeItem?: IMrsObjectFieldTreeItem): Promise<void> => {
         const { values, backend } = this.props;
         const data = values as IMrsObjectFieldEditorData;
 
-        const treeItemList = data.fieldTreeNodes;
-        const objectId = data.currentMrsObjectId;
-
-        const pkColumns: string[] = [];
-
-        // If a parentRow was given, append to the children of that row
-        let parentItem: IMrsObjectFieldTreeEntry | undefined;
-        if (parentRow) {
-            const id = (parentRow.getData() as IMrsObjectFieldTreeEntry).field.id;
-            parentItem = this.findTreeEntryById(id, treeItemList);
-            if (parentItem && !parentItem.expandedOnce) {
-                parentItem.field.enabled = true;
-            }
+        // Get the current object and return immediately if it is not set
+        const currentObject = data.mrsObjects.find((obj) => {
+            return obj.id === data.currentMrsObjectId;
+        });
+        if (currentObject === undefined) {
+            return;
         }
-        const addItemsTo = parentItem?.children ?? treeItemList;
 
-        // Add row representing the table
+        // If a parentItem was given, append to the children of that item. If not, use the tree's root list
+        const parentTreeItemList = parentTreeItem?.children ?? data.currentTreeItems;
+
+        // Get list of stored fields for this table
+        let storedTableFields: IMrsObjectFieldWithReference[] = [];
+        storedTableFields = currentObject.storedFields?.filter((field) => {
+            // If there is no parentItem, get all fields with level 1. Otherwise get all fields that have the
+            // parentItem as parent
+            if (parentTreeItem === undefined) {
+                return field.lev === 1;
+            }
+
+            return field.parentReferenceId === parentTreeItem.field.representsReferenceId;
+        }) ?? [];
+
+        // The list of TreeEntries that should be loaded right after this one
+        const referredTreeItemsToLoad: IMrsObjectFieldTreeItem[] = [];
+
+        // Add a tree list item representing the table
         const tableField: IMrsObjectFieldWithReference = {
             id: uuidBinary16Base64(),
-            objectId,
+            objectId: currentObject.id,
             representsReferenceId: undefined,
             parentReferenceId: undefined,
             name: snakeToCamelCase(dbObjectName),
@@ -340,47 +343,69 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             enabled: false,
             allowFiltering: false,
             noCheck: false,
+            noUpdate: false,
             sdkOptions: undefined,
             comments: undefined,
-            objectReference: parentItem?.field.objectReference,
+            objectReference: parentTreeItem?.field.objectReference,
         };
-        addItemsTo.push({
-            type: MrsObjectFieldTreeEntryType.Table,
+        parentTreeItemList.push({
+            type: MrsObjectFieldTreeEntryType.TableOpen,
             expanded: false,
             expandedOnce: false,
             field: tableField,
+            parent: parentTreeItem,
         });
 
         try {
+            // Get the actual database schema table columns and references
             const columns = await backend.mrs.getTableColumnsWithReferences(
                 undefined, dbObjectName, undefined, undefined, dbSchemaName, dbObjectType);
 
-            const columnNames: string[] = [];
+            // A list collecting all used field names to avoid duplicates
+            const usedFieldNames: string[] = [];
+            // A list collecting all primary key columns of the table
+            const pkColumns: string[] = [];
+
             columns.forEach((column) => {
                 let field: IMrsObjectFieldWithReference;
-                let fieldName = snakeToCamelCase(column.name);
-                // Check if field name is already taken, if so, append column.relColumnNames
-                if (columnNames.includes(fieldName)) {
-                    fieldName += convertToPascalCase(column.refColumnNames ?? "2");
+
+                // Lookup the DB column in the list of stored fields, if available
+                const storedField = storedTableFields?.find((f) => {
+                    return f.dbColumn?.name === column.name;
+                });
+
+                let fieldName = storedField?.name ?? snakeToCamelCase(column.name);
+                // Check if field name is already taken, if so, append column.relColumnNames or and increasing number
+                // at the end
+                if (usedFieldNames.includes(fieldName)) {
+                    fieldName += convertToPascalCase(column.refColumnNames ?? "");
+
+                    let i = 1;
+                    while (usedFieldNames.includes(fieldName)) {
+                        fieldName = fieldName.slice(0, String(i).length * -1) + String(i++);
+                    }
                 }
-                columnNames.push(fieldName);
+                usedFieldNames.push(fieldName);
 
                 // Check if this is a regular field
                 if (!column.referenceMapping || column.referenceMapping === null) {
                     // This is a regular field
                     field = {
-                        id: uuidBinary16Base64(),
-                        objectId,
+                        id: storedField?.id ?? uuidBinary16Base64(),
+                        objectId: currentObject.id,
                         representsReferenceId: undefined,
-                        parentReferenceId: parentItem?.field.representsReferenceId,
+                        parentReferenceId: storedField?.representsReferenceId
+                            ?? parentTreeItem?.field.representsReferenceId,
                         name: fieldName,
-                        position: column.position,
+                        position: storedField?.position ?? column.position,
                         dbColumn: column.dbColumn,
-                        enabled: true,
-                        allowFiltering: true,
-                        noCheck: false,
-                        sdkOptions: undefined,
-                        comments: undefined,
+                        storedDbColumn: storedField?.dbColumn,
+                        enabled: storedField?.enabled ?? true,
+                        allowFiltering: storedField?.allowFiltering ?? true,
+                        noCheck: storedField?.noCheck ?? false,
+                        noUpdate: storedField?.noUpdate ?? false,
+                        sdkOptions: storedField?.sdkOptions,
+                        comments: storedField?.comments,
                         objectReference: undefined,
                     };
 
@@ -388,104 +413,137 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                         pkColumns.push(field.dbColumn.name);
                     }
 
-                    addItemsTo.push({
+                    parentTreeItemList.push({
                         type: MrsObjectFieldTreeEntryType.Field,
                         expanded: false,
                         expandedOnce: false,
                         field,
+                        parent: parentTreeItem,
                     });
                 } else {
                     // This is a reference
-                    let tableAlreadyAdded = false;
-                    data.listedTables.forEach((tbl) => {
-                        if (tbl.schemaName === column.referenceMapping?.referencedSchema &&
-                            tbl.tableName === column.referenceMapping?.referencedTable) {
-                            let allColumnsMap = true;
-                            // ToDo: Check if Object.values() or Object.keys() should be used here
-                            const refCols = Object.values(column.referenceMapping?.columnMapping);
-                            tbl.pkColumns.forEach((col) => {
-                                if (allColumnsMap && refCols.includes(col)) {
-                                    allColumnsMap = false;
-                                }
-                            });
-                            if (!allColumnsMap) {
-                                tableAlreadyAdded = true;
-                            }
-                        }
-                    });
+
+                    let addTableReference = true;
+                    // Do not add the db_object itself as a reference
+                    if (data.dbSchemaName === column.referenceMapping?.referencedSchema &&
+                        data.dbObject.name === column.referenceMapping?.referencedTable) {
+                        addTableReference = false;
+                    }
+                    // Do not add the back-reference of a n:m table (the parent.parent reference)
+                    if (parentTreeItem?.parent?.field.objectReference?.referenceMapping.referencedSchema ===
+                        column.referenceMapping?.referencedSchema &&
+                        parentTreeItem?.parent?.field.objectReference?.referenceMapping.referencedTable ===
+                        column.referenceMapping?.referencedTable) {
+                        addTableReference = false;
+                    }
 
                     // Only add this reference if the table as not already listed
-                    if (!tableAlreadyAdded) {
+                    if (addTableReference) {
+                        // Lookup the reference in the list of stored fields, if available
+                        const existingField = storedTableFields?.find((f) => {
+                            return JSON.stringify(f.objectReference?.referenceMapping) ===
+                                JSON.stringify(column.referenceMapping);
+                        });
+
+                        // If there is an existing field, copy the object reference values from there
                         const objectReference: IMrsObjectReference = {
-                            id: uuidBinary16Base64(),
-                            reduceToValueOfFieldId: undefined,
-                            referenceMapping: column.referenceMapping,
-                            unnest: false,
-                            crudOperations: "READ",
-                            sdkOptions: undefined,
-                            comments: undefined,
+                            id: existingField?.representsReferenceId ?? uuidBinary16Base64(),
+                            reduceToValueOfFieldId: existingField?.objectReference?.reduceToValueOfFieldId ?? undefined,
+                            referenceMapping: existingField?.objectReference?.referenceMapping
+                                ? { ...existingField?.objectReference?.referenceMapping }
+                                : column.referenceMapping,
+                            unnest: existingField?.objectReference?.unnest ?? false,
+                            crudOperations: existingField?.objectReference?.crudOperations ?? "READ",
+                            sdkOptions: existingField?.objectReference?.sdkOptions,
+                            comments: existingField?.objectReference?.comments,
                         };
 
                         field = {
-                            id: uuidBinary16Base64(),
-                            objectId,
+                            id: existingField?.id ?? uuidBinary16Base64(),
+                            objectId: currentObject.id,
                             representsReferenceId: objectReference.id,
-                            parentReferenceId: parentItem?.field.representsReferenceId,
+                            parentReferenceId: parentTreeItem?.field.representsReferenceId,
                             name: fieldName,
-                            position: column.position,
+                            position: existingField?.position ?? column.position,
                             dbColumn: column.dbColumn,
-                            enabled: false,
-                            allowFiltering: true,
-                            noCheck: false,
-                            sdkOptions: undefined,
-                            comments: undefined,
+                            enabled: existingField?.enabled ?? false,
+                            allowFiltering: existingField?.allowFiltering ?? true,
+                            noCheck: existingField?.noCheck ?? false,
+                            noUpdate: existingField?.noUpdate ?? false,
+                            sdkOptions: existingField?.sdkOptions,
+                            comments: existingField?.comments,
                             objectReference,
                         };
 
-                        addItemsTo.push({
+                        const treeItem = {
                             type: MrsObjectFieldTreeEntryType.Field,
-                            expanded: false,
-                            expandedOnce: false,
+                            expanded: field.enabled,
+                            expandedOnce: field.enabled,
                             field,
-                            children: (!column.referenceMapping || column.referenceMapping === null) ? undefined : [
-                                this.newLoadingPlaceholderNode(field),
-                            ],
-                        });
+                            // If the reference mapping is defined correctly, add the Loading ... child.
+                            children: (!column.referenceMapping || column.referenceMapping === null)
+                                ? undefined
+                                : [this.newLoadingPlaceholderNode(field)],
+                            parent: parentTreeItem,
+                        };
+                        parentTreeItemList.push(treeItem);
+
+                        // If this reference field was enabled, or it is unnested, make sure to load the
+                        // referred table right after this
+                        if (field.enabled || field.objectReference?.unnest === true) {
+                            referredTreeItemsToLoad.push(treeItem);
+                        }
+
+                        // If this reference field had unnest set, make sure to unnest it after everything was loaded
+                        if (field.objectReference?.unnest === true) {
+                            this.initTreeItemsToUnnest.push(treeItem);
+                        }
+                        // If this reference field had reduceToValueOfFieldId set, make sure to unnest it after
+                        // everything was loaded
+                        if (field.objectReference?.reduceToValueOfFieldId) {
+                            this.initTreeItemsToReduce.push(treeItem);
+                        }
                     }
                 }
             });
 
-            if (parentRow) {
-                this.removeLoadingPlaceholderNode(parentRow);
+            // Add at tree item that represents the closing of the table
+            parentTreeItemList.push({
+                type: MrsObjectFieldTreeEntryType.TableClose,
+                expanded: false,
+                expandedOnce: false,
+                field: tableField,
+                lastItem: true,
+                parent: parentTreeItem,
+            });
+
+            if (parentTreeItem && parentTreeItem.children &&
+                parentTreeItem.children[0]?.type === MrsObjectFieldTreeEntryType.LoadPlaceholder) {
+                parentTreeItem.children.splice(0, 1);
             }
 
-            if (addItemsTo.length > 0) {
-                addItemsTo[0].firstItem = true;
+            // Mark the first item to enabled the correct styling
+            if (parentTreeItemList.length > 0) {
+                parentTreeItemList[0].firstItem = true;
                 // addItemsTo[addItemsTo.length - 1].lastItem = true;
             }
 
-            data.listedTables.push({
-                schemaName: dbSchemaName,
-                tableName: dbObjectName,
-                pkColumns,
-            });
-
-            data.fieldTreeNodes = treeItemList;
-            this.updateStateData(data);
+            for (const item of referredTreeItemsToLoad) {
+                const objectReferenceMapping = item.field.objectReference?.referenceMapping;
+                if (objectReferenceMapping) {
+                    await this.addTableColumnsToMrsObjectTreeList(
+                        objectReferenceMapping.referencedSchema,
+                        objectReferenceMapping.referencedTable,
+                        "TABLE", item);
+                }
+            }
         } catch (reason) {
             console.log(`Backend Error: ${String(reason)}`);
         }
 
-        addItemsTo.push({
-            type: MrsObjectFieldTreeEntryType.TableClose,
-            expanded: false,
-            expandedOnce: false,
-            field: tableField,
-            lastItem: true,
-        });
     };
 
-    private newLoadingPlaceholderNode = (field: IMrsObjectFieldWithReference): IMrsObjectFieldTreeEntry => {
+    private newLoadingPlaceholderNode = (field: IMrsObjectFieldWithReference): IMrsObjectFieldTreeItem => {
         return {
             type: MrsObjectFieldTreeEntryType.LoadPlaceholder,
             expanded: false,
@@ -498,41 +556,90 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                 enabled: false,
                 allowFiltering: true,
                 noCheck: false,
+                noUpdate: false,
             },
         };
     };
 
-    private removeLoadingPlaceholderNode = (row: RowComponent): void => {
-        const children = row.getTreeChildren();
-        if (children && children.length > 0) {
-            const firstEntry = children[0].getData() as IMrsObjectFieldTreeEntry;
-            if (firstEntry.type === MrsObjectFieldTreeEntryType.LoadPlaceholder) {
-                void children[0].delete();
+    private initMrsObjects = async (): Promise<void> => {
+        const { values, backend } = this.props;
+        const data = values as IMrsObjectFieldEditorData;
+
+        // Clear lists used for init tracking
+        this.initTreeItemsToUnnest = [];
+        this.initTreeItemsToReduce = [];
+
+        // If the mrsObjects have not been loaded or initialized yet
+        if (data.mrsObjects.length === 0) {
+            try {
+                // If a dbObject.id was provided
+                if (data.dbObject.id !== "") {
+                    // Get the list of MRS object from the metadata
+                    const mrsObjects = await backend.mrs.getObjects(data.dbObject.id);
+
+                    // If there are already MRS Objects for this DB Object
+                    if (mrsObjects.length > 0) {
+                        // Initialize the data and set the current object to the first
+                        data.mrsObjects = mrsObjects;
+                        data.currentMrsObjectId = mrsObjects[0].id;
+
+                        // Get all stored fields
+                        for (const obj of data.mrsObjects) {
+                            obj.storedFields = await backend.mrs.getObjectFieldsWithReferences(obj.id);
+                        }
+                    }
+                }
+
+                // If no dbObject.id was provided or there are no mrsObjects for this DbObject yet, create one
+                if (data.dbObject.id === "" || data.mrsObjects.length === 0) {
+                    // If no MRS Objects have been created for this DB Object yet (because it was created by an earlier
+                    // version of the MySQL Shell), just create one
+                    const mrsObjectId = uuidBinary16Base64();
+
+                    data.mrsObjects = [{
+                        id: mrsObjectId,
+                        dbObjectId: data.dbObject.id,
+                        name: data.defaultMrsObjectName,
+                        position: 1,
+                        sdkOptions: undefined,
+                        comments: undefined,
+                    }];
+                    data.currentMrsObjectId = mrsObjectId;
+                }
+            } catch (reason) {
+                console.log(`Backend Error: ${String(reason)}`);
             }
+
+            // Fill the Tree List
+            await this.addTableColumnsToMrsObjectTreeList(
+                data.dbSchemaName, data.dbObject.name, data.dbObject.objectType);
+
+            // Perform all required unnest operations. This needs to be performed backwards and the simplest way
+            // to do this is to use reduceRight(). null needs to be returned in that case to make it work as expected.
+            this.initTreeItemsToUnnest.reduceRight((_p, treeItem) => {
+                if (treeItem.field.objectReference) {
+                    this.performTreeItemUnnestChange(treeItem, true);
+                }
+
+                return null;
+            }, null);
+
+            // Disable all child fields. This needs to be performed backwards and the simplest way
+            // to do this is to use reduceRight(). null needs to be returned in that case to make it work as expected.
+            this.initTreeItemsToReduce.reduceRight((_p, treeItem) => {
+                treeItem.expanded = false;
+
+                return null;
+            }, null);
         }
+
+
+        // Trigger re-render
+        this.updateStateData(data);
     };
 
-    private loadMrsObjectFieldList = (): void => {
-        const { backend } = this.props;
-
-        backend.mrs.getObjectFieldsWithReferences("0x00000000000000000000000000000001").then((fields) => {
-            fields.forEach((_field) => {
-                /*treeItemList.push({
-                    type: MrsObjectFieldTreeEntryType.Field,
-                    expanded: false,
-                    expandedOnce: false,
-                    position: field.position,
-                    caption: field.name,
-                    details: null,
-                });*/
-            });
-        }).catch((reason): void => {
-            console.log(`Backend Error: ${String(reason)}`);
-        });
-    };
-
-    private findTreeEntryById = (
-        id: string | undefined, treeItemList: IMrsObjectFieldTreeEntry[]): IMrsObjectFieldTreeEntry | undefined => {
+    private findTreeItemById = (
+        id: string | undefined, treeItemList: IMrsObjectFieldTreeItem[]): IMrsObjectFieldTreeItem | undefined => {
         if (!id || !treeItemList) {
             return undefined;
         }
@@ -546,10 +653,10 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
         }
 
         // Check all children
-        let entry: IMrsObjectFieldTreeEntry | undefined;
+        let entry: IMrsObjectFieldTreeItem | undefined;
         treeItemList.forEach((listEntry) => {
             if (listEntry.children && entry === undefined) {
-                const subEntry = this.findTreeEntryById(id, listEntry.children);
+                const subEntry = this.findTreeItemById(id, listEntry.children);
                 if (subEntry) {
                     entry = subEntry;
                 }
@@ -565,7 +672,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
      */
 
     private treeGridRowFormatter = (row: RowComponent): void => {
-        const rowData = row.getData() as IMrsObjectFieldTreeEntry;
+        const rowData = row.getData() as IMrsObjectFieldTreeItem;
 
         if (rowData.field.objectReference) {
             row.getElement().classList.add("referenceRow");
@@ -610,7 +717,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
     private treeGridJsonColumnFormatter = (cell: CellComponent): string | HTMLElement => {
         const { values } = this.props;
         const data = values as IMrsObjectFieldEditorData;
-        const cellData = cell.getData() as IMrsObjectFieldTreeEntry;
+        const cellData = cell.getData() as IMrsObjectFieldTreeItem;
 
         const host = document.createElement("div");
         if (cellData.type === MrsObjectFieldTreeEntryType.Field) {
@@ -622,7 +729,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
 
         let content;
 
-        if (cellData.type === MrsObjectFieldTreeEntryType.Table) {
+        if (cellData.type === MrsObjectFieldTreeEntryType.TableOpen) {
             // Handle the top table row
             if (!cell.getRow().getPrevRow()) {
                 const mrsObject = data.mrsObjects.find((obj) => {
@@ -633,9 +740,9 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     <Icon className="tableIcon" src={mrsObjectIcon} width={16} height={16} />
                     <Label className={data.showSdkOptions === undefined ? "tableName" : "datatype"}
                         caption={data.showSdkOptions === undefined
-                            ? data.dbObjectName
+                            ? data.dbObject.name
                             : "I" + (mrsObject?.sdkOptions?.languageTs?.className ??
-                                (mrsObject?.name ?? data.dbObjectName))} />
+                                (mrsObject?.name ?? data.dbObject.name))} />
                     <Label className="tableName" caption={"{"} />
                 </>;
 
@@ -650,56 +757,86 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             }
         } else if (cellData.type === MrsObjectFieldTreeEntryType.Field ||
             cellData.type === MrsObjectFieldTreeEntryType.LoadPlaceholder) {
-            const unnested = cellData.field.objectReference !== undefined && cellData.field.objectReference.unnest;
+            const unnested = cellData.field.objectReference?.unnest ?? false;
             content = <>
-                <Checkbox
-                    className={cellData.children ? "withChildren" : "withoutChildren"}
-                    checkState={cellData.field.enabled
-                        ? (unnested ? CheckState.Indeterminate : CheckState.Checked)
-                        : CheckState.Unchecked}
-                    onClick={(e) => { this.treeGridToggleEnableState(e, cell); }}
-                    disabled={unnested}
-                />
-                <Label className={(unnested || !cellData.field.enabled)
-                    ? "jsonFieldDisabled" : "jsonField"} caption={cellData.field.name} />
-                {cellData.unnested !== undefined &&
+                <Container
+                    className={"fieldInfo"}
+                    orientation={Orientation.LeftToRight}
+                    crossAlignment={ContentAlignment.Center}
+                >
+                    <Checkbox
+                        className={cellData.children ? "withChildren" : "withoutChildren"}
+                        checkState={cellData.field.enabled
+                            ? (unnested ? CheckState.Indeterminate : CheckState.Checked)
+                            : CheckState.Unchecked}
+                        onClick={(e) => { this.treeGridToggleEnableState(e, cell); }}
+                        disabled={unnested}
+                    />
+                    <Label className={(unnested || !cellData.field.enabled)
+                        ? "jsonFieldDisabled" : "jsonField"} caption={cellData.field.name} />
+                    {cellData.unnested !== undefined &&
+                        <Container
+                            className={"unnestedDiv"}
+                            orientation={Orientation.LeftToRight}
+                            crossAlignment={ContentAlignment.Center}>
+                            <Label className="referenceFieldName" caption={`(`} />
+                            <Icon className="unnestedIcon" src={unnestedIcon} width={16} height={16} />
+                            <Label className="referenceFieldName" caption={
+                                `${cellData.unnested.referenceFieldName})`} />
+                        </Container>
+                    }
+                    {(data.showSdkOptions !== undefined) &&
+                        <>
+                            <Label caption={":"} />
+                            <Label className="datatype" caption={this.getJsonDatatype(cellData)} />
+                        </>
+                    }
+                    {(cellData.field.objectReference && (
+                        cellData.field.objectReference.referenceMapping.kind === "1:1" ||
+                        cellData.field.objectReference.referenceMapping.kind === "n:1") &&
+                        cellData.field.enabled &&
+                        cellData.field.objectReference.reduceToValueOfFieldId === undefined) &&
+                        <Container
+                            className={"unnestIconDiv"}
+                            orientation={Orientation.LeftToRight}
+                            crossAlignment={ContentAlignment.Center}>
+                            <img
+                                alt="CREATE"
+                                tabIndex={0}
+                                key={cellData.field.id + "CBtn"}
+                                data-tooltip="CREATE"
+                                onClick={() => { this.handleIconClick(cell, "UNNEST", "UNNEST"); }}
+                                onKeyPress={() => { this.handleIconClick(cell, "UNNEST", "UNNEST"); }}
+                                width={70}
+                                height={18}
+                                src={cellData.field.objectReference?.unnest
+                                    ? unnestActiveIcon : unnestIcon}>
+                            </img>
+                        </Container >}
+                </Container>
+                {cellData.field.objectReference === undefined &&
                     <Container
-                        className={"unnestedDiv"}
+                        className={"fieldOptions"}
                         orientation={Orientation.LeftToRight}
-                        crossAlignment={ContentAlignment.Center}>
-                        <Label className="referenceFieldName" caption={`(`} />
-                        <Icon className="unnestedIcon" src={unnestedIcon} width={16} height={16} />
-                        <Label className="referenceFieldName" caption={`${cellData.unnested.referenceFieldName})`} />
+                        crossAlignment={ContentAlignment.Center}
+                    >
+                        {cellData.parent === undefined &&
+                            <Icon className={(cellData.field.dbColumn?.name === data.dbObject.rowUserOwnershipColumn &&
+                                data.dbObject.rowUserOwnershipEnforced)
+                                ? "selected" : "notSelected"} src={rowOwnershipIcon} width={16} height={16}
+                                onClick={() => { this.handleIconClick(cell, "OWNERSHIP"); }} />
+                        }
+                        <Icon className={!cellData.field.allowFiltering
+                            ? "selected" : "notSelected"} src={noFilterIcon} width={16} height={16}
+                            onClick={() => { this.handleIconClick(cell, "FILTERING"); }} />
+                        <Icon className={cellData.field.noUpdate
+                            ? "selected" : "notSelected"} src={noUpdateIcon} width={16} height={16}
+                            onClick={() => { this.handleIconClick(cell, "UPDATE"); }} />
+                        <Icon className={cellData.field.noCheck
+                            ? "selected" : "notSelected"} src={noCheckIcon} width={16} height={16}
+                            onClick={() => { this.handleIconClick(cell, "CHECK"); }} />
                     </Container>
                 }
-                {(data.showSdkOptions !== undefined) &&
-                    <>
-                        <Label caption={":"} />
-                        <Label className="datatype" caption={this.getJsonDatatype(cellData)} />
-                    </>
-                }
-                {(cellData.field.objectReference && (
-                    cellData.field.objectReference.referenceMapping.kind === "1:1" ||
-                    cellData.field.objectReference.referenceMapping.kind === "n:1") &&
-                    cellData.field.enabled &&
-                    cellData.field.objectReference.reduceToValueOfFieldId === undefined) &&
-                    <Container
-                        className={"unnestIconDiv"}
-                        orientation={Orientation.LeftToRight}
-                        crossAlignment={ContentAlignment.Center}>
-                        <img
-                            alt="CREATE"
-                            tabIndex={0}
-                            key={cellData.field.id + "CBtn"}
-                            data-tooltip="CREATE"
-                            onClick={() => { this.handleIconClick(cell, "UNNEST", "UNNEST"); }}
-                            onKeyPress={() => { this.handleIconClick(cell, "UNNEST", "UNNEST"); }}
-                            width={70}
-                            height={18}
-                            src={cellData.field.objectReference?.unnest
-                                ? unnestActiveIcon : unnestIcon}>
-                        </img>
-                    </Container >}
             </>;
         } else if (cellData.type === MrsObjectFieldTreeEntryType.TableClose) {
             content = <>
@@ -713,7 +850,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
     };
 
     private treeGridRelationalColumnFormatter = (cell: CellComponent): string | HTMLElement => {
-        const cellData = cell.getData() as IMrsObjectFieldTreeEntry;
+        const cellData = cell.getData() as IMrsObjectFieldTreeItem;
         const { values } = this.props;
         const data = values as IMrsObjectFieldEditorData;
 
@@ -762,7 +899,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             })}
         </Container >;
 
-        if (cellData.type === MrsObjectFieldTreeEntryType.Table) {
+        if (cellData.type === MrsObjectFieldTreeEntryType.TableOpen) {
             let tableName;
 
             // Display the table name for the top table row
@@ -770,7 +907,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                 tableName = cellData.field.objectReference.referenceMapping.referencedSchema + "." +
                     cellData.field.objectReference.referenceMapping.referencedTable;
             } else if (!cell.getRow().getPrevRow()) {
-                tableName = `${data.dbSchemaName}.${data.dbObjectName}`;
+                tableName = `${data.dbSchemaName}.${data.dbObject.name}`;
             }
 
             content = <>
@@ -842,8 +979,8 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                             })?.field.dbColumn?.name}
                             onSelect={(sel, _props) => {
                                 // Update data
-                                const treeItem = this.findTreeEntryById(cellData.field.id, data.fieldTreeNodes);
-                                if (treeItem && treeItem.field && treeItem.field.objectReference) {
+                                const treeItem = this.findTreeItemById(cellData.field.id, data.currentTreeItems);
+                                if (treeItem && treeItem.field.objectReference) {
                                     const selVal = [...sel];
                                     let reduceToFieldId;
                                     if (selVal.length > 0) {
@@ -854,8 +991,8 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
 
                                         // Clear checkboxes of child rows
                                         cellData.children?.forEach((child) => {
-                                            const childTreeItem = this.findTreeEntryById(
-                                                child.field.id, data.fieldTreeNodes);
+                                            const childTreeItem = this.findTreeItemById(
+                                                child.field.id, data.currentTreeItems);
                                             if (childTreeItem) {
                                                 childTreeItem.field.enabled = false;
                                             }
@@ -870,7 +1007,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
 
                                     // If this field is currently unnested, revert this
                                     if (treeItem.field.objectReference.unnest) {
-                                        this.handleIconClick(cell, "UNNEST", "UNNEST");
+                                        this.handleIconClick(cell, "UNNEST");
                                     } else {
                                         this.updateStateData(data);
                                     }
@@ -897,7 +1034,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
         return host;
     };
 
-    private getJsonDatatype = (cellData: IMrsObjectFieldTreeEntry): string => {
+    private getJsonDatatype = (cellData: IMrsObjectFieldTreeItem): string => {
         const { values } = this.props;
         const data = values as IMrsObjectFieldEditorData;
 
@@ -949,11 +1086,11 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
     private handleCellEdited = (cell: CellComponent): void => {
         const { values } = this.props;
         const data = values as IMrsObjectFieldEditorData;
-        const cellData = cell.getData() as IMrsObjectFieldTreeEntry;
+        const cellData = cell.getData() as IMrsObjectFieldTreeItem;
         const colDef = cell.getColumn().getDefinition();
 
         // Update data
-        const treeItem = this.findTreeEntryById(cellData.field.id, data.fieldTreeNodes);
+        const treeItem = this.findTreeItemById(cellData.field.id, data.currentTreeItems);
         if (treeItem && treeItem.field) {
             if (colDef.field === "json") {
                 treeItem.field.name = cell.getValue();
@@ -970,95 +1107,151 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
         this.updateStateData(data);
     };
 
-    private handleIconClick = (cell: CellComponent, iconGroup: string, icon: string): void => {
-        const cellData = cell.getData() as IMrsObjectFieldTreeEntry;
+    private performTreeItemUnnestChange = (treeItem: IMrsObjectFieldTreeItem, newState: boolean): void => {
         const { values } = this.props;
         const data = values as IMrsObjectFieldEditorData;
-        const treeItem = this.findTreeEntryById(cellData.field.id, data.fieldTreeNodes);
+
+        if (treeItem.field.objectReference) {
+            // Get the children of the parent treeNode or the root list
+            const parentTreeChildren = (treeItem.parent !== undefined)
+                ? treeItem.parent.children : data.currentTreeItems;
+
+            if (parentTreeChildren) {
+                if (newState) {
+                    // When the user selects to unnest the fields of the referenced tables,
+                    // add references of these rows directly below the current row
+                    const index = parentTreeChildren?.indexOf(treeItem);
+                    if (index) {
+                        let pos = 1;
+
+                        // Fill list of used field names to avoid duplicate names later
+                        const usedFieldNames: string[] = [];
+                        parentTreeChildren.forEach((c) => {
+                            if (c.field !== treeItem.field) {
+                                usedFieldNames.push(c.field.name);
+                            }
+                        });
+
+                        // Copy the nested fields out one level, below the reference row
+                        treeItem.children?.forEach((c) => {
+                            if (c.type === MrsObjectFieldTreeEntryType.Field) {
+                                const refMap = treeItem.field.objectReference?.referenceMapping;
+                                if (refMap) {
+                                    c.unnested = {
+                                        schemaTable: `${refMap.referencedSchema}.${refMap.referencedTable}`,
+                                        referenceFieldName: treeItem.field.name,
+                                        // Create a copy of the original field name (and not use a reference)
+                                        originalFieldName: (" " + c.field.name).slice(1),
+                                    };
+
+                                    // Ensure the field name is unique by adding a number if needed
+                                    if (usedFieldNames.includes(c.field.name)) {
+                                        c.field.name += "2";
+                                        let i = 3;
+                                        while (usedFieldNames.includes(c.field.name)) {
+                                            c.field.name = c.field.name.slice(0, String(i).length * -1) + String(i++);
+                                        }
+                                    }
+                                    usedFieldNames.push(c.field.name);
+                                }
+
+                                parentTreeChildren?.splice(index + pos, 0, c);
+                                pos++;
+                            }
+                        });
+                    }
+
+                    treeItem.expanded = false;
+                } else {
+                    // When the user reverts the unnest, delete the referenced rows
+                    for (let i = parentTreeChildren.length - 1; i >= 0; i--) {
+                        const c = parentTreeChildren[i];
+
+                        if (c.unnested !== undefined) {
+                            // Rename the field back if it was renamed for the nesting operation
+                            c.field.name = c.unnested.originalFieldName;
+
+                            c.unnested = undefined;
+                            parentTreeChildren.splice(i, 1);
+                        }
+                    }
+
+                    treeItem.expanded = true;
+                }
+            }
+            treeItem.field.objectReference.unnest = newState;
+        }
+    };
+
+    private performIconClick = (treeItem: IMrsObjectFieldTreeItem, iconGroup: string, icon?: string): void => {
+        const { values } = this.props;
+        const data = values as IMrsObjectFieldEditorData;
 
         if (treeItem && treeItem.field) {
             switch (iconGroup) {
                 case "CRUD": {
-                    let crudOps;
-                    if (!cell.getRow().getPrevRow()) {
-                        crudOps = data.crudOperations;
-                    } else {
-                        crudOps = treeItem.field.objectReference?.crudOperations.split(",") ?? [];
-                    }
-                    if (crudOps.includes(icon)) {
-                        crudOps.splice(crudOps.indexOf(icon), 1);
-                    } else {
-                        crudOps.push(icon);
-                    }
+                    if (icon) {
+                        let crudOps;
+                        if (treeItem.parent === undefined) {
+                            crudOps = data.crudOperations;
+                        } else {
+                            crudOps = treeItem.field.objectReference?.crudOperations.split(",") ?? [];
+                        }
 
-                    if (!cell.getRow().getPrevRow()) {
-                        data.crudOperations = crudOps;
-                    } else if (treeItem.field.objectReference) {
-                        treeItem.field.objectReference.crudOperations = crudOps.join(",");
+                        if (crudOps.includes(icon)) {
+                            crudOps.splice(crudOps.indexOf(icon), 1);
+                        } else {
+                            crudOps.push(icon);
+                        }
+
+                        if (treeItem.parent === undefined) {
+                            data.crudOperations = crudOps;
+                        } else if (treeItem.field.objectReference) {
+                            treeItem.field.objectReference.crudOperations = crudOps.join(",");
+                        }
                     }
 
                     break;
                 }
                 case "UNNEST": {
                     if (treeItem.field.objectReference) {
-                        let parentTreeChildren: IMrsObjectFieldTreeEntry[] | undefined;
-
-                        // Get the children of the parent treeNode
-                        const parentRow = cell.getRow().getTreeParent();
-                        if (parentRow) {
-                            const parentTreeEntry = parentRow.getData() as IMrsObjectFieldTreeEntry;
-                            parentTreeChildren = this.findTreeEntryById(
-                                parentTreeEntry.field.id, data.fieldTreeNodes)?.children;
-                        } else {
-                            // If there is no parent treeNode, use the root list
-                            parentTreeChildren = data.fieldTreeNodes;
-                        }
-
-                        if (parentTreeChildren) {
-                            if (!treeItem.field.objectReference.unnest) {
-                                // When the user selects to unnest the fields of the referenced tables,
-                                // create copies of these rows directly below the current row
-                                const index = parentTreeChildren?.indexOf(treeItem);
-                                if (index) {
-                                    let pos = 1;
-                                    // Copy the nested fields out one level, below the reference row
-                                    treeItem.children?.forEach((c) => {
-                                        if (c.type === MrsObjectFieldTreeEntryType.Field) {
-                                            const refMap = treeItem.field.objectReference?.referenceMapping;
-                                            if (refMap) {
-                                                c.unnested = {
-                                                    schemaTable: `${refMap.referencedSchema}.${refMap.referencedTable}`,
-                                                    referenceFieldName: treeItem.field.name,
-                                                };
-                                            }
-
-                                            parentTreeChildren?.splice(index + pos, 0, c);
-                                            pos++;
-                                        }
-                                    });
-                                }
-
-                                treeItem.expanded = false;
-                            } else {
-                                // When the user reverts the unnest, delete the copied rows
-                                for (let i = parentTreeChildren.length - 1; i >= 0; i--) {
-                                    const c = parentTreeChildren[i];
-
-                                    if (c.unnested !== undefined) {
-                                        c.unnested = undefined;
-                                        parentTreeChildren.splice(i, 1);
-                                    }
-                                }
-                            }
-                        }
-                        treeItem.field.objectReference.unnest = !treeItem.field.objectReference.unnest;
+                        this.performTreeItemUnnestChange(treeItem, !treeItem.field.objectReference.unnest);
                     }
+                    break;
+                }
+                case "FILTERING": {
+                    treeItem.field.allowFiltering = !treeItem.field.allowFiltering;
+                    break;
+                }
+                case "UPDATE": {
+                    treeItem.field.noUpdate = !treeItem.field.noUpdate;
+                    break;
+                }
+                case "CHECK": {
+                    treeItem.field.noCheck = !treeItem.field.noCheck;
+                    break;
+                }
+                case "OWNERSHIP": {
+                    //
                     break;
                 }
                 default: {
                     break;
                 }
             }
+        }
+    };
+
+    private handleIconClick = (cell: CellComponent, iconGroup: string, icon?: string): void => {
+        const { values } = this.props;
+        const data = values as IMrsObjectFieldEditorData;
+
+        const cellData = cell.getData() as IMrsObjectFieldTreeItem;
+        const treeItem = this.findTreeItemById(cellData.field.id, data.currentTreeItems);
+
+        if (treeItem) {
+            this.performIconClick(treeItem, iconGroup, icon);
+
             this.updateStateData(data);
         }
     };
@@ -1080,7 +1273,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
         const host = document.createElement("div");
         host.classList.add("cellEditorHost");
 
-        const cellData = cell.getData() as IMrsObjectFieldTreeEntry;
+        const cellData = cell.getData() as IMrsObjectFieldTreeItem;
         const colDef = cell.getColumn().getDefinition();
         let val = "";
         if (colDef.field === "json") {
@@ -1135,9 +1328,9 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
         const { values } = this.props;
         const data = values as IMrsObjectFieldEditorData;
 
-        const cellData = cell.getData() as IMrsObjectFieldTreeEntry;
+        const cellData = cell.getData() as IMrsObjectFieldTreeItem;
 
-        const treeItem = this.findTreeEntryById(cellData.field.id, data.fieldTreeNodes);
+        const treeItem = this.findTreeItemById(cellData.field.id, data.currentTreeItems);
         if (treeItem && treeItem.field) {
             treeItem.field.enabled = !treeItem.field.enabled;
             // Check if a reference has been unchecked, remove it's children and re-add the Loading ... node
@@ -1151,8 +1344,8 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                 // Check if the parent was reduced to a single field, if so, reset the reduce state
                 const parentRow = cell.getRow().getTreeParent();
                 if (parentRow) {
-                    const parentRowData = parentRow.getData() as IMrsObjectFieldTreeEntry;
-                    const parentTreeItem = this.findTreeEntryById(parentRowData.field.id, data.fieldTreeNodes);
+                    const parentRowData = parentRow.getData() as IMrsObjectFieldTreeItem;
+                    const parentTreeItem = this.findTreeItemById(parentRowData.field.id, data.currentTreeItems);
                     if (parentTreeItem?.field.objectReference?.reduceToValueOfFieldId !== undefined) {
                         parentTreeItem.field.objectReference.reduceToValueOfFieldId = undefined;
                     }
@@ -1170,31 +1363,47 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
      */
 
     private handleRowExpanded = (row: RowComponent): void => {
-        const data = row.getData() as IMrsObjectFieldTreeEntry;
-        data.expanded = true;
+        const { values } = this.props;
+        const data = values as IMrsObjectFieldEditorData;
 
-        // If this is the first time the row gets expanded, load data
-        if (!data.expandedOnce && data.field.objectReference) {
-            void this.addTableColumnsToMrsObjectTreeList(
-                data.field.objectReference.referenceMapping.referencedSchema,
-                data.field.objectReference.referenceMapping.referencedTable,
-                "TABLE",
-                row);
-        }
+        const treeItem = row.getData() as IMrsObjectFieldTreeItem;
+        // Prevent expansion of unnested references
+        if (treeItem.field.objectReference?.unnest !== true) {
+            treeItem.expanded = true;
 
-        if (data.expanded && !data.expandedOnce) {
-            data.expandedOnce = true;
+            // If this is the first time the row gets expanded, load data
+            if (!treeItem.expandedOnce && treeItem.field.objectReference) {
+                treeItem.field.enabled = true;
+                void this.addTableColumnsToMrsObjectTreeList(
+                    treeItem.field.objectReference.referenceMapping.referencedSchema,
+                    treeItem.field.objectReference.referenceMapping.referencedTable,
+                    "TABLE",
+                    treeItem).then(() => {
+                        treeItem.expandedOnce = true;
+
+                        // Trigger re-render
+                        this.updateStateData(data);
+                    }).catch();
+            }
+        } else {
+            row.treeCollapse();
         }
     };
 
     private handleRowCollapsed = (row: RowComponent): void => {
-        const entry = row.getData() as IMrsObjectFieldTreeEntry;
-        entry.expanded = false;
+        const data = row.getData() as IMrsObjectFieldTreeItem;
+        data.expanded = false;
     };
 
     private isRowExpanded = (row: RowComponent): boolean => {
-        const entry = row.getData() as IMrsObjectFieldTreeEntry;
+        const data = row.getData() as IMrsObjectFieldTreeItem;
 
-        return entry.expanded;
+        const doExpand = data.expanded;
+
+        if (doExpand) {
+            this.handleRowExpanded(row);
+        }
+
+        return doExpand;
     };
 }

@@ -24,7 +24,7 @@ from mrs_plugin import lib
 # Define plugin version
 VERSION = "1.10.2"
 
-DB_VERSION = [1, 1, 2]
+DB_VERSION = [1, 1, 3]
 DB_VERSION_STR = '%d.%d.%d' % tuple(DB_VERSION)
 DB_VERSION_NUM = DB_VERSION[0] * 100000 + DB_VERSION[1] * 1000 + DB_VERSION[2]
 

@@ -35,12 +35,11 @@ import {
     IRelationDialogValue,
 } from "../../../components/Dialogs/ValueEditDialog";
 import {
-    IMrsObjectFieldEditorData, MrsObjectType, MrsObjectFieldEditor,
-    IMrsObjectFieldTreeEntry,
+    IMrsObjectFieldEditorData, MrsObjectFieldEditor,
+    IMrsObjectFieldTreeItem,
     MrsObjectFieldTreeEntryType,
 } from "./MrsObjectFieldEditor";
 import { convertToPascalCase } from "../../../utilities/string-helpers";
-import { uuidBinary16Base64 } from "../../../utilities/helpers";
 import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor";
 
 export class MrsDbObjectDialog extends ValueDialogBase {
@@ -48,6 +47,7 @@ export class MrsDbObjectDialog extends ValueDialogBase {
     private requestValue: IMrsDbObjectData;
     private objectType: string;
     private backend: ShellInterfaceSqlEditor;
+    private createDbObject = false;
 
     public render(): ComponentChild {
         return (
@@ -69,6 +69,7 @@ export class MrsDbObjectDialog extends ValueDialogBase {
         const payload = request.values?.payload as IDictionary;
         this.objectType = request.values?.objectType as string;
         this.backend = payload.backend as ShellInterfaceSqlEditor;
+        this.createDbObject = payload.createObject as boolean;
 
         this.dialogRef.current?.show(
             this.dialogValues(request, services, schemas, rowOwnershipFields, title),
@@ -177,25 +178,18 @@ export class MrsDbObjectDialog extends ValueDialogBase {
 
         // ---------------------------------------------------------------------
         // Add MrsRestObjectFieldEditor
-        const mrsObjectId = uuidBinary16Base64();
         const customData: IMrsObjectFieldEditorData = {
             dbSchemaName: selectedSchema?.name ?? "",
-            dbObjectName: this.requestValue.name,
-            dbObjectType: MrsObjectType.Table,
+            dbObject: this.requestValue,
+            defaultMrsObjectName: convertToPascalCase(selectedService?.urlContextRoot ?? "") +
+                convertToPascalCase(selectedSchema?.requestPath ?? "") +
+                convertToPascalCase(this.requestValue.name),
             crudOperations: request.values?.crudOperations as string[],
-            mrsObjects: [{
-                id: mrsObjectId,
-                dbObjectId: this.requestValue.id,
-                name: convertToPascalCase(selectedService?.urlContextRoot ?? "") +
-                    convertToPascalCase(selectedSchema?.requestPath ?? "") +
-                    convertToPascalCase(this.requestValue.name),
-                position: 1,
-                sdkOptions: undefined,
-                comments: undefined,
-            }],
-            fieldTreeNodes: [],
-            listedTables: [],
-            currentMrsObjectId: mrsObjectId,
+            mrsObjects: [],
+            currentTreeItems: [],
+            currentlyListedTables: [],
+            currentMrsObjectId: undefined,
+            createDbObject: this.createDbObject,
         };
 
         const mrsObjectSection: IDialogSection = {
@@ -442,11 +436,11 @@ export class MrsDbObjectDialog extends ValueDialogBase {
                     const mrsObjectValue = mrsObjectSection.values.tree.value;
                     const mrsObjectData = (mrsObjectValue as unknown) as IMrsObjectFieldEditorData;
 
-                    values.name = mrsObjectData.dbObjectName;
+                    values.name = mrsObjectData.dbObject.name;
                     values.crudOperations = mrsObjectData.crudOperations;
 
                     const fieldList: IMrsObjectFieldWithReference[] = [];
-                    const walk = (node: IMrsObjectFieldTreeEntry): void => {
+                    const walk = (node: IMrsObjectFieldTreeItem): void => {
                         if (node.children !== undefined) {
                             // Process the list of mrsObjectData.fieldTreeNodes backwards
                             for (let i = node.children.length - 1; i >= 0; i--) {
@@ -462,11 +456,12 @@ export class MrsDbObjectDialog extends ValueDialogBase {
                     };
 
                     // Process the list of mrsObjectData.fieldTreeNodes backwards
-                    for (let i = mrsObjectData.fieldTreeNodes.length - 1; i >= 0; i--) {
-                        walk(mrsObjectData.fieldTreeNodes[i]);
+                    for (let i = mrsObjectData.currentTreeItems.length - 1; i >= 0; i--) {
+                        walk(mrsObjectData.currentTreeItems[i]);
                     }
 
                     mrsObjectData.mrsObjects[0].fields = fieldList;
+                    mrsObjectData.mrsObjects[0].storedFields = undefined;
                     values.mrsObject = mrsObjectData.mrsObjects[0];
                 } else {
                     // Set back original values for PROCEDURES for now
@@ -508,7 +503,7 @@ export class MrsDbObjectDialog extends ValueDialogBase {
                 const mrsObjectValue = mrsObjectSection.values.tree.value;
                 const mrsObjectData = (mrsObjectValue as unknown) as IMrsObjectFieldEditorData;
 
-                if (!mrsObjectData.dbObjectName) {
+                if (!mrsObjectData.dbObject.name) {
                     result.messages.name = "The object name must not be empty.";
                 }
             }
