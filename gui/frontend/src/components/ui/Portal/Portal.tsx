@@ -39,6 +39,12 @@ export interface IPortalOptions {
 
     /** If true close portal on clicking the portal beside the target (default: false). */
     closeOnPortalClick?: boolean;
+
+    /**
+     * When true then mouse events are handled by the background and never reach other elements behind them.
+     * (default: true).
+     */
+    blockMouseEvents?: boolean;
 }
 
 export interface IPortalProperties extends IComponentProperties {
@@ -86,7 +92,11 @@ export class Portal extends ComponentBase<IPortalProperties, IPortalState> {
 
         if (open) {
             if (!this.host) {
-                const className = this.getEffectiveClassNames(["portal"]);
+                const blockMouseEvents = options.blockMouseEvents ?? true;
+                const className = this.getEffectiveClassNames([
+                    "portal",
+                    this.classFromProperty(blockMouseEvents, ["ignoreMouse", ""]),
+                ]);
 
                 this.host = document.createElement("div");
                 if (id) {
@@ -95,6 +105,7 @@ export class Portal extends ComponentBase<IPortalProperties, IPortalState> {
                 this.host.className = className;
                 this.host.style.setProperty("--background-opacity", String(options.backgroundOpacity ?? 0.5));
                 this.host.addEventListener("mousedown", this.handlePortalMouseDown);
+                this.host.addEventListener("wheel", this.handlePortalMouseWheel);
                 container.appendChild(this.host);
             }
             render(children, this.host);
@@ -166,6 +177,15 @@ export class Portal extends ComponentBase<IPortalProperties, IPortalState> {
 
         if (open && options.closeOnPortalClick && event.target === this.host) {
             this.close(true);
+        }
+    };
+
+    private handlePortalMouseWheel = (event: WheelEvent): void => {
+        const { open, options } = this.state;
+
+        if (open && !options.blockMouseEvents) {
+            event.preventDefault();
+            event.stopPropagation();
         }
     };
 
