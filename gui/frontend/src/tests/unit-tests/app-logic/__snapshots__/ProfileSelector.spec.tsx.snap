@@ -61,7 +61,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
             theme="dark"
           >
             <div
-              class="msg portal popupPortal"
+              class="msg portal ignoreMouse popupPortal"
               id="tileActionMenu"
               style="--background-opacity: 0;"
             >
@@ -142,7 +142,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
               theme="dark"
             >
               <div
-                class="msg portal popupPortal"
+                class="msg portal ignoreMouse popupPortal"
                 id="tileActionMenu"
                 style="--background-opacity: 0;"
               >
@@ -263,7 +263,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
             theme="dark"
           >
             <div
-              class="msg portal popupPortal"
+              class="msg portal ignoreMouse popupPortal"
               id="tileActionMenu"
               style="--background-opacity: 0;"
             >
@@ -347,7 +347,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
               theme="dark"
             >
               <div
-                class="msg portal popupPortal"
+                class="msg portal ignoreMouse popupPortal"
                 id="tileActionMenu"
                 style="--background-opacity: 0;"
               >

@@ -30,7 +30,7 @@
 
     border: 1px solid var(--menu-border);
     border-radius: 5px;
-    box-shadow: 3px 3px 10px 0px var(--widget-shadow);
+    box-shadow: 3px 3px 10px 0 var(--widget-shadow);
     background-color: var(--menu-background);
 
     font-size: 0.8rem;
@@ -83,7 +83,7 @@
 
 .msg.popup.menu .menuItem .icon {
     width: 24px;
-    margin: 0px 0px 0px -24px;
+    margin: 0 0 0 -24px;
 }
 
 .msg.popup.menu .menuItem .icon:not(.codicon) {
@@ -100,7 +100,7 @@
 
 .msg.popup.menu .menuItem.separator {
     height: 1px;
-    margin: 4px 0px 4px 0px;
+    margin: 4px 0 4px 0;
     padding: 0;
 
     border: none;

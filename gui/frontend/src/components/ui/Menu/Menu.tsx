@@ -192,6 +192,11 @@ export class Menu extends ComponentBase<IMenuProperties, IMenuState> {
 
     public open(currentTarget: DOMRect, activateFirstEntry: boolean, options?: IPortalOptions,
         payload?: unknown): void {
+        if (options) {
+            options.blockMouseEvents = false;
+        } else {
+            options = { blockMouseEvents: false };
+        }
         this.popupRef?.current?.open(currentTarget, options);
 
         if (activateFirstEntry && this.itemRefs.length > 0) {

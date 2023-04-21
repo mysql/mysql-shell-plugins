@@ -34,6 +34,11 @@
     background: rgba(0, 0, 0, var(--background-opacity));
 }
 
+/* Necessary for menus to allow mouse events go to any of the submenus. */
+.msg.portal.ignoreMouse {
+    pointer-events: none;
+}
+
 .msg.portal > * {
     pointer-events: auto;
 }
