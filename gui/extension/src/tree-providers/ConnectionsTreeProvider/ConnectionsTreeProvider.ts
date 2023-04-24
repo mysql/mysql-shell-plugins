@@ -708,7 +708,12 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
 
                 const services = await element.entry.backend.mrs.listServices();
                 const serviceList: TreeItem[] = services.map((value) => {
-                    return new MrsServiceTreeItem(`${value.urlContextRoot}`, value, element.entry);
+                    let label = value.urlContextRoot;
+                    if (value.urlHostName) {
+                        label = label + ` (${value.urlHostName})`;
+                    }
+
+                    return new MrsServiceTreeItem(label, value, element.entry);
                 });
 
                 const routers = await element.entry.backend.mrs.listRouters(10);
