@@ -364,7 +364,9 @@ describe("MySQL REST Service", () => {
                 await Misc.verifyNotification("The MRS service has been created.", true);
                 await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
                 await treeMySQLRESTService.expand();
-                treeRandomService = await treeDBSection.findItem(`/${service}`, dbMaxLevel);
+                treeRandomService = await treeDBSection
+                    .findItem(`/${service} (localhost)`, dbMaxLevel);
+
                 expect(treeRandomService).to.exist;
                 await driver.switchTo().defaultContent();
             } catch (e) {
@@ -417,10 +419,11 @@ describe("MySQL REST Service", () => {
 
             await driver.wait(async () => {
                 await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
-                treeRandomService = await treeDBSection.findItem(`/edited${service}`);
+                treeRandomService = await treeDBSection
+                    .findItem(`/edited${service} (localhost)`);
 
                 return treeRandomService;
-            }, 3000, `/edited${service} was not displayed on the tree`);
+            }, 3000, `/edited${service} (localhost) was not displayed on the tree`);
 
             await Misc.selectContextMenuItem(treeRandomService, "Edit REST Service...");
 
@@ -827,7 +830,9 @@ describe("MySQL REST Service", () => {
 
             const label = await treeRandomService.getLabel();
 
-            await Misc.verifyNotification(`Are you sure the MRS service ${String(label)} should be deleted`);
+            const service = label.replace(" (localhost)", "");
+
+            await Misc.verifyNotification(`Are you sure the MRS service ${String(service)} should be deleted`);
 
             const workbench = new Workbench();
             const ntfs = await workbench.getNotifications();
@@ -869,7 +874,8 @@ describe("MySQL REST Service", () => {
                 await Misc.verifyNotification("The MRS service has been created.", true);
                 await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
                 await treeMySQLRESTService.expand();
-                treeRandomService = await treeDBSection.findItem(`/${service}`, dbMaxLevel);
+                treeRandomService = await treeDBSection
+                    .findItem(`/${service} (localhost:8443)`, dbMaxLevel);
                 expect(treeRandomService).to.exist;
 
                 await (await treeDBSection.findItem("sakila")).expand();
