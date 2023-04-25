@@ -44,8 +44,8 @@ export interface ICheckboxProperties extends IComponentProperties {
 
 export class Checkbox extends ComponentBase<ICheckboxProperties> {
 
-    public static defaultProps = {
-        checkState: CheckState?.Unchecked,
+    public static readonly defaultProps = {
+        checkState: CheckState.Unchecked,
         disabled: false,
     };
 

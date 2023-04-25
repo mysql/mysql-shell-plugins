@@ -134,6 +134,7 @@ export class Portal extends ComponentBase<IPortalProperties, IPortalState> {
             const activeOptions: IPortalOptions = {
                 closeOnEscape: true,
                 closeOnPortalClick: false,
+                blockMouseEvents: true,
                 ...options,
             };
 
