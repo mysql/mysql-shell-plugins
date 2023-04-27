@@ -359,7 +359,7 @@ def get_service(**kwargs):
             # See if there is a current service, if so, return that one
             service = lib.services.get_current_service(session=session)
             if service:
-                return service
+                return lib.services.format_service_listing([service], True)
 
             # Check if there already is at least one service
             row = lib.core.select(table="service",
