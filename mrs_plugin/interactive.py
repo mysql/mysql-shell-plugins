@@ -81,7 +81,8 @@ def resolve_schema(session, schema_id=None, service_id=None, required=True):
 
 
 def resolve_options(options, default = None):
-    if options:
+    # it should be possible to override the default value with an empty dict
+    if options is not None:
         return options
 
     if lib.core.get_interactive_default():

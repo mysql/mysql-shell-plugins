@@ -156,13 +156,12 @@ def resolve_url_host_name(required=False, **kwargs):
 
     return kwargs
 
-def resolve_url_protocol(required, **kwargs):
-    if lib.core.get_interactive_default():
-        if kwargs.get("url_protocol") is None:
+def resolve_url_protocol(**kwargs):
+    if kwargs.get("url_protocol") is None:
+        if lib.core.get_interactive_default():
             kwargs["url_protocol"] = lib.services.prompt_for_service_protocol()
-
-    if required and kwargs["url_protocol"] is None:
-        raise ValueError("No value given.")
+        else:
+            kwargs["url_protocol"] = ["HTTP", "HTTPS"]    
 
     return kwargs
 
@@ -243,7 +242,6 @@ def add_service(**kwargs):
 
         options = kwargs.get("options")
 
-
         kwargs["session"] = session
         row = lib.core.select(table="service",
             cols="COUNT(*) as service_count"
@@ -261,7 +259,7 @@ def add_service(**kwargs):
             url_host_name = ""
 
         # Get url_protocol
-        kwargs = resolve_url_protocol(required=False, **kwargs)
+        kwargs = resolve_url_protocol(**kwargs)
 
         kwargs = resolve_comments(**kwargs)
 
