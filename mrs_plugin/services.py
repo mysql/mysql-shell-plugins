@@ -371,7 +371,7 @@ def get_service(**kwargs):
                 raise ValueError("No services available. Use "
                                     "mrs.add.`service`() to add a new service.")
             if auto_select_single and service_count == 1:
-                service_id = row.get_field("id")
+                service_id = row["id"]
 
             # If there are more services, let the user select one or all
             if not service_id:
