@@ -376,8 +376,8 @@ export class Explorer extends ComponentBase<IExplorerProperties, IExplorerState>
                         <MenuItem id="clipboardCreateStatementMenuItem" caption="Create Statement" />
                     </MenuItem>
                     <MenuItem id="sendToEditorMenu" caption="Send to SQL Editor">
-                        <MenuItem id="editorNameMenuItem" caption="Name" disabled />
-                        <MenuItem id="editorCreateStatementMenuItem" caption="Create Statement" disabled />
+                        <MenuItem id="editorNameMenuItem" caption="Name" />
+                        <MenuItem id="editorCreateStatementMenuItem" caption="Create Statement" />
                     </MenuItem>
                     <MenuItem caption="-" disabled />
                     <MenuItem id="createSchemaMenuItem" caption="Create Schema..." disabled />
@@ -396,17 +396,16 @@ export class Explorer extends ComponentBase<IExplorerProperties, IExplorerState>
                 >
                     <MenuItem id="selectRowsMenuItem" caption="Select Rows" />
                     <MenuItem id="tableInspectorMenuItem" caption="Table Inspector" disabled />
+                    <MenuItem id="tableDataExportMenuItem" caption="Table Data Export Wizard" disabled />
+                    <MenuItem id="tableDataImportMenuItem" caption="Table Data Import Wizard" disabled />
                     <MenuItem caption="-" disabled />
                     <MenuItem id="clipboardMenu" caption="Copy to Clipboard">
                         <MenuItem id="clipboardNameMenuItem" caption="Name" />
                         <MenuItem id="clipboardCreateStatementMenuItem" caption="Create Statement" />
                     </MenuItem>
-                    <MenuItem id="tableDataExportMenuItem" caption="Table Data Export Wizard" disabled />
-                    <MenuItem id="tableDataImportMenuItem" caption="Table Data Import Wizard" disabled />
-                    <MenuItem caption="-" disabled />
                     <MenuItem id="sendToEditorMenu" caption="Send to SQL Editor">
-                        <MenuItem id="editorNameMenuItem" caption="Name" disabled />
-                        <MenuItem id="editorCreateStatementMenuItem" caption="Create Statement" disabled />
+                        <MenuItem id="editorNameMenuItem" caption="Name" />
+                        <MenuItem id="editorCreateStatementMenuItem" caption="Create Statement" />
                     </MenuItem>
                     <MenuItem caption="-" disabled />
                     <MenuItem id="createTableMenuItem" caption="Create Table..." disabled />
@@ -434,13 +433,11 @@ export class Explorer extends ComponentBase<IExplorerProperties, IExplorerState>
                     <MenuItem id="selectRowsMenuItem" caption="Select Rows" />
                     <MenuItem id="clipboardMenu" caption="Copy to Clipboard">
                         <MenuItem id="clipboardNameMenuItem" caption="Name" />
-                        <MenuItem id="clipboardCreateStatementMenuItem" caption="Select Columns Statement" />
                         <MenuItem id="clipboardInsertStatementMenuItem" caption="Insert Statement" disabled />
                         <MenuItem id="clipboardUpdateStatementMenuItem" caption="Update Statement" disabled />
                     </MenuItem>
                     <MenuItem id="sendToEditorMenu" caption="Send to SQL Editor">
                         <MenuItem id="editorNameMenuItem" caption="Name" disabled />
-                        <MenuItem id="editorCreateStatementMenuItem" caption="Select Columns Statement" disabled />
                         <MenuItem id="editorInsertStatementMenuItem" caption="Insert Statement" disabled />
                         <MenuItem id="editorUpdateStatementMenuItem" caption="Update Statement" disabled />
                     </MenuItem>
@@ -457,12 +454,12 @@ export class Explorer extends ComponentBase<IExplorerProperties, IExplorerState>
                     <MenuItem id="selectRowsMenuItem" caption="Select Rows" />
                     <MenuItem caption="-" disabled />
                     <MenuItem id="clipboardMenu" caption="Copy to Clipboard">
-                        <MenuItem id="clipboardNameMenuItem" caption="Name" disabled />
+                        <MenuItem id="clipboardNameMenuItem" caption="Name" />
                         <MenuItem id="clipboardCreateStatementMenuItem" caption="Create Statement" />
                     </MenuItem>
                     <MenuItem id="sendToEditorMenu" caption="Send to SQL Editor">
-                        <MenuItem id="editorNameMenuItem" caption="Name" disabled />
-                        <MenuItem id="editorCreateStatementMenuItem" caption="Create Statement" disabled />
+                        <MenuItem id="editorNameMenuItem" caption="Name" />
+                        <MenuItem id="editorCreateStatementMenuItem" caption="Create Statement" />
                     </MenuItem>
                     <MenuItem caption="-" disabled />
                     <MenuItem id="createViewMenuItem" caption="Create View ..." disabled />
@@ -484,8 +481,8 @@ export class Explorer extends ComponentBase<IExplorerProperties, IExplorerState>
                         <MenuItem id="clipboardCreateStatementMenuItem" caption="Create Statement" />
                     </MenuItem>
                     <MenuItem id="sendToEditorMenu" caption="Send to SQL Editor">
-                        <MenuItem id="editorNameMenuItem" caption="Name" disabled />
-                        <MenuItem id="editorCreateStatementMenuItem" caption="Create Statement" disabled />
+                        <MenuItem id="editorNameMenuItem" caption="Name" />
+                        <MenuItem id="editorCreateStatementMenuItem" caption="Create Statement" />
                     </MenuItem>
                     <MenuItem caption="-" disabled />
                     <MenuItem id="createViewMenuItem" caption="Create Event ..." disabled />
@@ -506,8 +503,8 @@ export class Explorer extends ComponentBase<IExplorerProperties, IExplorerState>
                         <MenuItem id="clipboardCreateStatementMenuItem" caption="Create Statement" />
                     </MenuItem>
                     <MenuItem id="sendToEditorMenu" caption="Send to SQL Editor">
-                        <MenuItem id="editorNameMenuItem" caption="Name" disabled />
-                        <MenuItem id="editorCreateStatementMenuItem" caption="Create Statement" disabled />
+                        <MenuItem id="editorNameMenuItem" caption="Name" />
+                        <MenuItem id="editorCreateStatementMenuItem" caption="Create Statement" />
                     </MenuItem>
                     <MenuItem caption="-" disabled />
                     <MenuItem id="createViewMenuItem" caption="Create Routine ..." disabled />
@@ -529,8 +526,7 @@ export class Explorer extends ComponentBase<IExplorerProperties, IExplorerState>
                         <MenuItem id="clipboardCreateStatementMenuItem" caption="Create Statement" />
                     </MenuItem>
                     <MenuItem id="sendToEditorMenu" caption="Send to SQL Editor">
-                        <MenuItem id="editorNameMenuItem" caption="Name" disabled />
-                        <MenuItem id="editorCreateStatementMenuItem" caption="Create Statement" disabled />
+                        <MenuItem id="editorNameMenuItem" caption="Name" />
                     </MenuItem>
                     <MenuItem caption="-" disabled />
                     <MenuItem id="refreshMenuItem" caption="Refresh All" disabled />

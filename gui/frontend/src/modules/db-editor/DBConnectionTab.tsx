@@ -1685,7 +1685,8 @@ Execute \\help or \\? for help;`;
                 break;
             }
 
-            case "clipboardCreateStatementMenuItem": {
+            case "clipboardCreateStatementMenuItem":
+            case "editorCreateStatementMenuItem": {
                 let type;
                 let qualifier = `\`${data.qualifiedName.schema}\`.`;
                 let index = 1; // The column index in the result row.
@@ -1738,12 +1739,20 @@ Execute \\help or \\? for help;`;
 
                 if (type) {
                     void backend?.execute(`show create ${type} ${qualifier}\`${data.caption}\``).then((data) => {
-                        const result = data?.[0];
-                        if (result && result.rows && result.rows.length > 0) {
+                        const rows = data?.rows;
+                        if (rows && rows.length > 0) {
                             // Returns one row with 2 columns.
-                            const row = result.rows[0] as string[];
+                            const row = rows[0] as string[];
                             if (row.length > index) {
-                                requisitions.writeToClipboard(row[index]);
+                                if (actionId === "clipboardCreateStatementMenuItem") {
+                                    requisitions.writeToClipboard(row[index]);
+                                } else {
+                                    if (this.notebookRef.current) {
+                                        this.notebookRef.current.insertScriptText("mysql", row[index]);
+                                    } else if (this.scriptRef.current) {
+                                        this.scriptRef.current.insertScriptText("sql", row[index]);
+                                    }
+                                }
                             }
                         }
                     });
@@ -1753,10 +1762,6 @@ Execute \\help or \\? for help;`;
             }
 
             case "editorNameMenuItem": {
-                break;
-            }
-
-            case "editorCreateStatementMenuItem": {
                 break;
             }
 
