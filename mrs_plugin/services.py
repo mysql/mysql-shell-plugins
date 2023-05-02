@@ -401,7 +401,11 @@ def get_service(**kwargs):
                                            service_id=service_id, get_default=get_default, session=session)
 
         if lib.core.get_interactive_result():
-            return lib.services.format_service_listing([service], True)
+            # in interactive mode, if there is no service, we should display an empty listing
+            if service:
+                return lib.services.format_service_listing([service], True)
+            else:
+                return "The specified service was not found."
         else:
             return service
 
