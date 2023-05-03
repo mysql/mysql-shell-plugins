@@ -23,54 +23,32 @@
 
 import "./MrsDialogs.css";
 
+
 import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types";
 import {
-    IMrsServiceData, IMrsSchemaData, IMrsDbObjectFieldData,
-    IMrsObjectFieldWithReference,
     IMrsDbObjectData,
-    IMrsObject,
+    IMrsSchemaData,
+    IMrsServiceData,
 } from "../../../communication/ProtocolMrs";
 import { AwaitableValueEditDialog } from "../../../components/Dialogs/AwaitableValueEditDialog";
 import {
-    IDialogValues, IDialogSection, CommonDialogValueOption, IDialogValidations, IRelationDialogValue,
+    CommonDialogValueOption,
+    IDialogSection,
+    IDialogValidations,
+    IDialogValues,
 } from "../../../components/Dialogs/ValueEditDialog";
+import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor";
+import { convertToPascalCase } from "../../../utilities/string-helpers";
 import {
     IMrsObjectFieldEditorData, MrsObjectFieldEditor,
-    IMrsObjectFieldTreeItem,
-    MrsObjectFieldTreeEntryType,
 } from "./MrsObjectFieldEditor";
-import { convertToPascalCase } from "../../../utilities/string-helpers";
-import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor";
-
-export interface IMrsEditObjectDialogData extends IDictionary {
-    serviceId: string,
-    dbSchemaId: string,
-    dbSchemaPath: string,
-    name: string,
-    requestPath: string,
-    requiresAuth: boolean,
-    enabled: boolean,
-    itemsPerPage: number,
-    comments: string,
-    rowUserOwnershipEnforced: boolean,
-    rowUserOwnershipColumn: string,
-    objectType: string,
-    crudOperations: string[],
-    crudOperationFormat: string,
-    autoDetectMediaType: boolean,
-    mediaType: string,
-    options: string,
-    authStoredProcedure: string,
-    fields: IMrsDbObjectFieldData[],
-
-    mrsObject?: IMrsObject;
-}
 
 export class MrsDbObjectDialog extends AwaitableValueEditDialog {
     private requestValue: IMrsDbObjectData;
     private objectType: string;
     private backend: ShellInterfaceSqlEditor;
     private createDbObject = false;
+    private dialogValues?: IDialogValues;
 
     protected get id(): string {
         return "mrsDbObjectDialog";
@@ -87,9 +65,9 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
         this.backend = payload.backend as ShellInterfaceSqlEditor;
         this.createDbObject = payload.createObject as boolean;
 
-        const dialogValues = this.dialogValues(request, services, schemas, rowOwnershipFields, title);
-        const result = await this.doShow(() => { return dialogValues; },
-            { title: "MySQL REST Object", autoResize: this.requestValue.objectType !== "PROCEDURE" });
+        this.dialogValues = this.createDialogValues(request, services, schemas, rowOwnershipFields, title);
+        const result = await this.doShow(() => { return this.dialogValues!; },
+            { title: "MySQL REST Object", autoResize: true });
 
         if (result.closure === DialogResponseClosure.Accept) {
             return this.processResults(schemas, result.values);
@@ -98,7 +76,26 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
         return DialogResponseClosure.Cancel;
     }
 
-    protected override validateInput = (closing: boolean, values: IDialogValues): IDialogValidations => {
+    /*public show(request: IDialogRequest, title?: string): void {
+        this.requestValue = request.values as IMrsDbObjectData;
+
+        const services = request.parameters?.services as IMrsServiceData[];
+        const schemas = request.parameters?.schemas as IMrsSchemaData[];
+        const rowOwnershipFields = request.parameters?.rowOwnershipFields as string[];
+        const payload = request.values?.payload as IDictionary;
+        this.objectType = request.values?.objectType as string;
+        this.backend = payload.backend as ShellInterfaceSqlEditor;
+        this.createDbObject = payload.createObject as boolean;
+
+        this.dialogValues = this.createDialogValues(request, services, schemas, rowOwnershipFields, title);
+
+        this.dialogRef.current?.show(
+            this.dialogValues,
+            { title: "MySQL REST Object", autoResize: true },
+            { ...payload, services, schemas, rowOwnershipFields });
+    }*/
+
+    protected validateInput = (closing: boolean, values: IDialogValues): IDialogValidations => {
         const result: IDialogValidations = {
             messages: {},
             requiredContexts: [],
@@ -127,43 +124,14 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
                     result.messages.name = "The object name must not be empty.";
                 }
             }
-        } else {
-            // Detect change of the <new> entry
-            const parameterSection = values.sections.get("parameterSection");
-            if (parameterSection && parameterSection.values.parameters) {
-                const paramDlgValue = parameterSection.values.parameters as IRelationDialogValue;
-                const parameters = paramDlgValue.value as Array<IMrsDbObjectFieldData & IDictionary>;
-                const newEntry = parameters.find((p) => {
-                    return p.id === "";
-                });
-                // Detect a change of the <new> entry
-                if (newEntry && newEntry.name !== "<new>") {
-                    // Update id and position
-                    newEntry.id = `${parameters.length * -1}`;
-                    newEntry.position = parameters.length;
-
-                    paramDlgValue.active = newEntry.id;
-
-                    // Add another <new> entry
-                    parameters.push({
-                        id: "",
-                        dbObjectId: "",
-                        position: 0,
-                        name: "<new>",
-                        bindFieldName: "",
-                        datatype: "STRING",
-                        mode: "IN",
-                        comments: "",
-                    });
-                }
-            }
         }
 
         return result;
     };
 
-    private dialogValues(request: IDialogRequest, services: IMrsServiceData[], schemas: IMrsSchemaData[],
-        rowOwnershipFields: string[], title?: string): IDialogValues {
+    private createDialogValues(request: IDialogRequest,
+        services: IMrsServiceData[], schemas: IMrsSchemaData[], rowOwnershipFields: string[],
+        title?: string): IDialogValues {
 
         let selectedService = services.find((service) => {
             return service.isCurrent === 1;
@@ -185,7 +153,7 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
                     caption: "REST Service Path",
                     value: selectedService?.hostCtx,
                     choices: services.map((service) => { return service.hostCtx; }),
-                    horizontalSpan: this.requestValue.objectType !== "PROCEDURE" ? 2 : 3,
+                    horizontalSpan: 2,
                     description: "The path of the REST Service",
                 },
                 schema: {
@@ -195,71 +163,48 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
                     choices: schemas.map((schema) => {
                         return schema.requestPath;
                     }),
-                    horizontalSpan: this.requestValue.objectType !== "PROCEDURE" ? 2 : 3,
+                    horizontalSpan: 2,
                     description: "The path of the REST Schema",
+                },
+                requestPath: {
+                    type: "text",
+                    caption: "REST Object Path",
+                    value: request.values?.requestPath as string,
+                    horizontalSpan: 2,
+                    description: "The path, has to starts with /",
+                    options: [CommonDialogValueOption.AutoFocus],
+                },
+                flags: {
+                    type: "description",
+                    caption: "Flags",
+                    horizontalSpan: 2,
+                    options: [
+                        CommonDialogValueOption.Grouped,
+                        CommonDialogValueOption.NewGroup,
+                    ],
+                },
+                enabled: {
+                    type: "boolean",
+                    caption: "Enabled",
+                    horizontalSpan: 2,
+                    value: (request.values?.enabled ?? true) as boolean,
+                    options: [
+                        CommonDialogValueOption.Grouped,
+                    ],
+                },
+                requiresAuth: {
+                    type: "boolean",
+                    caption: "Requires Auth",
+                    horizontalSpan: 2,
+                    value: (request.values?.requiresAuth ?? true) as boolean,
+                    options: [
+                        CommonDialogValueOption.Grouped,
+                    ],
                 },
             },
         };
 
-        if (this.requestValue.objectType !== "PROCEDURE") {
-            mainSection.values.requestPath = {
-                type: "text",
-                caption: "REST Object Path",
-                value: request.values?.requestPath as string,
-                horizontalSpan: 2,
-                description: "The path, has to starts with /",
-                options: [CommonDialogValueOption.AutoFocus],
-            };
-        }
-        mainSection.values.flags = {
-            type: "description",
-            caption: "Flags",
-            horizontalSpan: 2,
-            options: [
-                CommonDialogValueOption.Grouped,
-                CommonDialogValueOption.NewGroup,
-            ],
-        };
-
-        mainSection.values.enabled = {
-            type: "boolean",
-            caption: "Enabled",
-            horizontalSpan: 2,
-            value: (request.values?.enabled ?? true) as boolean,
-            options: [
-                CommonDialogValueOption.Grouped,
-            ],
-        };
-
-        mainSection.values.requiresAuth = {
-            type: "boolean",
-            caption: "Requires Auth",
-            horizontalSpan: 2,
-            value: (request.values?.requiresAuth ?? true) as boolean,
-            options: [
-                CommonDialogValueOption.Grouped,
-            ],
-        };
-
-        if (this.requestValue.objectType === "PROCEDURE") {
-            mainSection.values.requestPath = {
-                type: "text",
-                caption: "REST Object Path",
-                value: request.values?.requestPath as string,
-                horizontalSpan: 4,
-                description: "The path, has to starts with /",
-                options: [CommonDialogValueOption.AutoFocus],
-            };
-
-            mainSection.values.name = {
-                type: "text",
-                caption: "Schema Object Name",
-                value: request.values?.name as string,
-                horizontalSpan: 4,
-                description: "The DB Schema Object name",
-            };
-        }
-
+        // ---------------------------------------------------------------------
         // Add MrsRestObjectFieldEditor
         const customData: IMrsObjectFieldEditorData = {
             dbSchemaName: selectedSchema?.name ?? "",
@@ -269,9 +214,9 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
                 convertToPascalCase(this.requestValue.name),
             crudOperations: request.values?.crudOperations as string[],
             mrsObjects: [],
-            currentTreeItems: [],
             currentlyListedTables: [],
             currentMrsObjectId: undefined,
+            currentTreeItems: [],
             createDbObject: this.createDbObject,
         };
 
@@ -283,14 +228,16 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
                 tree: {
                     type: "custom",
                     value: customData,
-                    component: <MrsObjectFieldEditor backend={this.backend} />,
+                    component: <MrsObjectFieldEditor
+                        backend={this.backend}
+                        dbObjectChange={this.handleDbObjectChange} />,
                     horizontalSpan: 8,
                 },
             },
         };
 
-        const basicSection: IDialogSection = {
-            caption: "Basic",
+        const optionsSection: IDialogSection = {
+            caption: "Options",
             groupName: "group1",
             values: {
                 crudOperationFormat: {
@@ -329,84 +276,6 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
                     optional: true,
                     description: "Field that holds the user ID that should be managed by MRS",
                 },
-            },
-        };
-
-        const objectData = request.values?.parameters as Array<IMrsDbObjectFieldData & IDictionary>;
-        const parameterSection: IDialogSection = {
-            caption: "Parameters",
-            groupName: "group1",
-            values: {
-                parameters: {
-                    type: "relation",
-                    caption: "Parameters:",
-                    value: objectData,
-                    listItemCaptionFields: ["name"],
-                    listItemId: "id",
-                    active: objectData && objectData.length > 0 ? String(objectData[0].id) : undefined,
-                    horizontalSpan: 2,
-                    verticalSpan: 3,
-                    relations: {
-                        position: "paramPosition",
-                        name: "paramName",
-                        bindColumnName: "paramBindColumnName",
-                        mode: "paramMode",
-                        datatype: "paramDatatype",
-                        comments: "paramComments",
-                    },
-                },
-                paramName: {
-                    type: "text",
-                    caption: "Name",
-                    value: "",
-                    horizontalSpan: 3,
-                    description: "The name of the parameter",
-                },
-                paramBindColumnName: {
-                    type: "text",
-                    caption: "Database Object Field",
-                    value: "",
-                    horizontalSpan: 3,
-                    description: "The name of the database object field",
-                },
-                paramPosition: {
-                    type: "number",
-                    caption: "Position",
-                    value: 1,
-                    horizontalSpan: 1,
-                    description: "The position",
-                },
-                paramDatatype: {
-                    type: "choice",
-                    caption: "Datatype",
-                    choices: ["STRING", "INT", "DOUBLE", "BOOLEAN", "LONG", "TIMESTAMP", "JSON"],
-                    value: "",
-                    horizontalSpan: 3,
-                    description: "The datatype of the parameter",
-                },
-                paramMode: {
-                    type: "choice",
-                    caption: "Mode",
-                    // cSpell:ignore INOUT
-                    choices: ["IN", "OUT", "INOUT"],
-                    value: "",
-                    horizontalSpan: 2,
-                    description: "The mode of the parameter",
-                },
-                paramComments: {
-                    type: "text",
-                    caption: "Comments",
-                    value: "",
-                    multiLine: true,
-                    horizontalSpan: 6,
-                },
-            },
-        };
-
-        const advancedSection: IDialogSection = {
-            caption: "Advanced",
-            groupName: "group1",
-            values: {
                 mediaType: {
                     type: "text",
                     caption: "Media Type",
@@ -426,13 +295,6 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
                     horizontalSpan: 8,
                     value: request.values?.authStoredProcedure as string,
                 },
-            },
-        };
-
-        const optionsSection: IDialogSection = {
-            caption: "Options",
-            groupName: "group1",
-            values: {
                 options: {
                     type: "text",
                     caption: "Options",
@@ -444,116 +306,76 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
             },
         };
 
-        if (request.values?.objectType !== "PROCEDURE") {
-            return {
-                id: this.id,
-                sections: new Map<string, IDialogSection>([
-                    ["mainSection", mainSection],
-                    ["mrsObject", mrsObjectSection],
-                    ["basicSection", basicSection],
-                    ["parameterSection", parameterSection],
-                    ["advancedSection", advancedSection],
-                    ["optionsSection", optionsSection],
-                ]),
-            };
-        } else {
-            return {
-                id: this.id,
-                sections: new Map<string, IDialogSection>([
-                    ["mainSection", mainSection],
-                    ["basicSection", basicSection],
-                    ["parameterSection", parameterSection],
-                    ["advancedSection", advancedSection],
-                    ["optionsSection", optionsSection],
-                ]),
-            };
-        }
-
+        return {
+            id: "mainSection",
+            sections: new Map<string, IDialogSection>([
+                ["mainSection", mainSection],
+                ["mrsObject", mrsObjectSection],
+                ["optionsSection", optionsSection],
+            ]),
+        };
     }
 
     private processResults = (schemas: IMrsSchemaData[], dialogValues: IDialogValues): IDictionary => {
         const mainSection = dialogValues.sections.get("mainSection");
-        const basicSection = dialogValues.sections.get("basicSection");
-        const advancedSection = dialogValues.sections.get("advancedSection");
         const optionsSection = dialogValues.sections.get("optionsSection");
-        const parameterSection = dialogValues.sections.get("parameterSection");
         const mrsObjectSection = dialogValues.sections.get("mrsObject");
+        if (mainSection && optionsSection && mrsObjectSection) {
+            const values: IDictionary = {};
+            values.objectType = this.objectType;
 
-        if (mainSection && basicSection && advancedSection && optionsSection && parameterSection) {
-            const values: Partial<IMrsEditObjectDialogData> = {
-                objectType: this.objectType,
+            // mainSection
+            values.servicePath = mainSection.values.service.value as string;
+            values.dbSchemaPath = mainSection.values.schema.value as string;
+            values.dbSchemaId = schemas.find((schema) => {
+                return mainSection.values.schema.value === schema.requestPath;
+            })?.id;
+            values.requestPath = mainSection.values.requestPath.value as string;
+            values.requiresAuth = mainSection.values.requiresAuth.value as boolean;
+            values.enabled = mainSection.values.enabled.value as boolean;
 
-                // mainSection
-                servicePath: mainSection.values.service.value as string,
-                dbSchemaPath: mainSection.values.schema.value as string,
-                dbSchemaId: schemas.find((schema) => {
-                    return mainSection.values.schema.value === schema.requestPath;
-                })?.id ?? "",
-                requestPath: mainSection.values.requestPath.value as string,
-                requiresAuth: mainSection.values.requiresAuth.value as boolean,
-                enabled: mainSection.values.enabled.value as boolean,
+            // basicSection
+            values.itemsPerPage = optionsSection.values.itemsPerPage.value as number;
+            values.comments = optionsSection.values.comments.value as string;
+            values.crudOperationFormat = optionsSection.values.crudOperationFormat.value as string;
+            values.rowUserOwnershipColumn = optionsSection.values.rowUserOwnershipColumn.value as string;
+            values.rowUserOwnershipEnforced = optionsSection.values.rowUserOwnershipEnforced.value as boolean;
 
-                // basicSection
-                itemsPerPage: basicSection.values.itemsPerPage.value as number,
-                comments: basicSection.values.comments.value as string,
-                crudOperationFormat: basicSection.values.crudOperationFormat.value as string,
-                rowUserOwnershipColumn: basicSection.values.rowUserOwnershipColumn.value as string,
-                rowUserOwnershipEnforced: basicSection.values.rowUserOwnershipEnforced.value as boolean,
+            // advancedSection
+            values.mediaType = optionsSection.values.mediaType.value as string;
+            values.autoDetectMediaType = optionsSection.values.autoDetectMediaType.value as boolean;
+            values.authStoredProcedure = optionsSection.values.authStoredProcedure.value as string;
 
-                // advancedSection
-                mediaType: advancedSection.values.mediaType.value as string,
-                autoDetectMediaType: advancedSection.values.autoDetectMediaType.value as boolean,
-                authStoredProcedure: advancedSection.values.authStoredProcedure.value as string,
+            // optionsSection
+            values.options = optionsSection.values.options.value as string;
 
-                // optionsSection
-                options: optionsSection.values.options.value as string,
+            // mrsObject
+            const mrsObjectValue = mrsObjectSection.values.tree.value;
+            const mrsObjectData = (mrsObjectValue as unknown) as IMrsObjectFieldEditorData;
 
-                // parameters
-                fields: parameterSection.values.parameters.value as IMrsDbObjectFieldData[],
-            };
+            values.name = mrsObjectData.dbObject.name;
+            values.crudOperations = mrsObjectData.crudOperations;
 
-            // mrsObject - not available for PROCEDURES for now
-            if (mrsObjectSection) {
-                const mrsObjectValue = mrsObjectSection.values.tree.value;
-                const mrsObjectData = (mrsObjectValue as unknown) as IMrsObjectFieldEditorData;
+            // Ensure the editor changes are applied to the object list
+            MrsObjectFieldEditor.updateMrsObjectFields(mrsObjectData);
 
-                values.name = mrsObjectData.dbObject.name;
-                values.crudOperations = mrsObjectData.crudOperations;
-
-                const fieldList: IMrsObjectFieldWithReference[] = [];
-                const walk = (node: IMrsObjectFieldTreeItem): void => {
-                    if (node.children !== undefined) {
-                        // Process the list of mrsObjectData.fieldTreeNodes backwards
-                        for (let i = node.children.length - 1; i >= 0; i--) {
-                            walk(node.children[i]);
-                        }
-                        /*node.children.forEach((child) => {
-                            walk(child);
-                        });*/
-                    }
-                    if (node.type === MrsObjectFieldTreeEntryType.Field) {
-                        fieldList.push(node.field);
-                    }
-                };
-
-                // Process the list of mrsObjectData.fieldTreeNodes backwards
-                for (let i = mrsObjectData.currentTreeItems.length - 1; i >= 0; i--) {
-                    walk(mrsObjectData.currentTreeItems[i]);
-                }
-
-                mrsObjectData.mrsObjects[0].fields = fieldList;
-                mrsObjectData.mrsObjects[0].storedFields = undefined;
-                values.mrsObject = mrsObjectData.mrsObjects[0];
-
-            } else {
-                // Set back original values for PROCEDURES for now
-                values.name = (mainSection.values.name?.value ?? this.requestValue.name) as string;
-                values.crudOperations = this.requestValue.crudOperations;
+            // Clear the storedFields to avoid unnecessary data being transferred
+            for (const obj of mrsObjectData.mrsObjects) {
+                obj.storedFields = undefined;
             }
+            values.objects = mrsObjectData.mrsObjects;
 
             return values;
         }
 
         return {};
+    };
+
+    private handleDbObjectChange = (): void => {
+        const basicSection = this.dialogValues?.sections.get("optionsSection");
+        if (basicSection) {
+            basicSection.values.rowUserOwnershipColumn.value = this.requestValue.rowUserOwnershipColumn;
+            basicSection.values.rowUserOwnershipEnforced.value = this.requestValue.rowUserOwnershipEnforced ?? true;
+        }
     };
 }

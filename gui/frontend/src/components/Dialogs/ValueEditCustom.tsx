@@ -31,7 +31,7 @@ import { ComponentBase, IComponentProperties, IComponentState } from "../ui/Comp
  */
 export interface IValueEditCustomProperties extends IComponentProperties {
     values?: IDictionary;
-    onDataChange?: (data: IDictionary) => void;
+    onDataChange?: (data: IDictionary, callback?: () => void) => void;
 }
 
 /** The base component for content that can be embedded into a ValueEditDialog. */

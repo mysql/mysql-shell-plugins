@@ -805,45 +805,6 @@ exports[`MrsHub Tests Show MRS DB Object Dialog (snapshot) 1`] = `
                       class="msg label"
                       data-tooltip="inherit"
                     >
-                      Basic
-                    </label>
-                  </div>
-                  <div
-                    class="msg button tabItem"
-                    id="page2"
-                    role="button"
-                    tabindex="-1"
-                  >
-                    <label
-                      class="msg label"
-                      data-tooltip="inherit"
-                    >
-                      Parameters
-                    </label>
-                  </div>
-                  <div
-                    class="msg button tabItem"
-                    id="page3"
-                    role="button"
-                    tabindex="-1"
-                  >
-                    <label
-                      class="msg label"
-                      data-tooltip="inherit"
-                    >
-                      Advanced
-                    </label>
-                  </div>
-                  <div
-                    class="msg button tabItem"
-                    id="page4"
-                    role="button"
-                    tabindex="-1"
-                  >
-                    <label
-                      class="msg label"
-                      data-tooltip="inherit"
-                    >
                       Options
                     </label>
                   </div>
@@ -880,16 +841,58 @@ exports[`MrsHub Tests Show MRS DB Object Dialog (snapshot) 1`] = `
                     >
                       <div
                         class="msg container fixedScrollbar settingsMain"
-                        style="flex-direction: row; align-items: flex-start;"
+                        style="flex-direction: row; align-items: center;"
                       >
                         <div
-                          class="msg container fixedScrollbar showSdkOptions"
+                          class="msg container fixedScrollbar labelWithInput"
                           style="flex-direction: row; align-items: center;"
                         >
+                          <label
+                            class="msg label"
+                            data-tooltip="expand"
+                          >
+                            DB Object:
+                          </label>
+                          <input
+                            class="msg input"
+                            spellcheck="true"
+                            type="text"
+                          />
+                        </div>
+                        <div
+                          class="divider"
+                        />
+                        <div
+                          class="msg button imageOnly"
+                          data-tooltip="Show SQL Preview"
+                          role="button"
+                          tabindex="0"
+                        >
+                          <div
+                            class="msg icon"
+                            data-tooltip="inherit"
+                            style="mask-image: url(toolbar-sql_preview-inactive.svg);"
+                          />
+                        </div>
+                      </div>
+                      <div
+                        class="msg container fixedScrollbar settingsRight"
+                        style="flex-direction: row-reverse; align-items: center;"
+                      >
+                        <div
+                          class="msg container fixedScrollbar labelWithInput"
+                          style="flex-direction: row; align-items: center;"
+                        >
+                          <label
+                            class="msg label"
+                            data-tooltip="expand"
+                          >
+                            SDK:
+                          </label>
                           <div
                             class="msg container fixedScrollbar dropdown"
                             id="sdkLanguage"
-                            placeholder="SDK Options"
+                            placeholder="SDK Language"
                             style="flex-direction: row; align-items: center;"
                             tabindex="0"
                           >
@@ -897,15 +900,11 @@ exports[`MrsHub Tests Show MRS DB Object Dialog (snapshot) 1`] = `
                               class="msg label placeholder"
                               data-tooltip="expand"
                             >
-                              SDK Options
+                              SDK Language
                             </label>
                           </div>
                         </div>
                       </div>
-                      <div
-                        class="msg container fixedScrollbar settingsRight"
-                        style="flex-direction: row; align-items: flex-start;"
-                      />
                     </div>
                     <div
                       class="msg treeGrid mrsObjectTreeGrid tabulator"
@@ -941,7 +940,7 @@ exports[`MrsHub Tests Show MRS DB Object Dialog (snapshot) 1`] = `
                                   <div
                                     class="tabulator-col-title"
                                   >
-                                    JSON
+                                    Json
                                   </div>
                                   <div
                                     class="tabulator-col-sorter"

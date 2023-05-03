@@ -38,7 +38,6 @@ import { MrsRouterTreeItem } from "./tree-providers/ConnectionsTreeProvider/MrsR
 import { SchemaMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaMySQLTreeItem";
 import { showMessageWithTimeout, showModalDialog } from "./utilities";
 import { openSqlEditorSessionAndConnection, openSqlEditorConnection } from "./utilitiesShellGui";
-import { DialogWebviewManager } from "./web-views/DialogWebviewProvider";
 import { IMrsServiceData } from "../../frontend/src/communication/ProtocolMrs";
 import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
 import { ConnectionMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvider/ConnectionMySQLTreeItem";
@@ -50,16 +49,14 @@ import { MrsUserTreeItem } from "./tree-providers/ConnectionsTreeProvider/MrsUse
 import { findExecutable } from "../../frontend/src/utilities/file-utilities";
 import { pathToCamelCase } from "../../frontend/src/utilities/string-helpers";
 import { MrsContentFileTreeItem } from "./tree-providers/ConnectionsTreeProvider/MrsContentFileTreeItem";
+import { DBEditorModuleId } from "../../frontend/src/modules/ModuleInfo";
 
 export class MRSCommandHandler {
-    protected docsWebviewPanel?: WebviewPanel;
-
-    private host: ExtensionHost;
-
-    private dialogManager = new DialogWebviewManager();
+    #docsWebviewPanel?: WebviewPanel;
+    #host: ExtensionHost;
 
     public setup = (host: ExtensionHost): void => {
-        this.host = host;
+        this.#host = host;
 
         host.context.subscriptions.push(commands.registerCommand("msg.mrs.configureMySQLRestService",
             async (item?: ConnectionMySQLTreeItem) => {
@@ -136,19 +133,28 @@ export class MRSCommandHandler {
         host.context.subscriptions.push(commands.registerCommand("msg.mrs.addService", (item?: MrsTreeItem) => {
             if (item?.entry.backend) {
                 const connectionId = String(item.entry.details.id);
-                this.dialogManager.showMrsServiceDialog("Add MRS Service", connectionId).catch((reason) => {
-                    void window.showErrorMessage(`${String(reason)}`);
-                });
+                const provider = this.#host.currentProvider;
+                if (provider) {
+                    void provider.runCommand("job", [
+                        { requestType: "showModule", parameter: DBEditorModuleId },
+                        { requestType: "showPage", parameter: { module: DBEditorModuleId, page: connectionId } },
+                        { requestType: "showMrsServiceDialog", parameter: undefined },
+                    ], "newConnection");
+                }
             }
         }));
 
         host.context.subscriptions.push(commands.registerCommand("msg.mrs.editService", (item?: MrsServiceTreeItem) => {
             if (item?.entry.backend) {
                 const connectionId = String(item.entry.details.id);
-                this.dialogManager.showMrsServiceDialog("Edit MRS Service", connectionId, item.value)
-                    .catch((reason) => {
-                        void window.showErrorMessage(`${String(reason)}`);
-                    });
+                const provider = this.#host.currentProvider;
+                if (provider) {
+                    void provider.runCommand("job", [
+                        { requestType: "showModule", parameter: DBEditorModuleId },
+                        { requestType: "showPage", parameter: { module: DBEditorModuleId, page: connectionId } },
+                        { requestType: "showMrsServiceDialog", parameter: item.value },
+                    ], "newConnection");
+                }
             }
         }));
 
@@ -229,21 +235,45 @@ export class MRSCommandHandler {
         host.context.subscriptions.push(commands.registerCommand("msg.mrs.editSchema", (item?: MrsSchemaTreeItem) => {
             if (item?.entry.backend) {
                 const connectionId = String(item.entry.details.id);
-                this.dialogManager.showMrsSchemaDialog("Edit MRS Schema", connectionId, item.value.name, item.value)
-                    .catch((reason) => {
-                        void window.showErrorMessage(`${String(reason)}`);
-                    });
+                const provider = this.#host.currentProvider;
+                if (provider) {
+                    void provider.runCommand("job", [
+                        { requestType: "showModule", parameter: DBEditorModuleId },
+                        { requestType: "showPage", parameter: { module: DBEditorModuleId, page: connectionId } },
+                        {
+                            requestType: "showMrsSchemaDialog",
+                            parameter: { schemaName: item.value.name, schema: item.value },
+                        },
+                    ], "newConnection");
+                }
             }
         }));
 
-        host.context.subscriptions.push(commands.registerCommand("msg.mrs.addSchema", (item?: SchemaMySQLTreeItem) => {
-            if (item?.entry.backend) {
-                const connectionId = String(item.entry.details.id);
-                this.dialogManager.showMrsSchemaDialog("Add MRS Schema", connectionId, item.schema).catch((reason) => {
-                    void window.showErrorMessage(`${String(reason)}`);
-                });
-            }
-        }));
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.addSchema",
+            async (item?: SchemaMySQLTreeItem) => {
+                if (item?.entry.backend) {
+                    const connectionId = String(item.entry.details.id);
+                    const provider = this.#host.currentProvider;
+                    if (provider) {
+                        // Check if there is at least one MRS Service
+                        const services = await item.entry.backend.mrs.listServices();
+
+                        if (services.length > 0) {
+                            void provider.runCommand("job", [
+                                { requestType: "showModule", parameter: DBEditorModuleId },
+                                { requestType: "showPage", parameter: {
+                                    module: DBEditorModuleId, page: connectionId } },
+                                {
+                                    requestType: "showMrsSchemaDialog",
+                                    parameter: { schemaName: item.schema },
+                                },
+                            ], "newConnection");
+                        } else {
+                            void window.showErrorMessage(`Please create a REST Service before adding a DB Schema.`);
+                        }
+                    }
+                }
+            }));
 
         host.context.subscriptions.push(commands.registerCommand("msg.mrs.copyDbObjectRequestPath",
             async (item?: MrsDbObjectTreeItem) => {
@@ -312,27 +342,35 @@ export class MRSCommandHandler {
         host.context.subscriptions.push(commands.registerCommand("msg.mrs.editAuthApp", (item?: MrsAuthAppTreeItem) => {
             if (item?.entry.backend) {
                 const connectionId = String(item.entry.details.id);
-                this.dialogManager.showMrsAuthAppDialog("Edit Auth App", connectionId, item.value).catch((reason) => {
-                    void window.showErrorMessage(`${String(reason)}`);
-                });
+                const provider = this.#host.currentProvider;
+                if (provider) {
+                    void provider.runCommand("job", [
+                        { requestType: "showModule", parameter: DBEditorModuleId },
+                        { requestType: "showPage", parameter: { module: DBEditorModuleId, page: connectionId } },
+                        { requestType: "showMrsAuthAppDialog", parameter: { authApp: item.value } },
+                    ], "newConnection");
+                }
             }
         }));
 
 
-        host.context.subscriptions.push(commands.registerCommand("msg.mrs.addAuthApp",
-            (item?: MrsServiceTreeItem) => {
-                try {
-                    if (item?.entry.backend && item.value) {
-                        const connectionId = String(item.entry.details.id);
-                        this.dialogManager.showMrsAuthAppDialog("Add Auth App", connectionId, undefined, item.value)
-                            .catch((reason) => {
-                                void window.showErrorMessage(`${String(reason)}`);
-                            });
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.addAuthApp", (item?: MrsServiceTreeItem) => {
+            try {
+                if (item?.entry.backend && item.value) {
+                    const connectionId = String(item.entry.details.id);
+                    const provider = this.#host.currentProvider;
+                    if (provider) {
+                        void provider.runCommand("job", [
+                            { requestType: "showModule", parameter: DBEditorModuleId },
+                            { requestType: "showPage", parameter: { module: DBEditorModuleId, page: connectionId } },
+                            { requestType: "showMrsAuthAppDialog", parameter: { service: item.value } },
+                        ], "newConnection");
                     }
-                } catch (reason) {
-                    void window.showErrorMessage(`Error adding a new MRS Authentication App: ${String(reason)}`);
                 }
-            }));
+            } catch (reason) {
+                void window.showErrorMessage(`Error adding a new MRS Authentication App: ${String(reason)}`);
+            }
+        }));
 
         host.context.subscriptions.push(commands.registerCommand("msg.mrs.deleteAuthApp",
             async (item?: MrsAuthAppTreeItem) => {
@@ -382,76 +420,75 @@ export class MRSCommandHandler {
             }));
 
 
-        host.context.subscriptions.push(commands.registerCommand("msg.mrs.addUser",
-            (item?: MrsAuthAppTreeItem) => {
-                try {
-                    if (item?.entry.backend && item.value) {
-                        const connectionId = String(item.entry.details.id);
-                        this.dialogManager.showMrsUserDialog("Add MRS User", connectionId, item.value)
-                            .catch((reason) => {
-                                void window.showErrorMessage(`${String(reason)}`);
-                            });
-                    }
-                } catch (reason) {
-                    void window.showErrorMessage(`Error adding a new User: ${String(reason)}`);
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.addUser", (item?: MrsAuthAppTreeItem) => {
+            if (item?.entry.backend && item.value) {
+                const connectionId = String(item.entry.details.id);
+                const provider = this.#host.currentProvider;
+                if (provider) {
+                    void provider.runCommand("job", [
+                        { requestType: "showModule", parameter: DBEditorModuleId },
+                        { requestType: "showPage", parameter: { module: DBEditorModuleId, page: connectionId } },
+                        { requestType: "showMrsUserDialog", parameter: { authApp: item.value } },
+                    ], "newConnection");
                 }
-            }));
+            }
+        }));
 
-        host.context.subscriptions.push(commands.registerCommand("msg.mrs.editUser",
-            async (item?: MrsUserTreeItem) => {
-                const backend = item?.entry.backend;
-                try {
-                    if (backend && item.value && item.value.authAppId) {
-                        const authApp = await backend.mrs.getAuthApp(item.value.authAppId);
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.editUser", (item?: MrsUserTreeItem) => {
+            const backend = item?.entry.backend;
+            try {
+                if (backend && item.value && item.value.authAppId) {
+                    backend.mrs.getAuthApp(item.value.authAppId).then((authApp) => {
                         if (authApp) {
                             const connectionId = String(item.entry.details.id);
-                            this.dialogManager.showMrsUserDialog("Edit MRS User", connectionId, authApp, item.value)
-                                .catch((reason) => {
-                                    void window.showErrorMessage(`${String(reason)}`);
-                                });
+                            const provider = this.#host.currentProvider;
+                            if (provider) {
+                                void provider.runCommand("job", [
+                                    { requestType: "showModule", parameter: DBEditorModuleId },
+                                    {
+                                        requestType: "showPage", parameter: {
+                                            module: DBEditorModuleId, page: connectionId,
+                                        },
+                                    },
+                                    { requestType: "showMrsUserDialog", parameter: { authApp, user: item.value } },
+                                ], "newConnection");
+                            }
                         } else {
                             throw new Error("Unable to find authApp");
                         }
-                    }
-                } catch (reason) {
-                    void window.showErrorMessage(`Error adding a new User: ${String(reason)}`);
+                    }).catch((reason) => {
+                        void window.showErrorMessage(`Error adding a new User: ${String(reason)}`);
+                    });
                 }
-            }));
+            } catch (reason) {
+                void window.showErrorMessage(`Error adding a new User: ${String(reason)}`);
+            }
+        }));
 
         host.context.subscriptions.push(commands.registerCommand("msg.mrs.addFolderAsContentSet",
             async (directory?: Uri) => {
                 if (directory) {
                     const connection = await host.determineConnection(DBType.MySQL);
                     if (connection) {
-                        const sqlEditor = new ShellInterfaceSqlEditor();
-                        const statusbarItem = window.createStatusBarItem();
-                        try {
-                            statusbarItem.text = "$(loading~spin) Starting Database Session ...";
-                            statusbarItem.show();
-
-                            statusbarItem.text = "$(loading~spin) Starting Database Session ...";
-                            await sqlEditor.startSession(connection.id + "MRSContentSetDlg");
-
-                            statusbarItem.text = "$(loading~spin) Opening Database Connection ...";
-                            await openSqlEditorConnection(sqlEditor, connection.details.id, (message) => {
-                                statusbarItem.text = "$(loading~spin) " + message;
-                            });
-
-                            statusbarItem.hide();
-
-                            await this.dialogManager.showMrsContentSetDialog("Add MRS Content Set",
-                                directory.toString());
-                        } catch (error) {
-                            void window.showErrorMessage("A error occurred when trying to show the MRS Static " +
-                                `Content Set Dialog. Error: ${error instanceof Error ? error.message : String(error)}`);
-                        } finally {
-                            statusbarItem.hide();
-                            await sqlEditor.closeSession();
+                        const provider = this.#host.currentProvider;
+                        if (provider) {
+                            void provider.runCommand("job", [
+                                { requestType: "showModule", parameter: DBEditorModuleId },
+                                {
+                                    requestType: "showPage", parameter: {
+                                        module: DBEditorModuleId, page: String(connection.details.id),
+                                    },
+                                },
+                                {
+                                    requestType: "showMrsContentSetDialog", parameter: {
+                                        directory: directory.fsPath,
+                                    },
+                                },
+                            ], "newConnection");
                         }
                     }
                 }
             }));
-
 
         host.context.subscriptions.push(commands.registerCommand("msg.mrs.deleteContentSet",
             async (item?: MrsContentSetTreeItem) => {
@@ -944,8 +981,8 @@ export class MRSCommandHandler {
                             + "Do you want to bootstrap a local MySQL Router instance for development now?",
                             "Yes", "No");
                         if (answer === "Yes") {
-                            await this.bootstrapLocalRouter(this.host.context, item, true);
-                            void this.startStopLocalRouter(this.host.context, item);
+                            await this.bootstrapLocalRouter(this.#host.context, item, true);
+                            void this.startStopLocalRouter(this.#host.context, item);
                         }
                     } else {
                         showMessageWithTimeout(
@@ -966,10 +1003,10 @@ export class MRSCommandHandler {
     };
 
     private browseDocs = (id?: string) => {
-        if (!this.docsWebviewPanel) {
+        if (!this.#docsWebviewPanel) {
             try {
                 let data;
-                let mrsPluginDir = path.join(this.host.context.extensionPath, "shell", "lib",
+                let mrsPluginDir = path.join(this.#host.context.extensionPath, "shell", "lib",
                     "mysqlsh", "plugins", "mrs_plugin");
                 let indexPath = path.join(mrsPluginDir, "docs", "index.html");
                 if (fs.existsSync(indexPath)) {
@@ -990,7 +1027,7 @@ export class MRSCommandHandler {
                     }
                 }
 
-                this.docsWebviewPanel = window.createWebviewPanel(
+                this.#docsWebviewPanel = window.createWebviewPanel(
                     "mrsDocs",
                     "MRS Docs",
                     ViewColumn.One,
@@ -1002,10 +1039,10 @@ export class MRSCommandHandler {
                             Uri.file(path.join(mrsPluginDir, "docs/images/")),
                         ],
                     });
-                this.docsWebviewPanel.onDidDispose(() => { this.handleDocsWebviewPanelDispose(); });
+                this.#docsWebviewPanel.onDidDispose(() => { this.handleDocsWebviewPanelDispose(); });
 
                 // Handle messages from the webview
-                this.docsWebviewPanel.webview.onDidReceiveMessage(
+                this.#docsWebviewPanel.webview.onDidReceiveMessage(
                     (message) => {
                         if (os.platform() === "win32") {
                             message.path = String(message.path).replaceAll("/", "\\");
@@ -1045,27 +1082,27 @@ export class MRSCommandHandler {
                         }
                     });
 
-                const styleUrl = this.docsWebviewPanel.webview.asWebviewUri(
+                const styleUrl = this.#docsWebviewPanel.webview.asWebviewUri(
                     Uri.file(path.join(mrsPluginDir, "docs/")));
 
                 data = data.replace("\"style/", `"${styleUrl.toString()}style/`);
                 data = data.replace(/(src=")(.*)(\/images)/gm, `$1${styleUrl.toString()}$3`);
 
-                this.docsWebviewPanel.webview.html = data;
+                this.#docsWebviewPanel.webview.html = data;
             } catch (reason) {
-                this.docsWebviewPanel = undefined;
+                this.#docsWebviewPanel = undefined;
                 void window.showErrorMessage(`${String(reason)}`);
             }
         } else {
-            this.docsWebviewPanel.reveal();
+            this.#docsWebviewPanel.reveal();
         }
 
-        if (id && this.docsWebviewPanel) {
-            void this.docsWebviewPanel.webview.postMessage({ command: "goToId", id });
+        if (id && this.#docsWebviewPanel) {
+            void this.#docsWebviewPanel.webview.postMessage({ command: "goToId", id });
         }
     };
 
     private handleDocsWebviewPanelDispose = () => {
-        this.docsWebviewPanel = undefined;
+        this.#docsWebviewPanel = undefined;
     };
 }

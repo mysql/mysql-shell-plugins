@@ -38,27 +38,38 @@ body[theme=light] {
 }
 
 .mrsObjectFieldEditor {
-    min-height: 350px;
-    /*max-height: 510px;*/
+    min-height: 50px;
+    height: 100%;
 }
 
 .mrsObjectFieldEditor .settings {
-    gap: 16px;
     min-height: 30px;
 }
 
 .mrsObjectFieldEditor .settingsMain {
-    gap: 16px;
-    min-height: 30px;
+    gap: 8px;
     width: 100%;
 }
 
-.mrsObjectFieldEditor .settings .interface {
-    width: 40%;
+.mrsObjectFieldEditor .mrsObject {
+    min-width: none;
+    flex: 1;
 }
 
-.mrsObjectFieldEditor .settings #interfaceName {
-    width: 100%;
+.mrsObjectFieldEditor .mrsObject .mrsObjectAddIcon {
+    margin-left: 6px;
+    margin-right: 6px;
+}
+
+.mrsObjectFieldEditor #mrsObjectName {
+    width: 250px;
+}
+
+.mrsObjectFieldEditor .settings .divider {
+    background-color: var(--button-border);
+    width: 2px;
+    min-height: 24px;
+    margin: 0px 2px 0px 4px;
 }
 
 .mrsObjectFieldEditor .settings .label {
@@ -67,11 +78,22 @@ body[theme=light] {
 }
 
 .mrsObjectFieldEditor .settingsRight {
-    min-width: 170px;
+    width: 240px;
+    flex-direction: row-reverse;
 }
 
-.mrsObjectFieldEditor .showSdkOptions #sdkLanguage {
+.mrsObjectFieldEditor .labelWithInput .label {
+    padding-right: 5px;
+}
+
+.mrsObjectFieldEditor .labelWithInput #sdkLanguage {
     min-width: 130px;
+}
+
+.mrsObjectFieldEditor .interface .icon {
+    width: 16px;
+    height: 16px;
+    margin-left: 6px;
 }
 
 .mrsObjectFieldEditor .cellDescription {
@@ -114,16 +136,20 @@ body[theme=light] {
 }
 
 /* regular row */
-.mrsObjectFieldEditor.showSdkOptions .msg.treeGrid.tabulator .tabulator-row.tabulator-row-even:not(.tabulator-tree-level-0) {
+.mrsObjectFieldEditor.labelWithInput .msg.treeGrid.tabulator .tabulator-row.tabulator-row-even:not(.tabulator-tree-level-0) {
     background-color: var(--mrs-rest-object-field-background-color);
     border-left: 1px solid var(--mrs-rest-object-field-border-color);
     border-right: 1px solid var(--mrs-rest-object-field-border-color);
 }
 
-.mrsObjectFieldEditor.showSdkOptions .msg.treeGrid.tabulator .tabulator-row.tabulator-row-odd:not(.tabulator-tree-level-0) {
+.mrsObjectFieldEditor.labelWithInput .msg.treeGrid.tabulator .tabulator-row.tabulator-row-odd:not(.tabulator-tree-level-0) {
     background-color: var(--mrs-rest-object-field-background-color);
     border-left: 1px solid var(--mrs-rest-object-field-border-color);
     border-right: 1px solid var(--mrs-rest-object-field-border-color);
+}
+
+.mrsObjectFieldEditor .msg.treeGrid.tabulator .deleted {
+    background-color: var(--editorGutter-deletedBackground);
 }
 
 /* firstItem row */
@@ -131,27 +157,27 @@ body[theme=light] {
     background-color: var(--mrs-rest-object-field-header-color);
 }
 
-.mrsObjectFieldEditor.showSdkOptions .msg.treeGrid.tabulator .tabulator-row.tabulator-row-even.firstItem {
+.mrsObjectFieldEditor.labelWithInput .msg.treeGrid.tabulator .tabulator-row.tabulator-row-even.firstItem {
     background-color: var(--mrs-rest-object-field-header-color);
 }
 
-.mrsObjectFieldEditor.showSdkOptions .msg.treeGrid.tabulator .tabulator-row.tabulator-row-odd.firstItem {
+.mrsObjectFieldEditor.labelWithInput .msg.treeGrid.tabulator .tabulator-row.tabulator-row-odd.firstItem {
     background-color: var(--mrs-rest-object-field-header-color);
 }
 
-.mrsObjectFieldEditor.showSdkOptions .msg.treeGrid.tabulator .tabulator-row.tabulator-row-even.firstItem:not(.tabulator-tree-level-0) {
+.mrsObjectFieldEditor.labelWithInput .msg.treeGrid.tabulator .tabulator-row.tabulator-row-even.firstItem:not(.tabulator-tree-level-0) {
     border-top: 1px solid var(--mrs-rest-object-field-border-color);
     border-left: 1px solid var(--mrs-rest-object-field-border-color);
     border-right: 1px solid var(--mrs-rest-object-field-border-color);
 }
 
-.mrsObjectFieldEditor.showSdkOptions .msg.treeGrid.tabulator .tabulator-row.tabulator-row-odd.firstItem:not(.tabulator-tree-level-0) {
+.mrsObjectFieldEditor.labelWithInput .msg.treeGrid.tabulator .tabulator-row.tabulator-row-odd.firstItem:not(.tabulator-tree-level-0) {
     border-top: 1px solid var(--mrs-rest-object-field-border-color);
     border-left: 1px solid var(--mrs-rest-object-field-border-color);
     border-right: 1px solid var(--mrs-rest-object-field-border-color);
 }
 
-.mrsObjectFieldEditor.showSdkOptions .msg.treeGrid.tabulator .tabulator-row.firstItem:not(.tabulator-tree-level-0) {
+.mrsObjectFieldEditor.labelWithInput .msg.treeGrid.tabulator .tabulator-row.firstItem:not(.tabulator-tree-level-0) {
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
 }
@@ -162,7 +188,7 @@ body[theme=light] {
 }
 
 /* lastItem row */
-.mrsObjectFieldEditor.showSdkOptions .msg.treeGrid.tabulator .tabulator-row.lastItem:not(.tabulator-tree-level-0) {
+.mrsObjectFieldEditor.labelWithInput .msg.treeGrid.tabulator .tabulator-row.lastItem:not(.tabulator-tree-level-0) {
     margin-bottom: 4px;
     border-bottom-left-radius: 8px;
     border-bottom-right-radius: 8px;
@@ -172,7 +198,7 @@ body[theme=light] {
 }
 
 /* expanded row */
-.mrsObjectFieldEditor.showSdkOptions .msg.treeGrid.tabulator .tabulator-row.referenceRow.expanded {
+.mrsObjectFieldEditor.labelWithInput .msg.treeGrid.tabulator .tabulator-row.referenceRow.expanded {
     margin-bottom: 4px;
 }
 
@@ -222,6 +248,7 @@ body[theme=dark] .mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row.re
 
 .mrsObjectJsonFieldDiv .fieldOptions {
     gap: 5px;
+    padding-right: 6px;
 }
 
 .mrsObjectJsonFieldDiv .fieldOptions .selected {
@@ -234,7 +261,15 @@ body[theme=dark] .mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row.re
 
 .mrsObjectJsonFieldDiv:hover .fieldOptions .notSelected {
     display: block;
-    opacity: 0.1;
+    opacity: 0.2;
+}
+
+.mrsObjectJsonFieldDiv .fieldOptions .action {
+    display: none;
+}
+
+.mrsObjectJsonFieldDiv:hover .fieldOptions .action {
+    display: block;
 }
 
 .mrsObjectJsonFieldDiv .unnestedDiv {
@@ -242,15 +277,29 @@ body[theme=dark] .mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row.re
 }
 
 .mrsObjectJsonFieldDiv .datatype {
-    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.mrsObjectJsonFieldDiv .dot {
+    padding-right: 5px;
 }
 
 .withoutChildren {
     padding-left: 21px;
 }
 
+.mrsObjectJsonFieldDiv .tableIcon {
+    margin-right: 6px;
+}
+
 .mrsObjectJsonFieldDiv .tableName {
+    padding-right: 6px;
     color: var(--text-captionForeground);
+}
+
+.mrsObjectJsonFieldDiv .icon {
+    width: 16px;
+    height: 16px;
 }
 
 .mrsObjectJsonFieldDiv .jsonField {
@@ -277,33 +326,80 @@ body[theme=dark] .mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row.re
     text-overflow: ellipsis;
 }
 
-.mrsObjectFieldEditor .crudIconsDiv {
-    background-color: var(--input-background);
+.mrsObjectFieldEditor .crudDiv {
     border: 1px solid var(--mrs-rest-object-field-border-color);
     border-radius: 8px;
     height: 18px;
     overflow: hidden;
+    color: var(--icon-foreground);
+    font-size: 0.9em;
+    min-width: 86px;
 }
 
-.mrsObjectFieldEditor .unnestIconDiv {
+.mrsObjectFieldEditor .crudDiv .activated {
+    background-color: var(--selection-background);
+    height: 100%;
+    overflow: hidden;
+}
+
+.mrsObjectFieldEditor .crudDiv .deactivated {
     background-color: var(--input-background);
+    height: 100%;
+    overflow: hidden;
+}
+
+.mrsObjectFieldEditor .crudDiv .label {
+    margin-left: 6px;
+    margin-right: 6px;
+    overflow: hidden;
+}
+
+.mrsObjectFieldEditor .unnestDiv {
     border: 1px solid var(--mrs-rest-object-field-border-color);
     border-radius: 8px;
     height: 18px;
     overflow: hidden;
     margin-left: 11px;
+    color: var(--icon-foreground);
+}
+
+.mrsObjectFieldEditor .unnestDiv.unnested {
+    background-color: var(--selection-background);
+}
+
+.mrsObjectFieldEditor .unnestDiv.notUnnested {
+    background-color: var(--input-background);
+}
+
+.mrsObjectFieldEditor .unnestDiv .icon {
+    margin-left: 6px;
+    margin-right: 4px;
+}
+
+.mrsObjectFieldEditor .unnestDiv .label {
+    margin-right: 8px;
+    font-size: 0.9em;
+}
+
+.mrsObjectFieldEditor .addField {
+    margin-top: 2px;
+    margin-left: 2px;
 }
 
 .mrsObjectFieldEditor .bracket {
     padding-left: 2px;
 }
 
-.mrsObjectFieldEditor:not(.showSdkOptions) .bracket {
+.mrsObjectFieldEditor:not(.labelWithInput) .bracket {
     padding-left: 2px;
 }
 
 .mrsObjectDbColumnFieldDiv {
     display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
 }
 
 .mrsObjectDbColumnFieldDiv .columnName {
@@ -398,4 +494,48 @@ body[theme=dark] .mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row.re
     margin-left: 240px;
     margin-right: -240px;
     width: calc(100% - 240px - 4px);
+}
+
+.mrsObjectFieldEditor .fieldEditor {
+    height: 24px;
+}
+
+.mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row.firstItem.tabulator-tree-level-0 .tabulator-cell.tabulator-editing .cellEditorHostJson {
+    width: 250px;
+    margin-left: 22px;
+}
+
+.mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row.tabulator-tree-level-0 .tabulator-cell.tabulator-editing .cellEditorHostJson {
+    width: 250px;
+    margin-left: 45px;
+}
+
+.mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row.tabulator-tree-level-1 .tabulator-cell.tabulator-editing .cellEditorHostJson {
+    width: 250px;
+    margin-left: calc(45px + 24px);
+}
+
+.mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row.tabulator-tree-level-0 .tabulator-cell.tabulator-editing .cellEditorHostRelational {
+    width: 250px;
+    margin-left: 42px;
+}
+
+.mrsObjectFieldEditor .settingsMain .button {
+    width: 24px;
+    height: 20px;
+    padding: 0px;
+    margin: 1px 0px 0px 0px;
+    border: none;
+    background: transparent;
+}
+
+.mrsObjectFieldEditor .sqlPreview {
+    border: 1px solid var(--input-border);
+    border-radius: 8px;
+    width: 100%;
+    height: 100%;
+}
+
+.mrsObjectFieldEditor .sqlPreview .editorHost {
+    height: 100%;
 }

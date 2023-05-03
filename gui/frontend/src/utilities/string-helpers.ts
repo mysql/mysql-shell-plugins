@@ -399,3 +399,24 @@ export const convertSnakeToCamelCase = (o: object, options?: IConversionOptions)
 export const stripAnsiCode = (s: string): string => {
     return Anser.ansiToText(s);
 };
+
+/**
+ * Compares two version strings
+ *
+ * @param baseVersion The base version used for compare
+ * @param compareToVersion The version to compare the base version with
+ * @returns -1, 0 or 1
+ */
+export const compareVersionStrings = (baseVersion: string, compareToVersion: string): number => {
+    const v1 = baseVersion.split(".");
+    const v2 = compareToVersion.split(".");
+    const k = Math.min(v1.length, v2.length);
+    for (let i = 0; i < k; ++i) {
+        const v1Num = parseInt(v1[i], 10);
+        const v2Num = parseInt(v2[i], 10);
+        if (v1Num > v2Num) { return 1; }
+        if (v1Num < v2Num) { return -1; }
+    }
+
+    return v1.length === v2.length ? 0 : (v1.length < v2.length ? -1 : 1);
+};

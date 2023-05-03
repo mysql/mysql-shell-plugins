@@ -143,6 +143,18 @@ def substitute_schemas_in_template(service, template, sdk_language, session):
     return template
 
 
+def get_mrs_object_sdk_language_options(sdk_options, sdk_language):
+    if not sdk_options or not sdk_options.get("language_options"):
+        return {}
+
+    # Find the matching language_options
+    for opt in sdk_options.get("language_options"):
+        if opt.get("language") == sdk_language:
+            return opt
+
+    return {}
+
+
 def substitute_objects_in_template(service, schema, template, sdk_language, session):
     object_loops = re.finditer(
         "^\s*?// --- objectLoopStart\n\s*(^[\S\s]*?)^\s*?// --- objectLoopEnd\n", template, flags=re.DOTALL | re.MULTILINE)
@@ -187,33 +199,38 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
                             crud_loop.group(), "")
 
             # Todo: Handle SDK Options
-            name = lib.core.convert_path_to_camel_case(db_obj.get("request_path"))
-            class_name = (service_class_name + schema_class_name +
-                          lib.core.convert_path_to_pascal_case(db_obj.get("request_path")))
+            name = lib.core.convert_path_to_camel_case(
+                db_obj.get("request_path"))
+            default_class_name = (service_class_name + schema_class_name +
+                                  lib.core.convert_path_to_pascal_case(db_obj.get("request_path")))
 
+            obj_interfaces = ""
+            obj_param_interface = "I" + default_class_name + "Params"
+            obj_meta_interface = "I" + default_class_name + "Meta"
             getters_setters = ""
             obj_pk_list = []
             obj_quoted_pk_list = []
             obj_string_pk_list = []
             obj_string_args_where_pk_list = []
+            obj_meta_interfaces = []
 
             # Get objects
             fields = []
             objects = lib.db_objects.get_objects(
                 session, db_object_id=db_obj.get("id"))
-            if len(objects) > 0:
+            for obj in objects:
                 # Get fields
                 fields = lib.db_objects.get_object_fields_with_references(
-                    session=session, object_id=objects[0].get("id"))
+                    session=session, object_id=obj.get("id"))
                 for field in fields:
                     if (field.get("lev") == 1):
-                        datatype = get_interface_datatype(
-                            field, sdk_language, class_name)
-                        getters_setters += (
-                            f'    public get {field.get("name")}(): {datatype} | undefined {{ ' +
-                            f'return this.fieldsNew.{field.get("name")} ?? this.fields.{field.get("name")}; }}\n' +
-                            f'    public set {field.get("name")}(v: {datatype} | undefined) {{ ' +
-                            f'this.fieldsNew.{field.get("name")} = v; }}\n\n')
+                        # datatype = get_interface_datatype(
+                        #     field, sdk_language, class_name)
+                        # getters_setters += (
+                        #     f'    public get {field.get("name")}(): {datatype} | undefined {{ ' +
+                        #     f'return this.fieldsNew.{field.get("name")} ?? this.fields.{field.get("name")}; }}\n' +
+                        #     f'    public set {field.get("name")}(v: {datatype} | undefined) {{ ' +
+                        #     f'this.fieldsNew.{field.get("name")} = v; }}\n\n')
                         # Build Primary Key lists
                         if (field_is_pk(field)):
                             obj_pk_list.append(field.get("name"))
@@ -221,14 +238,37 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
                             obj_string_pk_list.append(
                                 f'String({name}.{field.get("name")})')
                             obj_string_args_where_pk_list.append(
-                                f'String(args.where.{field.get("name")})')
+                                f'String(args.where.{field.get("name")})')\
 
-            obj_interfaces = generate_interfaces(
-                db_obj, fields, class_name, sdk_language, session)
+                # Get sdk_language specific options
+                sdk_lang_options = get_mrs_object_sdk_language_options(
+                    obj.get("sdk_options"), sdk_language)
+
+                # Either take the custom interface_name or the default class_name
+                class_name = sdk_lang_options.get(
+                    "class_name", obj.get("name"))
+                obj_interfaces_def, out_params_interface_fields = generate_interfaces(
+                    db_obj, obj, fields, class_name, sdk_language, session)
+                obj_interfaces += obj_interfaces_def
+
+                if db_obj.get("object_type") == "PROCEDURE":
+                    if obj.get("kind") == "PARAMETERS":
+                        obj_param_interface = obj.get("name")
+                    if obj.get("kind") != "PARAMETERS":
+                        obj_meta_interfaces.append(class_name)
+                    if len(out_params_interface_fields) > 0:
+                        obj_meta_interfaces.append(class_name + "Out")
+
+            if len(obj_meta_interfaces) > 0:
+                if sdk_language == "TypeScript":
+                    interface_list = ["I" + x + "Result" for x in obj_meta_interfaces]
+                    obj_interfaces += f'export type {obj_meta_interface} = {" | ".join(interface_list)};\n\n'
 
             mapping = {
                 "obj_name": name,
                 "obj_class_name": class_name,
+                "obj_param_interface": obj_param_interface,
+                "obj_meta_interface": obj_meta_interface,
                 "obj_request_path": db_obj.get("request_path"),
                 "schema_class_name": service_class_name + schema_class_name,
                 "schema_request_path": schema.get("request_path"),
@@ -349,74 +389,109 @@ def get_reduced_field_interface_datatype(field, fields, sdk_language, class_name
     return None
 
 
-def generate_interfaces(db_obj, fields, class_name, sdk_language, session):
+def generate_interfaces(db_obj, obj, fields, class_name, sdk_language, session):
     obj_interfaces = []
     interface_fields = []
     param_interface_fields = []
+    out_params_interface_fields = []
 
-    # The I{class_name} and I{class_name}Params interfaces
-    if (db_obj.get("object_type") == "PROCEDURE"):
-        fields = lib.db_objects.get_db_object_fields(session, db_obj.get("id"))
-        for field in fields:
-            mode = field.get("mode")
-            if (mode == "IN" or mode == "INOUT"):
-                datatype = get_procedure_datatype_mapping(
-                    field.get("datatype"), sdk_language)
-                interface_fields.append(
-                    f'    {field.get("name")}?: {datatype},\n')
+    # The I{class_name}, I{class_name}Params and I{class_name}Out interfaces
+    for field in fields:
+        db_column = field.get("db_column", {})
+        # The field needs to be on level 1 and enabled
+        if field.get("lev") == 1 and field.get("enabled"):
+            datatype = get_interface_datatype(
+                field, sdk_language, class_name)
 
-        obj_interfaces.append(f"export interface I{class_name} extends IMrsFetchData {{\n"
-                              "    success?: string,\n"
-                              "    message?: string,\n"
-                              "}\n\n")
-        obj_interfaces.append(
-            f"export interface I{class_name}Params extends IMrsFetchData {{\n" +
-            "".join(interface_fields) +
-            "}\n\n")
-    else:
-        for field in fields:
-            if field.get("lev") == 1 and field.get("enabled"):
-                datatype = get_interface_datatype(
-                    field, sdk_language, class_name)
-
-                # Handle references
-                if field.get("represents_reference_id"):
-                    # Check if the field should be reduced to the value of another field
-                    reduced_to_datatype = get_reduced_field_interface_datatype(
-                        field, fields, sdk_language, class_name)
-                    if reduced_to_datatype:
-                        interface_fields.append(
-                            f'    {field.get("name")}?: {reduced_to_datatype},\n')
-                    else:
-                        obj_ref = field.get("object_reference")
-                        # Add field if the referred table is not unnested
-                        if not obj_ref.get("unnest"):
-                            interface_fields.append(
-                                f'    {field.get("name")}?: {datatype},\n')
-
-                        # Call recursive interface generation
-                        generate_nested_interfaces(
-                            obj_interfaces, interface_fields, field,
-                            reference_class_name_postfix=lib.core.convert_path_to_pascal_case(
-                                field.get("name")),
-                            fields=fields, class_name=class_name, sdk_language=sdk_language)
-                else:
+            # Handle references
+            if field.get("represents_reference_id"):
+                # Check if the field should be reduced to the value of another field
+                reduced_to_datatype = get_reduced_field_interface_datatype(
+                    field, fields, sdk_language, class_name)
+                if reduced_to_datatype:
                     interface_fields.append(
+                        f'    {field.get("name")}?: {reduced_to_datatype},\n')
+                else:
+                    obj_ref = field.get("object_reference")
+                    # Add field if the referred table is not unnested
+                    if not obj_ref.get("unnest"):
+                        # If this field represents an OUT parameter of a SP, add it to the
+                        # out_params_interface_fields list
+                        if obj.get("kind") == "PARAMETERS" and db_column.get("out"):
+                            out_params_interface_fields.append(
+                                f'    {field.get("name")}?: {datatype},\n')
+                        else:
+                            # Don't add SP params to result interfaces (OUT params are added to their own list)
+                            if obj.get("kind") != "PARAMETERS":
+                                interface_fields.append(
+                                    f'    {field.get("name")}?: {datatype},\n')
+
+                            # Add all table fields that have allow_filtering set and SP params to the
+                            # param_interface_fields
+                            if ((field.get("allow_filtering") and db_obj.get("object_type") != "PROCEDURE")
+                                    or obj.get("kind") == "PARAMETERS"):
+                                param_interface_fields.append(
+                                    f'    {field.get("name")}?: {datatype},\n')
+
+                    # Call recursive interface generation
+                    generate_nested_interfaces(
+                        obj_interfaces, interface_fields, field,
+                        reference_class_name_postfix=lib.core.convert_path_to_pascal_case(
+                            field.get("name")),
+                        fields=fields, class_name=class_name, sdk_language=sdk_language)
+            else:
+                # If this field represents an OUT parameter of a SP, add it to the
+                # out_params_interface_fields list
+                if obj.get("kind") == "PARAMETERS" and db_column.get("out"):
+                    out_params_interface_fields.append(
                         f'    {field.get("name")}?: {datatype},\n')
-                    if field.get("allow_filtering"):
+                else:
+                    if obj.get("kind") != "PARAMETERS":
+                        interface_fields.append(
+                            f'    {field.get("name")}?: {datatype},\n')
+
+                    # Add all table fields that have allow_filtering set and SP params to the param_interface_fields
+                    if ((field.get("allow_filtering") and db_obj.get("object_type") != "PROCEDURE")
+                            or obj.get("kind") == "PARAMETERS"):
                         param_interface_fields.append(
                             f'    {field.get("name")}?: {datatype},\n')
 
+    if len(interface_fields) > 0:
+        extends = "extends IMrsBaseObject "
+        if db_obj.get("object_type") == "PROCEDURE":
+            if obj.get("kind") != "PARAMETERS":
+                obj_interfaces.append(
+                    f"export interface I{class_name}Result extends IMrsProcedureResult<I{class_name}> {{\n" +
+                    f'    type: "I{class_name}",\n' +
+                    f'    items: I{class_name}[],\n' +
+                    "}\n\n")
+            extends = ""
+
         obj_interfaces.append(
-            f"export interface I{class_name} extends IMrsBaseObject {{\n" +
+            f"export interface I{class_name} {extends}{{\n" +
             "".join(interface_fields) +
             "}\n\n")
+
+    if len(param_interface_fields) > 0:
+        params = "Params" if obj.get("kind") != "PARAMETERS" else ""
         obj_interfaces.append(
-            f"export interface I{class_name}Params {{\n" +
+            f"export interface I{class_name}{params} extends IMrsFetchData {{\n" +
             "".join(param_interface_fields) +
             "}\n\n")
 
-    return "".join(obj_interfaces)
+    if len(out_params_interface_fields) > 0:
+        obj_interfaces.append(
+            f"export interface I{class_name}OutResult extends IMrsProcedureResult<I{class_name}Out> {{\n" +
+            f'    type: "I{class_name}Out",\n' +
+            f'    items: I{class_name}Out[],\n' +
+            "}\n\n")
+
+        obj_interfaces.append(
+            f"export interface I{class_name}Out {{\n" +
+            "".join(out_params_interface_fields) +
+            "}\n\n")
+
+    return "".join(obj_interfaces), out_params_interface_fields
 
 
 def generate_nested_interfaces(
@@ -447,6 +522,7 @@ def generate_nested_interfaces(
                     obj_ref = field.get("object_reference")
                     # Add field if the referred table is not unnested
                     if not obj_ref.get("unnest"):
+                        datatype = f'I{class_name}{reference_class_name_postfix + field.get("name")}'
                         interface_fields.append(
                             f'    {field.get("name")}?: {datatype},\n')
 

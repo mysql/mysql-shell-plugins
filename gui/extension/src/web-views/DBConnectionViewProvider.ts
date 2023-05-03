@@ -31,12 +31,12 @@ import {
 } from "../../../frontend/src/supplement/Requisitions";
 
 import { IMySQLDbSystem } from "../../../frontend/src/communication";
-import { DBEditorModuleId } from "../../../frontend/src/modules/ModuleInfo";
 import { EntityType, IDBEditorScriptState } from "../../../frontend/src/modules/db-editor";
-import { WebviewProvider } from "./WebviewProvider";
+import { DBEditorModuleId } from "../../../frontend/src/modules/ModuleInfo";
 import { EditorLanguage, INewScriptRequest, IRunQueryRequest, IScriptRequest } from "../../../frontend/src/supplement";
 import { IShellSessionDetails } from "../../../frontend/src/supplement/ShellInterface";
 import { showMessageWithTimeout } from "../utilities";
+import { WebviewProvider } from "./WebviewProvider";
 
 export class DBConnectionViewProvider extends WebviewProvider {
     /**

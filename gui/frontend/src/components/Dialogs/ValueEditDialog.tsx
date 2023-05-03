@@ -1358,7 +1358,8 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
         }
     };
 
-    private handleCustomControlChange = (sectionId: string, key: string, customControlData: IDictionary): void => {
+    private handleCustomControlChange = (sectionId: string, key: string,
+        customControlData: IDictionary, callback?: () => void): void => {
         const { onValidate } = this.props;
         const { values, data } = this.state;
 
@@ -1367,7 +1368,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
             const value = this.setValue(key, customControlData, section) as ICustomDialogValue;
             if (value) {
                 const validations = onValidate?.(false, values, data) || { messages: {} };
-                this.setState({ values, validations });
+                this.setState({ values, validations }, callback);
             }
         }
     };

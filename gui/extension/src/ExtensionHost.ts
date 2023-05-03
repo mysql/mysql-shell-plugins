@@ -22,7 +22,7 @@
  */
 
 import {
-    commands, ExtensionContext, window, workspace, ConfigurationChangeEvent, WorkspaceConfiguration,
+    commands, ExtensionContext, window, workspace, ConfigurationChangeEvent, WorkspaceConfiguration, StatusBarItem,
 } from "vscode";
 
 import { isNil } from "lodash";
@@ -41,7 +41,9 @@ import { ConnectionMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvide
 
 import { DBEditorCommandHandler } from "./DBEditorCommandHandler";
 import { ShellConsoleCommandHandler } from "./ShellConsoleCommandHandler";
-import { requisitions } from "../../frontend/src/supplement/Requisitions";
+import {
+    IRequestListEntry, IRequestTypeMap, IWebviewProvider, requisitions,
+} from "../../frontend/src/supplement/Requisitions";
 import { MDSCommandHandler } from "./MDSCommandHandler";
 import { MRSCommandHandler } from "./MRSCommandHandler";
 import { NodeMessageScheduler } from "./communication/NodeMessageScheduler";
@@ -51,9 +53,19 @@ import {
     ConnectionsTreeDataProvider, IConnectionEntry,
 } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeProvider";
 import { NotebookEditorProvider } from "./editor-providers/NotebookEditorProvider";
+import { DBConnectionViewProvider } from "./web-views/DBConnectionViewProvider";
+import { WebviewProvider } from "./web-views/WebviewProvider";
+import { IStatusbarInfo } from "../../frontend/src/app-logic/Types";
 
-// This class manages some extension wide things like authentication handling etc.
+/** This class manages some extension wide things like authentication handling etc. */
 export class ExtensionHost {
+    // The URL of the web session.
+    private url?: URL;
+
+    // All open DB editor view providers.
+    private providers: DBConnectionViewProvider[] = [];
+    private lastActiveProvider?: DBConnectionViewProvider;
+
     private activeProfile?: IShellProfile;
     private updatingSettings = false;
 
@@ -75,6 +87,8 @@ export class ExtensionHost {
 
     // A mapping from data type captions to data type ids.
     private moduleDataCategories = new Map<string, IShellModuleDataCategoriesEntry>();
+
+    #visibleStatusbarItems = new Map<string, [StatusBarItem, ReturnType<typeof setTimeout>]>();
 
     public constructor(public context: ExtensionContext) {
         this.setupEnvironment();
@@ -101,6 +115,9 @@ export class ExtensionHost {
 
             return Promise.resolve(true);
         });
+
+        requisitions.register("connectedToUrl", this.connectedToUrl);
+        requisitions.register("proxyRequest", this.proxyRequest);
     }
 
     /** @returns the currently loaded connection list. */
@@ -112,7 +129,12 @@ export class ExtensionHost {
      * Closes all webview tabs and frees their providers.
      */
     public closeAllTabs(): void {
-        this.dbEditorCommandHandler.closeProviders();
+        this.providers.forEach((provider) => {
+            provider.close();
+        });
+        this.providers = [];
+        this.dbEditorCommandHandler.clear();
+
         this.shellConsoleCommandHandler.closeProviders();
     }
 
@@ -199,6 +221,36 @@ export class ExtensionHost {
 
         return connection;
     };
+
+    public get currentProvider(): DBConnectionViewProvider | undefined {
+        if (this.lastActiveProvider) {
+            return this.lastActiveProvider;
+        }
+
+        if (this.providers.length > 0) {
+            return this.providers[this.providers.length - 1];
+        }
+
+        return this.newProvider;
+    }
+
+    /**
+     * Creates a new connection view provider, which will open a new webview tab in the editor.
+     *
+     * @returns A new provider or undefined if the extension is not connected to a server.
+     */
+    public get newProvider(): DBConnectionViewProvider | undefined {
+        if (this.url) {
+            const caption = this.createTabCaption();
+            const provider = new DBConnectionViewProvider(this.url, this.providerDisposed, this.providerStateChanged);
+            provider.caption = caption;
+            this.providers.push(provider);
+
+            return provider;
+        }
+
+        return undefined;
+    }
 
     /**
      * Prepares all VS Code providers for first use.
@@ -495,7 +547,6 @@ export class ExtensionHost {
                 if (row) {
                     await ShellInterface.users.setCurrentProfile(row.id);
                     window.setStatusBarMessage("Profile set successfully", 5000);
-
                 }
             }
         }
@@ -530,5 +581,122 @@ export class ExtensionHost {
         } else {
             taskOutputChannel.append(JSON.stringify(message));
         }
+    };
+
+    private connectedToUrl = (url?: URL): Promise<boolean> => {
+        this.url = url;
+        this.closeAllTabs();
+
+        return Promise.resolve(true);
+    };
+
+    private providerDisposed = (provider: WebviewProvider): void => {
+        const index = this.providers.findIndex((candidate) => {
+            return candidate === provider;
+        });
+
+        if (index > -1) {
+            this.providers.splice(index, 1);
+        }
+
+        if (this.lastActiveProvider === provider) {
+            this.lastActiveProvider = undefined;
+        }
+
+        this.dbEditorCommandHandler.providerClosed(provider as DBConnectionViewProvider);
+    };
+
+    private providerStateChanged = (provider: WebviewProvider, active: boolean): void => {
+        if (active) {
+            this.lastActiveProvider = provider as DBConnectionViewProvider;
+            this.lastActiveProvider.reselectLastItem();
+        }
+    };
+
+    /**
+     * Creates a new caption for a webview tab, based on the number of tabs already open.
+     *
+     * @returns The new caption.
+     */
+    private createTabCaption = (): string => {
+        if (this.providers.length === 0) {
+            return "MySQL Shell";
+        }
+
+        let index = 1;
+        while (index < 100) {
+            const caption = `MySQL Shell (${index})`;
+            if (!this.providers.find((candidate) => {
+                return candidate.caption === caption;
+            })) {
+                return caption;
+            }
+
+            ++index;
+        }
+
+        return "";
+    };
+
+    /**
+     * Requests sent from one of the providers.
+     *
+     * @param request The request to handle.
+     * @param request.provider The provider that sent the request.
+     * @param request.original The original request.
+     *
+     * @returns A promise that resolves to true if the request was handled.
+     */
+    private proxyRequest = (request: {
+        provider: IWebviewProvider;
+        original: IRequestListEntry<keyof IRequestTypeMap>;
+    }): Promise<boolean> => {
+        switch (request.original.requestType) {
+            case "updateStatusbar": {
+                this.updateStatusbar(request.original.parameter as IStatusbarInfo[]);
+
+                return Promise.resolve(true);
+            }
+
+            default:
+        }
+
+        return Promise.resolve(false);
+    };
+
+    /**
+     * Creates or updates the statusbar items from the given info.
+     *
+     * @param info A list of statusbar info entries to create new statusbar items from or update existing ones.
+     */
+    private updateStatusbar = (info: IStatusbarInfo[]): void => {
+        info.forEach((i) => {
+            if (i.text) {
+                let entry = this.#visibleStatusbarItems.get(i.id);
+                if (!entry) {
+                    entry = [window.createStatusBarItem(), setTimeout(() => {
+                        entry?.[0].dispose();
+                        this.#visibleStatusbarItems.delete(i.id);
+                    }, i.hideAfter ?? 25000)]; // Auto hide after 25 seconds with no update.
+
+                    this.#visibleStatusbarItems.set(i.id, entry);
+                    entry[0].show();
+                } else {
+                    clearTimeout(entry[1]);
+                    entry[1] = setTimeout(() => {
+                        entry?.[0].dispose();
+                        this.#visibleStatusbarItems.delete(i.id);
+                    }, i.hideAfter ?? 25000);
+                }
+                entry[0].text = i.text;
+            } else {
+                const entry = this.#visibleStatusbarItems.get(i.id);
+                if (entry) {
+                    entry[0].dispose();
+                    clearTimeout(entry[1]);
+                    this.#visibleStatusbarItems.delete(i.id);
+                }
+            }
+        });
     };
 }

@@ -111,14 +111,10 @@ export enum ShellAPIMrs {
     MrsAddDbObject = "mrs.add.db_object",
     /** Gets a specific MRS db_object */
     MrsGetDbObject = "mrs.get.db_object",
-    /** Gets the list of available row ownership fields for the given db_object */
-    MrsGetDbObjectRowOwnershipFields = "mrs.get.db_object_row_ownership_fields",
     /** Returns all db_objects for the given schema */
     MrsListDbObjects = "mrs.list.db_objects",
-    /** Gets the list of selected fields for the given db_object */
-    MrsGetDbObjectSelectedFields = "mrs.get.db_object_selected_fields",
-    /** Gets the list of available row ownership fields for the given db_object */
-    MrsGetDbObjectFields = "mrs.get.db_object_fields",
+    /** Gets the list of available parameters given db_object representing a STORED PROCEDURE */
+    MrsGetDbObjectParameters = "mrs.get.db_object_parameters",
     /** Sets the request_path of the given db_object */
     MrsSetDbObjectRequestPath = "mrs.set.dbObject.request_path",
     /** Sets the request_path of the given db_object */
@@ -137,8 +133,6 @@ export enum ShellAPIMrs {
     MrsGetObjects = "mrs.get.objects",
     /** Gets the list of object fields and references */
     MrsGetObjectFieldsWithReferences = "mrs.get.object_fields_with_references",
-    /** Creates the MRS object together with its fields and references */
-    MrsSetObjectFieldsWithReferences = "mrs.set.object_fields_with_references",
     /** Adds content to the given MRS service */
     MrsAddContentSet = "mrs.add.content_set",
     /** Returns all content sets for the given MRS service */
@@ -705,8 +699,8 @@ export interface IShellMrsAddDbObjectKwargs {
     authStoredProcedure?: string;
     /** The options of this db object */
     options: IShellDictionary | null;
-    /** The fields definition in JSON format */
-    fields?: unknown[];
+    /** The result/parameters objects definition in JSON format */
+    objects?: unknown[];
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
@@ -718,23 +712,8 @@ export interface IShellMrsGetDbObjectKwargs {
     schemaId?: string;
     /** The name of the schema */
     schemaName?: number;
-    /** The string id for the module session object, holding the database session to be used on the operation. */
-    moduleSessionId?: string;
-}
-
-export interface IShellMrsGetDbObjectRowOwnershipFieldsKwargs {
-    /** The id of the db_object */
-    dbObjectId?: string;
-    /** The id of the schema */
-    schemaId?: string;
-    /** The name of the schema */
-    schemaName?: string;
-    /** The request_path of the schema */
-    requestPath?: string;
-    /** The name of the db_object */
-    dbObjectName?: string;
-    /** The type of the db_object (TABLE, VIEW, PROCEDURE) */
-    dbObjectType?: string;
+    /** The absolute request_path to the db_object */
+    absoluteRequestPath?: string;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
@@ -748,22 +727,13 @@ export interface IShellMrsListDbObjectsKwargs {
     moduleSessionId?: string;
 }
 
-export interface IShellMrsGetDbObjectSelectedFieldsKwargs {
+export interface IShellMrsGetDbObjectParametersKwargs {
     /** The id of the db_object */
     dbObjectId?: string;
-    /** The id of the schema */
-    schemaId?: string;
-    /** The name of the schema */
-    schemaName?: string;
-    /** The string id for the module session object, holding the database session to be used on the operation. */
-    moduleSessionId?: string;
-}
-
-export interface IShellMrsGetDbObjectFieldsKwargs {
-    /** The name of the schema */
-    schemaName?: string;
-    /** The type of the db_object (TABLE, VIEW, PROCEDURE) */
-    dbObjectType?: string;
+    /** The name of the db_schema */
+    dbSchemaName?: string;
+    /** The name of the db_object */
+    dbObjectName?: string;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
@@ -830,13 +800,15 @@ export interface IShellMrsUpdateDbObjectKwargsValue {
     authStoredProcedure?: string;
     /** The options of this db object */
     options: IShellDictionary | null;
-    /** The database object fields as JSON string */
-    fields?: unknown[];
+    /** The result/parameters objects definition in JSON format */
+    objects?: unknown[];
 }
 
 export interface IShellMrsUpdateDbObjectKwargs {
     /** The id of the database object */
     dbObjectId?: string;
+    /** A list of database object ids to update */
+    dbObjectIds?: unknown[];
     /** The name of the database object to update */
     dbObjectName?: string;
     /** The id of the schema that contains the database object to be updated */
@@ -864,30 +836,6 @@ export interface IShellMrsGetObjectsKwargs {
 }
 
 export interface IShellMrsGetObjectFieldsWithReferencesKwargs {
-    /** The string id for the module session object, holding the database session to be used on the operation. */
-    moduleSessionId?: string;
-}
-
-export interface IShellMrsSetObjectFieldsWithReferencesKwargsObj {
-    /** The id of the object */
-    id?: string;
-    /** The id of the database object */
-    dbObjectId?: string;
-    /** The name of the object */
-    name?: string;
-    /** The position of the object */
-    position?: number;
-    /** The list of fields */
-    fields?: unknown[];
-    /** The comments */
-    comments?: string;
-    /** The SDK options */
-    sdkOptions?: IShellDictionary;
-}
-
-export interface IShellMrsSetObjectFieldsWithReferencesKwargs {
-    /** The object dict */
-    obj?: IShellMrsSetObjectFieldsWithReferencesKwargsObj;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
@@ -1116,7 +1064,7 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsInfo]: {};
     [ShellAPIMrs.MrsVersion]: {};
     [ShellAPIMrs.MrsLs]: { args: { path?: string; moduleSessionId?: string; }; };
-    [ShellAPIMrs.MrsConfigure]: { args: { moduleSessionId?: string; enableMrs?: boolean; }; };
+    [ShellAPIMrs.MrsConfigure]: { args: { moduleSessionId?: string; enableMrs?: boolean; allowRecreationOnMajorUpgrade?: boolean; }; };
     [ShellAPIMrs.MrsStatus]: { args: { moduleSessionId?: string; }; };
     [ShellAPIMrs.MrsAddService]: { kwargs?: IShellMrsAddServiceKwargs; };
     [ShellAPIMrs.MrsGetService]: { kwargs?: IShellMrsGetServiceKwargs; };
@@ -1155,10 +1103,8 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsUpdateAuthenticationApp]: { kwargs?: IShellMrsUpdateAuthenticationAppKwargs; };
     [ShellAPIMrs.MrsAddDbObject]: { kwargs?: IShellMrsAddDbObjectKwargs; };
     [ShellAPIMrs.MrsGetDbObject]: { args: { requestPath?: string; dbObjectName?: string; }; kwargs?: IShellMrsGetDbObjectKwargs; };
-    [ShellAPIMrs.MrsGetDbObjectRowOwnershipFields]: { kwargs?: IShellMrsGetDbObjectRowOwnershipFieldsKwargs; };
     [ShellAPIMrs.MrsListDbObjects]: { kwargs?: IShellMrsListDbObjectsKwargs; };
-    [ShellAPIMrs.MrsGetDbObjectSelectedFields]: { args: { requestPath?: string; dbObjectName?: string; }; kwargs?: IShellMrsGetDbObjectSelectedFieldsKwargs; };
-    [ShellAPIMrs.MrsGetDbObjectFields]: { args: { dbObjectId?: number; schemaId?: number; requestPath?: string; dbObjectName?: string; }; kwargs?: IShellMrsGetDbObjectFieldsKwargs; };
+    [ShellAPIMrs.MrsGetDbObjectParameters]: { args: { requestPath?: string; }; kwargs?: IShellMrsGetDbObjectParametersKwargs; };
     [ShellAPIMrs.MrsSetDbObjectRequestPath]: { args: { dbObjectId?: string; requestPath?: string; }; kwargs?: IShellMrsSetDbObjectRequestPathKwargs; };
     [ShellAPIMrs.MrsSetDbObjectCrudOperations]: { args: { dbObjectId?: string; crudOperations?: unknown[]; crudOperationFormat?: string; }; kwargs?: IShellMrsSetDbObjectCrudOperationsKwargs; };
     [ShellAPIMrs.MrsEnableDbObject]: { args: { dbObjectName?: string; schemaId?: string; }; kwargs?: IShellMrsEnableDbObjectKwargs; };
@@ -1168,7 +1114,6 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsGetTableColumnsWithReferences]: { args: { dbObjectId?: string; schemaId?: string; requestPath?: string; dbObjectName?: string; }; kwargs?: IShellMrsGetTableColumnsWithReferencesKwargs; };
     [ShellAPIMrs.MrsGetObjects]: { args: { dbObjectId?: string; }; kwargs?: IShellMrsGetObjectsKwargs; };
     [ShellAPIMrs.MrsGetObjectFieldsWithReferences]: { args: { objectId?: string; }; kwargs?: IShellMrsGetObjectFieldsWithReferencesKwargs; };
-    [ShellAPIMrs.MrsSetObjectFieldsWithReferences]: { kwargs?: IShellMrsSetObjectFieldsWithReferencesKwargs; };
     [ShellAPIMrs.MrsAddContentSet]: { args: { serviceId?: string; contentDir?: string; }; kwargs?: IShellMrsAddContentSetKwargs; };
     [ShellAPIMrs.MrsListContentSets]: { args: { serviceId?: string; }; kwargs?: IShellMrsListContentSetsKwargs; };
     [ShellAPIMrs.MrsGetContentSet]: { kwargs?: IShellMrsGetContentSetKwargs; };
@@ -1197,15 +1142,12 @@ export interface IProtocolMrsParameters {
 
 }
 
-export interface IMrsDbObjectFieldData extends IDictionary {
+export interface IMrsDbObjectParameterData {
     id?: string;
-    dbObjectId?: string;
     position: number;
     name: string;
-    bindFieldName: string;
-    datatype: string;
     mode: string;
-    comments?: string;
+    datatype: string;
 }
 
 export interface IMrsDbObjectData extends IDictionary {
@@ -1225,13 +1167,14 @@ export interface IMrsDbObjectData extends IDictionary {
     rowUserOwnershipColumn?: string;
     rowUserOwnershipEnforced: number;
     schemaRequestPath?: string;
+    schemaName?: string;
     qualifiedName?: string;
     serviceId: string;
     mediaType?: string;
     autoDetectMediaType: number;
     authStoredProcedure?: string;
     options?: IShellDictionary;
-    fields?: IMrsDbObjectFieldData[];
+    objects?: IMrsObject[];
 }
 
 export interface IMrsContentSetData {
@@ -1337,6 +1280,10 @@ export interface IMrsStatusData {
     serviceCount: number;
     serviceEnabled: boolean;
     serviceUpgradeable: boolean;
+    majorUpgradeRequired: boolean;
+    currentMetadataVersion?: string;
+    requiredMetadataVersion?: string;
+    requiredRouterVersion?: string;
 }
 
 export interface IMrsRoleData {
@@ -1377,9 +1324,10 @@ export interface IMrsTableColumn {
     isPrimary: boolean,
     isUnique: boolean,
     isGenerated: boolean,
-    autoInc: boolean,
-    privileges: string,
-    comment: string,
+    idGeneration?: string,
+    comment?: string,
+    in?: boolean,
+    out?: boolean,
 }
 
 export interface IMrsColumnMapping {
@@ -1406,21 +1354,23 @@ export interface IMrsTableColumnWithReference {
     tableName: string,
 }
 
-export interface IMrsObjectFieldSdkOptionsTs {
+export interface IMrsObjectFieldSdkLanguageOptions {
+    language: string,
     fieldName?: string;
 }
 
 export interface IMrsObjectFieldSdkOptions {
     datatypeName?: string,
-    languageTs?: IMrsObjectFieldSdkOptionsTs,
+    languageOptions?: IMrsObjectFieldSdkLanguageOptions[],
 }
 
-export interface IMrsObjectReferenceSdkOptionsTs {
-    interfaceName?: string;
+export interface IMrsObjectReferenceSdkLanguageOptions {
+    language: string,
+    interfaceName?: string,
 }
 
 export interface IMrsObjectReferenceSdkOptions {
-    languageTs?: IMrsObjectReferenceSdkOptionsTs,
+    languageOptions?: IMrsObjectReferenceSdkLanguageOptions[],
 }
 
 export interface IMrsObjectReference {
@@ -1453,12 +1403,13 @@ export interface IMrsObjectFieldWithReference {
     storedDbColumn?: IMrsTableColumn,
 }
 
-export interface IMrsObjectSdkOptionsTs {
-    className: string,
+export interface IMrsObjectSdkLanguageOptions {
+    language: string,
+    className?: string,
 }
 
 export interface IMrsObjectSdkOptions extends IShellDictionary {
-    languageTs?: IMrsObjectSdkOptionsTs,
+    languageOptions?: IMrsObjectSdkLanguageOptions[],
 }
 
 export interface IMrsObject {
@@ -1466,6 +1417,7 @@ export interface IMrsObject {
     dbObjectId: string,
     name: string,
     position: number,
+    kind: string,
     sdkOptions?: IMrsObjectSdkOptions,
     comments?: string,
     fields?: IMrsObjectFieldWithReference[],
@@ -1507,10 +1459,8 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsDeleteContentSet]: {};
     [ShellAPIMrs.MrsAddDbObject]: { result: string; };
     [ShellAPIMrs.MrsGetDbObject]: {};
-    [ShellAPIMrs.MrsGetDbObjectRowOwnershipFields]: { result: string[]; };
-    [ShellAPIMrs.MrsGetDbObjectSelectedFields]: { result: IMrsDbObjectFieldData[]; };
     [ShellAPIMrs.MrsListDbObjects]: { result: IMrsDbObjectData[]; };
-    [ShellAPIMrs.MrsGetDbObjectFields]: { result: IMrsDbObjectFieldData[]; };
+    [ShellAPIMrs.MrsGetDbObjectParameters]: { result: IMrsDbObjectParameterData[]; };
     [ShellAPIMrs.MrsSetDbObjectRequestPath]: {};
     [ShellAPIMrs.MrsSetDbObjectCrudOperations]: {};
     [ShellAPIMrs.MrsEnableDbObject]: {};
@@ -1552,6 +1502,6 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsGetSdkServiceClasses]: { result: string; };
     [ShellAPIMrs.MrsGetTableColumnsWithReferences]: { result: IMrsTableColumnWithReference[]; };
     [ShellAPIMrs.MrsGetObjectFieldsWithReferences]: { result: IMrsObjectFieldWithReference[]; };
-    [ShellAPIMrs.MrsSetObjectFieldsWithReferences]: {};
     [ShellAPIMrs.MrsDumpSdkServiceFiles]: { result: boolean; };
 }
+

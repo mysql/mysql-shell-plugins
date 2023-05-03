@@ -1,12 +1,9 @@
-export interface IMrsDbObjectFieldData {
+export interface IMrsDbObjectParameterData {
     id?: string;
-    dbObjectId?: string;
     position: number;
     name: string;
-    bindFieldName: string;
-    datatype: string;
     mode: string;
-    comments?: string;
+    datatype: string;
 }
 
 export interface IMrsDbObjectData extends IDictionary {
@@ -26,13 +23,14 @@ export interface IMrsDbObjectData extends IDictionary {
     rowUserOwnershipColumn?: string;
     rowUserOwnershipEnforced: number;
     schemaRequestPath?: string;
+    schemaName?: string;
     qualifiedName?: string;
     serviceId: string;
     mediaType?: string;
     autoDetectMediaType: number;
     authStoredProcedure?: string;
     options?: IShellDictionary;
-    fields?: IMrsDbObjectFieldData[];
+    objects?: IMrsObject[];
 }
 
 export interface IMrsContentSetData {
@@ -138,6 +136,10 @@ export interface IMrsStatusData {
     serviceCount: number;
     serviceEnabled: boolean;
     serviceUpgradeable: boolean;
+    majorUpgradeRequired: boolean;
+    currentMetadataVersion?: string;
+    requiredMetadataVersion?: string;
+    requiredRouterVersion?: string;
 }
 
 export interface IMrsRoleData {
@@ -178,9 +180,10 @@ export interface IMrsTableColumn {
     isPrimary: boolean,
     isUnique: boolean,
     isGenerated: boolean,
-    autoInc: boolean,
-    privileges: string,
-    comment: string,
+    idGeneration?: string,
+    comment?: string,
+    in?: boolean,
+    out?: boolean,
 }
 
 export interface IMrsColumnMapping {
@@ -207,21 +210,23 @@ export interface IMrsTableColumnWithReference {
     tableName: string,
 }
 
-export interface IMrsObjectFieldSdkOptionsTs {
+export interface IMrsObjectFieldSdkLanguageOptions {
+    language: string,
     fieldName?: string;
 }
 
 export interface IMrsObjectFieldSdkOptions {
     datatypeName?: string,
-    languageTs?: IMrsObjectFieldSdkOptionsTs,
+    languageOptions?: IMrsObjectFieldSdkLanguageOptions[],
 }
 
-export interface IMrsObjectReferenceSdkOptionsTs {
-    interfaceName?: string;
+export interface IMrsObjectReferenceSdkLanguageOptions {
+    language: string,
+    interfaceName?: string,
 }
 
 export interface IMrsObjectReferenceSdkOptions {
-    languageTs?: IMrsObjectReferenceSdkOptionsTs,
+    languageOptions?: IMrsObjectReferenceSdkLanguageOptions[],
 }
 
 export interface IMrsObjectReference {
@@ -254,12 +259,13 @@ export interface IMrsObjectFieldWithReference {
     storedDbColumn?: IMrsTableColumn,
 }
 
-export interface IMrsObjectSdkOptionsTs {
-    className: string,
+export interface IMrsObjectSdkLanguageOptions {
+    language: string,
+    className?: string,
 }
 
 export interface IMrsObjectSdkOptions extends IShellDictionary {
-    languageTs?: IMrsObjectSdkOptionsTs,
+    languageOptions?: IMrsObjectSdkLanguageOptions[],
 }
 
 export interface IMrsObject {
@@ -267,6 +273,7 @@ export interface IMrsObject {
     dbObjectId: string,
     name: string,
     position: number,
+    kind: string,
     sdkOptions?: IMrsObjectSdkOptions,
     comments?: string,
     fields?: IMrsObjectFieldWithReference[],
@@ -308,10 +315,8 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsDeleteContentSet]: {};
     [ShellAPIMrs.MrsAddDbObject]: { result: string; };
     [ShellAPIMrs.MrsGetDbObject]: {};
-    [ShellAPIMrs.MrsGetDbObjectRowOwnershipFields]: { result: string[]; };
-    [ShellAPIMrs.MrsGetDbObjectSelectedFields]: { result: IMrsDbObjectFieldData[]; };
     [ShellAPIMrs.MrsListDbObjects]: { result: IMrsDbObjectData[]; };
-    [ShellAPIMrs.MrsGetDbObjectFields]: { result: IMrsDbObjectFieldData[]; };
+    [ShellAPIMrs.MrsGetDbObjectParameters]: { result: IMrsDbObjectParameterData[]; };
     [ShellAPIMrs.MrsSetDbObjectRequestPath]: {};
     [ShellAPIMrs.MrsSetDbObjectCrudOperations]: {};
     [ShellAPIMrs.MrsEnableDbObject]: {};
@@ -353,6 +358,5 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsGetSdkServiceClasses]: { result: string; };
     [ShellAPIMrs.MrsGetTableColumnsWithReferences]: { result: IMrsTableColumnWithReference[]; };
     [ShellAPIMrs.MrsGetObjectFieldsWithReferences]: { result: IMrsObjectFieldWithReference[]; };
-    [ShellAPIMrs.MrsSetObjectFieldsWithReferences]: {};
     [ShellAPIMrs.MrsDumpSdkServiceFiles]: { result: boolean; };
 }

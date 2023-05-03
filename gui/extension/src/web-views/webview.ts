@@ -176,9 +176,8 @@ export const prepareWebviewContent = (panel: WebviewPanel, url: URL): void => {
 <!-- Everything is larger in our iframe. Not sure who is to blame for this, but we need to scale it down. -->
 <iframe id="frame-msg" onload="hideWaitForContentDiv()"
     src="${url.toString()}"
-    frameborder="0" style="overflow: hidden; overflow-x: hidden; overflow-y: hidden; height:120.4%;
-    width: 120.4%; position: absolute; top: 0px; left: 0px; right: 0px; bottom: 0px; user-select: none;
-    -webkit-transform: scale(0.83); -webkit-transform-origin: 0 0">
+    frameborder="0" style="overflow: hidden; overflow-x: hidden; overflow-y: hidden; height:100%;
+    width: 100%; position: absolute; top: 0px; left: 0px; right: 0px; bottom: 0px; user-select: none;">
 </iframe>
 <div id="waitForContent"><div class="pingEffect"><div></div><div></div></div></div>
 <img src="${testImgUrl.toString()}" onerror="showLoadingError()"

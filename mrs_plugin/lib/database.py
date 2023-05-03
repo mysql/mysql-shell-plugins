@@ -113,52 +113,19 @@ def get_object_type_count(session, schema_name, db_object_type):
     return int(row["object_count"]) if row else 0
 
 
-def get_db_object_fields(session, schema_name, db_object_name, db_object_type):
-    # cSpell:ignore mediumint tinyint id
-    if db_object_type == "PROCEDURE":
-        sql = """
-            SELECT @id:=@id-1 AS id, @id * -1 AS position,
-                PARAMETER_NAME AS name, PARAMETER_NAME AS bind_field_Name,
-                PARAMETER_MODE AS mode,
-                CASE
-                    WHEN (DTD_IDENTIFIER = "tinyint(1)") THEN "BOOLEAN"
-                    WHEN (DATA_TYPE = "bigint") THEN "LONG"
-                    WHEN (DATA_TYPE = "tinyint" OR DATA_TYPE = "smallint" OR DATA_TYPE = "mediumint"
-                        OR DATA_TYPE = "int") THEN "INT"
-                    WHEN (DATA_TYPE = "numeric" OR DATA_TYPE = "decimal" OR DATA_TYPE = "float"
-                        OR DATA_TYPE = "real" OR DATA_TYPE = "double precision") THEN "DOUBLE"
-                    WHEN (DATA_TYPE = "json") THEN "JSON"
-                    ELSE "STRING"
-                END as datatype,
-                "" as comments
-            FROM `INFORMATION_SCHEMA`.`PARAMETERS`, (SELECT @id:=0) as init
-            WHERE SPECIFIC_SCHEMA = ?
-                AND SPECIFIC_NAME = ?
-            ORDER BY ORDINAL_POSITION
-        """
-    else:
-        sql = """
-            SELECT @id:=@id-1 as id, @id * -1 AS position,
-                COLUMN_NAME AS name, COLUMN_NAME AS bind_field_Name,
-                "IN" AS mode,
-                CASE
-                    WHEN (COLUMN_TYPE = "tinyint(1)") THEN "BOOLEAN"
-                    WHEN (DATA_TYPE = "bigint") THEN "LONG"
-                    WHEN (DATA_TYPE = "tinyint" OR DATA_TYPE = "smallint" OR DATA_TYPE = "mediumint"
-                        OR DATA_TYPE = "int") THEN "INT"
-                    WHEN (DATA_TYPE = "numeric" OR DATA_TYPE = "decimal" OR DATA_TYPE = "float"
-                        OR DATA_TYPE = "real" OR DATA_TYPE = "double precision") THEN "DOUBLE"
-                    WHEN (DATA_TYPE = "json") THEN "JSON"
-                    ELSE "STRING"
-                END as datatype,
-                "" as comments
-            FROM `INFORMATION_SCHEMA`.`COLUMNS`, (SELECT @id:=0) as init
-            WHERE TABLE_SCHEMA = ?
-                AND TABLE_NAME = ?
-            ORDER BY ORDINAL_POSITION
-        """
+def get_db_object_parameters(session, db_schema_name, db_object_name):
+    sql = """
+        SELECT @id:=@id-1 AS id, @id * -1 AS position,
+            PARAMETER_NAME AS name,
+            PARAMETER_MODE AS mode,
+            DTD_IDENTIFIER AS datatype
+        FROM `INFORMATION_SCHEMA`.`PARAMETERS`, (SELECT @id:=0) as init
+        WHERE SPECIFIC_SCHEMA = ?
+            AND SPECIFIC_NAME = ?
+        ORDER BY ORDINAL_POSITION
+    """
 
-    return core.MrsDbExec(sql).exec(session, [schema_name, db_object_name]).items
+    return core.MrsDbExec(sql).exec(session, [db_schema_name, db_object_name]).items
 
 
 def grant_procedure(session, schema_name, procedure_name):
@@ -195,6 +162,26 @@ def get_objects(session, db_object_id):
     """
 
     return core.MrsDbExec(sql).exec(session, [db_object_id]).items
+
+def get_object_via_absolute_request_path(session, absolute_request_path, ignore_case=True):
+    sql = """
+        SELECT o.id
+        FROM `mysql_rest_service_metadata`.`db_object` AS o
+            JOIN `mysql_rest_service_metadata`.`db_schema` AS s
+                ON s.id = o.db_schema_id
+            JOIN `mysql_rest_service_metadata`.`service` AS se
+                ON se.id = s.service_id
+        """
+    if ignore_case:
+        sql += """
+            WHERE LOWER(CONCAT(se.url_context_root, s.request_path, o.request_path)) = LOWER(?)
+        """
+    else:
+        sql = """
+            WHERE CONCAT(se.url_context_root, s.request_path, o.request_path) = ?
+        """
+
+    return core.MrsDbExec(sql).exec(session, [absolute_request_path]).items
 
 
 def get_object_fields_with_references(session, object_id, binary_formatter=None):

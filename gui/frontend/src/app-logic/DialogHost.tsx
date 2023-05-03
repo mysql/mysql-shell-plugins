@@ -215,6 +215,18 @@ export class DialogHost extends ComponentBase {
             }
 
 
+            case MdsDialogType.MdsHeatWaveLoadData: {
+                this.#focusedElements.push(document.activeElement);
+
+                if (this.#mdsLoadDataDialogRef.current) {
+                    void this.#mdsLoadDataDialogRef.current.show(request, request.title ?? "");
+
+                    return Promise.resolve(true);
+                }
+                break;
+            }
+
+
             default:
         }
 

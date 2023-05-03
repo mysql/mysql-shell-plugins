@@ -22,6 +22,7 @@
  */
 
 import { IMrsDbObjectData } from "../../../../frontend/src/communication/ProtocolMrs";
+import { convertToPascalCase } from "../../../../frontend/src/utilities/string-helpers";
 import { IConnectionEntry } from "./ConnectionsTreeProvider";
 import { MrsTreeBaseItem } from "./MrsTreeBaseItem";
 
@@ -32,7 +33,14 @@ export class MrsDbObjectTreeItem extends MrsTreeBaseItem {
         label: string,
         public value: IMrsDbObjectData,
         details: IConnectionEntry) {
-        super(label, details, false, value.enabled === 1 ? (
-            value.requiresAuth === 1 ? "mrsDbObjectLocked.svg" : "mrsDbObject.svg") : "mrsDbObjectDisabled.svg");
+        super(label, details, false, MrsDbObjectTreeItem.getIconName(value));
     }
+
+    private static getIconName = (value: IMrsDbObjectData): string => {
+        let iconName = "mrsDbObject" + convertToPascalCase(value.objectType);
+        iconName += value.requiresAuth === 1 ? "Locked" : "";
+        iconName += value.enabled !== 1 ? "Disabled" : "";
+
+        return iconName + ".svg";
+    };
 }

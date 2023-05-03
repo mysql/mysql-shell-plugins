@@ -48,7 +48,7 @@ import { SchemaRoutineMySQLTreeItem } from "./SchemaRoutineMySQLTreeItem";
 import { MrsContentSetTreeItem } from "./MrsContentSetTreeItem";
 import { openSqlEditorConnection } from "../../utilitiesShellGui";
 import { MrsContentFileTreeItem } from "./MrsContentFileTreeItem";
-import { formatBytes } from "../../../../frontend/src/utilities/string-helpers";
+import { compareVersionStrings, formatBytes } from "../../../../frontend/src/utilities/string-helpers";
 import { ShellInterface } from "../../../../frontend/src/supplement/ShellInterface/ShellInterface";
 import { AdminSectionTreeItem } from "./AdminSectionTreeItem";
 import { AdminTreeItem } from "./AdminTreeItem";
@@ -97,6 +97,8 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
     private useDedicatedSchemaSubtree: boolean;
 
     private refreshMrsRoutersTimer: ReturnType<typeof setTimeout> | null;
+
+    private requiredRouterVersion?: string;
 
     public get onDidChangeTreeData(): Event<TreeItem | undefined> {
         return this.changeEvent.event;
@@ -489,9 +491,35 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                         // If the schema is the MRS metadata schema, add the MRS tree item
                         if (schema === "mysql_rest_service_metadata") {
                             try {
+                                let addMrsTreeItem = true;
                                 const status = await backend.mrs.status();
+                                this.requiredRouterVersion = status.requiredRouterVersion;
 
-                                if (status.serviceUpgradeable) {
+                                if (status.majorUpgradeRequired) {
+                                    // If a major MRS metadata schema upgrade is required, the MRS tree item should
+                                    // only be displayed if the user agrees to upgrade i.e. drop and re-create the
+                                    // schema.
+                                    addMrsTreeItem = false;
+                                    let answer: string | undefined = await window.showInformationMessage(
+                                        "This MySQL Shell version requires a new major version of the MRS metadata " +
+                                        `schema, ${String(status.requiredMetadataVersion)}. The currently deployed ` +
+                                        `schema version is ${String(status.currentMetadataVersion)}. You need to ` +
+                                        "downgrade the MySQL Shell version or drop and recreate the MRS metadata " +
+                                        "schema. Do you want to drop and recreate the MRS metadata schema? " +
+                                        "WARNING: All existing MRS data will be lost."
+                                        , "Yes", "No");
+
+                                    if (answer === "Yes") {
+                                        answer = await window.showInformationMessage(
+                                            "Are you really sure you want to drop and recreate the MRS metadata " +
+                                            "schema? WARNING: All existing MRS data will be lost."
+                                            , "Drop and Recreate", "No");
+                                        if (answer === "Drop and Recreate") {
+                                            await backend.mrs.configure(true, true);
+                                            addMrsTreeItem = true;
+                                        }
+                                    }
+                                } else if (status.serviceUpgradeable) {
                                     const statusbarItem = window.createStatusBarItem();
                                     try {
                                         statusbarItem.text = "$(loading~spin) Updating the MySQL REST Service " +
@@ -505,7 +533,9 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                                     } finally {
                                         statusbarItem.hide();
                                     }
-                                } else {
+                                }
+
+                                if (addMrsTreeItem) {
                                     const mrsTreeItem =
                                         new MrsTreeItem("MySQL REST Service", schema, entry, true,
                                             status.serviceEnabled);
@@ -720,7 +750,10 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
 
                 const routers = await element.entry.backend.mrs.listRouters(10);
                 const routerList: TreeItem[] = routers.map((value) => {
-                    return new MrsRouterTreeItem(`${value.address}`, value, element.entry);
+                    return new MrsRouterTreeItem(value.address, value, element.entry,
+                        this.requiredRouterVersion
+                            ? compareVersionStrings(this.requiredRouterVersion, value.version) > 0
+                            : false);
                 });
 
                 return treeItemList.concat(serviceList, routerList);

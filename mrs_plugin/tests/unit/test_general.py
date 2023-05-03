@@ -29,7 +29,7 @@ def test_info():
     info_output = info()
     assert info_output is not None
     assert info_output == (f"MySQL REST Data Service (MRS) Plugin Version {lib.general.VERSION} PREVIEW\n"
-               "Warning! For testing purposes only!")
+                           "Warning! For testing purposes only!")
 
 
 def test_version():
@@ -99,7 +99,8 @@ def test_ls(phone_book):
     list_output = ls()
     assert list_output is None
 
-    set_current_objects(service_id=phone_book["service_id"], schema_id=phone_book["schema_id"])
+    set_current_objects(
+        service_id=phone_book["service_id"], schema_id=phone_book["schema_id"])
 
     list_output = ls("localhost/test")
     assert list_output is None
@@ -138,9 +139,12 @@ def test_status(phone_book):
         'service_configured': True,
         'service_count': 1,
         'service_enabled': 0,
-        'service_upgradeable': False
+        'service_upgradeable': False,
+        'current_metadata_version': lib.general.DB_VERSION_STR,
+        'major_upgrade_required': False,
+        'required_metadata_version': lib.general.DB_VERSION_STR,
+        'required_router_version': lib.general.REQUIRED_ROUTER_VERSION_STR,
     }
-
 
     # enable service
     config_output = configure(phone_book["session"], True)
@@ -157,6 +161,10 @@ def test_status(phone_book):
         'service_count': 1,
         'service_enabled': 1,
         'service_upgradeable': False,
+        'current_metadata_version': lib.general.DB_VERSION_STR,
+        'major_upgrade_required': False,
+        'required_metadata_version': lib.general.DB_VERSION_STR,
+        'required_router_version': lib.general.REQUIRED_ROUTER_VERSION_STR,
     }
 
     config_output = configure(phone_book["session"], enabled)
@@ -165,7 +173,6 @@ def test_status(phone_book):
         'schema_changed': False
     }
 
-
     status_output = status(phone_book["session"])
     assert status_output is not None
     assert isinstance(status_output, dict)
@@ -173,6 +180,9 @@ def test_status(phone_book):
         'service_configured': True,
         'service_count': 1,
         'service_enabled': enabled,
-        'service_upgradeable': False
+        'service_upgradeable': False,
+        'current_metadata_version': lib.general.DB_VERSION_STR,
+        'major_upgrade_required': False,
+        'required_metadata_version': lib.general.DB_VERSION_STR,
+        'required_router_version': lib.general.REQUIRED_ROUTER_VERSION_STR,
     }
-

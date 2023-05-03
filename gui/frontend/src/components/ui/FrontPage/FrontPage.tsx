@@ -148,7 +148,10 @@ export class FrontPage extends ComponentBase<IFrontPageProperties> {
             e.stopPropagation();
             e.preventDefault();
 
-            // void this.openMrsDbObjectDlg();
+            // Used for debugging purposes only until we have MRS functionality in the FrontEnd. Needs to be removed
+            // for builds meant to be released.
+            // Opens the MrsDbObjectDlg and loads the first object, if available, so the Duality Editor can be tested.
+            void this.openMrsDbObjectDlg();
         }
     };
 
@@ -189,7 +192,8 @@ export class FrontPage extends ComponentBase<IFrontPageProperties> {
                         ]);
                     }
                 }
-
+            } catch (e) {
+                console.log(e);
             } finally {
                 await backend.closeSession();
             }
