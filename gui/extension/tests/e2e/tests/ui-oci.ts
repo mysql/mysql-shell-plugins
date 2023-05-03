@@ -52,6 +52,7 @@ import {
     openEditorsMaxLevel,
     dbTreeSection,
     dbMaxLevel,
+    basePath,
 } from "../lib/misc";
 
 import { Database, IConnMDS, IDBConnection, IConnBasicMySQL } from "../lib/db";
@@ -103,7 +104,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             let config = `[E2ETESTS]\nuser=ocid1.user.oc1..aaaaaaaan67cojwa52khe44xtpqsygzxlk4te6gqs7nkmy`;
             config += `abcju2w5wlxcpq\nfingerprint=15:cd:e2:11:ed:0b:97:c4:e4:41:c5:44:18:66:72:80\n`;
             config += `tenancy=ocid1.tenancy.oc1..aaaaaaaaasur3qcs245czbgrlyshd7u5joblbvmxddigtubzqcfo`;
-            config += `5mmi2z3a\nregion=us-ashburn-1\nkey_file= ${String(process.env.USERPROFILE)}/.oci/id_rsa_e2e.pem`;
+            config += `5mmi2z3a\nregion=us-ashburn-1\nkey_file= ${String(basePath)}/.oci/id_rsa_e2e.pem`;
             await editor.sendKeys(config);
 
             await textEditor.save();
@@ -115,13 +116,15 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await driver.wait(Misc.isNotLoading(treeOCISection), 250000,
                 `${await treeOCISection.getTitle()} is still loading`);
 
-            const treeRoot = await treeOCISection.findItem("/ (Root Compartment)", ociMaxLevel);
+            const treeRoot = await treeOCISection.findItem("/ (Root Compartment)", ociMaxLevel) ||
+                await treeOCISection.findItem("/ (Root Compartment) (Default)", ociMaxLevel);
             await treeRoot.expand();
 
             await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait,
                 `${await treeOCISection.getTitle()} is still loading`);
 
-            treeQA = await treeOCISection.findItem("QA (Default)", ociMaxLevel);
+            treeQA = await treeOCISection.findItem("QA", ociMaxLevel) ||
+                await treeOCISection.findItem("QA (Default)", ociMaxLevel);
             await treeQA?.expand();
 
             await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait,
@@ -200,7 +203,10 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             await Misc.selectContextMenuItem(treeE2eTests!, "Set as New Default Config Profile");
 
-            expect(await Misc.isDefaultItem(treeE2eTests!, "profile")).to.be.true;
+            await driver.wait(async () => {
+                return Misc.isDefaultItem(treeE2eTests, "profile");
+            }, explicitWait, "E2e tests is not the deault item");
+
         });
     });
 
@@ -287,7 +293,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             expect(await Misc.isDefaultItem(treeQA, "compartment")).to.be.true;
 
-            treeQA = await treeOCISection.findItem("QA (Default)", ociMaxLevel);
+            treeQA = await treeOCISection.findItem("QA", ociMaxLevel) ||
+                await treeOCISection.findItem("QA (Default)", ociMaxLevel);
 
             expect(treeQA).to.exist;
 
@@ -536,7 +543,9 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait*3,
                 `${await treeOCISection.getTitle()} is still loading`);
 
-            expect(await Misc.isDefaultItem(treeBastion!, "bastion")).to.be.true;
+            await driver.wait(async () => {
+                return Misc.isDefaultItem(treeBastion, "bastion");
+            }, explicitWait, "Bastion is not the deault item");
 
             await treeOpenEditorsSection.expand();
 

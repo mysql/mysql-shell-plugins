@@ -44,11 +44,12 @@ import {
 } from "vscode-extension-tester";
 import clipboard from "clipboardy";
 import { expect } from "chai";
-import { ChildProcess, spawn } from "child_process";
+import { ChildProcess, spawn, spawnSync } from "child_process";
 import addContext from "mochawesome/addContext";
 import fs from "fs/promises";
 import { Database, IConnBasicMySQL, IDBConnection } from "./db";
 import { join } from "path";
+import { platform } from "os";
 
 export const dbTreeSection = "DATABASE CONNECTIONS";
 export const ociTreeSection = "ORACLE CLOUD INFRASTRUCTURE";
@@ -68,6 +69,7 @@ export const ociMaxLevel = 5;
 export const openEditorsMaxLevel = 5;
 export const tasksMaxLevel = 1;
 export let driver: WebDriver;
+export const basePath = process.env.USERPROFILE ?? process.env.HOME;
 
 export class Misc {
 
@@ -82,21 +84,6 @@ export class Misc {
         }, explicitWait * 2, "Welcome tab was not displayed");
 
         await Misc.reloadVSCode();
-
-        try {
-            await fs.truncate(Misc.getMysqlshLog());
-        } catch (e) {
-            await driver.wait(async () => {
-                try {
-                    await fs.truncate(Misc.getMysqlshLog());
-
-                    return true;
-                } catch (e) {
-                    // continue
-                }
-            }, explicitWait,
-            `mysqlsh.log was not created for suite ${String(process.env.TEST_SUITE)}`);
-        }
 
         await new EditorView().closeAllEditors();
         activityBar = new ActivityBar();
@@ -257,6 +244,21 @@ export class Misc {
         await moreActionsItem?.select();
     };
 
+    public static cleanCredentials = async (): Promise<void> => {
+        const params = ["--js", "-e", "shell.deleteAllCredentials()"];
+        const extDir = join(basePath, `test-resources-${String(process.env.TEST_SUITE)}`, "ext");
+        const items = await fs.readdir(extDir);
+        let extDirName = "";
+        for (const item of items) {
+            if (item.includes("oracle")) {
+                extDirName = item;
+                break;
+            }
+        }
+        const mysqlsh = join(extDir, extDirName, "shell", "bin", "mysqlsh");
+        spawnSync(mysqlsh, params);
+    };
+
     public static startServer = async (): Promise<ChildProcess> => {
         const params = ["--py", "-e", "gui.start.web_server(port=8500)"];
         const prc = spawn("mysqlsh", params, {
@@ -396,7 +398,7 @@ export class Misc {
 
         const img = await driver.takeScreenshot();
         const testName = testContext.currentTest?.title ?? String(process.env.TEST_SUITE);
-        const ssDir = `${String(process.env.WORKSPACE)}/screenshots`;
+        const ssDir = join(process.cwd(), "../../../../", "screenshots");
         try {
             await fs.access(ssDir);
         } catch (e) {
@@ -444,9 +446,15 @@ export class Misc {
     };
 
     public static isRouterInstalled = async (): Promise <boolean> => {
-        const dirFiles = await fs.readdir("C:/Program Files/MySQL");
-        for (const item of dirFiles) {
-            if (item.includes("MySQL Router")) {
+        if (platform() === "win32") {
+            const dirFiles = await fs.readdir("C:/Program Files/MySQL");
+            for (const item of dirFiles) {
+                if (item.includes("MySQL Router")) {
+                    return true;
+                }
+            }
+        } else {
+            if (process.env.PATH.includes("mysql-router")) {
                 return true;
             }
         }
@@ -480,13 +488,16 @@ export class Misc {
         await terminal.executeCommand(cmd, timeout);
     };
 
-    public static waitForTerminalText = async (textToSearch: string,
+    public static waitForTerminalText = async (textToSearch: string | string[],
         timeout: number): Promise<void> => {
         await driver.wait(async () => {
             const out = await Misc.getTerminalOutput();
-
-            return out.includes(textToSearch);
-        }, timeout, `Could not find text '${textToSearch}' on the terminal`);
+            for(const item of textToSearch){
+                if (out.includes(item)) {
+                    return true;
+                }
+            }
+        }, timeout, `Could not find text '${textToSearch[0]}' on the terminal`);
     };
 
     public static terminalHasErrors = async (): Promise<boolean> => {
@@ -760,7 +771,8 @@ export class Misc {
                 const btn = await treeItem.findElement(By.xpath(locator));
 
                 const treeItemCoord = await treeItem.getRect();
-                await driver.actions().move({ x: treeItemCoord.x, y: treeItemCoord.y }).perform();
+                await driver.actions().move({ x: Math.floor(treeItemCoord.x),
+                        y: Math.floor(treeItemCoord.y) }).perform();
                 await driver.wait(until.elementIsVisible(btn),
                     explicitWait, `'${actionButton}' button was not visible`);
 
@@ -775,9 +787,10 @@ export class Misc {
 
     public static getMysqlshLog = (): string => {
         if (process.env.TEST_SUITE !== undefined) {
-            return join(String(process.env.USERPROFILE), `mysqlsh-${String(process.env.TEST_SUITE)}`, "mysqlsh.log");
+
+            return join(basePath, `mysqlsh-${String(process.env.TEST_SUITE)}`, "mysqlsh.log");
         } else {
-            return join(String(process.env.APPDATA), "MySQL", "mysqlsh-gui", "mysqlsh.log");
+            throw new Error("TEST_SUITE env variable is not defined");
         }
     };
 
@@ -796,59 +809,75 @@ export class Misc {
 
         if ((await treeDBSection.getTitle()) === section) {
             await driver.wait(new Condition("", async () => {
+                try {
+                    await treeDBSection.expand();
+                    await treeOCISection.collapse();
+                    await treeOpenEditorsSection.collapse();
+                    await treeTasksSection.collapse();
 
-                await treeDBSection.expand();
-                await treeOCISection.collapse();
-                await treeOpenEditorsSection.collapse();
-                await treeTasksSection.collapse();
-
-                return (await treeDBSection.isExpanded()) &&
-                     (!await treeOCISection.isExpanded()) &&
-                     (!await treeOpenEditorsSection.isExpanded()) &&
-                     (!await treeTasksSection.isExpanded());
-
+                    return (await treeDBSection.isExpanded()) &&
+                        (!await treeOCISection.isExpanded()) &&
+                        (!await treeOpenEditorsSection.isExpanded()) &&
+                        (!await treeTasksSection.isExpanded());
+                } catch (e) {
+                    if (!(e instanceof error.TimeoutError || e instanceof error.ElementClickInterceptedError)) {
+                        throw e;
+                    }
+                }
             }), explicitWait, `${section} was not focused`);
         } else if ((await treeOCISection.getTitle()) === section) {
             await driver.wait(new Condition("", async () => {
+                try {
+                    await treeOCISection.expand();
+                    await treeDBSection.collapse();
+                    await treeOpenEditorsSection.collapse();
+                    await treeTasksSection.collapse();
 
-                await treeOCISection.expand();
-                await treeDBSection.collapse();
-                await treeOpenEditorsSection.collapse();
-                await treeTasksSection.collapse();
-
-                return (await treeOCISection.isExpanded()) &&
-                     (!await treeDBSection.isExpanded()) &&
-                     (!await treeOpenEditorsSection.isExpanded()) &&
-                     (!await treeTasksSection.isExpanded());
-
+                    return (await treeOCISection.isExpanded()) &&
+                        (!await treeDBSection.isExpanded()) &&
+                        (!await treeOpenEditorsSection.isExpanded()) &&
+                        (!await treeTasksSection.isExpanded());
+                } catch (e) {
+                    if (!(e instanceof error.TimeoutError || e instanceof error.ElementClickInterceptedError)) {
+                        throw e;
+                    }
+                }
             }), explicitWait, `${section} was not focused`);
         } else if ((await treeOpenEditorsSection.getTitle()) === section) {
             await driver.wait(new Condition("", async () => {
+                try {
+                    await treeOpenEditorsSection.expand();
+                    await treeDBSection.collapse();
+                    await treeOCISection.collapse();
+                    await treeTasksSection.collapse();
 
-                await treeOpenEditorsSection.expand();
-                await treeDBSection.collapse();
-                await treeOCISection.collapse();
-                await treeTasksSection.collapse();
-
-                return (await treeOpenEditorsSection.isExpanded()) &&
-                     (!await treeDBSection.isExpanded()) &&
-                     (!await treeOCISection.isExpanded()) &&
-                     (!await treeTasksSection.isExpanded());
-
+                    return (await treeOpenEditorsSection.isExpanded()) &&
+                        (!await treeDBSection.isExpanded()) &&
+                        (!await treeOCISection.isExpanded()) &&
+                        (!await treeTasksSection.isExpanded());
+                } catch (e) {
+                    if (!(e instanceof error.TimeoutError || e instanceof error.ElementClickInterceptedError)) {
+                        throw e;
+                    }
+                }
             }), explicitWait, `${section} was not focused`);
         } else if ((await treeTasksSection.getTitle()) === section) {
             await driver.wait(new Condition("", async () => {
+                try {
+                    await treeTasksSection.expand();
+                    await treeDBSection.collapse();
+                    await treeOCISection.collapse();
+                    await treeOpenEditorsSection.collapse();
 
-                await treeTasksSection.expand();
-                await treeDBSection.collapse();
-                await treeOCISection.collapse();
-                await treeOpenEditorsSection.collapse();
-
-                return (await treeTasksSection.isExpanded()) &&
-                     (!await treeDBSection.isExpanded()) &&
-                     (!await treeOCISection.isExpanded()) &&
-                     (!await treeOpenEditorsSection.isExpanded());
-
+                    return (await treeTasksSection.isExpanded()) &&
+                        (!await treeDBSection.isExpanded()) &&
+                        (!await treeOCISection.isExpanded()) &&
+                        (!await treeOpenEditorsSection.isExpanded());
+                } catch (e) {
+                    if (!(e instanceof error.TimeoutError || e instanceof error.ElementClickInterceptedError)) {
+                        throw e;
+                    }
+                }
             }), explicitWait, `${section} was not focused`);
         } else {
             throw new Error(`Unknow section: ${section}`);
@@ -872,13 +901,20 @@ export class Misc {
     };
 
     private static getTerminalOutput = async (): Promise<string> => {
-        const workbench = new Workbench();
-        await workbench.executeCommand("terminal select all");
-        await driver.sleep(1000);
-        const terminal = await driver.findElement(By.css("#terminal textarea"));
-        await terminal.sendKeys(selKey.chord(key.CONTROL, "c"));
-        const out = clipboard.readSync();
-        clipboard.writeSync("");
+        let out: string;
+        if (platform() === "linux") {
+            const bootomBar = new BottomBarPanel();
+            const terminal = await bootomBar.openTerminalView();
+            out = await terminal.getText();
+        } else {
+            const workbench = new Workbench();
+            await workbench.executeCommand("terminal select all");
+            await driver.sleep(1000);
+            const terminal = await driver.findElement(By.css("#terminal textarea"));
+            await terminal.sendKeys(selKey.chord(key.CONTROL, "c"));
+            out = clipboard.readSync();
+            clipboard.writeSync("");
+        }
 
         return out;
     };

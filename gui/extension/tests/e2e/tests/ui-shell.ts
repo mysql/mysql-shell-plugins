@@ -73,6 +73,23 @@ describe("MYSQL SHELL CONSOLES", () => {
     const schema = String((globalConn.basic as IConnBasicMySQL).schema);
 
     before(async function () {
+
+        if (!process.env.DBHOSTNAME) {
+            throw new Error("Please define the environment variable DBHOSTNAME");
+        }
+        if (!process.env.DBUSERNAME) {
+            throw new Error("Please define the environment variable DBUSERNAME");
+        }
+        if (!process.env.DBPASSWORD) {
+            throw new Error("Please define the environment variable DBPASSWORD");
+        }
+        if (!process.env.DBPORT) {
+            throw new Error("Please define the environment variable DBPORT");
+        }
+        if (!process.env.DBPORTX) {
+            throw new Error("Please define the environment variable DBPORTX");
+        }
+
         try {
             if (!isExtPrepared) {
                 await Misc.prepareExtension();

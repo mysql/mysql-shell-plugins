@@ -20,12 +20,17 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 #>
-Set-Location "$env:WORKSPACE/shell-plugins/gui/extension/tests/e2e"
+
+Set-Location $PSScriptRoot
+$basePath = Join-Path $PSScriptRoot ".."
+Set-Location $basePath
+$basePath = Get-Location
+$workspace = Resolve-Path(Join-Path $basePath ".." ".." ".." "..")
 
 try {
     $err = 0
 
-    $log = Join-Path $env:WORKSPACE "psExt_$env:TEST_SUITE.log"
+    $log = Join-Path $workspace "psExt_$env:TEST_SUITE.log"
 
     function writeMsg($msg, $option){
 
@@ -45,8 +50,12 @@ try {
         Throw "Please define the TEST_SUITE to run"
     }
 
+    if ($isLinux) {
+        $env:userprofile = $env:HOME
+    }
+
     writeMsg "TEST_SUITE: $env:TEST_SUITE"
-    $env:MOCHAWESOME_REPORTDIR = $env:WORKSPACE
+    $env:MOCHAWESOME_REPORTDIR = $workspace
     writeMsg "REPORT DIR: $env:MOCHAWESOME_REPORTDIR"
     $env:MOCHAWESOME_REPORTFILENAME = "test-report-$env:TEST_SUITE.json"
     writeMsg "REPORT FILENAME: $env:MOCHAWESOME_REPORTFILENAME"
@@ -105,8 +114,14 @@ try {
     }
 
     if ($env:TEST_SUITE -eq "rest"){
-        $mysqlrouterConfig = Join-Path $env:APPDATA "MySQL" "mysqlrouter"
-        $mysqlrouterConfigOld = Join-Path $env:APPDATA "MySQL" "mysqlrouter_old"
+        if ($isLinux) {
+            $mysqlrouterConfig = Join-Path $env:HOME ".mysqlrouter"
+            $mysqlrouterConfigOld = Join-Path $env:HOME ".mysqlrouter_old"
+        } else {
+            $mysqlrouterConfig = Join-Path $env:APPDATA "MySQL" "mysqlrouter"
+            $mysqlrouterConfigOld = Join-Path $env:APPDATA "MySQL" "mysqlrouter_old"
+        }
+        
         writeMsg "Removing router config folder..."
         Remove-Item -Path $mysqlrouterConfig -Force -Recurse
         Remove-Item -Path $mysqlrouterConfigOld -Force -Recurse
@@ -115,7 +130,7 @@ try {
 
     # EXECUTE TESTS
     writeMsg "Executing GUI tests for $env:TEST_SUITE suite..."
-    $prcExecTests = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests", "--", "-s $testResources", "-e $extPath", "-f", "./output/tests/ui-$env:TEST_SUITE.js" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\resultsExt-$env:TEST_SUITE.log" -RedirectStandardError "$env:WORKSPACE\resultsExtErr-$env:TEST_SUITE.log"
+    $prcExecTests = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests", "--", "-s $testResources", "-e $extPath", "-f", "./output/tests/ui-$env:TEST_SUITE.js" -Wait -PassThru -RedirectStandardOutput "$workspace\resultsExt-$env:TEST_SUITE.log" -RedirectStandardError "$workspace\resultsExtErr-$env:TEST_SUITE.log"
     if ($prcExecTests.ExitCode -eq 0) {
         writeMsg "DONE for $($env:TEST_SUITE.toUpper()) suite. All tests PASSED!"
     } else {

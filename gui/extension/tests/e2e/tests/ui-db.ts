@@ -65,6 +65,7 @@ import {
 
 
 import { join } from "path";
+import { platform } from "os";
 
 describe("DATABASE CONNECTIONS", () => {
 
@@ -123,13 +124,15 @@ describe("DATABASE CONNECTIONS", () => {
             }
 
             await Misc.toggleBottomBar(false);
-
+            
             await driver.wait(new Condition("", async () => {
                 const editors = await new EditorView().getOpenEditorTitles();
-                if (editors.length > 0) {
+                if (editors.includes(dbEditorDefaultName)){
                     await new EditorView().closeAllEditors();
 
                     return (await new EditorView().getOpenEditorTitles()).length === 0;
+                } else {
+                    return false;
                 }
             }), ociExplicitWait);
 
@@ -302,6 +305,15 @@ describe("DATABASE CONNECTIONS", () => {
 
     describe("Database connections", () => {
 
+        before(async function () {
+            try {
+                await Misc.cleanCredentials();
+            } catch (e) {
+                await Misc.processFailure(this);
+                throw e;
+            }
+        });
+
         beforeEach(async function () {
             try {
                 await Misc.sectionFocus(openEditorsTreeSection);
@@ -413,6 +425,10 @@ describe("DATABASE CONNECTIONS", () => {
             sqliteConn.dbType = "Sqlite";
             sqliteConn.caption = `Sqlite DB${String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000))}`;
 
+            if (platform() === "linux") {
+                process.env.USERPROFILE = process.env.HOME;
+            }
+
             const localSqliteBasicInfo: IConnBasicSqlite = {
                 dbPath: join(String(process.env.USERPROFILE),
                     `mysqlsh-${String(process.env.TEST_SUITE)}`,
@@ -521,12 +537,7 @@ describe("DATABASE CONNECTIONS", () => {
                 dbConn,
             );
 
-            await Database.setPassword(globalConn);
-            try {
-                await Misc.setConfirmDialog(globalConn, "no");
-            } catch (e) {
-                // continue
-            }
+            await Database.tryCredentials(globalConn);
 
             await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
             const result = await Misc.execCmd("SHOW STATUS LIKE 'Ssl_cipher';");
@@ -543,16 +554,12 @@ describe("DATABASE CONNECTIONS", () => {
 
         before(async function () {
             try {
+                await Misc.cleanCredentials();
                 await Misc.sectionFocus(dbTreeSection);
                 await (await Misc.getActionButton(treeGlobalConn, "Connect to Database")).click();
                 await Misc.switchToWebView();
                 await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
-                await Database.setPassword(globalConn);
-                try {
-                    await Misc.setConfirmDialog(globalConn, "no");
-                } catch (e) {
-                    // continue
-                }
+                await Database.tryCredentials(globalConn);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -638,16 +645,16 @@ describe("DATABASE CONNECTIONS", () => {
             await Misc.writeCmd("DELIMITER $$ ", true);
             const textArea = await driver.findElement(By.css("textarea"));
             await textArea.sendKeys(Key.RETURN);
-            await Misc.writeCmd("SELECT ACTOR_ID", true);
+            await Misc.writeCmd("SELECT actor_id", true);
             await textArea.sendKeys(Key.RETURN);
             await Misc.writeCmd("FROM ", true);
             await textArea.sendKeys(Key.RETURN);
-            await Misc.writeCmd("SAKILA.ACTOR LIMIT 1 $$", true);
+            await Misc.writeCmd("sakila.actor LIMIT 1 $$", true);
 
             expect(await Database.isStatementStart("DELIMITER $$")).to.be.true;
-            expect(await Database.isStatementStart("SELECT ACTOR_ID")).to.be.true;
+            expect(await Database.isStatementStart("SELECT actor_id")).to.be.true;
             expect(await Database.isStatementStart("FROM")).to.be.false;
-            expect(await Database.isStatementStart("SAKILA.ACTOR LIMIT 1 $$")).to.be.false;
+            expect(await Database.isStatementStart("sakila.actor LIMIT 1 $$")).to.be.false;
 
             await textArea.sendKeys(Key.RETURN);
             await textArea.sendKeys(Key.RETURN);
@@ -668,7 +675,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Connection toolbar buttons - Execute selection or full block and create a new block", async () => {
 
-            const result = await Misc.execCmd("SELECT * FROM ACTOR;",
+            const result = await Misc.execCmd("SELECT * FROM actor;",
                 "Execute selection or full block and create a new block");
 
             expect(result[0]).to.match(/(\d+) record/);
@@ -692,6 +699,8 @@ describe("DATABASE CONNECTIONS", () => {
                 expect(await Misc.getResultColumns(result[1] as WebElement)).to.include("actor_id");
 
                 await textArea.sendKeys(Key.ARROW_DOWN);
+
+                await driver.sleep(150);
 
                 result = await Misc.execCmd("", "Execute the statement at the caret position");
 
@@ -928,13 +937,13 @@ describe("DATABASE CONNECTIONS", () => {
 
             digits[2].length === 1 ? serverVer += "0" + digits[2] : serverVer += digits[2];
 
-            result = await Misc.execCmd(`/*!${serverVer} select * from sakila.actor;*/`);
+            result = await Misc.execCmd(`/*!${serverVer} select * from sakila.actor;*/`, undefined, undefined, true);
 
             expect(result[0]).to.match(/OK, (\d+) records retrieved/);
 
             const higherServer = parseInt(serverVer, 10) + 1;
 
-            result = await Misc.execCmd(`/*!${higherServer} select * from sakila.actor;*/`);
+            result = await Misc.execCmd(`/*!${higherServer} select * from sakila.actor;*/`, undefined, undefined, true);
 
             expect(result[0]).to.include("OK, 0 records retrieved");
 
@@ -942,14 +951,15 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Context Menu - Execute", async () => {
 
-            let result = await Misc.execCmdByContextItem("select * from actor limit 1", "Execute Block");
+            let result = await Misc.execCmdByContextItem("select * from sakila.actor limit 1;", "Execute Block");
 
             expect(result[0]).to.match(/OK, (\d+) record retrieved/);
             expect(await Database.hasNewPrompt()).to.be.false;
 
             await Misc.cleanEditor();
 
-            result = await Misc.execCmdByContextItem("select * from actor limit 1", "Execute Block and Advance");
+            result = await Misc
+                .execCmdByContextItem("select * from sakila.actor limit 1;", "Execute Block and Advance");
 
             expect(result[0]).to.match(/OK, (\d+) record retrieved/);
             expect(await Database.hasNewPrompt()).to.be.true;
@@ -961,11 +971,13 @@ describe("DATABASE CONNECTIONS", () => {
             const result = await Misc.execCmd("select * from sakila.actor;");
             expect(result[0]).to.include("OK");
 
+            await driver.sleep(1000);
+
             await (result[2] as WebElement).findElement(By.id("toggleStateButton")).click();
 
             await driver.wait(new Condition("", async () => {
                 return Database.isResultTabMaximized();
-            }), explicitWait, "Resulta tab was not maxized");
+            }), explicitWait, "Result tab was not maxized");
 
             expect(await Database.getCurrentEditor()).to.equals("Result #1");
             try {
@@ -1045,16 +1057,12 @@ describe("DATABASE CONNECTIONS", () => {
 
         before(async function () {
             try {
+                await Misc.cleanCredentials();
                 await Misc.sectionFocus(dbTreeSection);
                 await (await Misc.getActionButton(treeGlobalConn, "Connect to Database")).click();
                 await Misc.switchToWebView();
                 await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
-                await Database.setPassword(globalConn);
-                try {
-                    await Misc.setConfirmDialog(globalConn, "no");
-                } catch (e) {
-                    // continue
-                }
+                await Database.tryCredentials(globalConn);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -1141,6 +1149,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         before(async function () {
             try {
+                await Misc.cleanCredentials();
                 await Misc.sectionFocus(dbTreeSection);
                 await treeGlobalConn.expand();
                 try {
@@ -1182,12 +1191,7 @@ describe("DATABASE CONNECTIONS", () => {
             await (await treeDBSection.findItem("Server Status", dbMaxLevel)).click();
             await Misc.switchToWebView();
             await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
-            await Database.setPassword(globalConn);
-            try {
-                await Misc.setConfirmDialog(globalConn, "no");
-            } catch (e) {
-                // continue
-            }
+            await Database.tryCredentials(globalConn);
             expect(await Database.getCurrentEditor()).to.equals("Server Status");
 
             const sections = await driver.findElements(By.css(".grid .heading label"));
@@ -1273,7 +1277,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         before(async function() {
             try {
-
+                await Misc.cleanCredentials();
                 await Database.createConnection(localConn);
                 expect(await Database.getWebViewConnection(localConn.caption, true)).to.exist;
                 await new EditorView().closeEditor(dbEditorDefaultName);
@@ -1333,13 +1337,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
 
-            await Database.setPassword(localConn);
-
-            try {
-                await Misc.setConfirmDialog(localConn, "no");
-            } catch (e) {
-                // continue
-            }
+            await Database.tryCredentials(localConn);
 
             await driver.switchTo().defaultContent();
 
@@ -1356,13 +1354,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
 
-            await Database.setPassword(globalConn);
-
-            try {
-                await Misc.setConfirmDialog(globalConn, "no");
-            } catch (e) {
-                // continue
-            }
+            await Database.tryCredentials(globalConn);
 
             await driver.switchTo().defaultContent();
 
@@ -1565,6 +1557,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         before(async function () {
             try {
+                await Misc.cleanCredentials();
                 await Misc.sectionFocus(dbTreeSection);
 
                 await Misc.clickSectionToolbarButton(treeDBSection, "Collapse All");
@@ -1628,12 +1621,7 @@ describe("DATABASE CONNECTIONS", () => {
             await new EditorView().openEditor(dbEditorDefaultName);
             await Misc.switchToWebView();
             await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
-            try {
-                await Database.setPassword(globalConn);
-                await Misc.setConfirmDialog(globalConn, "no");
-            } catch (e) {
-                // continue
-            }
+            await Database.tryCredentials(globalConn);
 
             const item = await driver.wait(until.elementLocated(By.css(".zoneHost")),
                 explicitWait, "zoneHost not found");
@@ -1664,12 +1652,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
 
-            await Database.setPassword(globalConn);
-            try {
-                await Misc.setConfirmDialog(globalConn, "no");
-            } catch (e) {
-                // continue
-            }
+            await Database.tryCredentials(globalConn);
 
             await driver.switchTo().defaultContent();
 
@@ -1713,12 +1696,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
 
-            await Database.setPassword(globalConn);
-            try {
-                await Misc.setConfirmDialog(globalConn, "no");
-            } catch (e) {
-                // continue
-            }
+            await Database.tryCredentials(globalConn);
 
             const item = await driver.wait(until
                 .elementLocated(By.css(".zoneHost .actionLabel > span")), 10000, "MySQL Shell Console was not loaded");
@@ -1886,12 +1864,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
 
-            try {
-                await Database.setPassword(globalConn);
-                await Misc.setConfirmDialog(globalConn, "no");
-            } catch (e) {
-                // continue
-            }
+            await Database.tryCredentials(globalConn);
 
             const random = String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000));
             const testSchema = `testschema${random}`;
@@ -2138,16 +2111,18 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Table - Show Data", async () => {
 
+            await new EditorView().closeAllEditors();
             const actorTable = await treeDBSection.findItem("actor", dbMaxLevel);
             await Misc.selectContextMenuItem(actorTable, "Show Data");
-            await new EditorView().openEditor(globalConn.caption);
+            await new EditorView().openEditor(dbEditorDefaultName);
             await Misc.switchToWebView();
             await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
+            await Database.tryCredentials(globalConn);
             const result = await Database.getScriptResult();
             expect(result[0]).to.match(/OK/);
             await driver.wait(new Condition("", async () => {
                 return Database.isResultTabMaximized();
-            }), explicitWait, "Resulta tab was not maxized");
+            }), explicitWait, "Result tab was not maxized");
 
         });
 

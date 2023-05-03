@@ -25,7 +25,7 @@ Set-Location $PSScriptRoot
 $basePath = Join-Path $PSScriptRoot ".."
 Set-Location $basePath
 $basePath = Get-Location
-$env:WORKSPACE = Resolve-Path(Join-Path $basePath ".." ".." ".." ".." "..")
+$env:WORKSPACE = Resolve-Path(Join-Path $basePath ".." ".." ".." "..")
 
 try {
     $err = 0
@@ -40,28 +40,15 @@ try {
         
     }
 
-    function installTestResources($vscodeVersion){
-
-        $job1 = Start-Job -Name "get-vscode-db" -ScriptBlock { 
-            npm run e2e-tests-get-vscode -- -s $using:testResourcesDb -c $using:vscodeVersion
-        }
-        $job2 = Start-Job -Name "get-chromedriver-db" -ScriptBlock { 
+    function installChromedriver($vscodeVersion) {
+        $job5 = Start-Job -Name "get-chromedriver-db" -ScriptBlock { 
             npm run e2e-tests-get-chromedriver -- -s $using:testResourcesDb -c $using:vscodeVersion
         }
-        $job3 = Start-Job -Name "get-vscode-oci" -ScriptBlock { 
-            npm run e2e-tests-get-vscode -- -s $using:testResourcesOci -c $using:vscodeVersion
-        }
-        $job4 = Start-Job -Name "get-chromedriver-oci" -ScriptBlock { 
+        $job6 = Start-Job -Name "get-chromedriver-oci" -ScriptBlock { 
             npm run e2e-tests-get-chromedriver -- -s $using:testResourcesOci -c $using:vscodeVersion
         }
-        $job5 = Start-Job -Name "get-vscode-shell" -ScriptBlock { 
-            npm run e2e-tests-get-vscode -- -s $using:testResourcesShell -c $using:vscodeVersion
-        }
-        $job6 = Start-Job -Name "get-chromedriver-shell" -ScriptBlock { 
+        $job7 = Start-Job -Name "get-chromedriver-shell" -ScriptBlock { 
             npm run e2e-tests-get-chromedriver -- -s $using:testResourcesShell -c $using:vscodeVersion
-        }
-        $job7 = Start-Job -Name "get-vscode-rest" -ScriptBlock { 
-            npm run e2e-tests-get-vscode -- -s $using:testResourcesRest -c $using:vscodeVersion
         }
         $job8 = Start-Job -Name "get-chromedriver-rest" -ScriptBlock { 
           npm run e2e-tests-get-chromedriver -- -s $using:testResourcesRest -c $using:vscodeVersion
@@ -69,19 +56,11 @@ try {
 
         # Wait for it all to complete
         While ( 
-                ((Get-Job -Name "get-vscode-db").state -eq "Running") -or
-                ((Get-Job -Name "get-vscode-oci").state -eq "Running") -or
-                ((Get-Job -Name "get-vscode-shell").state -eq "Running") -or
-                ((Get-Job -Name "get-vscode-rest").state -eq "Running") -or
                 ((Get-Job -Name "get-chromedriver-db").state -eq "Running") -or
                 ((Get-Job -Name "get-chromedriver-oci").state -eq "Running") -or
                 ((Get-Job -Name "get-chromedriver-shell").state -eq "Running") -or
                 ((Get-Job -Name "get-chromedriver-rest").state -eq "Running")
             ){
-            Receive-Job -Job $job1
-            Receive-Job -Job $job2
-            Receive-Job -Job $job3
-            Receive-Job -Job $job4
             Receive-Job -Job $job5
             Receive-Job -Job $job6
             Receive-Job -Job $job7
@@ -89,10 +68,44 @@ try {
         }
     }
 
+    function installVsCode($vscodeVersion){
+
+        $job1 = Start-Job -Name "get-vscode-db" -ScriptBlock { 
+            npm run e2e-tests-get-vscode -- -s $using:testResourcesDb -c $using:vscodeVersion
+        }
+        $job2 = Start-Job -Name "get-vscode-oci" -ScriptBlock { 
+            npm run e2e-tests-get-vscode -- -s $using:testResourcesOci -c $using:vscodeVersion
+        }
+        $job3 = Start-Job -Name "get-vscode-shell" -ScriptBlock { 
+            npm run e2e-tests-get-vscode -- -s $using:testResourcesShell -c $using:vscodeVersion
+        }
+        $job4 = Start-Job -Name "get-vscode-rest" -ScriptBlock { 
+            npm run e2e-tests-get-vscode -- -s $using:testResourcesRest -c $using:vscodeVersion
+        }
+        
+        # Wait for it all to complete
+        While ( 
+                ((Get-Job -Name "get-vscode-db").state -eq "Running") -or
+                ((Get-Job -Name "get-vscode-oci").state -eq "Running") -or
+                ((Get-Job -Name "get-vscode-shell").state -eq "Running") -or
+                ((Get-Job -Name "get-vscode-rest").state -eq "Running")
+            ){
+            Receive-Job -Job $job1
+            Receive-Job -Job $job2
+            Receive-Job -Job $job3
+            Receive-Job -Job $job4
+        }
+    }
+
     function getVSCodeVersion ($path) {
         $pinfo = New-Object System.Diagnostics.ProcessStartInfo
-        $pinfo.FileName = "code.cmd"
-        $pinfo.WorkingDirectory = "$path\VSCode-win32-x64-archive\bin\"
+        $target = (Get-ChildItem -Path $path -Filter "*VSCode*").toString()
+        if($isWindows) {
+            $pinfo.FileName = "$target\bin\code.cmd"
+        } else {
+            $pinfo.FileName = "$target/bin/code"
+        }
+        
         $pinfo.RedirectStandardError = $true
         $pinfo.RedirectStandardOutput = $true
         $pinfo.UseShellExecute = $false
@@ -107,8 +120,29 @@ try {
         return $info[0]
     }
 
-    if (!$env:EXTENSION_BRANCH){
-        Throw "Please define 'EXTENSION_BRANCH' env variable"
+    if (!$env:VSIX_PATH) {
+        if (!$env:EXTENSION_BRANCH){
+            Throw "Please define 'EXTENSION_BRANCH' env variable"
+        }
+    }
+    
+    if (!$env:VSCODE_VERSION){
+        Throw "Please define 'VSCODE_VERSION' env variable"
+    }
+
+    if ($isLinux) {
+        $env:userprofile = $env:HOME
+        $webCerts = Join-Path $env:userprofile ".mysqlsh-gui" "plugin_data" "gui_plugin" "web_certs"
+        if (!(Test-Path -Path $webCerts)) {
+            Throw "web_certs were not found. Please install VSCode and generate the web certificates manually"
+        }
+    } elseif($isWindows) {
+        $webCerts = Join-Path $env:APPDATA "MySQL" "mysqlsh-gui" "plugin_data" "gui_plugin" "web_certs"
+        if (!(Test-Path -Path $webCerts)) {
+            Throw "web_certs were not found. Please install VSCode and generate the web certificates manually"
+        }
+    } else {
+        Throw "MacOS is not supported"
     }
 
     if (Test-Path -Path $log){
@@ -122,31 +156,37 @@ try {
     writeMsg "REVISION: $env:TARGET_REVID"
     writeMsg "WORKSPACE: $env:WORKSPACE"
     writeMsg "VSCODE_VERSION: $env:VSCODE_VERSION"
+    writeMsg "VSIX_PATH: $env:VSIX_PATH"
     writeMsg "USER PROFILE: $env:USERPROFILE"
     writeMsg "BASE PATH: $basePath"
 
-    # SETUP NODE REGISTRY
-    writeMsg "Setup nodejs registry..." "-NoNewLine"
-    $prc = Start-Process "npm" -ArgumentList "set", "registry", "https://artifacthub-phx.oci.oraclecorp.com/api/npm/npmjs-remote/" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\nodeExt.log" -RedirectStandardError "$env:WORKSPACE\nodeExtErr.log"
-    if ($prc.ExitCode -ne 0){
-        Throw "Error setting nodejs registry"
-    }
-    else{
-        writeMsg "DONE"
-    }
+    if (!$env:VSIX_PATH) {
+        # SETUP NODE REGISTRY
+        writeMsg "Setup nodejs registry..." "-NoNewLine"
+        $prc = Start-Process "npm" -ArgumentList "set", "registry", "https://artifacthub-phx.oci.oraclecorp.com/api/npm/npmjs-remote/" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\nodeExt.log" -RedirectStandardError "$env:WORKSPACE\nodeExtErr.log"
+        if ($prc.ExitCode -ne 0){
+            Throw "Error setting nodejs registry"
+        }
+        else{
+            writeMsg "DONE"
+        }
 
-    # SETUP NO PROXY
-    writeMsg "Setup noproxy..." "-NoNewLine"
-    $prc = Start-Process "npm" -ArgumentList "config", "set", "noproxy", "localhost,127.0.0.1,.oraclecorp.com,.oracle.com" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\nodeExt.log" -RedirectStandardError "$env:WORKSPACE\nodeExtErr.log"
-    if ($prc.ExitCode -ne 0){
-        Throw "Error setting nodejs registry"
-    }
-    else{
-        writeMsg "DONE"
-    }
+        # SETUP NO PROXY
+        writeMsg "Setup noproxy..." "-NoNewLine"
+        $prc = Start-Process "npm" -ArgumentList "config", "set", "noproxy", "localhost,127.0.0.1,.oraclecorp.com,.oracle.com" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\nodeExt.log" -RedirectStandardError "$env:WORKSPACE\nodeExtErr.log"
+        if ($prc.ExitCode -ne 0){
+            Throw "Error setting nodejs registry"
+        }
+        else{
+            writeMsg "DONE"
+        }
 
-    $env:HTTP_PROXY = 'http://www-proxy.us.oracle.com:80'
-    $env:HTTPS_PROXY = 'http://www-proxy.us.oracle.com:80'
+        $env:HTTP_PROXY = "http://www-proxy.us.oracle.com:80"
+        $env:HTTPS_PROXY = "http://www-proxy.us.oracle.com:80"
+    } else {
+        $env:HTTP_PROXY = ""
+        $env:HTTPS_PROXY = ""
+    }
 
     # REMOVE PACKAGE-LOCK.JSON
     if (Test-Path -Path "$basePath\package-lock.json"){
@@ -171,31 +211,44 @@ try {
     $testResourcesOci = Join-Path $env:userprofile "test-resources-oci"
     $testResourcesRest = Join-Path $env:userprofile "test-resources-rest"
 
-    $env:HTTP_PROXY = 'http://www-proxy.us.oracle.com:80'
-    $env:HTTPS_PROXY = 'http://www-proxy.us.oracle.com:80'
+    writeMsg "Checking config folders..." "-NoNewLine"
+    $configs = @()
+    $configs += Join-Path $env:userprofile "mysqlsh-db"
+    $configs += Join-Path $env:userprofile "mysqlsh-oci"
+    $configs += Join-Path $env:userprofile "mysqlsh-shell"
+    $configs += Join-Path $env:userprofile "mysqlsh-rest"
+    
+    ForEach ($config in $configs) {
+        if (!(Test-Path $config)) {
+            New-Item -ItemType "directory" -Path $config
+            writeMsg "Created $config"
+            $mysqlsh = Join-Path $config "mysqlsh.log"  
+            New-Item -ItemType "file" -Path $mysqlsh
+            writeMsg "Created $mysqlsh"
+            $guiPlugin = Join-Path $config "plugin_data" "gui_plugin"
+            New-Item -ItemType "directory" -Path $guiPlugin
+            writeMsg "Created $guiPlugin"
+            writeMsg "Copying web certificates for $config ..." "-NoNewLine"
+            Copy-Item -Path $webCerts -Destination $guiPlugin -Recurse
+            writeMsg "DONE"
+        }
+    } 
+    writeMsg "DONE"
 
-    writeMsg "Checking if test-resources exists..." "-NoNewLine"
+    writeMsg "Checking if VSCode exists..." "-NoNewLine"
 
     if (!(Test-Path -Path $testResourcesDb)) {
         writeMsg "Not found. Start installing test-resources..." "-NoNewLine"
-        installTestResources $env:VSCODE_VERSION
+        installVsCode $env:VSCODE_VERSION
         writeMsg "DONE"
     } else {
-        writeMsg "It does! Maybe skipping installation...."
+        writeMsg "It does! Skipping installation."
         $version = getVSCodeVersion $testResourcesDb
         writeMsg "Checking VSCode version..." "-NoNewLine"
 
         if ($version -ne $env:VSCODE_VERSION) {
-            writeMsg "'$version', requested version is '$env:VSCODE_VERSION'."
-            writeMsg "Removing all test resources..." "-NoNewLine"
-            Remove-Item -Path $testResourcesDb -Force -Recurse
-            Remove-Item -Path $testResourcesOci -Force -Recurse
-            Remove-Item -Path $testResourcesRest -Force -Recurse
-            Remove-Item -Path $testResourcesShell -Force -Recurse
-            writeMsg "DONE"
-
-            writeMsg "Start installing test-resources..." "-NoNewLine"
-            installTestResources $env:VSCODE_VERSION
+            writeMsg "'$version', requested version is '$env:VSCODE_VERSION'. Updating..." "-NoNewLine"
+            installVsCode $env:VSCODE_VERSION
             writeMsg "DONE"
             $version = getVSCodeVersion $testResourcesDb
             if ($version -eq $env:VSCODE_VERSION) {
@@ -207,33 +260,48 @@ try {
             writeMsg "$version. OK"
         } 
     }
-    
+
+    writeMsg "Checking if Chromedriver exists..." "-NoNewLine"
+    $path = Join-Path $testResourcesDb "chromedriver"
+    if (!(Test-Path -Path $path)) {
+        writeMsg "Not found. Start installing Chromedriver..." "-NoNewLine"
+        installChromedriver $env:VSCODE_VERSION
+        writeMsg "DONE"
+    } else {
+        writeMsg "It does! Skipping installation."
+    }
+
     # DOWNLOAD EXTENSION 
     if (!$env:EXTENSION_PUSH_ID){
         $env:EXTENSION_PUSH_ID = "latest"
     }
 
-    $bundles = (Invoke-WebRequest -NoProxy -Uri "http://pb2.mysql.oraclecorp.com/nosso/api/v2/branches/$env:EXTENSION_BRANCH/pushes/$env:EXTENSION_PUSH_ID/").content
-    $bundles = $bundles | ConvertFrom-Json
-    
-    $extension = ($bundles.builds | Where-Object {
-        $_.product -eq "mysql-shell-ui-plugin_binary_vs-code-extension_vsix--win32-x64" 
-        }).artifacts | Where-Object {
-            $_.name -like "mysql-shell-for-vs-code-win32-x64"
-        }
-
-    if ($extension){
-        $extension | ForEach-Object { 
-            $extensionItem = $_.url.replace("http://pb2.mysql.oraclecorp.com/nosso/archive/","")
-            writeMsg "Downloading $extensionItem ..." "-NoNewline" 
-            $dest = Join-Path $env:WORKSPACE $extensionItem
-            Invoke-WebRequest -NoProxy -Uri $_.url -OutFile $dest
-            writeMsg "DONE"
+    if (!$env:VSIX_PATH) {
+        writeMsg "Trying to download from PB2..."
+        $bundles = (Invoke-WebRequest -NoProxy -Uri "http://pb2.mysql.oraclecorp.com/nosso/api/v2/branches/$env:EXTENSION_BRANCH/pushes/$env:EXTENSION_PUSH_ID/").content
+        $bundles = $bundles | ConvertFrom-Json
+        
+        $extension = ($bundles.builds | Where-Object {
+            $_.product -eq "mysql-shell-ui-plugin_binary_vs-code-extension_vsix--win32-x64" 
+            }).artifacts | Where-Object {
+                $_.name -like "mysql-shell-for-vs-code-win32-x64"
             }
+
+        if ($extension){
+            $extension | ForEach-Object { 
+                $extensionItem = $_.url.replace("http://pb2.mysql.oraclecorp.com/nosso/archive/","")
+                writeMsg "Downloading $extensionItem ..." "-NoNewline" 
+                $dest = Join-Path $env:WORKSPACE $extensionItem
+                Invoke-WebRequest -NoProxy -Uri $_.url -OutFile $dest
+                writeMsg "DONE"
+                }
+            }
+        else{
+            writeMsg "Could not download the MySQL Shell for VS Code extension"
+            exit 1
         }
-    else{
-        writeMsg "Could not download the MySQL Shell for VS Code extension"
-        exit 1
+    } else {
+        $dest = $env:VSIX_PATH
     }
 
     # COPY OCI .PEM FILES
@@ -247,23 +315,11 @@ try {
 
     $childs = Get-ChildItem -Path $ociPath
     if ($childs.count -eq 0){
-        $itemsPath = Join-Path $basePath "tests" "e2e" "oci_files"
+        $itemsPath = Join-Path $basePath "oci_files"
         Get-ChildItem -Path $itemsPath | % {
             writeMsg "Copying $_ file to .oci folder..." "-NoNewLine"
             Copy-Item -Path $_ $ociPath
             writeMsg "DONE"
-        }
-    }
-
-    # REMOVE EXISTING SSH KEY FILES
-    $sshPath = Join-Path $env:userprofile ".ssh"
-    if ( Test-Path -Path $sshPath ){
-        Get-ChildItem -Path $sshPath | % {
-            if ( ($_.Name -eq "id_rsa") -or ($_.Name -eq "id_rsa.pub")){
-                writeMsg "Removing $($_.Name) ..." "-NoNewLine"
-                Remove-Item -Path $_ -Force
-                writeMsg "DONE"
-            }
         }
     }
 
