@@ -126,6 +126,7 @@ def add_content_dir(session, content_set_id, content_dir, requires_auth):
             if os.name == 'nt':
                 request_path = request_path.replace("\\", "/")
 
+            print(f"Adding file {file} ...")
             add_content_file(session, content_set_id,
                              request_path, requires_auth, data)
 

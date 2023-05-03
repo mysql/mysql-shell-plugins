@@ -8,7 +8,8 @@
 
 import {
     MrsBaseService, MrsBaseSchema, MrsBaseObjectQuery, IMrsBaseObject,
-    IMrsResultList, MrsBaseObjectUpdate, MrsBaseObjectCall, IMrsFetchData,
+    IMrsResultList, IMrsProcedureResultList, IMrsProcedureResult, MrsBaseObjectUpdate,
+    MrsBaseObjectCall, IMrsFetchData,
     MrsBaseObjectCreate, IMrsDeleteResult, MrsBaseObjectDelete,
     ICreateOptions, IDeleteOptions, IFindOptions, IUpdateOptions,
 } from "./MrsBaseClasses";
@@ -97,9 +98,9 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
         // --- crudReadOnlyEnd
         // --- crudUpdateProcedureOnlyStart
         put: (
-            ${obj_name}Params: I${obj_class_name}Params,
-        ): MrsBaseObjectCall<I${obj_class_name}, I${obj_class_name}Params> => {
-            return new MrsBaseObjectCall<I${obj_class_name}, I${obj_class_name}Params>(
+            ${obj_name}Params: I${obj_param_interface},
+        ): MrsBaseObjectCall<${obj_meta_interface}, I${obj_param_interface}> => {
+            return new MrsBaseObjectCall<${obj_meta_interface}, I${obj_param_interface}>(
                 this.schema, ${obj_class_name}Request.#requestPath, ${obj_name}Params);
         },
         // --- crudUpdateProcedureOnlyEnd
@@ -107,8 +108,8 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
         // --- crudUpdateOnlyStart
         put: (
             ${obj_name}: I${obj_class_name},
-            key?: string[]): MrsBaseObjectUpdate<I${obj_class_name}, I${obj_class_name}Params> => {
-            return new MrsBaseObjectUpdate<I${obj_class_name}, I${obj_class_name}Params>(
+            key?: string[]): MrsBaseObjectUpdate<I${obj_class_name}> => {
+            return new MrsBaseObjectUpdate<I${obj_class_name}>(
                 this.schema, ${obj_class_name}Request.#requestPath, ${obj_name}, key !== undefined ? key : [${obj_string_pk_list}]);
         },
         // --- crudUpdateOnlyEnd
@@ -188,8 +189,8 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
     // --- crudUpdateOnlyEnd
     // --- crudUpdateProcedureOnlyStart
     public call = (
-        ${obj_name}Params: I${obj_class_name}Params,
-    ): Promise<IMrsResultList<I${obj_class_name}>> => {
+        ${obj_name}Params: I${obj_param_interface},
+    ): Promise<IMrsProcedureResultList<${obj_meta_interface}>> => {
         return this.rest.put(${obj_name}Params).fetch();
     };
     // --- crudUpdateProcedureOnlyEnd

@@ -31,8 +31,25 @@ export class MrsRouterTreeItem extends MrsTreeBaseItem {
     public constructor(
         label: string,
         public value: IMrsRouterData,
-        details: IConnectionEntry) {
+        details: IConnectionEntry,
+        requiresUpgrade: boolean) {
         super(label, details, false,
-            value.active ? "router.svg" : "routerNotActive.svg");
+            MrsRouterTreeItem.getIconName(value, requiresUpgrade));
+
+        this.description = value.version;
+        this.tooltip = requiresUpgrade
+            ? "This MySQL Router requires an upgrade."
+            : `MySQL Router ${value.version} - ${value.address}`;
     }
+
+    private static getIconName = (value: IMrsRouterData, requiresUpgrade: boolean): string => {
+        if (requiresUpgrade) {
+            return "routerError.svg";
+        }
+        if (!value.active) {
+            return "routerNotActive.svg";
+        }
+
+        return "router.svg";
+    };
 }

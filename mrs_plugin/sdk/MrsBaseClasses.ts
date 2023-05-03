@@ -404,13 +404,27 @@ export interface IMrsOperator {
     "between": "$between",
 }
 
+export interface IMrsMetadata {
+    etag: string;
+}
+
 export interface IMrsResultList<C> {
     items: C[],
     limit: number,
-    offset: number,
+    offset?: number,
     hasMore: boolean,
     count: number,
     links?: IMrsLink[],
+    _metadata?: IMrsMetadata,
+}
+
+export interface IMrsProcedureResult<C> {
+    mrsInterface: string,
+    items: C[],
+}
+
+export interface IMrsProcedureResultList<C> {
+    results: Array<IMrsProcedureResult<C>>,
 }
 
 export interface IMrsDeleteResult {
@@ -485,7 +499,7 @@ export interface IFindAllOptions<C> {
 
 export interface IFindOptions<C, T> extends Partial<IFilterOptions<T>> {
     orderBy?: ColumnOrder<T>,
-    select?: ResultFields<T> | ColumnNames<T>,
+    select?: ResultFields<C> | ColumnNames<C>,
     skip?: number,
     take?: number,
     fetchAll?: IFindAllOptions<C> | boolean,
@@ -791,11 +805,11 @@ export class MrsBaseObjectDelete<T> {
     };
 }
 
-export class MrsBaseObjectUpdate<T, P extends object | undefined> {
+export class MrsBaseObjectUpdate<T extends object | undefined> {
     public constructor(
         protected schema: MrsBaseSchema,
         protected requestPath: string,
-        protected fieldsToSet: P,
+        protected fieldsToSet: T,
         protected keys: string[]) {
     }
 
@@ -836,7 +850,7 @@ export class MrsBaseObjectCall<I, P extends IMrsFetchData> {
         protected params: P) {
     }
 
-    public fetch = async (): Promise<IMrsResultList<I>> => {
+    public fetch = async (): Promise<IMrsProcedureResultList<I>> => {
         const input = `${this.schema.requestPath}${this.requestPath}`;
 
         const res = await this.schema.service.session.doFetch({
@@ -848,6 +862,6 @@ export class MrsBaseObjectCall<I, P extends IMrsFetchData> {
 
         const responseBody = await res.json();
 
-        return responseBody as IMrsResultList<I>;
+        return responseBody as IMrsProcedureResultList<I>;
     };
 }

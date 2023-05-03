@@ -252,12 +252,13 @@ def cd(path=None, session=None):
 
 
 @plugin_function('mrs.configure', shell=True, cli=True, web=True)
-def configure(session=None, enable_mrs=None):
+def configure(session=None, enable_mrs=None, allow_recreation_on_major_upgrade=False):
     """Initializes and configures the MySQL REST Data Service
 
     Args:
         session (object): The database session to use
         enable_mrs (bool): Whether MRS should be enabled or disabled
+        allow_recreation_on_major_upgrade (bool): Whether the MRS metadata schema can be dropped and recreated if needed
 
     Returns:
         True on success, None in interactive mode
@@ -281,8 +282,20 @@ def configure(session=None, enable_mrs=None):
                     "Unsupported MRS metadata database schema "
                     f"version {lib.general.DB_VERSION_STR}. "
                     "Please update your MRS Shell Plugin.")
+            
+            # Major upgrade available
+            if current_db_version[0] < lib.general.DB_VERSION[0]:
+                if allow_recreation_on_major_upgrade:
+                    lib.core.create_rds_metadata_schema(session, drop_existing=True)
+                    schema_changed = True
+                    if interactive:
+                        print("The MRS metadata has been recreated.")
+                else:
+                    raise Exception("This MRS Shell Plugin version requires a new major version of the MRS metadata "
+                                    "schema. To drop and recreate the MRS metadata schema please set the "
+                                    "allow_recreation parameter to True")
 
-            if current_db_version < lib.general.DB_VERSION:
+            elif current_db_version < lib.general.DB_VERSION:
                 # this is a major version upgrade, so there must be user intervention
                 # to proceed with the upgrade
                 if interactive:

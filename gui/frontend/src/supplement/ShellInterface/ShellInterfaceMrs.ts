@@ -25,10 +25,11 @@ import { MessageScheduler } from "../../communication/MessageScheduler";
 import { IShellDictionary } from "../../communication/Protocol";
 import {
     ShellAPIMrs, IMrsStatusData, IMrsServiceData, IMrsAuthAppData, IMrsAuthVendorData, IMrsSchemaData,
-    IMrsDbObjectFieldData, IShellMrsUpdateDbObjectKwargsValue, IMrsDbObjectData, IMrsAddContentSetData,
+    IShellMrsUpdateDbObjectKwargsValue, IMrsDbObjectData, IMrsAddContentSetData,
     IMrsContentSetData, IMrsContentFileData, IShellMrsUpdateAuthenticationAppKwargsValue, IMrsUserData,
     IShellMrsUpdateUserKwargsValue, IMrsRoleData, IMrsUserRoleData,
-    IMrsRouterData, IMrsCurrentServiceMetadata, IMrsTableColumnWithReference, IMrsObjectFieldWithReference, IMrsObject,
+    IMrsRouterData, IMrsCurrentServiceMetadata, IMrsTableColumnWithReference, IMrsObjectFieldWithReference,
+    IMrsObject, IMrsDbObjectParameterData,
 } from "../../communication/ProtocolMrs";
 import { webSession } from "../WebSession";
 
@@ -37,13 +38,14 @@ export class ShellInterfaceMrs {
     // The key under which the module session is stored in the WebSession instance.
     public moduleSessionLookupId = "";
 
-    public async configure(enableMrs?: boolean): Promise<void> {
+    public async configure(enableMrs?: boolean, allowRecreationOnMajorUpgrade?: boolean): Promise<void> {
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsConfigure,
             parameters: {
                 args: {
                     moduleSessionId: this.moduleSessionId,
                     enableMrs,
+                    allowRecreationOnMajorUpgrade,
                 },
             },
         });
@@ -404,7 +406,7 @@ export class ShellInterfaceMrs {
         schemaId?: string, schemaName?: string,
         comments?: string, mediaType?: string,
         authStoredProcedure?: string,
-        fields?: IMrsDbObjectFieldData[]): Promise<string> {
+        objects?: IMrsObject[]): Promise<string> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsAddDbObject,
             parameters: {
@@ -428,7 +430,7 @@ export class ShellInterfaceMrs {
                     autoDetectMediaType,
                     authStoredProcedure,
                     options,
-                    fields,
+                    objects,
                 },
             },
         });
@@ -466,72 +468,6 @@ export class ShellInterfaceMrs {
 
         return response.result;
     }
-
-    public async getDbObjectRowOwnershipFields(requestPath?: string, dbObjectName?: string,
-        dbObjectId?: string, schemaId?: string, schemaName?: string,
-        dbObjectType?: string): Promise<string[]> {
-        const response = await MessageScheduler.get.sendRequest({
-            requestType: ShellAPIMrs.MrsGetDbObjectRowOwnershipFields,
-            parameters: {
-                kwargs: {
-                    dbObjectId,
-                    requestPath,
-                    dbObjectName,
-                    moduleSessionId: this.moduleSessionId,
-                    schemaId,
-                    schemaName,
-                    dbObjectType,
-                },
-            },
-        });
-
-        return response.result;
-    }
-
-    public async getDbObjectSelectedFields(requestPath?: string, dbObjectName?: string,
-        dbObjectId?: string, schemaId?: string, schemaName?: string): Promise<IMrsDbObjectFieldData[]> {
-        const response = await MessageScheduler.get.sendRequest({
-            requestType: ShellAPIMrs.MrsGetDbObjectSelectedFields,
-            parameters: {
-                args: {
-                    requestPath,
-                    dbObjectName,
-                },
-                kwargs: {
-                    moduleSessionId: this.moduleSessionId,
-                    dbObjectId,
-                    schemaId,
-                    schemaName,
-                },
-            },
-        });
-
-        return response.result;
-    }
-
-    public async getDbObjectFields(requestPath?: string, dbObjectName?: string,
-        dbObjectId?: number, schemaId?: number, schemaName?: string,
-        dbObjectType?: string): Promise<IMrsDbObjectFieldData[]> {
-        const response = await MessageScheduler.get.sendRequest({
-            requestType: ShellAPIMrs.MrsGetDbObjectFields,
-            parameters: {
-                args: {
-                    dbObjectId,
-                    schemaId,
-                    requestPath,
-                    dbObjectName,
-                },
-                kwargs: {
-                    moduleSessionId: this.moduleSessionId,
-                    schemaName,
-                    dbObjectType,
-                },
-            },
-        });
-
-        return response.result;
-    }
-
 
     public async deleteDbObject(dbObjectId: string): Promise<void> {
         await MessageScheduler.get.sendRequest({
@@ -860,6 +796,25 @@ export class ShellInterfaceMrs {
         return response.result;
     }
 
+    public async getDbObjectParameters(dbObjectName?: string,
+        dbSchemaName?: string, dbObjectId?: string): Promise<IMrsDbObjectParameterData[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsGetDbObjectParameters,
+            parameters: {
+                args: {
+                },
+                kwargs: {
+                    dbObjectId,
+                    dbSchemaName,
+                    dbObjectName,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
     public async getObjects(dbObjectId?: string): Promise<IMrsObject[]> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsGetObjects,
@@ -890,17 +845,5 @@ export class ShellInterfaceMrs {
         });
 
         return response.result;
-    }
-
-    public async setObjectFieldsWithReferences(obj: IMrsObject): Promise<void> {
-        await MessageScheduler.get.sendRequest({
-            requestType: ShellAPIMrs.MrsSetObjectFieldsWithReferences,
-            parameters: {
-                kwargs: {
-                    obj,
-                    moduleSessionId: this.moduleSessionId,
-                },
-            },
-        });
     }
 }

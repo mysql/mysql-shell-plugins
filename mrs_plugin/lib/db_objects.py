@@ -184,7 +184,8 @@ def query_db_objects(session, db_object_id=None, schema_id=None, request_path=No
     return core.MrsDbExec(sql, params).exec(session).items
 
 
-def get_db_object(session, db_object_id: bytes = None, schema_id: bytes = None, request_path=None, db_object_name=None):
+def get_db_object(session, db_object_id: bytes = None, schema_id: bytes = None, request_path=None, db_object_name=None,
+                  absolute_request_path: str = None):
     """Gets a specific MRS db_object
 
     Args:
@@ -193,6 +194,7 @@ def get_db_object(session, db_object_id: bytes = None, schema_id: bytes = None, 
         schema_id: The id of the schema
         request_path (str): The request_path of the schema
         db_object_name (str): The name of the schema
+        absolute_request_path (str): The absolute request_path to the db_object
 
     Returns:
         The db_object as dict
@@ -208,6 +210,10 @@ def get_db_object(session, db_object_id: bytes = None, schema_id: bytes = None, 
         elif db_object_name:
             result = query_db_objects(
                 session=session, schema_id=schema_id, db_object_name=db_object_name)
+        elif absolute_request_path:
+            result = database.get_object_via_absolute_request_path(
+                session=session, absolute_request_path=absolute_request_path,
+                ignore_case=True)
 
     return result[0] if result else None
 
@@ -231,10 +237,10 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
                   enabled, items_per_page, requires_auth,
                   row_user_ownership_enforced, row_user_ownership_column, crud_operations,
                   crud_operation_format, comments, media_type, auto_detect_media_type, auth_stored_procedure,
-                  options, fields, db_object_id=None, reuse_ids=False):
+                  options, objects, db_object_id=None, reuse_ids=False):
 
     options = core.convert_json(options)
-    fields = core.convert_json(fields)
+    objects = core.convert_json(objects)
 
     if not isinstance(db_object_name, str):
         raise Exception('Invalid object name.')
@@ -264,8 +270,8 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
     if not comments:
         comments = ""
 
-    if fields is None:
-        fields = []
+    if objects is None:
+        objects = []
 
     schema = schemas.get_schema(session=session,
                                 schema_id=schema_id, auto_select_single=True)
@@ -298,14 +304,7 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
         "options": options,
     }).exec(session)
 
-    for field in fields:
-        if reuse_ids and 'id' in field:
-            field["id"] = core.id_to_binary(field["id"], "")
-        else:
-            field["id"] = core.get_sequence_id(session)
-
-        field["db_object_id"] = db_object_id
-        core.insert(table="field", values=field).exec(session)
+    set_objects(session, db_object_id, objects)
 
     # TODO(miguel?): Issuing these grants in the middle of adding a DB object may
     # lead to an inconsistent state. The identified case for this is when loading
@@ -443,17 +442,12 @@ def get_available_db_object_row_ownership_fields(session, schema_name, db_object
     return [record["name"] for record in sql.exec(session, [schema_name, db_object_name]).items]
 
 
-def get_db_object_row_ownership_fields(session, db_object_id):
-    return [record["name"] for record in core.select(table="field",
-                                                     where="db_object_id=?").exec(session, [db_object_id]).items]
-
-
 def update_db_objects(session, db_object_ids, value):
     if "crud_operation_format" in value:
         value["format"] = value.pop("crud_operation_format")
 
     for db_object_id in db_object_ids:
-        fields = value.pop("fields", None)
+        objects = value.pop("objects", None)
 
         core.update("db_object",
                     sets=value,
@@ -474,53 +468,29 @@ def update_db_objects(session, db_object_ids, value):
                 database.grant_db_object(session, schema.get(
                     "name"), db_object['name'], grant_privileges)
 
-        if fields is not None:
-            update_db_object_fields(session, db_object_id, fields)
+        if objects is not None:
+            set_objects(session, db_object_id, objects)
 
 
-def update_db_object_fields(session, db_object_id, fields):
-    fields_in_db = core.select(table="field",
-                               where="db_object_id=?"
-                               ).exec(session, [db_object_id]).items
-
-    for field_in_db in fields_in_db:
-        if field_in_db["id"] not in [field["id"] for field in fields]:
-            core.delete(table="field", where="id=?").exec(
-                session, [field_in_db["id"]])
-
-    for field in fields:
-        id = field.pop("id", None)
-        # force the db_object_id to the current one
-        field["db_object_id"] = db_object_id
-
-        if id:
-            core.update(table="field", sets=field,
-                        where="id=?").exec(session, [id])
-        else:
-            field["id"] = core.get_sequence_id(session)
-            core.insert(table="field", values=field).exec(session)
-
-
-def get_db_object_fields(session, db_object_id=None,
-                         schema_name=None, db_object_name=None, db_object_type=None):
+def get_db_object_parameters(session, db_object_id=None,
+                             db_schema_name=None, db_object_name=None):
 
     if db_object_id:
         db_object = get_db_object(session, db_object_id)
 
         if not db_object:
             raise ValueError(
-                "The database object must be identified via schema_name, db_object_name and db_object_type "
-                "or via the request_path and db_object_name.")
+                "The database object must be identified via schema_name and db_object_name "
+                "or db_object_id.")
 
-        schema_name = db_object["schema_name"]
+        db_schema_name = db_object["schema_name"]
         db_object_name = db_object["name"]
-        db_object_type = db_object["object_type"]
 
-    if db_object_type not in ["TABLE", "VIEW", "PROCEDURE"]:
-        raise ValueError(
-            "The object_type must be either set to TABLE, VIEW or PROCEDURE.")
+        if db_object["object_type"] != "PROCEDURE":
+            raise ValueError(
+                "This function can only be called for PROCEDUREs.")
 
-    return database.get_db_object_fields(session, schema_name, db_object_name, db_object_type)
+    return database.get_db_object_parameters(session, db_schema_name, db_object_name)
 
 
 def get_table_columns_with_references(session, db_object_id=None,
@@ -553,18 +523,23 @@ def get_object_fields_with_references(session, object_id, binary_formatter=None)
     return database.get_object_fields_with_references(session, object_id, binary_formatter=binary_formatter)
 
 
-def set_object_fields_with_references(session, obj):
+def set_objects(session, db_object_id, objs):
     with core.MrsDbTransaction(session):
-        # TODO(someone): this deletion, causes that a db_object can not
-        # have multiple objects associated to it, to SPs are not supported
         sql = "DELETE FROM mysql_rest_service_metadata.object WHERE db_object_id = ?"
         core.MrsDbExec(sql).exec(session, [core.id_to_binary(
-            obj.get("db_object_id"), "object.db_object_id")]).items
+            db_object_id, "db_object_id")]).items
 
+        for obj in objs:
+            set_object_fields_with_references(session, db_object_id, obj)
+
+
+def set_object_fields_with_references(session, db_object_id, obj):
+    with core.MrsDbTransaction(session):
         core.insert(table="object", values={
             "id": core.id_to_binary(obj.get("id"), "object.id"),
-            "db_object_id": core.id_to_binary(obj.get("db_object_id"), "object.db_object_id"),
+            "db_object_id": core.id_to_binary(db_object_id, "db_object_id"),
             "name": obj.get("name"),
+            "kind": obj.get("kind", "RESULT"),
             "position": obj.get("position"),
             "sdk_options": core.convert_dict_to_json_string(obj.get("sdk_options")),
             "comments": obj.get("comments"),
@@ -589,7 +564,15 @@ def set_object_fields_with_references(session, obj):
                     # Convert column_mapping, which is a list of dict
                     converted_col_mapping = []
                     for cm in ref_map["column_mapping"]:
-                        converted_col_mapping.append(dict(cm))
+                        cm_dict = dict(cm)
+                        # Check if column_mapping already follows new format
+                        if "base" in cm_dict and "ref" in cm_dict:
+                            converted_col_mapping.append(cm_dict)
+                        else:
+                            # If not, convert to new format that uses "base" and "ref" keys
+                            for key in cm_dict.keys():
+                                converted_col_mapping.append(
+                                    {"base": key, "ref": cm_dict.get(key)})
 
                     ref_map["column_mapping"] = converted_col_mapping
                     ref_map_json = json.dumps(ref_map)
@@ -610,6 +593,7 @@ def set_object_fields_with_references(session, obj):
                         "objectReference.reduce_to_value_of_field_id", True),
                     "reference_mapping": ref_map_json,
                     "unnest": obj_ref.get("unnest"),
+                    "crud_operations": obj_ref.get("crud_operations"),
                     "sdk_options": core.convert_dict_to_json_string(obj_ref.get("sdk_options")),
                     "comments": obj_ref.get("comments"),
                 }).exec(session)

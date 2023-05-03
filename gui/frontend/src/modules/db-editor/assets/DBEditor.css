@@ -121,7 +121,7 @@ msg.connectionTabHost #dashboardToolbar .image {
 }
 
 .msg.connectionTabHost #dbEditorToolbar #newScriptMenuButton {
-    padding-left: 4px;
+    margin-left: 4px;
 }
 
 .msg.connectionBrowser .toolbar > .label,

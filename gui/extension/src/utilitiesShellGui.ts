@@ -23,7 +23,7 @@
 
 import { window } from "vscode";
 
-import { ShellPromptResponseType } from "../../frontend/src/communication/Protocol";
+import { IGenericResponse, ShellPromptResponseType } from "../../frontend/src/communication/Protocol";
 import { IShellFeedbackRequest } from "../../frontend/src/communication/ProtocolGui";
 import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
 
@@ -40,10 +40,10 @@ const isShellPromptResult = (response?: unknown): response is IShellFeedbackRequ
  *
  * @param sqlEditor A ShellInterfaceSqlEditor instance
  * @param connectionId The id of the connection to open
- * @param _progress A callback that displays a progress message
+ * @param progress A callback that displays a progress message
  */
 export const openSqlEditorConnection = async (sqlEditor: ShellInterfaceSqlEditor, connectionId: number,
-    _progress?: (message: string) => void): Promise<void> => {
+    progress?: (message: string) => void): Promise<void> => {
 
     await sqlEditor.openConnection(connectionId, undefined, (data, requestId) => {
         const result = data.result;
@@ -66,6 +66,9 @@ export const openSqlEditorConnection = async (sqlEditor: ShellInterfaceSqlEditor
                         }
                     });
             }
+        } else if (progress) {
+            const raw = data as unknown as IGenericResponse;
+            progress(raw.requestState.msg);
         }
     });
 };

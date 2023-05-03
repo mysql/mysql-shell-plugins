@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1,0,0,1,-680,-1024)">
+        <g id="Reference-Options" serif:id="Reference Options">
+            <g id="CheckAll">
+            </g>
+            <g id="CheckNone" transform="matrix(1,0,0,1,20,6)">
+                <g transform="matrix(1,0,0,1,0,-1)">
+                    <path d="M690,1029L690,1051L668,1051L668,1029L690,1029ZM688,1031L670,1031L670,1049L688,1049L688,1031Z" style="fill:black;"/>
+                </g>
+                <path d="M668,1046L664,1046L664,1024L686,1024L686,1028L684,1028L684,1026L666,1026L666,1044L668,1044L668,1046Z" style="fill:black;"/>
+                <g transform="matrix(1,0,0,1,-4,-4)">
+                    <path d="M668,1046L664,1046L664,1024L686,1024L686,1028L684,1028L684,1026L666,1026L666,1044L668,1044L668,1046Z" style="fill:black;"/>
+                </g>
+            </g>
+        </g>
+        <g id="Options">
+        </g>
+        <g id="Unnest">
+        </g>
+        <g id="CRUD">
+        </g>
+    </g>
+</svg>

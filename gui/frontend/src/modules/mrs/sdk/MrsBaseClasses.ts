@@ -385,34 +385,6 @@ export interface IMrsBaseObject {
     links?: IMrsLink[];
 }
 
-export interface IMrsValidationResult {
-    fieldName: string;
-    validationError: string;
-}
-
-export class MrsBaseObject<C, P> implements IMrsBaseObject {
-    public links?: IMrsLink[];
-    protected param?: P;
-    protected fieldsNew: Partial<C> = {};
-
-    public constructor(
-        protected fields: C,
-        protected mrsSchema?: MrsBaseSchema) {
-    }
-
-    public getChangedFields = (): Partial<C> => {
-        return this.fieldsNew;
-    };
-
-    public validate = (): IMrsValidationResult[] => {
-        return [];
-    };
-
-    /*protected get = <K extends keyof P>(...args: K[]): void => {
-        // ToDO
-    };*/
-}
-
 export interface IMrsOperator {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     "=": "$eq",
@@ -432,13 +404,27 @@ export interface IMrsOperator {
     "between": "$between",
 }
 
+export interface IMrsMetadata {
+    etag: string;
+}
+
 export interface IMrsResultList<C> {
     items: C[],
     limit: number,
-    offset: number,
+    offset?: number,
     hasMore: boolean,
     count: number,
     links?: IMrsLink[],
+    _metadata?: IMrsMetadata,
+}
+
+export interface IMrsProcedureResult<C> {
+    mrsInterface: string,
+    items: C[],
+}
+
+export interface IMrsProcedureResultList<C> {
+    results: Array<IMrsProcedureResult<C>>,
 }
 
 export interface IMrsDeleteResult {
@@ -513,7 +499,7 @@ export interface IFindAllOptions<C> {
 
 export interface IFindOptions<C, T> extends Partial<IFilterOptions<T>> {
     orderBy?: ColumnOrder<T>,
-    select?: ResultFields<T> | ColumnNames<T>,
+    select?: ResultFields<C> | ColumnNames<C>,
     skip?: number,
     take?: number,
     fetchAll?: IFindAllOptions<C> | boolean,
@@ -539,7 +525,7 @@ export type UpdateMatch<T, Keys extends Array<string & keyof T>> = {
     [K in keyof Pick<T, Keys[number]>]-?: T[K]
 };
 
-export class MrsBaseObjectQuery<C, P, O extends MrsBaseObject<C, P>> {
+export class MrsBaseObjectQuery<C, P> {
     // This needs to be extended in order to hold AND, OR, etc. based on the actual grammar
     protected whereCondition?: string;
     protected offsetCondition?: number;
@@ -548,8 +534,6 @@ export class MrsBaseObjectQuery<C, P, O extends MrsBaseObject<C, P>> {
 
     public constructor(
         private readonly schema: MrsBaseSchema,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/naming-convention
-        private readonly T: new (...args: any[]) => O,
         private readonly requestPath: string,
         private readonly fieldsToGet?: string[] | ResultFields<C> | ColumnNames<C>,
         private readonly fieldsToOmit?: string[]) {
@@ -762,31 +746,6 @@ export class MrsBaseObjectQuery<C, P, O extends MrsBaseObject<C, P>> {
             return undefined;
         }
     };
-
-    public fetchObject = async (): Promise<O | undefined> => {
-        const result = await this.fetchOne();
-
-        if (result !== undefined) {
-            return new this.T(result);
-        } else {
-            return undefined;
-        }
-    };
-
-    public fetchAllObjects = async (): Promise<O[] | undefined> => {
-        const result = await this.fetch();
-
-        if (result !== undefined) {
-            const objList: O[] = [];
-            result.items.forEach((item) => {
-                objList.push(new this.T(item));
-            });
-
-            return objList;
-        } else {
-            return undefined;
-        }
-    };
 }
 
 export class MrsBaseObjectCreate<T> {
@@ -846,11 +805,11 @@ export class MrsBaseObjectDelete<T> {
     };
 }
 
-export class MrsBaseObjectUpdate<T, P extends object | undefined> {
+export class MrsBaseObjectUpdate<T extends object | undefined> {
     public constructor(
         protected schema: MrsBaseSchema,
         protected requestPath: string,
-        protected fieldsToSet: P,
+        protected fieldsToSet: T,
         protected keys: string[]) {
     }
 
@@ -874,7 +833,7 @@ export class MrsBaseObjectUpdate<T, P extends object | undefined> {
         const res = await this.schema.service.session.doFetch({
             input,
             method: "PUT",
-            body: (this.fieldsToSet instanceof MrsBaseObject) ? this.fieldsToSet.getChangedFields() : this.fieldsToSet,
+            body: this.fieldsToSet,
             errorMsg: "Failed to update item.",
         });
 
@@ -891,7 +850,7 @@ export class MrsBaseObjectCall<I, P extends IMrsFetchData> {
         protected params: P) {
     }
 
-    public fetch = async (): Promise<IMrsResultList<I>> => {
+    public fetch = async (): Promise<IMrsProcedureResultList<I>> => {
         const input = `${this.schema.requestPath}${this.requestPath}`;
 
         const res = await this.schema.service.session.doFetch({
@@ -903,6 +862,6 @@ export class MrsBaseObjectCall<I, P extends IMrsFetchData> {
 
         const responseBody = await res.json();
 
-        return responseBody as IMrsResultList<I>;
+        return responseBody as IMrsProcedureResultList<I>;
     };
 }

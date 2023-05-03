@@ -43,9 +43,8 @@ export class WebviewProvider implements IWebviewProvider {
     protected panel?: WebviewPanel;
     protected requisitions?: RequisitionHub;
 
+    #notifyOnDispose = true;
     #caption: string;
-
-    private notifyOnDispose = true;
 
     public constructor(
         protected url: URL,
@@ -68,7 +67,7 @@ export class WebviewProvider implements IWebviewProvider {
 
     public close(): void {
         if (this.panel) {
-            this.notifyOnDispose = false;
+            this.#notifyOnDispose = false;
             this.panel.dispose();
             this.panel = undefined;
         }
@@ -179,7 +178,7 @@ export class WebviewProvider implements IWebviewProvider {
 
     protected handleDispose(): void {
         this.panel = undefined;
-        if (this.notifyOnDispose) {
+        if (this.#notifyOnDispose) {
             this.onDispose(this);
         }
     }

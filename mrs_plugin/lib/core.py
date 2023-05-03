@@ -287,6 +287,7 @@ def get_current_session(session=None):
 def get_metadata_schema_updated():
     return _metadata_schema_updated
 
+
 def get_mrs_schema_version(session):
     row = select(table="schema_version", cols=["major", "minor", "patch", "CONCAT(major, '.', minor, '.', patch) AS version"]
                  ).exec(session).first
@@ -382,14 +383,14 @@ def update_rds_metadata_schema(session, current_db_version_str):
                       f"to version {general.DB_VERSION_STR}.")
 
 
-def create_rds_metadata_schema(session):
+def create_rds_metadata_schema(session, drop_existing=False):
     """Creates or updates the MRS metadata schema
 #
     Raises exception on failure
 
     Args:
         session (object): The database session to use
-        interactive (bool): Indicates whether to execute in interactive mode
+        drop_existing (bool): Whether to drop the MRS metadata schema before creation
 
     Returns:
         None
@@ -423,12 +424,15 @@ def create_rds_metadata_schema(session):
     with open(sql_file_path) as f:
         sql_script = f.read()
 
-    cmds = mysqlsh.mysql.split_script(sql_script)
+    commands = mysqlsh.mysql.split_script(sql_script)
+
+    if drop_existing:
+        session.run_sql("DROP SCHEMA IF EXISTS `mysql_rest_service_metadata`")
 
     # Execute all commands
     current_cmd = ""
     try:
-        for cmd in cmds:
+        for cmd in commands:
             current_cmd = cmd.strip()
             if current_cmd:
                 session.run_sql(current_cmd)
@@ -741,7 +745,7 @@ def convert_json(value) -> dict:
     return json.loads(value_str)
 
 
-def id_to_binary(id: str, context: str, allowNone = False):
+def id_to_binary(id: str, context: str, allowNone=False):
     if allowNone and id is None:
         return None
     if isinstance(id, bytes):
@@ -772,13 +776,16 @@ def convert_ids_to_binary(id_options, kwargs):
         if id is not None:
             kwargs[id_option] = id_to_binary(id, id_option)
 
+
 def convert_id_to_string(id) -> str:
     return f"0x{id.hex()}"
+
 
 def convert_dict_to_json_string(dic) -> str:
     if dic is None:
         return None
     return json.dumps(dict(dic))
+
 
 def _generate_where(where):
     if where:
@@ -938,9 +945,14 @@ class MrsDbSession:
         check_version = kwargs.get("check_version", True)
         if mrs_metadata_schema_exists(self._session) and check_version:
             current_db_version = get_mrs_schema_version(self._session)
+            if current_db_version[0] != general.DB_VERSION[0]:
+                raise Exception("This MySQL Shell version requires a new major version of the MRS metadata schema, "
+                                f"{general.DB_VERSION_STR}. The currently deployed schema version is "
+                                f"{'%d.%d.%d' % tuple(current_db_version)}. Please downgrade the MySQL Shell version "
+                                "or drop the MRS metadata schema and run `mrs.configure()`.")
             if current_db_version < general.DB_VERSION:
-                raise Exception("The MRS schema is outdated. Please run `mrs.configure()` to upgrade.")
-
+                raise Exception(
+                    "The MRS metadata schema is outdated. Please run `mrs.configure()` to upgrade.")
 
     def __enter__(self):
         return self._session
@@ -1074,6 +1086,7 @@ def get_session_uri(session):
 
     return uri
 
+
 def convert_path_to_camel_case(path):
     if (path.startswith("/")):
         path = path[1:]
@@ -1082,6 +1095,13 @@ def convert_path_to_camel_case(path):
     parts = path.split('_')
     return parts[0] + ''.join(x.title() for x in parts[1:])
 
+
 def convert_path_to_pascal_case(path):
     s = convert_path_to_camel_case(path)
+    l = len(s)
+    if l == 0:
+        return ""
+    if l == 1:
+        return s[0].upper()
+
     return s[0].upper() + s[1:]

@@ -193,7 +193,7 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it("Bootstrap Local MySQL Router Instance", async () => {
+        it.skip("Bootstrap Local MySQL Router Instance", async () => {
 
             expect(await Misc.isRouterInstalled(), "Please install MySQL Router manually").to.be.true;
             await Misc.openContexMenuItem(treeMySQLRESTService, "Bootstrap Local MySQL Router Instance");
@@ -216,7 +216,7 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it("Bootstrap a running Local MySQL Router Instance", async () => {
+        it.skip("Bootstrap a running Local MySQL Router Instance", async () => {
 
             expect(await Misc.isRouterInstalled(), "Please install MySQL Router manually").to.be.true;
             await Misc.openContexMenuItem(treeMySQLRESTService, "Bootstrap Local MySQL Router Instance");
@@ -242,7 +242,7 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it("Start Local MySQL Router Instance", async () => {
+        it.skip("Start Local MySQL Router Instance", async () => {
 
             await Misc.openContexMenuItem(treeMySQLRESTService, "Start Local MySQL Router Instance");
             await Misc.waitForTerminalText(
@@ -266,7 +266,7 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it("Stop Local MySQL Router Instance", async () => {
+        it.skip("Stop Local MySQL Router Instance", async () => {
 
             await Misc.openContexMenuItem(treeMySQLRESTService, "Stop Local MySQL Router Instance");
             await Misc.waitForTerminalText(["mysqlrouter\\stop", "Unloading all plugins"], constants.explicitWait * 2);

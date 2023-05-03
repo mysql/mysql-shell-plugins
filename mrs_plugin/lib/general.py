@@ -24,9 +24,12 @@ from mrs_plugin import lib
 # Define plugin version
 VERSION = "1.10.2"
 
-DB_VERSION = [1, 1, 3]
+DB_VERSION = [2, 0, 1]
+REQUIRED_ROUTER_VERSION = [8, 0, 33]
+
 DB_VERSION_STR = '%d.%d.%d' % tuple(DB_VERSION)
 DB_VERSION_NUM = DB_VERSION[0] * 100000 + DB_VERSION[1] * 1000 + DB_VERSION[2]
+REQUIRED_ROUTER_VERSION_STR = '%d.%d.%d' % tuple(REQUIRED_ROUTER_VERSION)
 
 
 def get_status(session):
@@ -38,24 +41,30 @@ def get_status(session):
             'service_enabled': False,
             'service_count': 0,
             'service_upgradeable': 0,
+            'major_upgrade_required': 0,
         }
     else:
         result = {'service_configured': True}
 
     # Check if MRS is enabled
     row = lib.core.select(table="config",
-                      cols="service_enabled",
-                      where="id=1"
-                      ).exec(session).first
+                          cols="service_enabled",
+                          where="id=1"
+                          ).exec(session).first
     result['service_enabled'] = row["service_enabled"]
 
     # Get the number of enabled services
     row = lib.core.select(table="service",
-                      cols="SUM(enabled) as service_count"
-                      ).exec(session).first
+                          cols="SUM(enabled) as service_count"
+                          ).exec(session).first
     result['service_count'] = 0 if row["service_count"] is None else int(
         row["service_count"])
 
-    result["service_upgradeable"] = DB_VERSION > lib.core.get_mrs_schema_version(session)
+    current_version = lib.core.get_mrs_schema_version(session)
+    result["service_upgradeable"] = DB_VERSION > current_version
+    result["major_upgrade_required"] = DB_VERSION[0] > current_version[0]
+    result["current_metadata_version"] = '%d.%d.%d' % tuple(current_version)
+    result["required_metadata_version"] = DB_VERSION_STR
+    result["required_router_version"] = REQUIRED_ROUTER_VERSION_STR
 
     return result

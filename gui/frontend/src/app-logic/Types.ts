@@ -208,7 +208,7 @@ export enum DialogType {
 /** Types for MySQL REST dialogs. */
 export enum MrsDialogType {
     /** A dialog to create or edit an MRS service. */
-    MrsService,
+    MrsService = 10,
 
     /** A dialog to create or edit an MRS Authentication App */
     MrsAuthenticationApp,
@@ -229,7 +229,7 @@ export enum MrsDialogType {
 /** Types for MySQL Database Service (OCI) dialogs. */
 export enum MdsDialogType {
     /** A dialog to create or edit a MySQL HeatWave cluster. */
-    MdsHeatWaveCluster,
+    MdsHeatWaveCluster = 20,
 
     /** A dialog to load data to MySQL HeatWave cluster. */
     MdsHeatWaveLoadData,

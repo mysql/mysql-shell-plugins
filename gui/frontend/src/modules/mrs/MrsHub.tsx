@@ -27,7 +27,7 @@ import { DialogResponseClosure, DialogType, IDialogRequest, IDictionary, MrsDial
 import { IShellDictionary } from "../../communication/Protocol";
 
 import {
-    IMrsAuthAppData, IMrsContentSetData, IMrsDbObjectFieldData, IMrsSchemaData, IMrsServiceData, IMrsUserData,
+    IMrsAuthAppData, IMrsContentSetData, IMrsObject, IMrsSchemaData, IMrsServiceData, IMrsUserData,
     IMrsUserRoleData,
 } from "../../communication/ProtocolMrs";
 import { AwaitableValueEditDialog } from "../../components/Dialogs/AwaitableValueEditDialog";
@@ -35,7 +35,7 @@ import { ComponentBase } from "../../components/ui/Component/ComponentBase";
 import { IMrsDbObjectEditRequest, requisitions } from "../../supplement/Requisitions";
 
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor";
-import { IMrsEditObjectDialogData, MrsDbObjectDialog } from "./dialogs/MrsDbObjectDialog";
+import { MrsDbObjectDialog } from "./dialogs/MrsDbObjectDialog";
 import { IMrsSchemaDialogData, MrsSchemaDialog } from "./dialogs/MrsSchemaDialog";
 import { IMrsContentSetDialogData, MrsContentSetDialog } from "./dialogs/MrsContentSetDialog";
 import { IMrsAuthenticationAppDialogData, MrsAuthenticationAppDialog } from "./dialogs/MrsAuthenticationAppDialog";
@@ -45,6 +45,30 @@ import { uuid } from "../../utilities/helpers";
 import { DialogHost } from "../../app-logic/DialogHost";
 
 type DialogConstructor = new (props: {}) => AwaitableValueEditDialog;
+
+interface IMrsEditObjectData extends IDictionary {
+    serviceId: string,
+    dbSchemaId: string,
+    dbSchemaPath: string,
+    name: string,
+    requestPath: string,
+    requiresAuth: boolean,
+    enabled: boolean,
+    itemsPerPage: number,
+    comments: string,
+    rowUserOwnershipEnforced: boolean,
+    rowUserOwnershipColumn: string,
+    objectType: string,
+    crudOperations: string[],
+    crudOperationFormat: string,
+    autoDetectMediaType: boolean,
+    mediaType: string,
+    options: string,
+    authStoredProcedure: string,
+    objects: IMrsObject[];
+
+    payload: IDictionary;
+}
 
 /** A component to host all MRS dialogs of the application and the handling of dialog results. */
 export class MrsHub extends ComponentBase {
@@ -97,189 +121,184 @@ export class MrsHub extends ComponentBase {
     public showMrsServiceDialog = async (backend: ShellInterfaceSqlEditor,
         service?: IMrsServiceData): Promise<boolean> => {
 
-        try {
-            const authVendors = await backend.mrs.getAuthVendors();
+        const authVendors = await backend.mrs.getAuthVendors();
 
-            const title = service
-                ? "Adjust the REST Service Configuration"
-                : "Enter Configuration Values for the New REST Service";
-            const authAppNewItem: IMrsAuthAppData = {
-                id: "",
-                authVendorId: "",
-                authVendorName: "",
-                serviceId: "",
-                name: "<new>",
-                description: "",
-                url: "",
-                urlDirectAuth: "",
-                accessToken: "",
-                appId: "",
-                enabled: true,
-                limitToRegisteredUsers: true,
-                defaultRoleId: "MQAAAAAAAAAAAAAAAAAAAA==",
-            };
+        const title = service
+            ? "Adjust the REST Service Configuration"
+            : "Enter Configuration Values for the New REST Service";
+        const authAppNewItem: IMrsAuthAppData = {
+            id: "",
+            authVendorId: "",
+            authVendorName: "",
+            serviceId: "",
+            name: "<new>",
+            description: "",
+            url: "",
+            urlDirectAuth: "",
+            accessToken: "",
+            appId: "",
+            enabled: true,
+            limitToRegisteredUsers: true,
+            defaultRoleId: "MQAAAAAAAAAAAAAAAAAAAA==",
+        };
 
-            if (service && (!service.authApps)) {
-                service.authApps = await backend.mrs.getAuthApps(service.id);
+        if (service && (!service.authApps)) {
+            service.authApps = await backend.mrs.getAuthApps(service.id);
 
-                // Add entry for <new> item.
-                service.authApps.push(authAppNewItem);
+            // Add entry for <new> item.
+            service.authApps.push(authAppNewItem);
 
-                // Set the authVendorName fields of the app list so it can be used for the dropdown.
-                for (const app of service.authApps) {
-                    app.authVendorName = authVendors.find((vendor) => {
-                        return app.authVendorId === vendor.id;
-                    })?.name ?? "";
+            // Set the authVendorName fields of the app list so it can be used for the dropdown.
+            for (const app of service.authApps) {
+                app.authVendorName = authVendors.find((vendor) => {
+                    return app.authVendorId === vendor.id;
+                })?.name ?? "";
+            }
+        }
+
+        const defaultOptions = {
+            headers: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                "Access-Control-Allow-Credentials": "true",
+                // eslint-disable-next-line @typescript-eslint/naming-convention, max-len
+                "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, Origin, X-Auth-Token",
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            },
+            http: {
+                allowedOrigin: "auto",
+            },
+            logging: {
+                exceptions: true,
+                request: {
+                    body: true,
+                    headers: true,
+                },
+                response: {
+                    body: true,
+                    headers: true,
+                },
+            },
+            returnInternalErrorDetails: true,
+        };
+
+        let serviceOptions = "";
+        if (service?.options) {
+            serviceOptions = JSON.stringify(service.options, undefined, 4);
+        } else if (!service) {
+            serviceOptions = JSON.stringify(defaultOptions, undefined, 4);
+        }
+
+        const dialogRequest = {
+            id: "mrsServiceDialog",
+            type: MrsDialogType.MrsService,
+            title,
+            parameters: {
+                protocols: ["HTTPS", "HTTP"],
+                authVendors,
+            },
+            values: {
+                serviceId: service?.id ?? 0,
+                servicePath: service?.urlContextRoot ?? "/myService",
+                hostName: service?.urlHostName,
+                protocols: service?.urlProtocol ?? ["HTTPS"],
+                isCurrent: !service || service.isCurrent === 1,
+                enabled: !service || service.enabled === 1,
+                comments: service?.comments ?? "",
+                options: serviceOptions,
+                authPath: service?.authPath ?? "/authentication",
+                authCompletedUrlValidation: service?.authCompletedUrlValidation ?? "",
+                authCompletedUrl: service?.authCompletedUrl ?? "",
+                authCompletedPageContent: service?.authCompletedPageContent ?? "",
+                authApps: service?.authApps ?? [authAppNewItem],
+            },
+        };
+
+        const result = await this.showDialog(dialogRequest);
+        if (result === DialogResponseClosure.Cancel) {
+            return true;
+        }
+
+        const data = result as IMrsServiceDialogData;
+
+        const urlContextRoot = data.servicePath;
+        const protocols = data.protocols;
+        const hostName = data.hostName;
+        const comments = data.comments;
+        const isCurrent = data.isCurrent;
+        const enabled = data.enabled;
+        const options = data.options === "" ?
+            null : JSON.parse(data.options) as IShellDictionary;
+        const authPath = data.authPath;
+        const authCompletedUrl = data.authCompletedUrl;
+        const authCompletedUrlValidation = data.authCompletedUrlValidation;
+        const authCompletedPageContent = data.authCompletedPageContent;
+
+        // Remove entry for <new> item.
+        const authApps = (data.authApps as IMrsAuthAppData[]).filter((a: IMrsAuthAppData) => {
+            return a.id !== "";
+        });
+
+        // Set the authVendorId based on the authVendorName.
+        for (const app of authApps) {
+            app.authVendorId = authVendors.find((vendor) => {
+                return app.authVendorName === vendor.name;
+            })?.id ?? "";
+            app.serviceId = app.serviceId === "" ? undefined : app.serviceId;
+            app.authVendorId = app.authVendorId === "" ? undefined : app.authVendorId;
+            app.defaultRoleId = app.defaultRoleId === "" ? null : app.defaultRoleId;
+        }
+
+        if (!service) {
+            try {
+                const service = await backend.mrs.addService(urlContextRoot, protocols, hostName ?? "",
+                    comments, enabled,
+                    options,
+                    authPath, authCompletedUrl, authCompletedUrlValidation, authCompletedPageContent,
+                    authApps);
+
+                if (isCurrent) {
+                    await backend.mrs.setCurrentService(service.id);
                 }
+
+                void requisitions.executeRemote("refreshConnections", undefined);
+                void requisitions.execute("showInfo", ["The MRS service has been created."]);
+            } catch (error) {
+                void requisitions.execute("showError", [`Error while adding MySQL REST service: ${String(error)}`]);
             }
-
-            const defaultOptions = {
-                headers: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    "Access-Control-Allow-Credentials": "true",
-                    // eslint-disable-next-line @typescript-eslint/naming-convention, max-len
-                    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, Origin, X-Auth-Token",
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-                },
-                http: {
-                    allowedOrigin: "auto",
-                },
-                logging: {
-                    exceptions: true,
-                    request: {
-                        body: true,
-                        headers: true,
-                    },
-                    response: {
-                        body: true,
-                        headers: true,
-                    },
-                },
-                returnInternalErrorDetails: true,
-            };
-
-            let serviceOptions = "";
-            if (service?.options) {
-                serviceOptions = JSON.stringify(service.options, undefined, 4);
-            } else if (!service) {
-                serviceOptions = JSON.stringify(defaultOptions, undefined, 4);
-            }
-
-            const dialogRequest = {
-                id: "mrsServiceDialog",
-                type: MrsDialogType.MrsService,
-                title,
-                parameters: {
-                    protocols: ["HTTPS", "HTTP"],
-                    authVendors,
-                },
-                values: {
-                    serviceId: service?.id ?? 0,
-                    servicePath: service?.urlContextRoot ?? "/myService",
-                    hostName: service?.urlHostName,
-                    protocols: service?.urlProtocol ?? ["HTTPS"],
-                    isCurrent: !service || service.isCurrent === 1,
-                    enabled: !service || service.enabled === 1,
-                    comments: service?.comments ?? "",
-                    options: serviceOptions,
-                    authPath: service?.authPath ?? "/authentication",
-                    authCompletedUrlValidation: service?.authCompletedUrlValidation ?? "",
-                    authCompletedUrl: service?.authCompletedUrl ?? "",
-                    authCompletedPageContent: service?.authCompletedPageContent ?? "",
-                    authApps: service?.authApps ?? [authAppNewItem],
-                },
-            };
-
-            const result = await this.showDialog(dialogRequest);
-            if (result === DialogResponseClosure.Cancel) {
-                return true;
-            }
-
-            const data = result as IMrsServiceDialogData;
-
-            const urlContextRoot = data.servicePath;
-            const protocols = data.protocols;
-            const hostName = data.hostName;
-            const comments = data.comments;
-            const isCurrent = data.isCurrent;
-            const enabled = data.enabled;
-            const options = data.options === "" ?
-                null : JSON.parse(data.options) as IShellDictionary;
-            const authPath = data.authPath;
-            const authCompletedUrl = data.authCompletedUrl;
-            const authCompletedUrlValidation = data.authCompletedUrlValidation;
-            const authCompletedPageContent = data.authCompletedPageContent;
-
-            // Remove entry for <new> item.
-            const authApps = (data.authApps as IMrsAuthAppData[]).filter((a: IMrsAuthAppData) => {
-                return a.id !== "";
-            });
-
-            // Set the authVendorId based on the authVendorName.
-            for (const app of authApps) {
-                app.authVendorId = authVendors.find((vendor) => {
-                    return app.authVendorName === vendor.name;
-                })?.id ?? "";
-                app.serviceId = app.serviceId === "" ? undefined : app.serviceId;
-                app.authVendorId = app.authVendorId === "" ? undefined : app.authVendorId;
-                app.defaultRoleId = app.defaultRoleId === "" ? null : app.defaultRoleId;
-            }
-
-
-            if (!service) {
-                try {
-                    const service = await backend.mrs.addService(urlContextRoot, protocols, hostName ?? "",
-                        comments, enabled,
+        } else {
+            // Send update request.
+            try {
+                await backend.mrs.updateService(
+                    service.id,
+                    service.urlContextRoot,
+                    service.urlHostName,
+                    {
+                        urlContextRoot,
+                        urlProtocol: protocols,
+                        urlHostName: hostName,
+                        enabled,
+                        comments,
                         options,
-                        authPath, authCompletedUrl, authCompletedUrlValidation, authCompletedPageContent,
-                        authApps);
+                        authPath,
+                        authCompletedUrl,
+                        authCompletedUrlValidation,
+                        authCompletedPageContent,
+                        authApps,
+                    },
+                );
 
-                    if (isCurrent) {
-                        await backend.mrs.setCurrentService(service.id);
-                    }
-
-                    void requisitions.executeRemote("refreshConnections", undefined);
-                    // TODO: showMessageWithTimeout("The MRS service has been created.", 5000);
-                } catch (error) {
-                    void requisitions.execute("showError", [`Error while adding MySQL REST service: ${String(error)}`]);
+                if (isCurrent) {
+                    await backend.mrs.setCurrentService(service.id);
                 }
-            } else {
-                // Send update request.
-                try {
-                    await backend.mrs.updateService(
-                        service.id,
-                        service.urlContextRoot,
-                        service.urlHostName,
-                        {
-                            urlContextRoot,
-                            urlProtocol: protocols,
-                            urlHostName: hostName,
-                            enabled,
-                            comments,
-                            options,
-                            authPath,
-                            authCompletedUrl,
-                            authCompletedUrlValidation,
-                            authCompletedPageContent,
-                            authApps,
-                        },
-                    );
 
-                    if (isCurrent) {
-                        await backend.mrs.setCurrentService(service.id);
-                    }
+                void requisitions.execute("refreshConnections", undefined);
+                void requisitions.execute("showInfo", ["The MRS service has been successfully updated."]);
 
-                    void requisitions.execute("refreshConnections", undefined);
-                    // TODO: showMessageWithTimeout("The MRS service has been successfully updated.", 5000);
-
-                } catch (error) {
-                    void requisitions.execute("showError",
-                        [`Error while updating MySQL REST service: ${String(error)}`]);
-                }
+            } catch (error) {
+                void requisitions.execute("showError",
+                    [`Error while updating MySQL REST service: ${String(error)}`]);
             }
-        } finally {
-            void requisitions.executeRemote("closeInstance", undefined);
         }
 
         return true;
@@ -343,7 +362,7 @@ export class MrsHub extends ComponentBase {
                         itemsPerPage, comments);
 
                     void requisitions.executeRemote("refreshConnections", undefined);
-                    // TODO: showMessageWithTimeout("The MRS schema has been added successfully.", 5000);
+                    void requisitions.execute("showInfo", ["The MRS schema has been added successfully."]);
                 } catch (error) {
                     await requisitions.execute("showError",
                         [`Error while adding MRS schema: ${String(error) ?? "<unknown>"}`]);
@@ -354,7 +373,7 @@ export class MrsHub extends ComponentBase {
                         comments, options);
 
                     void requisitions.executeRemote("refreshConnections", undefined);
-                    // TODO: showMessageWithTimeout("The MRS schema has been updated successfully.", 5000);
+                    void requisitions.execute("showInfo", ["The MRS schema has been updated successfully."]);
                 } catch (error) {
                     await requisitions.execute("showError",
                         [`Error while updating MRS schema: ${String(error) ?? "<unknown>"}`]);
@@ -363,16 +382,13 @@ export class MrsHub extends ComponentBase {
         } catch (error) {
             await requisitions.execute("showError",
                 [`Error while listing MySQL REST services: ${String(error) ?? "<unknown>"}`]);
-        } finally {
-            void requisitions.executeRemote("closeInstance", undefined);
         }
-
 
         return true;
     };
 
     /**
-     * Shows a dialog to create a new or edit an existing MRS service.
+     * Shows a dialog to create a new or edit an existing MRS DB Object.
      *
      * @param backend The interface for sending the requests.
      * @param request Details about the object to edit.
@@ -382,173 +398,160 @@ export class MrsHub extends ComponentBase {
     public async showMrsDbObjectDialog(backend: ShellInterfaceSqlEditor,
         request: IMrsDbObjectEditRequest): Promise<boolean> {
 
-        try {
-            if (request.createObject && request.schemaName === undefined) {
-                void requisitions.execute("showError",
-                    ["When creating a new DB Object the schema name must be valid."]);
+        if (request.createObject && request.schemaName === undefined) {
+            void requisitions.execute("showError",
+                ["When creating a new DB Object the schema name must be valid."]);
 
-                return false;
-            }
-
-            const dbObjectData = request.dbObject;
-            const services = await backend.mrs.listServices();
-            const schemas = await backend.mrs.listSchemas(dbObjectData.serviceId === ""
-                ? undefined
-                : dbObjectData.serviceId);
-            const rowOwnershipFields = await backend.mrs.getDbObjectRowOwnershipFields(dbObjectData.requestPath,
-                dbObjectData.name,
-                dbObjectData.id === "" ? undefined : dbObjectData.id,
-                dbObjectData.dbSchemaId === "" ? undefined : dbObjectData.dbSchemaId,
-                request.schemaName, dbObjectData.objectType);
-
-            const parameterNewItem: IMrsDbObjectFieldData = {
-                id: "",
-                dbObjectId: dbObjectData.id,
-                position: 0,
-                name: "<new>",
-                bindFieldName: "",
-                datatype: "STRING",
-                mode: "IN",
-                comments: "",
-            };
-
-            if (dbObjectData.id && (!dbObjectData.fields)) {
-                dbObjectData.fields = await backend.mrs.getDbObjectSelectedFields(dbObjectData.requestPath,
-                    dbObjectData.name, dbObjectData.id, dbObjectData.dbSchemaId, request.schemaName);
-
-                // Add entry for <new> item.
-                dbObjectData.fields.push(parameterNewItem);
-            }
-
-            const dialogRequest = {
-                id: "mrsDbObjectDialog",
-                type: MrsDialogType.MrsDbObject,
-                title: undefined,
-                parameters: { services, schemas, rowOwnershipFields },
-                values: {
-                    ...dbObjectData,
-
-                    requiresAuth: dbObjectData.requiresAuth === 1,
-                    enabled: dbObjectData.enabled === 1,
-                    rowUserOwnershipEnforced: dbObjectData.rowUserOwnershipEnforced === 1,
-                    autoDetectMediaType: dbObjectData.autoDetectMediaType === 1,
-                    options: dbObjectData?.options ? JSON.stringify(dbObjectData?.options) : "",
-                    parameters: dbObjectData.fields ?? [parameterNewItem],
-
-                    payload: {
-                        backend,
-                        dbObject: dbObjectData,
-                        createObject: request.createObject,
-                    },
-                },
-            };
-
-            const result = await this.showDialog(dialogRequest);
-            if (result === DialogResponseClosure.Cancel) {
-                return false;
-            }
-
-            const data = result as IMrsEditObjectDialogData;
-            const crudOperations = dbObjectData.objectType === "PROCEDURE"
-                ? ["UPDATE"]
-                : (dbObjectData.crudOperations ?? ["READ"]);
-            const options = data.options === "" ? null : JSON.parse(data.options) as IShellDictionary;
-
-            // Remove entry for <new> item
-            const fields = data.fields.filter((p: IMrsDbObjectFieldData) => {
-                return p.id !== "";
-            });
-
-            const newService = services.find((service) => {
-                return service.urlContextRoot === data.servicePath;
-            });
-
-            const serviceSchemas = await backend.mrs.listSchemas(newService?.id);
-            const newSchema = serviceSchemas.find((schema) => {
-                return schema.requestPath === data.schemaPath;
-            });
-
-            let newObjectId = "";
-
-            if (data.createObject) {
-                // Create new DB Object
-                try {
-                    newObjectId = await backend.mrs.addDbObject(data.name, data.objectType,
-                        false, data.requestPath, data.enabled, data.crudOperations,
-                        data.crudOperationFormat, data.requiresAuth,
-                        data.rowUserOwnershipEnforced, data.autoDetectMediaType,
-                        options, data.itemsPerPage,
-                        data.rowUserOwnershipColumn,
-                        newSchema?.id, undefined, data.comments,
-                        data.mediaType, "",
-                        fields);
-
-                    requisitions.executeRemote("refreshConnections", undefined);
-                } catch (error) {
-                    void requisitions.execute("showError",
-                        [`The MRS Database Object ${data.name} could not be created.`, `${String(error)}`]);
-
-                    return false;
-                }
-            } else {
-                // Update existing DB Object
-                try {
-                    await backend.mrs.updateDbObject(
-                        dbObjectData.id, dbObjectData.name,
-                        dbObjectData.requestPath,
-                        data.dbSchemaId,
-                        {
-                            name: data.name,
-                            dbSchemaId: newSchema?.id,
-                            requestPath: data.requestPath,
-                            requiresAuth: data.requiresAuth,
-                            autoDetectMediaType: data.autoDetectMediaType,
-                            enabled: data.enabled,
-                            rowUserOwnershipEnforced: data.rowUserOwnershipEnforced,
-                            rowUserOwnershipColumn: data.rowUserOwnershipColumn,
-                            itemsPerPage: data.itemsPerPage,
-                            comments: data.comments,
-                            mediaType: data.mediaType,
-                            authStoredProcedure: data.authStoredProcedure,
-                            crudOperations,
-                            crudOperationFormat: data.crudOperationFormat,
-                            options,
-                            fields,
-                        });
-
-                    requisitions.executeRemote("refreshConnections", undefined);
-                } catch (error) {
-                    void requisitions.execute("showError",
-                        [`The MRS Database Object ${data.name} could not be updated.`, `${String(error)}`]);
-
-                    return false;
-                }
-            }
-
-            if (data.mrsObject) {
-                // Create or replace mrsObject and its fields and references
-                const obj = data.mrsObject;
-                try {
-                    if (newObjectId !== "") {
-                        obj.dbObjectId = newObjectId;
-                    }
-                    await backend.mrs.setObjectFieldsWithReferences(obj);
-                } catch (error) {
-                    void requisitions.execute("showError",
-                        [`The MRS Object ${obj.name} could not be stored.`, `${String(error)}`,
-                        ]);
-
-                    return false;
-                }
-            }
-
-            void requisitions.execute("showInfo", [
-                `The MRS Database Object ${data.name} was ${data.createObject ? "created" : "updated"} successfully.`]);
-
-            void requisitions.execute("refreshMrsServiceSdk", {});
-        } finally {
-            void requisitions.executeRemote("closeInstance", undefined);
+            return true;
         }
+
+
+        const dbObject = request.dbObject;
+
+        const services = await backend.mrs.listServices();
+        const schemas = await backend.mrs.listSchemas(dbObject.serviceId === "" ? undefined : dbObject.serviceId);
+        const tableColumnsWithReferences = await backend.mrs.getTableColumnsWithReferences(
+            undefined, dbObject.name,
+            undefined, undefined, dbObject.schemaName,
+            dbObject.objectType);
+        const rowOwnershipFields = tableColumnsWithReferences.filter((f) => {
+            return f.referenceMapping === undefined || f.referenceMapping === null;
+        }).map((f) => {
+            return f.name;
+        });
+
+        const dialogRequest = {
+            id: "mrsDbObjectDialog",
+            type: MrsDialogType.MrsDbObject,
+            title: undefined,
+            parameters: { services, schemas, rowOwnershipFields },
+            values: {
+                id: dbObject.id,
+                serviceId: dbObject.serviceId,
+                dbSchemaId: dbObject.dbSchemaId,
+                name: dbObject.name,
+                requestPath: dbObject.requestPath,
+                requiresAuth: dbObject.requiresAuth === 1,
+                enabled: dbObject.enabled === 1,
+                itemsPerPage: dbObject.itemsPerPage,
+                comments: dbObject.comments ?? "",
+                rowUserOwnershipEnforced: dbObject.rowUserOwnershipEnforced === 1,
+                rowUserOwnershipColumn: dbObject.rowUserOwnershipColumn,
+                objectType: dbObject.objectType,
+                crudOperations: dbObject.crudOperations,
+                crudOperationFormat: dbObject.crudOperationFormat,
+                autoDetectMediaType: dbObject.autoDetectMediaType === 1,
+                mediaType: dbObject.mediaType,
+                options: dbObject?.options ? JSON.stringify(dbObject?.options) : "",
+                authStoredProcedure: dbObject.authStoredProcedure,
+
+                payload: {
+                    backend,
+                    dbObject,
+                    createObject: request.createObject,
+                },
+            },
+        };
+
+        const result = await this.showDialog(dialogRequest);
+        if (result === DialogResponseClosure.Cancel) {
+            return true;
+        }
+
+        const data = result as IMrsEditObjectData;
+        const servicePath = data.servicePath as string;
+        const schemaId = data.dbSchemaId;
+        const schemaPath = data.dbSchemaPath;
+        const name = data.name;
+        const requestPath = data.requestPath;
+        const requiresAuth = data.requiresAuth;
+        const itemsPerPage = data.itemsPerPage;
+        const comments = data.comments;
+        const enabled = data.enabled;
+        const rowUserOwnershipEnforced = data.rowUserOwnershipEnforced;
+        const rowUserOwnershipColumn = data.rowUserOwnershipColumn;
+        const objectType = data.objectType;
+        const crudOperations = objectType === "PROCEDURE" ? ["UPDATE"] : (data.crudOperations ?? ["READ"]);
+        const crudOperationFormat = data.crudOperationFormat ?? "FEED";
+        const mediaType = data.mediaType;
+        const autoDetectMediaType = data.autoDetectMediaType;
+        const authStoredProcedure = data.authStoredProcedure;
+        const options = data.options === "" ? null : JSON.parse(data.options) as IShellDictionary;
+        const objects = data.objects;
+
+        const newService = services.find((service) => {
+            return service.urlContextRoot === servicePath;
+        });
+
+        const serviceSchemas = await backend.mrs.listSchemas(newService?.id);
+        const newSchema = serviceSchemas.find((schema) => {
+            return schema.requestPath === schemaPath;
+        });
+
+        if (request.createObject) {
+            // Create new DB Object
+            try {
+                await backend.mrs.addDbObject(name, objectType,
+                    false, requestPath, enabled, crudOperations,
+                    crudOperationFormat, requiresAuth,
+                    rowUserOwnershipEnforced, autoDetectMediaType,
+                    options, itemsPerPage,
+                    rowUserOwnershipColumn,
+                    newSchema?.id, undefined, comments,
+                    mediaType, "",
+                    objects);
+
+                requisitions.executeRemote("refreshConnections", undefined);
+            } catch (error) {
+                void requisitions.execute("showError", [
+                    `The MRS Database Object ${name} could not be created.`,
+                    `${String(error)}`,
+                ]);
+
+                return true;
+            }
+        } else {
+            // Update existing DB Object
+            try {
+                await backend.mrs.updateDbObject(
+                    dbObject.id, dbObject.name,
+                    dbObject.requestPath,
+                    schemaId,
+                    {
+                        name,
+                        dbSchemaId: newSchema?.id,
+                        requestPath,
+                        requiresAuth,
+                        autoDetectMediaType,
+                        enabled,
+                        rowUserOwnershipEnforced,
+                        rowUserOwnershipColumn,
+                        itemsPerPage,
+                        comments,
+                        mediaType,
+                        authStoredProcedure,
+                        crudOperations,
+                        crudOperationFormat,
+                        options,
+                        objects,
+                    });
+
+                requisitions.executeRemote("refreshConnections", undefined);
+            } catch (error) {
+                void requisitions.execute("showError", [
+                    `The MRS Database Object ${name} could not be updated.`,
+                    `${String(error)}`,
+                ]);
+
+                return true;
+            }
+        }
+
+        void requisitions.execute("showInfo", [
+            `The MRS Database Object ${name} was ${data.createObject ? "created" : "updated"} successfully.`]);
+
+        void requisitions.execute("refreshMrsServiceSdk", {});
+
 
         return true;
     }
@@ -650,7 +653,7 @@ export class MrsHub extends ComponentBase {
                         if (response.closure === DialogResponseClosure.Accept) {
                             requestPathValid = true;
                         } else {
-                            // TODO: showMessageWithTimeout("Cancelled the upload.");
+                            void requisitions.execute("showInfo", ["Cancelled the upload."]);
                         }
                     } else {
                         void requisitions.execute("showError",
@@ -675,7 +678,7 @@ export class MrsHub extends ComponentBase {
                     try {
                         updateStatusbar(`$(loading~spin) Starting to load static content set ...`);
 
-                        /*const contentSet =*/ await backend.mrs.addContentSet(data.directory, requestPath,
+                        const addedContentSet = await backend.mrs.addContentSet(data.directory, requestPath,
                             requiresAuth, options, serviceId, comments, enabled, true, (message) => {
                                 updateStatusbar("$(loading~spin) " + message);
                             },
@@ -684,10 +687,11 @@ export class MrsHub extends ComponentBase {
                         updateStatusbar();
 
                         void requisitions.executeRemote("refreshConnections", undefined);
-                        /*TODO: showMessageWithTimeout(
+                        void requisitions.execute("showInfo", [
                             "The MRS static content set has been added successfully. " +
-                            `${contentSet.numberOfFilesUploaded ?? ""} file` +
-                            `${contentSet.numberOfFilesUploaded ?? 2 > 1 ? "s" : ""} have been uploaded`);*/
+                            `${addedContentSet.numberOfFilesUploaded ?? ""} file` +
+                            `${addedContentSet.numberOfFilesUploaded ?? 2 > 1 ? "s" : ""} have been uploaded`,
+                        ]);
                     } catch (error) {
                         void requisitions.execute("showError",
                             [`Error while adding MRS content set: ${String(error) ?? "<unknown>"}`]);
@@ -706,8 +710,6 @@ export class MrsHub extends ComponentBase {
         } catch (error) {
             void requisitions.execute("showError",
                 [`Error while listing MySQL REST services: ${String(error) ?? "<unknown>"}`]);
-        } finally {
-            void requisitions.executeRemote("closeInstance", undefined);
         }
 
         return true;
@@ -726,65 +728,86 @@ export class MrsHub extends ComponentBase {
     public showMrsAuthAppDialog = async (backend: ShellInterfaceSqlEditor,
         authApp?: IMrsAuthAppData, service?: IMrsServiceData): Promise<boolean> => {
 
-        try {
-            const title = authApp
-                ? "Adjust the MRS Authentication App Configuration"
-                : "Enter Configuration Values for the New MRS Authentication App";
+        const title = authApp
+            ? "Adjust the MRS Authentication App Configuration"
+            : "Enter Configuration Values for the New MRS Authentication App";
 
-            const authVendors = await backend.mrs.getAuthVendors();
-            const roles = await backend.mrs.listRoles();
+        const authVendors = await backend.mrs.getAuthVendors();
+        const roles = await backend.mrs.listRoles();
 
-            const authVendorName = authVendors.find((vendor) => {
-                return authApp?.authVendorId === vendor.id;
-            })?.name ?? "";
+        const authVendorName = authVendors.find((vendor) => {
+            return authApp?.authVendorId === vendor.id;
+        })?.name ?? "";
 
-            const defaultRole = roles.find((role) => {
-                return authApp?.defaultRoleId === role.id;
-            })?.caption ?? (roles.length > 0) ? roles[0].caption : "";
+        const defaultRole = roles.find((role) => {
+            return authApp?.defaultRoleId === role.id;
+        })?.caption ?? (roles.length > 0) ? roles[0].caption : "";
 
-            const request = {
-                id: "mrsAuthenticationAppDialog",
-                type: MrsDialogType.MrsAuthenticationApp,
-                title,
-                parameters: {
-                    protocols: ["HTTPS", "HTTP"],
-                    authVendors,
-                    roles,
-                },
-                values: {
-                    create: authApp !== undefined,
-                    id: "",
-                    authVendorName,
-                    name: authApp?.name,
-                    description: authApp?.description,
-                    accessToken: authApp?.accessToken,
-                    appId: authApp?.appId,
-                    url: authApp?.url,
-                    urlDirectAuth: authApp?.urlDirectAuth,
-                    enabled: authApp?.enabled ?? true,
-                    limitToRegisteredUsers: authApp?.limitToRegisteredUsers,
-                    defaultRoleId: defaultRole,
-                },
-            };
+        const request = {
+            id: "mrsAuthenticationAppDialog",
+            type: MrsDialogType.MrsAuthenticationApp,
+            title,
+            parameters: {
+                protocols: ["HTTPS", "HTTP"],
+                authVendors,
+                roles,
+            },
+            values: {
+                create: authApp !== undefined,
+                id: "",
+                authVendorName,
+                name: authApp?.name,
+                description: authApp?.description,
+                accessToken: authApp?.accessToken,
+                appId: authApp?.appId,
+                url: authApp?.url,
+                urlDirectAuth: authApp?.urlDirectAuth,
+                enabled: authApp?.enabled ?? true,
+                limitToRegisteredUsers: authApp?.limitToRegisteredUsers,
+                defaultRoleId: defaultRole,
+            },
+        };
 
-            const result = await this.showDialog(request);
-            if (result === DialogResponseClosure.Cancel) {
-                return true;
+        const result = await this.showDialog(request);
+        if (result === DialogResponseClosure.Cancel) {
+            return true;
+        }
+
+        const data = result as IMrsAuthenticationAppDialogData;
+        const authVendorId = authVendors.find((vendor) => {
+            return data.authVendorName === vendor.name;
+        })?.id ?? "";
+
+        const defaultRoleId = roles.find((role) => {
+            return data.defaultRoleName === role.caption;
+        })?.id ?? null;
+
+
+        if (authApp) {
+            try {
+                await backend.mrs.updateAuthApp(authApp.id as string, {
+                    name: data.name,
+                    description: data.description,
+                    url: data.url,
+                    urlDirectAuth: data.urlDirectAuth,
+                    accessToken: data.accessToken,
+                    appId: data.appId,
+                    enabled: data.enabled,
+                    limitToRegisteredUsers: data.limitToRegisteredUsers,
+                    defaultRoleId,
+                });
+
+                void requisitions.executeRemote("refreshConnections", undefined);
+                void requisitions.execute("showInfo", ["The MRS Authentication App has been updated."]);
+            } catch (error) {
+                void requisitions.execute("showError",
+                    [`Error while updating MySQL REST Authentication App: ${String(error)}`]);
             }
-
-            const data = result as IMrsAuthenticationAppDialogData;
-            const authVendorId = authVendors.find((vendor) => {
-                return data.authVendorName === vendor.name;
-            })?.id ?? "";
-
-            const defaultRoleId = roles.find((role) => {
-                return data.defaultRoleName === role.caption;
-            })?.id ?? null;
-
-
-            if (authApp) {
-                try {
-                    await backend.mrs.updateAuthApp(authApp.id as string, {
+        } else {
+            try {
+                if (service) {
+                    await backend.mrs.addAuthApp(service.id, {
+                        authVendorId,
                         name: data.name,
                         description: data.description,
                         url: data.url,
@@ -794,40 +817,15 @@ export class MrsHub extends ComponentBase {
                         enabled: data.enabled,
                         limitToRegisteredUsers: data.limitToRegisteredUsers,
                         defaultRoleId,
-                    });
-
-                    void requisitions.executeRemote("refreshConnections", undefined);
-                    // TODO: showMessageWithTimeout("The MRS Authentication App has been updated.", 5000);
-                } catch (error) {
-                    void requisitions.execute("showError",
-                        [`Error while updating MySQL REST Authentication App: ${String(error)}`]);
+                    }, []);
                 }
-            } else {
-                try {
-                    if (service) {
-                        await backend.mrs.addAuthApp(service.id, {
-                            authVendorId,
-                            name: data.name,
-                            description: data.description,
-                            url: data.url,
-                            urlDirectAuth: data.urlDirectAuth,
-                            accessToken: data.accessToken,
-                            appId: data.appId,
-                            enabled: data.enabled,
-                            limitToRegisteredUsers: data.limitToRegisteredUsers,
-                            defaultRoleId,
-                        }, []);
-                    }
 
-                    void requisitions.executeRemote("refreshConnections", undefined);
-                    // TODO: showMessageWithTimeout("The MRS Authentication App has been added.", 5000);
-                } catch (error) {
-                    void requisitions.execute("showError",
-                        [`Error while adding MySQL REST Authentication App: ${String(error)}`]);
-                }
+                void requisitions.executeRemote("refreshConnections", undefined);
+                void requisitions.execute("showInfo", ["The MRS Authentication App has been added."]);
+            } catch (error) {
+                void requisitions.execute("showError",
+                    [`Error while adding MySQL REST Authentication App: ${String(error)}`]);
             }
-        } finally {
-            void requisitions.executeRemote("closeInstance", undefined);
         }
 
         return true;
@@ -844,103 +842,99 @@ export class MrsHub extends ComponentBase {
     public showMrsUserDialog = async (backend: ShellInterfaceSqlEditor,
         authApp: IMrsAuthAppData, user?: IMrsUserData): Promise<boolean> => {
 
-        try {
-            const title = user ? `Adjust the REST User` : `Enter new MySQL REST User Values`;
+        const title = user ? `Adjust the REST User` : `Enter new MySQL REST User Values`;
 
-            const authApps = await backend.mrs.getAuthApps(authApp.serviceId ?? "unknown");
-            const availableRoles = await backend.mrs.listRoles(authApp?.serviceId);
+        const authApps = await backend.mrs.getAuthApps(authApp.serviceId ?? "unknown");
+        const availableRoles = await backend.mrs.listRoles(authApp?.serviceId);
 
-            let userRoles: IMrsUserRoleData[] = [];
+        let userRoles: IMrsUserRoleData[] = [];
 
-            if (user && user.id) {
-                userRoles = await backend.mrs.listUserRoles(user.id);
-            } else if (authApp.defaultRoleId) {
-                userRoles = [{
-                    userId: null,
-                    roleId: authApp.defaultRoleId,
-                    comments: null,
-                }];
-            }
+        if (user && user.id) {
+            userRoles = await backend.mrs.listUserRoles(user.id);
+        } else if (authApp.defaultRoleId) {
+            userRoles = [{
+                userId: null,
+                roleId: authApp.defaultRoleId,
+                comments: null,
+            }];
+        }
 
-            const request = {
-                id: "mrsUserDialog",
-                type: MrsDialogType.MrsUser,
-                title,
-                parameters: {
-                    authApp,
-                    authApps,
-                    availableRoles,
-                    userRoles,
-                },
-                values: {
-                    name: user?.name,
-                    email: user?.email,
-                    vendorUserId: user?.vendorUserId,
-                    loginPermitted: user?.loginPermitted ?? true,
-                    mappedUserId: user?.mappedUserId,
-                    appOptions: user?.appOptions,
-                    authString: user?.authString,
-                },
+        const request = {
+            id: "mrsUserDialog",
+            type: MrsDialogType.MrsUser,
+            title,
+            parameters: {
+                authApp,
+                authApps,
+                availableRoles,
+                userRoles,
+            },
+            values: {
+                name: user?.name,
+                email: user?.email,
+                vendorUserId: user?.vendorUserId,
+                loginPermitted: user?.loginPermitted ?? true,
+                mappedUserId: user?.mappedUserId,
+                appOptions: user?.appOptions,
+                authString: user?.authString,
+            },
+        };
+
+        const result = await this.showDialog(request);
+        if (result === DialogResponseClosure.Cancel) {
+            return true;
+        }
+
+        const data = result as IMrsUserDialogData;
+        const authAppId = authApps.find((authApp) => {
+            return authApp.name === data.authAppName;
+        })?.id;
+
+        const rolesToUpdate = (data.userRoles).map((roleToUpdate) => {
+            return {
+                userId: user?.id ?? null,
+                roleId: availableRoles.find((availableRole) => {
+                    return availableRole.caption === roleToUpdate;
+                })!.id,
+                comments: null,
             };
+        });
 
-            const result = await this.showDialog(request);
-            if (result === DialogResponseClosure.Cancel) {
-                return true;
-            }
-
-            const data = result as IMrsUserDialogData;
-            const authAppId = authApps.find((authApp) => {
-                return authApp.name === data.authAppName;
-            })?.id;
-
-            const rolesToUpdate = (data.userRoles).map((roleToUpdate) => {
-                return {
-                    userId: user?.id ?? null,
-                    roleId: availableRoles.find((availableRole) => {
-                        return availableRole.caption === roleToUpdate;
-                    })!.id,
-                    comments: null,
-                };
-            });
-
-            if (user) {
-                if (user.id) {
-                    try {
-                        await backend.mrs.updateUser(user.id, {
-                            authAppId,
-                            name: data.name ?? null,
-                            email: data.email ?? null,
-                            vendorUserId: data.vendorUserId ?? null,
-                            loginPermitted: data.loginPermitted,
-                            mappedUserId: data.mappedUserId ?? null,
-                            appOptions: data.appOptions ? JSON.parse(data.appOptions) as IShellDictionary : null,
-                            authString: data.authString ?? null,
-                        }, rolesToUpdate);
-
-                        void requisitions.executeRemote("refreshConnections", undefined);
-                        // TODO: showMessageWithTimeout("The MRS User has been updated.", 5000);
-                    } catch (error) {
-                        void requisitions.execute("showError",
-                            [`Error while updating MySQL REST User: ${String(error)}`]);
-                    }
-                }
-            } else {
+        if (user) {
+            if (user.id) {
                 try {
-                    if (authApp && authApp.id) {
-                        await backend.mrs.addUser(authApp.id, data.name!, data.email!, data.vendorUserId!,
-                            data.loginPermitted, data.mappedUserId!,
-                            data.appOptions ? JSON.parse(data.appOptions) as IShellDictionary : null,
-                            data.authString!, rolesToUpdate);
-                    }
+                    await backend.mrs.updateUser(user.id, {
+                        authAppId,
+                        name: data.name ?? null,
+                        email: data.email ?? null,
+                        vendorUserId: data.vendorUserId ?? null,
+                        loginPermitted: data.loginPermitted,
+                        mappedUserId: data.mappedUserId ?? null,
+                        appOptions: data.appOptions ? JSON.parse(data.appOptions) as IShellDictionary : null,
+                        authString: data.authString ?? null,
+                    }, rolesToUpdate);
 
                     void requisitions.executeRemote("refreshConnections", undefined);
-                    // TODO: showMessageWithTimeout("The MRS User has been added.", 5000);
+                    void requisitions.execute("showInfo", ["The MRS User has been updated."]);
                 } catch (error) {
-                    void requisitions.execute("showError", [`Error while adding MySQL REST User: ${String(error)}`]);
+                    void requisitions.execute("showError",
+                        [`Error while updating MySQL REST User: ${String(error)}`]);
                 }
             }
-        } finally {
-            void requisitions.executeRemote("closeInstance", undefined);
+        } else {
+            try {
+                if (authApp && authApp.id) {
+                    await backend.mrs.addUser(authApp.id, data.name!, data.email!, data.vendorUserId!,
+                        data.loginPermitted, data.mappedUserId!,
+                        data.appOptions ? JSON.parse(data.appOptions) as IShellDictionary : null,
+                        data.authString!, rolesToUpdate);
+                }
+
+                void requisitions.executeRemote("refreshConnections", undefined);
+                void requisitions.execute("showInfo", ["The MRS User has been added."]);
+            } catch (error) {
+                void requisitions.execute("showError", [`Error while adding MySQL REST User: ${String(error)}`]);
+            }
         }
 
         return true;

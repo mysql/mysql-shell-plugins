@@ -96,8 +96,6 @@ def get_db_object_dump(session, id):
                           binary_formatter=lambda x: f"0x{x.hex()}").exec(
         session, params=[id]).first
 
-    obj["fields"] = get_object_fields(session, id)
-
     # A db_object may have one or more associated objects (from the object table)
     obj["objects"] = get_object_dump(session, id)
 
@@ -157,17 +155,9 @@ def load_object_dump(session, target_schema_id, object, reuse_ids):
                                  object["auto_detect_media_type"],
                                  object["auth_stored_procedure"],
                                  object["options"],
-                                 object["fields"],
+                                 object["objects"],
                                  db_object_id=db_object_id,
-                                 reuse_ids=reuse_ids)  # object.fields)
-
-    # TODO(someone): This loop is because in theory, a db_object may have several objects,
-    # however, right now only 1 is supported because set_object_fields_with_references
-    # drops all the objects associated to the db_object at the beginning
-    if 'objects' in object:
-        for inner_object in object['objects']:
-            lib.db_objects.set_object_fields_with_references(
-                session, inner_object)
+                                 reuse_ids=reuse_ids)
 
 
 def load_schema_dump(session, target_service_id, schema, reuse_ids):

@@ -3,7 +3,8 @@
     "words": [
     ],
     "ignoreWords": [
-        "unnest"
+        "unnest",
+        "mysqlsh"
     ],
     "ignorePaths": [
     ]
