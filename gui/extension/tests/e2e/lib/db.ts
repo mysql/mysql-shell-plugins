@@ -501,21 +501,20 @@ export class Database {
 
     public static clickContextItem = async (item: string): Promise<void> => {
 
+        const isCtxMenuDisplayed = async (): Promise<boolean> => {
+            const el = await driver.executeScript(`return document.querySelector(".shadow-root-host").
+                shadowRoot.querySelector("span[aria-label='${item}']")`);
+
+            return el !== null;
+        };
+
         await driver.wait(async () => {
             const textArea = await driver.findElement(By.css("textarea"));
             await driver.actions().contextClick(textArea).perform();
 
-            try {
-                const el = await driver.executeScript(`return document.querySelector(".shadow-root-host").
-                shadowRoot.querySelector("span[aria-label='${item}']")`);
+            return isCtxMenuDisplayed();
 
-                return el !== undefined;
-            } catch (e) {
-                return false;
-            }
-
-        }, explicitWait,
-        "Context menu was not displayed");
+        }, explicitWait, "Context menu was not displayed");
 
         await driver.wait(async () => {
             try {
@@ -523,14 +522,13 @@ export class Database {
                 shadowRoot.querySelector("span[aria-label='${item}']")`);
                 await el.click();
 
-                return true;
+                return !(await isCtxMenuDisplayed());
             } catch (e) {
-                if (e instanceof error.StaleElementReferenceError) {
+                if (e instanceof TypeError) {
                     return true;
                 }
             }
-
-        }, 3000, "Context menu is still displayed");
+        }, explicitWait, "Context menu is still displayed");
     };
 
     public static hasNewPrompt = async (): Promise<boolean | undefined> => {
@@ -1168,5 +1166,26 @@ export class Database {
             }
         }
         throw new Error(`Coult not find ${editorName} with type ${editorType}`);
+    };
+
+    public static tryCredentials = async (data: IDBConnection): Promise <void> => {
+        let passwordDialog: WebElement[] | undefined;
+        let textArea: WebElement[] | undefined;
+
+        await driver.wait(async () => {
+            passwordDialog = await driver.wait(until.elementsLocated(By.css(".passwordDialog")), 1000, "")
+                .catch(() =>{ return []; });
+            textArea = await driver.findElements(By.css("textarea"));
+            if (passwordDialog.length > 0 || textArea.length > 0) {
+                return true;
+            }
+        }, explicitWait, "Connection is still loading");
+
+        if (passwordDialog.length > 0) {
+            await Database.setPassword(data);
+            await Misc.setConfirmDialog(data, "no").catch(() => {
+                // continue
+             });
+        }
     };
 }

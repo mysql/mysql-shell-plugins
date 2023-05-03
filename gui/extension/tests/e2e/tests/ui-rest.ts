@@ -45,8 +45,6 @@ import {
 import { hostname } from "os";
 import { IDBConnection, Database, IConnBasicMySQL } from "../lib/db";
 
-import { curly, CurlyResult } from "node-libcurl";
-
 describe("MySQL REST Service", () => {
 
     if (!process.env.DBHOSTNAME) {
@@ -89,6 +87,7 @@ describe("MySQL REST Service", () => {
     before(async function () {
 
         try {
+            await Misc.cleanCredentials();
             if (!isExtPrepared) {
                 await Misc.prepareExtension();
             }
@@ -109,12 +108,7 @@ describe("MySQL REST Service", () => {
 
             await (await Misc.getActionButton(treeGlobalConn, "Connect to Database")).click();
             await Misc.switchToWebView();
-            await Database.setPassword(globalConn);
-            try {
-                await Misc.setConfirmDialog(globalConn, "no");
-            } catch (e) {
-            // continue
-            }
+            await Database.tryCredentials(globalConn);
 
             const result = await Misc.execCmd("DROP SCHEMA IF EXISTS `mysql_rest_service_metadata`;",
                 undefined, explicitWait*2);
@@ -159,6 +153,7 @@ describe("MySQL REST Service", () => {
 
         before(async function () {
             try {
+                await Misc.cleanCredentials();
                 await Misc.selectContextMenuItem(treeMySQLRESTService, "Add REST Service...");
                 await Misc.switchToWebView();
                 await Database.setRestService(`/${service}`, "", "localhost", ["HTTP"], true, true);
@@ -312,8 +307,7 @@ describe("MySQL REST Service", () => {
 
             await Misc.selectContextMenuItem(treeMySQLRESTService, "Stop Local MySQL Router Instance");
 
-
-            await Misc.waitForTerminalText("mysqlrouter\\stop", explicitWait*2);
+            await Misc.waitForTerminalText(["mysqlrouter\\stop", "Unloading all plugins"], explicitWait*2);
 
             expect(await Misc.terminalHasErrors()).to.be.false;
 
@@ -856,16 +850,16 @@ describe("MySQL REST Service", () => {
         let actorId: string;
         let treeRouter: TreeItem;
         const service = "Service3";
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        const sslVerifier = {SSL_VERIFYPEER: 0};
         const protocol = "https";
-        const hostName = "localhost:8443";
+        let hostName = "localhost:8443";
         const schema = "sakila";
         const table = "actor";
-        let result: CurlyResult;
+        let response: Response;
 
         before(async function () {
             try {
+                process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+                await Misc.cleanCredentials();
                 treeDBSection = await Misc.getSection(dbTreeSection);
                 await Misc.selectContextMenuItem(treeMySQLRESTService, "Add REST Service...");
                 await Misc.switchToWebView();
@@ -890,12 +884,7 @@ describe("MySQL REST Service", () => {
                 await ntfs[ntfs.length - 1].takeAction("Yes");
                 await Misc.switchToWebView();
                 await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
-                await Database.setPassword(globalConn);
-                    try {
-                        await Misc.setConfirmDialog(globalConn, "no");
-                    } catch (e) {
-                        // continue
-                    }
+                await Database.tryCredentials(globalConn);
                 await Database.setRestObject(`${hostName}/${service}`,undefined, undefined,
                     ["CREATE", "READ", "UPDATE", "DELETE"], undefined, false);
                 await driver.switchTo().defaultContent();
@@ -916,6 +905,7 @@ describe("MySQL REST Service", () => {
                         return (await Misc.isRouterActive(treeRouter)) === true;
                     }, explicitWait*2, `Router did not became active`);
                 }
+                hostName = "127.0.0.1:8443";
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -924,13 +914,13 @@ describe("MySQL REST Service", () => {
 
         afterEach(function () {
             if (this.currentTest.state === "failed") {
-                if (result) {
+                if (response) {
                     console.log("---CURL RESULT---");
-                    console.log(result.statusCode);
-                    console.log(result.data);
+                    console.log(response.status);
+                    console.log(response.json());
                 }
             }
-            result = undefined;
+            response = undefined;
         });
 
         after(async () => {
@@ -938,85 +928,75 @@ describe("MySQL REST Service", () => {
         });
 
         it("Get schema metadata", async () => {
-            result = await curly.get(`${protocol}://${hostName}/${service}/${schema}/metadata-catalog`, sslVerifier);
-            expect(result.statusCode).to.equals(200);
-            expect(result.data.items).to.exist;
+            response = await fetch(`${protocol}://${hostName}/${service}/${schema}/metadata-catalog`);
+            const data = await response.json();
+            expect(response.ok).to.be.true;
+            expect(data.items).to.exist;
         });
 
         it("Get object metadata", async () => {
-            const url = `${protocol}://${hostName}/${service}/${schema}/metadata-catalog/${table}`;
-            result = await curly.get(url, sslVerifier);
-            expect(result.statusCode).to.equals(200);
-            expect(result.data.name).to.equals(`/${table}`);
-            expect(result.data.primaryKey[0]).to.equals("actor_id");
+            response = await fetch(`${protocol}://${hostName}/${service}/${schema}/metadata-catalog/${table}`);
+            const data = await response.json();
+            expect(response.ok).to.be.true;
+            expect(data.name).equals(`/${table}`);
+            expect(data.primaryKey[0]).to.equals("actor_id");
         });
 
         it("Get object data", async () => {
-            result = await curly.get(`${protocol}://${hostName}/${service}/${schema}/${table}`, sslVerifier);
-            expect(result.statusCode).to.equals(200);
-            expect(result.data.items[0].first_name).to.equals("PENELOPE");
+            response = await fetch(`${protocol}://${hostName}/${service}/${schema}/${table}`);
+            const data = await response.json();
+            expect(response.ok).to.be.true;
+            expect(data.items[0].first_name).to.equals("PENELOPE");
         });
 
         it("Insert table row", async () => {
-            result = await curly.post(`${protocol}://${hostName}/${service}/${schema}/${table}`, {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                postFields: JSON.stringify({ first_name: "Doctor", last_name: "Testing" }),
-                httpHeader: [
-                    "Content-Type: application/json",
-                    "Accept: application/json",
-                ],
+            response = await fetch(`${protocol}://${hostName}/${service}/${schema}/${table}`, {
+                method: "post",
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                SSL_VERIFYPEER: 0,
+                body: JSON.stringify({ first_name: "Doctor", last_name: "Testing" }),
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                headers: {"Content-Type": "application/json"},
             });
-
-            expect(result.statusCode).to.equals(200);
-            actorId = result.data.actor_id;
-            expect(result.data.actor_id).to.exist;
-            expect(result.data.first_name).to.equals("Doctor");
-            expect(result.data.last_name).to.equals("Testing");
-            expect(result.data.last_update).to.exist;
-
-            result = await curly.get(result.data.links[0].href as string, sslVerifier);
-            expect(result.statusCode).to.equals(200);
+            const data = await response.json();
+            expect(response.ok).to.be.true;
+            actorId = data.actor_id;
+            expect(data.actor_id).to.exist;
+            expect(data.first_name).to.equals("Doctor");
+            expect(data.last_name).to.equals("Testing");
+            expect(data.last_update).to.exist;
         });
 
         it("Update table row", async () => {
-            result = await curly.put(`${protocol}://${hostName}/${service}/${schema}/${table}/${actorId}`, {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                postFields: JSON.stringify({first_name: "Mister"}),
-                httpHeader: [
-                    "Content-Type: application/json",
-                    "Accept: application/json",
-                ],
+            response = await fetch(`${protocol}://${hostName}/${service}/${schema}/${table}/${actorId}`, {
+                method: "put",
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                SSL_VERIFYPEER: 0,
+                body: JSON.stringify({first_name: "Mister"}),
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                headers: {"Content-Type": "application/json"},
             });
-
-            expect(result.statusCode).to.equals(200);
+            const data = await response.json();
             expect(actorId).to.exist;
-            expect(result.data.first_name).to.equals("Mister");
-            expect(result.data.last_name).to.equals("Testing");
-            expect(result.data.last_update).to.exist;
-
-            result = await curly.get(result.data.links[0].href as string, sslVerifier);
-            expect(result.statusCode).to.equals(200);
+            expect(data.first_name).to.equals("Mister");
+            expect(data.last_name).to.equals("Testing");
+            expect(data.last_update).to.exist;
         });
 
         it("Delete table row", async () => {
             const query = `"actor_id":${actorId}`;
-            result = await curly
-                .delete(`${protocol}://${hostName}/${service}/${schema}/${table}?q={${query}}`, sslVerifier);
+            response = await fetch(`${protocol}://${hostName}/${service}/${schema}/${table}?q={${query}}`,
+                { method: "delete" });
 
-            expect(result.statusCode).to.equals(200);
-            expect(result.data.itemsDeleted).to.equals(1);
+            const data = await response.json();
+            expect(response.ok).to.be.true;
+            expect(data.itemsDeleted).to.equals(1);
         });
 
         it("Filter object data", async () => {
             const query = `"first_name":"PENELOPE"`;
-            result = await curly
-                .get(`${protocol}://${hostName}/${service}/${schema}/${table}?q={${query}}`, sslVerifier);
-            expect(result.statusCode).to.equals(200);
-            expect(result.data.items).to.exist;
+            response = await fetch(`${protocol}://${hostName}/${service}/${schema}/${table}?q={${query}}`);
+            const data = await response.json();
+            expect(response.ok).to.be.true;
+            expect(data.items).to.exist;
         });
 
     });
