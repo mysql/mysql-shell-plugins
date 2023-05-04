@@ -21,28 +21,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ComponentChild } from "preact";
-import { IDictionary } from "../../app-logic/Types";
-
-import { ComponentBase, IComponentProperties, IComponentState } from "../ui/Component/ComponentBase";
-
 /**
- * The properties of the ValueEditCustom class used as a custom control that can be embedded into a ValueEditDialog.
+ * A special setting to make the second row in the top level content grid in the dialog to take the entire available
+ * space.
  */
-export interface IValueEditCustomProperties extends IComponentProperties {
-    values?: IDictionary;
-    onDataChange?: (data: IDictionary) => void;
-}
-
-/** The base component for content that can be embedded into a ValueEditDialog. */
-export class ValueEditCustom<P extends IValueEditCustomProperties, S extends IComponentState>
-    extends ComponentBase<P, S> {
-    /**
-     * The default render function, which returns null. Descendants must return actual content.
-     *
-     * @returns null
-     */
-    public render(): ComponentChild {
-        return null;
-    }
+.msg#mrsDbObjectDialog > .dialog #contentGrid {
+    grid-template-rows: auto 1fr;
+    height: 100%;
 }

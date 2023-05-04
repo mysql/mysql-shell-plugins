@@ -39,6 +39,7 @@ exports[`Value Edit Dialog Tests Footer, Heading, Description and Payload 1`] = 
     >
       <div
         class="msg grid"
+        id="contentGrid"
         style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
       >
         <div
@@ -179,6 +180,7 @@ exports[`Value Edit Dialog Tests Grouped Sections 1`] = `
     >
       <div
         class="msg grid"
+        id="contentGrid"
         style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
       >
         <div
@@ -390,6 +392,7 @@ exports[`Value Edit Dialog Tests Grouped Sections 2`] = `
     >
       <div
         class="msg grid"
+        id="contentGrid"
         style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
       >
         <div
@@ -601,6 +604,7 @@ exports[`Value Edit Dialog Tests Grouped Values 1`] = `
     >
       <div
         class="msg grid"
+        id="contentGrid"
         style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
       >
         <div
@@ -757,6 +761,7 @@ exports[`Value Edit Dialog Tests Render with Defaults Test 1`] = `
       <Grid
         columnGap={16}
         columns={8}
+        id="contentGrid"
         rowGap={16}
       />
     }
@@ -839,6 +844,7 @@ exports[`Value Edit Dialog Tests Simple Dialog 1`] = `
     >
       <div
         class="msg grid"
+        id="contentGrid"
         style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
       >
         <div
@@ -941,6 +947,7 @@ exports[`Value Edit Dialog Tests Update Contexts 1`] = `
     >
       <div
         class="msg grid"
+        id="contentGrid"
         style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
       >
         <div
@@ -1043,6 +1050,7 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
     >
       <div
         class="msg grid"
+        id="contentGrid"
         style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
       >
         <div
@@ -1507,6 +1515,7 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
     >
       <div
         class="msg grid"
+        id="contentGrid"
         style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
       >
         <div

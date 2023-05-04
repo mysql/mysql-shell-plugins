@@ -395,8 +395,8 @@ exports[`Result View Tests Render with Columns 1`] = `
             },
             {
               "field": "1",
-              "formatter": "textarea",
-              "formatterClipboard": "textarea",
+              "formatter": "plaintext",
+              "formatterClipboard": "plaintext",
               "formatterParams": {
                 "dbDataType": 0,
               },
@@ -467,8 +467,8 @@ exports[`Result View Tests Render with Columns 1`] = `
             },
             {
               "field": "7",
-              "formatter": "textarea",
-              "formatterClipboard": "textarea",
+              "formatter": "plaintext",
+              "formatterClipboard": "plaintext",
               "formatterParams": {
                 "dbDataType": 6,
               },
@@ -479,8 +479,8 @@ exports[`Result View Tests Render with Columns 1`] = `
             },
             {
               "field": "8",
-              "formatter": "textarea",
-              "formatterClipboard": "textarea",
+              "formatter": "plaintext",
+              "formatterClipboard": "plaintext",
               "formatterParams": {
                 "dbDataType": 7,
               },
@@ -491,8 +491,8 @@ exports[`Result View Tests Render with Columns 1`] = `
             },
             {
               "field": "9",
-              "formatter": "textarea",
-              "formatterClipboard": "textarea",
+              "formatter": "plaintext",
+              "formatterClipboard": "plaintext",
               "formatterParams": {
                 "dbDataType": 8,
               },
@@ -503,8 +503,8 @@ exports[`Result View Tests Render with Columns 1`] = `
             },
             {
               "field": "10",
-              "formatter": "textarea",
-              "formatterClipboard": "textarea",
+              "formatter": "plaintext",
+              "formatterClipboard": "plaintext",
               "formatterParams": {
                 "dbDataType": 9,
               },
@@ -515,8 +515,8 @@ exports[`Result View Tests Render with Columns 1`] = `
             },
             {
               "field": "11",
-              "formatter": "textarea",
-              "formatterClipboard": "textarea",
+              "formatter": "plaintext",
+              "formatterClipboard": "plaintext",
               "formatterParams": {
                 "dbDataType": 10,
               },
@@ -551,8 +551,8 @@ exports[`Result View Tests Render with Columns 1`] = `
             },
             {
               "field": "14",
-              "formatter": "textarea",
-              "formatterClipboard": "textarea",
+              "formatter": "plaintext",
+              "formatterClipboard": "plaintext",
               "formatterParams": {
                 "dbDataType": 13,
               },
@@ -563,8 +563,8 @@ exports[`Result View Tests Render with Columns 1`] = `
             },
             {
               "field": "15",
-              "formatter": "textarea",
-              "formatterClipboard": "textarea",
+              "formatter": "plaintext",
+              "formatterClipboard": "plaintext",
               "formatterParams": {
                 "dbDataType": 14,
               },
@@ -575,8 +575,8 @@ exports[`Result View Tests Render with Columns 1`] = `
             },
             {
               "field": "16",
-              "formatter": "textarea",
-              "formatterClipboard": "textarea",
+              "formatter": "plaintext",
+              "formatterClipboard": "plaintext",
               "formatterParams": {
                 "dbDataType": 15,
               },
@@ -587,8 +587,8 @@ exports[`Result View Tests Render with Columns 1`] = `
             },
             {
               "field": "17",
-              "formatter": "textarea",
-              "formatterClipboard": "textarea",
+              "formatter": "plaintext",
+              "formatterClipboard": "plaintext",
               "formatterParams": {
                 "dbDataType": 16,
               },
@@ -611,8 +611,8 @@ exports[`Result View Tests Render with Columns 1`] = `
             },
             {
               "field": "19",
-              "formatter": "textarea",
-              "formatterClipboard": "textarea",
+              "formatter": "plaintext",
+              "formatterClipboard": "plaintext",
               "formatterParams": {
                 "dbDataType": 18,
               },
@@ -781,8 +781,8 @@ exports[`Result View Tests Render with Columns 1`] = `
             },
             {
               "field": "33",
-              "formatter": "textarea",
-              "formatterClipboard": "textarea",
+              "formatter": "plaintext",
+              "formatterClipboard": "plaintext",
               "formatterParams": {
                 "dbDataType": 32,
               },
@@ -793,8 +793,8 @@ exports[`Result View Tests Render with Columns 1`] = `
             },
             {
               "field": "34",
-              "formatter": "textarea",
-              "formatterClipboard": "textarea",
+              "formatter": "plaintext",
+              "formatterClipboard": "plaintext",
               "formatterParams": {
                 "dbDataType": 33,
               },
@@ -901,8 +901,8 @@ exports[`Result View Tests Render with Columns 1`] = `
             },
             {
               "field": "43",
-              "formatter": "textarea",
-              "formatterClipboard": "textarea",
+              "formatter": "plaintext",
+              "formatterClipboard": "plaintext",
               "formatterParams": {
                 "dbDataType": 42,
               },
@@ -925,8 +925,8 @@ exports[`Result View Tests Render with Columns 1`] = `
             },
             {
               "field": "45",
-              "formatter": "textarea",
-              "formatterClipboard": "textarea",
+              "formatter": "plaintext",
+              "formatterClipboard": "plaintext",
               "formatterParams": {
                 "dbDataType": 44,
               },

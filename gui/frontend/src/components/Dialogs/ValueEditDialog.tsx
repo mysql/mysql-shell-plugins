@@ -336,6 +336,9 @@ export interface IDialogSection {
     /** If this section is grouped and the currently visible page, this value is true. */
     active?: boolean;
 
+    /** If this section is grouped and current visible, make its content grid fill the entire page. */
+    expand?: boolean;
+
     values: {
         [key: string]: IDialogValue;
     };
@@ -563,6 +566,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                             columns={8}
                             rowGap={16}
                             columnGap={16}
+                            id="contentGrid"
                         >
                             {descriptionContent && <GridCell columnSpan={8} className="dialogDescriptionCell">
                                 {descriptionContent}</GridCell>}
@@ -704,7 +708,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
         const { values, activeContexts } = this.state;
 
         interface ISectionNodePair { caption?: string; node: ComponentChild; section: IDialogSection; }
-        interface ISectionGroup { nodes: ISectionNodePair[]; active?: string; }
+        interface ISectionGroup { nodes: ISectionNodePair[]; active?: string; expand?: boolean; }
 
         const sectionGroups: ISectionGroup[] = [];
         let currentGroup = "";
@@ -733,6 +737,9 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                     group.nodes.push({ caption: section.caption, node, section });
                     if (section.active) {
                         group.active = `page${(group.nodes.length - 1)}`;
+                    }
+                    if (section.expand) {
+                        group.expand = true;
                     }
                 } else {
                     // No, start a new group.
@@ -763,6 +770,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                             columns={8}
                             rowGap={16}
                             columnGap={16}
+                            className={this.classFromProperty(pair.section.expand, "expand")}
                         >
                             {pair.node}
                         </Grid>,
@@ -1241,6 +1249,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                         }
 
                         const clone = cloneElement(component, {
+                            key: "customControl",
                             values: entry.value.value,
                             onDataChange: this.handleCustomControlChange.bind(this, sectionId, key),
                         });
@@ -1619,9 +1628,6 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
      * @returns the dialog value that was changed (if found).
      */
     private setValue(id: string, value: DialogValueType, section: IDialogSection): IDialogValue | undefined {
-        const { onValidate } = this.props;
-        const { values, data } = this.state;
-
         // See if the id is actually a path.
         const parts = id.split(".");
         let dialogValue: IDialogValue | undefined;
@@ -1653,10 +1659,6 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
 
             activeData[parts[1]] = value;
         }
-
-        const validations = onValidate?.(false, values, data) || { messages: {} };
-        this.setState({ values, validations });
-
 
         return dialogValue;
     }

@@ -407,6 +407,7 @@ exports[`Theme editor core testing Render test 1`] = `
                                 <Grid
                                   columnGap={16}
                                   columns={8}
+                                  id="contentGrid"
                                   rowGap={16}
                                 />
                               }

@@ -67,7 +67,7 @@ export class DialogContent extends ComponentBase<IDialogContentProperties> {
         snapshot: IComponentSnapshot | null): void {
         if (snapshot !== null && this.#contentRef.current) {
             const content = this.#contentRef.current;
-            content.scrollTop = content.scrollHeight - snapshot.scrollPosition;
+            content.scrollTop = content.scrollHeight - (snapshot.scrollPosition ?? 0);
         }
     }
 

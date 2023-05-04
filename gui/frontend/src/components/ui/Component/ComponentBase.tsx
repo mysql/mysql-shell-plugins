@@ -200,7 +200,7 @@ export interface IComponentState {
 
 /** A structure to define how a component snapshot may look like. */
 export interface IComponentSnapshot extends IDictionary {
-    scrollPosition: number;
+    scrollPosition?: number;
 }
 
 /** The base of all our components. Provides some common functionality. */
@@ -283,7 +283,7 @@ export abstract class ComponentBase<P extends IComponentProperties = {}, S exten
     ): void {
         super.setState(state, callback);
     }
-    */
+    //*/
 
     /**
      * Promisified version of `setState`.

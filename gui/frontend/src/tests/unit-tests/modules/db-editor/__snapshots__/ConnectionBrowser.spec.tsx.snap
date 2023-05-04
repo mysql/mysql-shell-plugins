@@ -101,6 +101,7 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
               <Grid
                 columnGap={16}
                 columns={8}
+                id="contentGrid"
                 rowGap={16}
               />
             }
