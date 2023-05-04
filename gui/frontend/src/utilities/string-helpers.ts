@@ -200,15 +200,19 @@ export const formatWithNumber = (text: string, value: number): string => {
 };
 
 /**
- * Converts the given string data (which is assumed to be base64 encoded) to a hex string.
+ * Converts the given input data (which is assumed to be a base64 encoded string) to a hex string.
  *
- * @param text The string to convert.
+ * @param input The string to convert.
  * @param limit The maximum number of characters to show.
  *
  * @returns The hex string.
  */
-export const formatBase64ToHex = (text: string, limit?: number): string => {
-    const buffer = Buffer.from(text, "base64");
+export const formatBase64ToHex = (input: unknown, limit?: number): string => {
+    if (typeof input !== "string") {
+        return "<invalid>";
+    }
+
+    const buffer = Buffer.from(input, "base64");
     const bufString = buffer.toString("hex");
 
     if (limit && bufString.length > limit) {

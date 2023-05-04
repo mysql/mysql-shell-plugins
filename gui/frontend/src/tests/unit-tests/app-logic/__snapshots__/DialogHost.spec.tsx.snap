@@ -526,6 +526,7 @@ exports[`DialogHost Tests Show MRS Schema Dialog (snapshot) 1`] = `
     >
       <div
         class="msg grid"
+        id="contentGrid"
         style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
       >
         <div
@@ -801,6 +802,7 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
     >
       <div
         class="msg grid"
+        id="contentGrid"
         style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
       >
         <div
@@ -1122,6 +1124,7 @@ exports[`DialogHost Tests Show Prompt Dialog (snapshot) 1`] = `
     >
       <div
         class="msg grid"
+        id="contentGrid"
         style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
       >
         <div
@@ -1235,6 +1238,7 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
         <Grid
           columnGap={16}
           columns={8}
+          id="contentGrid"
           rowGap={16}
         />
       }
@@ -1374,6 +1378,7 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
           <Grid
             columnGap={16}
             columns={8}
+            id="contentGrid"
             rowGap={16}
           />
         }
@@ -1463,6 +1468,7 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
           <Grid
             columnGap={16}
             columns={8}
+            id="contentGrid"
             rowGap={16}
           />
         }
@@ -1552,6 +1558,7 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
           <Grid
             columnGap={16}
             columns={8}
+            id="contentGrid"
             rowGap={16}
           />
         }
@@ -1641,6 +1648,7 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
           <Grid
             columnGap={16}
             columns={8}
+            id="contentGrid"
             rowGap={16}
           />
         }
@@ -1730,6 +1738,7 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
           <Grid
             columnGap={16}
             columns={8}
+            id="contentGrid"
             rowGap={16}
           />
         }
@@ -1818,6 +1827,7 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
           <Grid
             columnGap={16}
             columns={8}
+            id="contentGrid"
             rowGap={16}
           />
         }
@@ -1906,6 +1916,7 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
           <Grid
             columnGap={16}
             columns={8}
+            id="contentGrid"
             rowGap={16}
           />
         }

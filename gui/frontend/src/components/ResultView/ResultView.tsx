@@ -415,7 +415,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                 }
 
                 default: {
-                    formatter = "textarea";
+                    formatter = "plaintext";
                     //editor = this.editorHost;
                     /*editorParams = (): { info: IColumnInfo; verticalNavigation: string } => {
                         return {
@@ -1103,7 +1103,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
             return host;
         } else {
             // Binary data is given as a based64 encoded string
-            const val = cell.getValue() as string;
+            const val = cell.getValue();
             if (val) {
                 return formatBase64ToHex(val, 64);
             } else {

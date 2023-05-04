@@ -912,20 +912,20 @@ describe("Value Edit Dialog Tests", (): void => {
         expect(nameInput.value).toBe("");
         changeInputValue(nameInput, "Mike");
 
-        expect(stateSpy).toBeCalledTimes(6);
+        expect(stateSpy).toBeCalledTimes(5);
         changeInputValue(nameInput, "");
 
         const fileSelector = inputs[1] as HTMLInputElement;
         expect(fileSelector.value).toBe("../relative/path");
         changeInputValue(fileSelector, "/absolutePath");
 
-        expect(stateSpy).toBeCalledTimes(10);
+        expect(stateSpy).toBeCalledTimes(7);
 
         const checkboxes = portals[0].getElementsByClassName("checkbox");
         expect(checkboxes).toHaveLength(1);
         (checkboxes[0] as HTMLInputElement).click();
 
-        expect(stateSpy).toBeCalledTimes(12);
+        expect(stateSpy).toBeCalledTimes(8);
 
         const state = component.state();
         const section = state.values.sections.get("full");

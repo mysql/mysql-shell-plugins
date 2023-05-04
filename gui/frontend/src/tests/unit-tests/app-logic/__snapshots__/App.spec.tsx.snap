@@ -536,6 +536,7 @@ exports[`Application tests Application readiness 1`] = `
             <Grid
               columnGap={16}
               columns={8}
+              id="contentGrid"
               rowGap={16}
             />
           }

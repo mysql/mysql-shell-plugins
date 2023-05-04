@@ -582,7 +582,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
       onClose={[Function]}
     >
       <ValueEditDialog
-        id="mrsSchemaDialog"
+        id="mrsDbObjectDialog"
         onClose={[Function]}
         onValidate={[Function]}
       >
@@ -624,10 +624,11 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
             <Grid
               columnGap={16}
               columns={8}
+              id="contentGrid"
               rowGap={16}
             />
           }
-          id="mrsSchemaDialog"
+          id="mrsDbObjectDialog"
           onClose={[Function]}
         >
           <Portal
@@ -636,7 +637,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
                 theme="dark"
               />
             }
-            id="mrsSchemaDialog"
+            id="mrsDbObjectDialog"
             onClose={[Function]}
             onOpen={[Function]}
           />

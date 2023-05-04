@@ -35,9 +35,12 @@
 }
 
 .msg.dialog.valueEditDialog .gridCell {
-    align-items: center;
     overflow: hidden;
     display: flex;
+}
+
+.msg.dialog.valueEditDialog .grid.expand {
+    height: 100%;
 }
 
 .msg.dialog.valueEditDialog > .content {

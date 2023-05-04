@@ -130,6 +130,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
           <Grid
             columnGap={16}
             columns={8}
+            id="contentGrid"
             rowGap={16}
           />
         }

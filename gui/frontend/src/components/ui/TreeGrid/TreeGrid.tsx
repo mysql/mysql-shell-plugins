@@ -145,9 +145,7 @@ interface ITreeGridProperties extends IComponentProperties {
 
     onRowSelected?: (row: RowComponent) => void;
     onRowDeselected?: (row: RowComponent) => void;
-
     onVerticalScroll?: (top: number) => void;
-
     onColumnResized?: (column: ColumnComponent) => void;
 }
 
@@ -166,9 +164,6 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
     // A counter to manage redraw blocks.
     private updateCount = 0;
 
-    // Automatic re-layout on host resize.
-    private resizeObserver?: ResizeObserver;
-
     public constructor(props: ITreeGridProperties) {
         super(props);
 
@@ -177,11 +172,6 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
             "onRowCollapsed", "isRowExpanded", "onFormatRow", "onRowContext", "onCellContext", "onRowSelected",
             "onRowDeselected", "onVerticalScroll", "onColumnResized",
         );
-
-        // istanbul ignore next
-        if (typeof ResizeObserver !== "undefined") {
-            this.resizeObserver = new ResizeObserver(this.handleTabulatorResize);
-        }
     }
 
     public static initialize(): void {
@@ -212,7 +202,6 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
 
                     // Assign the table holder class our fixed scrollbar class too.
                     if (this.hostRef.current) {
-                        this.resizeObserver?.observe(this.hostRef.current);
                         (this.hostRef.current?.lastChild as HTMLElement).classList.add("fixedScrollbar");
                     }
                     this.tableReady = true;
@@ -237,22 +226,37 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
             clearTimeout(this.timeoutId);
             this.timeoutId = null;
         }
-        this.resizeObserver?.unobserve(this.hostRef.current as Element);
     }
 
     public componentDidUpdate(): void {
         if (this.tabulator && this.tableReady) {
             const { selectedIds, columns, tableData } = this.mergedProps;
 
-            if (columns) {
-                this.tabulator.setColumns(columns);
-            }
-
+            // Determine the data of the top row, which we can use to find the same row after the update.
+            const scrollPosition = this.tabulator.rowManager.scrollTop;
             if (tableData) {
-                void this.tabulator.setData(tableData);
-            }
+                // The call to replaceData does not change the scroll position.
+                void this.tabulator.replaceData(tableData as Array<{}>).then(() => {
+                    if (columns) {
+                        // The call to setColumns does.
+                        this.tabulator?.setColumns(columns);
+                    }
 
-            if (selectedIds) {
+                    // Both columns and rows have been set. Now update the UI.
+                    this.tabulator?.redraw();
+                    if (selectedIds) {
+                        this.tabulator?.selectRow(selectedIds);
+                    }
+
+                    this.tabulator!.rowManager.scrollTop = scrollPosition;
+                    this.tabulator!.rowManager.element.scrollTop = scrollPosition;
+
+                });
+            } else if (selectedIds) {
+                if (columns) {
+                    this.tabulator.setColumns(columns);
+                }
+
                 this.tabulator.selectRow(selectedIds);
             }
         }
@@ -444,7 +448,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
 
             rowContextMenu,
 
-            autoResize: false,
+            autoResize: true,
             layoutColumnsOnNewData: options?.layoutColumnsOnNewData,
             resizableRows: options?.resizableRows,
 
@@ -523,13 +527,6 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
 
         onColumnResized?.(column);
     };
-
-    private handleTabulatorResize = (entries: readonly ResizeObserverEntry[]): void => {
-        if (entries.length > 0) {
-            this.tabulator?.redraw(true);
-        }
-    };
-
 }
 
 // TODO: replace with static initializer, once we can raise eslint to support ES2022.

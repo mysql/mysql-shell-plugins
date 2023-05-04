@@ -21,6 +21,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import "./MrsDialogs.css";
+
 import { ComponentChild, createRef } from "preact";
 
 import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types";
@@ -53,7 +55,7 @@ export class MrsDbObjectDialog extends ValueDialogBase {
         return (
             <ValueEditDialog
                 ref={this.dialogRef}
-                id="mrsSchemaDialog"
+                id="mrsDbObjectDialog"
                 onClose={this.handleCloseDialog}
                 onValidate={this.validateInput}
             />
@@ -176,7 +178,6 @@ export class MrsDbObjectDialog extends ValueDialogBase {
             };
         }
 
-        // ---------------------------------------------------------------------
         // Add MrsRestObjectFieldEditor
         const customData: IMrsObjectFieldEditorData = {
             dbSchemaName: selectedSchema?.name ?? "",
@@ -195,6 +196,7 @@ export class MrsDbObjectDialog extends ValueDialogBase {
         const mrsObjectSection: IDialogSection = {
             caption: "JSON/Relational Duality",
             groupName: "group1",
+            expand: true,
             values: {
                 tree: {
                     type: "custom",
@@ -476,7 +478,6 @@ export class MrsDbObjectDialog extends ValueDialogBase {
             onClose(closure);
         }
     };
-
 
     private validateInput = (closing: boolean, values: IDialogValues): IDialogValidations => {
         const result: IDialogValidations = {
