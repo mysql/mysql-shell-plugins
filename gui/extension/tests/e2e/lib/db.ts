@@ -911,7 +911,7 @@ export class Database {
         requiresAuth?: boolean,
     ): Promise <void> => {
 
-        const dialog = await driver.wait(until.elementLocated(By.id("mrsSchemaDialog")),
+        const dialog = await driver.wait(until.elementLocated(By.id("mrsDbObjectDialog")),
             explicitWait*2, "Edit REST Object dialog was not displayed");
 
         if (service) {
