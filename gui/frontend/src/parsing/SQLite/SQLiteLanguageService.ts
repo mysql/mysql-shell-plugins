@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ServiceLanguage } from "../parser-common";
+import { IRdbmsDataTypeInfo, ServiceLanguage } from "../parser-common";
 
 import { CharsetSymbol, DBSymbolTable, SystemFunctionSymbol } from "../DBSymbolTable";
 import { RdbmsLanguageService } from "../worker/RdbmsLanguageService";
@@ -48,21 +48,19 @@ export class SQLiteLanguageService extends RdbmsLanguageService {
         });
 
         void import("./data/rdbms-info.json").then((rdbmsInfo) => {
-            Object.keys(rdbmsInfo.characterSets).forEach((set: string) => {
-                SQLiteLanguageService.globalSymbols.addNewSymbolOfType(CharsetSymbol, undefined, set);
+            Object.entries(rdbmsInfo.characterSets).forEach(([key, value]) => {
+                SQLiteLanguageService.globalSymbols.addNewSymbolOfType(CharsetSymbol, undefined, key);
 
-                const value = rdbmsInfo.characterSets[set];
-                sqliteInfo.characterSets.set(set.toLowerCase(), {
+                sqliteInfo.characterSets.set(key.toLowerCase(), {
                     collations: value.collations,
                     description: value.description,
                     defaultCollation: value.defaultCollation,
                 });
             });
 
-            Object.keys(rdbmsInfo.dataTypes).forEach((type: string) => {
-                const value = rdbmsInfo.dataTypes[type];
-                sqliteInfo.dataTypes.set(type.toLowerCase(), {
-                    type: DBDataType[convertCamelToTitleCase(type)],
+            Object.entries(rdbmsInfo.dataTypes).forEach(([key, value]: [string, IRdbmsDataTypeInfo]) => {
+                sqliteInfo.dataTypes.set(key.toLowerCase(), {
+                    type: (DBDataType as never)[convertCamelToTitleCase(key)],
 
                     characterMaximumLength: value.characterMaximumLength,
                     characterOctetLength: value.characterOctetLength,
@@ -72,8 +70,8 @@ export class SQLiteLanguageService extends RdbmsLanguageService {
                     numericPrecisionRadix: value.numericPrecisionRadix,
                     numericScale: value.numericScale,
                     needsQuotes: value.needsQuotes,
-                    parameterFormatType:
-                        ParameterFormatType[value.parameterFormatType as keyof typeof ParameterFormatType],
+                    parameterFormatType: value.parameterFormatType
+                        ? (ParameterFormatType as never)[value.parameterFormatType] : undefined,
                     synonyms: value.synonyms,
                 });
             });

@@ -232,7 +232,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
         if (this.tabulator && this.tableReady) {
             const { selectedIds, columns, tableData } = this.mergedProps;
 
-            // Determine the data of the top row, which we can use to find the same row after the update.
+            // Determine the current vertical scroll position.
             const scrollPosition = this.tabulator.rowManager.scrollTop;
             if (tableData) {
                 // The call to replaceData does not change the scroll position.
@@ -248,6 +248,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
                         this.tabulator?.selectRow(selectedIds);
                     }
 
+                    // Restore the scroll position.
                     this.tabulator!.rowManager.scrollTop = scrollPosition;
                     this.tabulator!.rowManager.element.scrollTop = scrollPosition;
 

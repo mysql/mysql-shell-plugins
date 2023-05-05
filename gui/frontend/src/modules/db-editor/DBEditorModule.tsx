@@ -40,7 +40,7 @@ import typescriptIcon from "../../assets/images/file-icons/scriptTs.svg";
 
 import newNotebookIcon from "../../assets/images/newNotebook.svg";
 
-import { ComponentChild, createRef, toChildArray } from "preact";
+import { ComponentChild, createRef, toChildArray, VNode } from "preact";
 
 import { ModuleBase, IModuleInfo, IModuleState, IModuleProperties } from "../ModuleBase";
 
@@ -74,7 +74,7 @@ import { parseVersion } from "../../parsing/mysql/mysql-helpers";
 import { DocumentDropdownItem, IDocumentDropdownItemProperties } from "./DocumentDropdownItem";
 import { uuid } from "../../utilities/helpers";
 import { defaultEditorOptions } from "../../components/ui";
-import { ComponentPlacement } from "../../components/ui/Component/ComponentBase";
+import { ComponentPlacement, IComponentProperties } from "../../components/ui/Component/ComponentBase";
 import { Divider } from "../../components/ui/Divider/Divider";
 import { Dropdown, IDropdownProperties } from "../../components/ui/Dropdown/Dropdown";
 import { Icon } from "../../components/ui/Icon/Icon";
@@ -1166,15 +1166,13 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         const list = toChildArray(props.children);
         const id = [...ids][0];
         const item = list.find((entry) => {
-            // eslint-disable-next-line dot-notation
-            const candidateProps = entry["props"] as IDocumentDropdownItemProperties;
+            const candidateProps = (entry as VNode<IComponentProperties>).props as IDocumentDropdownItemProperties;
 
             return candidateProps.page && candidateProps.id === id;
         });
 
         if (item) {
-            // eslint-disable-next-line dot-notation
-            const candidateProps = item["props"] as IDocumentDropdownItemProperties;
+            const candidateProps = (item as VNode<IComponentProperties>).props as IDocumentDropdownItemProperties;
 
             // For UI elements that have to show the current connection title.
             this.handleSelectTab(candidateProps.page);

@@ -234,7 +234,9 @@ export class Statusbar extends ComponentBase<IStatusbarProperties, IStatusbarSta
     };
 
     private handleItemClick = (e: MouseEvent | KeyboardEvent, props: IComponentProperties): void => {
-        void requisitions.execute("statusBarButtonClick", { type: props["data-command"], event: e });
+        void requisitions.execute("statusBarButtonClick", {
+            type: "data-command" in props ? props["data-command"] as string : "", event: e,
+        });
     };
 
     private handleItemChange = (selectedIds: Set<string>): void => {

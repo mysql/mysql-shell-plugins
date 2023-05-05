@@ -23,10 +23,9 @@
 
 /* eslint-disable max-classes-per-file */
 
-import { IDictionary } from "../../../app-logic/Types";
 import { PrivateWorker } from "../console.worker-types";
 
-// It's a global var only in the current worker and used for all user-visible APIs.
+/** This is a global var only in the current worker and used for all user-visible APIs. */
 export let currentWorker: PrivateWorker;
 
 export class CodeExecutionError extends Error {
@@ -78,13 +77,14 @@ export const execute = async (worker: PrivateWorker, code: string): Promise<unkn
         const res = eval(code);
 
         return Promise.resolve(res);
-    } catch (e: unknown) {
-        // Save stack, since it is not available in a lower code block like the if() below
-        const stack = String((e as IDictionary).stack);
-        if (stack !== "undefined") {
-            throw (new CodeExecutionError(String((e as IDictionary).message), stack));
+    } catch (e) {
+        if (e instanceof Error) {
+            const stack = e.stack;
+            if (stack !== undefined) {
+                throw new CodeExecutionError(e.message, stack);
+            }
         }
 
-        throw(e);
+        throw e;
     }
 };

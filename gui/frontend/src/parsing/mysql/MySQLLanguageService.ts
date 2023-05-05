@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ServiceLanguage } from "../parser-common";
+import { IRdbmsDataTypeInfo, ServiceLanguage } from "../parser-common";
 
 import { CharsetSymbol, SystemVariableSymbol, SystemFunctionSymbol, DBSymbolTable } from "../DBSymbolTable";
 import { LanguageWorkerPool } from "../worker/LanguageWorkerPool";
@@ -64,24 +64,23 @@ export class MySQLLanguageService extends RdbmsLanguageService {
                 });
             }
 
-            for (const [key, value] of Object.entries(rdbmsInfo.dataTypes)) {
-                const actualValue = value as IDictionary;
+            Object.entries(rdbmsInfo.dataTypes).forEach(([key, value]: [string, IRdbmsDataTypeInfo]) => {
                 mysqlInfo.dataTypes.set(key.toLowerCase(), {
-                    type: DBDataType[convertCamelToTitleCase(key)],
+                    type: (DBDataType as never)[convertCamelToTitleCase(key)],
 
-                    characterMaximumLength: actualValue.characterMaximumLength as number,
-                    characterOctetLength: actualValue.characterOctetLength as number,
-                    dateTimePrecision: actualValue.dateTimePrecision as number,
-                    flags: actualValue.flags as string[],
-                    numericPrecision: actualValue.numericPrecision as number,
-                    numericPrecisionRadix: actualValue.numericPrecisionRadix as number,
-                    numericScale: actualValue.numericScale as number,
-                    needsQuotes: actualValue.needsQuotes as boolean,
-                    parameterFormatType:
-                        ParameterFormatType[actualValue.parameterFormatType as keyof typeof ParameterFormatType],
-                    synonyms: actualValue.synonyms as string[],
+                    characterMaximumLength: value.characterMaximumLength,
+                    characterOctetLength: value.characterOctetLength,
+                    dateTimePrecision: value.dateTimePrecision,
+                    flags: value.flags,
+                    numericPrecision: value.numericPrecision,
+                    numericPrecisionRadix: value.numericPrecisionRadix,
+                    numericScale: value.numericScale,
+                    needsQuotes: value.needsQuotes,
+                    parameterFormatType: value.parameterFormatType
+                        ? (ParameterFormatType as never)[value.parameterFormatType] : undefined,
+                    synonyms: value.synonyms,
                 });
-            }
+            });
         });
     }
 }

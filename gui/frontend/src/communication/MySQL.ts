@@ -102,6 +102,8 @@ export interface IMySQLConnectionOptions {
     /** The schema to be selected once the connection is done. */
     schema?: string;
 
+    "sql-mode"?: MySQLSqlMode[];
+
     /** The SSL mode to be used in the connection. */
     "ssl-mode"?: MySQLSslMode;
 
@@ -128,6 +130,8 @@ export interface IMySQLConnectionOptions {
      * Colon-separated string. Example: "HIGH:!SSLv2:!RC4:!aNULL@STRENGTH".
      */
     "ssl-ciphersuites"?: string;
+
+    "ssl-cipher"?: string;
 
     /** Comma separated list of protocols permitted for secure connections. */
     "tls-version"?: string;

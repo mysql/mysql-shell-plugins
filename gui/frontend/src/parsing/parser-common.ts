@@ -28,7 +28,7 @@ import { CommonTokenStream } from "antlr4ts/CommonTokenStream";
 import { BufferedTokenStream } from "antlr4ts/BufferedTokenStream";
 
 import { Interval } from "antlr4ts/misc/Interval";
-import { IDictionary } from "../app-logic/Types";
+import { IDictionary, ParameterFormatType } from "../app-logic/Types";
 
 import { Stack } from "../supplement";
 
@@ -487,6 +487,25 @@ export enum LanguageCompletionKind {
     Trigger,
     LogfileGroup,
     Plugin,
+}
+
+/** Describes the format of one data type entry in the JSON files for RDBMS data types. */
+export interface IRdbmsDataTypeInfo {
+    characterMaximumLength?: number;
+    characterOctetLength?: number;
+    numericPrecision?: number;
+    numericPrecisionRadix?: number;
+    numericScale?: number;
+    dateTimePrecision?: number;
+    intervalType?: string;
+    intervalPrecision?: number;
+    collation?: string;
+    parameters?: ParameterFormatType[];
+    description?: string;
+    flags?: string[];
+    needsQuotes?: boolean;
+    parameterFormatType?: ParameterFormatType;
+    synonyms?: string[];
 }
 
 export type ErrorReportCallback = (message: string, tokenType: number, startIndex: number, line: number,

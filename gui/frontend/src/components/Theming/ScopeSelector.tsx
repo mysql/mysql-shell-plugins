@@ -147,7 +147,8 @@ export class ScopeSelector extends ComponentBase<IScopeSelectorProperties, IScop
         const { currentCustomScopes } = this.state;
 
         const result: IDialogValidations = { messages: {} };
-        const sectionValues = values.sections[0].values;
+        const [section] = values.sections; // Take the first section.
+        const sectionValues = section[1].values;
 
         let newName = sectionValues.scopeName.value as string || "";
         if (typeof newName === "string") {
@@ -171,7 +172,8 @@ export class ScopeSelector extends ComponentBase<IScopeSelectorProperties, IScop
     private defineNewScope = (closure: DialogResponseClosure, values: IDialogValues): void => {
         if (closure === DialogResponseClosure.Accept) {
             const { currentCustomScopes } = this.state;
-            const sectionValues = values.sections[0].values;
+            const [section] = values.sections;
+            const sectionValues = section[1].values;
 
             this.setState({
                 currentCustomScopes: [sectionValues.scopeName.value as string, ...currentCustomScopes].sort(),

@@ -259,18 +259,16 @@ export const determineQueryType = (tokenStream: CommonTokenStream): QueryType =>
 };
 
 void import("./data/keywords.json").then((keywords) => {
-
-    Object.keys(keywords.default).forEach((versionKey: string) => {
+    Object.entries(keywords.default).forEach(([versionKey, value]) => {
         const currentVersion = SQLiteVersion[versionKey as keyof typeof SQLiteVersion];
         const set = new Set<string>();
         const set2 = new Set<string>();
 
-        const dict = keywords.default[versionKey] as Array<{ word: string; reserved: boolean; }>;
-        dict.forEach((value) => {
-            if (value.word.length > 0) {
-                set.add(value.word);
-                if (value.reserved) {
-                    set2.add(value.word);
+        value.forEach((entry) => {
+            if (entry.word.length > 0) {
+                set.add(entry.word);
+                if (entry.reserved) {
+                    set2.add(entry.word);
                 }
             }
         });

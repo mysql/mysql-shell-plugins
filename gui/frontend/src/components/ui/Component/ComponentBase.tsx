@@ -384,9 +384,9 @@ export abstract class ComponentBase<P extends IComponentProperties = {}, S exten
     protected get unhandledProperties(): IDictionary {
         const result: IDictionary = {};
 
-        for (const k in this.props) {
-            if (!this.handledProps.includes(k)) {
-                result[k] = this.props[k];
+        for (const [key, value] of Object.entries(this.props)) {
+            if (!this.handledProps.includes(key)) {
+                result[key] = value;
             }
         }
 

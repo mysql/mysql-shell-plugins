@@ -864,14 +864,14 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
         const tableCrud = (!cell.getRow().getPrevRow())
             ? data.crudOperations : cellData.field.objectReference?.crudOperations.split(",") ?? [];
 
-        const crudActiveIcons = {
+        const crudActiveIcons: IDictionary = {
             create: crudCActiveIcon,
             read: crudRActiveIcon,
             update: crudUActiveIcon,
             delete: crudDActiveIcon,
         };
 
-        const crudIcons = {
+        const crudIcons: IDictionary = {
             create: crudCIcon,
             read: crudRIcon,
             update: crudUIcon,
@@ -892,8 +892,8 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     onKeyPress={() => { this.handleIconClick(cell, "CRUD", op); }}
                     width={(op === "CREATE" || op === "DELETE") ? 22 : 21}
                     height={18}
-                    src={tableCrud.includes(op)
-                        ? crudActiveIcons[op.toLowerCase()] : crudIcons[op.toLowerCase()]}>
+                    src={(tableCrud.includes(op)
+                        ? crudActiveIcons[op.toLowerCase()] : crudIcons[op.toLowerCase()]) as string}>
                 </img>;
             })}
         </Container >;

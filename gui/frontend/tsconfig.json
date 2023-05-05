@@ -17,7 +17,6 @@
         "isolatedModules": true,
         "noEmit": true,
         "noImplicitAny": true,
-        "suppressImplicitAnyIndexErrors": true,
         "sourceRoot": "src",
         "lib": [
             "es2022",

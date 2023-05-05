@@ -810,11 +810,13 @@ export class SQLExecutionContext extends ExecutionContext {
      * @param delta A list of indices to remove.
      */
     private updateValidationIndices(threshold: number, delta: number): void {
-        this.pendingValidations.forEach((value: number, index: number) => {
+        const indexes = Array.from(this.pendingValidations);
+        indexes.forEach((value: number, index: number) => {
             if (value >= threshold) {
-                this.pendingValidations[index] += delta;
+                indexes[index] += delta;
             }
         });
+        this.pendingSplitActions = new Set(indexes);
     }
 
     /**
