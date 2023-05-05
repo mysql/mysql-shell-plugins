@@ -607,8 +607,8 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
             }
 
             result = await backend.execute("show global status");
-            if (result && result[0] && result[0].rows) {
-                const values = new Map<string, string>(result[0].rows as Array<[string, string]>);
+            if (result && result.rows) {
+                const values = new Map<string, string>(result.rows as Array<[string, string]>);
                 const ut = Number(values.get("Uptime") ?? 0);
                 if (ut > 0) {
                     const uptime = new Date(ut);
@@ -620,8 +620,8 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
             }
 
             result = await backend.execute("show plugins");
-            if (result && result[0] && result[0].rows) {
-                const values = new Map<string, string>(result[0].rows as Array<[string, string]>);
+            if (result && result.rows) {
+                const values = new Map<string, string>(result.rows as Array<[string, string]>);
                 serverFeatures.memCachePlugin = this.checkTriState(values.get("daemon_memcached"), "ACTIVE");
                 serverFeatures.windowsAuth = this.checkTriState(values.get("authentication_windows"), "ACTIVE");
                 serverFeatures.pamAuth = this.checkTriState(values.get("authentication_pam"), "ACTIVE");

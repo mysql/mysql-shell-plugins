@@ -43,9 +43,9 @@ export class WebviewProvider implements IWebviewProvider {
     protected panel?: WebviewPanel;
     protected requisitions?: RequisitionHub;
 
-    private notifyOnDispose = true;
-
     #caption: string;
+
+    private notifyOnDispose = true;
 
     public constructor(
         protected url: URL,

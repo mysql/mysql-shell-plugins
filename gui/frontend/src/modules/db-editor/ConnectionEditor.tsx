@@ -187,32 +187,39 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
         }
 
         if (this.editorRef.current) {
-            if (details && details.options["bastion-id"] && details.options["profile-name"]
-                && details.options["mysql-db-system-id"]) {
-                // We have bastion id and mds database id.
-                this.liveUpdateFields.profileName = details.options["profile-name"] as string;
-                this.liveUpdateFields.bastionId.value = details.options["bastion-id"] as string;
-                this.liveUpdateFields.dbSystemId = details.options["mysql-db-system-id"] as string;
-                this.loadMdsAdditionalDataAndShowConnectionDlg(dbTypeName, newConnection, details);
-            } else if (details && !details.options["bastion-id"] && details.options["profile-name"]
-                && details.options["mysql-db-system-id"]) {
+            const bastionId = (details && "bastion-id" in details.options)
+                ? details.options["bastion-id"] as string : undefined;
+            const profileName = (details && "profile-name" in details.options)
+                ? details.options["profile-name"] as string : undefined;
+            const mysqlDbSystemId = (details && "mysql-db-system-id" in details.options)
+                ? details.options["mysql-db-system-id"] as string : undefined;
 
-                const profileName = details.options["profile-name"] as string;
-                const dbSystemId = details.options["mysql-db-system-id"] as string;
-                const compartmentId = details.options["compartment-id"] as string;
-                delete details.options["compartment-id"];
+            if (bastionId && profileName && mysqlDbSystemId) {
+                // We have bastion id and mds database id.
+                this.liveUpdateFields.profileName = profileName;
+                this.liveUpdateFields.bastionId.value = bastionId;
+                this.liveUpdateFields.dbSystemId = mysqlDbSystemId;
+                this.loadMdsAdditionalDataAndShowConnectionDlg(dbTypeName, newConnection, details);
+            } else if (details && !bastionId && profileName && mysqlDbSystemId) {
+                let compartmentId = "";
+                if ("compartment-id" in details.options) {
+                    compartmentId = details.options["compartment-id"] as string;
+                    delete details.options["compartment-id"];
+                }
 
                 // We have only profileName and mds database id, but no bastion id.
                 this.liveUpdateFields.profileName = profileName;
-                this.liveUpdateFields.dbSystemId = dbSystemId;
+                this.liveUpdateFields.dbSystemId = mysqlDbSystemId;
 
                 // Get all available bastions that are in the same compartment as the DbSystem but ensure that
                 // these bastions are valid for the specific DbSystem by having a matching target_subnet_id
-                const bastions = await this.shellSession.mds.getMdsBastions(profileName, compartmentId, dbSystemId);
+                const bastions = await this.shellSession.mds.getMdsBastions(profileName, compartmentId,
+                    mysqlDbSystemId);
                 if (bastions.length > 0) {
                     // If there is a bastion in the same compartment
-                    details.options["bastion-id"] = bastions[0].id;
-                    this.liveUpdateFields.bastionId.value = details.options["bastion-id"] as string;
+                    (details.options as IMySQLConnectionOptions)["bastion-id"] = bastions[0].id;
+                    this.liveUpdateFields.bastionId.value =
+                        (details.options as IMySQLConnectionOptions)["bastion-id"] as string;
                     this.loadMdsAdditionalDataAndShowConnectionDlg(dbTypeName, newConnection, details);
                 } else {
                     this.confirmBastionCreation(details);
@@ -355,7 +362,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             const isMySQL = generalSection.databaseType.value === "MySQL";
 
             let details: IConnectionDetails | undefined = data?.details as IConnectionDetails;
-            const dbType: DBType = DBType[generalSection.databaseType.value as string];
+            const dbType = generalSection.databaseType.value as DBType; // value must be a string.
 
             if (data?.createNew) {
                 details = {
@@ -814,11 +821,11 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 sqlMode: {
                     type: "checkList",
                     caption: "SQL Mode",
-                    value: optionsMySQL["sql-mode"] as string[],
-                    checkList: Object.keys(MySQLSqlMode).map((k) => {
+                    value: optionsMySQL["sql-mode"],
+                    checkList: Object.entries(MySQLSqlMode).map(([key, value]) => {
                         const result: ICheckboxProperties = {
-                            id: k.toString(),
-                            caption: MySQLSqlMode[k],
+                            id: key,
+                            caption: value,
                             checkState: CheckState.Unchecked,
                         };
 

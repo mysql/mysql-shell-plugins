@@ -872,7 +872,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
     }
 
     private isShellShellColumnsMetaData(response: IShellResultType): response is IShellColumnsMetaData {
-        return response["Field 1"] !== undefined;
+        return "Field 1" in response;
     }
 
     private isShellShellRowData(response: IShellResultType): response is IShellRowData {

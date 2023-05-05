@@ -201,8 +201,7 @@ export class DBSymbolTable extends SymbolTable {
             name: symbol.name,
             source: "Embedded",
             definition: this.definitionForContext(symbol.context, true),
-            // eslint-disable-next-line dot-notation
-            description: symbol["description"], // Not all symbols have a description.
+            description: "description" in symbol ? symbol.description as string[] : undefined,
         };
     }
 
