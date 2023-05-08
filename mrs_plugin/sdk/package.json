@@ -1,0 +1,23 @@
+{
+  "name": "mrs-sdk",
+  "version": "1.0.0",
+  "description": "TypeScript SDK for the MySQL REST Service",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "keywords": [
+    "MRS",
+    "SDK",
+    "REST",
+    "TypeScript"
+  ],
+  "publisher": "Oracle",
+  "devDependencies": {
+    "@babel/preset-env": "7.22.7",
+    "@babel/preset-typescript": "7.22.5",
+    "jest": "29.4.2"
+  }
+}
