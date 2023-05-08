@@ -6,3 +6,4 @@ htmlcov
 plugin-test-coverage.xml
 plugin-tests.xml
 .vscode/launch.json
+package-lock.json

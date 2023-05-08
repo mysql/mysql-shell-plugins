@@ -509,49 +509,118 @@ export type ColumnOrder<Type> = {
 
 // Prisma-like API type definitions.
 
-export interface ICreateOptions<T> {
-    data: T
+// We need to distinguish between primitive types and objects (arrays and pojos) in order to
+// determine if there are nesting levels to inspect.
+type Primitive =
+    | null
+    | undefined
+    | string
+    | number
+    | boolean
+    | symbol
+    | bigint;
+
+// A filter can apply to different kind of operations - find*(), delete*() and update*().
+// Each operation should determine whether it is required or not.
+export interface IFilterOptions<Filterable> {
+    where: DataFilter<Filterable>
 }
 
-export interface IFilterOptions<T> {
-    where: DataFilter<T>
+// create*() API
+
+// For now, to create a record we only need to specify the details of that specific record.
+export interface ICreateOptions<Type> {
+    data: Type
 }
 
-export interface IFindAllOptions<C> {
+// Since findAll() can return all items in the table, it needs an additional optional pagination option to limit the
+// number of of items and an optional callback function to handle progress updates.
+export interface IFindAllOptions<ResultSet> {
     pageSize?: number,
-    progress?: (items: IMrsResultList<C>) => Promise<void>
+    progress?: (items: IMrsResultList<ResultSet>) => Promise<void>
 }
 
-export interface IFindOptions<C, T> extends Partial<IFilterOptions<T>> {
-    orderBy?: ColumnOrder<T>,
-    select?: ResultFields<C> | ColumnNames<C>,
+export interface IFindUniqueOptions<Selectable, Filterable> extends Partial<IFilterOptions<Filterable>> {
+    select?: BooleanFieldMapSelect<Selectable> | FieldNameSelect<Selectable>,
+}
+
+// find*() API
+
+// Common options used by find*() methods.
+export interface IFindOptions<Selectable, Filterable> extends IFindUniqueOptions<Selectable, Filterable> {
+    fetchAll?: IFindAllOptions<Selectable> | boolean,
+    orderBy?: ColumnOrder<Filterable>,
     skip?: number,
     take?: number,
-    fetchAll?: IFindAllOptions<C> | boolean,
 }
 
-export interface IFindUniqueOptions<C, T> extends Partial<IFilterOptions<T>> {
-    select?: ResultFields<C> | ColumnNames<C>,
-}
-
-export type ResultFields<T> = {
-    [Key in keyof T]?: boolean
+// "select" determines which fields are included in the result set.
+// It supports both an object with boolean toggles to select or ignore specific fields or an array of field names
+// to include. Nested JSON/Relational duality fields can be specified using nested objects or with boolean toggles
+// or an array with field names containing the full field path using dot "." notation
+// { select: { foo: { bar: true, baz: true } }
+// ['foo.bar', 'foo.baz']
+// { select: { foo: { qux: false } } }
+export type BooleanFieldMapSelect<TableMetadata> = {
+    // if the column contains a primitive value the type should be a boolean toggle, otherwise, it contains an
+    // object value and we need to check the corresponding children
+    [Key in keyof TableMetadata]?: TableMetadata[Key] extends Primitive ? boolean :
+        NestingFieldMap<TableMetadata[Key]>
 };
 
-export type ColumnNames<T> = Array<keyof T>;
+// When "select" uses the array convention, nested fields are identified by their full path
+// using dot "." notation.
+// { foo: { bar: { baz: string } } } => ['foo.bar.baz']
+export type FieldNameSelect<Type> = Array<FieldPath<Type>>;
 
-export type IDeleteOptions<T> = IFilterOptions<T>;
+// In the presence of nested fields, the field path is composed by the names of each parent field in the branch.
+// So, we need a way to carry that information as a list of strings.
+export type FieldPath<Type> = keyof {
+    [ColumnName in keyof Type & string as NestingPath<ColumnName, Type[ColumnName]>]?: unknown
+};
 
-export interface IUpdateConfig {
+// When we reach a field that contains a primitive value (i.e. not an object), we have a valid stop condition, otherwise
+// we need to continue checking the types whilst composing the paths of newfound nested fields.
+export type NestingPath<ParentPath extends string, Child> = Child extends Primitive ? ParentPath :
+    `${ParentPath}.${NestingFieldName<Child> & string}`;
+
+// When using an array of field names, if the value of the field is an array, we need to iterate over the array in order
+// to compose the full path to each field.
+export type NestingFieldName<Type> = Type extends unknown[] ? FieldPath<Type[number]> : FieldPath<Type>;
+
+// When using a boolean field map, if the value of the field is an array, we need to iterate over the array in order
+// to check the nested field map.
+export type NestingFieldMap<Type> = Type extends unknown[] ? BooleanFieldMapSelect<Type[number]>
+    : BooleanFieldMapSelect<Type> | boolean;
+
+// delete*() API
+
+// To avoid unwarranted data loss, deleting a record from the database always requires a filter (IFilterOptions
+// default).
+export type IDeleteOptions<Type> = IFilterOptions<Type>;
+
+// update*() API
+
+// To avoid unwarranted data loss, updating a record in the database always requires a filter that operates only
+// using the values of primary key columns. These need columns are identified by a list containing the corresponding
+// column names. Additionally, batch updates can be enabled using a specific option.
+// For single updates, each primary key should match a specific value. Each match is specified in a plain JavaScript
+// object.
+// For batch updates, each primary key can match more than one value. Those matches are specified in a list of one or
+// more plain JavaScript objects.
+export interface IUpdateOptions<Instance, Type, PrimaryKeys extends Array<string & keyof Type>, Config>
+    extends ICreateOptions<Instance> {
+    where: Config extends IBatchConfig ? Array<UpdateMatch<Type, PrimaryKeys>> : UpdateMatch<Type, PrimaryKeys>
+}
+
+// Specific options for batch updates.
+export interface IBatchConfig {
     batch: true
 }
 
-export interface IUpdateOptions<C, T, Keys extends Array<string & keyof T>, Multi> extends ICreateOptions<C> {
-    where: Multi extends IUpdateConfig ? Array<UpdateMatch<T, Keys>> : UpdateMatch<T, Keys>
-}
-
-export type UpdateMatch<T, Keys extends Array<string & keyof T>> = {
-    [K in keyof Pick<T, Keys[number]>]-?: T[K]
+// Each matcher should only allow to specify values for the names of primary key columns.
+export type UpdateMatch<Type, PrimaryKeys extends Array<string & keyof Type>> = {
+    [ColumnName in keyof Pick<Type, PrimaryKeys[number]>]-?: Type[ColumnName]
 };
 
 export class MrsBaseObjectQuery<C, P> {
@@ -564,7 +633,7 @@ export class MrsBaseObjectQuery<C, P> {
     public constructor(
         private readonly schema: MrsBaseSchema,
         private readonly requestPath: string,
-        private readonly fieldsToGet?: string[] | ResultFields<C> | ColumnNames<C>,
+        private readonly fieldsToGet?: string[] | BooleanFieldMapSelect<C> | FieldNameSelect<C>,
         private readonly fieldsToOmit?: string[]) {
     }
 
@@ -668,29 +737,11 @@ export class MrsBaseObjectQuery<C, P> {
         let inputStr = `${this.schema.requestPath}${this.requestPath}?`;
 
         const fields = this.fieldsToGet ?? {};
-
-        const fieldsToGet = Array.isArray(fields)
-            ? fields
-            : Object.keys(fields as ResultFields<C>)
-                .filter((column) => {
-                    return fields[column as keyof typeof fields] === true;
-                })
-                .map((column) => {
-                    return column as keyof C;
-                });
-
-        const fieldsToOmit = Array.isArray(fields)
-            ? this.fieldsToOmit
-            : Object.keys(fields as ResultFields<C>)
-                .filter((column) => {
-                    return fields[column as keyof typeof fields] === false;
-                })
-                .map((column) => {
-                    return column as keyof C;
-                });
+        const fieldsToGet = Array.isArray(fields) ? fields : this.fieldsToInclude(fields);
+        const fieldsToOmit = Array.isArray(fields) ? this.fieldsToOmit : this.fieldsToExclude(fields);
 
         if (fieldsToOmit !== undefined && fieldsToOmit.length > 0) {
-            inputStr += `f=!${fieldsToOmit.join(",")}&`;
+            inputStr += `f=!${fieldsToOmit.join(",!")}&`;
         } else if (fieldsToGet !== undefined && fieldsToGet.length > 0) {
             inputStr += `f=${fieldsToGet.join(",")}&`;
         }
@@ -774,6 +825,62 @@ export class MrsBaseObjectQuery<C, P> {
         } else {
             return undefined;
         }
+    };
+
+    /**
+     * Retrieve a list of the names of columns that should be included in the result set.
+     *
+     * @param fields An object where the keys correspond to the column names (nested or not)
+     * and the values are "true" if the column should be included or "false" if not.
+     * @returns A list of column names.
+     */
+    private readonly fieldsToInclude = (fields: BooleanFieldMapSelect<C>): Array<keyof C> => {
+        return this.fieldsWithValue(fields, true);
+    };
+
+    /**
+     * Retrieve a list of the names of columns that should be excluded from the result set.
+     *
+     * @param fields An object where the keys correspond to the column names (nested or not)
+     * and the values are "true" if the column should be included or "false" if not.
+     * @returns A list of column names.
+     */
+    private readonly fieldsToExclude = (fields: BooleanFieldMapSelect<C>): Array<keyof C> => {
+        return this.fieldsWithValue(fields, false);
+    };
+
+    /**
+     * Retrieve a list of the names of columns that are assigned a given value.
+     *
+     * @param fields An object where the keys correspond to the column names (nested or not)
+     * and the values are "true" if the column should be included or "false" if not.
+     * @param value The value to check.
+     * @param [prefix] A prefix to carry when the function is called recursively on nested fields.
+     * @returns A list of column names.
+     */
+    private readonly fieldsWithValue = (fields: BooleanFieldMapSelect<C>, value: unknown, prefix = ""):
+    Array<keyof C> => {
+        return Object.keys(fields).reduce((acc: Array<keyof C>, field) => {
+            const ref = fields[field as keyof typeof fields];
+
+            if (typeof ref === "object" && prefix.length > 0) {
+                return [...acc, ...this.fieldsWithValue(ref, value, `${prefix}.${field}`)];
+            }
+
+            if (typeof ref === "object") {
+                return [...acc, ...this.fieldsWithValue(ref, value, field)];
+            }
+
+            if (ref === value && prefix.length > 0) {
+                return [...acc, `${prefix}.${field}` as keyof C];
+            }
+
+            if (ref === value) {
+                return [...acc, field as keyof C];
+            }
+
+            return acc;
+        }, []);
     };
 }
 
