@@ -40,6 +40,30 @@ try {
         
     }
 
+    if (!$env:VSIX_PATH) {
+        if (!$env:PB2_LINK){
+            Throw "Please define 'PB2_LINK' env variable"
+        }
+    }
+    
+    if (!$env:VSCODE_VERSION){
+        Throw "Please define 'VSCODE_VERSION' env variable"
+    }
+
+    if (!$env:HTTP_PROXY){
+        Throw "Please define 'HTTP_PROXY' env variable"
+    }
+
+    if (!$env:HTTPS_PROXY){
+        Throw "Please define 'HTTP_PROXY' env variable"
+    }
+
+    $aux_proxy = $env:HTTP_PROXY
+    $aux_http_proxy = $env:HTTPS_PROXY
+
+    $env:HTTP_PROXY = ""
+    $env:HTTPS_PROXY = ""
+
     function installChromedriver($vscodeVersion) {
         $job5 = Start-Job -Name "get-chromedriver-db" -ScriptBlock { 
             npm run e2e-tests-get-chromedriver -- -s $using:testResourcesDb -c $using:vscodeVersion
@@ -120,16 +144,6 @@ try {
         return $info[0]
     }
 
-    if (!$env:VSIX_PATH) {
-        if (!$env:EXTENSION_BRANCH){
-            Throw "Please define 'EXTENSION_BRANCH' env variable"
-        }
-    }
-    
-    if (!$env:VSCODE_VERSION){
-        Throw "Please define 'VSCODE_VERSION' env variable"
-    }
-
     if ($isLinux) {
         $env:userprofile = $env:HOME
         $webCerts = Join-Path $env:userprofile ".mysqlsh-gui" "plugin_data" "gui_plugin" "web_certs"
@@ -159,34 +173,6 @@ try {
     writeMsg "VSIX_PATH: $env:VSIX_PATH"
     writeMsg "USER PROFILE: $env:USERPROFILE"
     writeMsg "BASE PATH: $basePath"
-
-    if (!$env:VSIX_PATH) {
-        # SETUP NODE REGISTRY
-        writeMsg "Setup nodejs registry..." "-NoNewLine"
-        $prc = Start-Process "npm" -ArgumentList "set", "registry", "https://artifacthub-phx.oci.oraclecorp.com/api/npm/npmjs-remote/" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\nodeExt.log" -RedirectStandardError "$env:WORKSPACE\nodeExtErr.log"
-        if ($prc.ExitCode -ne 0){
-            Throw "Error setting nodejs registry"
-        }
-        else{
-            writeMsg "DONE"
-        }
-
-        # SETUP NO PROXY
-        writeMsg "Setup noproxy..." "-NoNewLine"
-        $prc = Start-Process "npm" -ArgumentList "config", "set", "noproxy", "localhost,127.0.0.1,.oraclecorp.com,.oracle.com" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\nodeExt.log" -RedirectStandardError "$env:WORKSPACE\nodeExtErr.log"
-        if ($prc.ExitCode -ne 0){
-            Throw "Error setting nodejs registry"
-        }
-        else{
-            writeMsg "DONE"
-        }
-
-        $env:HTTP_PROXY = "http://www-proxy.us.oracle.com:80"
-        $env:HTTPS_PROXY = "http://www-proxy.us.oracle.com:80"
-    } else {
-        $env:HTTP_PROXY = ""
-        $env:HTTPS_PROXY = ""
-    }
 
     # REMOVE PACKAGE-LOCK.JSON
     if (Test-Path -Path "$basePath\package-lock.json"){
@@ -235,6 +221,9 @@ try {
     } 
     writeMsg "DONE"
 
+    $env:HTTP_PROXY=$aux_proxy
+    $env:HTTPS_PROXY=$aux_http_proxy
+
     writeMsg "Checking if VSCode exists..." "-NoNewLine"
 
     if (!(Test-Path -Path $testResourcesDb)) {
@@ -272,32 +261,43 @@ try {
     }
 
     # DOWNLOAD EXTENSION 
-    if (!$env:EXTENSION_PUSH_ID){
-        $env:EXTENSION_PUSH_ID = "latest"
-    }
-
     if (!$env:VSIX_PATH) {
         writeMsg "Trying to download from PB2..."
-        $bundles = (Invoke-WebRequest -NoProxy -Uri "http://pb2.mysql.oraclecorp.com/nosso/api/v2/branches/$env:EXTENSION_BRANCH/pushes/$env:EXTENSION_PUSH_ID/").content
+        $bundles = (Invoke-WebRequest -NoProxy -Uri $env:PB2_LINK).content
         $bundles = $bundles | ConvertFrom-Json
+
+        if ($isWindows) {
+            $product = "mysql-shell-ui-plugin_binary_vs-code-extension_vsix--win32-x64"
+            $artifact = "mysql-shell-for-vs-code-win32-x64"
+        } elseif ($isLinux) {
+            uname -m | Tee-Object -Variable cpuArch
+            if ($cpuArch -eq "x86_64") {
+                $product = "mysql-shell-ui-plugin_binary_vs-code-extension_vsix--linux-x64"
+                $artifact = "mysql-shell-for-vs-code-linux-x64"
+            } else {
+                $product = "mysql-shell-ui-plugin_binary_vs-code-extension_vsix--linux-arm64"
+                $artifact = "mysql-shell-for-vs-code-linux-arm64"
+            }
+        } else {
+            Throw "Not supported platform"
+        }
         
         $extension = ($bundles.builds | Where-Object {
-            $_.product -eq "mysql-shell-ui-plugin_binary_vs-code-extension_vsix--win32-x64" 
+            $_.product -eq $product
             }).artifacts | Where-Object {
-                $_.name -like "mysql-shell-for-vs-code-win32-x64"
+                $_.name -like $artifact
             }
 
         if ($extension){
             $extension | ForEach-Object { 
-                $extensionItem = $_.url.replace("http://pb2.mysql.oraclecorp.com/nosso/archive/","")
-                writeMsg "Downloading $extensionItem ..." "-NoNewline" 
-                $dest = Join-Path $env:WORKSPACE $extensionItem
+                writeMsg "Downloading the extension ..." "-NoNewline" 
+                $dest = Join-Path $env:WORKSPACE "$env:EXTENSION_BRANCH-$env:EXTENSION_PUSH_ID.vsix"
                 Invoke-WebRequest -NoProxy -Uri $_.url -OutFile $dest
                 writeMsg "DONE"
                 }
             }
         else{
-            writeMsg "Could not download the MySQL Shell for VS Code extension"
+            writeMsg "Could not download the MySQL Shell for VS Code extension. You can download it manually and then set the VSIX_PATH env variable"
             exit 1
         }
     } else {

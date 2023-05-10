@@ -900,20 +900,63 @@ export class Misc {
         }), explicitWait, `Could not find the script '${partialName}' with type '${type}' on the Open Editors tree`);
     };
 
+    public static getTreeElement = async (
+            section: CustomTreeSection,
+            itemName: string,
+            reloadSection = false,
+            ): Promise<TreeItem> => {
+        let el: TreeItem;
+        let reloadLabel: string;
+        if (reloadSection) {
+            if (await section.getTitle() === dbTreeSection) {
+                reloadLabel = "Reload the connection list";
+            } else if (await section.getTitle() === ociTreeSection) {
+                reloadLabel = "Reload the OCI Profile list";
+            }
+        }
+
+        await driver.wait(async () => {
+            if (reloadSection) {
+                await Misc.clickSectionToolbarButton(section, reloadLabel);
+            }
+            el = await section.findItem(itemName, 5);
+
+            return el !== undefined;
+        }, explicitWait, `${itemName} on ${await section.getTitle()} was not found`);
+
+        return el;
+    };
+
     private static getTerminalOutput = async (): Promise<string> => {
         let out: string;
         if (platform() === "linux") {
             const bootomBar = new BottomBarPanel();
             const terminal = await bootomBar.openTerminalView();
-            out = await terminal.getText();
+            await driver.wait(async () => {
+                try {
+                    out = await terminal.getText();
+
+                    return true;
+                } catch (e) {
+                    // continue. Clipboard may be in use by other tests
+                }
+            }, explicitWait*2, "Cliboard was in use after 10 secs");
         } else {
             const workbench = new Workbench();
             await workbench.executeCommand("terminal select all");
             await driver.sleep(1000);
-            const terminal = await driver.findElement(By.css("#terminal textarea"));
-            await terminal.sendKeys(selKey.chord(key.CONTROL, "c"));
-            out = clipboard.readSync();
-            clipboard.writeSync("");
+            await driver.wait( async () => {
+                try {
+                    const terminal = await driver.findElement(By.css("#terminal textarea"));
+                    await terminal.sendKeys(selKey.chord(key.CONTROL, "c"));
+                    out = clipboard.readSync();
+                    clipboard.writeSync("");
+
+                    return true;
+                } catch (e) {
+                    // continue. Clipboard may be in use by other tests
+                }
+            }, explicitWait*2, "Cliboard was in use after 10 secs");
         }
 
         return out;
