@@ -220,7 +220,7 @@ export class MRSCommandHandler {
                     const answer = await window.showInformationMessage(
                         `Are you sure the MRS schema ${item.value.name} should be deleted?`, "Yes", "No");
 
-                    if (answer) {
+                    if (answer === "Yes") {
                         try {
                             await item.entry.backend?.mrs.deleteSchema(item.value.id, item.value.serviceId);
                             await commands.executeCommand("msg.refreshConnections");

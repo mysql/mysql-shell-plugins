@@ -746,20 +746,59 @@ describe("MySQL REST Service", () => {
         });
 
         it("Delete REST Schema", async () => {
+            let treeDBSection = await Misc.getSection(constants.dbTreeSection);
 
             const treeRandomService = await Misc.getTreeElement(constants.dbTreeSection,
                 `/edited${service} (localhost)`, true);
             await treeRandomService.expand();
+
             const treeMySQLRESTSchema = await Misc.getTreeElement(constants.dbTreeSection, "/edited (sakila)", true);
             const label = await treeMySQLRESTSchema.getLabel();
+            const workbench = new Workbench();
+
+            // first we click to delete the schema but we change our mind later (BUG#35377927)
             await Misc.openContexMenuItem(treeMySQLRESTSchema, constants.deleteRESTSchema);
             await Misc.verifyNotification("Are you sure the MRS schema sakila should be deleted");
+
+            let ntfs = await workbench.getNotifications();
+
             await driver.wait(async () => {
                 try {
-                    const workbench = new Workbench();
-                    const ntfs = await workbench.getNotifications();
-                    await ntfs[ntfs.length - 1].takeAction("Yes");
+                    // answering "No" should prevent the schema from being deleted
+                    await ntfs[ntfs.length - 1].takeAction("No");
+                    return true;
+                } catch (e) {
+                    if (!(e instanceof error.ElementNotInteractableError)) {
+                        throw e;
+                    }
+                }
+            }, constants.explicitWait, "Could not click on notification button");
 
+            await driver.wait(async () => {
+                try {
+                    // we shouldn't have to wait for the list to reload, but we can play it safe to ensure
+                    // the schema is not effectively deleted
+                    await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
+                    treeDBSection = await Misc.getSection(constants.dbTreeSection);
+                    // the schema should still be in the tree
+                    return (await treeDBSection.findItem(label)) !== undefined;
+                } catch (e) {
+                    if (!(e instanceof error.StaleElementReferenceError)) {
+                        throw e;
+                    }
+                }
+            }, constants.explicitWait, `${label} schema was not deleted`);
+
+            // now we try again, but we really want to delete the schema
+            await Misc.openContexMenuItem(treeMySQLRESTSchema, constants.deleteRESTSchema);
+            await Misc.verifyNotification("Are you sure the MRS schema sakila should be deleted");
+
+            ntfs = await workbench.getNotifications();
+
+            await driver.wait(async () => {
+                try {
+                    // answering "Yes" should effectively delete the schema
+                    await ntfs[ntfs.length - 1].takeAction("Yes");
                     return true;
                 } catch (e) {
                     if (!(e instanceof error.ElementNotInteractableError)) {
@@ -774,15 +813,14 @@ describe("MySQL REST Service", () => {
                     let treeDBSection = await Misc.getSection(constants.dbTreeSection);
                     await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
                     treeDBSection = await Misc.getSection(constants.dbTreeSection);
-
+                    // the schema should not be in the tree
                     return (await treeDBSection.findItem(label)) === undefined;
                 } catch (e) {
                     if (!(e instanceof error.StaleElementReferenceError)) {
                         throw e;
                     }
                 }
-            }, constants.explicitWait, `${label} schema was not deleted`);
-
+            }, constants.explicitWait, `${label} schema was deleted`);
         });
 
         it("Delete REST Service", async () => {
