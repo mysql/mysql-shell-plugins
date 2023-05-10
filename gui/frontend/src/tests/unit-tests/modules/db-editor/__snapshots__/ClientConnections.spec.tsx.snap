@@ -11,6 +11,14 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
       },
     }
   }
+  toolbarItems={
+    {
+      "auxillary": [],
+      "editor": [],
+      "execution": [],
+      "navigation": [],
+    }
+  }
 >
   <Container
     className="msg clientConnections"
@@ -53,11 +61,20 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
           >
             <Label
               key="mainLabel"
+              style={
+                {
+                  "marginLeft": "8px",
+                }
+              }
             >
               <label
                 className="msg label"
                 data-tooltip="expand"
-                style={{}}
+                style={
+                  {
+                    "marginLeft": "8px",
+                  }
+                }
               >
                 Refresh Rate:
               </label>
@@ -175,7 +192,6 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               <div
                 className="msg button imageOnly"
                 data-tooltip="Hide sleeping connections"
-                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 role="button"
@@ -216,7 +232,6 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               <div
                 className="msg button imageOnly"
                 data-tooltip="Hide background threads"
-                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 role="button"
@@ -273,7 +288,6 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               <div
                 className="msg button imageOnly"
                 data-tooltip="Don't load full thread info"
-                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 role="button"
@@ -314,7 +328,6 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               <div
                 className="msg button imageOnly"
                 data-tooltip="Show/Hide Details"
-                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 role="button"
@@ -372,7 +385,6 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               <div
                 className="msg button imageOnly disabled"
                 data-tooltip="Kill Query"
-                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 role="button"
@@ -414,7 +426,6 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               <div
                 className="msg button imageOnly disabled"
                 data-tooltip="Kill Connection"
-                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 role="button"
@@ -487,7 +498,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               }
             >
               <Label
-                key="mainLabel"
+                key="threadConnectedLabel"
               >
                 <label
                   className="msg label"
@@ -498,7 +509,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
-                key="mainLabel"
+                key="threadRunningLabel"
               >
                 <label
                   className="msg label"
@@ -509,7 +520,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
-                key="mainLabel"
+                key="threadsCreatedLabel"
               >
                 <label
                   className="msg label"
@@ -520,7 +531,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
-                key="mainLabel"
+                key="threadsCachedLabel"
               >
                 <label
                   className="msg label"
@@ -531,7 +542,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
-                key="mainLabel"
+                key="rejectedLabel"
               >
                 <label
                   className="msg label"
@@ -542,7 +553,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
-                key="mainLabel"
+                key="totalConnectionsLabel"
               >
                 <label
                   className="msg label"
@@ -553,7 +564,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
-                key="mainLabel"
+                key="connectionsLimitLabel"
               >
                 <label
                   className="msg label"
@@ -564,7 +575,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
-                key="mainLabel"
+                key="abortedClientsLabel"
               >
                 <label
                   className="msg label"
@@ -575,7 +586,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
-                key="mainLabel"
+                key="abortedConnectionsLabel"
               >
                 <label
                   className="msg label"
@@ -586,7 +597,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
-                key="mainLabel"
+                key="errorsLabel"
               >
                 <label
                   className="msg label"
@@ -675,6 +686,14 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
       },
     }
   }
+  toolbarItems={
+    {
+      "auxillary": [],
+      "editor": [],
+      "execution": [],
+      "navigation": [],
+    }
+  }
 >
   <Container
     className="msg clientConnections"
@@ -717,11 +736,20 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
           >
             <Label
               key="mainLabel"
+              style={
+                {
+                  "marginLeft": "8px",
+                }
+              }
             >
               <label
                 className="msg label"
                 data-tooltip="expand"
-                style={{}}
+                style={
+                  {
+                    "marginLeft": "8px",
+                  }
+                }
               >
                 Refresh Rate:
               </label>
@@ -839,7 +867,6 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               <div
                 className="msg button imageOnly"
                 data-tooltip="Hide sleeping connections"
-                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 role="button"
@@ -880,7 +907,6 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               <div
                 className="msg button imageOnly"
                 data-tooltip="Hide background threads"
-                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 role="button"
@@ -937,7 +963,6 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               <div
                 className="msg button imageOnly"
                 data-tooltip="Don't load full thread info"
-                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 role="button"
@@ -978,7 +1003,6 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               <div
                 className="msg button imageOnly"
                 data-tooltip="Show/Hide Details"
-                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 role="button"
@@ -1036,7 +1060,6 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               <div
                 className="msg button imageOnly disabled"
                 data-tooltip="Kill Query"
-                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 role="button"
@@ -1078,7 +1101,6 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               <div
                 className="msg button imageOnly disabled"
                 data-tooltip="Kill Connection"
-                draggable={true}
                 onClick={[Function]}
                 onMouseDown={[Function]}
                 role="button"
@@ -1151,7 +1173,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               }
             >
               <Label
-                key="mainLabel"
+                key="threadConnectedLabel"
               >
                 <label
                   className="msg label"
@@ -1162,7 +1184,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
-                key="mainLabel"
+                key="threadRunningLabel"
               >
                 <label
                   className="msg label"
@@ -1173,7 +1195,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
-                key="mainLabel"
+                key="threadsCreatedLabel"
               >
                 <label
                   className="msg label"
@@ -1184,7 +1206,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
-                key="mainLabel"
+                key="threadsCachedLabel"
               >
                 <label
                   className="msg label"
@@ -1195,7 +1217,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
-                key="mainLabel"
+                key="rejectedLabel"
               >
                 <label
                   className="msg label"
@@ -1206,7 +1228,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
-                key="mainLabel"
+                key="totalConnectionsLabel"
               >
                 <label
                   className="msg label"
@@ -1217,7 +1239,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
-                key="mainLabel"
+                key="connectionsLimitLabel"
               >
                 <label
                   className="msg label"
@@ -1228,7 +1250,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
-                key="mainLabel"
+                key="abortedClientsLabel"
               >
                 <label
                   className="msg label"
@@ -1239,7 +1261,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
-                key="mainLabel"
+                key="abortedConnectionsLabel"
               >
                 <label
                   className="msg label"
@@ -1250,7 +1272,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
-                key="mainLabel"
+                key="errorsLabel"
               >
                 <label
                   className="msg label"

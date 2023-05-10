@@ -108,7 +108,7 @@ export class DBConnection {
                 }
                 if (results.length > 0) {
                     if ((await results[0].findElements(By.css(".message.info"))).length > 0) {
-                    //if language has been changed...
+                        //if language has been changed...
                         results.shift();
                     }
                 } else {
@@ -157,7 +157,7 @@ export class DBConnection {
      * @param statement statement
      * @returns Promise resolving with the number of statement starts
      */
-    public static isStatementStart = async (statement: string): Promise <boolean | undefined> => {
+    public static isStatementStart = async (statement: string): Promise<boolean | undefined> => {
 
         const getLineSentence = async (ctx: WebElement): Promise<string> => {
             const spans = await ctx.findElements(By.css("span"));
@@ -179,7 +179,7 @@ export class DBConnection {
 
                 let index = -1;
 
-                for (let i=0; i <= rightSideLines.length - 1; i++) {
+                for (let i = 0; i <= rightSideLines.length - 1; i++) {
                     const lineSentence = await getLineSentence(rightSideLines[i]);
                     if (lineSentence.includes(statement)) {
                         index = i;
@@ -252,7 +252,7 @@ export class DBConnection {
         for (const action of actions) {
             if (
                 (await action.getAttribute("title")).indexOf("Find in selection") !==
-            -1
+                -1
             ) {
                 const checked = await action.getAttribute("aria-checked");
                 if (checked === "true") {
@@ -372,7 +372,7 @@ export class DBConnection {
 
                     return (
                         (await objects[0].findElement(By.css("label")).getText()) !==
-                    "loading..."
+                        "loading..."
                     );
                 } catch (e) {
                     return true;
@@ -438,7 +438,9 @@ export class DBConnection {
             "arguments[0].click()",
             await context.findElement(By.id("addScript")),
         );
+
         const menu = await driver.findElement(By.css("div.visible.noArrow.menu"));
+
         switch (scriptType) {
             case "JS":
                 await menu.findElement(By.id("addJSScript")).click();
@@ -459,7 +461,7 @@ export class DBConnection {
 
         const entries = await context.findElements(By.css(".schemaTreeEntry label"));
 
-        return entries[entries.length-1].getText();
+        return entries[entries.length - 1].getText();
     };
 
     /**
@@ -571,11 +573,11 @@ export class DBConnection {
      */
     public static getResultTab = async (tabName: string): Promise<WebElement | undefined> => {
         const zoneHosts = await driver.findElements(By.css(".zoneHost"));
-        const tabs = await zoneHosts[zoneHosts.length-1].findElements(By.css(".resultHost .tabArea div"));
+        const tabs = await zoneHosts[zoneHosts.length - 1].findElements(By.css(".resultHost .tabArea div"));
 
         for (const tab of tabs) {
             if (await tab.getAttribute("id") !== "selectorItemstepDown" &&
-            await tab.getAttribute("id") !== "selectorItemstepUp") {
+                await tab.getAttribute("id") !== "selectorItemstepUp") {
                 const label = await tab.findElement(By.css("label"));
                 if ((await label.getAttribute("innerHTML")).indexOf(tabName) !== -1) {
                     return tab;
@@ -591,12 +593,12 @@ export class DBConnection {
      */
     public static getResultTabs = async (): Promise<String[]> => {
         const zoneHosts = await driver.findElements(By.css(".zoneHost"));
-        const tabs = await zoneHosts[zoneHosts.length-1].findElements(By.css(".resultHost .tabArea div"));
+        const tabs = await zoneHosts[zoneHosts.length - 1].findElements(By.css(".resultHost .tabArea div"));
         const resultTabs = [];
 
         for (const tab of tabs) {
             if (await tab.getAttribute("id") !== "selectorItemstepDown" &&
-            await tab.getAttribute("id") !== "selectorItemstepUp") {
+                await tab.getAttribute("id") !== "selectorItemstepUp") {
                 const label = await tab.findElement(By.css("label"));
                 resultTabs.push(await label.getAttribute("innerHTML"));
             }
@@ -626,7 +628,7 @@ export class DBConnection {
                 explicitWait, "Result host was not found");
 
             const resultSet = await driver.wait(until.elementLocated(async () => {
-                return resultHosts[resultHosts.length-1].findElements(By.css(".tabulator-headers"));
+                return resultHosts[resultHosts.length - 1].findElements(By.css(".tabulator-headers"));
             }), explicitWait, "Table headers not found");
 
             const resultHeaderRows = await driver.wait(until.elementsLocated(async () => {
@@ -657,7 +659,7 @@ export class DBConnection {
      */
     public static getGraphHost = async (): Promise<WebElement> => {
         const resultHosts = await driver.findElements(By.css(".zoneHost"));
-        const lastResult = resultHosts[resultHosts.length-1];
+        const lastResult = resultHosts[resultHosts.length - 1];
 
         return driver.wait(async () => {
             return lastResult.findElement(By.css(".graphHost"));
@@ -674,9 +676,9 @@ export class DBConnection {
         const zoneHosts = await driver.findElements(By.css(".zoneHost"));
         let context;
         if (penultimate) {
-            context = zoneHosts[zoneHosts.length-2];
+            context = zoneHosts[zoneHosts.length - 2];
         } else {
-            context = zoneHosts[zoneHosts.length-1];
+            context = zoneHosts[zoneHosts.length - 1];
         }
 
         let items = await context.findElements(By.css("label"));
@@ -686,7 +688,7 @@ export class DBConnection {
         if (items.length > 0) {
             text = await items[0].getText();
         } else if (otherItems.length > 0) {
-            text = await otherItems[otherItems.length-1].getText();
+            text = await otherItems[otherItems.length - 1].getText();
         } else {
             items = await context.findElements(By.css(".info"));
             text = await items[0].getText();
@@ -723,13 +725,13 @@ export class DBConnection {
             const results = await driver.findElements(By.css(".message.info"));
             switch (language) {
                 case "sql":
-                    expect(await results[results.length-1].getText()).toBe("Switched to MySQL mode");
+                    expect(await results[results.length - 1].getText()).toBe("Switched to MySQL mode");
                     break;
                 case "js":
-                    expect(await results[results.length-1].getText()).toBe("Switched to JavaScript mode");
+                    expect(await results[results.length - 1].getText()).toBe("Switched to JavaScript mode");
                     break;
                 case "ts":
-                    expect(await results[results.length-1].getText()).toBe("Switched to TypeScript mode");
+                    expect(await results[results.length - 1].getText()).toBe("Switched to TypeScript mode");
                     break;
                 default:
                     break;
@@ -755,7 +757,7 @@ export class DBConnection {
 
                 return true;
             } catch (e) {
-                if (typeof(e) == "object" && String(e).includes("StaleElementReferenceError")) {
+                if (typeof (e) == "object" && String(e).includes("StaleElementReferenceError")) {
                     return false;
                 } else {
                     throw e;
@@ -883,9 +885,9 @@ export class DBConnection {
             await DBConnection.promptScrollDown();
             const context = await driver.findElement(By.css(".monaco-editor-background"));
             const prompts = await context.findElements(By.css(".view-lines.monaco-mouse-cursor-text .view-line"));
-            const lastPrompt = await prompts[prompts.length-1].findElement(By.css("span > span"));
+            const lastPrompt = await prompts[prompts.length - 1].findElement(By.css("span > span"));
             text = await lastPrompt.getText();
-        } catch(e) {
+        } catch (e) {
             if (e instanceof Error) {
                 if (String(e).indexOf("StaleElementReferenceError") === -1) {
                     throw new Error(String(e.stack));
@@ -894,7 +896,7 @@ export class DBConnection {
                     const context = await driver.findElement(By.css(".monaco-editor-background"));
                     const prompts = await context
                         .findElements(By.css(".view-lines.monaco-mouse-cursor-text .view-line"));
-                    const lastPrompt = await prompts[prompts.length-1].findElement(By.css("span > span"));
+                    const lastPrompt = await prompts[prompts.length - 1].findElement(By.css("span > span"));
                     text = await lastPrompt.getText();
                 }
             }
@@ -914,7 +916,7 @@ export class DBConnection {
         if (zoneHosts.length > 0) {
             const zones = await driver.findElements(By.css(".zoneHost"));
 
-            return parseInt((await zones[zones.length-1].getAttribute("monaco-view-zone")).match(/\d+/)![0], 10);
+            return parseInt((await zones[zones.length - 1].getAttribute("monaco-view-zone")).match(/\d+/)![0], 10);
         } else {
             return 0;
         }

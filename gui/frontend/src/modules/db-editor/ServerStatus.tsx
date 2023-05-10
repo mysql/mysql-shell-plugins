@@ -42,14 +42,6 @@ import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellIn
 
 type TriState = true | false | undefined;
 
-interface IServerStatusProperties extends IComponentProperties {
-    backend: ShellInterfaceSqlEditor;
-    rowGap?: string | number;
-
-    // Top level toolbar items, to be integrated with page specific ones.
-    toolbarItems?: IToolbarItems;
-}
-
 interface IServerFeatures {
     semisync?: string;
     passwordValidationValue?: string;
@@ -111,6 +103,14 @@ interface IServerFirewall {
     accessSuspicious?: string;
     accessGranted?: string;
     accessDenied?: string;
+}
+
+interface IServerStatusProperties extends IComponentProperties {
+    backend: ShellInterfaceSqlEditor;
+    rowGap?: string | number;
+
+    /** Top level toolbar items, to be integrated with page specific ones. */
+    toolbarItems: IToolbarItems;
 }
 
 interface IServerStatusState extends IComponentState {
@@ -179,17 +179,11 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
         infoCells.push(this.firewall());
 
         // If toolbar items are given, render a toolbar with them.
-        let toolbar: ComponentChild | undefined;
-        if (toolbarItems) {
-            toolbar = <Toolbar
-                id="serverStatusToolbar"
-                dropShadow={false}
-            >
-                {toolbarItems.left}
-                <div className="expander" />
-                {toolbarItems.right}
-            </Toolbar>;
-        }
+        const toolbar = <Toolbar id="serverStatusToolbar" dropShadow={false} >
+            {toolbarItems.navigation}
+            <div className="expander" />
+            {toolbarItems.auxillary}
+        </Toolbar>;
 
         return (
             <Container

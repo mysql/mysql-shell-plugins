@@ -510,7 +510,6 @@ exports[`DialogHost Tests Show MRS Schema Dialog (snapshot) 1`] = `
       </label>
       <div
         class="msg button imageOnly"
-        draggable="true"
         id="closeButton"
         role="button"
         tabindex="0"
@@ -740,7 +739,6 @@ exports[`DialogHost Tests Show MRS Schema Dialog (snapshot) 1`] = `
         <div
           caption="OK"
           class="msg button"
-          draggable="true"
           id="ok"
           role="button"
           tabindex="0"
@@ -750,7 +748,6 @@ exports[`DialogHost Tests Show MRS Schema Dialog (snapshot) 1`] = `
         <div
           caption="Cancel"
           class="msg button"
-          draggable="true"
           id="cancel"
           role="button"
           tabindex="0"
@@ -786,7 +783,6 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
       </label>
       <div
         class="msg button imageOnly"
-        draggable="true"
         id="closeButton"
         role="button"
         tabindex="0"
@@ -1062,7 +1058,6 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
         <div
           caption="OK"
           class="msg button"
-          draggable="true"
           id="ok"
           role="button"
           tabindex="0"
@@ -1072,7 +1067,6 @@ exports[`DialogHost Tests Show MRS Service Dialog (snapshot) 1`] = `
         <div
           caption="Cancel"
           class="msg button"
-          draggable="true"
           id="cancel"
           role="button"
           tabindex="0"
@@ -1108,7 +1102,6 @@ exports[`DialogHost Tests Show Prompt Dialog (snapshot) 1`] = `
       </label>
       <div
         class="msg button imageOnly"
-        draggable="true"
         id="closeButton"
         role="button"
         tabindex="0"
@@ -1165,7 +1158,6 @@ exports[`DialogHost Tests Show Prompt Dialog (snapshot) 1`] = `
         <div
           caption="OK"
           class="msg button"
-          draggable="true"
           id="ok"
           role="button"
           tabindex="0"
@@ -1175,7 +1167,6 @@ exports[`DialogHost Tests Show Prompt Dialog (snapshot) 1`] = `
         <div
           caption="Cancel"
           class="msg button"
-          draggable="true"
           id="cancel"
           role="button"
           tabindex="0"

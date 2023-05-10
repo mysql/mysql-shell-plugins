@@ -9,7 +9,7 @@
         "launch-dev-server": "vite",
         "build": "bash ./scripts/production-build.sh",
         "build-with-maps": "bash ./scripts/production-build.sh true",
-        "build-win": "call ./scripts/production-build.cmd",
+        "build-win": "call ./scripts/production-build.cmd false",
         "lint": "eslint \"./src/**/*.ts\" \"./src/**/*.tsx\"",
         "unit-tests": "node --no-compilation-cache --expose-gc --max_old_space_size=4096 node_modules/.bin/jest --logHeapUsage -c=unit-tests.jest.config.ts --watchAll=false",
         "update-snapshots": "node --no-compilation-cache --expose-gc --max_old_space_size=4096 node_modules/.bin/jest -c=unit-tests.jest.config.ts --no-coverage  --watchAll=false -u",

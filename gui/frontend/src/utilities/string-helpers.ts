@@ -21,9 +21,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { isNil } from "lodash";
+import _, { isNil } from "lodash";
 import { Buffer } from "buffer";
-import { convertCamelToTitleCase } from "./helpers";
+import Anser from "anser";
 
 // A web worker friendly module for specific string handling.
 
@@ -277,21 +277,6 @@ export const snakeToCamelCase = (str: string): string => {
 };
 
 /**
- * Converts a given string to pascal case, filtering out problematic chars
- *
- * @param str The string to convert.
- * @returns The converted string.
- */
-export const convertToPascalCase = (str: string): string => {
-    str = str.replace(/[^\d\w,]/g, "");
-    if (str.includes("_")) {
-        str = snakeToCamelCase(str);
-    }
-
-    return convertCamelToTitleCase(str);
-};
-
-/**
  * Converts a url path string to camel case, filtering out problematic chars
  *
  * @param str The string to convert.
@@ -309,4 +294,116 @@ export const pathToCamelCase = (str: string): string => {
             .replace("-", "")
             .replace("_", "");
     });
+};
+
+/**
+ * Determines the base name(that is, the last part of the path) of a file or directory.
+ *
+ * @param path The path to get the base name from.
+ * @param extension An optional extension to remove from the base name.
+ *
+ * @returns The base name of the path or an empty string if the path is empty.
+ */
+export const basename = (path: string, extension?: string): string => {
+    const result = path.split(/[\\/]/).pop() ?? "";
+    if (extension && result.endsWith(extension)) {
+        return result.substring(0, result.length - extension.length);
+    }
+
+    return result;
+};
+
+interface IConversionOptions {
+    ignore?: string[];
+}
+
+/**
+ * Converts all object keys to snake_case, recursively.
+ *
+ * @param o The object to convert.
+ * @param options Options to control the conversion process.
+ *
+ * @returns A new object with the converted keys.
+ */
+export const convertCamelToSnakeCase = (o: object, options?: IConversionOptions): object => {
+    return _.deepMapKeys(o, options?.ignore ?? [], (value, key) => {
+        const snakeCased = key.replace(/([a-z])([A-Z])/g, (full, match1: string, match2: string) => {
+            return `${match1}_${match2.toLowerCase()}`;
+        });
+
+        return snakeCased;
+    });
+};
+
+/**
+ * Converts all object keys to camelCase, recursively.
+ *
+ * @param o The object to convert.
+ * @param options Options to control the conversion process.
+ *
+ * @returns A new object with the converted keys.
+ */
+export const convertSnakeToCamelCase = (o: object, options?: IConversionOptions): object => {
+    return _.deepMapKeys(o, options?.ignore ?? [], (value, key) => {
+        return key.replace(/_([a-z0-9])/gi, (full, match: string) => {
+            return match.toUpperCase();
+        });
+    });
+};
+
+
+/**
+ * Converts a camel case string to title case, that is the first letter in the string is converted to uppercase.
+ *
+ * @param s The string to convert.
+ *
+ * @returns The converted string.
+ */
+export const convertCamelToTitleCase = (s: string): string => {
+    if (s.length < 1) {
+        return "";
+    }
+
+    return s.charAt(0).toUpperCase() + s.slice(1);
+};
+
+/**
+ * This is the opposite direction of `convertCamelToTitleCase` by converting the first letter to lower case.
+ *
+ * @param s The string to convert.
+ *
+ * @returns The converted string.
+ */
+export const convertTitleToCamelCase = (s: string): string => {
+    if (s.length < 1) {
+        return "";
+    }
+
+    return s.charAt(0).toLowerCase() + s.slice(1);
+};
+
+/**
+ * Converts a given string to pascal case, filtering out problematic chars
+ *
+ * @param str The string to convert.
+ * @returns The converted string.
+ */
+export const convertToPascalCase = (str: string): string => {
+    str = str.replace(/[^\d\w,]/g, "");
+    if (str.includes("_")) {
+        str = snakeToCamelCase(str);
+    }
+
+    return convertCamelToTitleCase(str);
+};
+
+/**
+ * Removes ANSI codes from the given string.
+ *
+ * @param s The string to remove the ANSI codes from.
+ *
+ * @returns The string without the ANSI codes.
+ */
+export const stripAnsiCode = (s: string): string => {
+    return Anser.ansiToText(s);
 };

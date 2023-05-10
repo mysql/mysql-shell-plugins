@@ -21,26 +21,37 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import loadNotebookIcon from "../../assets/images/toolbar/toolbar-load-editor.svg";
+import saveNotebookIcon from "../../assets/images/toolbar/toolbar-save-editor.svg";
+
 import { Position } from "monaco-editor";
-import { ComponentChild, createRef } from "preact";
+import { ComponentChild, createRef, VNode } from "preact";
 
 import { IEditorStatusInfo, ISchemaTreeEntry, IToolbarItems } from ".";
-import { IScriptExecutionOptions } from "../../components/ui/CodeEditor";
+import { Button } from "../../components/ui/Button/Button";
+import { ICodeEditorViewState, IScriptExecutionOptions } from "../../components/ui/CodeEditor";
 import { CodeEditor, IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor";
-import { IComponentProperties, ComponentBase } from "../../components/ui/Component/ComponentBase";
+import { ComponentBase, IComponentProperties } from "../../components/ui/Component/ComponentBase";
+import { Container, ContentAlignment, Orientation } from "../../components/ui/Container/Container";
+import { Icon } from "../../components/ui/Icon/Icon";
+import { INotebookFileFormat } from "../../script-execution";
 import { ExecutionContext } from "../../script-execution/ExecutionContext";
 import { PresentationInterface } from "../../script-execution/PresentationInterface";
 import { EditorLanguage } from "../../supplement";
 import { requisitions } from "../../supplement/Requisitions";
 import { Settings } from "../../supplement/Settings/Settings";
 import { DBType } from "../../supplement/ShellInterface";
-import { EmbeddedPresentationInterface } from "./execution/EmbeddedPresentationInterface";
+import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor";
 import { IOpenEditorState, ISavedEditorState } from "./DBConnectionTab";
+import { DBEditorToolbar } from "./DBEditorToolbar";
+import { EmbeddedPresentationInterface } from "./execution/EmbeddedPresentationInterface";
 
 interface INotebookProperties extends IComponentProperties {
-    toolbarItems?: IToolbarItems;
+    standaloneMode: boolean;
+    toolbarItems: IToolbarItems;
 
     savedState: ISavedEditorState;
+    backend?: ShellInterfaceSqlEditor;
 
     dbType: DBType;
     readOnly?: boolean;
@@ -62,8 +73,8 @@ export class Notebook extends ComponentBase<INotebookProperties> {
     public constructor(props: INotebookProperties) {
         super(props);
 
-        this.addHandledProperties("toolbarItems", "savedState", "dbType", "readOnly", "showAbout", "extraLibs",
-            "onScriptExecution", "onHelpCommand");
+        this.addHandledProperties("standaloneMode", "toolbarItems", "savedState", "backend", "dbType", "readOnly",
+            "showAbout", "extraLibs", "onScriptExecution", "onHelpCommand");
     }
 
     public componentDidMount(): void {
@@ -90,9 +101,13 @@ export class Notebook extends ComponentBase<INotebookProperties> {
     }
 
     public render(): ComponentChild {
-        const { savedState, dbType, readOnly, extraLibs, onScriptExecution, onHelpCommand } = this.props;
+        const {
+            standaloneMode, toolbarItems, savedState, backend, dbType, readOnly, extraLibs, onScriptExecution,
+            onHelpCommand,
+        } = this.props;
 
         const dialect = this.dialectFromDbType(dbType);
+
         // Determine the editor to show from the editor state. There must always be at least a single editor.
         // If we cannot find the given active editor then pick the first one unconditionally.
         let activeEditor = savedState.editors.find(
@@ -105,44 +120,99 @@ export class Notebook extends ComponentBase<INotebookProperties> {
             activeEditor = savedState.editors[0];
         }
 
-        return (
-            <CodeEditor
-                ref={this.editorRef}
-                savedState={activeEditor.state}
-                extraLibs={extraLibs}
-                language="msg"
-                allowedLanguages={["javascript", "typescript", "sql"]}
-                sqlDialect={dialect}
-                startLanguage={Settings.get("dbEditor.startLanguage", "sql") as EditorLanguage}
-                readonly={readOnly}
-                allowSoftWrap={true}
-                autoFocus={true}
-                className="scriptingConsole"
-                minimap={{
-                    enabled: true,
-                }}
-                font={{
-                    fontFamily: "SourceCodePro+Powerline+Awesome+MySQL",
-                    fontSize: 15,
-                    lineHeight: 24,
-                }}
-                scrollbar={{
-                    useShadows: true,
-                    verticalHasArrows: false,
-                    horizontalHasArrows: false,
-                    vertical: "auto",
-                    horizontal: "auto",
+        // The margin depends on what's the last entry in the navigation toolbar.
+        let marginLeft = "0px";
 
-                    verticalScrollbarSize: 16,
-                    horizontalScrollbarSize: 16,
+        if (!standaloneMode) {
+            const lastNavItem = toolbarItems.navigation.length > 0
+                ? toolbarItems.navigation[toolbarItems.navigation.length - 1] as VNode<{ id: string; }> : undefined;
+            if (lastNavItem && ("props" in lastNavItem) && lastNavItem.props.id === "documentSelector") {
+                marginLeft = "16px";
+            }
+        } else {
+            toolbarItems.navigation = [];
+        }
+
+        toolbarItems.navigation.push(
+            <Button
+                key="editorSaveNotebookButton"
+                data-tooltip="Save this Notebook"
+                requestType="editorSaveNotebook"
+                imageOnly={true}
+                style={{ marginLeft }}
+            >
+                <Icon src={saveNotebookIcon} data-tooltip="inherit" />
+            </Button>,
+            <Button
+                key="editorLoadNotebookButton"
+                data-tooltip="Load a new Notebook from a file"
+                requestType="editorLoadNotebook"
+                imageOnly={true}
+            >
+                <Icon src={loadNotebookIcon} data-tooltip="inherit" />
+            </Button>,
+        );
+
+        if (standaloneMode) {
+            toolbarItems.auxillary = [];
+        }
+
+        return (
+            <Container
+                orientation={Orientation.TopDown}
+                style={{
+                    flex: "1 1 auto",
                 }}
-                lineNumbers={this.contextRelativeLineNumbers}
-                onScriptExecution={onScriptExecution}
-                onHelpCommand={onHelpCommand}
-                onCursorChange={this.handleCursorChange}
-                onOptionsChanged={this.handleOptionsChanged}
-                createResultPresentation={this.createPresentation}
-            />);
+                mainAlignment={ContentAlignment.Stretch}
+            >
+                <DBEditorToolbar
+                    toolbarItems={toolbarItems}
+                    language="msg"
+                    activeEditor={savedState.activeEntry}
+                    heatWaveEnabled={savedState.heatWaveEnabled}
+                    editors={savedState.editors}
+                    backend={backend}
+                />
+
+                <CodeEditor
+                    ref={this.editorRef}
+                    savedState={activeEditor.state}
+                    extraLibs={extraLibs}
+                    language="msg"
+                    allowedLanguages={["javascript", "typescript", "sql"]}
+                    sqlDialect={dialect}
+                    startLanguage={Settings.get("dbEditor.startLanguage", "sql") as EditorLanguage}
+                    readonly={readOnly}
+                    allowSoftWrap={true}
+                    autoFocus={true}
+                    className="scriptingConsole"
+                    minimap={{
+                        enabled: true,
+                    }}
+                    font={{
+                        fontFamily: "SourceCodePro+Powerline+Awesome+MySQL",
+                        fontSize: 15,
+                        lineHeight: 24,
+                    }}
+                    scrollbar={{
+                        useShadows: true,
+                        verticalHasArrows: false,
+                        horizontalHasArrows: false,
+                        vertical: "auto",
+                        horizontal: "auto",
+
+                        verticalScrollbarSize: 16,
+                        horizontalScrollbarSize: 16,
+                    }}
+                    lineNumbers={this.contextRelativeLineNumbers}
+                    onScriptExecution={onScriptExecution}
+                    onHelpCommand={onHelpCommand}
+                    onCursorChange={this.handleCursorChange}
+                    onOptionsChanged={this.handleOptionsChanged}
+                    createResultPresentation={this.createPresentation}
+                />
+            </Container>
+        );
     }
 
     public addOrUpdateExtraLib(content: string, filePath: string): void {
@@ -204,6 +274,36 @@ export class Notebook extends ComponentBase<INotebookProperties> {
 
             this.editorRef.current.appendText(script);
             this.editorRef.current.focus();
+        }
+    }
+
+    /** @returns the current view state of the underlying code editor to the caller. */
+    public getViewState(): ICodeEditorViewState | null {
+        if (this.editorRef.current) {
+            return this.editorRef.current.backend?.saveViewState() ?? null;
+        }
+
+        return null;
+    }
+
+    /**
+     * Filters the context entries out from the notebook content and recreates the execution contexts in this notebook.
+     * This will remove all existing execution contexts.
+     *
+     * @param content The notebook content to restore.
+     */
+    public restoreNotebook(content: INotebookFileFormat): void {
+        if (this.editorRef.current) {
+            // At this point the result view data must be in the application DB.
+            const editorState = this.getActiveEditorState();
+            if (editorState) {
+                editorState.model.executionContexts.restoreFromStates(this.editorRef.current, this.createPresentation,
+                    content.contexts.map((context) => {
+                        return context.state;
+                    }));
+            }
+
+            this.editorRef.current.backend?.restoreViewState(content.viewState);
         }
     }
 

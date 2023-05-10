@@ -23,7 +23,6 @@ exports[`Value Edit Dialog Tests Footer, Heading, Description and Payload 1`] = 
       </label>
       <div
         class="msg button imageOnly"
-        draggable="true"
         id="closeButton"
         role="button"
         tabindex="0"
@@ -118,7 +117,6 @@ exports[`Value Edit Dialog Tests Footer, Heading, Description and Payload 1`] = 
         <div
           caption="OK"
           class="msg button"
-          draggable="true"
           id="ok"
           role="button"
           tabindex="0"
@@ -128,7 +126,6 @@ exports[`Value Edit Dialog Tests Footer, Heading, Description and Payload 1`] = 
         <div
           caption="Cancel"
           class="msg button"
-          draggable="true"
           id="cancel"
           role="button"
           tabindex="0"
@@ -164,7 +161,6 @@ exports[`Value Edit Dialog Tests Grouped Sections 1`] = `
       </label>
       <div
         class="msg button imageOnly"
-        draggable="true"
         id="closeButton"
         role="button"
         tabindex="0"
@@ -330,7 +326,6 @@ exports[`Value Edit Dialog Tests Grouped Sections 1`] = `
         <div
           caption="OK"
           class="msg button"
-          draggable="true"
           id="ok"
           role="button"
           tabindex="0"
@@ -340,7 +335,6 @@ exports[`Value Edit Dialog Tests Grouped Sections 1`] = `
         <div
           caption="Cancel"
           class="msg button"
-          draggable="true"
           id="cancel"
           role="button"
           tabindex="0"
@@ -376,7 +370,6 @@ exports[`Value Edit Dialog Tests Grouped Sections 2`] = `
       </label>
       <div
         class="msg button imageOnly"
-        draggable="true"
         id="closeButton"
         role="button"
         tabindex="0"
@@ -542,7 +535,6 @@ exports[`Value Edit Dialog Tests Grouped Sections 2`] = `
         <div
           caption="OK"
           class="msg button"
-          draggable="true"
           id="ok"
           role="button"
           tabindex="0"
@@ -552,7 +544,6 @@ exports[`Value Edit Dialog Tests Grouped Sections 2`] = `
         <div
           caption="Cancel"
           class="msg button"
-          draggable="true"
           id="cancel"
           role="button"
           tabindex="0"
@@ -588,7 +579,6 @@ exports[`Value Edit Dialog Tests Grouped Values 1`] = `
       </label>
       <div
         class="msg button imageOnly"
-        draggable="true"
         id="closeButton"
         role="button"
         tabindex="0"
@@ -698,7 +688,6 @@ exports[`Value Edit Dialog Tests Grouped Values 1`] = `
         <div
           caption="OK"
           class="msg button"
-          draggable="true"
           id="ok"
           role="button"
           tabindex="0"
@@ -708,7 +697,6 @@ exports[`Value Edit Dialog Tests Grouped Values 1`] = `
         <div
           caption="Cancel"
           class="msg button"
-          draggable="true"
           id="cancel"
           role="button"
           tabindex="0"
@@ -828,7 +816,6 @@ exports[`Value Edit Dialog Tests Simple Dialog 1`] = `
       </label>
       <div
         class="msg button imageOnly"
-        draggable="true"
         id="closeButton"
         role="button"
         tabindex="0"
@@ -885,7 +872,6 @@ exports[`Value Edit Dialog Tests Simple Dialog 1`] = `
         <div
           caption="OK"
           class="msg button"
-          draggable="true"
           id="ok"
           role="button"
           tabindex="0"
@@ -895,7 +881,6 @@ exports[`Value Edit Dialog Tests Simple Dialog 1`] = `
         <div
           caption="Cancel"
           class="msg button"
-          draggable="true"
           id="cancel"
           role="button"
           tabindex="0"
@@ -931,7 +916,6 @@ exports[`Value Edit Dialog Tests Update Contexts 1`] = `
       </label>
       <div
         class="msg button imageOnly"
-        draggable="true"
         id="closeButton"
         role="button"
         tabindex="0"
@@ -988,7 +972,6 @@ exports[`Value Edit Dialog Tests Update Contexts 1`] = `
         <div
           caption="OK"
           class="msg button"
-          draggable="true"
           id="ok"
           role="button"
           tabindex="0"
@@ -998,7 +981,6 @@ exports[`Value Edit Dialog Tests Update Contexts 1`] = `
         <div
           caption="Cancel"
           class="msg button"
-          draggable="true"
           id="cancel"
           role="button"
           tabindex="0"
@@ -1034,7 +1016,6 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
       </label>
       <div
         class="msg button imageOnly"
-        draggable="true"
         id="closeButton"
         role="button"
         tabindex="0"
@@ -1147,7 +1128,6 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
             <div
               caption="..."
               class="msg button"
-              draggable="true"
               id="fileBtn"
               role="button"
               tabindex="0"
@@ -1193,7 +1173,6 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
           <div
             caption="Do it!"
             class="msg button valueEditor"
-            draggable="true"
             id="clickMe"
             role="button"
             tabindex="0"
@@ -1230,7 +1209,6 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
               <div
                 class="msg button"
                 data-tooltip="Add new property entry"
-                draggable="true"
                 id="buttonAddEntry"
                 role="button"
                 tabindex="0"
@@ -1244,7 +1222,6 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
               <div
                 class="msg button"
                 data-tooltip="Remove selected entries"
-                draggable="true"
                 id="buttonRemoveEntry"
                 role="button"
                 tabindex="0"
@@ -1287,7 +1264,6 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
             >
               <div
                 class="msg button"
-                draggable="true"
                 id="up"
                 role="button"
                 tabindex="-1"
@@ -1299,7 +1275,6 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
             >
               <div
                 class="msg button"
-                draggable="true"
                 id="down"
                 role="button"
                 tabindex="-1"
@@ -1453,7 +1428,6 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
         <div
           caption="OK"
           class="msg button"
-          draggable="true"
           id="ok"
           role="button"
           tabindex="0"
@@ -1463,7 +1437,6 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
         <div
           caption="Cancel"
           class="msg button"
-          draggable="true"
           id="cancel"
           role="button"
           tabindex="0"
@@ -1499,7 +1472,6 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
       </label>
       <div
         class="msg button imageOnly"
-        draggable="true"
         id="closeButton"
         role="button"
         tabindex="0"
@@ -1612,7 +1584,6 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
             <div
               caption="..."
               class="msg button"
-              draggable="true"
               id="fileBtn"
               role="button"
               tabindex="0"
@@ -1658,7 +1629,6 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
           <div
             caption="Do it!"
             class="msg button valueEditor"
-            draggable="true"
             id="clickMe"
             role="button"
             tabindex="0"
@@ -1695,7 +1665,6 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
               <div
                 class="msg button"
                 data-tooltip="Add new property entry"
-                draggable="true"
                 id="buttonAddEntry"
                 role="button"
                 tabindex="0"
@@ -1709,7 +1678,6 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
               <div
                 class="msg button"
                 data-tooltip="Remove selected entries"
-                draggable="true"
                 id="buttonRemoveEntry"
                 role="button"
                 tabindex="0"
@@ -1752,7 +1720,6 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
             >
               <div
                 class="msg button"
-                draggable="true"
                 id="up"
                 role="button"
                 tabindex="-1"
@@ -1764,7 +1731,6 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
             >
               <div
                 class="msg button"
-                draggable="true"
                 id="down"
                 role="button"
                 tabindex="-1"
@@ -1918,7 +1884,6 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
         <div
           caption="OK"
           class="msg button"
-          draggable="true"
           id="ok"
           role="button"
           tabindex="0"
@@ -1928,7 +1893,6 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
         <div
           caption="Cancel"
           class="msg button"
-          draggable="true"
           id="cancel"
           role="button"
           tabindex="0"

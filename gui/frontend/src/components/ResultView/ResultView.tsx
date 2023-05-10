@@ -31,7 +31,7 @@ import { CellComponent, ColumnComponent, ColumnDefinition, Formatter, FormatterP
 
 import { ITreeGridOptions, SetDataAction, TreeGrid } from "../ui/TreeGrid/TreeGrid";
 import { IResultSet, IResultSetRows } from "../../script-execution";
-import { convertCamelToTitleCase } from "../../utilities/helpers";
+import { convertCamelToTitleCase, formatBase64ToHex } from "../../utilities/string-helpers";
 import { DBDataType, IColumnInfo, MessageType } from "../../app-logic/Types";
 import { requisitions } from "../../supplement/Requisitions";
 import { Checkbox, CheckState } from "../ui/Checkbox/Checkbox";
@@ -40,8 +40,6 @@ import { Container, Orientation } from "../ui/Container/Container";
 import { Icon } from "../ui/Icon/Icon";
 import { Menu } from "../ui/Menu/Menu";
 import { MenuItem, IMenuItemProperties } from "../ui/Menu/MenuItem";
-
-import { formatBase64ToHex } from "../../utilities/string-helpers";
 
 interface IResultViewProperties extends IComponentProperties {
     resultSet: IResultSet;

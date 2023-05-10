@@ -107,15 +107,21 @@ export interface IEditorStatusInfo {
 }
 
 /**
- * Two lists of items to be added to a toolbar. The receiving page can use this as base to add it's own
+ * Lists of items to be added to a toolbar. The receiving page can use this as base to add it's own
  * items, before it actually renders the toolbar.
  */
 export interface IToolbarItems {
-    /** Left aligned items. */
-    left: ComponentChild[];
+    /** Items used to navigate between documents and to create new documents. */
+    navigation: ComponentChild[];
 
-    /** Right aligned items. */
-    right: ComponentChild[];
+    /** Items to execute blocks, including transaction toggles. */
+    execution: ComponentChild[];
+
+    /** Items related to the code editor (format, clean, word wrap etc.) */
+    editor: ComponentChild[];
+
+    /** Additional items for special functionality, which are right aligned in the toolbar. */
+    auxillary: ComponentChild[];
 }
 
 /** Predefined color schemes in graphs. */

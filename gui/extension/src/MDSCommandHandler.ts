@@ -22,8 +22,7 @@
  */
 
 import {
-    commands, ExtensionContext, window, workspace, Uri, TextDocument, Range, Selection, languages,
-    WorkspaceEdit,
+    commands, window, workspace, Uri, TextDocument, Range, Selection, languages, WorkspaceEdit,
 } from "vscode";
 
 import { homedir } from "os";
@@ -56,17 +55,17 @@ export class MDSCommandHandler {
 
     private ociTreeDataProvider: OciTreeDataProvider;
 
-    public setup = (context: ExtensionContext, host: ExtensionHost): void => {
+    public setup = (host: ExtensionHost): void => {
         // Our tree providers.
         this.ociTreeDataProvider = new OciTreeDataProvider();
-        context.subscriptions.push(window.registerTreeDataProvider("msg.oci", this.ociTreeDataProvider));
+        host.context.subscriptions.push(window.registerTreeDataProvider("msg.oci", this.ociTreeDataProvider));
 
         // Register extension commands.
-        context.subscriptions.push(commands.registerCommand("msg.mds.refreshOciProfiles", () => {
+        host.context.subscriptions.push(commands.registerCommand("msg.mds.refreshOciProfiles", () => {
             this.ociTreeDataProvider.refresh();
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mds.configureOciProfiles", () => {
+        host.context.subscriptions.push(commands.registerCommand("msg.mds.configureOciProfiles", () => {
             const configFile: Uri = Uri.file(`${homedir()}/.oci/config`);
 
             // If the ~/.oci/config file does not exist yet, create it and open it
@@ -102,7 +101,7 @@ export class MDSCommandHandler {
             }
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mds.createRouterEndpoint",
+        host.context.subscriptions.push(commands.registerCommand("msg.mds.createRouterEndpoint",
             async (item?: OciDbSystemTreeItem) => {
                 if (item?.dbSystem.id) {
                     const endpointName = await window.showInputBox({
@@ -128,7 +127,7 @@ export class MDSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mds.getProfileInfo",
+        host.context.subscriptions.push(commands.registerCommand("msg.mds.getProfileInfo",
             (item?: OciConfigProfileTreeItem) => {
                 if (item && item.profile.profile) {
                     this.showNewJsonDocument(
@@ -137,7 +136,7 @@ export class MDSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mds.setDefaultProfile",
+        host.context.subscriptions.push(commands.registerCommand("msg.mds.setDefaultProfile",
             async (item?: OciConfigProfileTreeItem) => {
                 if (item && item.profile.profile) {
                     window.setStatusBarMessage(`Setting current config profile to ${item.profile.profile} ...`, 10000);
@@ -151,7 +150,7 @@ export class MDSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mds.getCompartmentInfo",
+        host.context.subscriptions.push(commands.registerCommand("msg.mds.getCompartmentInfo",
             (item?: OciCompartmentTreeItem) => {
                 if (item && item.compartment.id) {
                     this.showNewJsonDocument(
@@ -160,7 +159,7 @@ export class MDSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mds.setCurrentCompartment",
+        host.context.subscriptions.push(commands.registerCommand("msg.mds.setCurrentCompartment",
             async (item?: OciCompartmentTreeItem) => {
                 if (item && item.compartment.id) {
                     window.setStatusBarMessage(`Setting current compartment to ${item.compartment.name} ...`, 10000);
@@ -180,7 +179,7 @@ export class MDSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mds.getDbSystemInfo",
+        host.context.subscriptions.push(commands.registerCommand("msg.mds.getDbSystemInfo",
             async (item?: OciDbSystemTreeItem) => {
                 if (item?.dbSystem.id) {
                     try {
@@ -194,7 +193,7 @@ export class MDSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mds.startDbSystem",
+        host.context.subscriptions.push(commands.registerCommand("msg.mds.startDbSystem",
             async (item?: OciDbSystemTreeItem) => {
                 if (item?.dbSystem.id) {
                     const shellArgs: string[] = [
@@ -213,7 +212,7 @@ export class MDSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mds.stopDbSystem",
+        host.context.subscriptions.push(commands.registerCommand("msg.mds.stopDbSystem",
             async (item?: OciDbSystemTreeItem) => {
                 if (item?.dbSystem.id) {
                     const shellArgs: string[] = [
@@ -232,7 +231,7 @@ export class MDSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mds.restartDbSystem",
+        host.context.subscriptions.push(commands.registerCommand("msg.mds.restartDbSystem",
             async (item?: OciDbSystemTreeItem) => {
                 if (item?.dbSystem.id) {
                     const shellArgs: string[] = [
@@ -251,14 +250,14 @@ export class MDSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mds.addHWCluster",
+        host.context.subscriptions.push(commands.registerCommand("msg.mds.addHWCluster",
             async (item?: OciDbSystemTreeItem) => {
                 if (item && item.dbSystem && item.dbSystem.id && item.compartment && item.profile) {
                     await this.showMdsHWClusterDialog(item.dbSystem, item.compartment, item.profile, host);
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mds.deleteDbSystem",
+        host.context.subscriptions.push(commands.registerCommand("msg.mds.deleteDbSystem",
             async (item?: OciDbSystemTreeItem) => {
                 if (item?.dbSystem.id) {
                     const shellArgs: string[] = [
@@ -277,7 +276,7 @@ export class MDSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mds.startHWCluster",
+        host.context.subscriptions.push(commands.registerCommand("msg.mds.startHWCluster",
             async (item?: OciDbSystemTreeItem) => {
                 if (item?.dbSystem.id) {
                     const shellArgs: string[] = [
@@ -296,7 +295,7 @@ export class MDSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mds.stopHWCluster",
+        host.context.subscriptions.push(commands.registerCommand("msg.mds.stopHWCluster",
             async (item?: OciDbSystemTreeItem) => {
                 if (item?.dbSystem.id) {
                     const shellArgs: string[] = [
@@ -315,7 +314,7 @@ export class MDSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mds.restartHWCluster",
+        host.context.subscriptions.push(commands.registerCommand("msg.mds.restartHWCluster",
             async (item?: OciDbSystemTreeItem) => {
                 if (item?.dbSystem.id) {
                     const shellArgs: string[] = [
@@ -334,14 +333,14 @@ export class MDSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mds.rescaleHWCluster",
+        host.context.subscriptions.push(commands.registerCommand("msg.mds.rescaleHWCluster",
             async (item?: OciDbSystemTreeItem) => {
                 if (item && item.dbSystem && item.dbSystem.id && item.compartment && item.profile) {
                     await this.showMdsHWClusterDialog(item.dbSystem, item.compartment, item.profile, host);
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mds.deleteHWCluster",
+        host.context.subscriptions.push(commands.registerCommand("msg.mds.deleteHWCluster",
             async (item?: OciDbSystemTreeItem) => {
                 if (item?.dbSystem.id) {
                     const shellArgs: string[] = [
@@ -360,7 +359,7 @@ export class MDSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mds.getComputeInstance",
+        host.context.subscriptions.push(commands.registerCommand("msg.mds.getComputeInstance",
             (item?: OciComputeInstanceTreeItem) => {
                 if (item && item.compute.id) {
                     this.showNewJsonDocument(
@@ -369,7 +368,7 @@ export class MDSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mds.getBastion",
+        host.context.subscriptions.push(commands.registerCommand("msg.mds.getBastion",
             async (item?: OciBastionTreeItem) => {
                 if (item && item.bastion.id) {
                     try {
@@ -383,7 +382,7 @@ export class MDSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mds.getLoadBalancer",
+        host.context.subscriptions.push(commands.registerCommand("msg.mds.getLoadBalancer",
             (item?: OciLoadBalancerTreeItem) => {
                 if (item && item.loadBalancer) {
                     this.showNewJsonDocument(
@@ -392,11 +391,11 @@ export class MDSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.showTaskOutput", () => {
+        host.context.subscriptions.push(commands.registerCommand("msg.showTaskOutput", () => {
             taskOutputChannel.show();
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mds.deleteBastion",
+        host.context.subscriptions.push(commands.registerCommand("msg.mds.deleteBastion",
             async (item?: OciBastionTreeItem) => {
                 if (item && item.bastion.id) {
                     const shellArgs: string[] = [
@@ -416,7 +415,7 @@ export class MDSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mds.setCurrentBastion",
+        host.context.subscriptions.push(commands.registerCommand("msg.mds.setCurrentBastion",
             async (item?: OciBastionTreeItem) => {
                 if (item && item.bastion.id) {
                     window.setStatusBarMessage(`Setting current bastion to ${item.bastion.name} ...`, 10000);
@@ -437,7 +436,7 @@ export class MDSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mds.refreshOnBastionActiveState",
+        host.context.subscriptions.push(commands.registerCommand("msg.mds.refreshOnBastionActiveState",
             async (item?: OciBastionTreeItem) => {
                 if (item && item.bastion.id) {
                     const shellArgs: string[] = [
@@ -456,7 +455,7 @@ export class MDSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mds.deleteComputeInstance",
+        host.context.subscriptions.push(commands.registerCommand("msg.mds.deleteComputeInstance",
             async (item?: OciComputeInstanceTreeItem) => {
                 if (item && item.compute.id) {
                     const shellArgs: string[] = [
@@ -475,7 +474,7 @@ export class MDSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mds.openBastionSshSession",
+        host.context.subscriptions.push(commands.registerCommand("msg.mds.openBastionSshSession",
             async (item?: OciComputeInstanceTreeItem) => {
                 if (item && item.shellSession && item.shellSession.mds && item.compute.id) {
                     window.setStatusBarMessage("Opening Bastion Session ...", 10000);
@@ -509,7 +508,7 @@ export class MDSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mds.loadToHeatWave",
+        host.context.subscriptions.push(commands.registerCommand("msg.mds.loadToHeatWave",
             async (item?: SchemaMySQLTreeItem, items?: ConnectionsTreeBaseItem[]) => {
                 if (item) {
                     const schemas: string[] = [];

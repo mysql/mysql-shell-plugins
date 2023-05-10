@@ -106,7 +106,7 @@ describe("MySQL REST Service", () => {
             await Database.tryCredentials(globalConn);
 
             const result = await Misc.execCmd("DROP SCHEMA IF EXISTS `mysql_rest_service_metadata`;",
-                undefined, explicitWait*2);
+                undefined, explicitWait * 2);
             expect(result[0]).to.match(/OK/);
             await driver.switchTo().defaultContent();
             await new EditorView().closeAllEditors();
@@ -243,7 +243,7 @@ describe("MySQL REST Service", () => {
             await Misc.selectContextMenuItem(treeMySQLRESTService, "Start Local MySQL Router Instance");
             await Misc.waitForTerminalText(
                 "Start accepting connections for routing routing:bootstrap_x_rw listening on",
-                explicitWait*2);
+                explicitWait * 2);
 
             expect(await Misc.terminalHasErrors()).to.be.false;
             await driver.wait(async () => {
@@ -322,7 +322,7 @@ describe("MySQL REST Service", () => {
                     try {
                         await notifications[notifications.length - 1].dismiss();
                     } catch (e) {
-                            //continue
+                        //continue
                     }
                 }
             }
@@ -699,7 +699,7 @@ describe("MySQL REST Service", () => {
                 await Misc.switchToWebView();
                 await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
                 await Database.tryCredentials(globalConn);
-                await Database.setRestObject(`${hostName}/${service}`,undefined, undefined,
+                await Database.setRestObject(`${hostName}/${service}`, undefined, undefined,
                     ["CREATE", "READ", "UPDATE", "DELETE"], undefined, false);
                 await driver.switchTo().defaultContent();
 
@@ -711,13 +711,13 @@ describe("MySQL REST Service", () => {
                     await Misc.selectContextMenuItem(treeMySQLRESTService, "Start Local MySQL Router Instance");
                     await Misc.waitForTerminalText(
                         "Start accepting connections for routing routing:bootstrap_x_rw listening on",
-                        explicitWait*2);
+                        explicitWait * 2);
 
                     await driver.wait(async () => {
                         await (await Misc.getActionButton(treeGlobalConn, "Reload Database Information")).click();
 
                         return (await Misc.isRouterActive(treeRouter)) === true;
-                    }, explicitWait*2, `Router did not became active`);
+                    }, explicitWait * 2, `Router did not became active`);
                 }
                 hostName = "127.0.0.1:8443";
             } catch (e) {
@@ -769,7 +769,7 @@ describe("MySQL REST Service", () => {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 body: JSON.stringify({ first_name: "Doctor", last_name: "Testing" }),
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                headers: {"Content-Type": "application/json"},
+                headers: { "Content-Type": "application/json" },
             });
             const data = await response.json();
             expect(response.ok).to.be.true;
@@ -784,9 +784,9 @@ describe("MySQL REST Service", () => {
             response = await fetch(`${protocol}://${hostName}/${service}/${schema}/${table}/${actorId}`, {
                 method: "put",
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                body: JSON.stringify({first_name: "Mister"}),
+                body: JSON.stringify({ first_name: "Mister" }),
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                headers: {"Content-Type": "application/json"},
+                headers: { "Content-Type": "application/json" },
             });
             const data = await response.json();
             expect(actorId).to.exist;

@@ -21,7 +21,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { commands, Uri, window } from "vscode";
+import { readFile, writeFile } from "fs/promises";
+
+import { commands, OpenDialogOptions, SaveDialogOptions, Uri, window } from "vscode";
 
 import {
     IEditorCloseChangeData, IEditorOpenChangeData, IMrsDbObjectEditRequest, IOpenDialogOptions, IOpenFileDialogResult,
@@ -266,11 +268,10 @@ export class DBConnectionViewProvider extends WebviewProvider {
         super.requisitionsCreated();
 
         if (this.requisitions) {
-            // For requests sent by the web app. These are usually forwarded to the extension global requisitions.
+            // For requests sent by the web app. These are often forwarded to the global extension requisitions.
             this.requisitions.register("refreshConnections", this.refreshConnections);
             this.requisitions.register("refreshOciTree", this.refreshOciTree);
             this.requisitions.register("codeBlocksUpdate", this.updateCodeBlock);
-            this.requisitions.register("showOpenDialog", this.showOpenDialog);
             this.requisitions.register("editorSaveScript", this.editorSaveScript);
             this.requisitions.register("createNewScript", this.createNewScript);
             this.requisitions.register("newSession", this.createNewSession);
@@ -278,6 +279,9 @@ export class DBConnectionViewProvider extends WebviewProvider {
             this.requisitions.register("editorsChanged", this.editorsChanged);
             this.requisitions.register("editorSelect", this.editorSelect);
             this.requisitions.register("showInfo", this.showInfo);
+            this.requisitions.register("editorSaveNotebook", this.editorSaveNotebook);
+            this.requisitions.register("editorLoadNotebook", this.editorLoadNotebook);
+            this.requisitions.register("showOpenDialog", this.showOpenDialog);
         }
     }
 
@@ -342,10 +346,82 @@ export class DBConnectionViewProvider extends WebviewProvider {
         return Promise.resolve(true);
     };
 
-    private closeInstance = (): Promise<boolean> => {
-        this.close();
+    /**
+     * Sent when a notebook shall be saved. This comes in two flavours: either with no content, which means the content
+     * must be created first (which is only handled by the frontend), or with content, which means the user has to
+     * select a file to save to.
+     *
+     * This is used for notebook content in a DB editor tab. There's a separate implementation for a standalone
+     * notebook file here {@link NotebookEditorProvider.triggerSave}.
+     *
+     * @param content The content to save.
+     *
+     * @returns A promise which resolves to true if the save was successful.
+     */
+    private editorSaveNotebook = (content?: string): Promise<boolean> => {
+        return new Promise((resolve) => {
+            if (content) {
+                const dialogOptions: SaveDialogOptions = {
+                    title: "",
+                    filters: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        "MySQL Notebook": ["mysql-notebook"],
+                    },
+                    saveLabel: "Save Notebook",
+                };
 
-        return Promise.resolve(true);
+                void window.showSaveDialog(dialogOptions).then((uri: Uri) => {
+                    const path = uri.fsPath;
+                    writeFile(path, content).then(() => {
+                        return resolve(true);
+                    }).catch(() => {
+                        void window.showErrorMessage(`Could not save notebook to ${path}.`);
+
+                        return resolve(false);
+                    });
+                });
+            } else {
+                return resolve(false);
+            }
+        });
+    };
+
+    /**
+     * Sent when a notebook shall be loaded. The user has to select a file to load from. The content of the file is
+     * then sent back to the frontend and used there to add a new notebook.
+     *
+     * This is used for notebook content in a DB editor tab. There's a separate implementation for a standalone
+     * notebook file here {@link NotebookEditorProvider.triggerLoad}.
+     *
+     * @returns A promise which resolves to true if the save was successful.
+     */
+    private editorLoadNotebook = (): Promise<boolean> => {
+        return new Promise((resolve) => {
+            const dialogOptions: OpenDialogOptions = {
+                title: "",
+                canSelectFiles: true,
+                canSelectFolders: false,
+                canSelectMany: false,
+                filters: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    "MySQL Notebook": ["mysql-notebook"],
+                },
+                openLabel: "Open Notebook",
+            };
+
+            void window.showOpenDialog(dialogOptions).then((paths?: Uri[]) => {
+                if (paths && paths.length > 0) {
+                    const path = paths[0].fsPath;
+                    readFile(path, { encoding: "utf-8" }).then((content) => {
+                        this.requisitions?.executeRemote("editorLoadNotebook", { content, standalone: false });
+                    }).catch(() => {
+                        void window.showErrorMessage(`Could not load notebook from ${path}.`);
+                    });
+                }
+
+                resolve(true);
+            });
+        });
     };
 
     private showOpenDialog = (options: IOpenDialogOptions): Promise<boolean> => {
@@ -359,6 +435,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
                 canSelectMany: options.canSelectMany,
                 filters: options.filters,
                 title: options.title,
+
             };
 
             void window.showOpenDialog(dialogOptions).then((paths?: Uri[]) => {
@@ -376,4 +453,11 @@ export class DBConnectionViewProvider extends WebviewProvider {
             });
         });
     };
+
+    private closeInstance = (): Promise<boolean> => {
+        this.close();
+
+        return Promise.resolve(true);
+    };
+
 }

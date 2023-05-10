@@ -27,7 +27,7 @@ import { ShellPromptResponseType } from "../../frontend/src/communication/Protoc
 import { IShellFeedbackRequest } from "../../frontend/src/communication/ProtocolGui";
 import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
 
-import { stripAnsiCode } from "../../frontend/src/utilities/helpers";
+import { stripAnsiCode } from "../../frontend/src/utilities/string-helpers";
 
 const isShellPromptResult = (response?: unknown): response is IShellFeedbackRequest => {
     const candidate = response as IShellFeedbackRequest;

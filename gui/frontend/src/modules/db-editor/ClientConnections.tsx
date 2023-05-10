@@ -82,8 +82,8 @@ interface IGlobalStatus {
 interface IClientConnectionsProperties extends IComponentProperties {
     backend: ShellInterfaceSqlEditor;
 
-    // Top level toolbar items, to be integrated with page specific ones.
-    toolbarItems?: IToolbarItems;
+    /** Top level toolbar items, to be integrated with page specific ones. */
+    toolbarItems: IToolbarItems;
 }
 
 interface IClientConnectionsState extends IComponentState {
@@ -161,7 +161,7 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
                 void requisitions.execute("showError",
                     ["Loading Error", "Cannot load performance schema:", String(error)]);
             });
-        this.addHandledProperties("backend");
+        this.addHandledProperties("backend", "toolbarItems");
     }
 
     public componentDidUpdate(prevProps: IClientConnectionsProperties, _prevState: IComponentState): void {
@@ -205,12 +205,13 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
 
         const connectionProps = this.getClientConnectionInfo();
 
-        // If toolbar items are given, render a toolbar with them.
+        const navigationItems = [...toolbarItems.navigation];
+        const auxillaryItems = [...toolbarItems.auxillary];
         const toolbar = <Toolbar id="clientConnectionToolbar" dropShadow={false} >
-            {toolbarItems?.left}
+            {navigationItems}
             {this.toolbarContent()}
             <div className="expander" />
-            {toolbarItems?.right}
+            {auxillaryItems}
         </Toolbar>;
 
         return (
@@ -393,16 +394,16 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
         const { globalStatus } = this.state;
 
         return [
-            <Label key="mainLabel">Threads Connected: {globalStatus.threadConnected}</Label>,
-            <Label key="mainLabel">Threads Running: {globalStatus.threadRunning}</Label>,
-            <Label key="mainLabel">Threads Created: {globalStatus.threadsCreated}</Label>,
-            <Label key="mainLabel">Threads Cached: {globalStatus.threadsCached}</Label>,
-            <Label key="mainLabel">Rejected (over limit): {globalStatus.rejected}</Label>,
-            <Label key="mainLabel">Total Connections: {globalStatus.totalConnections}</Label>,
-            <Label key="mainLabel">Connection Limit: {globalStatus.connectionLimit}</Label>,
-            <Label key="mainLabel">Aborted Clients: {globalStatus.abortedClients}</Label>,
-            <Label key="mainLabel">Aborted Connections: {globalStatus.abortedConnections}</Label>,
-            <Label key="mainLabel">Errors: {globalStatus.errors}</Label>,
+            <Label key="threadConnectedLabel">Threads Connected: {globalStatus.threadConnected}</Label>,
+            <Label key="threadRunningLabel">Threads Running: {globalStatus.threadRunning}</Label>,
+            <Label key="threadsCreatedLabel">Threads Created: {globalStatus.threadsCreated}</Label>,
+            <Label key="threadsCachedLabel">Threads Cached: {globalStatus.threadsCached}</Label>,
+            <Label key="rejectedLabel">Rejected (over limit): {globalStatus.rejected}</Label>,
+            <Label key="totalConnectionsLabel">Total Connections: {globalStatus.totalConnections}</Label>,
+            <Label key="connectionsLimitLabel">Connection Limit: {globalStatus.connectionLimit}</Label>,
+            <Label key="abortedClientsLabel">Aborted Clients: {globalStatus.abortedClients}</Label>,
+            <Label key="abortedConnectionsLabel">Aborted Connections: {globalStatus.abortedConnections}</Label>,
+            <Label key="errorsLabel">Errors: {globalStatus.errors}</Label>,
         ];
     };
 
@@ -429,7 +430,7 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
         });
 
         return [
-            <Label key="mainLabel">Refresh Rate:</Label>,
+            <Label key="mainLabel" style={{ marginLeft: "8px" }}>Refresh Rate:</Label>,
             <Dropdown
                 id="refreshSelector"
                 key="selector"

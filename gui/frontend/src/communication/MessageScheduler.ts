@@ -25,7 +25,8 @@
 
 import { appParameters, requisitions } from "../supplement/Requisitions";
 import { webSession } from "../supplement/WebSession";
-import { convertCamelToSnakeCase, convertSnakeToCamelCase, uuid } from "../utilities/helpers";
+import { convertCamelToSnakeCase, convertSnakeToCamelCase } from "../utilities/string-helpers";
+import { uuid } from "../utilities/helpers";
 
 import { IProtocolParameters } from "./ProtocolParameterMapper";
 import { IProtocolResults } from "./ProtocolResultMapper";

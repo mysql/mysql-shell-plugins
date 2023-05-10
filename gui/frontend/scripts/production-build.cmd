@@ -26,4 +26,5 @@ call antlr4ts -no-visitor -Xexact-output-dir -o src/parsing/SQLite/generated src
 call antlr4ts -no-visitor -Xexact-output-dir -o src/parsing/python/generated src/parsing/python/*.g4
 
 SET NODE_OPTIONS=--max-old-space-size=16000
+SET SOURCE_MAPS=$1
 node_modules/.bin/vite build

@@ -73,7 +73,6 @@ exports[`Message Panel Tests Show Error Panel 1`] = `
       </label>
       <div
         class="msg button imageOnly"
-        draggable="true"
         id="closeButton"
         role="button"
         tabindex="0"
@@ -115,7 +114,6 @@ exports[`Message Panel Tests Show Error Panel 1`] = `
         <div
           caption="Close"
           class="msg button"
-          draggable="true"
           role="button"
           tabindex="0"
         >
@@ -149,7 +147,6 @@ exports[`Message Panel Tests Show Error Panel 2`] = `
       </label>
       <div
         class="msg button imageOnly"
-        draggable="true"
         id="closeButton"
         role="button"
         tabindex="0"
@@ -192,7 +189,6 @@ Line 2
         <div
           caption="Close"
           class="msg button"
-          draggable="true"
           role="button"
           tabindex="0"
         >

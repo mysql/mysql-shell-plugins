@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -27,7 +27,7 @@ import { CharsetSymbol, SystemVariableSymbol, SystemFunctionSymbol, DBSymbolTabl
 import { LanguageWorkerPool } from "../worker/LanguageWorkerPool";
 import { mysqlInfo } from "../../app-logic/RdbmsInfo";
 import { DBDataType, IDictionary, ParameterFormatType } from "../../app-logic/Types";
-import { convertCamelToTitleCase } from "../../utilities/helpers";
+import { convertCamelToTitleCase } from "../../utilities/string-helpers";
 import { RdbmsLanguageService } from "../worker/RdbmsLanguageService";
 
 // The MySQL specialization of the RDBMS language service class.

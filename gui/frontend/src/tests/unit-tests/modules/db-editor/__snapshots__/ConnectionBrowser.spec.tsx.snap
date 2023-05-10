@@ -20,6 +20,14 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
   onAddConnection={[MockFunction]}
   onDropConnection={[MockFunction]}
   onUpdateConnection={[MockFunction]}
+  toolbarItems={
+    {
+      "auxillary": [],
+      "editor": [],
+      "execution": [],
+      "navigation": [],
+    }
+  }
 >
   <Container
     className="msg connectionBrowser"
@@ -37,6 +45,35 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
         }
       }
     >
+      <Toolbar
+        dropShadow={false}
+        id="connectionOverviewToolbar"
+        vibrant={false}
+      >
+        <Container
+          className="msg toolbar verticalCenterContent"
+          crossAlignment="center"
+          id="connectionOverviewToolbar"
+          orientation="row"
+        >
+          <div
+            className="msg container fixedScrollbar toolbar verticalCenterContent"
+            id="connectionOverviewToolbar"
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <div
+              className="expander"
+            />
+          </div>
+        </Container>
+      </Toolbar>
       <ConnectionEditor
         connections={
           [
@@ -402,7 +439,6 @@ DB Notebooks are modern editors for working with databases. You can use them to 
               <div
                 className="msg button round"
                 data-tooltip="Close Greeting"
-                draggable={true}
                 id="closeButton"
                 onClick={[Function]}
                 onMouseDown={[Function]}
@@ -512,7 +548,6 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                             <div
                               class="msg button imageOnly"
                               data-tooltip="More Actions"
-                              draggable="true"
                               id="tileMoreActionsAction"
                               role="button"
                               tabindex="0"
@@ -526,7 +561,6 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                             <div
                               class="msg button imageOnly"
                               data-tooltip="Create New Notebook"
-                              draggable="true"
                               id="tileNewNotebookAction"
                               role="button"
                               tabindex="0"
@@ -540,7 +574,6 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                             <div
                               class="msg button imageOnly"
                               data-tooltip="Create New Script"
-                              draggable="true"
                               id="tileNewScriptAction"
                               role="button"
                               tabindex="0"
@@ -555,7 +588,6 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                         </div>
                         <div
                           class="msg button browserTile secondary connectionTile"
-                          draggable="true"
                           id="-1"
                           role="button"
                           tabindex="0"
@@ -745,7 +777,6 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                                   <div
                                     class="msg button imageOnly"
                                     data-tooltip="More Actions"
-                                    draggable="true"
                                     id="tileMoreActionsAction"
                                     role="button"
                                     tabindex="0"
@@ -759,7 +790,6 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                                   <div
                                     class="msg button imageOnly"
                                     data-tooltip="Create New Notebook"
-                                    draggable="true"
                                     id="tileNewNotebookAction"
                                     role="button"
                                     tabindex="0"
@@ -773,7 +803,6 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                                   <div
                                     class="msg button imageOnly"
                                     data-tooltip="Create New Script"
-                                    draggable="true"
                                     id="tileNewScriptAction"
                                     role="button"
                                     tabindex="0"
@@ -811,7 +840,6 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                                 <div
                                   className="msg button imageOnly"
                                   data-tooltip="More Actions"
-                                  draggable={true}
                                   id="tileMoreActionsAction"
                                   onClick={[Function]}
                                   onMouseDown={[Function]}
@@ -853,7 +881,6 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                                 <div
                                   className="msg button imageOnly"
                                   data-tooltip="Create New Notebook"
-                                  draggable={true}
                                   id="tileNewNotebookAction"
                                   onClick={[Function]}
                                   onMouseDown={[Function]}
@@ -895,7 +922,6 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                                 <div
                                   className="msg button imageOnly"
                                   data-tooltip="Create New Script"
-                                  draggable={true}
                                   id="tileNewScriptAction"
                                   onClick={[Function]}
                                   onMouseDown={[Function]}
@@ -970,7 +996,6 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                       >
                         <div
                           className="msg button browserTile secondary connectionTile"
-                          draggable={true}
                           id="-1"
                           onClick={[Function]}
                           onDragEnter={[Function]}

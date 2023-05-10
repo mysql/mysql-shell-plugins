@@ -129,16 +129,14 @@ export class SQLExecutionContext extends ExecutionContext {
                 let done = false;
 
                 if (startIndex < 0) {
-                    // Only happens when adding text at the very end of the block.
-                    startIndex = -(startIndex + 1);
-                    if (startIndex === this.statementDetails.length) {
-                        // Adding text at the end of the existing statement list.
-                        // Add the change to the last statement we have.
-                        const lastDetails = this.statementDetails[this.statementDetails.length - 1];
-                        lastDetails.span.length += changeLength;
-                        this.pushSplitRequest(this.statementDetails.length - 1);
-                        done = true;
-                    }
+                    // Only happens when adding or removing text at the very end of the block.
+                    // Can also result from combining this context with the following one.
+                    // Hence assign the entire remaining text to the last statement and start validation of it.
+                    const lastDetails = this.statementDetails[this.statementDetails.length - 1];
+                    const fullLength = this.model?.getValue().length ?? 0;
+                    lastDetails.span.length = fullLength - lastDetails.span.start;
+                    this.pushSplitRequest(this.statementDetails.length - 1);
+                    done = true;
                 }
 
                 if (!done) {

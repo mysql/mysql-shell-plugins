@@ -28,6 +28,7 @@ import {
     Key as selKey,
     error,
     Condition,
+    InputBox,
 } from "vscode-extension-tester";
 import { expect } from "chai";
 import { basename } from "path";
@@ -56,7 +57,7 @@ export interface IConnAdvancedSqlite {
     params?: string;
 }
 
-export interface IConnSSL{
+export interface IConnSSL {
     mode?: string;
     ciphers?: string;
     caPath?: string;
@@ -64,7 +65,7 @@ export interface IConnSSL{
     clientKeyPath?: string;
 }
 
-export interface IConnAdvanced{
+export interface IConnAdvanced {
     mode?: string;
     timeout?: number;
     compression?: string;
@@ -73,7 +74,7 @@ export interface IConnAdvanced{
     disableHW?: boolean;
 }
 
-export interface IConnMDS{
+export interface IConnMDS {
     profile?: string;
     sshPrivKey?: string;
     sshPubKey?: string;
@@ -101,16 +102,51 @@ export class Database {
         ssl?: IConnSSL,
         advanced?: IConnAdvanced,
         mds?: IConnMDS,
-    ): Promise <void> => {
+    ): Promise<void> => {
 
         const dialog = await driver.wait(until.elementLocated(By.css(".visible.valueEditDialog")),
             explicitWait, "Connection dialog was not displayed");
 
         if (dbType) {
-            const inDBType = await dialog.findElement(By.id("databaseType"));
-            await inDBType.click();
-            const popup = await driver.findElement(By.id("databaseTypePopup"));
-            await popup.findElement(By.id(dbType)).click();
+            const setDbType = async () => {
+                const inDBType = await dialog.findElement(By.id("databaseType"));
+                await inDBType.click();
+                const popup = await driver.findElement(By.id("databaseTypePopup"));
+                await popup.findElement(By.id(dbType)).click();
+            };
+
+            await setDbType();
+
+            await driver.wait(async () => {
+                let currentValue = await dialog.findElement(By.css("#databaseType label")).getText();
+                // deal flacky
+                if (currentValue !== dbType) {
+                    await driver.findElement(By.id("closeButton")).click();
+                    const host = await Database.getWebViewConnection(caption, false);
+                    await driver.executeScript(
+                        "arguments[0].click();",
+                        await host.findElement(By.id("tileMoreActionsAction")),
+                    );
+
+                    const contextMenu = await driver.wait(
+                        until.elementLocated(By.css(".noArrow.menu")),
+                        2000,
+                    );
+
+                    await driver.executeScript(
+                        "arguments[0].click();",
+                        await contextMenu.findElement(By.id("edit")),
+                    );
+
+                    await setDbType();
+                    currentValue = await dialog.findElement(By.css("#databaseType label")).getText();
+
+                    return currentValue === dbType;
+                } else {
+                    return true;
+                }
+            }, explicitWait*3, "Db type was flacky too many times (Db type null)");
+
         }
 
         if (caption) {
@@ -334,30 +370,6 @@ export class Database {
 
             return st1.length > 0 || st2.length > 0 || st3.length > 0 || st4.length > 0;
         });
-    };
-
-    public static deleteConnection = async (dbName: string): Promise<void> => {
-
-        const treeSection = await Misc.getSection(dbTreeSection);
-        const treeItem = await treeSection.findItem(dbName, 5);
-        await Misc.selectContextMenuItem(treeItem, "Delete DB Connection");
-
-        const editorView = new EditorView();
-        await driver.wait(async () => {
-            const activeTab = await editorView.getActiveTab();
-
-            return await activeTab?.getTitle() === "MySQL Shell";
-        }, 3000, "error");
-
-        await Misc.switchToWebView();
-
-        const item = driver.findElement(By.xpath("//label[contains(text(),'" + dbName + "')]"));
-        const dialog = await driver.wait(until.elementLocated(
-            By.css(".visible.confirmDialog")), 7000, "confirm dialog was not found");
-        await dialog.findElement(By.id("accept")).click();
-
-        await driver.wait(until.stalenessOf(item), explicitWait, "Database was not deleted");
-        await driver.switchTo().defaultContent();
     };
 
     public static closeConnection = async (name: string): Promise<void> => {
@@ -727,7 +739,7 @@ export class Database {
     ): Promise<void> => {
 
         const dialog = await driver.wait(until.elementLocated(By.id("mrsAuthenticationAppDialog")),
-            explicitWait*2, "Authentication app dialog was not displayed");
+            explicitWait * 2, "Authentication app dialog was not displayed");
 
         if (vendor) {
             await dialog.findElement(By.id("authVendorName")).click();
@@ -780,12 +792,12 @@ export class Database {
         if (enabled !== undefined) {
             const enabledInput = await dialog.findElement(By.id("enabled"));
             const status = await enabledInput.getAttribute("class");
-            if (status.includes("unchecked")){
-                if (enabled){
+            if (status.includes("unchecked")) {
+                if (enabled) {
                     await enabledInput.click();
                 }
             } else {
-                if (!enabled){
+                if (!enabled) {
                     await enabledInput.click();
                 }
             }
@@ -796,12 +808,12 @@ export class Database {
         if (limitUsers !== undefined) {
             const limitInput = await dialog.findElement(By.id("limitToRegisteredUsers"));
             const status = await limitInput.getAttribute("class");
-            if (status.includes("unchecked")){
-                if (limitUsers){
+            if (status.includes("unchecked")) {
+                if (limitUsers) {
                     await limitInput.click();
                 }
             } else {
-                if (!limitUsers){
+                if (!limitUsers) {
                     await limitInput.click();
                 }
             }
@@ -827,7 +839,7 @@ export class Database {
 
 
         const dialog = await driver.wait(until.elementLocated(By.id("mrsUserDialog")),
-            explicitWait*2, "User dialog was not displayed");
+            explicitWait * 2, "User dialog was not displayed");
 
         const nameInput = await dialog.findElement(By.id("name"));
         const passwordInput = await dialog.findElement(By.id("authString"));
@@ -838,7 +850,7 @@ export class Database {
         await passwordInput.clear();
         await passwordInput.sendKeys(password);
 
-        if(authApp) {
+        if (authApp) {
             await dialog.findElement(By.id("authApp")).click();
             const popup = await driver.wait(until.elementLocated(By.id("authAppPopup")),
                 explicitWait, "Auth app drop down list was not displayed");
@@ -909,10 +921,10 @@ export class Database {
         crud?: string[],
         enabled?: boolean,
         requiresAuth?: boolean,
-    ): Promise <void> => {
+    ): Promise<void> => {
 
         const dialog = await driver.wait(until.elementLocated(By.id("mrsDbObjectDialog")),
-            explicitWait*2, "Edit REST Object dialog was not displayed");
+            explicitWait * 2, "Edit REST Object dialog was not displayed");
 
         if (service) {
             const inService = await dialog.findElement(By.id("service"));
@@ -938,11 +950,11 @@ export class Database {
                 const isActive = (await crudDiv.getAttribute("src")).includes("Active");
                 const name = await crudDiv.getAttribute("data-tooltip");
                 if (crud.includes(name)) {
-                    if(!isActive) {
+                    if (!isActive) {
                         els2click.push(name);
                     }
                 } else {
-                    if(isActive) {
+                    if (isActive) {
                         els2click.push(name);
                     }
                 }
@@ -1077,7 +1089,7 @@ export class Database {
 
     };
 
-    public static isEditorStretched = async (): Promise <boolean> => {
+    public static isEditorStretched = async (): Promise<boolean> => {
         const editor = await driver.findElement(By.id("editorPaneHost"));
         const style = await editor.getCssValue("height");
         const height = parseInt(style.trim().replace("px", ""), 10);
@@ -1110,7 +1122,7 @@ export class Database {
         return toReturn;
     };
 
-    public static isResultTabMaximized = async (): Promise <boolean> => {
+    public static isResultTabMaximized = async (): Promise<boolean> => {
         return (await driver.findElements(By.id("normalizeResultStateButton"))).length > 0;
     };
 
@@ -1175,7 +1187,7 @@ export class Database {
 
         await driver.wait(async () => {
             passwordDialog = await driver.wait(until.elementsLocated(By.css(".passwordDialog")), 1000, "")
-                .catch(() =>{ return []; });
+                .catch(() => { return []; });
             textArea = await driver.findElements(By.css("textarea"));
             if (passwordDialog.length > 0 || textArea.length > 0) {
                 return true;
@@ -1186,7 +1198,59 @@ export class Database {
             await Database.setPassword(data);
             await Misc.setConfirmDialog(data, "no", timeout).catch(() => {
                 // continue
-             });
+            });
         }
+    };
+
+    public static setInputPath = async (path: string): Promise<void> => {
+        const input = await InputBox.create();
+        await input.setText(path);
+        await input.confirm();
+    };
+
+    public static verifyNotebook = async (sql: string, resultStatus: string): Promise<void> => {
+
+        const commands = [];
+        await driver.wait(async () => {
+            try {
+                const cmds = await driver.wait(
+                    until.elementsLocated(By.css(".view-lines.monaco-mouse-cursor-text > div > span")),
+                    explicitWait, "No lines were found");
+                for (const cmd of cmds) {
+                    const spans = await cmd.findElements(By.css("span"));
+                    let sentence = "";
+                    for (const span of spans) {
+                        sentence += (await span.getText()).replace("&nbsp;", " ");
+                    }
+                    commands.push(sentence);
+                }
+
+                return commands.length > 0;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+        }, explicitWait, "No SQL commands were found on the notebook");
+
+
+        if (!commands.includes(sql)) {
+            throw new Error(`Could not find the SQL statement ${sql} on the notebook`);
+        }
+
+        let foundResult = false;
+        const results = await driver.findElements(By.css(".resultStatus"));
+        for (const result of results) {
+            const text = await result.getText();
+            if (text.includes(resultStatus)) {
+                foundResult = true;
+                break;
+            }
+        }
+
+        if (!foundResult) {
+            throw new Error(`Could not find the SQL result ${resultStatus} on the notebook`);
+        }
+
     };
 }

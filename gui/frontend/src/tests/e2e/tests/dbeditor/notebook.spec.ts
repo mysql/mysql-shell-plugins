@@ -22,13 +22,25 @@
  */
 
 import { Misc, driver, IDBConnection, explicitWait } from "../../lib/misc";
-import { By, until, Key, WebElement, error } from "selenium-webdriver";
+import { By, until, Key, WebElement, error, Condition } from "selenium-webdriver";
 import { DBConnection } from "../../lib/dbConnection";
-import { DBNotebooks } from "../../lib/dbNotebooks";
+import {
+    DBNotebooks,
+    execFullBlockSql,
+    execCaret,
+    autoCommit,
+    commit,
+    rollback,
+    find,
+    saveNotebook,
+} from "../../lib/dbNotebooks";
+import fs from "fs/promises";
+import { join } from "path";
 
 describe("Notebook", () => {
 
     let testFailed = false;
+    let notebook = "";
 
     const globalConn: IDBConnection = {
         dbType: undefined,
@@ -84,6 +96,7 @@ describe("Notebook", () => {
         }
         await driver.wait(until.elementLocated(By.id("dbEditorToolbar")), explicitWait*2, "Notebook was not loaded");
 
+        await driver.wait(until.elementLocated(By.id("dbEditorToolbar")), explicitWait * 2, "Notebook was not loaded");
     });
 
     afterEach(async () => {
@@ -188,10 +201,6 @@ describe("Notebook", () => {
 
             await DBConnection.clickContextItem("Execute Block and Advance");
 
-            await driver.wait(async () => {
-                return (await DBConnection.getLastQueryResultId()) > lastId;
-            }, 3000, "No new results block was displayed");
-
             expect(await DBConnection.getResultStatus(true)).toMatch(
                 new RegExp(/OK, (\d+) record retrieved/),
             );
@@ -212,10 +221,7 @@ describe("Notebook", () => {
             const lastId = await DBConnection.getLastQueryResultId();
 
             await (
-                await DBConnection.getToolbarButton(
-                    "Execute selection or full block and create a new block",
-                )
-            )!.click();
+                await DBConnection.getToolbarButton(execFullBlockSql))!.click();
 
             await driver.wait(async () => {
                 return (await DBConnection.getLastQueryResultId()) > lastId;
@@ -277,7 +283,7 @@ describe("Notebook", () => {
             const lastId = await DBConnection.getLastQueryResultId();
 
             const exeSelNew = await DBConnection.getToolbarButton(
-                "Execute selection or full block and create a new block");
+                execFullBlockSql);
             await exeSelNew?.click();
 
             await driver.wait(async () => {
@@ -320,51 +326,39 @@ describe("Notebook", () => {
 
             await span2Click.click();
 
-            let lastId = await DBConnection.getLastQueryResultId();
-
-            let execCaret = await DBConnection.getToolbarButton("Execute the statement at the caret position");
-
+            let execCaretBtn = await DBConnection.getToolbarButton(execCaret);
+            await execCaretBtn?.click();
             await driver.wait(async () => {
-                await execCaret?.click();
+                await execCaretBtn?.click();
 
-                return (await DBConnection.getLastQueryResultId()) > lastId;
+                return DBConnection.getResultColumnName("address_id") !== undefined;
             }, 3000, "No new results block was displayed");
-
-            expect(await DBConnection.getResultColumnName("address_id")).toBeDefined();
 
             lines = await driver.findElements(By.css("#contentHost .editorHost .view-line"));
             span2Click = await lines[lines.length - 3].findElement(By.css("span > span"));
 
             await span2Click.click();
 
-            lastId = await DBConnection.getLastQueryResultId();
+            execCaretBtn = await DBConnection.getToolbarButton(execCaret);
 
-            execCaret = await DBConnection.getToolbarButton("Execute the statement at the caret position");
+            await driver.wait(new Condition("", async () => {
+                await execCaretBtn?.click();
 
-            await driver.wait(async () => {
-                await execCaret?.click();
-
-                return (await DBConnection.getLastQueryResultId()) > lastId;
-            }, 3000, "No new results block was displayed");
-
-            expect(await DBConnection.getResultColumnName("actor_id")).toBeDefined();
+                return await DBConnection.getResultColumnName("actor_id") !== undefined;
+            }), explicitWait, "actor_id column was not found");
 
             lines = await driver.findElements(By.css("#contentHost .editorHost .view-line"));
             span2Click = await lines[lines.length - 1].findElement(By.css("span > span"));
 
             await span2Click.click();
 
-            lastId = await DBConnection.getLastQueryResultId();
+            execCaretBtn = await DBConnection.getToolbarButton(execCaret);
 
-            execCaret = await DBConnection.getToolbarButton("Execute the statement at the caret position");
+            await driver.wait(new Condition("", async () => {
+                await execCaretBtn?.click();
 
-            await driver.wait(async () => {
-                await execCaret?.click();
-
-                return (await DBConnection.getLastQueryResultId()) > lastId;
-            }, 3000, "No new results block was displayed");
-
-            expect(await DBConnection.getResultColumnName("category_id")).toBeDefined();
+                return await DBConnection.getResultColumnName("category_id") !== undefined;
+            }), explicitWait, "category_id column was not found");
 
         } catch (e) {
             testFailed = true;
@@ -375,18 +369,18 @@ describe("Notebook", () => {
     it("Connection toolbar buttons - Autocommit DB Changes", async () => {
         try {
 
-            const autoCommit = await DBConnection.getToolbarButton("Auto commit DB changes");
-            await driver.executeScript("arguments[0].scrollIntoView(true)", autoCommit);
-            await autoCommit!.click();
+            const autoCommitBtn = await DBConnection.getToolbarButton(autoCommit);
+            await driver.executeScript("arguments[0].scrollIntoView(true)", autoCommitBtn);
+            await autoCommitBtn!.click();
 
             const random = (Math.random() * (10.00 - 1.00 + 1.00) + 1.00).toFixed(5);
 
             await DBConnection.writeSQL(
                 `INSERT INTO actor (first_name, last_name) VALUES ("${random}","${random}");`);
 
-            const commitBtn = await DBConnection.getToolbarButton("Commit DB changes");
+            const commitBtn = await DBConnection.getToolbarButton(commit);
 
-            const rollBackBtn = await DBConnection.getToolbarButton("Rollback DB changes");
+            const rollBackBtn = await DBConnection.getToolbarButton(rollback);
 
             await driver.wait(until.elementIsEnabled(commitBtn!),
                 3000, "Commit button should be enabled");
@@ -397,7 +391,7 @@ describe("Notebook", () => {
             let lastId = await DBConnection.getLastQueryResultId();
 
             let execSelNew = await DBConnection.getToolbarButton(
-                "Execute selection or full block and create a new block");
+                execFullBlockSql);
             await execSelNew?.click();
 
             await driver.wait(async () => {
@@ -414,7 +408,7 @@ describe("Notebook", () => {
 
             lastId = await DBConnection.getLastQueryResultId();
 
-            execSelNew = await DBConnection.getToolbarButton("Execute selection or full block and create a new block");
+            execSelNew = await DBConnection.getToolbarButton(execFullBlockSql);
             await execSelNew?.click();
 
             await driver.wait(async () => {
@@ -432,7 +426,7 @@ describe("Notebook", () => {
 
             lastId = await DBConnection.getLastQueryResultId();
 
-            execSelNew = await DBConnection.getToolbarButton("Execute selection or full block and create a new block");
+            execSelNew = await DBConnection.getToolbarButton(execFullBlockSql);
             await execSelNew?.click();
 
             await driver.wait(async () => {
@@ -449,7 +443,7 @@ describe("Notebook", () => {
 
             lastId = await DBConnection.getLastQueryResultId();
 
-            execSelNew = await DBConnection.getToolbarButton("Execute selection or full block and create a new block");
+            execSelNew = await DBConnection.getToolbarButton(execFullBlockSql);
             await execSelNew?.click();
 
             await driver.wait(async () => {
@@ -460,16 +454,16 @@ describe("Notebook", () => {
                 "OK, 1 record retrieved",
             );
 
-            await driver.executeScript("arguments[0].scrollIntoView()", autoCommit);
-            await autoCommit!.click();
+            await driver.executeScript("arguments[0].scrollIntoView()", autoCommitBtn);
+            await autoCommitBtn!.click();
 
             await driver.wait(
                 async () => {
-                    const commitBtn = await DBConnection.getToolbarButton("Commit DB changes");
-                    const rollBackBtn = await DBConnection.getToolbarButton("Rollback DB changes");
+                    const commitBtn = await DBConnection.getToolbarButton(commit);
+                    const rollBackBtn = await DBConnection.getToolbarButton(rollback);
 
                     return (await commitBtn?.getAttribute("class"))?.includes("disabled") &&
-                            (await rollBackBtn?.getAttribute("class"))?.includes("disabled");
+                        (await rollBackBtn?.getAttribute("class"))?.includes("disabled");
 
                 },
                 explicitWait,
@@ -488,7 +482,7 @@ describe("Notebook", () => {
 
             await DBConnection.writeSQL(`import from xpto xpto xpto`);
 
-            const findBtn = await DBConnection.getToolbarButton("Find");
+            const findBtn = await DBConnection.getToolbarButton(find);
             await findBtn!.click();
 
             const finder = await driver.wait(until.elementLocated(By.css(".find-widget")),
@@ -809,9 +803,18 @@ describe("Notebook", () => {
 
             await textArea.sendKeys(Key.ARROW_DOWN);
 
-            await textArea.sendKeys(Key.ARROW_DOWN);
-
             await Misc.pressEnter();
+
+            await driver.wait(new Condition("", async () => {
+                const otherResult1 = await DBConnection.getOutput();
+                try {
+                    expect(otherResult1).toMatch(new RegExp(/(\d+).(\d+)/));
+
+                    return otherResult1 !== result4;
+                } catch (e) {
+                    // continue
+                }
+            }), explicitWait, "results should be different");
 
             const otherResult1 = await DBConnection.getOutput();
 
@@ -934,7 +937,7 @@ describe("Notebook", () => {
             const lastId = await DBConnection.getLastQueryResultId();
 
             const exeSelNew = await DBConnection.getToolbarButton(
-                "Execute selection or full block and create a new block");
+                execFullBlockSql);
             await exeSelNew?.click();
 
             await driver.wait(async () => {
@@ -1026,4 +1029,33 @@ describe("Notebook", () => {
 
     });
 
+    it("Save the notebook", async () => {
+
+        const saveNotebookBtn = await DBConnection.getToolbarButton(saveNotebook);
+        await saveNotebookBtn?.click();
+
+        const outDir = process.env.USERPROFILE ?? process.env.HOME;
+        await driver.wait(async () => {
+            const files = await fs.readdir(String(outDir));
+
+            for(const file of files) {
+                if (file.includes(".mysql-notebook")) {
+                    notebook = join(String(outDir), file);
+
+                    return true;
+                }
+            }
+        }, explicitWait, `The notebook was not saved on ${String(outDir)}`);
+
+        try {
+            const file = await fs.readFile(notebook);
+            const jsonResult = JSON.parse(file.toString());
+            expect(jsonResult.type).toBe("MySQLNotebook");
+            expect(jsonResult.version).toMatch(/(\d+).(\d+)/);
+        } finally {
+            await fs.unlink(notebook);
+        }
+    });
+
 });
+

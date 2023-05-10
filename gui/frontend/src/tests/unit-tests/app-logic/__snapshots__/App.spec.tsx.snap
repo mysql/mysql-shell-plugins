@@ -282,7 +282,6 @@ exports[`Application tests Application readiness 1`] = `
                     >
                       <div
                         className="msg button round"
-                        draggable={true}
                         id="loginButton"
                         onClick={[Function]}
                         onMouseDown={[Function]}

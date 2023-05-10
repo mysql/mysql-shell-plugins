@@ -12,7 +12,6 @@
         "inlineSources": true,
         "isolatedModules": true,
         "allowSyntheticDefaultImports": true,
-        "experimentalDecorators": true,
         "strictNullChecks": true,
         "alwaysStrict": true,
         "resolveJsonModule": true,
@@ -28,6 +27,7 @@
         "node_modules",
         ".vscode-test",
         "test-resources",
-        "tests/e2e/**/*.ts",
+        "tests",
+        "packaging"
     ]
 }

@@ -89,8 +89,10 @@ export interface IFileSelectorProperties extends IComponentProperties {
     onCancel?: (e: KeyboardEvent, props: IFileSelectorProperties) => void;
 }
 
-// An input field with a button to show/select files and folders. It uses the HTML open dialog in browser mode,
-// otherwise the host provides a native open dialog.
+/**
+ * An input field with a button to show/select files and folders. It uses the HTML open dialog in browser mode,
+ * otherwise the host provides a native open dialog.
+ */
 export class FileSelector extends ComponentBase<IFileSelectorProperties> {
 
     public static readonly defaultProps = {
@@ -162,8 +164,8 @@ export class FileSelector extends ComponentBase<IFileSelectorProperties> {
 
     private handleButtonClick = (): void => {
         const {
-            path, title, openLabel, canSelectFiles = true, canSelectFolders, filters,
-            multiSelection = false, onChange, id,
+            path, title, openLabel, canSelectFiles = true, canSelectFolders, filters, multiSelection = false, onChange,
+            id,
         } = this.mergedProps;
 
         if (appParameters.embedded) {
@@ -179,23 +181,15 @@ export class FileSelector extends ComponentBase<IFileSelectorProperties> {
             };
             requisitions.executeRemote("showOpenDialog", options);
         } else {
-            let contentType = "";
+            const contentType: string[] = [];
             if (filters) {
-                Object.values(filters).forEach((value: string[], index) => {
-                    if (index > 0) {
-                        contentType += ",";
-                    }
-                    value = value.map((entry) => { return "." + entry; });
-                    contentType += value.join(",");
+                Object.values(filters).forEach((extensions: string[]) => {
+                    contentType.push(...extensions.map((value) => { return `.${value}`; }));
                 });
             }
 
-            void selectFile(contentType, multiSelection).then((result: File | File[] | null) => {
+            void selectFile(contentType, multiSelection).then((result) => {
                 if (result) {
-                    if (!Array.isArray(result)) {
-                        result = [result];
-                    }
-
                     onChange?.(result.map((value) => { return value.name; }), this.mergedProps);
                 } else {
                     onChange?.([], this.mergedProps);

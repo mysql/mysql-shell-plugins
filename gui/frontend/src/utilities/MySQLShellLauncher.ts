@@ -101,13 +101,13 @@ export class MySQLShellLauncher {
      * @returns The MySQL Shell user config dir as string.
      */
     public static getShellUserConfigDir = (rootPath: string): string => {
-        const shellPath = MySQLShellLauncher.getShellPath(rootPath);
+        const shellPath = MySQLShellLauncher.getShellPath(rootPath).toLocaleLowerCase();
         let shellUserConfigDir: string;
 
         if (process.env.MYSQLSH_GUI_CUSTOM_CONFIG_DIR !== undefined) {
             // If the environment var MYSQLSH_GUI_CUSTOM_CONFIG_DIR is set, use that directory
             shellUserConfigDir = process.env.MYSQLSH_GUI_CUSTOM_CONFIG_DIR;
-        } else if (shellPath !== "mysqlsh" && fs.existsSync(shellPath)) {
+        } else if (shellPath !== "mysqlsh" && !shellPath.endsWith(".exe") && fs.existsSync(shellPath)) {
             // Check if MySQL Shell is bundled with the extension. Cannot be tested in unit tests.
             // istanbul ignore next
             // If so, create a dedicated shell user config dir for the shell gui
@@ -278,7 +278,6 @@ export class MySQLShellLauncher {
             // If not, try to use the mysqlsh installed in the system PATH. Mostly used for debugging.
             if (os.platform() === "win32") {
                 shellPath = findExecutable("mysqlsh");
-                shellPath = "mysqlsh";
             } else {
                 shellPath = "mysqlsh";
             }

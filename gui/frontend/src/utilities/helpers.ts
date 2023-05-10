@@ -22,7 +22,6 @@
  */
 
 import _ from "lodash";
-import Anser from "anser";
 
 import { IDictionary } from "../app-logic/Types";
 import { convertHexToBase64 } from "./string-helpers";
@@ -30,27 +29,23 @@ import { convertHexToBase64 } from "./string-helpers";
 /**
  * Allows the user to select a local file.
  *
- * @param contentType Restricts the file selection to specific file types.
+ * @param acceptedExtensions A list of file extensions (including the dot) that are allowed to be selected.
  * @param multiple If true, allows to select more than a single file.
  *
  * @returns A promise that resolves to a single file or a list of files.
  */
-export const selectFile = (contentType: string, multiple: boolean): Promise<File | File[] | null> => {
+export const selectFile = (acceptedExtensions: string[], multiple: boolean): Promise<File[] | null> => {
     return new Promise((resolve): void => {
         const input = document.createElement("input");
         input.type = "file";
         input.id = "fileSelect";
         input.multiple = multiple;
-        input.accept = contentType;
+        input.accept = acceptedExtensions.join(",");
         document.body.appendChild(input);
 
         input.onchange = (): void => {
             const files = input.files ? Array.from(input.files) : null;
-            if (multiple) {
-                resolve(files);
-            } else {
-                resolve(files && files.length > 0 ? files[0] : null);
-            }
+            resolve(files);
 
             document.body.removeChild(input);
         };
@@ -69,7 +64,7 @@ export const selectFile = (contentType: string, multiple: boolean): Promise<File
 // Testing note: this method relies on behavior which requires a real browser, so we cannot test this in a fake DOM.
 // istanbul ignore next
 export const saveTextAsFile = (text: string, fileName: string): void => {
-    const blob = new Blob([text], { type: "text/plain" });
+    const blob = new Blob([text], { type: "text/plain" }); // Will use UTF-8 encoding.
     const downloadLink = document.createElement("a");
     downloadLink.download = fileName;
     downloadLink.innerHTML = "Download File";
@@ -213,96 +208,6 @@ export const waitFor = async (timeout: number, condition: () => boolean): Promis
     }
 
     return timeout > 0 ? true : false;
-};
-
-/**
- * Determines the base name (that is, the last part of the path) of a file or directory.
- *
- * @param path The path to get the base name from.
- * @param extension An optional extension to remove from the base name.
- *
- * @returns The base name of the path or an empty string if the path is empty.
- */
-export const basename = (path: string, extension?: string): string => {
-    const result = path.split(/[\\/]/).pop() ?? "";
-    if (extension && result.endsWith(extension)) {
-        return result.substring(0, result.length - extension.length);
-    }
-
-    return result;
-};
-
-interface IConversionOptions {
-    ignore?: string[];
-}
-
-/**
- * Converts all object keys to snake_case, recursively.
- *
- * @param o The object to convert.
- * @param options Options to control the conversion process.
- *
- * @returns A new object with the converted keys.
- */
-export const convertCamelToSnakeCase = (o: object, options?: IConversionOptions): object => {
-    return _.deepMapKeys(o, options?.ignore ?? [], (value, key) => {
-        const snakeCased = key.replace(/([a-z])([A-Z])/g, (full, match1: string, match2: string) => {
-            return `${match1}_${match2.toLowerCase()}`;
-        });
-
-        return snakeCased;
-    });
-};
-
-/**
- * Converts all object keys to camelCase, recursively.
- *
- * @param o The object to convert.
- * @param options Options to control the conversion process.
- *
- * @returns A new object with the converted keys.
- */
-export const convertSnakeToCamelCase = (o: object, options?: IConversionOptions): object => {
-    return _.deepMapKeys(o, options?.ignore ?? [], (value, key) => {
-        return key.replace(/_([a-z0-9])/gi, (full, match: string) => {
-            return match.toUpperCase();
-        });
-    });
-};
-
-
-/**
- * Converts a camel case string to title case, that is the first letter in the string is converted to uppercase.
- *
- * @param s The string to convert.
- *
- * @returns The converted string.
- */
-export const convertCamelToTitleCase = (s: string): string => {
-    if (s.length < 1) {
-        return "";
-    }
-
-    return s.charAt(0).toUpperCase() + s.slice(1);
-};
-
-/**
- * This is the opposite direction of `convertCamelToTitleCase` by converting the first letter to lower case.
- *
- * @param s The string to convert.
- *
- * @returns The converted string.
- */
-export const convertTitleToCamelCase = (s: string): string => {
-    if (s.length < 1) {
-        return "";
-    }
-
-    return s.charAt(0).toLowerCase() + s.slice(1);
-};
-
-export const stripAnsiCode = (s: string): string => {
-    return Anser.ansiToText(s);
 };
 
 /**

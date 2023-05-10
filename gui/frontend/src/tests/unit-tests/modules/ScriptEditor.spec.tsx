@@ -63,11 +63,14 @@ describe("Script editor tests", (): void => {
             }],
             activeEntry: "1",
             heatWaveEnabled: false,
+            connectionId: -1,
         };
 
         const component = mount<ScriptEditor>(
             <ScriptEditor
                 savedState={savedState}
+                standaloneMode={false}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
             />,
         );
         const props = component.props();

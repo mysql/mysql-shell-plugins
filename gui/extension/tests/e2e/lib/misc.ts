@@ -20,36 +20,20 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-import {
-    VSBrowser,
-    WebDriver,
-    WebElement,
-    By,
-    until,
-    Key as key,
-    SideBarView,
-    CustomTreeSection,
-    Workbench,
-    OutputView,
-    Key as selKey,
-    ITimeouts,
-    ActivityBar,
-    EditorView,
-    error,
-    TreeItem,
-    InputBox,
-    Condition,
-    BottomBarPanel,
-    Notification,
-} from "vscode-extension-tester";
-import clipboard from "clipboardy";
 import { expect } from "chai";
 import { ChildProcess, spawn, spawnSync } from "child_process";
-import addContext from "mochawesome/addContext";
+import clipboard from "clipboardy";
 import fs from "fs/promises";
-import { Database, IConnBasicMySQL, IDBConnection } from "./db";
-import { join } from "path";
+import addContext from "mochawesome/addContext";
 import { platform } from "os";
+import { join } from "path";
+import {
+    ActivityBar, BottomBarPanel, By, Condition, CustomTreeSection, EditorView, error, InputBox, ITimeouts,
+    Key, Notification, OutputView, SideBarView, TreeItem, until, VSBrowser,
+    WebDriver,
+    WebElement, Workbench,
+} from "vscode-extension-tester";
+import { Database, IConnBasicMySQL, IDBConnection } from "./db";
 
 export const dbTreeSection = "DATABASE CONNECTIONS";
 export const ociTreeSection = "ORACLE CLOUD INFRASTRUCTURE";
@@ -69,7 +53,22 @@ export const ociMaxLevel = 5;
 export const openEditorsMaxLevel = 5;
 export const tasksMaxLevel = 1;
 export let driver: WebDriver;
+
 export const basePath = process.env.USERPROFILE ?? process.env.HOME;
+
+export let browser: VSBrowser;
+
+export const execFullBlockSql = "Execute the selection or everything in the current block and create a new block";
+export const execFullBlockJs = "Execute everything in the current block and create a new block";
+export const execCaret = "Execute the statement at the caret position";
+export const execFullScript = "Execute full script";
+export const find = "Find";
+export const rollback = "Rollback DB changes";
+export const commit = "Commit DB changes";
+export const autoCommit = "Auto commit DB changes";
+export const saveNotebook = "Save this Notebook";
+export const loadNotebook = "Load a new Notebook from a file";
+
 
 export class Misc {
 
@@ -141,12 +140,12 @@ export class Misc {
             if (expand === true) {
                 let output: WebElement;
                 await driver.wait(async () => {
-                    await driver.actions().sendKeys(selKey.chord(selKey.CONTROL, "j")).perform();
+                    await driver.actions().sendKeys(Key.chord(Key.CONTROL, "j")).perform();
                     output = await bottombar.findElement(By.xpath("//a[contains(@aria-label, 'Output (')]"));
 
                     return output.isDisplayed();
                 }, explicitWait, "");
-                await output!.click();
+                await output.click();
             }
         }
 
@@ -296,9 +295,9 @@ export class Misc {
     public static execOnEditor = async (): Promise<void> => {
         await driver
             .actions()
-            .keyDown(key.CONTROL)
-            .sendKeys(key.ENTER)
-            .keyUp(key.CONTROL)
+            .keyDown(Key.CONTROL)
+            .sendKeys(Key.ENTER)
+            .keyUp(Key.CONTROL)
             .perform();
     };
 
@@ -369,7 +368,14 @@ export class Misc {
 
         timeout = timeout ?? 5000;
 
-        return Misc.getCmdResult(cmd, String(nextBlockId), timeout, hasMultipleQueries);
+        if (button === execCaret) {
+            const prevBlocks = await driver.findElements(By.css(".zoneHost"));
+            const block = await prevBlocks[prevBlocks.length - 1].getAttribute("monaco-view-zone");
+
+            return Misc.getCmdResult(cmd, `${block},${String(nextBlockId)}`, timeout, hasMultipleQueries);
+        } else {
+            return Misc.getCmdResult(cmd, nextBlockId, timeout, hasMultipleQueries);
+        }
     };
 
     public static execCmdByContextItem = async (
@@ -434,10 +440,16 @@ export class Misc {
         const firstIframe = await visibleDiv.findElement(By.css("iframe"));
         await driver.wait(until.ableToSwitchToFrame(firstIframe));
 
-        for (let i=0; i <= expectedFrames - 1; i++) {
+        for (let i = 0; i <= expectedFrames - 1; i++) {
             const frame = await driver.findElements(By.css("iframe"));
             if (frame.length > 0) {
                 await driver.wait(until.ableToSwitchToFrame(frame[0]));
+                const deepestFrame = await driver.findElements(By.css("iframe"));
+                if (deepestFrame.length > 0) {
+                    await driver.executeScript("arguments[0].style.width='100%';", deepestFrame[0]);
+                    await driver.executeScript("arguments[0].style.height='100%';", deepestFrame[0]);
+                    await driver.executeScript("arguments[0].style.transform='scale(1)';", deepestFrame[0]);
+                }
             }
             else {
                 break;
@@ -445,7 +457,7 @@ export class Misc {
         }
     };
 
-    public static isRouterInstalled = async (): Promise <boolean> => {
+    public static isRouterInstalled = async (): Promise<boolean> => {
         if (platform() === "win32") {
             const dirFiles = await fs.readdir("C:/Program Files/MySQL");
             for (const item of dirFiles) {
@@ -492,7 +504,7 @@ export class Misc {
         timeout: number): Promise<void> => {
         await driver.wait(async () => {
             const out = await Misc.getTerminalOutput();
-            for(const item of textToSearch){
+            for (const item of textToSearch) {
                 if (out.includes(item)) {
                     return true;
                 }
@@ -613,9 +625,9 @@ export class Misc {
     public static cleanEditor = async (): Promise<void> => {
         const textArea = await driver.findElement(By.css("textarea"));
         await textArea
-            .sendKeys(selKey.chord(selKey.CONTROL, "a", "a"));
+            .sendKeys(Key.chord(Key.CONTROL, "a", "a"));
 
-        await textArea.sendKeys(selKey.BACK_SPACE);
+        await textArea.sendKeys(Key.BACK_SPACE);
         await driver.wait(async () => {
             return await this.getPromptTextLine("last") === "";
         }, 3000, "Prompt was not cleaned");
@@ -657,7 +669,7 @@ export class Misc {
 
     public static getResultColumns = async (resultHost: WebElement): Promise<string[]> => {
 
-        const result = [];
+        const result: string[] = [];
 
         const resultSet = await driver.wait(async () => {
             return (await resultHost.findElements(By.css(".tabulator-headers")))[0];
@@ -695,7 +707,7 @@ export class Misc {
         timeout = timeout ?? 5000;
         await driver.wait(async () => {
             try {
-                let context;
+                let context: WebElement;
                 if (zoneHost) {
                     context = zoneHost;
                 } else {
@@ -762,7 +774,7 @@ export class Misc {
         return resultToReturn;
     };
 
-    public static getActionButton = async (treeItem: TreeItem, actionButton: string): Promise <WebElement> => {
+    public static getActionButton = async (treeItem: TreeItem, actionButton: string): Promise<WebElement> => {
         return driver.wait(async () => {
             try {
                 let locator = ".//a[contains(@class, 'action-label') ";
@@ -771,8 +783,10 @@ export class Misc {
                 const btn = await treeItem.findElement(By.xpath(locator));
 
                 const treeItemCoord = await treeItem.getRect();
-                await driver.actions().move({ x: Math.floor(treeItemCoord.x),
-                        y: Math.floor(treeItemCoord.y) }).perform();
+                await driver.actions().move({
+                    x: Math.floor(treeItemCoord.x),
+                    y: Math.floor(treeItemCoord.y),
+                }).perform();
                 await driver.wait(until.elementIsVisible(btn),
                     explicitWait, `'${actionButton}' button was not visible`);
 
@@ -801,7 +815,7 @@ export class Misc {
         return !style.includes("routerNotActive");
     };
 
-    public static sectionFocus = async (section: string): Promise <void> => {
+    public static sectionFocus = async (section: string): Promise<void> => {
         const treeDBSection = await Misc.getSection(dbTreeSection);
         const treeOCISection = await Misc.getSection(ociTreeSection);
         const treeOpenEditorsSection = await Misc.getSection(openEditorsTreeSection);
@@ -878,6 +892,7 @@ export class Misc {
                         throw e;
                     }
                 }
+
             }), explicitWait, `${section} was not focused`);
         } else {
             throw new Error(`Unknow section: ${section}`);
@@ -885,7 +900,7 @@ export class Misc {
     };
 
     public static getTreeScript = async (section: CustomTreeSection,
-        partialName: string, type: string): Promise <TreeItem> => {
+        partialName: string, type: string): Promise<TreeItem> => {
         return driver.wait(new Condition("", async () => {
             section = await Misc.getSection(await section.getTitle());
             const treeVisibleItems = await section.getVisibleItems();
@@ -900,11 +915,18 @@ export class Misc {
         }), explicitWait, `Could not find the script '${partialName}' with type '${type}' on the Open Editors tree`);
     };
 
+    public static dismissNotifications = async (): Promise<void> => {
+        const notifs = await new Workbench().getNotifications();
+        for (const notif of notifs) {
+            await notif.dismiss();
+        }
+    };
+
     public static getTreeElement = async (
-            section: CustomTreeSection,
-            itemName: string,
-            reloadSection = false,
-            ): Promise<TreeItem> => {
+        section: CustomTreeSection,
+        itemName: string,
+        reloadSection = false,
+    ): Promise<TreeItem> => {
         let el: TreeItem;
         let reloadLabel: string;
         if (reloadSection) {
@@ -927,6 +949,46 @@ export class Misc {
         return el;
     };
 
+    public static deleteConnection = async (dbName: string): Promise<void> => {
+
+        const treeSection = await Misc.getSection(dbTreeSection);
+        const treeItem = await Misc.getTreeElement(treeSection, dbName);
+        await Misc.selectContextMenuItem(treeItem, "Delete DB Connection");
+
+        const editorView = new EditorView();
+        await driver.wait(async () => {
+            const activeTab = await editorView.getActiveTab();
+
+            return await activeTab?.getTitle() === "MySQL Shell";
+        }, 3000, "error");
+
+        await Misc.switchToWebView();
+        const dialog = await driver.wait(until.elementLocated(
+            By.css(".visible.confirmDialog")), 7000, "confirm dialog was not found");
+        await dialog.findElement(By.id("accept")).click();
+        await driver.switchTo().defaultContent();
+
+        await driver.wait(async () => {
+            const treeSection = await Misc.getSection(dbTreeSection);
+            await Misc.clickSectionToolbarButton(treeSection, "Reload the connection list");
+
+            return (await treeSection.findItem(dbName)) === undefined;
+        }, explicitWait, `${dbName} was not deleted`);
+    };
+
+    public static getTreeDBConnections = async (): Promise<string[]> => {
+
+        const section = await Misc.getSection(dbTreeSection);
+        const treeItems = await section.findElements(By.xpath(".//div[contains(@role, 'treeitem')]"));
+        const connections = [];
+        for (const item of treeItems) {
+            const name = await item.findElement(By.css("a.label-name > span"));
+            connections.push(await name.getText());
+        }
+
+        return connections;
+    };
+
     private static getTerminalOutput = async (): Promise<string> => {
         let out: string;
         if (platform() === "linux") {
@@ -940,15 +1002,15 @@ export class Misc {
                 } catch (e) {
                     // continue. Clipboard may be in use by other tests
                 }
-            }, explicitWait*2, "Cliboard was in use after 10 secs");
+            }, explicitWait * 2, "Cliboard was in use after 10 secs");
         } else {
             const workbench = new Workbench();
             await workbench.executeCommand("terminal select all");
             await driver.sleep(1000);
-            await driver.wait( async () => {
+            await driver.wait(async () => {
                 try {
                     const terminal = await driver.findElement(By.css("#terminal textarea"));
-                    await terminal.sendKeys(selKey.chord(key.CONTROL, "c"));
+                    await terminal.sendKeys(Key.chord(Key.CONTROL, "c"));
                     out = clipboard.readSync();
                     clipboard.writeSync("");
 
@@ -956,7 +1018,7 @@ export class Misc {
                 } catch (e) {
                     // continue. Clipboard may be in use by other tests
                 }
-            }, explicitWait*2, "Cliboard was in use after 10 secs");
+            }, explicitWait * 2, "Cliboard was in use after 10 secs");
         }
 
         return out;
@@ -1006,8 +1068,8 @@ export class Misc {
         return toReturn;
     };
 
-    private static getCmdResultToolbar = async (zoneHost: WebElement): Promise <WebElement | undefined> => {
-        let context;
+    private static getCmdResultToolbar = async (zoneHost: WebElement): Promise<WebElement | undefined> => {
+        let context: WebElement;
         if (zoneHost) {
             context = zoneHost;
         } else {
@@ -1030,7 +1092,7 @@ export class Misc {
     ): Promise<Array<string | WebElement | boolean | undefined>> => {
 
         const toReturn: Array<string | WebElement | boolean | undefined> = [];
-        let zoneHost;
+        let zoneHost: WebElement;
 
         if (!cmd.includes("disconnect")) {
             if (blockId === "0") {
@@ -1038,9 +1100,20 @@ export class Misc {
                     `zoneHosts not found for '${cmd}'`);
                 zoneHost = zoneHosts[zoneHosts.length - 1];
             } else {
-                zoneHost = await driver.wait(
-                    until.elementLocated(By.xpath(`//div[@class='zoneHost' and @monaco-view-zone='${blockId}']`)),
-                    timeout, `Could not get the result block '${blockId}' for '${cmd}'`);
+                if (blockId.includes(",")) {
+                    const blocks = blockId.split(",");
+                    try {
+                        zoneHost = await driver.findElement(
+                            By.xpath(`//div[@class='zoneHost' and @monaco-view-zone='${blocks[0]}']`));
+                    } catch (e) {
+                        zoneHost = await driver.findElement(
+                            By.xpath(`//div[@class='zoneHost' and @monaco-view-zone='${blocks[1]}']`));
+                    }
+                } else {
+                    zoneHost = await driver.wait(
+                        until.elementLocated(By.xpath(`//div[@class='zoneHost' and @monaco-view-zone='${blockId}']`)),
+                        timeout, `Could not get the result block '${blockId}' for '${cmd}'`);
+                }
             }
 
             await Misc.getCmdResultMsg(zoneHost, timeout)
@@ -1071,7 +1144,7 @@ export class Misc {
         } else {
             await driver.wait(until.elementLocated(
                 By.xpath(`//div[@class='zoneHost' and @monaco-view-zone='d${blockId}']`)),
-            150, "")
+                150, "")
                 .then(async (zoneHost: WebElement) => {
                     await Misc.getCmdResultMsg(zoneHost, timeout)
                         .then((result) => {
@@ -1095,7 +1168,6 @@ export class Misc {
 
     private static loadDriver = async (): Promise<void> => {
 
-        let browser: VSBrowser;
         const timeout: ITimeouts = { implicit: 0 };
 
         let counter = 0;
@@ -1134,25 +1206,11 @@ export class Misc {
 
     };
 
-    private static hasNotifications = async (): Promise<boolean> => {
-        try {
-            const workbench = new Workbench();
-
-            return (await workbench.getNotifications()).length > 0;
-        } catch (e) {
-            if (e instanceof error.StaleElementReferenceError) {
-                return false;
-            } else {
-                throw e;
-            }
-        }
-    };
-
     private static getPromptTextLine = async (prompt: String): Promise<String> => {
         const context = await driver.findElement(By.css(".monaco-editor-background"));
         const lines = await context.findElements(By.css(".view-lines.monaco-mouse-cursor-text .view-line"));
 
-        let tags;
+        let tags: WebElement[];
         switch (prompt) {
             case "last": {
                 tags = await lines[lines.length - 1].findElements(By.css("span > span"));

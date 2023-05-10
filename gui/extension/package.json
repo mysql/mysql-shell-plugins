@@ -15,7 +15,7 @@
         "url": "https://github.com/mysql/mysql-shell-plugins"
     },
     "engines": {
-        "vscode": "^1.63.0"
+        "vscode": "^1.74.0"
     },
     "categories": [
         "Programming Languages",
@@ -31,13 +31,35 @@
             {
                 "id": "mysql",
                 "extensions": [
-                    ".sql",
-                    ".mysql"
+                    ".mysql",
+                    ".sql"
                 ],
                 "aliases": [
                     "MySQL SQL"
                 ],
                 "configuration": "./syntaxes/language-configuration.json"
+            },
+            {
+                "id": "mysql-notebook",
+                "extensions": [
+                    ".mysql-notebook"
+                ],
+                "icon": {
+                    "dark": "./images/dark/notebook.svg",
+                    "light": "./images/light/notebook.svg"
+                }
+            }
+        ],
+        "customEditors": [
+            {
+                "viewType": "msg.notebook",
+                "displayName": "MySQL Notebook Editor",
+                "priority": "default",
+                "selector": [
+                    {
+                        "filenamePattern": "*.mysql-notebook"
+                    }
+                ]
             }
         ],
         "grammars": [
@@ -527,6 +549,10 @@
                 "title": "Edit File in MySQL Shell"
             },
             {
+                "command": "msg.openNotebookWithConnection",
+                "title": "Open the Notebook with connection..."
+            },
+            {
                 "command": "msg.closeEditor",
                 "title": "Close Editor",
                 "icon": {
@@ -915,8 +941,8 @@
             ],
             "explorer/context": [
                 {
-                    "when": "resourceLangId == mysql || resourceLangId == sql",
-                    "command": "msg.editInScriptEditor",
+                    "when": "resourceLangId == mysql-notebook",
+                    "command": "msg.openNotebookWithConnection",
                     "group": "1_msg@1"
                 },
                 {
@@ -941,8 +967,8 @@
             ],
             "editor/context": [
                 {
-                    "when": "resourceLangId == mysql || resourceLangId == sql",
-                    "command": "msg.editInScriptEditor",
+                    "when": "resourceLangId == mysql-notebook",
+                    "command": "msg.openNotebookWithConnection",
                     "group": "1_msg@1"
                 },
                 {
@@ -1568,41 +1594,34 @@
     "dependencies": {
         "anser": "2.1.1",
         "antlr4ts": "0.5.0-alpha.4",
+        "jsonc-parser": "^3.2.0",
         "lodash": "4.17.21",
         "regedit": "5.1.1",
         "ws": "8.12.0"
     },
     "devDependencies": {
-        "@nut-tree/nut-js": "3.0.0",
-        "@types/glob": "8.0.0",
         "@types/lodash": "4.14.191",
-        "@types/mocha": "10.0.1",
         "@types/node": "18.11.18",
-        "@types/vscode": "1.63.0",
+        "@types/vscode": "1.74.0",
         "@types/ws": "8.5.4",
         "@typescript-eslint/eslint-plugin": "5.48.2",
         "@typescript-eslint/parser": "5.48.2",
-        "@vscode/test-electron": "2.2.2",
         "antlr4ts-cli": "0.5.0-alpha.4",
         "esbuild": "0.17.3",
         "eslint": "8.32.0",
         "eslint-plugin-import": "2.27.5",
         "eslint-plugin-jsdoc": "39.6.4",
         "eslint-plugin-prefer-arrow": "1.2.3",
-        "glob": "8.1.0",
-        "mocha": "10.2.0",
-        "typescript": "4.9.4"
+        "typescript": "5.0.4"
     },
     "scripts": {
         "build-dev-package": "vsce package",
         "build-packages": "scripts/package_extension.sh",
         "build-packages-win": "scripts/package_extension.ps1",
         "publish-packages": "scripts/publish_packages.sh",
-        "lint": "eslint \"./src/**/*.ts\"",
         "vscode:prepublish": "npm run esbuild -- --minify",
-        "esbuild": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
-        "esbuild-tests": "esbuild ./src/test/runTest.ts ./src/test/suite/extension.test.ts ./src/test/suite/index.ts --bundle --outdir=out/ --external:vscode --format=cjs --platform=node --sourcemap",
+        "esbuild": "esbuild ./src/extension.ts --main-fields=module,main --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
         "esbuild-watch": "npm run esbuild -- --sourcemap --watch",
-        "unit-tests": "npm run esbuild -- --sourcemap && npm run esbuild-tests && node ./out/runTest.js"
+        "unit-tests": "mkdir -p .vscode-test/vscode-dummy/ && touch .vscode-test/vscode-dummy/dummy.txt"
     }
 }

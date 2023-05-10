@@ -141,7 +141,6 @@ exports[`Param Dialog Tests Show Panel and Escape 1`] = `
       </label>
       <div
         class="msg button imageOnly"
-        draggable="true"
         id="closeButton"
         role="button"
         tabindex="0"
@@ -230,7 +229,6 @@ exports[`Param Dialog Tests Show Panel and Escape 1`] = `
         <div
           caption="OK"
           class="msg button"
-          draggable="true"
           id="ok"
           role="button"
           tabindex="0"
@@ -240,7 +238,6 @@ exports[`Param Dialog Tests Show Panel and Escape 1`] = `
         <div
           caption="Cancel"
           class="msg button"
-          draggable="true"
           id="cancel"
           role="button"
           tabindex="0"
@@ -275,7 +272,6 @@ exports[`Param Dialog Tests Show Panel and Escape 2`] = `
       </label>
       <div
         class="msg button imageOnly"
-        draggable="true"
         id="closeButton"
         role="button"
         tabindex="0"
@@ -364,7 +360,6 @@ exports[`Param Dialog Tests Show Panel and Escape 2`] = `
         <div
           caption="OK"
           class="msg button"
-          draggable="true"
           id="ok"
           role="button"
           tabindex="0"
@@ -374,7 +369,6 @@ exports[`Param Dialog Tests Show Panel and Escape 2`] = `
         <div
           caption="Cancel"
           class="msg button"
-          draggable="true"
           id="cancel"
           role="button"
           tabindex="0"

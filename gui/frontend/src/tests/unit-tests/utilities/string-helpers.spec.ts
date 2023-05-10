@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,7 +22,8 @@
  */
 
 import {
-    convertPropValue, filterInt, formatTime, formatWithNumber, isWhitespaceOnly, quote, unquote,
+    convertCamelToSnakeCase, convertCamelToTitleCase, convertPropValue, convertSnakeToCamelCase,
+    convertTitleToCamelCase, filterInt, formatTime, formatWithNumber, isWhitespaceOnly, quote, stripAnsiCode, unquote,
 } from "../../../utilities/string-helpers";
 import { loremIpsum } from "../test-helpers";
 
@@ -105,12 +106,265 @@ describe("String Helpers Tests", () => {
         expect(filterInt("1ae2")).toBe(NaN);
     });
 
+    it("Convert Cases", () => {
+        let result = convertCamelToSnakeCase({});
+        expect(result).toStrictEqual({});
+
+        result = convertCamelToSnakeCase({}, {});
+        expect(result).toStrictEqual({});
+
+        result = convertCamelToSnakeCase({}, { ignore: [] });
+        expect(result).toStrictEqual({});
+
+        result = convertCamelToSnakeCase({}, { ignore: ["xxx", "yyy"] });
+        expect(result).toStrictEqual({});
+
+        /* eslint-disable @typescript-eslint/naming-convention */
+        const e = Symbol("§");
+        const source = {
+            _: true,
+            T: 123,
+            e,
+            var_1: "var_1",
+            var2: "var2",
+            VarVar1: "VarVar1",
+            var_Var2: "Var_Var2",
+            var_Var_3: "VarVar3",
+            o1: {
+                var_1: "var_1",
+                var2: "var2",
+            },
+            o2: {
+                var_1: "var_1",
+                var2: "var2",
+                o1: {
+                    var_1: "var_1",
+                    var2: "var2",
+                },
+            },
+            a1: [
+                {
+                    var_1: "var_1",
+                    var2: "var2",
+                },
+                {
+                    xxx: ["memberOne", "memberTwo", { memberThree: true, member_four: false }],
+                    xxy: ["memberOne", "memberTwo", { memberThree: true, member_four: false }],
+                    var2: "yyy",
+                    anotherKey: "xyz",
+                },
+                {
+                    o: { o: { o: { o: { o: {} } } } },
+                },
+                [
+                    {
+                        var_1: "var_1",
+                        var2: "var2",
+                        o1: {
+                            var_1: "var_1",
+                            var2: "var2",
+                        },
+                    },
+                    [
+                        [
+                            [
+                                [
+                                    {
+                                        var_1: "var_1",
+                                        var2: "var2",
+                                        VarVar1: "VarVar1",
+                                        var_Var2: "Var_Var2",
+                                        var_Var_3: "VarVar3",
+                                    },
+                                    {
+                                        xxx: ["memberOne", "memberTwo", { memberThree: true, member_four: false }],
+                                        xxy: ["memberOne", "memberTwo", { memberThree: true, member_four: false }],
+                                        var2: "yyy",
+                                    },
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        };
+
+        const snakeCaseTarget = {
+            _: true,
+            T: 123,
+            e,
+            var_1: "var_1",
+            var2: "var2",
+            Var_var1: "VarVar1",
+            var_Var2: "Var_Var2",
+            var_Var_3: "VarVar3",
+            o1: {
+                var_1: "var_1",
+                var2: "var2",
+            },
+            o2: {
+                var_1: "var_1",
+                var2: "var2",
+                o1: {
+                    var_1: "var_1",
+                    var2: "var2",
+                },
+            },
+            a1: [
+                {
+                    var_1: "var_1",
+                    var2: "var2",
+                },
+                {
+                    xxx: ["memberOne", "memberTwo", { memberThree: true, member_four: false }],
+                    xxy: ["memberOne", "memberTwo", { member_three: true, member_four: false }],
+                    var2: "yyy",
+                    another_key: "xyz",
+                },
+                {
+                    o: { o: { o: { o: { o: {} } } } },
+                },
+                [
+                    {
+                        var_1: "var_1",
+                        var2: "var2",
+                        o1: {
+                            var_1: "var_1",
+                            var2: "var2",
+                        },
+                    },
+                    [
+                        [
+                            [
+                                [
+                                    {
+                                        var_1: "var_1",
+                                        var2: "var2",
+                                        Var_var1: "VarVar1",
+                                        var_Var2: "Var_Var2",
+                                        var_Var_3: "VarVar3",
+                                    },
+                                    {
+                                        xxx: ["memberOne", "memberTwo", { memberThree: true, member_four: false }],
+                                        xxy: ["memberOne", "memberTwo", { member_three: true, member_four: false }],
+                                        var2: "yyy",
+                                    },
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        };
+
+        result = convertCamelToSnakeCase(source, { ignore: ["xxx", "yyy"] });
+        expect(result).toStrictEqual(snakeCaseTarget);
+
+        const camelCaseTarget = {
+            _: true,
+            T: 123,
+            e,
+            var1: "var_1",
+            var2: "var2",
+            VarVar1: "VarVar1",
+            varVar2: "Var_Var2",
+            varVar3: "VarVar3",
+            o1: {
+                var1: "var_1",
+                var2: "var2",
+            },
+            o2: {
+                var1: "var_1",
+                var2: "var2",
+                o1: {
+                    var1: "var_1",
+                    var2: "var2",
+                },
+            },
+            a1: [
+                {
+                    var1: "var_1",
+                    var2: "var2",
+                },
+                {
+                    xxx: ["memberOne", "memberTwo", { memberThree: true, member_four: false }],
+                    xxy: ["memberOne", "memberTwo", { memberThree: true, memberFour: false }],
+                    var2: "yyy",
+                    anotherKey: "xyz",
+                },
+                {
+                    o: { o: { o: { o: { o: {} } } } },
+                },
+                [
+                    {
+                        var1: "var_1",
+                        var2: "var2",
+                        o1: {
+                            var1: "var_1",
+                            var2: "var2",
+                        },
+                    },
+                    [
+                        [
+                            [
+                                [
+                                    {
+                                        var1: "var_1",
+                                        var2: "var2",
+                                        VarVar1: "VarVar1",
+                                        varVar2: "Var_Var2",
+                                        varVar3: "VarVar3",
+                                    },
+                                    {
+                                        xxx: ["memberOne", "memberTwo", { memberThree: true, member_four: false }],
+                                        xxy: ["memberOne", "memberTwo", { memberThree: true, memberFour: false }],
+                                        var2: "yyy",
+                                    },
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        };
+
+        result = convertSnakeToCamelCase(source, { ignore: ["xxx", "yyy"] });
+        expect(result).toStrictEqual(camelCaseTarget);
+
+        /* eslint-enable @typescript-eslint/naming-convention */
+
+        expect(convertCamelToTitleCase("")).toBe("");
+        expect(convertCamelToTitleCase("ABC")).toBe("ABC");
+        expect(convertCamelToTitleCase("Abc")).toBe("Abc");
+        expect(convertCamelToTitleCase("abc")).toBe("Abc");
+        expect(convertCamelToTitleCase("😀")).toBe("😀");
+        expect(convertCamelToTitleCase("X😀")).toBe("X😀");
+        expect(convertCamelToTitleCase("x😀")).toBe("X😀");
+        expect(convertCamelToTitleCase("xXxXx")).toBe("XXxXx");
+
+        expect(convertTitleToCamelCase("")).toBe("");
+        expect(convertTitleToCamelCase("ABC")).toBe("aBC");
+        expect(convertTitleToCamelCase("Abc")).toBe("abc");
+        expect(convertTitleToCamelCase("abc")).toBe("abc");
+        expect(convertTitleToCamelCase("😀")).toBe("😀");
+        expect(convertTitleToCamelCase("X😀")).toBe("x😀");
+        expect(convertTitleToCamelCase("x😀")).toBe("x😀");
+        expect(convertTitleToCamelCase("xXxXx")).toBe("xXxXx");
+    });
+
     it("Misc", () => {
-        expect(isWhitespaceOnly("")).toBeFalsy();
-        expect(isWhitespaceOnly("   1   ")).toBeFalsy();
-        expect(isWhitespaceOnly("\t\t\t")).toBeTruthy();
-        expect(isWhitespaceOnly("   ")).toBeTruthy();
-        expect(isWhitespaceOnly("\n\n\n")).toBeTruthy();
-        expect(isWhitespaceOnly(loremIpsum)).toBeFalsy();
+        expect(isWhitespaceOnly("")).toBe(false);
+        expect(isWhitespaceOnly("   1   ")).toBe(false);
+        expect(isWhitespaceOnly("\t\t\t")).toBe(true);
+        expect(isWhitespaceOnly("   ")).toBe(true);
+        expect(isWhitespaceOnly("\n\n\n")).toBe(true);
+        expect(isWhitespaceOnly(loremIpsum)).toBe(false);
+
+        expect(stripAnsiCode("")).toBe("");
+        expect(stripAnsiCode(loremIpsum)).toBe(loremIpsum);
+
+        const tail = "And another text";
+        expect(stripAnsiCode(`\u001b[0;90m${loremIpsum}\u001b[0m${tail}`)).toBe(`${loremIpsum}${tail}`);
+        expect(stripAnsiCode(`\u001b[?109h\u001b🖖NO-CODE\u001b[38;2;10;20;30m`)).toBe("\u001b🖖NO-CODE");
     });
 });

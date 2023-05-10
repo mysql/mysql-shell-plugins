@@ -120,6 +120,10 @@ msg.connectionTabHost #dashboardToolbar .image {
     height: 20px;
 }
 
+.msg.connectionTabHost #dbEditorToolbar #newScriptMenuButton {
+    padding-left: 4px;
+}
+
 .msg.connectionBrowser .toolbar > .label,
 .msg.connectionTabHost .toolbar > .label {
     white-space: nowrap;
@@ -128,7 +132,7 @@ msg.connectionTabHost #dashboardToolbar .image {
 .msg.connectionBrowser #documentSelector,
 .msg.connectionTabHost #documentSelector {
     flex: 0 0 200px;
-    margin: 0 3px 0 6px;
+    margin: 0;
 }
 
 .msg#connectionEditor #loadingProgressIndicator {

@@ -66,8 +66,8 @@ const colorSchemes = new Map<ColorScheme, string[]>([
 interface IPerformanceDashboardProperties extends IComponentProperties {
     backend: ShellInterfaceSqlEditor;
 
-    // Top level toolbar items, to be integrated with page specific ones.
-    toolbarItems?: IToolbarItems;
+    /** Top level toolbar items, to be integrated with page specific ones. */
+    toolbarItems: IToolbarItems;
 
     graphData: ISavedGraphData;
 
@@ -308,8 +308,8 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
         const { toolbarItems, graphData } = this.props;
 
         const toolbar = <Toolbar id="dashboardToolbar" dropShadow={false} >
-            {toolbarItems?.left}
-            <Label caption="Graph Colors:" />
+            {toolbarItems?.navigation}
+            <Label caption="Graph Colors:" style={{ marginLeft: "8px" }} />
             <Dropdown
                 id="graphColorsDropdown"
                 selection={graphData.activeColorScheme}
@@ -334,7 +334,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
                 <DropdownItem caption="10 min" id="200" />
             </Dropdown>
             <div className="expander" />
-            {toolbarItems?.right}
+            {toolbarItems?.auxillary}
         </Toolbar>;
 
 

@@ -73,7 +73,6 @@ exports[`Confirm Dialog Tests Show Dialog with React Element 1`] = `
       </label>
       <div
         class="msg button imageOnly"
-        draggable="true"
         id="closeButton"
         role="button"
         tabindex="0"
@@ -123,7 +122,6 @@ exports[`Confirm Dialog Tests Show Dialog with React Element 1`] = `
         <div
           caption="Yes, you got me"
           class="msg button"
-          draggable="true"
           id="accept"
           role="button"
           tabindex="0"
@@ -133,7 +131,6 @@ exports[`Confirm Dialog Tests Show Dialog with React Element 1`] = `
         <div
           caption="No, I'm not a spy"
           class="msg button"
-          draggable="true"
           id="refuse"
           role="button"
           tabindex="0"
@@ -168,7 +165,6 @@ exports[`Confirm Dialog Tests Show Dialog with simple and no message 1`] = `
       </label>
       <div
         class="msg button imageOnly"
-        draggable="true"
         id="closeButton"
         role="button"
         tabindex="0"
@@ -213,7 +209,6 @@ exports[`Confirm Dialog Tests Show Dialog with simple and no message 1`] = `
         <div
           caption="Yes, you got me"
           class="msg button"
-          draggable="true"
           id="accept"
           role="button"
           tabindex="0"
@@ -223,7 +218,6 @@ exports[`Confirm Dialog Tests Show Dialog with simple and no message 1`] = `
         <div
           caption="No, I'm not a spy"
           class="msg button"
-          draggable="true"
           id="refuse"
           role="button"
           tabindex="0"
@@ -258,7 +252,6 @@ exports[`Confirm Dialog Tests Show Dialog with simple and no message 2`] = `
       </label>
       <div
         class="msg button imageOnly"
-        draggable="true"
         id="closeButton"
         role="button"
         tabindex="0"
@@ -297,7 +290,6 @@ exports[`Confirm Dialog Tests Show Dialog with simple and no message 2`] = `
         <div
           caption="Yes, you got me"
           class="msg button"
-          draggable="true"
           id="accept"
           role="button"
           tabindex="0"
@@ -307,7 +299,6 @@ exports[`Confirm Dialog Tests Show Dialog with simple and no message 2`] = `
         <div
           caption="No, I'm not a spy"
           class="msg button"
-          draggable="true"
           id="refuse"
           role="button"
           tabindex="0"

@@ -40,7 +40,6 @@ exports[`Token editor testing Render test 1`] = `
         <div
           className="msg button round styleEntryDeleteButton"
           data-tooltip="Delete this syntax entry"
-          draggable={true}
           id="tokenEditor1"
           onClick={[Function]}
           onMouseDown={[Function]}
@@ -83,7 +82,6 @@ exports[`Token editor testing Render test 1`] = `
         <div
           className="msg button round styleEntryCloneButton"
           data-tooltip="Clone this syntax entry"
-          draggable={true}
           id="tokenEditor1"
           onClick={[Function]}
           onMouseDown={[Function]}
@@ -308,7 +306,6 @@ exports[`Token editor testing Render test 1`] = `
                           >
                             <div
                               className="msg button"
-                              draggable={true}
                               id="local"
                               onClick={[Function]}
                               onMouseDown={[Function]}

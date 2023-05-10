@@ -162,6 +162,7 @@ export class ThemePreview extends ComponentBase<{}, IThemePreviewState> {
             }],
             activeEntry: "1",
             heatWaveEnabled: false,
+            connectionId: -1,
         };
     }
 
@@ -527,6 +528,8 @@ export class ThemePreview extends ComponentBase<{}, IThemePreviewState> {
                         dbType={DBType.MySQL}
                         readOnly={true}
                         showAbout={true}
+                        standaloneMode={false}
+                        toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
                     />
                 </Container>
 

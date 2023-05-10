@@ -251,7 +251,6 @@ exports[`Theme editor core testing Render test 1`] = `
                             <div
                               className="msg button"
                               data-tooltip="Import Visual Studio Code theme file"
-                              draggable={true}
                               id="button1"
                               onClick={[Function]}
                               onMouseDown={[Function]}
@@ -312,7 +311,6 @@ exports[`Theme editor core testing Render test 1`] = `
                             <div
                               className="msg button"
                               data-tooltip="Export current theme as Visual Studio Code theme file"
-                              draggable={true}
                               id="button2"
                               onClick={[Function]}
                               onMouseDown={[Function]}
@@ -457,7 +455,6 @@ exports[`Theme editor core testing Render test 1`] = `
                             <div
                               className="msg button"
                               data-tooltip="Duplicate current theme"
-                              draggable={true}
                               id="button3"
                               onClick={[Function]}
                               onMouseDown={[Function]}
@@ -519,7 +516,6 @@ exports[`Theme editor core testing Render test 1`] = `
                             <div
                               className="msg button"
                               data-tooltip="Delete current theme"
-                              draggable={true}
                               id="button4"
                               onClick={[Function]}
                               onMouseDown={[Function]}

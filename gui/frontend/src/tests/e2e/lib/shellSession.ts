@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { By, until, WebElement } from "selenium-webdriver";
+import { By, until, WebElement, error } from "selenium-webdriver";
 import { driver, explicitWait } from "./misc";
 
 export class ShellSession {
@@ -147,17 +147,27 @@ export class ShellSession {
      * @param value value to search for
      * @returns A promise resolving with true if exists, false otherwise
      */
-    public static isValueOnDataSet = async (value: string): Promise<boolean> => {
-        const zoneHosts = await driver.findElements(By.css(".zoneHost"));
-        const cells = await zoneHosts[zoneHosts.length - 1].findElements(By.css(".zoneHost .tabulator-cell"));
-        for (const cell of cells) {
-            const text = await cell.getText();
-            if (text === value) {
-                return true;
+    public static isValueOnDataSet = async (value: string): Promise<boolean | undefined> => {
+        const checkValue = async (): Promise<boolean | undefined> => {
+            const zoneHosts = await driver.findElements(By.css(".zoneHost"));
+            const cells = await zoneHosts[zoneHosts.length - 1].findElements(By.css(".zoneHost .tabulator-cell"));
+            for (const cell of cells) {
+                const text = await cell.getText();
+                if (text === value) {
+                    return true;
+                }
             }
-        }
+        };
 
-        return false;
+        return driver.wait(async () => {
+            try {
+                return await checkValue();
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+        }, explicitWait, "");
     };
 
     /**

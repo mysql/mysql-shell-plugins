@@ -455,21 +455,10 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
 
         this.editor = Monaco.create(this.hostRef.current, options);
 
-        if (savedState?.viewState) {
-            this.editor.restoreViewState(savedState.viewState);
-        }
-
-        this.editor.layout();
-        if (autoFocus) {
-            this.editor.focus();
-        }
-
-        this.resizeObserver?.observe(this.hostRef.current as Element);
-
         if (model) {
             if (savedState && savedState.contextStates && savedState.contextStates.length > 0
                 && createResultPresentation) {
-                model.executionContexts.restoreFromState(this, createResultPresentation, savedState.contextStates);
+                model.executionContexts.restoreFromStates(this, createResultPresentation, savedState.contextStates);
             } else {
                 if (model.getLanguageId() === "msg" && model.getLineCount() > 1) {
                     this.generateExecutionBlocksFromContent();
@@ -479,11 +468,14 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             }
         }
 
-        this.prepareUse();
-        if (savedState?.viewState) {
-            const position = savedState.viewState.viewState.firstPosition.lineNumber ?? 0;
-            this.editor.revealLineNearTop(position, Monaco.ScrollType.Immediate);
+        this.editor.layout();
+        if (autoFocus) {
+            this.editor.focus();
         }
+
+        this.resizeObserver?.observe(this.hostRef.current as Element);
+
+        this.prepareUse();
 
         if (languages.typescript) {
             extraLibs?.forEach((entry) => {
@@ -496,6 +488,10 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         setTimeout(() => {
             this.resizeViewZones();
         }, 0);
+
+        if (savedState?.viewState) {
+            this.editor.restoreViewState(savedState.viewState);
+        }
 
         /*this.backend?.getSupportedActions().forEach((value: Monaco.IEditorAction) => {
             console.log(value);
@@ -566,7 +562,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
 
                 if (savedState && savedState.contextStates && savedState.contextStates.length > 0
                     && createResultPresentation) {
-                    model.executionContexts.restoreFromState(this, createResultPresentation, savedState.contextStates);
+                    model.executionContexts.restoreFromStates(this, createResultPresentation, savedState.contextStates);
                 } else {
                     if (!savedState) {
                         model.setValue(initialContent ?? "");
@@ -1318,6 +1314,9 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
      * @param e The event with the change information.
      */
     private handleModelChange = (e: Monaco.IModelContentChangedEvent): void => {
+        // Let our host (if any) know that the model has changed.
+        requisitions.executeRemote("editorChanged", undefined);
+
         const model = this.model;
         if (model) {
             const contexts = model.executionContexts;
@@ -1378,6 +1377,9 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             if (index > -1) {
                 const block = model.executionContexts.contextAt(index);
                 if (block) {
+                    // Let our host (if any) know that the results will change.
+                    requisitions.executeRemote("editorChanged", undefined);
+
                     if (this.handleInternalCommand(index) === "unhandled") {
                         const { onScriptExecution } = this.mergedProps;
 
@@ -1492,7 +1494,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                     // Remove the result from the first block if there's more than one block in the update list.
                     // In this case the first result is in the selection range that has been removed.
                     if (contextsToUpdate.length > 0) {
-                        firsContext?.clearResult();
+                        firsContext?.removeResult();
                     }
 
                     // Remove all but the first block.

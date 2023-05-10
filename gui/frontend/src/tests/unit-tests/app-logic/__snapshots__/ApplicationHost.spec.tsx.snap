@@ -504,7 +504,6 @@ exports[`Application host tests Rendering About 1`] = `
                       <div
                         class="msg button round"
                         data-tooltip="Close Greeting"
-                        draggable="true"
                         id="closeButton"
                         role="button"
                         tabindex="0"
@@ -533,7 +532,6 @@ exports[`Application host tests Rendering About 1`] = `
                         >
                           <div
                             class="msg button browserTile secondary sessionTile"
-                            draggable="true"
                             id="-1"
                             role="button"
                             tabindex="0"
@@ -687,7 +685,6 @@ exports[`Application host tests Rendering About 1`] = `
                         <div
                           class="msg button round"
                           data-tooltip="Close Greeting"
-                          draggable="true"
                           id="closeButton"
                           role="button"
                           tabindex="0"
@@ -716,7 +713,6 @@ exports[`Application host tests Rendering About 1`] = `
                           >
                             <div
                               class="msg button browserTile secondary sessionTile"
-                              draggable="true"
                               id="-1"
                               role="button"
                               tabindex="0"
@@ -1033,7 +1029,6 @@ exports[`Application host tests Rendering About 1`] = `
                               <div
                                 class="msg button round"
                                 data-tooltip="Close Greeting"
-                                draggable="true"
                                 id="closeButton"
                                 role="button"
                                 tabindex="0"
@@ -1062,7 +1057,6 @@ exports[`Application host tests Rendering About 1`] = `
                                 >
                                   <div
                                     class="msg button browserTile secondary sessionTile"
-                                    draggable="true"
                                     id="-1"
                                     role="button"
                                     tabindex="0"
@@ -1257,7 +1251,6 @@ exports[`Application host tests Rendering About 1`] = `
                                     <div
                                       className="msg button round"
                                       data-tooltip="Close Greeting"
-                                      draggable={true}
                                       id="closeButton"
                                       onClick={[Function]}
                                       onMouseDown={[Function]}
@@ -1350,7 +1343,6 @@ exports[`Application host tests Rendering About 1`] = `
                                               {
                                                 "current": <div
                                                   class="msg button browserTile secondary sessionTile"
-                                                  draggable="true"
                                                   id="-1"
                                                   role="button"
                                                   tabindex="0"
@@ -1391,7 +1383,6 @@ exports[`Application host tests Rendering About 1`] = `
                                                 {
                                                   "current": <div
                                                     class="msg button browserTile secondary sessionTile"
-                                                    draggable="true"
                                                     id="-1"
                                                     role="button"
                                                     tabindex="0"
@@ -1430,7 +1421,6 @@ exports[`Application host tests Rendering About 1`] = `
                                             >
                                               <div
                                                 className="msg button browserTile secondary sessionTile"
-                                                draggable={true}
                                                 id="-1"
                                                 onClick={[Function]}
                                                 onDragEnter={[Function]}
@@ -2805,7 +2795,6 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                       <div
                         class="msg button round"
                         data-tooltip="Close Greeting"
-                        draggable="true"
                         id="closeButton"
                         role="button"
                         tabindex="0"
@@ -2834,7 +2823,6 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                         >
                           <div
                             class="msg button browserTile secondary sessionTile"
-                            draggable="true"
                             id="-1"
                             role="button"
                             tabindex="0"
@@ -2988,7 +2976,6 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                         <div
                           class="msg button round"
                           data-tooltip="Close Greeting"
-                          draggable="true"
                           id="closeButton"
                           role="button"
                           tabindex="0"
@@ -3017,7 +3004,6 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                           >
                             <div
                               class="msg button browserTile secondary sessionTile"
-                              draggable="true"
                               id="-1"
                               role="button"
                               tabindex="0"
@@ -3334,7 +3320,6 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                               <div
                                 class="msg button round"
                                 data-tooltip="Close Greeting"
-                                draggable="true"
                                 id="closeButton"
                                 role="button"
                                 tabindex="0"
@@ -3363,7 +3348,6 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                 >
                                   <div
                                     class="msg button browserTile secondary sessionTile"
-                                    draggable="true"
                                     id="-1"
                                     role="button"
                                     tabindex="0"
@@ -3558,7 +3542,6 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                     <div
                                       className="msg button round"
                                       data-tooltip="Close Greeting"
-                                      draggable={true}
                                       id="closeButton"
                                       onClick={[Function]}
                                       onMouseDown={[Function]}
@@ -3651,7 +3634,6 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                               {
                                                 "current": <div
                                                   class="msg button browserTile secondary sessionTile"
-                                                  draggable="true"
                                                   id="-1"
                                                   role="button"
                                                   tabindex="0"
@@ -3692,7 +3674,6 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                 {
                                                   "current": <div
                                                     class="msg button browserTile secondary sessionTile"
-                                                    draggable="true"
                                                     id="-1"
                                                     role="button"
                                                     tabindex="0"
@@ -3731,7 +3712,6 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                             >
                                               <div
                                                 className="msg button browserTile secondary sessionTile"
-                                                draggable={true}
                                                 id="-1"
                                                 onClick={[Function]}
                                                 onDragEnter={[Function]}
@@ -5106,7 +5086,6 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                       <div
                         class="msg button round"
                         data-tooltip="Close Greeting"
-                        draggable="true"
                         id="closeButton"
                         role="button"
                         tabindex="0"
@@ -5135,7 +5114,6 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                         >
                           <div
                             class="msg button browserTile secondary sessionTile"
-                            draggable="true"
                             id="-1"
                             role="button"
                             tabindex="0"
@@ -5289,7 +5267,6 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                         <div
                           class="msg button round"
                           data-tooltip="Close Greeting"
-                          draggable="true"
                           id="closeButton"
                           role="button"
                           tabindex="0"
@@ -5318,7 +5295,6 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                           >
                             <div
                               class="msg button browserTile secondary sessionTile"
-                              draggable="true"
                               id="-1"
                               role="button"
                               tabindex="0"
@@ -5635,7 +5611,6 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                               <div
                                 class="msg button round"
                                 data-tooltip="Close Greeting"
-                                draggable="true"
                                 id="closeButton"
                                 role="button"
                                 tabindex="0"
@@ -5664,7 +5639,6 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                 >
                                   <div
                                     class="msg button browserTile secondary sessionTile"
-                                    draggable="true"
                                     id="-1"
                                     role="button"
                                     tabindex="0"
@@ -5859,7 +5833,6 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                     <div
                                       className="msg button round"
                                       data-tooltip="Close Greeting"
-                                      draggable={true}
                                       id="closeButton"
                                       onClick={[Function]}
                                       onMouseDown={[Function]}
@@ -5952,7 +5925,6 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                               {
                                                 "current": <div
                                                   class="msg button browserTile secondary sessionTile"
-                                                  draggable="true"
                                                   id="-1"
                                                   role="button"
                                                   tabindex="0"
@@ -5993,7 +5965,6 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                 {
                                                   "current": <div
                                                     class="msg button browserTile secondary sessionTile"
-                                                    draggable="true"
                                                     id="-1"
                                                     role="button"
                                                     tabindex="0"
@@ -6032,7 +6003,6 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                             >
                                               <div
                                                 className="msg button browserTile secondary sessionTile"
-                                                draggable={true}
                                                 id="-1"
                                                 onClick={[Function]}
                                                 onDragEnter={[Function]}

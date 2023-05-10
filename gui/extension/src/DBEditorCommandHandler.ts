@@ -24,7 +24,7 @@
 import fs from "fs";
 import { basename } from "path";
 
-import { window, commands, ExtensionContext, TextEditor, workspace, Uri } from "vscode";
+import { window, commands, TextEditor, workspace, Uri } from "vscode";
 
 import {
     IRequestListEntry, IRequestTypeMap, IWebviewProvider, requisitions,
@@ -84,8 +84,8 @@ export class DBEditorCommandHandler {
 
     public constructor(private connectionsProvider: ConnectionsTreeDataProvider) { }
 
-    public setup(context: ExtensionContext, host: ExtensionHost): void {
-        this.codeBlocks.setup(context);
+    public setup(host: ExtensionHost): void {
+        this.codeBlocks.setup(host.context);
         const dbConnectionsTreeView = window.createTreeView(
             "msg.connections",
             {
@@ -93,7 +93,7 @@ export class DBEditorCommandHandler {
                 showCollapseAll: true,
                 canSelectMany: true,
             });
-        context.subscriptions.push(dbConnectionsTreeView);
+        host.context.subscriptions.push(dbConnectionsTreeView);
 
         // Register expand/collapse handlers
         dbConnectionsTreeView.onDidExpandElement((e) => {
@@ -112,7 +112,7 @@ export class DBEditorCommandHandler {
                 showCollapseAll: true,
                 canSelectMany: false,
             });
-        context.subscriptions.push(openEditorsTreeView);
+        host.context.subscriptions.push(openEditorsTreeView);
         this.openEditorsTreeDataProvider.onSelect = (item: IOpenEditorBaseEntry): void => {
             void openEditorsTreeView.reveal(item, { select: true, focus: false, expand: 3 });
         };
@@ -142,26 +142,26 @@ export class DBEditorCommandHandler {
 
         requisitions.register("proxyRequest", this.proxyRequest);
 
-        context.subscriptions.push(commands.registerCommand("msg.refreshConnections", () => {
+        host.context.subscriptions.push(commands.registerCommand("msg.refreshConnections", () => {
             void requisitions.execute("refreshConnections", undefined);
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.refreshVisibleRouters", () => {
+        host.context.subscriptions.push(commands.registerCommand("msg.refreshVisibleRouters", () => {
             this.connectionsProvider.refreshMrsRouters();
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.openConnection", (item: ConnectionTreeItem) => {
+        host.context.subscriptions.push(commands.registerCommand("msg.openConnection", (item: ConnectionTreeItem) => {
             const provider = this.currentProvider;
             void provider?.show(String(item.entry.details.id));
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.openConnectionNewTab",
+        host.context.subscriptions.push(commands.registerCommand("msg.openConnectionNewTab",
             (params: ConnectionTreeItem) => {
                 const provider = this.newProvider;
                 void provider?.show(String(params.entry.details.id));
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.showTableData", (item: SchemaTableTreeItem) => {
+        host.context.subscriptions.push(commands.registerCommand("msg.showTableData", (item: SchemaTableTreeItem) => {
             const provider = this.currentProvider;
 
             const configuration = workspace.getConfiguration(`msg.dbEditor`);
@@ -179,7 +179,7 @@ export class DBEditorCommandHandler {
             });
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.selectTableRows", (item: SchemaTableTreeItem) => {
+        host.context.subscriptions.push(commands.registerCommand("msg.selectTableRows", (item: SchemaTableTreeItem) => {
             const provider = this.currentProvider;
 
             const configuration = workspace.getConfiguration(`msg.dbEditor`);
@@ -196,7 +196,7 @@ export class DBEditorCommandHandler {
             });
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.showNotebook",
+        host.context.subscriptions.push(commands.registerCommand("msg.showNotebook",
             (provider: IWebviewProvider | undefined, caption: string, connectionId: number, itemId: string) => {
                 provider ??= this.currentProvider;
                 if (provider instanceof DBConnectionViewProvider) {
@@ -205,7 +205,7 @@ export class DBEditorCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.showScript",
+        host.context.subscriptions.push(commands.registerCommand("msg.showScript",
             (provider: IWebviewProvider | undefined, caption: string, connectionId: number, itemId: string) => {
                 provider ??= this.currentProvider;
                 if (provider instanceof DBConnectionViewProvider) {
@@ -214,7 +214,7 @@ export class DBEditorCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.showServerStatus",
+        host.context.subscriptions.push(commands.registerCommand("msg.showServerStatus",
             (provider: IWebviewProvider | undefined, caption: string, connectionId: number, itemId: string) => {
                 provider ??= this.currentProvider;
                 if (provider instanceof DBConnectionViewProvider) {
@@ -223,7 +223,7 @@ export class DBEditorCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.showClientConnections",
+        host.context.subscriptions.push(commands.registerCommand("msg.showClientConnections",
             (provider: IWebviewProvider | undefined, caption: string, connectionId: number, itemId: string) => {
                 provider ??= this.currentProvider;
                 if (provider instanceof DBConnectionViewProvider) {
@@ -232,7 +232,7 @@ export class DBEditorCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.showPerformanceDashboard",
+        host.context.subscriptions.push(commands.registerCommand("msg.showPerformanceDashboard",
             (provider: IWebviewProvider | undefined, caption: string, connectionId: number, itemId: string) => {
                 provider ??= this.currentProvider;
                 if (provider instanceof DBConnectionViewProvider) {
@@ -241,51 +241,52 @@ export class DBEditorCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.insertScript", (item: ScriptTreeItem) => {
+        host.context.subscriptions.push(commands.registerCommand("msg.insertScript", (item: ScriptTreeItem) => {
             const provider = this.currentProvider;
             void provider?.insertScriptData(item.entry as IDBEditorScriptState);
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.addConnection", () => {
+        host.context.subscriptions.push(commands.registerCommand("msg.addConnection", () => {
             const provider = this.currentProvider;
             void provider?.addConnection();
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.refreshConnection", (item?: ConnectionTreeItem) => {
-            void requisitions.execute("refreshConnections", { item });
-        }));
+        host.context.subscriptions.push(commands.registerCommand("msg.refreshConnection",
+            (item?: ConnectionTreeItem) => {
+                void requisitions.execute("refreshConnections", { item });
+            }));
 
-        context.subscriptions.push(commands.registerCommand("msg.removeConnection", (item: ConnectionTreeItem) => {
+        host.context.subscriptions.push(commands.registerCommand("msg.removeConnection", (item: ConnectionTreeItem) => {
             const provider = this.currentProvider;
             void provider?.removeConnection(item.entry.details.id);
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.editConnection", (item: ConnectionTreeItem) => {
+        host.context.subscriptions.push(commands.registerCommand("msg.editConnection", (item: ConnectionTreeItem) => {
             const provider = this.currentProvider;
             void provider?.editConnection(item.entry.details.id);
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.duplicateConnection",
+        host.context.subscriptions.push(commands.registerCommand("msg.duplicateConnection",
             (item: ConnectionTreeItem) => {
                 const provider = this.currentProvider;
                 void provider?.duplicateConnection(item.entry.details.id);
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.showSystemSchemasOnConnection",
+        host.context.subscriptions.push(commands.registerCommand("msg.showSystemSchemasOnConnection",
             (item: ConnectionTreeItem) => {
                 item.entry.details.hideSystemSchemas = false;
 
                 void requisitions.execute("refreshConnections", { item });
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.hideSystemSchemasOnConnection",
+        host.context.subscriptions.push(commands.registerCommand("msg.hideSystemSchemasOnConnection",
             (item: ConnectionTreeItem) => {
                 item.entry.details.hideSystemSchemas = true;
 
                 void requisitions.execute("refreshConnections", { item });
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.openDBBrowser", (provider?: IWebviewProvider) => {
+        host.context.subscriptions.push(commands.registerCommand("msg.openDBBrowser", (provider?: IWebviewProvider) => {
             provider ??= this.currentProvider;
             if (provider instanceof DBConnectionViewProvider) {
                 void provider.show("connections");
@@ -297,49 +298,51 @@ export class DBEditorCommandHandler {
             }
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.dropSchema", (item?: SchemaMySQLTreeItem) => {
+        host.context.subscriptions.push(commands.registerCommand("msg.dropSchema", (item?: SchemaMySQLTreeItem) => {
             item?.dropItem();
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.dropTable", (item?: SchemaTableTreeItem) => {
+        host.context.subscriptions.push(commands.registerCommand("msg.dropTable", (item?: SchemaTableTreeItem) => {
             item?.dropItem();
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.dropView", (item?: SchemaViewTreeItem) => {
+        host.context.subscriptions.push(commands.registerCommand("msg.dropView", (item?: SchemaViewTreeItem) => {
             item?.dropItem();
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.dropRoutine", (item?: SchemaRoutineTreeItem) => {
+        host.context.subscriptions.push(commands.registerCommand("msg.dropRoutine", (item?: SchemaRoutineTreeItem) => {
             item?.dropItem();
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.dropTrigger", (item?: SchemaTableTriggerTreeItem) => {
+        host.context.subscriptions.push(commands.registerCommand("msg.dropTrigger",
+            (item?: SchemaTableTriggerTreeItem) => {
+                item?.dropItem();
+            }));
+
+        host.context.subscriptions.push(commands.registerCommand("msg.dropEvent", (item?: SchemaEventTreeItem) => {
             item?.dropItem();
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.dropEvent", (item?: SchemaEventTreeItem) => {
-            item?.dropItem();
-        }));
+        host.context.subscriptions.push(commands.registerCommand("msg.defaultConnection",
+            (item: ConnectionTreeItem) => {
+                const configuration = workspace.getConfiguration(`msg.editor`);
+                void configuration.update("defaultDbConnection", item.entry.details.caption).then(() => {
+                    void window.showInformationMessage(
+                        `"${item.label as string}" has been set as default DB Connection.`);
+                });
+            }));
 
-        context.subscriptions.push(commands.registerCommand("msg.defaultConnection", (item: ConnectionTreeItem) => {
-            const configuration = workspace.getConfiguration(`msg.editor`);
-            void configuration.update("defaultDbConnection", item.label as string).then(() => {
-                void window.showInformationMessage(`"${item.label as string}" ` +
-                    `has been set as default DB Connection for embedded SQL execution.`);
-            });
-        }));
-
-        context.subscriptions.push(commands.registerCommand("msg.copyNameToClipboard",
+        host.context.subscriptions.push(commands.registerCommand("msg.copyNameToClipboard",
             (item: ConnectionsTreeBaseItem) => {
                 item.copyNameToClipboard();
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.copyCreateScriptToClipboard",
+        host.context.subscriptions.push(commands.registerCommand("msg.copyCreateScriptToClipboard",
             (item: ConnectionsTreeBaseItem) => {
                 item.copyCreateScriptToClipboard();
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.editInScriptEditor", async (uri?: Uri) => {
+        host.context.subscriptions.push(commands.registerCommand("msg.editInScriptEditor", async (uri?: Uri) => {
             if (uri?.scheme === "file") {
                 if (!fs.existsSync(uri.fsPath)) {
                     void window.showErrorMessage(`The file ${uri.fsPath} could not be found.`);
@@ -381,7 +384,7 @@ export class DBEditorCommandHandler {
             }
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.loadScriptFromDisk",
+        host.context.subscriptions.push(commands.registerCommand("msg.loadScriptFromDisk",
             (item?: ConnectionMySQLTreeItem) => {
                 if (item) {
                     void window.showOpenDialog({
@@ -456,7 +459,7 @@ export class DBEditorCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mds.createConnectionViaBastionService",
+        host.context.subscriptions.push(commands.registerCommand("msg.mds.createConnectionViaBastionService",
             (item?: OciDbSystemTreeItem) => {
                 if (item) {
                     const provider = this.currentProvider;
@@ -464,7 +467,7 @@ export class DBEditorCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerTextEditorCommand("msg.executeEmbeddedSqlFromEditor",
+        host.context.subscriptions.push(commands.registerTextEditorCommand("msg.executeEmbeddedSqlFromEditor",
             (editor: TextEditor) => {
                 void host.determineConnection().then((connection) => {
                     if (connection) {
@@ -473,89 +476,95 @@ export class DBEditorCommandHandler {
                 });
             }));
 
-        context.subscriptions.push(commands.registerTextEditorCommand("msg.executeSelectedSqlFromEditor", (editor) => {
-            void host.determineConnection().then((connection) => {
-                if (connection) {
-                    const provider = this.currentProvider;
-                    if (provider) {
-                        let sql = "";
-                        if (!editor.selection.isEmpty) {
-                            editor.selections.forEach((selection) => {
-                                sql += editor.document.getText(selection);
+        host.context.subscriptions.push(commands.registerTextEditorCommand("msg.executeSelectedSqlFromEditor",
+            (editor) => {
+                void host.determineConnection().then((connection) => {
+                    if (connection) {
+                        const provider = this.currentProvider;
+                        if (provider) {
+                            let sql = "";
+                            if (!editor.selection.isEmpty) {
+                                editor.selections.forEach((selection) => {
+                                    sql += editor.document.getText(selection);
+                                });
+                            } else {
+                                sql = editor.document.getText();
+                            }
+
+                            return provider.runScript(String(connection.details.id), {
+                                scriptId: uuid(),
+                                content: sql,
+                                language: this.languageFromConnection(connection),
                             });
-                        } else {
-                            sql = editor.document.getText();
                         }
-
-                        return provider.runScript(String(connection.details.id), {
-                            scriptId: uuid(),
-                            content: sql,
-                            language: this.languageFromConnection(connection),
-                        });
                     }
-                }
-            });
-        }));
+                });
+            }));
 
-        context.subscriptions.push(commands.registerCommand("msg.closeEditor", (entry: IOpenEditorEntry) => {
+        host.context.subscriptions.push(commands.registerCommand("msg.closeEditor", (entry: IOpenEditorEntry) => {
             const provider = entry.parent.parent.provider;
             if (provider instanceof DBConnectionViewProvider) {
                 void provider.closeEditor(entry.parent.connectionId, entry.id);
             }
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.newNotebookMysql", (entry: IEditorConnectionEntry) => {
-            void this.editorCreateNewScript({ page: String(entry.connectionId), language: "msg" });
-        }));
-
-        context.subscriptions.push(commands.registerCommand("msg.newNotebookSqlite",
+        host.context.subscriptions.push(commands.registerCommand("msg.newNotebookMysql",
             (entry: IEditorConnectionEntry) => {
                 void this.editorCreateNewScript({ page: String(entry.connectionId), language: "msg" });
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.newScriptJs", (entry: IEditorConnectionEntry) => {
+        host.context.subscriptions.push(commands.registerCommand("msg.newNotebookSqlite",
+            (entry: IEditorConnectionEntry) => {
+                void this.editorCreateNewScript({ page: String(entry.connectionId), language: "msg" });
+            }));
+
+        host.context.subscriptions.push(commands.registerCommand("msg.newScriptJs", (entry: IEditorConnectionEntry) => {
             void this.editorCreateNewScript({ page: String(entry.connectionId), language: "javascript" });
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.newScriptMysql", (entry: IEditorConnectionEntry) => {
-            void this.editorCreateNewScript({ page: String(entry.connectionId), language: "mysql" });
-        }));
+        host.context.subscriptions.push(commands.registerCommand("msg.newScriptMysql",
+            (entry: IEditorConnectionEntry) => {
+                void this.editorCreateNewScript({ page: String(entry.connectionId), language: "mysql" });
+            }));
 
-        context.subscriptions.push(commands.registerCommand("msg.newScriptSqlite", (entry: IEditorConnectionEntry) => {
-            void this.editorCreateNewScript({ page: String(entry.connectionId), language: "sql" });
-        }));
+        host.context.subscriptions.push(commands.registerCommand("msg.newScriptSqlite",
+            (entry: IEditorConnectionEntry) => {
+                void this.editorCreateNewScript({ page: String(entry.connectionId), language: "sql" });
+            }));
 
-        context.subscriptions.push(commands.registerCommand("msg.newScriptTs", (entry: IEditorConnectionEntry) => {
+        host.context.subscriptions.push(commands.registerCommand("msg.newScriptTs", (entry: IEditorConnectionEntry) => {
             void this.editorCreateNewScript({ page: String(entry.connectionId), language: "typescript" });
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.addDbObject", (item?: ConnectionsTreeBaseItem) => {
-            if (item?.entry.backend) {
-                const objectType = item.dbType.toUpperCase();
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.addDbObject",
+            (item?: ConnectionsTreeBaseItem) => {
+                if (item?.entry.backend) {
+                    const objectType = item.dbType.toUpperCase();
 
-                if (objectType === "TABLE" || objectType === "VIEW" || objectType === "PROCEDURE") {
-                    // First, create a new temporary dbObject, then call the DbObject dialog
-                    this.createNewDbObject(item.entry.backend, item, objectType).then((dbObject) => {
-                        const provider = this.currentProvider;
-                        void provider?.editMrsDbObject(String(item.entry.details.id),
-                            { dbObject, createObject: true, schemaName: item.schema });
-                    }).catch((reason) => {
-                        void window.showErrorMessage(`${String(reason)}`);
-                    });
-                } else {
-                    void window.showErrorMessage(
-                        `The database object type '${objectType}' is not supported at this time`);
+                    if (objectType === "TABLE" || objectType === "VIEW" || objectType === "PROCEDURE") {
+                        // First, create a new temporary dbObject, then call the DbObject dialog
+                        this.createNewDbObject(item.entry.backend, item, objectType).then((dbObject) => {
+                            const provider = this.currentProvider;
+                            void provider?.editMrsDbObject(String(item.entry.details.id),
+                                { dbObject, createObject: true, schemaName: item.schema });
+                        }).catch((reason) => {
+                            void window.showErrorMessage(`${String(reason)}`);
+                        });
+                    } else {
+                        void window.showErrorMessage(
+                            `The database object type '${objectType}' is not supported at this time`);
+                    }
                 }
-            }
-        }));
+            }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.editDbObject", (item?: MrsDbObjectTreeItem) => {
-            if (item) {
-                const provider = this.currentProvider;
-                void provider?.editMrsDbObject(String(item.entry.details.id),
-                    { dbObject: item.value, createObject: false });
-            }
-        }));
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.editDbObject",
+            (item?: MrsDbObjectTreeItem) => {
+                if (item) {
+                    const provider = this.currentProvider;
+                    void provider?.editMrsDbObject(String(item.entry.details.id),
+                        { dbObject: item.value, createObject: false });
+                }
+            }));
     }
 
     /**

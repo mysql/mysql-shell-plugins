@@ -115,6 +115,7 @@ describe("DBConnectionTab tests", (): void => {
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
             />,
         );
 
