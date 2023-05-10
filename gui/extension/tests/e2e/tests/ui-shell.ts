@@ -37,7 +37,6 @@ import {
     Misc,
     isExtPrepared,
     openEditorsTreeSection,
-    openEditorsMaxLevel,
     dbConnectionsLabel,
 } from "../lib/misc";
 
@@ -96,15 +95,10 @@ describe("MYSQL SHELL CONSOLES", () => {
             }
 
             await Misc.sectionFocus(openEditorsTreeSection);
-
             treeOpenEditorsSection = await Misc.getSection(openEditorsTreeSection);
-
-            treeDBConnections = await treeOpenEditorsSection.findItem(dbConnectionsLabel, openEditorsMaxLevel);
-
+            treeDBConnections = await Misc.getTreeElement(treeOpenEditorsSection, dbConnectionsLabel);
             await Misc.selectContextMenuItem(treeDBConnections, "Open New MySQL Shell Console");
-
             await Misc.clickSectionToolbarButton(treeOpenEditorsSection, "New Shell Notebook");
-
             await Misc.switchToWebView();
             await driver.wait(Shell.isShellLoaded(), explicitWait * 3, "Shell Console was not loaded");
         } catch (e) {
@@ -145,13 +139,12 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Open multiple sessions", async () => {
 
             for (let i = 1; i <= 5; i++) {
-                treeDBConnections = await treeOpenEditorsSection.findItem(dbConnectionsLabel, openEditorsMaxLevel);
+                treeDBConnections = await Misc.getTreeElement(treeOpenEditorsSection, dbConnectionsLabel);
                 await Misc.selectContextMenuItem(treeDBConnections, "Open New MySQL Shell Console");
                 await Misc.switchToWebView();
                 await driver.wait(Shell.isShellLoaded(), explicitWait * 3, "Shell Console was not loaded");
                 await driver.switchTo().defaultContent();
-                await driver.wait(treeOpenEditorsSection.findItem(`Session ${i}`, openEditorsMaxLevel),
-                    explicitWait, `Session ${i} does not exist on the tree`);
+                await Misc.getTreeElement(treeOpenEditorsSection, `Session ${i}`);
             }
 
         });
@@ -168,7 +161,7 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         before(async function () {
             try {
-                treeDBConnections = await treeOpenEditorsSection.findItem(dbConnectionsLabel, openEditorsMaxLevel);
+                treeDBConnections = await Misc.getTreeElement(treeOpenEditorsSection, dbConnectionsLabel);
                 await Misc.selectContextMenuItem(treeDBConnections, "Open New MySQL Shell Console");
                 await Misc.switchToWebView();
             } catch (e) {
@@ -201,13 +194,9 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Connect to host", async () => {
 
             let connUri = `\\c ${username}:${password}@${hostname}:${port}/${schema}`;
-
             const result = await Misc.execCmd(connUri);
-
             connUri = `Creating a session to '${username}@${hostname}:${port}/${schema}'`;
-
             expect(result[0]).to.include(connUri);
-
             await driver.wait(async () => {
                 return (await Misc.getCmdResultMsg())?.match(/Server version: (\d+).(\d+).(\d+)/);
             }, explicitWait, `'/Server version: (\\d+).(\\d+).(\\d+)/' was not matched`);
@@ -228,20 +217,11 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Connect to host without password", async () => {
 
             let uri = `\\c ${shellUsername}@${hostname}:${port}/${schema}`;
-
             const nextResultBlock = await Misc.getNextResultBlockId();
             const textArea = driver.findElement(By.css("textarea"));
             await textArea.sendKeys(uri);
             await Misc.execOnEditor();
-
-            await Database.setPassword(shellConn);
-
-            try {
-                await Misc.setConfirmDialog(shellConn, "no");
-            } catch (e) {
-                // continue
-            }
-
+            await Database.tryCredentials(shellConn);
             await driver.wait(async () => {
                 const next = await driver
                     .findElements(
@@ -251,7 +231,6 @@ describe("MYSQL SHELL CONSOLES", () => {
             }, explicitWait, "Could not get the command results");
 
             uri = `Creating a session to '${shellUsername}@${hostname}:${port}/${schema}'`;
-
             await driver.wait(async () => {
                 return (await Misc.getCmdResultMsg())?.includes(uri);
             }, explicitWait, `Result does not include '${uri}'`);
@@ -276,13 +255,9 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Connect using shell global variable", async () => {
 
             let uri = `shell.connect('${username}:${password}@${hostname}:${portX}/${schema}')`;
-
             let result = await Misc.execCmd(uri);
-
             uri = `Creating a session to '${username}@${hostname}:${portX}/${schema}'`;
-
             expect(result[0]).to.include(uri);
-
             await driver.wait(async () => {
                 return (await Misc.getCmdResultMsg())?.match(/Server version: (\d+).(\d+).(\d+)/);
             }, explicitWait, `'/Server version: (\\d+).(\\d+).(\\d+)/' was not matched`);
@@ -311,21 +286,13 @@ describe("MYSQL SHELL CONSOLES", () => {
 
             let cmd = `mysql.getClassicSession('${username}:${password}
                 @${hostname}:${port}/${schema}')`;
-
             let result = await Misc.execCmd(cmd.replace(/ /g, ""));
-
             expect(result[0]).to.include("ClassicSession");
-
             cmd = `mysql.getSession('${username}:${password}@${hostname}:${port}/${schema}')`;
-
             result = await Misc.execCmd(cmd);
-
             expect(result[0]).to.include("ClassicSession");
-
             cmd = `mysqlx.getSession('${username}:${password}@${hostname}:${portX}/${schema}')`;
-
             result = await Misc.execCmd(cmd);
-
             expect(result[0]).to.include("Session");
 
         });
@@ -333,9 +300,7 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Change schemas using menu", async () => {
 
             const result = await Misc.execCmd(`\\c ${username}:${password}@${hostname}:${portX}`);
-
             expect(result[0]).to.include(`Creating a session to '${username}@${hostname}:${portX}`);
-
             const server = await driver.wait(until.elementLocated(By.id("server")), explicitWait);
             const schema = await driver.wait(until.elementLocated(By.id("schema")), explicitWait);
             await driver.wait(until.elementTextContains(server, `${hostname}:${portX}`),
@@ -347,12 +312,9 @@ describe("MYSQL SHELL CONSOLES", () => {
                 "arguments[0].click();",
                 await driver.findElement(By.css(".current-line")),
             );
-
             const schemaLabel = await driver.findElement(By.id("schema")).getText();
             expect(schemaLabel.substring(1).trim()).to.equals("no schema selected");
-
             await Shell.changeSchemaOnTab("sakila");
-
             await Shell.changeSchemaOnTab("world_x_cst");
 
         });
@@ -365,33 +327,22 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         before(async function () {
             try {
-                treeDBConnections = await treeOpenEditorsSection.findItem(dbConnectionsLabel, openEditorsMaxLevel);
-
+                treeDBConnections = await Misc.getTreeElement(treeOpenEditorsSection, dbConnectionsLabel);
                 await Misc.selectContextMenuItem(treeDBConnections, "Open New MySQL Shell Console");
-
                 await Misc.switchToWebView();
-
                 await driver.wait(Shell.isShellLoaded(), explicitWait * 3, "Shell Console was not loaded");
-
                 editor = await driver.wait(until.elementLocated(By.id("shellEditorHost")),
                     10000, "Console was not loaded");
-
                 await driver.executeScript(
                     "arguments[0].click();",
                     await editor.findElement(By.css(".current-line")),
                 );
-
                 let uri = `\\c ${username}:${password}@${hostname}:${portX}/${schema}`;
-
                 const result = await Misc.execCmd(uri);
-
                 uri = `Creating a session to '${username}@${hostname}:${portX}/${schema}'`;
-
                 expect(result[0]).to.include(uri);
-
                 uri = `Connection to server ${hostname} at port ${portX},`;
                 uri += ` using the X protocol`;
-
                 const server = await driver.wait(until.elementLocated(By.id("server")), explicitWait);
                 const schemaEl = await driver.wait(until.elementLocated(By.id("schema")), explicitWait);
                 await driver.wait(until.elementTextContains(server,
@@ -424,11 +375,9 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Verify help command", async () => {
 
             const result = await Misc.execCmd("\\help ");
-
             expect(result[0]).to.include(
                 "The Shell Help is organized in categories and topics.",
             );
-
             expect(result[0]).to.include("SHELL COMMANDS");
             expect(result[0]).to.include("\\connect");
             expect(result[0]).to.include("\\disconnect");
@@ -459,15 +408,10 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Switch session language - javascript python", async () => {
 
             let result = await Misc.execCmd("\\py ");
-
             expect(result[0]).to.equals("Switching to Python mode...");
-
             expect(await Shell.getTech(editor)).to.equals("python");
-
             result = await Misc.execCmd("\\js ");
-
             expect(result[0]).to.equals("Switching to JavaScript mode...");
-
             expect(await Shell.getTech(editor)).to.equals("javascript");
 
         });
@@ -475,7 +419,6 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Using db global variable", async () => {
 
             const result = await Misc.execCmd("db.actor.select().limit(1)");
-
             await driver.wait(Shell.isValueOnDataSet(result[1] as WebElement, "PENELOPE"),
                 explicitWait, "'PENELOPE is not on the data set'");
 
@@ -484,11 +427,9 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Using util global variable", async () => {
 
             await Misc.execCmd('util.exportTable("actor", "test.txt")');
-
             await driver.wait(async () => {
                 return (await Misc.getCmdResultMsg())?.includes("Running data dump using 1 thread.");
             }, explicitWait, "'Running data dump using 1 thread.' was not found");
-
             const matches = [
                 /Total duration: (\d+)(\d+):(\d+)(\d+):(\d+)(\d+)s/,
                 /Data size: (\d+).(\d+)(\d+) KB/,
@@ -496,7 +437,6 @@ describe("MYSQL SHELL CONSOLES", () => {
                 /Bytes written: (\d+).(\d+)(\d+) KB/,
                 /Average throughput: (\d+).(\d+)(\d+) KB/,
             ];
-
             for (const match of matches) {
                 await driver.wait(async () => {
                     return (await Misc.getCmdResultMsg())?.match(match);
@@ -508,11 +448,8 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Verify collections - json format", async () => {
 
             await Shell.changeSchemaOnTab("world_x_cst");
-
             const result1 = await Misc.execCmd("db.countryinfo.find()");
-
             expect(await Shell.getLangResult(result1[1] as WebElement)).to.equals("json");
-
             await driver.wait(Shell.isValueOnJsonResult(result1[1] as WebElement, "Yugoslavia"),
                 explicitWait, "'Yugoslavia' is not the json result");
 
@@ -521,42 +458,25 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Check query result content", async () => {
 
             await Misc.execCmd("\\sql ");
-
             let result = await Misc.execCmd("SHOW DATABASES;", undefined, explicitWait * 4, true);
-
             await driver.wait(Shell.isValueOnDataSet(result[1] as WebElement, "sakila"),
                 explicitWait, "'sakila is not on the data set'");
-
             await driver.wait(Shell.isValueOnDataSet(result[1] as WebElement, "mysql"),
                 explicitWait, "'mysql is not on the data set'");
-
             await Misc.execCmd("\\js ");
-
             result = await Misc.execCmd(`shell.options.resultFormat="json/raw" `);
-
             expect(result[0]).to.equals("json/raw");
-
             result = await Misc.execCmd(`shell.options.showColumnTypeInfo=false `);
-
             expect(result[0]).to.equals("false");
-
             result = await Misc.execCmd(`shell.options.resultFormat="json/pretty" `);
-
             expect(result[0]).to.equals("json/pretty");
-
             await Shell.changeSchemaOnTab("sakila");
-
             result = await Misc.execCmd("db.category.select().limit(1)");
-
             await driver.wait(Shell.isValueOnJsonResult(result[1] as WebElement, "Action"),
                 explicitWait, "'Action is not on the json result'");
-
             result = await Misc.execCmd(`shell.options.resultFormat="table" `);
-
             expect(result[0]).to.equals("table");
-
             result = await Misc.execCmd("db.category.select().limit(1)");
-
             await driver.wait(Shell.isValueOnDataSet(result[1] as WebElement, "Action"),
                 explicitWait, "'Action is not on the data set'");
         });

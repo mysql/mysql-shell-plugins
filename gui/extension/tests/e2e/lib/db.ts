@@ -917,7 +917,8 @@ export class Database {
         if (service) {
             const inService = await dialog.findElement(By.id("service"));
             await inService.click();
-            const popup = await driver.findElement(By.id("servicePopup"));
+            const popup = await driver.wait(until.elementLocated(By.id("servicePopup")),
+                explicitWait, "#servicePopup not found");
             await popup.findElement(By.id(service)).click();
         }
         if (restObjPath) {
@@ -1168,7 +1169,7 @@ export class Database {
         throw new Error(`Coult not find ${editorName} with type ${editorType}`);
     };
 
-    public static tryCredentials = async (data: IDBConnection): Promise <void> => {
+    public static tryCredentials = async (data: IDBConnection, timeout?: number): Promise <void> => {
         let passwordDialog: WebElement[] | undefined;
         let textArea: WebElement[] | undefined;
 
@@ -1183,7 +1184,7 @@ export class Database {
 
         if (passwordDialog.length > 0) {
             await Database.setPassword(data);
-            await Misc.setConfirmDialog(data, "no").catch(() => {
+            await Misc.setConfirmDialog(data, "no", timeout).catch(() => {
                 // continue
              });
         }
