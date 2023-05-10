@@ -167,7 +167,7 @@ export class ApplicationDB {
     public static async initialize(clear = true): Promise<void> {
         return new Promise((resolve, reject) => {
             openDB<IAppStoreSchema>(ApplicationDB.dbName, ApplicationDB.dbVersion, {
-                upgrade: (db, _oldVersion, _newVersion) => {
+                upgrade: (db) => {
                     // Never called when the DB version did not change.
                     if (db.objectStoreNames.contains(StoreType.DbEditor)) {
                         db.deleteObjectStore(StoreType.DbEditor);
@@ -177,13 +177,11 @@ export class ApplicationDB {
                         db.deleteObjectStore(StoreType.Shell);
                     }
 
-                    const dbEditorStore = db.createObjectStore(StoreType.DbEditor,
-                        { keyPath: "id", autoIncrement: true });
+                    const dbEditorStore = db.createObjectStore(StoreType.DbEditor, { autoIncrement: true });
                     dbEditorStore.createIndex("resultIndex", "resultId", { unique: false });
                     dbEditorStore.createIndex("tabIndex", "tabId", { unique: false });
 
-                    const shellDataStore = db.createObjectStore(StoreType.Shell,
-                        { keyPath: "id", autoIncrement: true });
+                    const shellDataStore = db.createObjectStore(StoreType.Shell, { autoIncrement: true });
                     shellDataStore.createIndex("resultIndex", "resultId", { unique: false });
                     shellDataStore.createIndex("tabIndex", "tabId", { unique: false });
                 },

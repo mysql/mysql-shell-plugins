@@ -59,7 +59,7 @@ import { ConnectionEditor } from "./ConnectionEditor";
 
 interface IConnectionBrowserProperties extends IComponentProperties {
     connections: IConnectionDetails[];
-    toolbarItems?: IToolbarItems;
+    toolbarItems: IToolbarItems;
 
     onAddConnection: (details: IConnectionDetails) => void;
     onUpdateConnection: (details: IConnectionDetails) => void;
@@ -79,6 +79,13 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
     private hostRef = createRef<HTMLDivElement>();
 
     private currentTileDetails?: IConnectionDetails; // Set during context menu invocation.
+
+    public constructor(props: IConnectionBrowserProperties) {
+        super(props);
+
+        this.addHandledProperties("connections", "toolbarItems", "onAddConnection", "onUpdateConnection",
+            "onDropConnection", "onPushSavedConnection");
+    }
 
     public componentDidMount(): void {
         requisitions.register("settingsChanged", this.handleSettingsChanged);
@@ -159,17 +166,11 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         linkMap.set("Read Docs >", "https://www.mysql.com");
 
         // If toolbar items are given, render a toolbar with them.
-        let toolbar: ComponentChild | undefined;
-        if (toolbarItems) {
-            toolbar = <Toolbar
-                id="connectionOverviewToolbar"
-                dropShadow={false}
-            >
-                {toolbarItems.left}
-                <div className="expander" />
-                {toolbarItems.right}
-            </Toolbar>;
-        }
+        const toolbar = <Toolbar id="connectionOverviewToolbar" dropShadow={false} >
+            {toolbarItems.navigation}
+            <div className="expander" />
+            {toolbarItems.auxillary}
+        </Toolbar>;
 
         return (
             <Container
@@ -178,7 +179,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
                 wrap={ContentWrap.NoWrap}
             >
                 {toolbar}
-                <ConnectionEditor
+                < ConnectionEditor
                     ref={this.editorRef}
                     id="connectionEditor"
                     connections={connections}

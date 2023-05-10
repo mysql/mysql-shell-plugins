@@ -32,7 +32,9 @@ describe("Server status module tests", (): void => {
     it("Test ServerStatus instantiation", async () => {
         const backend = new ShellInterfaceSqlEditor();
         const component = mount<ServerStatus>(
-            <ServerStatus backend={backend} />,
+            <ServerStatus backend={backend}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+            />,
         );
         // Component updates.
         component.setProps({ backend });

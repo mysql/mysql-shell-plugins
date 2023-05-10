@@ -165,7 +165,6 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
         >
           <div
             className="msg button round"
-            draggable={true}
             onMouseDown={[Function]}
             role="button"
             style={
@@ -183,7 +182,6 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
         >
           <div
             className="msg button round"
-            draggable={true}
             onMouseDown={[Function]}
             role="button"
             style={
@@ -201,7 +199,6 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
         >
           <div
             className="msg button round"
-            draggable={true}
             onMouseDown={[Function]}
             role="button"
             style={
@@ -219,7 +216,6 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
         >
           <div
             className="msg button round"
-            draggable={true}
             onMouseDown={[Function]}
             role="button"
             style={
@@ -237,7 +233,6 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
         >
           <div
             className="msg button round"
-            draggable={true}
             onMouseDown={[Function]}
             role="button"
             style={

@@ -23,9 +23,8 @@
 
 import { Misc, driver, IDBConnection, explicitWait } from "../../lib/misc";
 import { DBConnection } from "../../lib/dbConnection";
-import { DBNotebooks } from "../../lib/dbNotebooks";
+import { DBNotebooks, execFullScript, execCaret } from "../../lib/dbNotebooks";
 import { By, WebElement, until } from "selenium-webdriver";
-
 
 describe("Scripts", () => {
 
@@ -83,7 +82,7 @@ describe("Scripts", () => {
                 }
             }
         }
-        await driver.wait(until.elementLocated(By.id("dbEditorToolbar")), explicitWait*2, "Notebook was not loaded");
+        await driver.wait(until.elementLocated(By.id("dbEditorToolbar")), explicitWait * 2, "Notebook was not loaded");
     });
 
     afterEach(async () => {
@@ -138,7 +137,7 @@ describe("Scripts", () => {
             await textArea.sendKeys("ath.random()");
 
             await (
-                await DBConnection.getToolbarButton("Execute full script")
+                await DBConnection.getToolbarButton(execFullScript)
             )!.click();
 
             await driver.wait(async () => {
@@ -194,7 +193,7 @@ describe("Scripts", () => {
             await textArea.sendKeys("ath.random()");
 
             await (
-                await DBConnection.getToolbarButton("Execute full script")
+                await DBConnection.getToolbarButton(execFullScript)
             )!.click();
 
             await driver.wait(async () => {
@@ -251,12 +250,12 @@ describe("Scripts", () => {
             await textArea.sendKeys("S");
             await textArea.sendKeys("ELECT * FROM sakila.actor;");
 
-            const execCaret = await DBConnection.getToolbarButton("Execute the statement at the caret position");
-            await execCaret?.click();
+            const execCaretBtn = await DBConnection.getToolbarButton(execCaret);
+            await execCaretBtn?.click();
 
             await driver.wait(async () => {
                 return (await DBConnection.getScriptResult(true)) !== "";
-            }, 15000, "No results from query were found");
+            }, explicitWait * 2, "No results from query were found");
 
             expect(await DBConnection.getScriptResult(true)).toMatch(/OK, (\d+) records/);
         } catch (e) {

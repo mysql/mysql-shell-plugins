@@ -47,8 +47,7 @@ import { requisitions } from "../../supplement/Requisitions";
 import { DBType, IConnectionDetails } from "../../supplement/ShellInterface";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface";
 import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/ShellInterfaceShellSession";
-import { basename } from "../../utilities/helpers";
-import { filterInt } from "../../utilities/string-helpers";
+import { filterInt, basename } from "../../utilities/string-helpers";
 
 const editorHeading = "Database Connection Configuration";
 const editorDescription = [

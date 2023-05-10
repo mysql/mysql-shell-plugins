@@ -33,6 +33,7 @@ describe("DBEditorToolbar tests", (): void => {
                 activeEditor={"DbEditor"}
                 heatWaveEnabled={false}
                 editors={[]}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
             />,
         );
 
@@ -50,6 +51,7 @@ describe("DBEditorToolbar tests", (): void => {
                 activeEditor={"DbEditor"}
                 heatWaveEnabled={true}
                 editors={[]}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
             />,
         );
 

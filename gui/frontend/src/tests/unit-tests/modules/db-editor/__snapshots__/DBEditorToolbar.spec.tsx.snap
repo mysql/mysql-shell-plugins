@@ -6,6 +6,14 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
   editors={[]}
   heatWaveEnabled={true}
   language="en"
+  toolbarItems={
+    {
+      "auxillary": [],
+      "editor": [],
+      "execution": [],
+      "navigation": [],
+    }
+  }
 >
   <Toolbar
     dropShadow={false}
@@ -40,7 +48,6 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
           <div
             className="msg button imageOnly"
             data-tooltip="Execute full script"
-            draggable={true}
             onClick={[Function]}
             onMouseDown={[Function]}
             role="button"
@@ -73,7 +80,6 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
           </div>
         </Button>
         <Divider
-          key="executionDivider"
           thickness={1}
           vertical={true}
         >
@@ -97,7 +103,6 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
           <div
             className="msg button imageOnly"
             data-tooltip="Format current block or script"
-            draggable={true}
             onClick={[Function]}
             onMouseDown={[Function]}
             role="button"
@@ -154,7 +159,6 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
           <div
             className="msg button imageOnly"
             data-tooltip="Find"
-            draggable={true}
             onClick={[Function]}
             onMouseDown={[Function]}
             role="button"
@@ -195,7 +199,6 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
           <div
             className="msg button imageOnly"
             data-tooltip="Show hidden characters"
-            draggable={true}
             onClick={[Function]}
             onMouseDown={[Function]}
             role="button"
@@ -236,7 +239,6 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
           <div
             className="msg button imageOnly"
             data-tooltip="Soft wrap lines"
-            draggable={true}
             onClick={[Function]}
             onMouseDown={[Function]}
             role="button"
@@ -283,6 +285,14 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
   editors={[]}
   heatWaveEnabled={false}
   language="pl"
+  toolbarItems={
+    {
+      "auxillary": [],
+      "editor": [],
+      "execution": [],
+      "navigation": [],
+    }
+  }
 >
   <Toolbar
     dropShadow={false}
@@ -317,7 +327,6 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
           <div
             className="msg button imageOnly"
             data-tooltip="Execute full script"
-            draggable={true}
             onClick={[Function]}
             onMouseDown={[Function]}
             role="button"
@@ -350,7 +359,6 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
           </div>
         </Button>
         <Divider
-          key="executionDivider"
           thickness={1}
           vertical={true}
         >
@@ -374,7 +382,6 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
           <div
             className="msg button imageOnly"
             data-tooltip="Format current block or script"
-            draggable={true}
             onClick={[Function]}
             onMouseDown={[Function]}
             role="button"
@@ -431,7 +438,6 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
           <div
             className="msg button imageOnly"
             data-tooltip="Find"
-            draggable={true}
             onClick={[Function]}
             onMouseDown={[Function]}
             role="button"
@@ -472,7 +478,6 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
           <div
             className="msg button imageOnly"
             data-tooltip="Show hidden characters"
-            draggable={true}
             onClick={[Function]}
             onMouseDown={[Function]}
             role="button"
@@ -513,7 +518,6 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
           <div
             className="msg button imageOnly"
             data-tooltip="Soft wrap lines"
-            draggable={true}
             onClick={[Function]}
             onMouseDown={[Function]}
             role="button"

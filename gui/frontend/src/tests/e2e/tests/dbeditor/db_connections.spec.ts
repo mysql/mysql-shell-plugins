@@ -24,7 +24,7 @@
 import { Misc, driver, IDBConnection, explicitWait } from "../../lib/misc";
 import { By, until, Key, WebElement } from "selenium-webdriver";
 import { DBConnection } from "../../lib/dbConnection";
-import { DBNotebooks } from "../../lib/dbNotebooks";
+import { DBNotebooks, execFullBlockSql } from "../../lib/dbNotebooks";
 
 jest.retryTimes(1);
 
@@ -517,7 +517,7 @@ describe("Database Connections", () => {
                 .sendKeys("SHOW STATUS LIKE 'Ssl_cipher';");
 
             const execSel = await DBConnection
-                .getToolbarButton("Execute selection or full block and create a new block");
+                .getToolbarButton(execFullBlockSql);
             await execSel?.click();
 
             const resultHost = await driver.wait(until.elementLocated(By.css(".resultHost")),

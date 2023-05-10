@@ -37,7 +37,8 @@ import javascriptIcon from "../../assets/images/file-icons/scriptJs.svg";
 import sqliteIcon from "../../assets/images/file-icons/scriptSqlite.svg";
 import mysqlIcon from "../../assets/images/file-icons/scriptMysql.svg";
 import typescriptIcon from "../../assets/images/file-icons/scriptTs.svg";
-import notebookIcon from "../../assets/images/notebook.svg";
+
+import newNotebookIcon from "../../assets/images/newNotebook.svg";
 
 import { ComponentChild, createRef, toChildArray } from "preact";
 
@@ -84,6 +85,8 @@ import { ITabviewPage, Tabview, TabPosition } from "../../components/ui/Tabview/
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface";
 import { IOpenConnectionData, IShellPasswordFeedbackRequest } from "../../communication/ProtocolGui";
 import { MrsTurnstile } from "../mrs/MrsTurnstile";
+
+import scriptingRuntime from "./assets/typings/scripting-runtime.d.ts?raw";
 
 // Details generated while adding a new tab. These are used in the render method to fill the tab page details.
 interface IDBEditorTabInfo {
@@ -222,12 +225,12 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         } = this.state;
 
         let sqlIcon = mysqlIcon;
-        const showEmbeddedContent = appParameters.embedded;
+        const isEmbedded = appParameters.embedded;
 
-        // Generate the main toolbar inset based on the current display mode.
-        let toolbarItems: IToolbarItems | undefined;
-        if (showEmbeddedContent) {
-            const items = [
+        // Generate the main toolbar items based on the current display mode.
+        const toolbarItems: IToolbarItems = { navigation: [], execution: [], editor: [], auxillary: [] };
+        if (isEmbedded) {
+            const dropDownItems = [
                 <Dropdown.Item
                     id="connections"
                     key="connections"
@@ -245,7 +248,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 // Add one entry per connection.
                 const iconName = info.details.dbType === DBType.MySQL ? connectionIconMySQL : connectionIconSQLite;
 
-                items.push(
+                dropDownItems.push(
                     <Dropdown.Item
                         id={info.tabId}
                         key={info.tabId}
@@ -261,16 +264,16 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                         const language = entry.state.model.getLanguageId() as EditorLanguage;
                         const iconName = documentTypeToIcon.get(language);
                         if (language === "msg") {
-                            picture = <Icon src={iconName ?? defaultIcon} width="20px" height="20px" />;
+                            picture = <Icon src={iconName ?? defaultIcon} />;
                         } else {
                             picture = <Image src={iconName ?? defaultIcon} />;
                         }
                     } else {
                         const name = pageTypeToIcon.get(entry.type) || defaultIcon;
-                        picture = <Icon src={name} width="20px" height="20px" />;
+                        picture = <Icon src={name} />;
                     }
 
-                    items.push((
+                    dropDownItems.push((
                         <DocumentDropdownItem
                             page={info.tabId}
                             type={entry.type}
@@ -296,27 +299,25 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 });
             });
 
-            toolbarItems = {
-                left: [
-                    <Label key="mainLabel" style={{ paddingRight: "8px" }}>Editor:</Label>,
-                    <Dropdown
-                        id="documentSelector"
-                        key="selector"
-                        selection={selectedEntry ?? selectedPage}
-                        onSelect={this.handleSelectTabOrEntry}
-                    >
-                        {items}
-                    </Dropdown>,
-                ],
-                right: [],
-            };
+            toolbarItems.navigation.push(
+                <Label key="mainLabel" style={{ marginRight: "8px" }}>Editor:</Label>,
+                <Dropdown
+                    id="documentSelector"
+                    key="selector"
+                    selection={selectedEntry ?? selectedPage}
+                    onSelect={this.handleSelectTabOrEntry}
+                >
+                    {dropDownItems}
+                </Dropdown>,
+            );
 
             if (selectedPage === "connections") {
-                toolbarItems.left.push(
+                toolbarItems.navigation.push(
                     <Button
                         key="button1"
                         id="newNewConsoleMenuButton"
                         data-tooltip="Open New Shell Console"
+                        style={{ marginLeft: "16px" }}
                         onClick={this.addNewConsole}
                     >
                         <Icon key="newIcon" src={newConsoleIcon} data-tooltip="inherit" />
@@ -324,16 +325,15 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     <Divider key="divider2" id="actionDivider" vertical={true} thickness={1} />,
                 );
             } else {
-                toolbarItems.left.push(
+                toolbarItems.navigation.push(
                     <Button key="button1" id="newScriptMenuButton" onClick={this.addNewScript}>
                         <Icon key="newIcon" src={newScriptIcon} />
                     </Button>,
-                    <Divider key="divider2" id="actionDivider" vertical={true} thickness={1} />,
                 );
             }
 
             if (showSaveButton) {
-                toolbarItems.right.push(<Button
+                toolbarItems.auxillary.push(<Button
                     id="itemSaveButton"
                     key="itemSaveButton"
                     imageOnly={true}
@@ -345,7 +345,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 </Button>);
             }
 
-            toolbarItems.right.push(<Button
+            toolbarItems.auxillary.push(<Button
                 id="itemCloseButton"
                 key="itemCloseButton"
                 imageOnly
@@ -401,58 +401,55 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         editorTabs.forEach((info: IDBEditorTabInfo) => {
             const connectionState = this.connectionState.get(info.tabId)!;
 
-            let tabToolbarItems = toolbarItems;
-            if (!tabToolbarItems) {
+            if (toolbarItems.navigation.length === 0) {
                 // If no special UI is to be rendered use an editor selection dropdown.
-                tabToolbarItems = {
-                    left: [
-                        <Label key="mainLabel">Editor:</Label>,
-                        <Dropdown
-                            id="documentSelector"
-                            key="documentSelector"
-                            selection={connectionState.activeEntry}
-                            onSelect={this.handleEditorSelectorChange}
-                        >
-                            {
-                                connectionState.editors.map((entry) => {
-                                    let picture;
-                                    if (entry.state) {
-                                        const language = entry.state.model.getLanguageId() as EditorLanguage;
-                                        const iconName = documentTypeToIcon.get(language);
-                                        if (language === "msg") {
-                                            picture = <Icon src={iconName ?? defaultIcon} width="20px" height="20px" />;
-                                        } else {
-                                            picture = <Image src={iconName ?? defaultIcon} />;
-                                        }
+                toolbarItems.navigation.push(
+                    <Label key="mainLabel" style={{ marginRight: "8px" }}>Editor:</Label>,
+                    <Dropdown
+                        id="documentSelector"
+                        key="documentSelector"
+                        selection={connectionState.activeEntry}
+                        onSelect={this.handleEditorSelectorChange}
+                    >
+                        {
+                            connectionState.editors.map((entry) => {
+                                let picture;
+                                if (entry.state) {
+                                    const language = entry.state.model.getLanguageId() as EditorLanguage;
+                                    const iconName = documentTypeToIcon.get(language);
+                                    if (language === "msg") {
+                                        picture = <Icon src={iconName ?? defaultIcon} />;
                                     } else {
-                                        const name = pageTypeToIcon.get(entry.type) || defaultIcon;
-                                        picture = <Icon src={name} width="20px" height="20px" />;
+                                        picture = <Image src={iconName ?? defaultIcon} />;
                                     }
+                                } else {
+                                    const name = pageTypeToIcon.get(entry.type) || defaultIcon;
+                                    picture = <Icon src={name} />;
+                                }
 
-                                    return (
-                                        <Dropdown.Item
-                                            id={entry.id}
-                                            key={entry.id}
-                                            caption={entry.caption}
-                                            picture={picture}
-                                        />
-                                    );
-                                })
-                            }
-                        </Dropdown>,
-                        <Divider key="selectorDivider" vertical={true} thickness={1} />,
-                    ],
-                    right: [],
-                };
+                                return (
+                                    <Dropdown.Item
+                                        id={entry.id}
+                                        key={entry.id}
+                                        caption={entry.caption}
+                                        picture={picture}
+                                    />
+                                );
+                            })
+                        }
+                    </Dropdown>,
+                );
             }
 
             const content = (<DBConnectionTab
                 id={info.tabId}
+                caption={info.caption}
                 showAbout={!info.suppressAbout}
                 workerPool={this.workerPool}
                 dbType={info.details.dbType}
                 connectionId={info.details.id}
-                toolbarItems={tabToolbarItems}
+                toolbarItems={toolbarItems}
+                extraLibs={[{ code: scriptingRuntime, path: "runtime" }]}
                 savedState={connectionState}
                 showExplorer={showTabs && showExplorer}
                 onHelpCommand={this.handleHelpCommand}
@@ -500,7 +497,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 pages={pages}
                 onSelectTab={this.handleSelectTab}
             />
-            {showEmbeddedContent &&
+            {isEmbedded &&
                 <Menu
                     key="actionMenu"
                     id="editorToolbarActionMenu"
@@ -508,7 +505,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleNewScriptClick}
                 >
-                    <MenuItem key="item1" id="addEditor" caption="New DB Notebook" icon={notebookIcon} />
+                    <MenuItem key="item1" id="addEditor" caption="New DB Notebook" icon={newNotebookIcon} />
                     <MenuItem key="item2" id="addSQLScript" caption="New SQL Script" icon={sqlIcon} />
                     <MenuItem key="item3" id="addTSScript" caption="New TS Script" icon={typescriptIcon} />
                     <MenuItem key="item4" id="addJSScript" caption="New JS Script" icon={javascriptIcon} />

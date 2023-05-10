@@ -24,10 +24,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 
 import {
-    binarySearch, clampValue, convertCamelToSnakeCase, flattenObject, selectFile, sleep, strictEval, uuid,
-    waitFor, convertSnakeToCamelCase, convertCamelToTitleCase, convertTitleToCamelCase, stripAnsiCode, deepEqual,
+    binarySearch, clampValue, deepEqual, flattenObject, selectFile, sleep, strictEval, uuid, waitFor,
 } from "../../../utilities/helpers";
-import { loremIpsum, nextProcessTick, uuidPattern } from "../test-helpers";
+import { nextProcessTick, uuidPattern } from "../test-helpers";
 
 describe("Utilities Tests", (): void => {
     it("flattenObject", (): void => {
@@ -105,7 +104,7 @@ describe("Utilities Tests", (): void => {
 
     it("Select File", async () => {
         // Single file.
-        let promise = selectFile("json", false);
+        let promise = selectFile([".json"], false);
         let inputs = document.getElementsByTagName("input");
         expect(inputs).toHaveLength(1);
         await nextProcessTick();
@@ -116,9 +115,10 @@ describe("Utilities Tests", (): void => {
         inputs[0].dispatchEvent(e);
 
         const singleValue = await promise;
-        expect(singleValue).toBeNull();
+        expect(singleValue).not.toBeNull();
+        expect(singleValue).toHaveLength(0);
 
-        promise = selectFile("json", true);
+        promise = selectFile([".json"], true);
         inputs = document.getElementsByTagName("input");
         expect(inputs).toHaveLength(1);
         await nextProcessTick();
@@ -163,7 +163,7 @@ describe("Utilities Tests", (): void => {
         }, 1000);
         await sleep(1200);
         clearTimeout(timer);
-        expect(timeout).toBeTruthy();
+        expect(timeout).toBe(true);
 
         timeout = false;
         timer = setTimeout(() => {
@@ -185,264 +185,12 @@ describe("Utilities Tests", (): void => {
             return timeout;
         });
         clearTimeout(timer);
-        expect(waitResult).toBeTruthy();
+        expect(waitResult).toBe(true);
 
-        expect(stripAnsiCode("")).toBe("");
-        expect(stripAnsiCode(loremIpsum)).toBe(loremIpsum);
-
-        const tail = "And another text";
-        expect(stripAnsiCode(`\u001b[0;90m${loremIpsum}\u001b[0m${tail}`)).toBe(`${loremIpsum}${tail}`);
-        expect(stripAnsiCode(`\u001b[?109h\u001b🖖NO-CODE\u001b[38;2;10;20;30m`)).toBe("\u001b🖖NO-CODE");
-    });
-
-    it("Convert Cases", () => {
-        let result = convertCamelToSnakeCase({});
-        expect(result).toStrictEqual({});
-
-        result = convertCamelToSnakeCase({}, {});
-        expect(result).toStrictEqual({});
-
-        result = convertCamelToSnakeCase({}, { ignore: [] });
-        expect(result).toStrictEqual({});
-
-        result = convertCamelToSnakeCase({}, { ignore: ["xxx", "yyy"] });
-        expect(result).toStrictEqual({});
-
-        /* eslint-disable @typescript-eslint/naming-convention */
-        const e = Symbol("§");
-        const source = {
-            _: true,
-            T: 123,
-            e,
-            var_1: "var_1",
-            var2: "var2",
-            VarVar1: "VarVar1",
-            var_Var2: "Var_Var2",
-            var_Var_3: "VarVar3",
-            o1: {
-                var_1: "var_1",
-                var2: "var2",
-            },
-            o2: {
-                var_1: "var_1",
-                var2: "var2",
-                o1: {
-                    var_1: "var_1",
-                    var2: "var2",
-                },
-            },
-            a1: [
-                {
-                    var_1: "var_1",
-                    var2: "var2",
-                },
-                {
-                    xxx: ["memberOne", "memberTwo", { memberThree: true, member_four: false }],
-                    xxy: ["memberOne", "memberTwo", { memberThree: true, member_four: false }],
-                    var2: "yyy",
-                    anotherKey: "xyz",
-                },
-                {
-                    o: { o: { o: { o: { o: {} } } } },
-                },
-                [
-                    {
-                        var_1: "var_1",
-                        var2: "var2",
-                        o1: {
-                            var_1: "var_1",
-                            var2: "var2",
-                        },
-                    },
-                    [
-                        [
-                            [
-                                [
-                                    {
-                                        var_1: "var_1",
-                                        var2: "var2",
-                                        VarVar1: "VarVar1",
-                                        var_Var2: "Var_Var2",
-                                        var_Var_3: "VarVar3",
-                                    },
-                                    {
-                                        xxx: ["memberOne", "memberTwo", { memberThree: true, member_four: false }],
-                                        xxy: ["memberOne", "memberTwo", { memberThree: true, member_four: false }],
-                                        var2: "yyy",
-                                    },
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-            ],
-        };
-
-        const snakeCaseTarget = {
-            _: true,
-            T: 123,
-            e,
-            var_1: "var_1",
-            var2: "var2",
-            Var_var1: "VarVar1",
-            var_Var2: "Var_Var2",
-            var_Var_3: "VarVar3",
-            o1: {
-                var_1: "var_1",
-                var2: "var2",
-            },
-            o2: {
-                var_1: "var_1",
-                var2: "var2",
-                o1: {
-                    var_1: "var_1",
-                    var2: "var2",
-                },
-            },
-            a1: [
-                {
-                    var_1: "var_1",
-                    var2: "var2",
-                },
-                {
-                    xxx: ["memberOne", "memberTwo", { memberThree: true, member_four: false }],
-                    xxy: ["memberOne", "memberTwo", { member_three: true, member_four: false }],
-                    var2: "yyy",
-                    another_key: "xyz",
-                },
-                {
-                    o: { o: { o: { o: { o: {} } } } },
-                },
-                [
-                    {
-                        var_1: "var_1",
-                        var2: "var2",
-                        o1: {
-                            var_1: "var_1",
-                            var2: "var2",
-                        },
-                    },
-                    [
-                        [
-                            [
-                                [
-                                    {
-                                        var_1: "var_1",
-                                        var2: "var2",
-                                        Var_var1: "VarVar1",
-                                        var_Var2: "Var_Var2",
-                                        var_Var_3: "VarVar3",
-                                    },
-                                    {
-                                        xxx: ["memberOne", "memberTwo", { memberThree: true, member_four: false }],
-                                        xxy: ["memberOne", "memberTwo", { member_three: true, member_four: false }],
-                                        var2: "yyy",
-                                    },
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-            ],
-        };
-
-        result = convertCamelToSnakeCase(source, { ignore: ["xxx", "yyy"] });
-        expect(result).toStrictEqual(snakeCaseTarget);
-
-        const camelCaseTarget = {
-            _: true,
-            T: 123,
-            e,
-            var1: "var_1",
-            var2: "var2",
-            VarVar1: "VarVar1",
-            varVar2: "Var_Var2",
-            varVar3: "VarVar3",
-            o1: {
-                var1: "var_1",
-                var2: "var2",
-            },
-            o2: {
-                var1: "var_1",
-                var2: "var2",
-                o1: {
-                    var1: "var_1",
-                    var2: "var2",
-                },
-            },
-            a1: [
-                {
-                    var1: "var_1",
-                    var2: "var2",
-                },
-                {
-                    xxx: ["memberOne", "memberTwo", { memberThree: true, member_four: false }],
-                    xxy: ["memberOne", "memberTwo", { memberThree: true, memberFour: false }],
-                    var2: "yyy",
-                    anotherKey: "xyz",
-                },
-                {
-                    o: { o: { o: { o: { o: {} } } } },
-                },
-                [
-                    {
-                        var1: "var_1",
-                        var2: "var2",
-                        o1: {
-                            var1: "var_1",
-                            var2: "var2",
-                        },
-                    },
-                    [
-                        [
-                            [
-                                [
-                                    {
-                                        var1: "var_1",
-                                        var2: "var2",
-                                        VarVar1: "VarVar1",
-                                        varVar2: "Var_Var2",
-                                        varVar3: "VarVar3",
-                                    },
-                                    {
-                                        xxx: ["memberOne", "memberTwo", { memberThree: true, member_four: false }],
-                                        xxy: ["memberOne", "memberTwo", { memberThree: true, memberFour: false }],
-                                        var2: "yyy",
-                                    },
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-            ],
-        };
-
-        result = convertSnakeToCamelCase(source, { ignore: ["xxx", "yyy"] });
-        expect(result).toStrictEqual(camelCaseTarget);
-
-        /* eslint-enable @typescript-eslint/naming-convention */
-
-        expect(convertCamelToTitleCase("")).toBe("");
-        expect(convertCamelToTitleCase("ABC")).toBe("ABC");
-        expect(convertCamelToTitleCase("Abc")).toBe("Abc");
-        expect(convertCamelToTitleCase("abc")).toBe("Abc");
-        expect(convertCamelToTitleCase("😀")).toBe("😀");
-        expect(convertCamelToTitleCase("X😀")).toBe("X😀");
-        expect(convertCamelToTitleCase("x😀")).toBe("X😀");
-        expect(convertCamelToTitleCase("xXxXx")).toBe("XXxXx");
-
-        expect(convertTitleToCamelCase("")).toBe("");
-        expect(convertTitleToCamelCase("ABC")).toBe("aBC");
-        expect(convertTitleToCamelCase("Abc")).toBe("abc");
-        expect(convertTitleToCamelCase("abc")).toBe("abc");
-        expect(convertTitleToCamelCase("😀")).toBe("😀");
-        expect(convertTitleToCamelCase("X😀")).toBe("x😀");
-        expect(convertTitleToCamelCase("x😀")).toBe("x😀");
-        expect(convertTitleToCamelCase("xXxXx")).toBe("xXxXx");
     });
 
     it("Deep Equal", () => {
-        expect(deepEqual(undefined, undefined)).toBeTruthy();
+        expect(deepEqual(undefined, undefined)).toBe(true);
         expect(deepEqual(undefined, {})).toBeFalsy();
 
         const invalidMarker = {
@@ -478,41 +226,41 @@ describe("Utilities Tests", (): void => {
             },
         };
 
-        expect(deepEqual({}, {})).toBeTruthy();
-        expect(deepEqual({ var1: true }, { var1: true })).toBeTruthy();
-        expect(deepEqual({ var2: false, var1: true }, { var1: true, var2: false })).toBeTruthy();
+        expect(deepEqual({}, {})).toBe(true);
+        expect(deepEqual({ var1: true }, { var1: true })).toBe(true);
+        expect(deepEqual({ var2: false, var1: true }, { var1: true, var2: false })).toBe(true);
         expect(deepEqual({ var2: false, o: { var1: true } }, { var1: true, o: { var2: false } })).toBeFalsy();
         expect(deepEqual({ var: 1 }, { var: 1, rav: 2 })).toBeFalsy();
 
-        expect(deepEqual(ignoreMarker, ignoreMarker)).toBeTruthy(); // Same object.
+        expect(deepEqual(ignoreMarker, ignoreMarker)).toBe(true); // Same object.
         expect(deepEqual(ignoreMarker, ignoreMarker2)).toBeFalsy(); // Ignored values, but on both sides.
         expect(deepEqual(undefined, ignoreMarker)).toBeFalsy();
 
         // Order doesn't matter.
-        expect(deepEqual([{ var: 1 }], ignoreMarker)).toBeTruthy();
+        expect(deepEqual([{ var: 1 }], ignoreMarker)).toBe(true);
         expect(deepEqual([{ var: 1 }], invalidMarker)).toBeFalsy();
-        expect(deepEqual(ignoreMarker, [{ var: 1 }])).toBeTruthy();
+        expect(deepEqual(ignoreMarker, [{ var: 1 }])).toBe(true);
 
         // Regex with and w/o string.
         expect(deepEqual([{ var: 1 }], regexMarker)).toBeFalsy();
         expect(deepEqual([{ var: 1 }], [{ var: regexMarker }])).toBeFalsy();
         expect(deepEqual([{ var: "" }], [{ var: regexMarker }])).toBeFalsy();
-        expect(deepEqual([{ var: regexMarker }], [{ var: "AbC123" }])).toBeTruthy();
+        expect(deepEqual([{ var: regexMarker }], [{ var: "AbC123" }])).toBe(true);
 
         // List.
-        expect(deepEqual([[[[]]]], [[[[]]]])).toBeTruthy();
-        expect(deepEqual([[[["ABC"]]]], [[[[ignoreMarker]]]])).toBeTruthy();
+        expect(deepEqual([[[[]]]], [[[[]]]])).toBe(true);
+        expect(deepEqual([[[["ABC"]]]], [[[[ignoreMarker]]]])).toBe(true);
         expect(deepEqual([[[["ABC"]]]], [[[["123"]]]])).toBeFalsy();
-        expect(deepEqual([[[["a", "b", "c"]]]], [[[listMarker]]])).toBeTruthy();
+        expect(deepEqual([[[["a", "b", "c"]]]], [[[listMarker]]])).toBe(true);
         expect(deepEqual([[[listMarker]]], [[[["1", "b", "c"]]]])).toBeFalsy();
         expect(deepEqual([[[["a", "b"]]]], [[[listMarker]]])).toBeFalsy(); // Full list.
         expect(deepEqual([[[["a", "b", "c", "d"]]]], [[[listMarker]]])).toBeFalsy(); // Full list.
         expect(deepEqual([[[["a", "b"]]]], [[[listMarker2]]])).toBeFalsy(); // Partial list.
-        expect(deepEqual([[[["a", "b", "c", "d"]]]], [[[listMarker2]]])).toBeTruthy(); // Partial list.
+        expect(deepEqual([[[["a", "b", "c", "d"]]]], [[[listMarker2]]])).toBe(true); // Partial list.
 
         expect(deepEqual([[[{ var: 2 }]]], [[[listMarker]]])).toBeFalsy(); // Not a list.
 
-        expect(deepEqual([[[["1", { var: "2" }, "3"]]]], [[[["1", { var: "2" }, "3"]]]])).toBeTruthy();
+        expect(deepEqual([[[["1", { var: "2" }, "3"]]]], [[[["1", { var: "2" }, "3"]]]])).toBe(true);
         expect(deepEqual([[[["1", { var: "b" }, "3"]]]], [[[["1", { var: "2" }, "3"]]]])).toBeFalsy();
         expect(deepEqual([[[["1", { var: "2" }, "3"]]]], [[[["1", "2", "3"]]]])).toBeFalsy();
     });

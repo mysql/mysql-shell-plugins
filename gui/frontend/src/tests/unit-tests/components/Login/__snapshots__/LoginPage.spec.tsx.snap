@@ -280,7 +280,6 @@ exports[`Login Page Tests Render Test 1`] = `
                 >
                   <div
                     className="msg button round"
-                    draggable={true}
                     id="loginButton"
                     onClick={[Function]}
                     onMouseDown={[Function]}

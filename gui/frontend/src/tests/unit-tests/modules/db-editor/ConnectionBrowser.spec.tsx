@@ -41,6 +41,7 @@ describe("Connection browser tests", (): void => {
         const component = mount<ConnectionBrowser>(
             <ConnectionBrowser
                 connections={[connection1]}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
                 onAddConnection={jest.fn()}
                 onUpdateConnection={jest.fn()}
                 onDropConnection={jest.fn()}

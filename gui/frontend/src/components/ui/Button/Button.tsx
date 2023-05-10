@@ -102,7 +102,6 @@ export class Button extends ComponentBase<IButtonProperties> {
                 style={newStyle}
                 className={className}
                 tabIndex={0}
-                draggable
                 role="button"
                 {...this.unhandledProperties}
             >

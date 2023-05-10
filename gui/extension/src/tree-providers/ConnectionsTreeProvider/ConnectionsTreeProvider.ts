@@ -133,6 +133,8 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                 if (this.refreshMrsRoutersTimer === null) {
                     this.refreshMrsRouters();
                 }
+
+                void requisitions.execute("connectionsUpdated", undefined);
             });
         } else {
             this.changeEvent.fire(item);
@@ -398,7 +400,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                 // Remove all remaining entries we haven't touched yet.
                 while (left < this.connections.length) {
                     const entry = this.connections.splice(left, 1)[0];
-                    void entry.backend?.closeSession();
+                    await entry.backend?.closeSession();
                 }
             } catch (reason) {
                 void window.showErrorMessage(`Cannot load DB connections: ${String(reason)}`);

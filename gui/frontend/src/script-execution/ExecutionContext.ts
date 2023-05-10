@@ -122,7 +122,7 @@ export class ExecutionContext implements IExecutionContext {
             end: this.presentation.endLine,
             language: this.language,
             result,
-            currentHeight: this.presentation.currentHeight,
+            currentHeight: this.presentation.cachedHeight,
             currentSet: this.presentation.currentSet,
             maximizeResultPane: this.presentation.maximizedResult,
             statements: this.statementSpans,
@@ -283,9 +283,21 @@ export class ExecutionContext implements IExecutionContext {
         return new Position(1, 1);
     }
 
+    /**
+     * Removes the content of the result area.
+     */
     public clearResult(): void {
         if (!this.disposed) {
             this.presentation.clearResult();
+        }
+    }
+
+    /**
+     * Removes the entire result area.
+     */
+    public removeResult(): void {
+        if (!this.disposed) {
+            this.presentation.removeResult();
         }
     }
 

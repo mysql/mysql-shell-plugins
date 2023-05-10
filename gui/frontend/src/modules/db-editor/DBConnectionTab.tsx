@@ -36,33 +36,33 @@ import {
 } from ".";
 import { ScriptEditor } from "./ScriptEditor";
 import { IScriptExecutionOptions } from "../../components/ui/CodeEditor";
-import { requisitions } from "../../supplement/Requisitions";
+import { appParameters, requisitions } from "../../supplement/Requisitions";
 import { IConsoleWorkerResultData, ScriptingApi } from "./console.worker-types";
 import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool";
 import { ScriptingLanguageServices } from "../../script-execution/ScriptingLanguageServices";
 import { QueryType } from "../../parsing/parser-common";
-import { DBEditorToolbar } from "./DBEditorToolbar";
 import {
     DBDataType, IColumnInfo, IDictionary, IExecutionInfo, IServicePasswordRequest, MessageType,
 } from "../../app-logic/Types";
 import { Settings } from "../../supplement/Settings/Settings";
-import { ApplicationDB } from "../../app-logic/ApplicationDB";
+import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB";
 import {
     convertRows, EditorLanguage, generateColumnInfo, IRunQueryRequest, ISqlPageRequest, IScriptRequest,
 } from "../../supplement";
 import { ServerStatus } from "./ServerStatus";
 import { ClientConnections } from "./ClientConnections";
 import { PerformanceDashboard } from "./PerformanceDashboard";
-import { uuid } from "../../utilities/helpers";
+import { saveTextAsFile, selectFile, uuid } from "../../utilities/helpers";
 import { IDbEditorResultSetData } from "../../communication/ProtocolGui";
 import { ResponseError } from "../../communication/ResponseError";
 import { IComponentProperties, IComponentState, ComponentBase } from "../../components/ui/Component/ComponentBase";
-import { Container, Orientation, ContentAlignment } from "../../components/ui/Container/Container";
 import { SplitContainer, ISplitterPaneSizeInfo } from "../../components/ui/SplitContainer/SplitContainer";
 import { DBType } from "../../supplement/ShellInterface";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor";
-import { IExecutionResult, IResponseDataOptions, ITextResultEntry } from "../../script-execution";
+import {
+    currentNotebookVersion, IExecutionResult, INotebookFileFormat, IResponseDataOptions, ITextResultEntry,
+} from "../../script-execution";
 import { ExecutionContext } from "../../script-execution/ExecutionContext";
 import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext";
 import { IMrsLoginResult } from "../mrs/sdk/MrsBaseClasses";
@@ -77,10 +77,9 @@ interface IResultTimer {
  * Just the minimal information about existing editors.
  */
 export interface ISavedEditorState {
+    connectionId: number;
     editors: IOpenEditorState[];
-
     activeEntry: string;
-
     heatWaveEnabled: boolean;
 }
 
@@ -96,8 +95,6 @@ export interface IOpenEditorState extends IEntityBase {
 
 export interface IDBConnectionTabPersistentState extends ISavedEditorState {
     backend: ShellInterfaceSqlEditor;
-
-    connectionId: number;
 
     // Informations about the connected backend (where supported).
     serverVersion: number;
@@ -141,13 +138,16 @@ export interface ISelectItemDetails {
 }
 
 interface IDBConnectionTabProperties extends IComponentProperties {
+    /** The caption of this page used in the hosting tabview. */
+    caption?: string;
+
     connectionId: number;
     dbType: DBType;
     savedState: IDBConnectionTabPersistentState;
     workerPool: ExecutionWorkerPool;
 
     /** Top level toolbar items, to be integrated with page specific ones. */
-    toolbarItems?: IToolbarItems;
+    toolbarItems: IToolbarItems;
 
     showExplorer?: boolean; // If false, collapse the explorer split pane.
     showAbout: boolean;
@@ -180,14 +180,17 @@ interface IDBConnectionTabState extends IComponentState {
     errorMessage?: string;
 
     backend?: ShellInterfaceSqlEditor;
+
+    // Set to true if a notebook has been loaded the app is embedded, emulating so a one editor-only mode.
+    standaloneMode: boolean;
 }
 
 /** A list of parameters/options used for query execution. */
 interface IQueryExecutionOptions {
-    /** backend The backend for execution. */
+    /** The backend for execution. */
     backend: ShellInterfaceSqlEditor;
 
-    /** context The context to send result to. */
+    /** The context to send result to. */
     context: SQLExecutionContext;
 
     /** The query to execute. */
@@ -248,6 +251,9 @@ Execute \\help or \\? for help;`;
 
     private scriptWaiting = false;
 
+    // True while restoring a notebook from a notebook file.
+    private loadingNotebook = false;
+
     private cachedMrsServiceSdk: IMrsServiceSdkMetadata = {};
     private mrsLoginResult?: IMrsLoginResult;
 
@@ -256,6 +262,7 @@ Execute \\help or \\? for help;`;
 
         this.state = {
             backend: props.savedState.backend,
+            standaloneMode: false,
         };
 
         this.addHandledProperties("connectionId", "dbType", "savedState", "workerPool", "toolbarInset", "showExplorer",
@@ -279,6 +286,8 @@ Execute \\help or \\? for help;`;
         requisitions.register("acceptMrsAuthentication", this.acceptMrsAuthentication);
         requisitions.register("cancelMrsAuthentication", this.cancelMrsAuthentication);
         requisitions.register("refreshMrsServiceSdk", this.updateMrsServiceSdkCache);
+        requisitions.register("editorSaveNotebook", this.editorSaveNotebook);
+        requisitions.register("editorLoadNotebook", this.editorLoadNotebook);
 
         this.notebookRef.current?.focus();
 
@@ -305,6 +314,8 @@ Execute \\help or \\? for help;`;
         requisitions.unregister("acceptMrsAuthentication", this.acceptMrsAuthentication);
         requisitions.unregister("cancelMrsAuthentication", this.cancelMrsAuthentication);
         requisitions.unregister("refreshMrsServiceSdk", this.updateMrsServiceSdkCache);
+        requisitions.unregister("editorSaveNotebook", this.editorSaveNotebook);
+        requisitions.unregister("editorLoadNotebook", this.editorLoadNotebook);
     }
 
     public componentDidUpdate(prevProps: IDBConnectionTabProperties): void {
@@ -321,16 +332,12 @@ Execute \\help or \\? for help;`;
         const {
             toolbarItems, id, savedState, dbType, showExplorer = true, onHelpCommand, showAbout, extraLibs,
         } = this.props;
-        const { backend } = this.state;
+        const { backend, standaloneMode } = this.state;
 
         const className = this.getEffectiveClassNames(["connectionTabHost"]);
 
         let document;
-
         const activeEditor = this.findActiveEditor();
-        const language = activeEditor?.state?.model.getLanguageId() ?? "";
-
-        let addEditorToolbar = true;
         if (activeEditor) {
             switch (activeEditor.type) {
                 case EntityType.Notebook: {
@@ -338,9 +345,12 @@ Execute \\help or \\? for help;`;
                     document = <Notebook
                         ref={this.notebookRef}
                         savedState={savedState}
+                        backend={backend}
+                        toolbarItems={toolbarItems}
+                        standaloneMode={standaloneMode}
                         dbType={dbType}
-                        showAbout={showAbout}
                         extraLibs={extraLibs}
+                        showAbout={showAbout && !this.loadingNotebook}
                         onHelpCommand={onHelpCommand}
                         onScriptExecution={this.handleExecution}
                     />;
@@ -348,7 +358,6 @@ Execute \\help or \\? for help;`;
                 }
 
                 case EntityType.Script: {
-                    addEditorToolbar = false;
                     this.notebookRef.current = null;
                     document = <ScriptEditor
                         id={savedState.activeEntry}
@@ -356,6 +365,7 @@ Execute \\help or \\? for help;`;
                         extraLibs={extraLibs}
                         savedState={savedState}
                         toolbarItems={toolbarItems}
+                        standaloneMode={standaloneMode}
                         onScriptExecution={this.handleExecution}
                         onEdit={this.handleEdit}
                     />;
@@ -364,22 +374,18 @@ Execute \\help or \\? for help;`;
                 }
 
                 case EntityType.Status: {
-                    // Admin pages render own toolbars, not the one for DB editors.
-                    addEditorToolbar = false;
                     document = <ServerStatus backend={savedState.backend} toolbarItems={toolbarItems} />;
 
                     break;
                 }
 
                 case EntityType.Connections: {
-                    addEditorToolbar = false;
                     document = <ClientConnections backend={savedState.backend} toolbarItems={toolbarItems} />;
 
                     break;
                 }
 
                 case EntityType.Dashboard: {
-                    addEditorToolbar = false;
                     document = <PerformanceDashboard
                         backend={savedState.backend}
                         toolbarItems={toolbarItems}
@@ -433,23 +439,7 @@ Execute \\help or \\? for help;`;
                             minSize: 350,
                             snap: false,
                             stretch: true,
-                            content: <Container
-                                orientation={Orientation.TopDown}
-                                style={{
-                                    flex: "1 1 auto",
-                                }}
-                                mainAlignment={ContentAlignment.Stretch}
-                            >
-                                {addEditorToolbar && <DBEditorToolbar
-                                    toolbarItems={toolbarItems}
-                                    language={language}
-                                    activeEditor={savedState.activeEntry}
-                                    heatWaveEnabled={savedState.heatWaveEnabled}
-                                    editors={savedState.editors}
-                                    backend={backend}
-                                />}
-                                {document}
-                            </Container>,
+                            content: document,
                         },
                     ]}
                 onPaneResized={this.handlePaneResize}
@@ -692,6 +682,185 @@ Execute \\help or \\? for help;`;
     };
 
     /**
+     * Either takes the given content and creates a new notebook with it, or asks the user to select a notebook
+     * file to create the notebook from.
+     *
+     * @param details The details about the notebook to load.
+     * @param details.content The content to load into the notebook. If undefined, the user will be asked to select
+     *                        a file.
+     * @param details.standalone If true, the notebook will be loaded in standalone mode, otherwise like any other
+     *                           editor.
+     *
+     * @returns A promise that resolves to true if the notebook was loaded, false if the request could not be fulfilled.
+     */
+    private editorLoadNotebook = async (details?: { content: string; standalone: boolean; }): Promise<boolean> => {
+
+        /**
+         * Helper method to actually create the notebook from the given text.
+         *
+         * @param text The content to load into the notebook.
+         */
+        const createNotebook = async (text: string): Promise<void> => {
+            let content: INotebookFileFormat;
+            if (text.length === 0) {
+                content = {
+                    type: "MySQLNotebook",
+                    version: currentNotebookVersion,
+                    caption: "Untitled",
+                    content: "",
+                    options: {},
+                    viewState: null,
+                    contexts: [],
+                };
+            } else {
+                try {
+                    content = JSON.parse(text);
+                } catch (reason) {
+                    await requisitions.execute("showError", ["The notebook file is not valid JSON."]);
+
+                    return;
+                }
+            }
+
+            if (content.type !== "MySQLNotebook") {
+                void requisitions.execute("showError", ["Invalid notebook content"]);
+            } else {
+                try {
+                    this.loadingNotebook = true;
+
+                    const editorId = this.handleAddEditor();
+                    if (editorId) {
+                        // Adding a new notebook will always make it the active editor.
+                        const openState = this.findActiveEditor();
+                        const persistentState: IEditorPersistentState | undefined = openState?.state;
+                        if (persistentState) {
+                            const { id } = this.props;
+                            openState!.caption = content.caption;
+                            persistentState.model.setValue(content.content);
+                            persistentState.options = content.options;
+
+                            // Restore the result data in the application DB.
+                            const transaction = ApplicationDB.db.transaction(StoreType.DbEditor, "readwrite");
+                            const objectStore = transaction.objectStore(StoreType.DbEditor);
+                            for (const context of content.contexts) {
+                                // Create new result IDs for the data, to avoid multiple result views pointing to the
+                                // same data, for example when the same notebook is loaded twice.
+                                const idMap = new Map<string, string>();
+                                const result = context.state.result;
+                                if (result?.type === "resultIds") {
+                                    result.list.forEach((resultId, index, list) => {
+                                        const newId = uuid();
+                                        idMap.set(resultId, newId);
+                                        list[index] = newId;
+                                    });
+
+                                    for (const data of context.data ?? []) {
+                                        data.resultId = idMap.get(data.resultId) ?? "";
+
+                                        // Also replace the tab ID in the result data.
+                                        data.tabId = id!;
+                                        await objectStore.add(data);
+                                    }
+                                }
+                            }
+
+                            setTimeout(() => {
+                                this.notebookRef.current?.restoreNotebook(content);
+                                this.loadingNotebook = false;
+                            }, 10);
+                        }
+                    }
+
+                    if (appParameters.embedded) {
+                        this.setState({ standaloneMode: details?.standalone ?? false });
+                    }
+                } catch (e) {
+                    this.loadingNotebook = false;
+                    void requisitions.execute("showError", ["Error while loading notebook", String(e)]);
+                }
+            }
+        };
+
+        if (details === undefined) {
+            // Ask the user to select a file.
+            if (appParameters.embedded) {
+                return requisitions.executeRemote("editorLoadNotebook", undefined);
+            }
+
+            const selection = await selectFile([".mysql-notebook"], false);
+            if (selection) {
+                const file = selection[0];
+                const reader = new FileReader();
+                reader.onload = (): void => {
+                    if (typeof reader.result === "string") {
+                        try {
+                            void createNotebook(reader.result);
+                        } catch (e) {
+                            if (e instanceof Error) {
+                                const message = e.toString() || "";
+                                alert(`Error while parsing JSON data: \n${message}`);
+                            }
+                        }
+                    } else {
+                        void requisitions.execute("showError", ["Cannot read notebook file"]);
+                    }
+                };
+
+                reader.readAsText(file, "utf-8");
+            }
+        } else {
+            await createNotebook(details.content);
+        }
+
+        return Promise.resolve(true);
+    };
+
+    /**
+     * Serializes the current notebook to a JSON string and triggers save-to-file handling.
+     * This can either be handled by the browser (not allowing to specify a target path) or by the host application
+     * which has more freedom to allow the user to select a target path.
+     *
+     * @returns A promise that resolves to true if the notebook was saved, false if the request could not be fulfilled.
+     *
+     */
+    private editorSaveNotebook = async (): Promise<boolean> => {
+        const openState = this.findActiveEditor();
+
+        if (openState) {
+            const persistentState: IEditorPersistentState | undefined = openState.state;
+            if (persistentState) {
+                const content: INotebookFileFormat = {
+                    type: "MySQLNotebook",
+                    version: currentNotebookVersion,
+                    caption: openState.caption,
+                    content: persistentState.model.getValue(),
+                    options: persistentState.options,
+                    viewState: this.notebookRef.current?.getViewState() ?? null,
+                    contexts: await persistentState.model.executionContexts.collectRawState(),
+                };
+
+                const text = JSON.stringify(content, (key: string, value: unknown) => {
+                    if (key === "diagnosticDecorationIDs") {
+                        return undefined;
+                    }
+
+                    return value;
+                }, 4);
+
+                if (appParameters.embedded) {
+                    requisitions.executeRemote("editorSaveNotebook", text);
+                } else {
+                    // TODO: make the file name configurable.
+                    const { caption } = this.props;
+                    saveTextAsFile(text, `${caption ?? "<unnamed>"} - ${openState.caption}.mysql-notebook`);
+                }
+            }
+        }
+
+        return Promise.resolve(true);
+    };
+
+    /**
      * Called for SQL code from a code editor. All result sets start at 0 offset in this scenario.
      *
      * @param context The context with the code to execute.
@@ -839,14 +1008,9 @@ Execute \\help or \\? for help;`;
 
                 // We are going to replace result data, instead of adding a complete new set.
                 // In this case remove the old data first from the storage.
-                const tx = ApplicationDB.db.transaction("dbModuleResultData", "readwrite");
-                const index = tx.store.index("resultIndex");
-                await index.openCursor(options.oldResultId).then(async (cursor) => {
-                    while (cursor) {
-                        await cursor.delete();
-                        cursor = await cursor.continue();
-                    }
-                });
+                if (resultId) {
+                    void ApplicationDB.removeDataByResultIds(StoreType.DbEditor, [resultId]);
+                }
             }
 
             // Have to keep the column definition around for all data packages, for row conversion,
@@ -917,7 +1081,7 @@ Execute \\help or \\? for help;`;
                         replaceData,
                     });
                 } else {
-                    void ApplicationDB.db.put("dbModuleResultData", {
+                    void ApplicationDB.db.add("dbModuleResultData", {
                         tabId: id,
                         resultId,
                         rows,

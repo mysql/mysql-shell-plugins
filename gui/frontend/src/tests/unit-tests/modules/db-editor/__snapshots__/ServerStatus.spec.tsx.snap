@@ -12,6 +12,14 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
     }
   }
   rowGap={3}
+  toolbarItems={
+    {
+      "auxillary": [],
+      "editor": [],
+      "execution": [],
+      "navigation": [],
+    }
+  }
 >
   <Container
     className="serverStatusHost"
@@ -28,6 +36,35 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
         }
       }
     >
+      <Toolbar
+        dropShadow={false}
+        id="serverStatusToolbar"
+        vibrant={false}
+      >
+        <Container
+          className="msg toolbar verticalCenterContent"
+          crossAlignment="center"
+          id="serverStatusToolbar"
+          orientation="row"
+        >
+          <div
+            className="msg container fixedScrollbar toolbar verticalCenterContent"
+            id="serverStatusToolbar"
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <div
+              className="expander"
+            />
+          </div>
+        </Container>
+      </Toolbar>
       <Container
         className="msg serverStatus"
         crossAlignment="center"
@@ -2415,6 +2452,14 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
     }
   }
   rowGap={3}
+  toolbarItems={
+    {
+      "auxillary": [],
+      "editor": [],
+      "execution": [],
+      "navigation": [],
+    }
+  }
 >
   <Container
     className="serverStatusHost"
@@ -2431,6 +2476,35 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
         }
       }
     >
+      <Toolbar
+        dropShadow={false}
+        id="serverStatusToolbar"
+        vibrant={false}
+      >
+        <Container
+          className="msg toolbar verticalCenterContent"
+          crossAlignment="center"
+          id="serverStatusToolbar"
+          orientation="row"
+        >
+          <div
+            className="msg container fixedScrollbar toolbar verticalCenterContent"
+            id="serverStatusToolbar"
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "flexWrap": undefined,
+                "justifyContent": undefined,
+              }
+            }
+          >
+            <div
+              className="expander"
+            />
+          </div>
+        </Container>
+      </Toolbar>
       <Container
         className="msg serverStatus"
         crossAlignment="center"

@@ -77,7 +77,7 @@
 }
 
 .msg.toolbar .icon {
-    flex: 0 0 20px;
+    flex: 0 0 24px;
     background-color: var(--icon-foreground);
 }
 

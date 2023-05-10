@@ -25,7 +25,6 @@ exports[`Action Output Tests Action Full Rendering 1`] = `
     <div
       className="msg button imageOnly copyButton"
       data-tooltip="Copy result to clipboard"
-      draggable={true}
       onMouseDown={[Function]}
       onPointerDown={[Function]}
       role="button"
@@ -170,7 +169,6 @@ exports[`Action Output Tests Standard Rendering 1`] = `
     <div
       className="msg button imageOnly copyButton"
       data-tooltip="Copy result to clipboard"
-      draggable={true}
       onMouseDown={[Function]}
       onPointerDown={[Function]}
       role="button"

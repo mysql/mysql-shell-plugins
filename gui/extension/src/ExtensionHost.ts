@@ -50,6 +50,7 @@ import { ShellInterface } from "../../frontend/src/supplement/ShellInterface/She
 import {
     ConnectionsTreeDataProvider, IConnectionEntry,
 } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeProvider";
+import { NotebookEditorProvider } from "./editor-providers/NotebookEditorProvider";
 
 // This class manages some extension wide things like authentication handling etc.
 export class ExtensionHost {
@@ -60,6 +61,7 @@ export class ExtensionHost {
 
     private dbEditorCommandHandler = new DBEditorCommandHandler(this.connectionsProvider);
     private shellConsoleCommandHandler = new ShellConsoleCommandHandler();
+    private notebookProvider = new NotebookEditorProvider();
     private mrsCommandHandler = new MRSCommandHandler();
     private mdsCommandHandler = new MDSCommandHandler();
 
@@ -78,7 +80,6 @@ export class ExtensionHost {
         this.setupEnvironment();
 
         requisitions.register("settingsChanged", this.updateVscodeSettings);
-
         requisitions.register("webSessionStarted", (data) => {
             webSession.sessionId = data.sessionUuid;
             webSession.localUserMode = data.localUserMode ?? false;
@@ -100,6 +101,11 @@ export class ExtensionHost {
 
             return Promise.resolve(true);
         });
+    }
+
+    /** @returns the currently loaded connection list. */
+    public get connections(): IConnectionEntry[] {
+        return this.connectionsProvider.connections;
     }
 
     /**
@@ -124,66 +130,74 @@ export class ExtensionHost {
         this.shellTasksTreeDataProvider.refresh();
     }
 
-
     /**
      * Determines a connection to run SQL code with.
      *
      * @param dbType The DBType of the connection
+     * @param forcePicker If true then always open the connection picker and ignore the default connection.
      *
      * @returns A promise resolving to a connection entry or undefined if no entry was found.
      */
-    public determineConnection = async (dbType?: DBType): Promise<IConnectionEntry | undefined> => {
+    public determineConnection = async (dbType?: DBType,
+        forcePicker?: boolean): Promise<IConnectionEntry | undefined> => {
         let connections = this.connectionsProvider.connections;
 
-        const connectionName = workspace.getConfiguration("msg.editor").get<string>("defaultDbConnection");
-        if (connectionName) {
-            const connection = connections.find((candidate) => {
-                return candidate.details.caption === connectionName;
-            });
-
-            if (!connection) {
-                throw Error(`The default Database Connection ${connectionName} is not available anymore. ` +
-                    "Please make another Database Connection the new default.");
-            } else if (dbType && connection.details.dbType !== dbType) {
-                throw Error(`The default Database Connection ${connectionName} is a ` +
-                    `${String(connection.details.dbType)} connection. This function requires a ${String(dbType)} ` +
-                    "connection.");
-            }
-
-            return connection;
-        } else {
-            // If a specific dbType was specified, filter connections by that DBType
-            if (dbType) {
-                connections = connections.filter((conn) => {
-                    return conn.details.dbType === dbType;
+        let title = "Select a connection for SQL execution";
+        if (!forcePicker) {
+            const connectionName = workspace.getConfiguration("msg.editor").get<string>("defaultDbConnection");
+            if (connectionName) {
+                const connection = connections.find((candidate) => {
+                    return candidate.details.caption === connectionName;
                 });
-            }
 
-            // Check if there is at least one connection
-            if (connections.length === 0) {
-                if (dbType) {
-                    throw Error(`Please create a ${String(dbType)} Database Connection first.`);
+                if (!connection) {
+                    void window.showErrorMessage(`The default Database Connection ${connectionName} is not available ` +
+                        `anymore.`);
+                } else if (dbType && connection.details.dbType !== dbType) {
+                    void window.showErrorMessage(`The default Database Connection ${connectionName} is a ` +
+                        `${String(connection.details.dbType)} connection. This function requires a ${String(dbType)} ` +
+                        "connection.");
                 } else {
-                    throw Error("Please create a Database Connection first.");
+                    return connection;
                 }
+
+                title = "Select another connection for SQL execution";
+            }
+        }
+
+        // If a specific dbType was specified, filter connections by that DBType
+        if (dbType) {
+            connections = connections.filter((conn) => {
+                return conn.details.dbType === dbType;
+            });
+        }
+
+        // Check if there is at least one connection
+        if (connections.length === 0) {
+            if (dbType) {
+                void window.showErrorMessage(`Please create a ${String(dbType)} Database Connection first.`);
+            } else {
+                void window.showErrorMessage("Please create a Database Connection first.");
             }
 
-            // No default connection set. Show a picker.
-            const items = connections.map((connection) => {
-                return connection.details.caption;
-            });
-            const name = await window.showQuickPick(items, {
-                title: "Select a connection for SQL execution",
-                matchOnDescription: true,
-                placeHolder: "Type the name of an existing DB connection",
-            });
-
-            const connection = connections.find((candidate) => {
-                return candidate.details.caption === name;
-            });
-
-            return connection;
+            return undefined;
         }
+
+        // No default connection set. Show a picker.
+        const items = connections.map((connection) => {
+            return connection.details.caption;
+        });
+        const name = await window.showQuickPick(items, {
+            title,
+            matchOnDescription: true,
+            placeHolder: "Type the name of an existing DB connection",
+        });
+
+        const connection = connections.find((candidate) => {
+            return candidate.details.caption === name;
+        });
+
+        return connection;
     };
 
     /**
@@ -193,10 +207,11 @@ export class ExtensionHost {
         // Access the node specific message scheduler once to create the correct version of it.
         void NodeMessageScheduler.get;
 
-        this.dbEditorCommandHandler.setup(this.context, this);
+        this.dbEditorCommandHandler.setup(this);
         this.shellConsoleCommandHandler.setup(this.context);
-        this.mrsCommandHandler.setup(this.context, this);
-        this.mdsCommandHandler.setup(this.context, this);
+        this.notebookProvider.setup(this);
+        this.mrsCommandHandler.setup(this);
+        this.mdsCommandHandler.setup(this);
 
         const updateLogLevel = (): void => {
             const configuration = workspace.getConfiguration(`msg.debugLog`);

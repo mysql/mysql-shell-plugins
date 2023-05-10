@@ -37,7 +37,6 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 1 1`] = `
       >
         <div
           className="msg button breadcrumbItem"
-          draggable={true}
           id="root"
           onClick={[Function]}
           onMouseDown={[Function]}
@@ -71,7 +70,6 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 1 1`] = `
       >
         <div
           className="msg button breadcrumbItem"
-          draggable={true}
           id="folder"
           onClick={[Function]}
           onMouseDown={[Function]}
@@ -105,7 +103,6 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 1 1`] = `
       >
         <div
           className="msg button breadcrumbItem"
-          draggable={true}
           id="subfolder"
           onClick={[Function]}
           onMouseDown={[Function]}
@@ -140,7 +137,6 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 1 1`] = `
         <div
           caption="..."
           className="msg button picker"
-          draggable={true}
           onMouseDown={[Function]}
           role="button"
           style={
@@ -195,7 +191,6 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
       >
         <div
           className="msg button breadcrumbItem"
-          draggable={true}
           id="root"
           onClick={[Function]}
           onMouseDown={[Function]}
@@ -229,7 +224,6 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
       >
         <div
           className="msg button breadcrumbItem"
-          draggable={true}
           id="folder"
           onClick={[Function]}
           onMouseDown={[Function]}
@@ -263,7 +257,6 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
       >
         <div
           className="msg button breadcrumbItem"
-          draggable={true}
           id="subfolder"
           onClick={[Function]}
           onMouseDown={[Function]}
@@ -297,7 +290,6 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
       >
         <div
           className="msg button breadcrumbItem"
-          draggable={true}
           id="subfolder2"
           onClick={[Function]}
           onMouseDown={[Function]}
@@ -332,7 +324,6 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
         <div
           caption="..."
           className="msg button picker"
-          draggable={true}
           onMouseDown={[Function]}
           role="button"
           style={
@@ -387,7 +378,6 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
       >
         <div
           className="msg button"
-          draggable={true}
           onMouseDown={[Function]}
           role="button"
           style={
@@ -427,7 +417,6 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
       >
         <div
           className="msg button"
-          draggable={true}
           onMouseDown={[Function]}
           role="button"
           style={
@@ -459,7 +448,6 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
         <div
           caption="mysql"
           className="msg button"
-          draggable={true}
           onMouseDown={[Function]}
           role="button"
           style={
@@ -484,7 +472,6 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
         <div
           caption="SQL"
           className="msg button"
-          draggable={true}
           onMouseDown={[Function]}
           role="button"
           style={

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg width="100%" height="100%" viewBox="0 0 24 20" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
-    <g transform="matrix(1,0,0,1,-697,-161)">
+    <g transform="matrix(1,0,0,1,-730,-161)">
         <g id="Menu">
         </g>
         <g id="Expand">
@@ -66,27 +66,23 @@
         </g>
         <g id="New-Shell-Console" serif:id="New Shell Console">
         </g>
-        <g id="New-File-Selector" serif:id="New File Selector" transform="matrix(1,0,0,1,80,1)">
-            <g id="Add-Notebook" serif:id="Add Notebook" transform="matrix(1,0,0,1,616,161)">
-                <path d="M6,15L2,15L1,14L1,2L2,1L12,1L13,2L13,9.01L12,9.01L12,2L2,2L2,14L6,14L6,15ZM15,5.029L15,7L14,7L14,5.029L15,5.029Z"/>
+        <g id="New-File-Selector" serif:id="New File Selector">
+        </g>
+        <g id="saveNotebook" transform="matrix(1,0,0,1,733,163)">
+            <g id="Add-Notebook" serif:id="Add Notebook" transform="matrix(1,0,0,1,0,-1)">
+                <path d="M6,15L2,15L1,14L1,2L2,1L12,1L13,2L13,7.01L12,7.01L12,2L2,2L2,14L6,14L6,15ZM15,5.029L15,7L14,7L14,5.029L15,5.029Z"/>
             </g>
-            <g transform="matrix(1.14286,0,0,1,614.429,161)">
+            <g transform="matrix(1.14286,0,0,1,-1.57143,-1)">
                 <path d="M4,4L5,3L10,3L11,4L11,5L10,6L5,6L4,5L4,4ZM4.878,4L4.878,5L10.125,5L10.125,4L4.878,4Z"/>
             </g>
-            <g transform="matrix(1,0,0,1,-81,0)">
-                <rect x="708" y="172" width="1" height="7"/>
+            <g id="Save" transform="matrix(1,0,0,1,5,5)">
+                <g transform="matrix(1.5,0,0,1,-13,-4)">
+                    <rect x="10" y="15" width="6" height="1"/>
+                </g>
+                <g transform="matrix(1,0,0,1,-1,0)">
+                    <path d="M7,8.293L7,3.032L8,3.032L8,8.293L10.468,5.825L11.175,6.532L7.499,10.208L6.792,9.501L6.793,9.5L3.845,6.553L4.553,5.845L7,8.293Z"/>
+                </g>
             </g>
-            <g transform="matrix(1,0,0,1,-81,0)">
-                <rect x="705" y="175" width="7" height="1"/>
-            </g>
-            <g transform="matrix(0.712675,0.712675,-0.703443,0.703443,274.959,-426.293)">
-                <rect x="668.99" y="168.837" width="5.953" height="1.005" style="fill:rgb(34,34,36);"/>
-            </g>
-            <g transform="matrix(-0.712675,0.712675,-0.703443,-0.703443,1236.28,-188.051)">
-                <rect x="668.99" y="168.837" width="5.953" height="1.005" style="fill:rgb(34,34,36);"/>
-            </g>
-        </g>
-        <g id="saveNotebook">
         </g>
         <g id="saveNotebook1" serif:id="saveNotebook">
         </g>

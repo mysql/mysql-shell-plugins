@@ -41,11 +41,10 @@ import { Dropdown } from "../../../components/ui/Dropdown/Dropdown";
 import { Container, ContentAlignment, Orientation } from "../../../components/ui/Container/Container";
 import { CheckState, Checkbox } from "../../../components/ui/Checkbox/Checkbox";
 import {
-    IMrsDbObjectData, IMrsObject, IMrsObjectFieldWithReference,
-    IMrsObjectReference,
+    IMrsDbObjectData, IMrsObject, IMrsObjectFieldWithReference, IMrsObjectReference,
 } from "../../../communication/ProtocolMrs";
-import { convertCamelToTitleCase, uuidBinary16Base64 } from "../../../utilities/helpers";
-import { convertToPascalCase, snakeToCamelCase } from "../../../utilities/string-helpers";
+import { uuidBinary16Base64 } from "../../../utilities/helpers";
+import { convertCamelToTitleCase, convertToPascalCase, snakeToCamelCase } from "../../../utilities/string-helpers";
 import { Input } from "../../../components/ui/Input/Input";
 import { Icon } from "../../../components/ui/Icon/Icon";
 import { IDictionary } from "../../../app-logic/Types";
@@ -96,7 +95,7 @@ export interface IMrsObjectFieldEditorProperties extends IValueEditCustomPropert
 }
 
 interface IMrsObjectFieldEditorState extends IComponentState {
-    dummy?: number
+    dummy?: number;
 }
 
 export enum MrsObjectFieldTreeEntryType {

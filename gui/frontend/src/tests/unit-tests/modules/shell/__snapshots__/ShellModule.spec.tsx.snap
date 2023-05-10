@@ -115,7 +115,6 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                 <div
                   class="msg button round"
                   data-tooltip="Close Greeting"
-                  draggable="true"
                   id="closeButton"
                   role="button"
                   tabindex="0"
@@ -144,7 +143,6 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                   >
                     <div
                       class="msg button browserTile secondary sessionTile"
-                      draggable="true"
                       id="-1"
                       role="button"
                       tabindex="0"
@@ -297,7 +295,6 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                   <div
                     class="msg button round"
                     data-tooltip="Close Greeting"
-                    draggable="true"
                     id="closeButton"
                     role="button"
                     tabindex="0"
@@ -326,7 +323,6 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                     >
                       <div
                         class="msg button browserTile secondary sessionTile"
-                        draggable="true"
                         id="-1"
                         role="button"
                         tabindex="0"
@@ -643,7 +639,6 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                         <div
                           class="msg button round"
                           data-tooltip="Close Greeting"
-                          draggable="true"
                           id="closeButton"
                           role="button"
                           tabindex="0"
@@ -672,7 +667,6 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                           >
                             <div
                               class="msg button browserTile secondary sessionTile"
-                              draggable="true"
                               id="-1"
                               role="button"
                               tabindex="0"
@@ -867,7 +861,6 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                               <div
                                 className="msg button round"
                                 data-tooltip="Close Greeting"
-                                draggable={true}
                                 id="closeButton"
                                 onClick={[Function]}
                                 onMouseDown={[Function]}
@@ -960,7 +953,6 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                         {
                                           "current": <div
                                             class="msg button browserTile secondary sessionTile"
-                                            draggable="true"
                                             id="-1"
                                             role="button"
                                             tabindex="0"
@@ -1001,7 +993,6 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                           {
                                             "current": <div
                                               class="msg button browserTile secondary sessionTile"
-                                              draggable="true"
                                               id="-1"
                                               role="button"
                                               tabindex="0"
@@ -1040,7 +1031,6 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                       >
                                         <div
                                           className="msg button browserTile secondary sessionTile"
-                                          draggable={true}
                                           id="-1"
                                           onClick={[Function]}
                                           onDragEnter={[Function]}

@@ -24,6 +24,16 @@
 import { By, until, WebElement, Key } from "selenium-webdriver";
 import { driver, explicitWait, IDBConnection } from "./misc";
 
+export const execFullBlockSql = "Execute the selection or everything in the current block and create a new block";
+export const execFullBlockJs = "Execute everything in the current block and create a new block";
+export const execCaret = "Execute the statement at the caret position";
+export const execFullScript = "Execute full script";
+export const find = "Find";
+export const rollback = "Rollback DB changes";
+export const commit = "Commit DB changes";
+export const autoCommit = "Auto commit DB changes";
+export const saveNotebook = "Save this Notebook";
+
 export class DBNotebooks {
 
     /**
@@ -153,11 +163,13 @@ export class DBNotebooks {
 
     };
 
-    public static clickConnectionItem = async (conn: WebElement, item: string): Promise <void> => {
+    public static clickConnectionItem = async (conn: WebElement, item: string): Promise<void> => {
         const moreActions = await conn.findElement(By.id("tileMoreActionsAction"));
         const moreActionsRect = await moreActions.getRect();
-        await driver.actions().move({x: parseInt(`${moreActionsRect.x}`, 10),
-            y: parseInt(`${moreActionsRect.y}`, 10)}).perform();
+        await driver.actions().move({
+            x: parseInt(`${moreActionsRect.x}`, 10),
+            y: parseInt(`${moreActionsRect.y}`, 10),
+        }).perform();
         switch (item) {
             case "notebook": {
                 await conn.findElement(By.id("tileNewNotebookAction")).click();

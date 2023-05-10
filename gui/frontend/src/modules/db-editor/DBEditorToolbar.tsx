@@ -61,7 +61,7 @@ interface IDBEditorToolbarProperties extends IComponentProperties {
      * Items defined by the owner(s) of this toolbar.
      * They are combined with those created here to form the actual toolbar.
      */
-    toolbarItems?: IToolbarItems;
+    toolbarItems: IToolbarItems;
 
     activeEditor: string;
     heatWaveEnabled: boolean;
@@ -104,6 +104,8 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
             canExecuteSubparts: false,
             autoCommit: true,
         };
+
+        this.addHandledProperties("toolbarItems", "activeEditor", "heatWaveEnabled", "editors", "language", "backend");
     }
 
     public componentDidUpdate(oldProps: IDBEditorToolbarProperties): void {
@@ -159,7 +161,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
         const { autoCommit, canExecute, canStop, canExecuteSubparts } = this.state;
 
         const area = language === "msg" ? "block" : "script";
-        const selectionText = canExecuteSubparts ? "selection or " : "";
+        const selectionText = canExecuteSubparts ? "the selection or " : "";
 
         const stopOnErrors = Settings.get("editor.stopOnErrors", true);
         const stopOnErrorIcon = stopOnErrors ? stopOnErrorActiveIcon : stopOnErrorInactiveIcon;
@@ -172,12 +174,12 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
         const wordWrap = Settings.get("editor.wordWrap", "off");
         const wordWrapIcon = wordWrap === "on" ? wordWrapActiveIcon : wordWrapInactiveIcon;
 
-        const leftItems = [...toolbarItems?.left ?? []];
+        const executionItems = toolbarItems.execution.slice();
         if (language === "msg") {
-            leftItems.push(
+            executionItems.push(
                 <Button
                     key="executeFullBlock"
-                    data-tooltip={`Execute ${selectionText}full block and create a new block`}
+                    data-tooltip={`Execute ${selectionText}everything in the current block and create a new block`}
                     imageOnly={true}
                     disabled={!canExecute}
                     onClick={
@@ -190,7 +192,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
                     <Icon src={executeIcon} data-tooltip="inherit" />
                 </Button>);
         } else {
-            leftItems.push(
+            executionItems.push(
                 <Button
                     key="executeFullBlock"
                     data-tooltip={`Execute full script`}
@@ -208,7 +210,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
         }
 
         if (canExecuteSubparts) {
-            leftItems.push(
+            executionItems.push(
                 <Button
                     key="executeFromCaret"
                     data-tooltip="Execute the statement at the caret position"
@@ -225,7 +227,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
                 </Button>,
             );
 
-            leftItems.push(
+            executionItems.push(
                 <Button
                     key="executeToText"
                     data-tooltip={`Execute the ${area} and print the result as text`}
@@ -243,7 +245,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
             );
 
             if (heatWaveEnabled) {
-                leftItems.push(
+                executionItems.push(
                     <Button
                         key="executeFullBlockHeatWave"
                         data-tooltip={`Execute ${selectionText}full ${area} on HeatWave and create a new block`}
@@ -275,7 +277,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
                 );
             }
 
-            leftItems.push(
+            executionItems.push(
                 /*<Button
                     key="editorExplainButton"
                     data-tooltip="Execute Explain for the statement at the caret position"
@@ -307,10 +309,9 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
             );
         }
 
-        leftItems.push(<Divider key="executionDivider" vertical={true} thickness={1} />);
-
         if (canExecuteSubparts) {
-            leftItems.push(
+            executionItems.push(
+                <Divider key="divider2" vertical={true} thickness={1} />,
                 <Button
                     key="commitButton"
                     data-tooltip="Commit DB changes"
@@ -337,11 +338,11 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
                 >
                     <Icon src={autoCommitIcon} data-tooltip="inherit" />
                 </Button>,
-                <Divider key="commitDivider" vertical={true} thickness={1} />,
             );
         }
 
-        leftItems.push(
+        const editorItems = toolbarItems.editor.slice();
+        editorItems.push(
             <Button
                 key="editorFormatButton"
                 data-tooltip="Format current block or script"
@@ -377,18 +378,18 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
             </Button>,
         );
 
-        const rightItems = [...toolbarItems?.right ?? []];
-
         return (
             <Toolbar
                 id="dbEditorToolbar"
                 dropShadow={false}
             >
-                {leftItems}
+                {toolbarItems.navigation}
+                {toolbarItems.navigation.length > 0 && <Divider vertical={true} thickness={1} />}
+                {executionItems}
+                {executionItems.length > 0 && <Divider vertical={true} thickness={1} />}
+                {editorItems}
                 <div className="expander" />
-                {rightItems}
-
-
+                {toolbarItems.auxillary}
             </Toolbar >
         );
     }

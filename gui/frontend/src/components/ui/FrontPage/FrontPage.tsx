@@ -22,6 +22,7 @@
  */
 
 import "./FrontPage.css";
+
 import closeButton from "../../../assets/images/close2.svg";
 
 import { ComponentChild } from "preact";
@@ -33,10 +34,10 @@ import { Icon } from "../Icon/Icon";
 import { Label, TextAlignment } from "../Label/Label";
 import { Button } from "../Button/Button";
 import { DBEditorModuleId } from "../../../modules/ModuleInfo";
-import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor";
 import { ShellInterface } from "../../../supplement/ShellInterface/ShellInterface";
-import { uuid } from "../../../utilities/helpers";
+import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor";
 import { webSession } from "../../../supplement/WebSession";
+import { uuid } from "../../../utilities/helpers";
 
 interface IFrontPageProperties extends IComponentProperties {
     showGreeting: boolean;

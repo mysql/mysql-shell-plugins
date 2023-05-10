@@ -236,7 +236,6 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                     <div
                       class="msg button imageOnly copyButton"
                       data-tooltip="Copy result to clipboard"
-                      draggable="true"
                       role="button"
                       tabindex="-1"
                     >
@@ -331,7 +330,6 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                     <div
                       className="msg button imageOnly copyButton"
                       data-tooltip="Copy result to clipboard"
-                      draggable={true}
                       onMouseDown={[Function]}
                       onPointerDown={[Function]}
                       role="button"
@@ -933,7 +931,6 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                               <div
                                 class="msg button imageOnly"
                                 data-tooltip="Maximize Result Tab"
-                                draggable="true"
                                 id="toggleStateButton"
                                 role="button"
                                 tabindex="0"
@@ -965,7 +962,6 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                               <div
                                 class="msg button imageOnly"
                                 data-tooltip="Maximize Result Tab"
-                                draggable="true"
                                 id="toggleStateButton"
                                 role="button"
                                 tabindex="0"
@@ -1094,7 +1090,6 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                               <div
                                 className="msg button imageOnly"
                                 data-tooltip="Maximize Result Tab"
-                                draggable={true}
                                 id="toggleStateButton"
                                 onClick={[Function]}
                                 onMouseDown={[Function]}
@@ -1183,7 +1178,6 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                               <div
                                 className="msg button imageOnly"
                                 data-tooltip="Maximize Result Tab"
-                                draggable={true}
                                 id="toggleStateButton"
                                 onClick={[Function]}
                                 onMouseDown={[Function]}

@@ -282,7 +282,7 @@ export class ThemeEditorCore extends ComponentBase<IThemeEditorCoreProperties, I
     };
 
     private importTheme = (): void => {
-        void selectFile("application/json", false).then((file: File | File[] | null): void => {
+        void selectFile([".json"], false).then((file: File | File[] | null): void => {
             const reader = new FileReader();
             reader.onload = (): void => {
                 const text = reader.result as string;

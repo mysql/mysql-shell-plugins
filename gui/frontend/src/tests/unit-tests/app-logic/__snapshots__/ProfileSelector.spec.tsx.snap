@@ -7,7 +7,6 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
   >
     <div
       className="msg button"
-      draggable={true}
       onClick={[Function]}
       onMouseDown={[Function]}
       role="button"

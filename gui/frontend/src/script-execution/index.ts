@@ -21,11 +21,14 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IPosition, languages } from "monaco-editor";
+import { type IPosition, languages } from "monaco-editor";
+import { IDbModuleResultData } from "../app-logic/ApplicationDB";
+
 import { IColumnInfo, IDictionary, IExecutionInfo, MessageType } from "../app-logic/Types";
+import { ICodeEditorOptions, ICodeEditorViewState, IExecutionContextState } from "../components/ui/CodeEditor";
 
 import { LanguageCompletionKind } from "../parsing/parser-common";
-import { IExecutionContext } from "../supplement";
+import type { IExecutionContext } from "../supplement";
 
 /** Possible languages used for results. Note: there's a similar type EditorLanguage, but with a few other entries. */
 export type ResultTextLanguage =
@@ -180,7 +183,7 @@ export interface IPresentationOptions {
 }
 
 /**
- * Additional informations for a result that's going to be added to this presentation.
+ * Additional informations for a result that's going to be added to a presentation.
  */
 export interface IResponseDataOptions {
     /** The ID of the result data. */
@@ -199,4 +202,38 @@ export interface IResponseDataOptions {
 export interface IContextProvider {
     contextFromPosition: (position: IPosition | undefined | null) => IExecutionContext | undefined;
     cursorPosition: IPosition;
+}
+
+/** The version used in new notebooks. */
+export const currentNotebookVersion = "1.0";
+
+export interface IExecutionContextDetails {
+    state: IExecutionContextState;
+    data?: IDbModuleResultData[];
+}
+
+/** Describes the format of a notebook file (*.mysql-notebook) */
+export interface INotebookFileFormat {
+    type: "MySQLNotebook",
+
+    /** Indicates which format the file uses. */
+    version: string;
+
+    /** The name of the notebook. */
+    caption: string;
+
+    /** The complete text content of the notebook. */
+    content: string;
+
+    /** Options that describe some configuration values of the notebook editor. */
+    options: ICodeEditorOptions;
+
+    /** Code editor state (e.g. caret and scroll position). */
+    viewState: ICodeEditorViewState | null;
+
+    /**
+     * The list of execution contexts in the notebook, which includes their position and length, result data and
+     * statement ranges (if applicable).
+     */
+    contexts: IExecutionContextDetails[];
 }

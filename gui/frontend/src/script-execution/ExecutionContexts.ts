@@ -21,9 +21,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IResultSets, IResultSet, IContextProvider } from ".";
+import { IResultSets, IResultSet, IContextProvider, IExecutionContextDetails } from ".";
 import { ApplicationDB, IDbModuleResultData, StoreType } from "../app-logic/ApplicationDB";
-import { IExecutionContextState, IPosition } from "../components/ui/CodeEditor";
+import { IExecutionContextState, IPosition, Monaco } from "../components/ui/CodeEditor";
 import { CodeEditor, ResultPresentationFactory } from "../components/ui/CodeEditor/CodeEditor";
 import { IStatementSpan } from "../parsing/parser-common";
 import { EditorLanguage, IExecutionContext, ITextRange } from "../supplement";
@@ -110,18 +110,53 @@ export class ExecutionContexts implements IContextProvider {
      * @param factory The generator of a presentation object to use for the new contexts.
      * @param states The list of context states to restore.
      */
-    public restoreFromState(editor: CodeEditor, factory: ResultPresentationFactory,
+    public restoreFromStates(editor: CodeEditor, factory: ResultPresentationFactory,
         states: IExecutionContextState[]): void {
+
+        if (states.length === 0) {
+            // Do not touch the current context list if there's nothing to restore.
+            return;
+        }
+
         this.content.forEach((context: ExecutionContext) => {
             return context.dispose();
         });
 
-        this.content.splice(0, this.content.length);
+        // Do the restoration in two stages. First, create the contexts and apply all editor related actions, like
+        // setting decorations and adding view zones with the final height.
+        // Then, load the result sets and render them.
+        this.content = [];
+        const presentations: PresentationInterface[] = [];
         states.forEach((state: IExecutionContextState) => {
+            // Setting start and end line of the presentation object renders their gutter decorations.
+            // This also creates the view zone for the result pane, if the presentation is embedded.
             const presentation = factory(editor, state.language);
             presentation.startLine = state.start;
             presentation.endLine = state.end;
+
             const context = this.createContext(presentation, state.statements);
+            this.content.push(context);
+
+            presentations.push(presentation);
+        });
+
+        editor.backend?.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
+            for (let i = 0; i < presentations.length; ++i) {
+                const presentation = presentations[i];
+                const state = states[i];
+                if (state.result) {
+                    const zone = presentation.viewZone;
+                    if (zone) {
+                        zone.heightInPx = state.currentHeight;
+                        presentation.viewZoneId = changeAccessor.addZone(zone);
+                    }
+                }
+            }
+        });
+
+        for (let i = 0; i < states.length; ++i) {
+            const state = states[i];
+            const context = this.content[i];
             if (state.result) {
                 switch (state.result.type) {
                     case "resultIds": {
@@ -156,9 +191,7 @@ export class ExecutionContexts implements IContextProvider {
                     }
                 }
             }
-
-            this.content.push(context);
-        });
+        }
     }
 
     /**
@@ -277,6 +310,33 @@ export class ExecutionContexts implements IContextProvider {
                 }
             });
         }
+    }
+
+    /**
+     * @returns A promise that resolves to the list of contexts with their state and result data.
+     */
+    public async collectRawState(): Promise<IExecutionContextDetails[]> {
+        const result: IExecutionContextDetails[] = [];
+        for (const context of this.content) {
+            const state = context.state;
+            const entry: IExecutionContextDetails = {
+                state,
+                data: [],
+            };
+
+            if (state.result && state.result.type === "resultIds") {
+                for (const id of state.result.list) {
+                    const values = await ApplicationDB.db.getAllFromIndex(this.store, "resultIndex", id);
+                    if (this.isDbModuleResultData(values)) {
+                        entry.data!.push(...values);
+                    }
+                }
+            }
+
+            result.push(entry);
+        }
+
+        return result;
     }
 
     private createContext(presentation: PresentationInterface, statementSpans?: IStatementSpan[]): ExecutionContext {

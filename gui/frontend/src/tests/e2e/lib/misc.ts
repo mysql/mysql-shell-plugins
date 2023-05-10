@@ -27,6 +27,7 @@ import fs from "fs/promises";
 import { By, until, Key, WebElement, Builder, WebDriver, error } from "selenium-webdriver";
 import { Options } from "selenium-webdriver/chrome";
 import { DBConnection } from "./dbConnection";
+import { execFullBlockJs, execFullBlockSql } from "./dbNotebooks";
 
 export let driver: WebDriver;
 export const explicitWait = 5000;
@@ -68,6 +69,13 @@ export class Misc {
 
                 let driver: WebDriver;
                 options.addArguments("--no-sandbox");
+                const outDir = process.env.USERPROFILE ?? process.env.HOME;
+                options.setUserPreferences({download: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    default_directory: `${String(outDir)}`,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    prompt_for_download: "false"},
+                  });
 
                 if (headless === String("1")) {
                     options.headless().windowSize({ width: 1024, height: 768 });
@@ -81,7 +89,6 @@ export class Misc {
                         .setChromeOptions(options)
                         .build();
                 }
-
                 resolve(driver);
             });
         };
@@ -180,17 +187,12 @@ export class Misc {
         if (useBtn) {
             try {
                 await (
-                    await DBConnection.getToolbarButton(
-                        "Execute selection or full block and create a new block",
-                    )
-                )!.click();
+                    await DBConnection.getToolbarButton(execFullBlockSql))!.click();
+
             } catch (e) {
                 if (String(e).includes("Could not find button")) {
                     await (
-                        await DBConnection.getToolbarButton(
-                            "Execute full block and create a new block",
-                        )
-                    )!.click();
+                        await DBConnection.getToolbarButton(execFullBlockJs))!.click();
                 }
             }
 

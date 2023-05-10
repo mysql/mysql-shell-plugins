@@ -32,7 +32,10 @@ describe("Client connections module tests", (): void => {
     it("Test ClientConnections instantiation", async () => {
         const backend = new ShellInterfaceSqlEditor();
         const component = mount<ClientConnections>(
-            <ClientConnections backend={backend} />,
+            <ClientConnections
+                backend={backend}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+            />,
         );
         // Component updates.
         component.setProps({ backend });

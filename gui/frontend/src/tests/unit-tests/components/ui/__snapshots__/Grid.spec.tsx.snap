@@ -155,7 +155,6 @@ exports[`Grid component test Standard Rendering 1`] = `
           >
             <div
               className="msg button round"
-              draggable={true}
               id="loginButton"
               onMouseDown={[Function]}
               role="button"

@@ -58,39 +58,40 @@ import { MrsContentFileTreeItem } from "./tree-providers/ConnectionsTreeProvider
 
 export class MRSCommandHandler {
     protected docsWebviewPanel?: WebviewPanel;
-    private context: ExtensionContext;
+
+    private host: ExtensionHost;
 
     private dialogManager = new DialogWebviewManager();
 
-    public setup = (context: ExtensionContext, host: ExtensionHost): void => {
-        this.context = context;
+    public setup = (host: ExtensionHost): void => {
+        this.host = host;
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.configureMySQLRestService",
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.configureMySQLRestService",
             async (item?: ConnectionMySQLTreeItem) => {
                 await this.configureMrs(item);
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.disableMySQLRestService",
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.disableMySQLRestService",
             async (item?: ConnectionMySQLTreeItem) => {
                 await this.configureMrs(item, false);
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.enableMySQLRestService",
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.enableMySQLRestService",
             async (item?: ConnectionMySQLTreeItem) => {
                 await this.configureMrs(item, true);
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.bootstrapLocalRouter",
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.bootstrapLocalRouter",
             async (item?: MrsTreeItem) => {
-                await this.bootstrapLocalRouter(context, item);
+                await this.bootstrapLocalRouter(host.context, item);
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.startLocalRouter",
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.startLocalRouter",
             async (item?: MrsTreeItem) => {
-                await this.startStopLocalRouter(context, item);
+                await this.startStopLocalRouter(host.context, item);
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.killLocalRouters",
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.killLocalRouters",
             () => {
                 let term = window.terminals.find((t) => { return t.name === "MySQL Router MRS"; });
                 if (term === undefined) {
@@ -105,20 +106,20 @@ export class MRSCommandHandler {
             }));
 
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.stopLocalRouter",
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.stopLocalRouter",
             async (item?: MrsTreeItem) => {
-                await this.startStopLocalRouter(context, item, false);
+                await this.startStopLocalRouter(host.context, item, false);
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.docs", () => {
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.docs", () => {
             this.browseDocs();
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.docs.service", () => {
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.docs.service", () => {
             this.browseDocs("rest-service-properties");
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.deleteRouter",
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.deleteRouter",
             async (item?: MrsRouterTreeItem) => {
                 if (item) {
                     const answer = await window.showInformationMessage(
@@ -137,7 +138,7 @@ export class MRSCommandHandler {
             }));
 
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.addService", (item?: MrsTreeItem) => {
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.addService", (item?: MrsTreeItem) => {
             if (item?.entry.backend) {
                 this.showMrsServiceDialog(item.entry.backend).catch((reason) => {
                     void window.showErrorMessage(`${String(reason)}`);
@@ -145,7 +146,7 @@ export class MRSCommandHandler {
             }
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.editService", (item?: MrsServiceTreeItem) => {
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.editService", (item?: MrsServiceTreeItem) => {
             if (item?.entry.backend) {
                 this.showMrsServiceDialog(item.entry.backend, item.value).catch((reason) => {
                     void window.showErrorMessage(`${String(reason)}`);
@@ -153,7 +154,7 @@ export class MRSCommandHandler {
             }
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.deleteService",
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.deleteService",
             async (item?: MrsServiceTreeItem) => {
                 if (item) {
                     const answer = await window.showInformationMessage(
@@ -171,7 +172,7 @@ export class MRSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.setCurrentService",
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.setCurrentService",
             async (item?: MrsServiceTreeItem) => {
                 if (item) {
                     try {
@@ -185,7 +186,7 @@ export class MRSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.exportServiceSdk",
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.exportServiceSdk",
             async (item?: MrsServiceTreeItem) => {
                 if (item && item?.entry.backend && item.value) {
                     const backend = item.entry.backend;
@@ -209,7 +210,7 @@ export class MRSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.deleteSchema",
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.deleteSchema",
             async (item?: MrsSchemaTreeItem) => {
                 if (item) {
                     const answer = await window.showInformationMessage(
@@ -227,7 +228,7 @@ export class MRSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.editSchema", (item?: MrsSchemaTreeItem) => {
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.editSchema", (item?: MrsSchemaTreeItem) => {
             if (item?.entry.backend) {
                 this.showMrsSchemaDialog(item.entry.backend, item.value.name, item.value).catch((reason) => {
                     void window.showErrorMessage(`${String(reason)}`);
@@ -235,7 +236,7 @@ export class MRSCommandHandler {
             }
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.addSchema", (item?: SchemaMySQLTreeItem) => {
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.addSchema", (item?: SchemaMySQLTreeItem) => {
             if (item?.entry.backend) {
                 this.showMrsSchemaDialog(item.entry.backend, item.schema).catch((reason) => {
                     void window.showErrorMessage(`${String(reason)}`);
@@ -243,7 +244,7 @@ export class MRSCommandHandler {
             }
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.copyDbObjectRequestPath",
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.copyDbObjectRequestPath",
             async (item?: MrsDbObjectTreeItem) => {
                 if (item?.entry.backend && item.value) {
                     const o = item.value;
@@ -251,7 +252,7 @@ export class MRSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.openDbObjectRequestPath",
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.openDbObjectRequestPath",
             async (item?: MrsDbObjectTreeItem) => {
                 if (item?.entry.backend && item.value) {
                     const o = item.value;
@@ -267,23 +268,23 @@ export class MRSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.openContentFileRequestPath",
-        async (item?: MrsContentFileTreeItem) => {
-            if (item?.entry.backend && item.value) {
-                const i = item.value;
-                let url = (i.hostCtx ?? "") + (i.contentSetRequestPath ?? "") + i.requestPath;
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.openContentFileRequestPath",
+            async (item?: MrsContentFileTreeItem) => {
+                if (item?.entry.backend && item.value) {
+                    const i = item.value;
+                    let url = (i.hostCtx ?? "") + (i.contentSetRequestPath ?? "") + i.requestPath;
 
-                if (url.startsWith("/")) {
-                    url = `https://localhost:8443${url}`;
-                } else {
-                    url = `https://${url}`;
+                    if (url.startsWith("/")) {
+                        url = `https://localhost:8443${url}`;
+                    } else {
+                        url = `https://${url}`;
+                    }
+
+                    await env.openExternal(Uri.parse(url));
                 }
+            }));
 
-                await env.openExternal(Uri.parse(url));
-            }
-        }));
-
-        context.subscriptions.push(commands.registerCommand("msg.mrs.deleteDbObject",
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.deleteDbObject",
             async (item?: MrsDbObjectTreeItem) => {
                 if (item?.entry.backend && item.value) {
                     const backend = item.entry.backend;
@@ -307,7 +308,7 @@ export class MRSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.editAuthApp", (item?: MrsAuthAppTreeItem) => {
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.editAuthApp", (item?: MrsAuthAppTreeItem) => {
             if (item?.entry.backend) {
                 this.showMrsAuthAppDialog(item.entry.backend, item.value).catch((reason) => {
                     void window.showErrorMessage(`${String(reason)}`);
@@ -316,7 +317,7 @@ export class MRSCommandHandler {
         }));
 
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.addAuthApp",
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.addAuthApp",
             (item?: MrsServiceTreeItem) => {
                 try {
                     if (item?.entry.backend && item.value) {
@@ -329,7 +330,7 @@ export class MRSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.deleteAuthApp",
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.deleteAuthApp",
             async (item?: MrsAuthAppTreeItem) => {
                 try {
                     if (item?.entry.backend && item.value.id && item.value.name) {
@@ -352,7 +353,7 @@ export class MRSCommandHandler {
             }));
 
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.deleteUser",
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.deleteUser",
             async (item?: MrsUserTreeItem) => {
                 try {
                     if (item?.entry.backend && item.value.id && item.value.name) {
@@ -377,7 +378,7 @@ export class MRSCommandHandler {
             }));
 
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.addUser",
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.addUser",
             (item?: MrsAuthAppTreeItem) => {
                 try {
                     if (item?.entry.backend && item.value) {
@@ -390,7 +391,7 @@ export class MRSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.editUser",
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.editUser",
             async (item?: MrsUserTreeItem) => {
                 const backend = item?.entry.backend;
                 try {
@@ -409,7 +410,7 @@ export class MRSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.addFolderAsContentSet",
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.addFolderAsContentSet",
             async (directory?: Uri) => {
                 if (directory) {
                     const connection = await host.determineConnection(DBType.MySQL);
@@ -443,7 +444,7 @@ export class MRSCommandHandler {
             }));
 
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.deleteContentSet",
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.deleteContentSet",
             async (item?: MrsContentSetTreeItem) => {
                 if (item?.entry.backend && item.value) {
                     const backend = item.entry.backend;
@@ -468,7 +469,7 @@ export class MRSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.dumpSchemaToJSONFile",
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.dumpSchemaToJSONFile",
             async (item?: MrsSchemaTreeItem) => {
                 if (item?.entry.backend && item.value) {
                     const backend = item.entry.backend;
@@ -499,7 +500,7 @@ export class MRSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.dumpObjectToJSONFile",
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.dumpObjectToJSONFile",
             async (item?: MrsDbObjectTreeItem) => {
                 if (item?.entry.backend && item.value) {
                     const backend = item.entry.backend;
@@ -532,7 +533,7 @@ export class MRSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.loadSchemaFromJSONFile",
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.loadSchemaFromJSONFile",
             async (item?: MrsServiceTreeItem | Uri) => {
                 if (item instanceof MrsServiceTreeItem && item?.entry.backend && item.value) {
                     const backend = item.entry.backend;
@@ -627,7 +628,7 @@ export class MRSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.loadObjectFromJSONFile",
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.loadObjectFromJSONFile",
             async (item?: MrsSchemaTreeItem) => {
                 if (item?.entry.backend && item.value) {
                     const backend = item.entry.backend;
@@ -662,13 +663,13 @@ export class MRSCommandHandler {
             }));
 
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.saveExampleProject",
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.saveExampleProject",
             async (exampleCodePath: Uri) => {
                 const path = exampleCodePath.fsPath;
                 let m;
-                if (os.platform() === "win32"){
+                if (os.platform() === "win32") {
                     m = path.match(/([^\\]*)\/*$/);
-                }else{
+                } else {
                     m = path.match(/([^/]*)\/*$/);
                 }
                 if (m === null) {
@@ -934,8 +935,8 @@ export class MRSCommandHandler {
                             + "Do you want to bootstrap a local MySQL Router instance for development now?",
                             "Yes", "No");
                         if (answer === "Yes") {
-                            await this.bootstrapLocalRouter(context, item, true);
-                            void this.startStopLocalRouter(context, item);
+                            await this.bootstrapLocalRouter(this.host.context, item, true);
+                            void this.startStopLocalRouter(this.host.context, item);
                         }
                     } else {
                         showMessageWithTimeout(
@@ -1620,7 +1621,7 @@ export class MRSCommandHandler {
         if (!this.docsWebviewPanel) {
             try {
                 let data;
-                let mrsPluginDir = path.join(this.context.extensionPath, "shell", "lib",
+                let mrsPluginDir = path.join(this.host.context.extensionPath, "shell", "lib",
                     "mysqlsh", "plugins", "mrs_plugin");
                 let indexPath = path.join(mrsPluginDir, "docs", "index.html");
                 if (fs.existsSync(indexPath)) {

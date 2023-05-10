@@ -93,6 +93,7 @@ describe("PerformanceDashboard Tests", (): void => {
                 <PerformanceDashboard
                     backend={backend}
                     graphData={graphData}
+                    toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
                 />,
             );
 

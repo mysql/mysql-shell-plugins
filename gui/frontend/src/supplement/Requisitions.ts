@@ -97,7 +97,7 @@ export interface IOpenDialogFilters {
 
 /** This is essentially a copy of the VS Code OpenDialogOptions interface. */
 export interface IOpenDialogOptions {
-    /** Resource Id which trigger open dialog */
+    /** A unique ID which identifies the request. */
     id?: string;
 
     /** The resource the dialog shows when opened. */
@@ -129,6 +129,7 @@ export interface IOpenDialogOptions {
     title?: string;
 }
 
+/** The structure describing the files the user selected when running the open dialog in the application host. */
 export interface IOpenFileDialogResult {
     resourceId: string;
     path: string[];
@@ -259,6 +260,35 @@ export interface IRequestTypeMap {
     "editorValidationDone": (id: string) => Promise<boolean>;
     "editorSelectStatement": (details: { contextId: string; statementIndex: number; }) => Promise<boolean>;
 
+    /**
+     * Triggers saving the content of the current notebook to a file. The actual behavior depends on the context and
+     * the given `content` parameter.
+     *
+     * In the frontend: The data in the  `content` is ignored. Instead the content of the current notebook will be
+     * serialized and either sent to the remote backend (if the app is embedded, using the same requisition type),
+     * which will save it to a file, or the app will save it by itself, using the browser's download API.
+     *
+     * In the host (if the app is embedded): The `content` parameter must contain the serialized content of the
+     * notebook, which will be saved to a file, using a file picker provided by host (usually the native OS file
+     * selector). If `content` is empty, nothing happens.
+     */
+    "editorSaveNotebook": (content?: string) => Promise<boolean>;
+
+    /**
+     * Triggers loading a notebook from a file. The actual behavior depends on the context and the given `details`
+     * parameter.
+     *
+     * In the frontend: If `details` is given, it will be used to create a new notebook document in the editor. If
+     * there's no content given, the user will be prompted to select a file. If the app runs in a browser, the
+     * browser's file picker will be used and file content will be loaded into a new notebook document. If the app
+     * runs in an embedded context, this request will be forwarded to the host.
+     *
+     * In the host (if the app is embedded): The `details` parameter is ignored and instead the host will prompt the
+     * user to select a file. The file content will replace the current notebook document (the request can only be sent
+     * when a notebook is active).
+     */
+    "editorLoadNotebook": (details?: { content: string, standalone: boolean; }) => Promise<boolean>;
+
     /** Sent by the host to trigger close handling of an editor. */
     "editorClose": (details: { connectionId: number; editorId: string; }) => Promise<boolean>;
 
@@ -270,6 +300,9 @@ export interface IRequestTypeMap {
 
     /** Sent by the application when an editor was selected. */
     "editorSelect": (details: { connectionId: number, editorId: string; }) => Promise<boolean>;
+
+    /** Sent to synchronize tell the host that the content of an editor has changed. */
+    "editorChanged": SimpleCallback;
 
     "sqlSetCurrentSchema": (data: { id: string; connectionId: number; schema: string; }) => Promise<boolean>;
     "sqlTransactionChanged": SimpleCallback;
@@ -314,6 +347,9 @@ export interface IRequestTypeMap {
 
     "refreshOciTree": SimpleCallback;
     "refreshConnections": (data?: IDictionary) => Promise<boolean>;
+
+    /** Triggered when the list of connections has been updated and is now available. */
+    "connectionsUpdated": SimpleCallback;
     "selectConnectionTab": (page: string) => Promise<boolean>;
 
     "codeBlocksUpdate": (data: { linkId: number; code: string; }) => Promise<boolean>;

@@ -44,10 +44,12 @@ import { Toolbar } from "../../components/ui/Toolbar/Toolbar";
 import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext";
 import { Button } from "../../components/ui/Button/Button";
 import { Icon } from "../../components/ui/Icon/Icon";
-import { Divider } from "../../components/ui/Divider/Divider";
 
 interface IScriptEditorProperties extends IComponentProperties {
-    toolbarItems?: IToolbarItems;
+    /** When true some adjustments are made to the UI to represent the editor in a way needed for pure notebooks. */
+    standaloneMode: boolean;
+
+    toolbarItems: IToolbarItems;
 
     backend?: ShellInterfaceSqlEditor;
     savedState: ISavedEditorState;
@@ -84,7 +86,8 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
             maximizeResultPane: false,
         };
 
-        this.addHandledProperties("toolbarItems", "extraLibs", "backend", "onScriptExecution", "onEdit");
+        this.addHandledProperties("standaloneMode", "toolbarItems", "extraLibs", "backend", "onScriptExecution",
+            "onEdit");
     }
 
     public static getDerivedStateFromProps(newProps: IScriptEditorProperties,
@@ -126,7 +129,7 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
     }
 
     public render(): ComponentChild {
-        const { savedState, toolbarItems, backend, extraLibs, onScriptExecution } = this.props;
+        const { standaloneMode, savedState, toolbarItems, backend, extraLibs, onScriptExecution } = this.props;
         const { showResultPane, maximizeResultPane } = this.state;
 
         const className = this.getEffectiveClassNames(["standaloneScriptHost"]);
@@ -137,35 +140,45 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
 
         let toolbar;
         if (maximizeResultPane) {
-            const leftItems = [...toolbarItems?.left ?? []];
-            const rightItems = [...toolbarItems?.right ?? []];
-
-            // Add the normalize button before the close button here. We assume that the close button
-            // is the last button in the right items list.
-            const normalizeButton = <Button
-                id="normalizeResultStateButton"
-                imageOnly
-                data-tooltip="Normalize Result Tab"
-                onClick={this.toggleMaximizeResultPane}
-            >
-                <Icon src={normalizeIcon} data-tooltip="inherit" />
-            </Button>;
-
-            if (rightItems.length === 0) {
-                rightItems.push(normalizeButton);
+            // There are two variations in maximized result pane mode. In standalone mode the toolbar shows only
+            // a small set of buttons, namely buttons for execution and a close button (shown as normalize button).
+            // In normal mode the toolbar shows all parts and the normalize button acts as such.
+            if (standaloneMode) {
+                toolbar = <Toolbar
+                    id="dbEditorToolbar"
+                    dropShadow={false}
+                >
+                    {toolbarItems.execution}
+                    <div className="expander" />
+                    <Button
+                        id="normalizeResultStateButton"
+                        imageOnly
+                        data-tooltip="Return to embedded results"
+                        onClick={this.closeEditor}
+                    >
+                        <Icon src={normalizeIcon} data-tooltip="inherit" />
+                    </Button>
+                </Toolbar >;
             } else {
-                rightItems.splice(rightItems.length - 1, 0, <Divider vertical />);
-                rightItems.splice(rightItems.length - 1, 0, normalizeButton);
+                toolbar = <Toolbar
+                    id="dbEditorToolbar"
+                    dropShadow={false}
+                >
+                    {toolbarItems.navigation}
+                    {toolbarItems.execution}
+                    {toolbarItems.editor}
+                    <div className="expander" />
+                    <Button
+                        id="normalizeResultStateButton"
+                        imageOnly
+                        data-tooltip="Normalize Result Tab"
+                        onClick={this.toggleMaximizeResultPane}
+                    >
+                        <Icon src={normalizeIcon} data-tooltip="inherit" />
+                    </Button>
+                    {toolbarItems.auxillary}
+                </Toolbar >;
             }
-
-            toolbar = <Toolbar
-                id="dbEditorToolbar"
-                dropShadow={false}
-            >
-                {leftItems}
-                <div className="expander" />
-                {rightItems}
-            </Toolbar >;
         } else {
             toolbar = <DBEditorToolbar
                 toolbarItems={toolbarItems}
@@ -399,6 +412,12 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
 
     private toggleMaximizeResultPane = (): void => {
         this.presentationInterface?.toggleResultPane();
+    };
+
+    private closeEditor = (): void => {
+        const { savedState } = this.props;
+        void requisitions.execute("editorClose",
+            { connectionId: savedState.connectionId, editorId: savedState.activeEntry });
     };
 
     /**

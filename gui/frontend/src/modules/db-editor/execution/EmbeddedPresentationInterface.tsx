@@ -57,11 +57,6 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
     // Listener for content changes in the render target.
     private resizeObserver?: ResizeObserver;
 
-    private resultInfo?: { // A set of values required to manage a result element.
-        zoneId: string;
-        zone: Monaco.IViewZone;
-    };
-
     public dispose(): void {
         super.dispose();
 
@@ -172,10 +167,10 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
         this.endLineNumber += delta;
 
         // If we have a result assigned, update that as well.
-        if (this.resultInfo) {
-            this.resultInfo.zone.afterLineNumber = this.endLineNumber;
+        if (this.zoneInfo) {
+            this.zoneInfo.zone.afterLineNumber = this.endLineNumber;
             this.backend?.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
-                this.resultInfo && changeAccessor.layoutZone(this.resultInfo.zoneId);
+                this.zoneInfo && changeAccessor.layoutZone(this.zoneInfo.zoneId);
             });
         }
     }
@@ -218,10 +213,10 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
             }
         }
         // If we have a result assigned, update that as well.
-        if (this.resultInfo && this.resultInfo.zone.afterLineNumber !== this.endLineNumber) {
-            this.resultInfo.zone.afterLineNumber = this.endLineNumber;
+        if (this.zoneInfo && this.zoneInfo.zone.afterLineNumber !== this.endLineNumber) {
+            this.zoneInfo.zone.afterLineNumber = this.endLineNumber;
             this.backend?.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
-                this.resultInfo && changeAccessor.layoutZone(this.resultInfo.zoneId);
+                this.zoneInfo && changeAccessor.layoutZone(this.zoneInfo.zoneId);
             });
         }
     }
@@ -243,9 +238,9 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
         }
 
         this.backend?.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
-            if (this.resultInfo) {
-                changeAccessor.removeZone(this.resultInfo.zoneId);
-                this.resultInfo = undefined;
+            if (this.zoneInfo) {
+                changeAccessor.removeZone(this.zoneInfo.zoneId);
+                this.zoneInfo = undefined;
             }
         });
 
@@ -257,9 +252,9 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
 
         if (height !== undefined) {
             this.backend?.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
-                if (this.resultInfo && this.renderTarget) {
-                    this.resultInfo.zone.heightInPx = Math.max(height, this.minHeight);
-                    changeAccessor.layoutZone(this.resultInfo.zoneId);
+                if (this.zoneInfo && this.renderTarget) {
+                    this.zoneInfo.zone.heightInPx = Math.max(height, this.minHeight);
+                    changeAccessor.layoutZone(this.zoneInfo.zoneId);
                 }
             });
         }
@@ -270,18 +265,15 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
      *
      * @returns A div element which can be used to render result content into.
      */
-    protected defineRenderTarget(): HTMLDivElement {
-        // The zone node is positioned absolutely and hence cannot use margins to define a distance to neighbor
-        // elements. That's why we need an additional element below it that acts as background and mount point.
-        const zoneHost = document.createElement("div");
-        zoneHost.className = "zoneHost";
+    protected override defineRenderTarget(): HTMLDivElement {
+        // istanbul ignore next
+        if (!this.zoneInfo) {
+            // The zone info is created when the presentation is created. So, this call will probably never be needed.
+            this.prepareRenderTarget();
+        }
+        const renderTarget = this.zoneInfo!.zone.domNode.firstChild as HTMLDivElement;
 
-        const result = document.createElement("div");
-        result.className = "renderTarget";
-        result.style.maxHeight = `${PresentationInterface.maxHeight}px`;
-        zoneHost.appendChild(result);
-
-        result.addEventListener("wheel", (e) => {
+        renderTarget.addEventListener("wheel", (e) => {
             if (!this.editor?.isScrolling) {
                 (e.currentTarget as HTMLElement).scrollLeft += Math.sign(e.deltaX) * 2;
                 (e.currentTarget as HTMLElement).scrollTop += Math.sign(e.deltaY) * 2;
@@ -289,20 +281,15 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
             }
         }, { passive: true });
 
-        const marginNode = document.createElement("div");
-        marginNode.className = "zoneMargin";
+        if (this.zoneInfo?.zoneId === "") {
+            this.backend?.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
+                this.zoneInfo!.zoneId = changeAccessor.addZone(this.zoneInfo!.zone);
+            });
+        }
 
-        let zoneId = "";
-        const zone = {
-            afterLineNumber: this.endLine,
-            domNode: zoneHost,
-            marginDomNode: marginNode,
-            suppressMouseDown: false,
-            heightInPx: this.currentHeight,
-        };
 
         if (this.currentHeight) {
-            result.style.height = `${this.currentHeight}px`;
+            renderTarget.style.height = `${this.currentHeight}px`;
         }
 
         // istanbul ignore next
@@ -312,29 +299,50 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
                 if (last && !this.currentHeight) {
                     const maxAutoHeight = PresentationInterface.maxAutoHeight[this.resultData?.type ?? "text"];
                     const height = Math.min(last.borderBoxSize[0].blockSize, maxAutoHeight);
-                    if (result.clientHeight > maxAutoHeight) {
-                        result.style.height = `${height}px`;
+                    if (renderTarget.clientHeight > maxAutoHeight) {
+                        renderTarget.style.height = `${height}px`;
                     }
                     this.updateRenderTarget(height);
                 }
             });
-            this.resizeObserver.observe(result);
+            this.resizeObserver.observe(renderTarget);
         }
 
-        this.backend?.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
-            zoneId = changeAccessor.addZone(zone);
-        });
-
-        this.resultInfo = {
-            zoneId,
-            zone,
-        };
-
-        return result;
+        return renderTarget;
     }
 
     protected override showMaximizeButton(): "never" | "tab" | "statusBar" {
         return "statusBar";
+    }
+
+    /**
+     * Creates the minimal zone info required to add the zone to the editor. Everything else is added later
+     * in defineRenderTarget.
+     */
+    protected prepareRenderTarget(): void {
+        // The zone node is positioned absolutely and hence cannot use margins to define a distance to neighbor
+        // elements. That's why we need an additional element below it that acts as background and mount point.
+        const zoneHost = document.createElement("div");
+        zoneHost.className = "zoneHost";
+
+        const renderTarget = document.createElement("div");
+        renderTarget.className = "renderTarget";
+        renderTarget.style.maxHeight = `${PresentationInterface.maxHeight}px`;
+        zoneHost.appendChild(renderTarget);
+
+        const marginNode = document.createElement("div");
+        marginNode.className = "zoneMargin";
+
+        this.zoneInfo = {
+            zoneId: "",
+            zone: {
+                afterLineNumber: this.endLine,
+                domNode: zoneHost,
+                marginDomNode: marginNode,
+                suppressMouseDown: false,
+                heightInPx: this.currentHeight,
+            },
+        };
     }
 
     private handleDividerPointerDown = (e: PointerEvent): void => {
@@ -346,9 +354,9 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
 
     private handleDividerPointerUp = (e: PointerEvent): void => {
         (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-        if (this.resultInfo) {
+        if (this.zoneInfo) {
             this.manuallyResized = true;
-            this.currentHeight = this.resultInfo.zone.heightInPx;
+            this.currentHeight = this.zoneInfo.zone.heightInPx;
         }
 
         this.resizingZone = false;
@@ -363,21 +371,21 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
                 this.currentHeight = this.renderTarget?.getBoundingClientRect().height ?? maxAutoHeight;
             }
 
-            if (this.resultInfo) {
+            if (this.zoneInfo) {
                 this.dividerRef.current?.classList.remove("minimum");
                 this.dividerRef.current?.classList.remove("maximum");
 
                 const newHeight = (this.currentHeight ?? 0) + delta;
                 const minHeight = this.minHeight ?? 0;
                 if (newHeight >= minHeight && newHeight <= PresentationInterface.maxHeight) {
-                    this.resultInfo.zone.heightInPx = newHeight;
+                    this.zoneInfo.zone.heightInPx = newHeight;
                     this.renderTarget!.style.height = `${newHeight}px`;
 
                     // Only adjust the zone height here. The manualHeight member is updated on mouse up.
                     this.backend?.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
-                        if (this.resultInfo) {
-                            this.resultInfo.zone.heightInPx = newHeight;
-                            changeAccessor.layoutZone(this.resultInfo.zoneId);
+                        if (this.zoneInfo) {
+                            this.zoneInfo.zone.heightInPx = newHeight;
+                            changeAccessor.layoutZone(this.zoneInfo.zoneId);
                         }
                     });
                 } else if (newHeight < this.minHeight) {
