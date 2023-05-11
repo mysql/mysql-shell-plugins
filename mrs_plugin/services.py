@@ -395,7 +395,7 @@ def get_service(**kwargs):
                 if not item:
                     raise ValueError("Operation cancelled.")
                 else:
-                    return item
+                    return lib.services.format_service_listing([item], True)
 
         service = lib.services.get_service(url_context_root=url_context_root, url_host_name=url_host_name,
                                            service_id=service_id, get_default=get_default, session=session)
