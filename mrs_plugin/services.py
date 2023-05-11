@@ -754,7 +754,10 @@ def get_current_service_metadata(**kwargs):
 
         service_id = lib.services.get_current_service_id(session)
         if not service_id:
-            return {}
+            if lib.core.get_interactive_result():
+                return "The specified service was not found."
+            else:
+                return {}
 
         service = lib.services.get_service(
             session=session, service_id=service_id)
@@ -767,11 +770,16 @@ def get_current_service_metadata(**kwargs):
             """)
         row = res.fetch_one()
 
-        return {
+        metadata = {
             "id": service_id,
             "host_ctx": service.get("host_ctx") if service else None,
             "metadata_version": row.get_field("version") if row and service else None
         }
+
+        if not lib.core.get_interactive_result():
+            return metadata
+        else:
+            return lib.services.format_metadata(metadata["host_ctx"], metadata["metadata_version"])
 
 
 @plugin_function('mrs.set.currentService', shell=True, cli=True, web=True)
