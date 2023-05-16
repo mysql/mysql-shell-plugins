@@ -86,7 +86,7 @@ export class Shell {
                 }
             }, explicitWait, "No cells were found");
 
-            for (const cell of cells!) {
+            for (const cell of cells) {
                 const text = await cell.getText();
                 if (text === value) {
                     return true;

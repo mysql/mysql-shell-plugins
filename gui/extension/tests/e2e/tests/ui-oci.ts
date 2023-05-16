@@ -30,6 +30,7 @@ import {
     ModalDialog,
     TreeItem,
     CustomTreeSection,
+    Condition,
 } from "vscode-extension-tester";
 
 import { before, after, afterEach } from "mocha";
@@ -78,6 +79,16 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             await Misc.sectionFocus(ociTreeSection);
             await Misc.toggleBottomBar(false);
+            await driver.wait(new Condition("", async () => {
+                const editors = await new EditorView().getOpenEditorTitles();
+                if (editors.includes(dbEditorDefaultName)) {
+                    await new EditorView().closeAllEditors();
+
+                    return (await new EditorView().getOpenEditorTitles()).length === 0;
+                } else {
+                    return false;
+                }
+            }), explicitWait*3);
             treeOCISection = await Misc.getSection(ociTreeSection);
             treeTasksSection = await Misc.getSection(tasksTreeSection);
             await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait*2,
@@ -86,7 +97,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             const path = join(homedir(), ".oci", "config");
             await fs.writeFile(path, "");
 
-            await Misc.clickSectionToolbarButton(treeOCISection!,
+            await Misc.clickSectionToolbarButton(treeOCISection,
                 "Configure the OCI Profile list");
 
             const editors = await new EditorView().getOpenEditorTitles();
@@ -173,7 +184,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         it("View Config Profile Information", async () => {
 
-            await Misc.selectContextMenuItem(treeE2eTests!, "View Config Profile Information");
+            await Misc.selectContextMenuItem(treeE2eTests, "View Config Profile Information");
             const editors = await new EditorView().getOpenEditorTitles();
             expect(editors).to.include.members(["E2ETESTS Info.json"]);
             const textEditor = new TextEditor();
@@ -186,7 +197,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         it("Set as New Default Config Profile", async () => {
 
-            await Misc.selectContextMenuItem(treeE2eTests!, "Set as New Default Config Profile");
+            await Misc.selectContextMenuItem(treeE2eTests, "Set as New Default Config Profile");
             await driver.wait(async () => {
                 return Misc.isDefaultItem(treeE2eTests, "profile");
             }, explicitWait, "E2e tests is not the deault item");
@@ -325,7 +336,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         it("View DB System Information", async () => {
 
-            await Misc.selectContextMenuItem(treeDbSystem!, "View DB System Information");
+            await Misc.selectContextMenuItem(treeDbSystem, "View DB System Information");
             await driver.wait(async () => {
                 const editors = await new EditorView().getOpenEditorTitles();
 
@@ -470,7 +481,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         it("Get Bastion Information and set it as current", async () => {
 
-            await Misc.selectContextMenuItem(treeBastion!, "Get Bastion Information");
+            await Misc.selectContextMenuItem(treeBastion, "Get Bastion Information");
             await driver.wait(async () => {
                 const editors = await new EditorView().getOpenEditorTitles();
 
@@ -489,7 +500,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             const parsed = JSON.parse(json);
             const bastionId = parsed.id;
 
-            await Misc.selectContextMenuItem(treeBastion!, "Set as Current Bastion");
+            await Misc.selectContextMenuItem(treeBastion, "Set as Current Bastion");
             await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait*3,
                 `${await treeOCISection.getTitle()} is still loading`);
 
@@ -511,7 +522,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         it("Refresh When Bastion Reaches Active State", async () => {
 
-            await Misc.selectContextMenuItem(treeBastion!, "Refresh When Bastion Reaches Active State");
+            await Misc.selectContextMenuItem(treeBastion, "Refresh When Bastion Reaches Active State");
             await treeTasksSection.expand();
             expect(await Misc.getTreeElement(treeTasksSection, "Refresh Bastion (running)")).to.exist;
             const bottomBar = new BottomBarPanel();
@@ -615,7 +626,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 expect(await Misc.getTreeElement(treeOCISection, "Bastion4PrivateSubnetStandardVnc")).to.exist;
 
             } else {
-                await Misc.selectContextMenuItem(treeDbSystem!, "Start the DB System");
+                await Misc.selectContextMenuItem(treeDbSystem, "Start the DB System");
                 await Misc.verifyNotification("Are you sure you want to start the DB System");
                 const workbench = new Workbench();
                 const ntfs = await workbench.getNotifications();

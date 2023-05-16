@@ -980,7 +980,7 @@ export class Misc {
 
         const section = await Misc.getSection(dbTreeSection);
         const treeItems = await section.findElements(By.xpath(".//div[contains(@role, 'treeitem')]"));
-        const connections = [];
+        const connections: string[] = [];
         for (const item of treeItems) {
             const name = await item.findElement(By.css("a.label-name > span"));
             connections.push(await name.getText());
