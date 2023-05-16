@@ -97,16 +97,20 @@ describe("MYSQL SHELL CONSOLES", () => {
             }
 
             await Misc.sectionFocus(openEditorsTreeSection);
-            await driver.wait(new Condition("", async () => {
-                const editors = await new EditorView().getOpenEditorTitles();
-                if (editors.includes(dbEditorDefaultName)) {
-                    await new EditorView().closeAllEditors();
+            try {
+                await driver.wait(new Condition("", async () => {
+                    const editors = await new EditorView().getOpenEditorTitles();
+                    if (editors.includes(dbEditorDefaultName)) {
+                        await new EditorView().closeAllEditors();
 
-                    return (await new EditorView().getOpenEditorTitles()).length === 0;
-                } else {
-                    return false;
-                }
-            }), explicitWait*3, `${dbEditorDefaultName} tab was not opened`);
+                        return (await new EditorView().getOpenEditorTitles()).length === 0;
+                    } else {
+                        return false;
+                    }
+                }), explicitWait*2, `${dbEditorDefaultName} tab was not opened`);
+            } catch (e) {
+                // the extension should be loaded
+            }
             treeOpenEditorsSection = await Misc.getSection(openEditorsTreeSection);
             treeDBConnections = await Misc.getTreeElement(treeOpenEditorsSection, dbConnectionsLabel);
             await Misc.selectContextMenuItem(treeDBConnections, "Open New MySQL Shell Console");

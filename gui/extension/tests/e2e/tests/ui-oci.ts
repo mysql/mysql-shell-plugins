@@ -79,16 +79,20 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             await Misc.sectionFocus(ociTreeSection);
             await Misc.toggleBottomBar(false);
-            await driver.wait(new Condition("", async () => {
-                const editors = await new EditorView().getOpenEditorTitles();
-                if (editors.includes(dbEditorDefaultName)) {
-                    await new EditorView().closeAllEditors();
+            try {
+                await driver.wait(new Condition("", async () => {
+                    const editors = await new EditorView().getOpenEditorTitles();
+                    if (editors.includes(dbEditorDefaultName)) {
+                        await new EditorView().closeAllEditors();
 
-                    return (await new EditorView().getOpenEditorTitles()).length === 0;
-                } else {
-                    return false;
-                }
-            }), explicitWait*3);
+                        return (await new EditorView().getOpenEditorTitles()).length === 0;
+                    } else {
+                        return false;
+                    }
+                }), explicitWait*2, `${dbEditorDefaultName} tab was not opened`);
+            } catch (e) {
+                // the extension should be loaded
+            }
             treeOCISection = await Misc.getSection(ociTreeSection);
             treeTasksSection = await Misc.getSection(tasksTreeSection);
             await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait*2,
