@@ -33,7 +33,7 @@ import {
 import { expect } from "chai";
 import { basename } from "path";
 
-import { driver, Misc, dbTreeSection, explicitWait, ociExplicitWait, dbEditorDefaultName } from "./misc";
+import { driver, Misc, dbTreeSection, explicitWait, ociExplicitWait } from "./misc";
 
 export interface IConnBasicMySQL {
     hostname?: string;
@@ -108,13 +108,10 @@ export class Database {
             explicitWait, "Connection dialog was not displayed");
 
         if (dbType) {
-            const current = await (await dialog.findElement(By.css("#databaseType label"))).getText();
-            if (current !== dbType) {
-                const inDBType = await dialog.findElement(By.id("databaseType"));
-                await inDBType.click();
-                const popup = await driver.findElement(By.id("databaseTypePopup"));
-                await popup.findElement(By.id(dbType)).click();
-            }
+            const inDBType = await dialog.findElement(By.id("databaseType"));
+            await inDBType.click();
+            const popup = await driver.findElement(By.id("databaseTypePopup"));
+            await popup.findElement(By.id(dbType)).click();
         }
 
         if (caption) {
@@ -253,27 +250,18 @@ export class Database {
 
     public static createConnection = async (dbConfig: IDBConnection): Promise<void> => {
 
-        await driver.wait(async () => {
-            try {
-                await driver.switchTo().defaultContent();
-                await Misc.clickSectionToolbarButton(await Misc.getSection(dbTreeSection), "Create New DB Connection");
-                await Misc.switchToWebView();
-                await Database.setConnection(
-                    dbConfig.dbType,
-                    dbConfig.caption,
-                    dbConfig.description,
-                    dbConfig.basic,
-                    dbConfig.ssl,
-                    undefined,
-                    dbConfig.mds,
-                );
-
-                return true;
-            } catch (e) {
-                await new EditorView().closeEditor(dbEditorDefaultName);
-            }
-
-        }, explicitWait*3, "Could not create the connection (flacky to many times)");
+        await driver.switchTo().defaultContent();
+        await Misc.clickSectionToolbarButton(await Misc.getSection(dbTreeSection), "Create New DB Connection");
+        await Misc.switchToWebView();
+        await Database.setConnection(
+            dbConfig.dbType,
+            dbConfig.caption,
+            dbConfig.description,
+            dbConfig.basic,
+            dbConfig.ssl,
+            undefined,
+            dbConfig.mds,
+        );
 
         await driver.switchTo().defaultContent();
     };
