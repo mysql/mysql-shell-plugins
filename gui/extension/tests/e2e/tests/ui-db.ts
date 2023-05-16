@@ -32,7 +32,7 @@ import { after, afterEach, before } from "mocha";
 
 import {
     autoCommit, browser, commit, dbConnectionsLabel, dbEditorDefaultName, dbTreeSection,
-    driver, execFullBlockSql, explicitWait, isExtPrepared, loadNotebook, Misc, ociExplicitWait, openEditorsDBNotebook,
+    driver, execFullBlockSql, explicitWait, isExtPrepared, loadNotebook, Misc, openEditorsDBNotebook,
     openEditorsTreeSection, rollback, saveNotebook,
 } from "../lib/misc";
 
@@ -112,7 +112,7 @@ describe("DATABASE CONNECTIONS", () => {
                 } else {
                     return false;
                 }
-            }), ociExplicitWait);
+            }), explicitWait*3, `${dbEditorDefaultName} tab was not opened`);
 
             const randomCaption = String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000));
             globalConn.caption += randomCaption;

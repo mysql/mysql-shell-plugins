@@ -33,7 +33,7 @@ import {
 import { expect } from "chai";
 import { basename } from "path";
 
-import { driver, Misc, dbTreeSection, explicitWait, ociExplicitWait } from "./misc";
+import { driver, Misc, dbTreeSection, explicitWait, ociExplicitWait, dbEditorDefaultName } from "./misc";
 
 export interface IConnBasicMySQL {
     hostname?: string;
@@ -108,45 +108,13 @@ export class Database {
             explicitWait, "Connection dialog was not displayed");
 
         if (dbType) {
-            const setDbType = async () => {
+            const current = await (await dialog.findElement(By.css("#databaseType label"))).getText();
+            if (current !== dbType) {
                 const inDBType = await dialog.findElement(By.id("databaseType"));
                 await inDBType.click();
                 const popup = await driver.findElement(By.id("databaseTypePopup"));
                 await popup.findElement(By.id(dbType)).click();
-            };
-
-            await setDbType();
-
-            await driver.wait(async () => {
-                let currentValue = await dialog.findElement(By.css("#databaseType label")).getText();
-                // deal flacky
-                if (currentValue !== dbType) {
-                    await driver.findElement(By.id("closeButton")).click();
-                    const host = await Database.getWebViewConnection(caption, false);
-                    await driver.executeScript(
-                        "arguments[0].click();",
-                        await host.findElement(By.id("tileMoreActionsAction")),
-                    );
-
-                    const contextMenu = await driver.wait(
-                        until.elementLocated(By.css(".noArrow.menu")),
-                        2000,
-                    );
-
-                    await driver.executeScript(
-                        "arguments[0].click();",
-                        await contextMenu.findElement(By.id("edit")),
-                    );
-
-                    await setDbType();
-                    currentValue = await dialog.findElement(By.css("#databaseType label")).getText();
-
-                    return currentValue === dbType;
-                } else {
-                    return true;
-                }
-            }, explicitWait*3, "Db type was flacky too many times (Db type null)");
-
+            }
         }
 
         if (caption) {
@@ -285,19 +253,27 @@ export class Database {
 
     public static createConnection = async (dbConfig: IDBConnection): Promise<void> => {
 
-        await Misc.clickSectionToolbarButton(await Misc.getSection(dbTreeSection), "Create New DB Connection");
+        await driver.wait(async () => {
+            try {
+                await driver.switchTo().defaultContent();
+                await Misc.clickSectionToolbarButton(await Misc.getSection(dbTreeSection), "Create New DB Connection");
+                await Misc.switchToWebView();
+                await Database.setConnection(
+                    dbConfig.dbType,
+                    dbConfig.caption,
+                    dbConfig.description,
+                    dbConfig.basic,
+                    dbConfig.ssl,
+                    undefined,
+                    dbConfig.mds,
+                );
 
-        await Misc.switchToWebView();
+                return true;
+            } catch (e) {
+                await new EditorView().closeEditor(dbEditorDefaultName);
+            }
 
-        await Database.setConnection(
-            dbConfig.dbType,
-            dbConfig.caption,
-            dbConfig.description,
-            dbConfig.basic,
-            dbConfig.ssl,
-            undefined,
-            dbConfig.mds,
-        );
+        }, explicitWait*3, "Could not create the connection (flacky to many times)");
 
         await driver.switchTo().defaultContent();
     };
@@ -328,7 +304,7 @@ export class Database {
             await driver.switchTo().defaultContent();
         }
 
-        return db!;
+        return db;
     };
 
     public static setPassword = async (dbConfig: IDBConnection): Promise<void> => {
@@ -1085,7 +1061,7 @@ export class Database {
             els.push(await item.getText());
         }
 
-        return [...new Set(els)];
+        return [...new Set(els)] as string[];
 
     };
 

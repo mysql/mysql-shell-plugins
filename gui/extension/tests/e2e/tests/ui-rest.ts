@@ -28,6 +28,7 @@ import {
     TreeItem,
     CustomTreeSection,
     BottomBarPanel,
+    Condition,
 } from "vscode-extension-tester";
 
 import { before, afterEach } from "mocha";
@@ -38,6 +39,7 @@ import {
     explicitWait,
     Misc,
     isExtPrepared,
+    dbEditorDefaultName,
 } from "../lib/misc";
 
 import { hostname } from "os";
@@ -92,6 +94,16 @@ describe("MySQL REST Service", () => {
 
             await Misc.sectionFocus(dbTreeSection);
             await Misc.toggleBottomBar(false);
+            await driver.wait(new Condition("", async () => {
+                const editors = await new EditorView().getOpenEditorTitles();
+                if (editors.includes(dbEditorDefaultName)) {
+                    await new EditorView().closeAllEditors();
+
+                    return (await new EditorView().getOpenEditorTitles()).length === 0;
+                } else {
+                    return false;
+                }
+            }), explicitWait*3, `${dbEditorDefaultName} tab was not opened`);
             const randomCaption = String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000));
             globalConn.caption += randomCaption;
             treeDBSection = await Misc.getSection(dbTreeSection);

@@ -27,6 +27,7 @@ import {
     until,
     WebElement,
     TreeItem,
+    Condition,
 } from "vscode-extension-tester";
 
 import { before, after, afterEach } from "mocha";
@@ -38,6 +39,7 @@ import {
     isExtPrepared,
     openEditorsTreeSection,
     dbConnectionsLabel,
+    dbEditorDefaultName,
 } from "../lib/misc";
 
 import { IDBConnection, Database, IConnBasicMySQL } from "../lib/db";
@@ -95,6 +97,16 @@ describe("MYSQL SHELL CONSOLES", () => {
             }
 
             await Misc.sectionFocus(openEditorsTreeSection);
+            await driver.wait(new Condition("", async () => {
+                const editors = await new EditorView().getOpenEditorTitles();
+                if (editors.includes(dbEditorDefaultName)) {
+                    await new EditorView().closeAllEditors();
+
+                    return (await new EditorView().getOpenEditorTitles()).length === 0;
+                } else {
+                    return false;
+                }
+            }), explicitWait*3, `${dbEditorDefaultName} tab was not opened`);
             treeOpenEditorsSection = await Misc.getSection(openEditorsTreeSection);
             treeDBConnections = await Misc.getTreeElement(treeOpenEditorsSection, dbConnectionsLabel);
             await Misc.selectContextMenuItem(treeDBConnections, "Open New MySQL Shell Console");
