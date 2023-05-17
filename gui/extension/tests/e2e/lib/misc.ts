@@ -28,10 +28,10 @@ import addContext from "mochawesome/addContext";
 import { platform } from "os";
 import { join } from "path";
 import {
-    ActivityBar, BottomBarPanel, By, Condition, CustomTreeSection, EditorView, error, InputBox, ITimeouts,
+    BottomBarPanel, By, Condition, CustomTreeSection, EditorView, error, InputBox, ITimeouts,
     Key, Notification, OutputView, SideBarView, TreeItem, until, VSBrowser,
     WebDriver,
-    WebElement, Workbench,
+    WebElement, Workbench, ActivityBar,
 } from "vscode-extension-tester";
 import { Database, IConnBasicMySQL, IDBConnection } from "./db";
 
@@ -47,7 +47,6 @@ export const explicitWait = 5000;
 export const ociExplicitWait = 10000;
 export const ociTasksExplicitWait = 50000;
 
-export let isExtPrepared = false;
 export const dbMaxLevel = 5;
 export const ociMaxLevel = 5;
 export const openEditorsMaxLevel = 5;
@@ -72,23 +71,34 @@ export const loadNotebook = "Load a new Notebook from a file";
 
 export class Misc {
 
-    public static prepareExtension = async (): Promise<void> => {
-        await Misc.loadDriver();
-        let activityBar = new ActivityBar();
-        await (await activityBar.getViewControl("MySQL Shell for VS Code"))?.openView();
-        const openEditors = new EditorView();
+    public static extensionIsReady = (): Condition<boolean> => {
+        return new Condition("", async () => {
+            await new EditorView().closeAllEditors();
+            await driver.wait(async () => {
+                return this.reloadVSCode().then(() => {
+                    return true;
+                })
+                    .catch(() => {
+                        return false;
+                    });
+            }, explicitWait * 3, "Reload window did not went well");
+            await Misc.checkMySQLShLog("Certificate is installed", explicitWait*4);
+            await Misc.checkMySQLShLog("Mode: Single user");
+            await Misc.checkMySQLShLog("Registering session...");
+            const activityBar = new ActivityBar();
+            await (await activityBar.getViewControl("MySQL Shell for VS Code"))?.openView();
 
-        await driver.wait(async () => {
-            return (await openEditors.getOpenEditorTitles()).includes("Welcome to MySQL Shell");
-        }, explicitWait * 2, "Welcome tab was not displayed");
+            return driver.wait(async () => {
+                const editors = await new EditorView().getOpenEditorTitles();
+                if (editors.includes(dbEditorDefaultName)) {
+                    await new EditorView().closeAllEditors();
 
-        await Misc.reloadVSCode();
-        await new EditorView().closeAllEditors();
-        activityBar = new ActivityBar();
-        await (await activityBar.getViewControl("MySQL Shell for VS Code"))?.openView();
-        await Misc.checkCertificate();
-        await Misc.applicationDidStart();
-        isExtPrepared = true;
+                    return true;
+                } else {
+                    return false;
+                }
+            }, explicitWait * 3, `${dbEditorDefaultName} tab should have been opened`);
+        });
     };
 
     public static getSection = async (name: string): Promise<CustomTreeSection> => {
@@ -291,12 +301,7 @@ export class Misc {
     };
 
     public static execOnEditor = async (): Promise<void> => {
-        await driver
-            .actions()
-            .keyDown(Key.CONTROL)
-            .sendKeys(Key.ENTER)
-            .keyUp(Key.CONTROL)
-            .perform();
+        await driver.findElement(By.css("textarea")).sendKeys(Key.chord(Key.CONTROL, Key.ENTER));
     };
 
     public static getNextResultBlockId = async (): Promise<string | undefined> => {
@@ -799,7 +804,6 @@ export class Misc {
 
     public static getMysqlshLog = (): string => {
         if (process.env.TEST_SUITE !== undefined) {
-
             return join(basePath, `mysqlsh-${String(process.env.TEST_SUITE)}`, "mysqlsh.log");
         } else {
             throw new Error("TEST_SUITE env variable is not defined");
@@ -987,6 +991,29 @@ export class Misc {
         return connections;
     };
 
+    public static loadDriver = async (): Promise<void> => {
+
+        const timeout: ITimeouts = { implicit: 0 };
+        let counter = 0;
+        while (counter <= 10) {
+            try {
+                browser = VSBrowser.instance;
+                await browser.waitForWorkbench();
+                driver = browser.driver;
+                await driver.manage().setTimeouts(timeout);
+
+                return;
+            } catch (e) {
+                if (e instanceof Error) {
+                    if (e.message.indexOf("target frame detached") === -1) {
+                        throw new Error(String(e.stack));
+                    }
+                    counter++;
+                }
+            }
+        }
+    };
+
     private static getTerminalOutput = async (): Promise<string> => {
         let out: string;
         if (platform() === "linux") {
@@ -1164,44 +1191,10 @@ export class Misc {
         return toReturn;
     };
 
-    private static loadDriver = async (): Promise<void> => {
-
-        const timeout: ITimeouts = { implicit: 0 };
-
-        let counter = 0;
-        while (counter <= 10) {
-            try {
-                browser = VSBrowser.instance;
-                await browser.waitForWorkbench();
-                driver = browser.driver;
-                await driver.manage().setTimeouts(timeout);
-
-                return;
-            } catch (e) {
-                if (e instanceof Error) {
-                    if (e.message.indexOf("target frame detached") === -1) {
-                        throw new Error(String(e.stack));
-                    }
-                    counter++;
-                }
-            }
-        }
-
-    };
-
     private static reloadVSCode = async (): Promise<void> => {
-        const reload = async () => {
-            const workbench = new Workbench();
-            await workbench.executeCommand("workbench.action.reloadWindow");
-            await driver.sleep(2000);
-        };
-
-        try {
-            await reload();
-        } catch (e) {
-            await reload();
-        }
-
+        const workbench = new Workbench();
+        await workbench.executeCommand("workbench.action.reloadWindow");
+        await driver.sleep(2000);
     };
 
     private static getPromptTextLine = async (prompt: String): Promise<String> => {
@@ -1235,43 +1228,12 @@ export class Misc {
         return sentence;
     };
 
-    private static checkCertificate = async (): Promise<void> => {
+    private static checkMySQLShLog = async (textToFind: string, timeout = explicitWait): Promise<void> => {
         await driver.wait(async () => {
             const text = await fs.readFile(Misc.getMysqlshLog());
-            if (text.includes("Certificate is not installed")) {
-                throw new Error("Certificate is not installed");
-            } else if (
-                text.includes("Mode: Single user") ||
-                text.includes("Certificate is installed")
-            ) {
-                return true;
-            }
-        }, 15000, "Could not verify certificate installation");
+
+            return text.includes(textToFind);
+        }, timeout, `${textToFind} was not found on mysqlsh.log`);
     };
 
-    private static applicationDidStart = async (): Promise<void> => {
-        const logsPath = join(basePath, `test-resources-${String(process.env.TEST_SUITE)}`, "settings", "logs");
-        const randomDirFolder = await fs.readdir(logsPath);
-        const extHostFolderItems = await fs.readdir(join(logsPath, randomDirFolder[0], "window1", "exthost"));
-        const refFolders = [];
-        for (const item of extHostFolderItems) {
-            if (item.includes("output_logging")) {
-                refFolders.push(join(logsPath, randomDirFolder[0], "window1", "exthost", item));
-            }
-        }
-
-        const refPaths = [];
-        for (const item of refFolders) {
-            refPaths.push(join(item as string, "1-MySQL Shell for VS Code.log"));
-        }
-
-        await driver.wait(async () => {
-            let text = "";
-            for (const item of refPaths) {
-                text += `${(await fs.readFile(item as string)).toString()} \n`;
-            }
-
-            return text.includes("State: application did start");
-        }, explicitWait * 3, "Application did not start");
-    };
 }

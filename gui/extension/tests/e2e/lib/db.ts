@@ -25,7 +25,7 @@ import {
     By,
     EditorView,
     until,
-    Key as selKey,
+    Key,
     error,
     Condition,
     InputBox,
@@ -574,7 +574,7 @@ export class Database {
             }
         }
 
-        await driver.actions().sendKeys(selKey.ESCAPE).perform();
+        await driver.actions().sendKeys(Key.ESCAPE).perform();
 
         const inputMrsDef = await dialog.findElement(By.id("makeDefault"));
         const inputMrsDefClasses = await inputMrsDef.getAttribute("class");
@@ -1040,7 +1040,7 @@ export class Database {
             els.push(await item.getText());
         }
 
-        await driver.actions().sendKeys(selKey.ARROW_UP).perform();
+        await driver.findElement(By.css("textarea")).sendKeys(Key.ARROW_UP);
 
         items = await driver.wait(until.elementsLocated(By.css(".monaco-list .monaco-highlighted-label span")),
             explicitWait, "Auto complete items were not displayed");

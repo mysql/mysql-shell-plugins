@@ -112,10 +112,6 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             loading: false,
             progressMessage: "",
         };
-
-        void ShellInterface.core.getDbTypes().then((list) => {
-            this.knowDbTypes = list;
-        });
     }
 
     public render(): ComponentChild {
@@ -172,7 +168,11 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
      * @param newConnection A flag indicating if a new connection is to be created.
      * @param details Optional connection details for existing connections.
      */
-    public show(dbTypeName: string, newConnection: boolean, details?: IConnectionDetails): void {
+    public async show(dbTypeName: string, newConnection: boolean, details?: IConnectionDetails): Promise<void> {
+        if (this.knowDbTypes.length === 0) {
+            this.knowDbTypes = await ShellInterface.core.getDbTypes();
+        }
+
         this.liveUpdateFields.bastionName.value = "";
         this.liveUpdateFields.mdsDatabaseName.value = "";
         this.liveUpdateFields.profileName = "";
@@ -208,16 +208,15 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
 
                 // Get all available bastions that are in the same compartment as the DbSystem but ensure that
                 // these bastions are valid for the specific DbSystem by having a matching target_subnet_id
-                void this.shellSession.mds.getMdsBastions(profileName, compartmentId, dbSystemId).then((bastions) => {
-                    if (bastions.length > 0) {
-                        // If there is a bastion in the same compartment
-                        details.options["bastion-id"] = bastions[0].id;
-                        this.liveUpdateFields.bastionId.value = details.options["bastion-id"] as string;
-                        this.loadMdsAdditionalDataAndShowConnectionDlg(dbTypeName, newConnection, details);
-                    } else {
-                        this.confirmBastionCreation(details);
-                    }
-                });
+                const bastions = await this.shellSession.mds.getMdsBastions(profileName, compartmentId, dbSystemId);
+                if (bastions.length > 0) {
+                    // If there is a bastion in the same compartment
+                    details.options["bastion-id"] = bastions[0].id;
+                    this.liveUpdateFields.bastionId.value = details.options["bastion-id"] as string;
+                    this.loadMdsAdditionalDataAndShowConnectionDlg(dbTypeName, newConnection, details);
+                } else {
+                    this.confirmBastionCreation(details);
+                }
             } else {
                 // A connection dialog without MySQL DB system id.
                 // Activate the SSH/MDS contexts as needed

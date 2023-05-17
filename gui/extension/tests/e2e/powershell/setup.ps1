@@ -174,6 +174,20 @@ try {
     writeMsg "USER PROFILE: $env:USERPROFILE"
     writeMsg "BASE PATH: $basePath"
 
+    # REMOVE INSTALLED EXTENSION
+    $paths = @()
+    $paths += Join-Path $env:userprofile "test-resources-db" "ext"
+    $paths += Join-Path $env:userprofile "test-resources-oci" "ext"
+    $paths += Join-Path $env:userprofile "test-resources-shell" "ext"
+    $paths += Join-Path $env:userprofile "test-resources-rest" "ext"
+    ForEach ($path in $paths) {
+        Get-ChildItem -Path $path | % {
+        writeMsg "Removing $_ ..." "-NoNewLine"
+        Remove-Item -Path $_ -Force -Recurse
+        writeMsg "DONE"
+        }
+    }
+    
     # REMOVE PACKAGE-LOCK.JSON
     if (Test-Path -Path "$basePath\package-lock.json"){
         writeMsg "Removing package-lock.json..." "-NoNewLine"

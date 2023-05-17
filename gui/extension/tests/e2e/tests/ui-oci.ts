@@ -42,7 +42,6 @@ import {
     ociExplicitWait,
     ociTasksExplicitWait,
     Misc,
-    isExtPrepared,
     ociMaxLevel,
     tasksMaxLevel,
     dbEditorDefaultName,
@@ -71,17 +70,12 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
     before(async function () {
 
-        try {
-            if (!isExtPrepared) {
-                await Misc.prepareExtension();
-            }
+        await Misc.loadDriver();
 
-            await Misc.sectionFocus(ociTreeSection);
+        try {
+            await driver.wait(Misc.extensionIsReady(), explicitWait * 4, "Extension was not ready");
             await Misc.toggleBottomBar(false);
-            let editors = await new EditorView().getOpenEditorTitles();
-            if (editors.includes(dbEditorDefaultName)) {
-                await new EditorView().closeAllEditors();
-            }
+            await Misc.sectionFocus(ociTreeSection);
             treeOCISection = await Misc.getSection(ociTreeSection);
             treeTasksSection = await Misc.getSection(tasksTreeSection);
             await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait * 2,
@@ -93,7 +87,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await Misc.clickSectionToolbarButton(treeOCISection,
                 "Configure the OCI Profile list");
 
-            editors = await new EditorView().getOpenEditorTitles();
+            const editors = await new EditorView().getOpenEditorTitles();
             expect(editors).to.include.members(["config"]);
             const textEditor = new TextEditor();
             const editor = await driver.findElement(By.css("textarea"));

@@ -141,13 +141,6 @@ try {
         writeMsg "DONE for $($env:TEST_SUITE.toUpper()) suite. There are FAILED tests. Check resultsExt-$env:TEST_SUITE.log"
     }
 
-    # CLEANUP EXTENSION FOLDER
-    Get-ChildItem -Path $extPath | % {
-        writeMsg "Removing $_ ..." "-NoNewLine"
-        Remove-Item -Path $_ -Force -Recurse
-        writeMsg "DONE"
-    }
-
     exit $prcExecTests.ExitCode
     
 }

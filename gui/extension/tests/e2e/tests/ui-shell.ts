@@ -35,10 +35,8 @@ import {
     driver,
     explicitWait,
     Misc,
-    isExtPrepared,
     openEditorsTreeSection,
     dbConnectionsLabel,
-    dbEditorDefaultName,
 } from "../lib/misc";
 
 import { IDBConnection, Database, IConnBasicMySQL } from "../lib/db";
@@ -90,16 +88,12 @@ describe("MYSQL SHELL CONSOLES", () => {
             throw new Error("Please define the environment variable DBPORTX");
         }
 
-        try {
-            if (!isExtPrepared) {
-                await Misc.prepareExtension();
-            }
+        await Misc.loadDriver();
 
+        try {
+            await driver.wait(Misc.extensionIsReady(), explicitWait * 4, "Extension was not ready");
+            await Misc.toggleBottomBar(false);
             await Misc.sectionFocus(openEditorsTreeSection);
-            const editors = await new EditorView().getOpenEditorTitles();
-            if (editors.includes(dbEditorDefaultName)) {
-                await new EditorView().closeAllEditors();
-            }
             treeOpenEditorsSection = await Misc.getSection(openEditorsTreeSection);
             treeDBConnections = await Misc.getTreeElement(treeOpenEditorsSection, dbConnectionsLabel);
             await Misc.selectContextMenuItem(treeDBConnections, "Open New MySQL Shell Console");
