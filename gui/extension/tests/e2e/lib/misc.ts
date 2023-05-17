@@ -83,13 +83,11 @@ export class Misc {
         }, explicitWait * 2, "Welcome tab was not displayed");
 
         await Misc.reloadVSCode();
-
         await new EditorView().closeAllEditors();
         activityBar = new ActivityBar();
         await (await activityBar.getViewControl("MySQL Shell for VS Code"))?.openView();
-
         await Misc.checkCertificate();
-
+        await Misc.applicationDidStart();
         isExtPrepared = true;
     };
 
@@ -1249,5 +1247,31 @@ export class Misc {
                 return true;
             }
         }, 15000, "Could not verify certificate installation");
+    };
+
+    private static applicationDidStart = async (): Promise<void> => {
+        const logsPath = join(basePath, `test-resources-${String(process.env.TEST_SUITE)}`, "settings", "logs");
+        const randomDirFolder = await fs.readdir(logsPath);
+        const extHostFolderItems = await fs.readdir(join(logsPath, randomDirFolder[0], "window1", "exthost"));
+        const refFolders = [];
+        for (const item of extHostFolderItems) {
+            if (item.includes("output_logging")) {
+                refFolders.push(join(logsPath, randomDirFolder[0], "window1", "exthost", item));
+            }
+        }
+
+        const refPaths = [];
+        for (const item of refFolders) {
+            refPaths.push(join(item as string, "1-MySQL Shell for VS Code.log"));
+        }
+
+        await driver.wait(async () => {
+            let text = "";
+            for (const item of refPaths) {
+                text += `${(await fs.readFile(item as string)).toString()} \n`;
+            }
+
+            return text.includes("State: application did start");
+        }, explicitWait * 3, "Application did not start");
     };
 }

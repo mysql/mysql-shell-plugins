@@ -128,6 +128,10 @@ try {
         writeMsg "DONE"
     }
 
+    # CLEAN FE LOGS
+    $feLogs = Join-Path $env:userprofile "test-resources-$env:TEST_SUITE" "settings" "logs" "*"
+    Remove-Item -Path $feLogs -Force -Recurse
+
     # EXECUTE TESTS
     writeMsg "Executing GUI tests for $env:TEST_SUITE suite..."
     $prcExecTests = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests", "--", "-s $testResources", "-e $extPath", "-f", "./output/tests/ui-$env:TEST_SUITE.js" -Wait -PassThru -RedirectStandardOutput "$workspace\resultsExt-$env:TEST_SUITE.log" -RedirectStandardError "$workspace\resultsExtErr-$env:TEST_SUITE.log"

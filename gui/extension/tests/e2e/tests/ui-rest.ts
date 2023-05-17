@@ -28,7 +28,6 @@ import {
     TreeItem,
     CustomTreeSection,
     BottomBarPanel,
-    Condition,
 } from "vscode-extension-tester";
 
 import { before, afterEach } from "mocha";
@@ -94,19 +93,9 @@ describe("MySQL REST Service", () => {
 
             await Misc.sectionFocus(dbTreeSection);
             await Misc.toggleBottomBar(false);
-            try {
-                await driver.wait(new Condition("", async () => {
-                    const editors = await new EditorView().getOpenEditorTitles();
-                    if (editors.includes(dbEditorDefaultName)) {
-                        await new EditorView().closeAllEditors();
-
-                        return (await new EditorView().getOpenEditorTitles()).length === 0;
-                    } else {
-                        return false;
-                    }
-                }), explicitWait*2, `${dbEditorDefaultName} tab was not opened`);
-            } catch (e) {
-                // the extension should be loaded
+            const editors = await new EditorView().getOpenEditorTitles();
+            if (editors.includes(dbEditorDefaultName)) {
+                await new EditorView().closeAllEditors();
             }
 
             const randomCaption = String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000));
@@ -226,11 +215,11 @@ describe("MySQL REST Service", () => {
 
             expect(await Misc.isRouterInstalled(), "Please install MySQL Router manually").to.be.true;
             await Misc.selectContextMenuItem(treeMySQLRESTService, "Bootstrap Local MySQL Router Instance");
-            await Misc.waitForTerminalText("Please enter MySQL password for root:", explicitWait*2);
-            await Misc.execOnTerminal((globalConn.basic as IConnBasicMySQL).password, explicitWait*2);
-            await Misc.waitForTerminalText("JWT secret:", explicitWait*2);
-            await Misc.execOnTerminal("1234", explicitWait*2);
-            await Misc.waitForTerminalText("Once the MySQL Router is started", explicitWait*2);
+            await Misc.waitForTerminalText("Please enter MySQL password for root:", explicitWait * 2);
+            await Misc.execOnTerminal((globalConn.basic as IConnBasicMySQL).password, explicitWait * 2);
+            await Misc.waitForTerminalText("JWT secret:", explicitWait * 2);
+            await Misc.execOnTerminal("1234", explicitWait * 2);
+            await Misc.waitForTerminalText("Once the MySQL Router is started", explicitWait * 2);
             expect(await Misc.terminalHasErrors()).to.be.false;
             treeDBSection = await Misc.getSection(dbTreeSection);
             treeRouter = await Misc.getTreeElement(treeDBSection, hostname(), true);
@@ -245,11 +234,11 @@ describe("MySQL REST Service", () => {
             const workbench = new Workbench();
             const ntfs = await workbench.getNotifications();
             await ntfs[ntfs.length - 1].takeAction("Yes");
-            await Misc.waitForTerminalText("Please enter MySQL password for root:", explicitWait*2);
-            await Misc.execOnTerminal((globalConn.basic as IConnBasicMySQL).password, explicitWait*2);
-            await Misc.waitForTerminalText("JWT secret:", explicitWait*2);
-            await Misc.execOnTerminal("1234", explicitWait*2);
-            await Misc.waitForTerminalText("Once the MySQL Router is started", explicitWait*2);
+            await Misc.waitForTerminalText("Please enter MySQL password for root:", explicitWait * 2);
+            await Misc.execOnTerminal((globalConn.basic as IConnBasicMySQL).password, explicitWait * 2);
+            await Misc.waitForTerminalText("JWT secret:", explicitWait * 2);
+            await Misc.execOnTerminal("1234", explicitWait * 2);
+            await Misc.waitForTerminalText("Once the MySQL Router is started", explicitWait * 2);
             expect(await Misc.terminalHasErrors()).to.be.false;
             treeRouter = await Misc.getTreeElement(treeDBSection, hostname(), true);
 
@@ -267,20 +256,20 @@ describe("MySQL REST Service", () => {
                 await (await Misc.getActionButton(treeGlobalConn, "Reload Database Information")).click();
 
                 return (await Misc.isRouterActive(treeRouter)) === true;
-            }, explicitWait*2, `${await treeRouter.getLabel()} did not became active`);
+            }, explicitWait * 2, `${await treeRouter.getLabel()} did not became active`);
 
         });
 
         it("Stop Local MySQL Router Instance", async () => {
 
             await Misc.selectContextMenuItem(treeMySQLRESTService, "Stop Local MySQL Router Instance");
-            await Misc.waitForTerminalText(["mysqlrouter\\stop", "Unloading all plugins"], explicitWait*2);
+            await Misc.waitForTerminalText(["mysqlrouter\\stop", "Unloading all plugins"], explicitWait * 2);
             expect(await Misc.terminalHasErrors()).to.be.false;
             await driver.wait(async () => {
                 await (await Misc.getActionButton(treeGlobalConn, "Reload Database Information")).click();
 
                 return (await Misc.isRouterActive(treeRouter)) === false;
-            }, explicitWait*3, `${await treeRouter.getLabel()} did not became inactive`);
+            }, explicitWait * 3, `${await treeRouter.getLabel()} did not became inactive`);
 
         });
 
@@ -363,7 +352,7 @@ describe("MySQL REST Service", () => {
             await driver.switchTo().defaultContent();
             await Misc.verifyNotification("The MRS service has been successfully updated.", true);
             treeRandomService = await Misc
-                    .getTreeElement(treeDBSection, `/edited${service} (localhost)`, true);
+                .getTreeElement(treeDBSection, `/edited${service} (localhost)`, true);
 
             await Misc.selectContextMenuItem(treeRandomService, "Edit REST Service...");
             await Misc.switchToWebView();
@@ -389,7 +378,7 @@ describe("MySQL REST Service", () => {
             const treeSakila = await Misc.getTreeElement(treeDBSection, "sakila");
             await Misc.selectContextMenuItem(treeSakila, "Add Schema to REST Service");
             await Misc.switchToWebView();
-            await Database.setRestSchema(`localhost/edited${service}`,"sakila", "/sakila", 1, true, true, "sakila");
+            await Database.setRestSchema(`localhost/edited${service}`, "sakila", "/sakila", 1, true, true, "sakila");
             await driver.switchTo().defaultContent();
             await Misc.verifyNotification("The MRS schema has been added successfully.", true);
             const treeService = await Misc.getTreeElement(treeDBSection, String(randomServiceLabel), true);
@@ -435,11 +424,11 @@ describe("MySQL REST Service", () => {
 
             const treeSakilaEdited = await Misc.getTreeElement(treeDBSection, "/edited (sakila)");
             await treeSakilaEdited.collapse();
-            const treeSakila = await Misc.getTreeElement(treeDBSection,"sakila");
+            const treeSakila = await Misc.getTreeElement(treeDBSection, "sakila");
             await treeSakila.expand();
-            const treeTables = await Misc.getTreeElement(treeDBSection,"Tables");
+            const treeTables = await Misc.getTreeElement(treeDBSection, "Tables");
             await treeTables.expand();
-            const treeActor = await Misc.getTreeElement(treeDBSection,"actor");
+            const treeActor = await Misc.getTreeElement(treeDBSection, "actor");
             await Misc.selectContextMenuItem(treeActor, "Add Database Object to REST Service");
             await Misc.switchToWebView();
             await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
@@ -563,7 +552,7 @@ describe("MySQL REST Service", () => {
 
             await driver.switchTo().defaultContent();
             await Misc.verifyNotification(`The MRS User has been updated`, true);
-            await (await Misc.getActionButton(treeGlobalConn ,"Reload Database Information")).click();
+            await (await Misc.getActionButton(treeGlobalConn, "Reload Database Information")).click();
             treeDBSection = await Misc.getSection(dbTreeSection);
             treeUser = await Misc.getTreeElement(treeDBSection, "test");
             await Misc.selectContextMenuItem(treeUser, "Edit User");
@@ -606,7 +595,7 @@ describe("MySQL REST Service", () => {
                 .verifyNotification(`The MRS User ${await treeUser.getLabel()} has been deleted`, true);
 
             await driver.wait(async () => {
-                await (await Misc.getActionButton(treeGlobalConn ,"Reload Database Information")).click();
+                await (await Misc.getActionButton(treeGlobalConn, "Reload Database Information")).click();
                 treeDBSection = await Misc.getSection(dbTreeSection);
 
                 return (await treeDBSection.findItem("test")) === undefined;
@@ -627,7 +616,7 @@ describe("MySQL REST Service", () => {
             await Misc.verifyNotification(`The MRS Authentication App MRSedited has been deleted`, true);
 
             await driver.wait(async () => {
-                await (await Misc.getActionButton(treeGlobalConn ,"Reload Database Information")).click();
+                await (await Misc.getActionButton(treeGlobalConn, "Reload Database Information")).click();
                 treeDBSection = await Misc.getSection(dbTreeSection);
 
                 return (await treeDBSection.findItem("MRSedited (MRS)")) === undefined;
