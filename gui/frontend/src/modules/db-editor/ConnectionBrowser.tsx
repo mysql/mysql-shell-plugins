@@ -316,7 +316,8 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         const caption = `New Connection ${connections.length}`;
         const description = "A new Database Connection";
 
-        this.editorRef.current?.show(DBType.Sqlite, true, {
+        // Don't wait here. The editor will be shown asynchronously.
+        void this.editorRef.current?.show(DBType.Sqlite, true, {
             id: -1,
             dbType: DBType.Sqlite,
             caption,
@@ -406,7 +407,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
             }
 
             case "edit": {
-                this.editorRef.current?.show(dbType, false, details);
+                void this.editorRef.current?.show(dbType, false, details);
                 break;
             }
 
@@ -436,16 +437,16 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
                             /* eslint-enable @typescript-eslint/naming-convention */
                         },
                     };
-                    this.editorRef.current?.show(dbType, true, connectionDetails);
+                    void this.editorRef.current?.show(dbType, true, connectionDetails);
 
                 } else {
-                    this.editorRef.current?.show(dbType, true);
+                    void this.editorRef.current?.show(dbType, true);
                 }
                 break;
             }
 
             case "duplicate": {
-                this.editorRef.current?.show(dbType, true, details);
+                void this.editorRef.current?.show(dbType, true, details);
 
                 break;
             }

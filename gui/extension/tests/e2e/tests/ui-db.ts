@@ -32,7 +32,7 @@ import { after, afterEach, before } from "mocha";
 
 import {
     autoCommit, browser, commit, dbConnectionsLabel, dbEditorDefaultName, dbTreeSection,
-    driver, execFullBlockSql, explicitWait, isExtPrepared, loadNotebook, Misc, openEditorsDBNotebook,
+    driver, execFullBlockSql, explicitWait, loadNotebook, Misc, openEditorsDBNotebook,
     openEditorsTreeSection, rollback, saveNotebook,
 } from "../lib/misc";
 
@@ -96,17 +96,11 @@ describe("DATABASE CONNECTIONS", () => {
 
     before(async function () {
 
+        await Misc.loadDriver();
+
         try {
-
-            if (!isExtPrepared) {
-                await Misc.prepareExtension();
-            }
-
+            await driver.wait(Misc.extensionIsReady(), explicitWait * 4, "Extension was not ready");
             await Misc.toggleBottomBar(false);
-            const editors = await new EditorView().getOpenEditorTitles();
-            if (editors.includes(dbEditorDefaultName)) {
-                await new EditorView().closeAllEditors();
-            }
             const randomCaption = String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000));
             globalConn.caption += randomCaption;
             treeDBSection = await Misc.getSection(dbTreeSection);
@@ -309,7 +303,8 @@ describe("DATABASE CONNECTIONS", () => {
                 "arguments[0].click();",
                 await contextMenu.findElement(By.id("edit")),
             );
-            const conDialog = await driver.findElement(By.css(".valueEditDialog"));
+            const conDialog = await driver.wait(until.elementLocated(By.css(".valueEditDialog")),
+                explicitWait, "Connection dialog was not displayed");
             const customClear = async (el: WebElement) => {
                 const textLength = (await el.getAttribute("value")).length;
                 for (let i = 0; i <= textLength - 1; i++) {
@@ -509,10 +504,11 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Multi-cursor", async () => {
             try {
+                const area = await driver.findElement(By.css("textarea"));
                 await Misc.writeCmd("select * from sakila.actor;");
-                await driver.actions().sendKeys(Key.ENTER).perform();
+                await area.sendKeys(Key.ENTER);
                 await Misc.writeCmd("select * from sakila.address;");
-                await driver.actions().sendKeys(Key.ENTER).perform();
+                await area.sendKeys(Key.ENTER);
                 await Misc.writeCmd("select * from sakila.city;");
 
                 await driver.actions().keyDown(Key.ALT).perform();
@@ -526,11 +522,11 @@ describe("DATABASE CONNECTIONS", () => {
                 await spans[spans.length - 1].click();
                 await driver.actions().keyUp(Key.ALT).perform();
 
-                await driver.actions().sendKeys(Key.BACK_SPACE).perform();
+                await area.sendKeys(Key.BACK_SPACE);
                 await driver.sleep(500);
-                await driver.actions().sendKeys(Key.BACK_SPACE).perform();
+                await area.sendKeys(Key.BACK_SPACE);
                 await driver.sleep(500);
-                await driver.actions().sendKeys(Key.BACK_SPACE).perform();
+                await area.sendKeys(Key.BACK_SPACE);
 
                 const contentHost = await driver.findElement(By.id("contentHost"));
                 const textArea = await contentHost.findElement(By.css("textarea"));

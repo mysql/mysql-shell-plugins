@@ -37,8 +37,6 @@ import {
     driver,
     explicitWait,
     Misc,
-    isExtPrepared,
-    dbEditorDefaultName,
 } from "../lib/misc";
 
 import { hostname } from "os";
@@ -85,19 +83,13 @@ describe("MySQL REST Service", () => {
 
     before(async function () {
 
+        await Misc.loadDriver();
+
         try {
             await Misc.cleanCredentials();
-            if (!isExtPrepared) {
-                await Misc.prepareExtension();
-            }
-
-            await Misc.sectionFocus(dbTreeSection);
+            await driver.wait(Misc.extensionIsReady(), explicitWait * 4, "Extension was not ready");
             await Misc.toggleBottomBar(false);
-            const editors = await new EditorView().getOpenEditorTitles();
-            if (editors.includes(dbEditorDefaultName)) {
-                await new EditorView().closeAllEditors();
-            }
-
+            await Misc.sectionFocus(dbTreeSection);
             const randomCaption = String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000));
             globalConn.caption += randomCaption;
             treeDBSection = await Misc.getSection(dbTreeSection);
