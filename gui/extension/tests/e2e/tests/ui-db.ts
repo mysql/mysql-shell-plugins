@@ -103,21 +103,10 @@ describe("DATABASE CONNECTIONS", () => {
             }
 
             await Misc.toggleBottomBar(false);
-            try {
-                await driver.wait(new Condition("", async () => {
-                    const editors = await new EditorView().getOpenEditorTitles();
-                    if (editors.includes(dbEditorDefaultName)) {
-                        await new EditorView().closeAllEditors();
-
-                        return (await new EditorView().getOpenEditorTitles()).length === 0;
-                    } else {
-                        return false;
-                    }
-                }), explicitWait*2, `${dbEditorDefaultName} tab was not opened`);
-            } catch (e) {
-                // the extension should be loaded
+            const editors = await new EditorView().getOpenEditorTitles();
+            if (editors.includes(dbEditorDefaultName)) {
+                await new EditorView().closeAllEditors();
             }
-
             const randomCaption = String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000));
             globalConn.caption += randomCaption;
             treeDBSection = await Misc.getSection(dbTreeSection);

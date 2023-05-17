@@ -27,7 +27,6 @@ import {
     until,
     WebElement,
     TreeItem,
-    Condition,
 } from "vscode-extension-tester";
 
 import { before, after, afterEach } from "mocha";
@@ -97,19 +96,9 @@ describe("MYSQL SHELL CONSOLES", () => {
             }
 
             await Misc.sectionFocus(openEditorsTreeSection);
-            try {
-                await driver.wait(new Condition("", async () => {
-                    const editors = await new EditorView().getOpenEditorTitles();
-                    if (editors.includes(dbEditorDefaultName)) {
-                        await new EditorView().closeAllEditors();
-
-                        return (await new EditorView().getOpenEditorTitles()).length === 0;
-                    } else {
-                        return false;
-                    }
-                }), explicitWait*2, `${dbEditorDefaultName} tab was not opened`);
-            } catch (e) {
-                // the extension should be loaded
+            const editors = await new EditorView().getOpenEditorTitles();
+            if (editors.includes(dbEditorDefaultName)) {
+                await new EditorView().closeAllEditors();
             }
             treeOpenEditorsSection = await Misc.getSection(openEditorsTreeSection);
             treeDBConnections = await Misc.getTreeElement(treeOpenEditorsSection, dbConnectionsLabel);
@@ -170,7 +159,7 @@ describe("MYSQL SHELL CONSOLES", () => {
     describe("Shell database connections", () => {
 
         const shellConn = Object.assign({}, globalConn);
-        shellConn.caption =  "shellConn";
+        shellConn.caption = "shellConn";
         (shellConn.basic as IConnBasicMySQL).username = String(process.env.DBSHELLUSERNAME);
         (shellConn.basic as IConnBasicMySQL).password = String(process.env.DBSHELLPASSWORD);
         const shellUsername = String((shellConn.basic as IConnBasicMySQL).username);
@@ -363,7 +352,7 @@ describe("MYSQL SHELL CONSOLES", () => {
                 const schemaEl = await driver.wait(until.elementLocated(By.id("schema")), explicitWait);
                 await driver.wait(until.elementTextContains(server,
                     `${hostname}:${String(portX)}`),
-                explicitWait, `Server tab does not contain '${hostname}:${port}'`);
+                    explicitWait, `Server tab does not contain '${hostname}:${port}'`);
                 await driver.wait(until.elementTextContains(schemaEl, `${schema}`),
                     explicitWait, `Schema tab does not contain '${schema}'`);
             } catch (e) {

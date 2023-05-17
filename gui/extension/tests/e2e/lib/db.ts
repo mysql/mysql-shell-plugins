@@ -1145,7 +1145,7 @@ export class Database {
         throw new Error(`Coult not find ${editorName} with type ${editorType}`);
     };
 
-    public static tryCredentials = async (data: IDBConnection, timeout?: number): Promise <void> => {
+    public static tryCredentials = async (data: IDBConnection, timeout?: number): Promise<void> => {
         let passwordDialog: WebElement[] | undefined;
         let textArea: WebElement[] | undefined;
 

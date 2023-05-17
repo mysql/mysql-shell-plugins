@@ -30,7 +30,6 @@ import {
     ModalDialog,
     TreeItem,
     CustomTreeSection,
-    Condition,
 } from "vscode-extension-tester";
 
 import { before, after, afterEach } from "mocha";
@@ -79,23 +78,13 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             await Misc.sectionFocus(ociTreeSection);
             await Misc.toggleBottomBar(false);
-            try {
-                await driver.wait(new Condition("", async () => {
-                    const editors = await new EditorView().getOpenEditorTitles();
-                    if (editors.includes(dbEditorDefaultName)) {
-                        await new EditorView().closeAllEditors();
-
-                        return (await new EditorView().getOpenEditorTitles()).length === 0;
-                    } else {
-                        return false;
-                    }
-                }), explicitWait*2, `${dbEditorDefaultName} tab was not opened`);
-            } catch (e) {
-                // the extension should be loaded
+            let editors = await new EditorView().getOpenEditorTitles();
+            if (editors.includes(dbEditorDefaultName)) {
+                await new EditorView().closeAllEditors();
             }
             treeOCISection = await Misc.getSection(ociTreeSection);
             treeTasksSection = await Misc.getSection(tasksTreeSection);
-            await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait*2,
+            await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait * 2,
                 `${await treeOCISection.getTitle()} is still loading`);
 
             const path = join(homedir(), ".oci", "config");
@@ -104,7 +93,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await Misc.clickSectionToolbarButton(treeOCISection,
                 "Configure the OCI Profile list");
 
-            const editors = await new EditorView().getOpenEditorTitles();
+            editors = await new EditorView().getOpenEditorTitles();
             expect(editors).to.include.members(["config"]);
             const textEditor = new TextEditor();
             const editor = await driver.findElement(By.css("textarea"));
@@ -214,7 +203,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         let compartmentId = "";
         let treeDBConnections: TreeItem;
 
-        before(async function (){
+        before(async function () {
             try {
                 treeOpenEditorsSection = await Misc.getSection(openEditorsTreeSection);
             } catch (e) {
@@ -224,7 +213,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         beforeEach(async function () {
             try {
-                await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait*3,
+                await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait * 3,
                     `${await treeOCISection.getTitle()} is still loading`);
             } catch (e) {
                 await Misc.processFailure(this);
@@ -278,7 +267,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
                 return Misc.isJson(json);
 
-            }, explicitWait*2, "No text was found inside QA Info.json");
+            }, explicitWait * 2, "No text was found inside QA Info.json");
 
             const parsed = JSON.parse(json);
             compartmentId = parsed.id;
@@ -311,7 +300,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             try {
                 await Misc.sectionFocus(ociTreeSection);
                 treeDbSystem = await Misc.getTreeElement(treeOCISection, "MDSforVSCodeExtension");
-                await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait*3,
+                await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait * 3,
                     `${await treeOCISection.getTitle()} is still loading`);
             } catch (e) {
                 await Misc.processFailure(this);
@@ -444,7 +433,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         beforeEach(async function () {
             try {
                 await Misc.sectionFocus(ociTreeSection);
-                await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait*3,
+                await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait * 3,
                     `${await treeOCISection.getTitle()} is still loading`);
             } catch (e) {
                 await Misc.processFailure(this);
@@ -505,7 +494,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             const bastionId = parsed.id;
 
             await Misc.selectContextMenuItem(treeBastion, "Set as Current Bastion");
-            await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait*3,
+            await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait * 3,
                 `${await treeOCISection.getTitle()} is still loading`);
 
             await driver.wait(async () => {
@@ -620,7 +609,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                         explicitWait, "Confirm dialog was not displayed");
                     await confirmDialog.findElement(By.id("refuse")).click();
                 } catch (e) {
-                        // continue
+                    // continue
                 }
 
                 await driver.wait(Database.isConnectionLoaded(), ociExplicitWait, "Connection was not loaded");
@@ -641,7 +630,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         });
 
-        it("Edit an existing MDS Connection", async function (){
+        it("Edit an existing MDS Connection", async function () {
 
             if (skip) {
                 this.skip();
@@ -681,7 +670,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         });
 
-        it("Create a new MDS Connection", async function() {
+        it("Create a new MDS Connection", async function () {
 
             if (skip) {
                 this.skip();
