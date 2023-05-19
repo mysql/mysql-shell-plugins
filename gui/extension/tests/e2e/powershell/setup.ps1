@@ -217,6 +217,12 @@ try {
     $configs += Join-Path $env:userprofile "mysqlsh-oci"
     $configs += Join-Path $env:userprofile "mysqlsh-shell"
     $configs += Join-Path $env:userprofile "mysqlsh-rest"
+
+    if($isWindows){
+        $targetWebCerts = Join-Path $env:APPDATA "MySQL" "mysqlsh-gui" "plugin_data" "gui_plugin" "web_certs"
+    } elseif($isLinux){
+        $targetWebCerts = Join-Path $env:userprofile ".mysqlsh-gui" "plugin_data" "gui_plugin" "web_certs"
+    }
     
     ForEach ($config in $configs) {
         if (!(Test-Path $config)) {
@@ -228,8 +234,13 @@ try {
             $guiPlugin = Join-Path $config "plugin_data" "gui_plugin"
             New-Item -ItemType "directory" -Path $guiPlugin
             writeMsg "Created $guiPlugin"
-            writeMsg "Copying web certificates for $config ..." "-NoNewLine"
-            Copy-Item -Path $webCerts -Destination $guiPlugin -Recurse
+            writeMsg "Creating symlink for web certificates for $config ..." "-NoNewLine"
+            $link = Join-Path $config "plugin_data" "gui_plugin" "web_certs"
+            if ($isWindows){
+                New-Item -ItemType Junction -Path $link -Target $targetWebCerts
+            } else {
+                New-Item -ItemType SymbolicLink -Path $link -Target $targetWebCerts
+            }
             writeMsg "DONE"
         }
     } 
