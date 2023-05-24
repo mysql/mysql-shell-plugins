@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import _, { isNil } from "lodash";
+import _ from "lodash";
 import { Buffer } from "buffer";
 import Anser from "anser";
 
@@ -94,7 +94,7 @@ export const unquote = (text: string, quotes = "\"'`"): string => {
  * @returns A CSS value.
  */
 export const convertPropValue = (value?: number | string | undefined, numericUnit = "px"): string | undefined => {
-    if (isNil(value)) {
+    if (value == null) {
         return undefined;
     }
 
@@ -277,6 +277,51 @@ export const snakeToCamelCase = (str: string): string => {
 };
 
 /**
+ * Converts a camel case string to title case, that is the first letter in the string is converted to uppercase.
+ *
+ * @param s The string to convert.
+ *
+ * @returns The converted string.
+ */
+export const convertCamelToTitleCase = (s: string): string => {
+    if (s.length < 1) {
+        return "";
+    }
+
+    return s.charAt(0).toUpperCase() + s.slice(1);
+};
+
+/**
+ * This is the opposite direction of `convertCamelToTitleCase` by converting the first letter to lower case.
+ *
+ * @param s The string to convert.
+ *
+ * @returns The converted string.
+ */
+export const convertTitleToCamelCase = (s: string): string => {
+    if (s.length < 1) {
+        return "";
+    }
+
+    return s.charAt(0).toLowerCase() + s.slice(1);
+};
+
+/**
+ * Converts a given string to pascal case, filtering out problematic chars
+ *
+ * @param str The string to convert.
+ * @returns The converted string.
+ */
+export const convertToPascalCase = (str: string): string => {
+    str = str.replace(/[^\d\w,]/g, "");
+    if (str.includes("_")) {
+        str = snakeToCamelCase(str);
+    }
+
+    return convertCamelToTitleCase(str);
+};
+
+/**
  * Converts a url path string to camel case, filtering out problematic chars
  *
  * @param str The string to convert.
@@ -297,7 +342,7 @@ export const pathToCamelCase = (str: string): string => {
 };
 
 /**
- * Determines the base name(that is, the last part of the path) of a file or directory.
+ * Determines the base name (that is, the last part of the path) of a file or directory.
  *
  * @param path The path to get the base name from.
  * @param extension An optional extension to remove from the base name.
@@ -351,59 +396,6 @@ export const convertSnakeToCamelCase = (o: object, options?: IConversionOptions)
     });
 };
 
-
-/**
- * Converts a camel case string to title case, that is the first letter in the string is converted to uppercase.
- *
- * @param s The string to convert.
- *
- * @returns The converted string.
- */
-export const convertCamelToTitleCase = (s: string): string => {
-    if (s.length < 1) {
-        return "";
-    }
-
-    return s.charAt(0).toUpperCase() + s.slice(1);
-};
-
-/**
- * This is the opposite direction of `convertCamelToTitleCase` by converting the first letter to lower case.
- *
- * @param s The string to convert.
- *
- * @returns The converted string.
- */
-export const convertTitleToCamelCase = (s: string): string => {
-    if (s.length < 1) {
-        return "";
-    }
-
-    return s.charAt(0).toLowerCase() + s.slice(1);
-};
-
-/**
- * Converts a given string to pascal case, filtering out problematic chars
- *
- * @param str The string to convert.
- * @returns The converted string.
- */
-export const convertToPascalCase = (str: string): string => {
-    str = str.replace(/[^\d\w,]/g, "");
-    if (str.includes("_")) {
-        str = snakeToCamelCase(str);
-    }
-
-    return convertCamelToTitleCase(str);
-};
-
-/**
- * Removes ANSI codes from the given string.
- *
- * @param s The string to remove the ANSI codes from.
- *
- * @returns The string without the ANSI codes.
- */
 export const stripAnsiCode = (s: string): string => {
     return Anser.ansiToText(s);
 };

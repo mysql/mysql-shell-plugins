@@ -263,5 +263,4 @@ export class OciTreeDataProvider implements TreeDataProvider<TreeItem> {
 
         return Promise.resolve(false);
     };
-
 }

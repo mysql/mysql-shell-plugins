@@ -373,6 +373,7 @@ exports[`Application tests Application readiness 1`] = `
             
           </Container>
         }
+        onClose={[Function]}
       >
         <Portal
           container={

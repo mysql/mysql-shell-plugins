@@ -192,6 +192,7 @@ export interface IExecutionInfo {
 
 // Types for requesting a specific dialog and sending back the entered values.
 
+/** Types for general dialogs. */
 export enum DialogType {
     /** A simple prompt value dialog, requesting a single value from the user. */
     Prompt,
@@ -202,6 +203,10 @@ export enum DialogType {
     /** Select one entry from a list. */
     Select,
 
+}
+
+/** Types for MySQL REST dialogs. */
+export enum MrsDialogType {
     /** A dialog to create or edit an MRS service. */
     MrsService,
 
@@ -219,7 +224,10 @@ export enum DialogType {
 
     /** A dialog to create or edit an MRS contentSet. */
     MrsContentSet,
+}
 
+/** Types for MySQL Database Service (OCI) dialogs. */
+export enum MdsDialogType {
     /** A dialog to create or edit a MySQL HeatWave cluster. */
     MdsHeatWaveCluster,
 
@@ -229,7 +237,8 @@ export enum DialogType {
 
 /** A set of values that describe a single modal dialog request. */
 export interface IDialogRequest extends IDictionary {
-    type: DialogType;
+    /** The type of the dialog to show. Used mostly to schedule dialog requests. */
+    type: DialogType | MrsDialogType | MdsDialogType;
 
     /** An id to identify the invocation. */
     id: string;
@@ -262,20 +271,40 @@ export enum DialogResponseClosure {
 
 export interface IDialogResponse extends IDictionary {
     id: string;
-    type: DialogType;
+    type: DialogType | MdsDialogType;
     closure: DialogResponseClosure;
 
     values?: IDictionary;
     data?: IDictionary;
 }
 
+/** Information about a single statusbar item. */
 export interface IStatusbarInfo {
+    /**
+     * A unique identifier, which allows to update an existing item. If nothing else is given, the item will be removed.
+     */
     id: string;
+
+    /** The text to show in the item. */
     text?: string;
+
+    /** A tooltip to show when the user hovers over the item. */
+    tooltip?: string;
+
+    /** An icon to show in the item. Not used when the app is embedded. */
     icon?: string | codicon.Codicon;
+
+    /** A list of choices which makes the item a selector. Only used in the web app status bar. */
     choices?: Array<{ label: string; data: IDictionary; }>;
+
+    /** Determines the visibility of the status item. */
     visible?: boolean;
+
+    /** Gives the item a special background color. */
     standout?: boolean;
+
+    /** If given automatically removes the item after this period (milliseconds). */
+    hideAfter?: number;
 }
 
 /**

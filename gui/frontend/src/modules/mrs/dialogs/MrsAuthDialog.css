@@ -53,7 +53,7 @@
     display: flex;
     width: 100%;
     justify-content: center;
-    padding: 20px 30px 0px 30px;
+    padding: 20px 30px 0 30px;
 }
 
 .msg.dialog.mrsAuthDialog .errorLbl {
@@ -84,7 +84,7 @@
     display: flex;
     width: 100%;
     justify-content: center;
-    padding: 20px 30px 0px 30px;
+    padding: 20px 30px 0 30px;
 }
 
 .msg.dialog.mrsAuthDialog .authenticatingLbl {

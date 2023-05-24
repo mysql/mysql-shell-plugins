@@ -21,44 +21,75 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ComponentChild, createRef } from "preact";
-
 import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types";
 import { IMrsAuthAppData, IMrsRoleData, IMrsUserData, IMrsUserRoleData } from "../../../communication/ProtocolMrs";
-import { ValueDialogBase } from "../../../components/Dialogs/ValueDialogBase";
+import { AwaitableValueEditDialog } from "../../../components/Dialogs/AwaitableValueEditDialog";
 import {
-    CommonDialogValueOption, IDialogSection, IDialogValidations, IDialogValues, ValueEditDialog,
+    CommonDialogValueOption, IDialogSection, IDialogValidations, IDialogValues,
 } from "../../../components/Dialogs/ValueEditDialog";
 
 const mrsVendorId = "MAAAAAAAAAAAAAAAAAAAAA==";
 
-export class MrsUserDialog extends ValueDialogBase {
-    private dialogRef = createRef<ValueEditDialog>();
+export interface IMrsUserDialogData extends IDictionary {
+    authAppName: string;
+    name?: string;
+    email?: string;
+    vendorUserId?: string;
+    loginPermitted: boolean;
+    mappedUserId?: string;
+    appOptions?: string;
+    authString?: string;
+    userRoles: string[];
+}
+
+export class MrsUserDialog extends AwaitableValueEditDialog {
     private currentAuthApp: IMrsAuthAppData | null = null;
 
-    public render(): ComponentChild {
-        return (
-            <ValueEditDialog
-                ref={this.dialogRef}
-                id="mrsUserDialog"
-                onClose={this.handleCloseDialog}
-                onValidate={this.validateInput}
-            />
-        );
+    protected get id(): string {
+        return "mrsUserDialog";
     }
 
-    public show(request: IDialogRequest, title: string): void {
+    public override async show(request: IDialogRequest): Promise<IDictionary | DialogResponseClosure> {
         const authApps = request.parameters?.authApps as IMrsAuthAppData[];
         const availableRoles = request.parameters?.availableRoles as IMrsRoleData[];
         const userRoles = request.parameters?.userRoles as IMrsUserRoleData[];
 
-        this.dialogRef.current?.show(this.dialogValues(request, title, authApps,
-            availableRoles, userRoles), { title: "MySQL REST User" });
+        const dialogValues = this.dialogValues(request, authApps, availableRoles, userRoles);
+        const result = await this.doShow(() => { return dialogValues; }, { title: "MySQL REST User" });
+
+        if (result.closure === DialogResponseClosure.Accept) {
+            return this.processResults(result.values);
+        }
+
+        return DialogResponseClosure.Cancel;
     }
 
-    private dialogValues(request: IDialogRequest, title: string,
-        authApps: IMrsAuthAppData[],
-        availableRoles: IMrsRoleData[], userRoles: IMrsUserRoleData[]): IDialogValues {
+    protected override validateInput = (closing: boolean, values: IDialogValues): IDialogValidations => {
+        const result: IDialogValidations = {
+            messages: {},
+            requiredContexts: [],
+        };
+
+        if (closing) {
+            const mainSection = values.sections.get("mainSection");
+            if (mainSection) {
+                if (this.currentAuthApp?.authVendorId === mrsVendorId) {
+                    if (!mainSection.values.name.value && !mainSection.values.email.value) {
+                        result.messages.name = "The user name or email are required for this app.";
+                    }
+                    if (!mainSection.values.authString.value) {
+                        result.messages.authString = "The authentication string is required for this app.";
+                    }
+                }
+
+            }
+        }
+
+        return result;
+    };
+
+    private dialogValues(request: IDialogRequest, authApps: IMrsAuthAppData[], availableRoles: IMrsRoleData[],
+        userRoles: IMrsUserRoleData[]): IDialogValues {
         const data = (request.values as unknown) as IMrsUserData;
         this.currentAuthApp = request.parameters?.authApp as IMrsAuthAppData;
 
@@ -69,7 +100,7 @@ export class MrsUserDialog extends ValueDialogBase {
         });
 
         const mainSection: IDialogSection = {
-            caption: title,
+            caption: request.title,
             values: {
                 name: {
                     type: "text",
@@ -169,54 +200,25 @@ export class MrsUserDialog extends ValueDialogBase {
         };
     }
 
-    private handleCloseDialog = (closure: DialogResponseClosure, dialogValues: IDialogValues): void => {
-        const { onClose } = this.props;
+    private processResults = (dialogValues: IDialogValues): IDictionary => {
+        const mainSection = dialogValues.sections.get("mainSection");
 
-        if (closure === DialogResponseClosure.Accept) {
-            const mainSection = dialogValues.sections.get("mainSection");
+        if (mainSection) {
+            const values: IMrsUserDialogData = {
+                authAppName: mainSection.values.authApp.value as string,
+                name: mainSection.values.name.value as string,
+                email: mainSection.values.email.value as string,
+                vendorUserId: mainSection.values.vendorUserId.value as string,
+                loginPermitted: mainSection.values.loginPermitted.value as boolean,
+                mappedUserId: mainSection.values.mappedUserId.value as string,
+                appOptions: mainSection.values.appOptions.value as string,
+                authString: mainSection.values.authString.value as string,
+                userRoles: mainSection.values.roles.value as string[],
+            };
 
-            if (mainSection) {
-                const values: IDictionary = {};
-                values.authAppName = mainSection.values.authApp.value as string;
-                values.name = mainSection.values.name.value as string;
-                values.email = mainSection.values.email.value as string;
-                values.vendorUserId = mainSection.values.vendorUserId.value as string;
-                values.loginPermitted = mainSection.values.loginPermitted.value as string;
-                values.mappedUserId = mainSection.values.mappedUserId.value as string;
-                values.appOptions = mainSection.values.appOptions.value as string;
-                values.authString = mainSection.values.authString.value as string;
-
-                values.userRoles = mainSection.values.roles.value as string[];
-
-                onClose(closure, values);
-            }
-        } else {
-            onClose(closure);
-        }
-    };
-
-    private validateInput = (closing: boolean, values: IDialogValues): IDialogValidations => {
-        const result: IDialogValidations = {
-            messages: {},
-            requiredContexts: [],
-        };
-
-        if (closing) {
-            const mainSection = values.sections.get("mainSection");
-            if (mainSection) {
-                if (this.currentAuthApp?.authVendorId === mrsVendorId) {
-                    if (!mainSection.values.name.value && !mainSection.values.email.value) {
-                        result.messages.name = "The user name or email are required for this app.";
-                    }
-                    if (!mainSection.values.authString.value) {
-                        result.messages.authString = "The authentication string is required for this app.";
-                    }
-                }
-
-            }
+            return values;
         }
 
-        return result;
+        return {};
     };
-
 }

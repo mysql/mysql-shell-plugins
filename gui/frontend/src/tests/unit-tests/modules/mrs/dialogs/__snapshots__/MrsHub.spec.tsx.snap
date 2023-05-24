@@ -1,0 +1,2532 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`MrsHub Tests Show MRS Authentication App Dialog (snapshot) 1`] = `
+<div
+  class="msg portal"
+  id="mrsAuthenticationAppDialog"
+  style="--background-opacity: 0.5;"
+>
+  <div
+    class="msg dialog visible valueEditDialog"
+  >
+    <div
+      class="title verticalCenterContent"
+    >
+      <div
+        class="msg icon codicon codicon-terminal"
+      />
+      <label
+        class="msg label"
+        data-tooltip="expand"
+      >
+        MySQL REST Authentication App
+      </label>
+      <div
+        class="msg button imageOnly"
+        id="closeButton"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="msg icon"
+          style="mask-image: url(close2.svg);"
+        />
+      </div>
+    </div>
+    <div
+      class="content fixedScrollbar"
+    >
+      <div
+        class="msg grid"
+        id="contentGrid"
+        style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
+      >
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: row; grid-column: span 8;"
+        >
+          <label
+            class="msg label sectionTitle"
+            data-tooltip="expand"
+          >
+            Enter Configuration Values for the New MRS Authentication App
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Vendor
+          </label>
+          <div
+            class="msg container fixedScrollbar dropdown valueEditor"
+            id="authVendorName"
+            style="flex-direction: row; align-items: center;"
+            tabindex="0"
+          >
+            <label
+              class="msg label ellipsis"
+              data-tooltip="expand"
+            >
+              
+            </label>
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The authentication vendor
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Name
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input valueEditor"
+              id="name"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The name of the authentication app
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Description
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input valueEditor"
+              id="description"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            A short description of the app
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Access Token
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input valueEditor"
+              id="accessToken"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The OAuth2 access token for this app as defined by the vendor
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            App ID
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input valueEditor"
+              id="appId"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The OAuth2 App ID for this app as defined by the vendor
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Custom URL
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input valueEditor"
+              id="url"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            A custom OAuth2 service URL
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Custom URL for Access Token
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input valueEditor"
+              id="urlDirectAuth"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            A custom URL for exchanging the Access Token
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Default Role
+          </label>
+          <div
+            class="msg container fixedScrollbar dropdown valueEditor"
+            id="defaultRoleName"
+            style="flex-direction: row; align-items: center;"
+            tabindex="0"
+          >
+            <label
+              class="msg label ellipsis"
+              data-tooltip="expand"
+            >
+              Full Access
+            </label>
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The default role for users
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Flags
+          </label>
+          <label
+            class="msg checkbox checked valueEditor"
+            id="enabled"
+            tabindex="0"
+          >
+            <span
+              class="checkMark"
+            />
+            Enabled
+          </label>
+          <label
+            class="msg checkbox unchecked valueEditor"
+            id="limitToRegisteredUsers"
+            tabindex="0"
+          >
+            <span
+              class="checkMark"
+            />
+            Limit to registered users
+          </label>
+        </div>
+      </div>
+    </div>
+    <div
+      class="footer verticalCenterContent"
+    >
+      <div
+        class="msg container fixedScrollbar leftItems"
+        style="flex-direction: row;"
+      />
+      <div
+        class="msg container fixedScrollbar rightItems"
+        style="flex-direction: row-reverse;"
+      >
+        <div
+          caption="OK"
+          class="msg button"
+          id="ok"
+          role="button"
+          tabindex="0"
+        >
+          OK
+        </div>
+        <div
+          caption="Cancel"
+          class="msg button"
+          id="cancel"
+          role="button"
+          tabindex="0"
+        >
+          Cancel
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`MrsHub Tests Show MRS Content Set Dialog (snapshot) 1`] = `
+<div
+  class="msg portal"
+  id="mrsContentSetDialog"
+  style="--background-opacity: 0.5;"
+>
+  <div
+    class="msg dialog visible valueEditDialog"
+  >
+    <div
+      class="title verticalCenterContent"
+    >
+      <div
+        class="msg icon codicon codicon-terminal"
+      />
+      <label
+        class="msg label"
+        data-tooltip="expand"
+      >
+        MRS Content Set
+      </label>
+      <div
+        class="msg button imageOnly"
+        id="closeButton"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="msg icon"
+          style="mask-image: url(close2.svg);"
+        />
+      </div>
+    </div>
+    <div
+      class="content fixedScrollbar"
+    >
+      <div
+        class="msg grid"
+        id="contentGrid"
+        style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
+      >
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: row; grid-column: span 8;"
+        >
+          <label
+            class="msg label sectionTitle"
+            data-tooltip="expand"
+          >
+            Enter Configuration Values for the New MRS Static Content Set
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Request Path
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input valueEditor"
+              id="requestPath"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The request path to access the content, has to start with /
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            MRS Service
+          </label>
+          <div
+            class="msg container fixedScrollbar dropdown valueEditor"
+            id="service"
+            style="flex-direction: row; align-items: center;"
+            tabindex="0"
+          >
+            <label
+              class="msg label ellipsis"
+              data-tooltip="expand"
+            >
+              /mrs
+            </label>
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The MRS Service to hold the content
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+        />
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Enabled
+          </label>
+          <label
+            class="msg checkbox checked valueEditor"
+            id="enabled"
+            tabindex="0"
+          >
+            <span
+              class="checkMark"
+            />
+            Enabled
+          </label>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            Defines if the static content should be made available
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Requires Authentication
+          </label>
+          <label
+            class="msg checkbox unchecked valueEditor"
+            id="requiresAuth"
+            tabindex="0"
+          >
+            <span
+              class="checkMark"
+            />
+            Requires Authentication
+          </label>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            Only authenticated users can access the content if checked
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Comments
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input valueEditor"
+              id="comments"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Options
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <textarea
+              class="msg input valueEditor"
+              id="options"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            Additional options in JSON format
+          </label>
+        </div>
+      </div>
+    </div>
+    <div
+      class="footer verticalCenterContent"
+    >
+      <div
+        class="msg container fixedScrollbar leftItems"
+        style="flex-direction: row;"
+      />
+      <div
+        class="msg container fixedScrollbar rightItems"
+        style="flex-direction: row-reverse;"
+      >
+        <div
+          caption="OK"
+          class="msg button"
+          id="ok"
+          role="button"
+          tabindex="0"
+        >
+          OK
+        </div>
+        <div
+          caption="Cancel"
+          class="msg button"
+          id="cancel"
+          role="button"
+          tabindex="0"
+        >
+          Cancel
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`MrsHub Tests Show MRS DB Object Dialog (snapshot) 1`] = `
+<div
+  class="msg portal"
+  id="mrsDbObjectDialog"
+  style="--background-opacity: 0.5;"
+>
+  <div
+    class="msg dialog visible valueEditDialog autoResize"
+  >
+    <div
+      class="title verticalCenterContent"
+    >
+      <div
+        class="msg icon codicon codicon-terminal"
+      />
+      <label
+        class="msg label"
+        data-tooltip="expand"
+      >
+        MySQL REST Object
+      </label>
+      <div
+        class="msg button imageOnly"
+        id="closeButton"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="msg icon"
+          style="mask-image: url(close2.svg);"
+        />
+      </div>
+    </div>
+    <div
+      class="content fixedScrollbar"
+    >
+      <div
+        class="msg grid"
+        id="contentGrid"
+        style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
+      >
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 2;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            REST Service Path
+          </label>
+          <div
+            class="msg container fixedScrollbar dropdown valueEditor"
+            id="service"
+            style="flex-direction: row; align-items: center;"
+            tabindex="0"
+          >
+            <label
+              class="msg label ellipsis"
+              data-tooltip="expand"
+            >
+              /mrs
+            </label>
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The path of the REST Service
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 2;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            REST Schema Path
+          </label>
+          <div
+            class="msg container fixedScrollbar dropdown valueEditor"
+            id="schema"
+            style="flex-direction: row; align-items: center;"
+            tabindex="0"
+          >
+            <label
+              class="msg label ellipsis"
+              data-tooltip="expand"
+            >
+              /mrs-test
+            </label>
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The path of the REST Schema
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 2;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            REST Object Path
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input valueEditor"
+              id="requestPath"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The path, has to starts with /
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 2;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Flags
+          </label>
+          <label
+            class="msg checkbox checked valueEditor"
+            id="enabled"
+            tabindex="0"
+          >
+            <span
+              class="checkMark"
+            />
+            Enabled
+          </label>
+          <label
+            class="msg checkbox unchecked valueEditor"
+            id="requiresAuth"
+            tabindex="0"
+          >
+            <span
+              class="checkMark"
+            />
+            Requires Auth
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: row; grid-column: span 8;"
+        >
+          <div
+            class="msg container fixedScrollbar tabview top"
+            style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
+          >
+            <div
+              class="msg container tabAreaContainer"
+              style="flex-direction: row;"
+            >
+              <div
+                class="scrollable"
+              >
+                <div
+                  class="msg container tabArea stretched"
+                  style="flex-direction: row;"
+                >
+                  <div
+                    class="msg button tabItem selected"
+                    id="page0"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      JSON/Relational Duality
+                    </label>
+                  </div>
+                  <div
+                    class="msg button tabItem"
+                    id="page1"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      Basic
+                    </label>
+                  </div>
+                  <div
+                    class="msg button tabItem"
+                    id="page2"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      Parameters
+                    </label>
+                  </div>
+                  <div
+                    class="msg button tabItem"
+                    id="page3"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      Advanced
+                    </label>
+                  </div>
+                  <div
+                    class="msg button tabItem"
+                    id="page4"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      Options
+                    </label>
+                  </div>
+                </div>
+                <div
+                  class="scrollbar"
+                >
+                  <div
+                    class="slider"
+                    style="display: none;"
+                  />
+                </div>
+              </div>
+            </div>
+            <div
+              class="msg container fixedScrollbar content"
+              style="flex-direction: column;"
+            >
+              <div
+                class="msg grid expand"
+                style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
+              >
+                <div
+                  class="msg container fixedScrollbar gridCell"
+                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+                >
+                  <div
+                    class="msg container fixedScrollbar mrsObjectFieldEditor"
+                    style="flex-direction: column;"
+                  >
+                    <div
+                      class="msg container fixedScrollbar settings"
+                      style="flex-direction: row; align-items: flex-start;"
+                    >
+                      <div
+                        class="msg container fixedScrollbar settingsMain"
+                        style="flex-direction: row; align-items: flex-start;"
+                      >
+                        <div
+                          class="msg container fixedScrollbar showSdkOptions"
+                          style="flex-direction: row; align-items: center;"
+                        >
+                          <div
+                            class="msg container fixedScrollbar dropdown"
+                            id="sdkLanguage"
+                            placeholder="SDK Options"
+                            style="flex-direction: row; align-items: center;"
+                            tabindex="0"
+                          >
+                            <label
+                              class="msg label placeholder"
+                              data-tooltip="expand"
+                            >
+                              SDK Options
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        class="msg container fixedScrollbar settingsRight"
+                        style="flex-direction: row; align-items: flex-start;"
+                      />
+                    </div>
+                    <div
+                      class="msg treeGrid mrsObjectTreeGrid tabulator"
+                      role="grid"
+                      style="height: 100%;"
+                      tabulator-layout="fitColumns"
+                    >
+                      <div
+                        class="tabulator-header tabulator-header-hidden"
+                        role="rowgroup"
+                      >
+                        <div
+                          class="tabulator-header-contents"
+                          role="rowgroup"
+                        >
+                          <div
+                            class="tabulator-headers"
+                            role="row"
+                          >
+                            <div
+                              aria-sort="none"
+                              class="tabulator-col tabulator-sortable tabulator-col-sorter-element"
+                              role="columnheader"
+                              style="min-width: 40px; width: 40px;"
+                              tabulator-field="json"
+                            >
+                              <div
+                                class="tabulator-col-content"
+                              >
+                                <div
+                                  class="tabulator-col-title-holder"
+                                >
+                                  <div
+                                    class="tabulator-col-title"
+                                  >
+                                    JSON
+                                  </div>
+                                  <div
+                                    class="tabulator-col-sorter"
+                                  >
+                                    <div
+                                      class="tabulator-arrow"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <span
+                              class="tabulator-col-resize-handle"
+                            />
+                            <div
+                              aria-sort="none"
+                              class="tabulator-col tabulator-sortable tabulator-col-sorter-element"
+                              role="columnheader"
+                              style="min-width: 40px; width: 40px;"
+                              tabulator-field="relational"
+                            >
+                              <div
+                                class="tabulator-col-content"
+                              >
+                                <div
+                                  class="tabulator-col-title-holder"
+                                >
+                                  <div
+                                    class="tabulator-col-title"
+                                  >
+                                    Relational
+                                  </div>
+                                  <div
+                                    class="tabulator-col-sorter"
+                                  >
+                                    <div
+                                      class="tabulator-arrow"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        class="tabulator-tableholder fixedScrollbar"
+                        style="min-height: falsepx; height: calc(100% - 0px); max-height: calc(100% - 0px);"
+                        tabindex="0"
+                      >
+                        <div
+                          class="tabulator-table"
+                          role="rowgroup"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="footer verticalCenterContent"
+    >
+      <div
+        class="msg container fixedScrollbar leftItems"
+        style="flex-direction: row;"
+      />
+      <div
+        class="msg container fixedScrollbar rightItems"
+        style="flex-direction: row-reverse;"
+      >
+        <div
+          caption="OK"
+          class="msg button"
+          id="ok"
+          role="button"
+          tabindex="0"
+        >
+          OK
+        </div>
+        <div
+          caption="Cancel"
+          class="msg button"
+          id="cancel"
+          role="button"
+          tabindex="0"
+        >
+          Cancel
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`MrsHub Tests Show MRS Schema Dialog (snapshot) 1`] = `
+<div
+  class="msg portal"
+  id="mrsSchemaDialog"
+  style="--background-opacity: 0.5;"
+>
+  <div
+    class="msg dialog visible valueEditDialog"
+  >
+    <div
+      class="title verticalCenterContent"
+    >
+      <div
+        class="msg icon codicon codicon-terminal"
+      />
+      <label
+        class="msg label"
+        data-tooltip="expand"
+      >
+        MySQL REST Schema
+      </label>
+      <div
+        class="msg button imageOnly"
+        id="closeButton"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="msg icon"
+          style="mask-image: url(close2.svg);"
+        />
+      </div>
+    </div>
+    <div
+      class="content fixedScrollbar"
+    >
+      <div
+        class="msg grid"
+        id="contentGrid"
+        style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
+      >
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: row; grid-column: span 8;"
+        >
+          <label
+            class="msg label sectionTitle"
+            data-tooltip="expand"
+          >
+            Enter Configuration Values for the New REST Schema
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            REST Service Path
+          </label>
+          <div
+            class="msg container fixedScrollbar dropdown valueEditor"
+            id="service"
+            style="flex-direction: row; align-items: center;"
+            tabindex="0"
+          >
+            <label
+              class="msg label ellipsis"
+              data-tooltip="expand"
+            >
+              /mrs
+            </label>
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The path of the REST Service this REST Schema belongs to
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 5;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Comments
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input valueEditor"
+              id="comments"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            Comments to describe this REST Schema.
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            REST Schema Path
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input valueEditor"
+              id="requestPath"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The request path to access the schema, has to start with /
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Schema Name
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input valueEditor"
+              id="name"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The name of the corresponding database schema.
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 2;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Items per Page
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input valueEditor"
+              id="itemsPerPage"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Flags
+          </label>
+          <label
+            class="msg checkbox checked valueEditor"
+            id="enabled"
+            tabindex="0"
+          >
+            <span
+              class="checkMark"
+            />
+            Enabled
+          </label>
+          <label
+            class="msg checkbox unchecked valueEditor"
+            id="requiresAuth"
+            tabindex="0"
+          >
+            <span
+              class="checkMark"
+            />
+            Requires Authentication
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 5;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Options
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <textarea
+              class="msg input valueEditor"
+              id="options"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            Additional options in JSON format
+          </label>
+        </div>
+      </div>
+    </div>
+    <div
+      class="footer verticalCenterContent"
+    >
+      <div
+        class="msg container fixedScrollbar leftItems"
+        style="flex-direction: row;"
+      />
+      <div
+        class="msg container fixedScrollbar rightItems"
+        style="flex-direction: row-reverse;"
+      >
+        <div
+          caption="OK"
+          class="msg button"
+          id="ok"
+          role="button"
+          tabindex="0"
+        >
+          OK
+        </div>
+        <div
+          caption="Cancel"
+          class="msg button"
+          id="cancel"
+          role="button"
+          tabindex="0"
+        >
+          Cancel
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`MrsHub Tests Show MRS Service Dialog (snapshot) 1`] = `
+<div
+  class="msg portal"
+  id="mrsServiceDialog"
+  style="--background-opacity: 0.5;"
+>
+  <div
+    class="msg dialog visible valueEditDialog"
+  >
+    <div
+      class="title verticalCenterContent"
+    >
+      <div
+        class="msg icon codicon codicon-terminal"
+      />
+      <label
+        class="msg label"
+        data-tooltip="expand"
+      >
+        MySQL REST Service
+      </label>
+      <div
+        class="msg button imageOnly"
+        id="closeButton"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="msg icon"
+          style="mask-image: url(close2.svg);"
+        />
+      </div>
+    </div>
+    <div
+      class="content fixedScrollbar"
+    >
+      <div
+        class="msg grid"
+        id="contentGrid"
+        style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
+      >
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: row; grid-column: span 8;"
+        >
+          <label
+            class="msg label sectionTitle"
+            data-tooltip="expand"
+          >
+            Enter Configuration Values for the New REST Service
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            REST Service Path
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input valueEditor"
+              id="servicePath"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The URL context root of this service.
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 5;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Comments
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input valueEditor"
+              id="comments"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            Comments to describe this MRS Service.
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Host Name Filter
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input valueEditor"
+              id="hostName"
+              placeholder="<Host Name Filter:Port>"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            If specified, only requests for this host will served.
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Supported Protocols
+          </label>
+          <div
+            class="msg container fixedScrollbar tagInput dropdown multiSelect"
+            id="protocols"
+            style="flex-direction: row; flex-wrap: wrap;"
+            tabindex="0"
+          >
+            <label
+              class="msg label tag"
+              data-tooltip="expand"
+              draggable="true"
+            >
+              HTTPS
+            </label>
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The supported protocols.
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 2;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            MRS Service Flags
+          </label>
+          <label
+            class="msg checkbox checked valueEditor"
+            id="enabled"
+            tabindex="0"
+          >
+            <span
+              class="checkMark"
+            />
+            Enabled
+          </label>
+          <label
+            class="msg checkbox checked valueEditor"
+            id="makeDefault"
+            tabindex="0"
+          >
+            <span
+              class="checkMark"
+            />
+            Default
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: row; grid-column: span 8;"
+        >
+          <div
+            class="msg container fixedScrollbar tabview top"
+            style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
+          >
+            <div
+              class="msg container tabAreaContainer"
+              style="flex-direction: row;"
+            >
+              <div
+                class="scrollable"
+              >
+                <div
+                  class="msg container tabArea stretched"
+                  style="flex-direction: row;"
+                >
+                  <div
+                    class="msg button tabItem selected"
+                    id="page0"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      Options
+                    </label>
+                  </div>
+                  <div
+                    class="msg button tabItem"
+                    id="page1"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      Authentication
+                    </label>
+                  </div>
+                  <div
+                    class="msg button tabItem"
+                    id="page2"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      Authentication Apps
+                    </label>
+                  </div>
+                </div>
+                <div
+                  class="scrollbar"
+                >
+                  <div
+                    class="slider"
+                  />
+                </div>
+              </div>
+            </div>
+            <div
+              class="msg container fixedScrollbar content"
+              style="flex-direction: column;"
+            >
+              <div
+                class="msg grid"
+                style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
+              >
+                <div
+                  class="msg container fixedScrollbar gridCell"
+                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+                >
+                  <label
+                    class="msg label valueTitle"
+                    data-tooltip="expand"
+                  >
+                    Options in JSON Format:
+                  </label>
+                  <div
+                    class="msg container fixedScrollbar inputWithProgress"
+                    style="flex-direction: row;"
+                  >
+                    <textarea
+                      class="msg input valueEditor"
+                      id="options"
+                      spellcheck="true"
+                      type="text"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="footer verticalCenterContent"
+    >
+      <div
+        class="msg container fixedScrollbar leftItems"
+        style="flex-direction: row;"
+      />
+      <div
+        class="msg container fixedScrollbar rightItems"
+        style="flex-direction: row-reverse;"
+      >
+        <div
+          caption="OK"
+          class="msg button"
+          id="ok"
+          role="button"
+          tabindex="0"
+        >
+          OK
+        </div>
+        <div
+          caption="Cancel"
+          class="msg button"
+          id="cancel"
+          role="button"
+          tabindex="0"
+        >
+          Cancel
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`MrsHub Tests Show MRS User Dialog (snapshot) 1`] = `
+<div
+  class="msg portal"
+  id="mrsUserDialog"
+  style="--background-opacity: 0.5;"
+>
+  <div
+    class="msg dialog visible valueEditDialog"
+  >
+    <div
+      class="title verticalCenterContent"
+    >
+      <div
+        class="msg icon codicon codicon-terminal"
+      />
+      <label
+        class="msg label"
+        data-tooltip="expand"
+      >
+        MySQL REST User
+      </label>
+      <div
+        class="msg button imageOnly"
+        id="closeButton"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="msg icon"
+          style="mask-image: url(close2.svg);"
+        />
+      </div>
+    </div>
+    <div
+      class="content fixedScrollbar"
+    >
+      <div
+        class="msg grid"
+        id="contentGrid"
+        style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
+      >
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: row; grid-column: span 8;"
+        >
+          <label
+            class="msg label sectionTitle"
+            data-tooltip="expand"
+          >
+            Enter new MySQL REST User Values
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            User Name
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input valueEditor"
+              id="name"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The name of the user
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            User Password
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input valueEditor"
+              id="authString"
+              spellcheck="true"
+              type="password"
+            />
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The password of the user
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 2;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Authentication App
+          </label>
+          <div
+            class="msg container fixedScrollbar dropdown valueEditor"
+            id="authApp"
+            style="flex-direction: row; align-items: center;"
+            tabindex="0"
+          />
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The authentication app
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Email
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input valueEditor"
+              id="email"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The email of the user
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Assigned Roles
+          </label>
+          <div
+            class="msg container fixedScrollbar tagInput dropdown multiSelect"
+            id="roles"
+            style="flex-direction: row; flex-wrap: wrap;"
+            tabindex="0"
+          />
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            Roles assign DB Object privileges to the user.
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 2;"
+        >
+          
+          <label
+            class="msg label description"
+            data-tooltip="expand"
+          />
+          <label
+            class="msg checkbox checked valueEditor"
+            id="loginPermitted"
+            tabindex="0"
+          >
+            <span
+              class="checkMark"
+            />
+            Permit Login
+          </label>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            Allow user to log in
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-row: span 2; grid-column: span 6;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            User Options
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <textarea
+              class="msg input valueEditor"
+              id="appOptions"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            Additional options in JSON format
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 2;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Vendor User Id
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input valueEditor"
+              id="vendorUserId"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            Set by OAuth2 vendors
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 2;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Mapped User Id
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input valueEditor"
+              id="mappedUserId"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            Optional id for sync-ing
+          </label>
+        </div>
+      </div>
+    </div>
+    <div
+      class="footer verticalCenterContent"
+    >
+      <div
+        class="msg container fixedScrollbar leftItems"
+        style="flex-direction: row;"
+      />
+      <div
+        class="msg container fixedScrollbar rightItems"
+        style="flex-direction: row-reverse;"
+      >
+        <div
+          caption="OK"
+          class="msg button"
+          id="ok"
+          role="button"
+          tabindex="0"
+        >
+          OK
+        </div>
+        <div
+          caption="Cancel"
+          class="msg button"
+          id="cancel"
+          role="button"
+          tabindex="0"
+        >
+          Cancel
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`MrsHub Tests Standard Rendering (snapshot) 1`] = `
+<MrsHub>
+  <MrsServiceDialog
+    key="MrsServiceDialog"
+  >
+    <ValueEditDialog
+      id="mrsServiceDialog"
+      onClose={[Function]}
+      onValidate={[Function]}
+    >
+      <Dialog
+        actions={
+          {
+            "begin": [],
+            "end": [
+              <Button
+                caption="OK"
+                disabled={false}
+                id="ok"
+                onClick={[Function]}
+              />,
+              <Button
+                caption="Cancel"
+                id="cancel"
+                onClick={[Function]}
+              />,
+            ],
+          }
+        }
+        caption={
+          <p>
+            <Icon
+              disabled={false}
+              src={389}
+            />
+            <Label />
+          </p>
+        }
+        className="msg valueEditDialog"
+        container={
+          <body
+            theme="dark"
+          />
+        }
+        content={
+          <Grid
+            columnGap={16}
+            columns={8}
+            id="contentGrid"
+            rowGap={16}
+          />
+        }
+        id="mrsServiceDialog"
+        onClose={[Function]}
+      >
+        <Portal
+          container={
+            <body
+              theme="dark"
+            />
+          }
+          id="mrsServiceDialog"
+          onClose={[Function]}
+          onOpen={[Function]}
+        />
+      </Dialog>
+      <Menu
+        onItemClick={[Function]}
+        orientation="column"
+        placement="right-start"
+      >
+        <Popup
+          className="msg menu"
+          onClose={[Function]}
+          onKeyDown={[Function]}
+          onOpen={[Function]}
+          orientation="column"
+          pinned={false}
+          placement="right-start"
+          showArrow={false}
+        >
+          <Portal
+            className="popupPortal"
+            onClose={[Function]}
+            onKeyDown={[Function]}
+            onOpen={[Function]}
+          />
+        </Popup>
+      </Menu>
+    </ValueEditDialog>
+  </MrsServiceDialog>
+  <MrsSchemaDialog
+    key="MrsSchemaDialog"
+  >
+    <ValueEditDialog
+      id="mrsSchemaDialog"
+      onClose={[Function]}
+      onValidate={[Function]}
+    >
+      <Dialog
+        actions={
+          {
+            "begin": [],
+            "end": [
+              <Button
+                caption="OK"
+                disabled={false}
+                id="ok"
+                onClick={[Function]}
+              />,
+              <Button
+                caption="Cancel"
+                id="cancel"
+                onClick={[Function]}
+              />,
+            ],
+          }
+        }
+        caption={
+          <p>
+            <Icon
+              disabled={false}
+              src={389}
+            />
+            <Label />
+          </p>
+        }
+        className="msg valueEditDialog"
+        container={
+          <body
+            theme="dark"
+          />
+        }
+        content={
+          <Grid
+            columnGap={16}
+            columns={8}
+            id="contentGrid"
+            rowGap={16}
+          />
+        }
+        id="mrsSchemaDialog"
+        onClose={[Function]}
+      >
+        <Portal
+          container={
+            <body
+              theme="dark"
+            />
+          }
+          id="mrsSchemaDialog"
+          onClose={[Function]}
+          onOpen={[Function]}
+        />
+      </Dialog>
+      <Menu
+        onItemClick={[Function]}
+        orientation="column"
+        placement="right-start"
+      >
+        <Popup
+          className="msg menu"
+          onClose={[Function]}
+          onKeyDown={[Function]}
+          onOpen={[Function]}
+          orientation="column"
+          pinned={false}
+          placement="right-start"
+          showArrow={false}
+        >
+          <Portal
+            className="popupPortal"
+            onClose={[Function]}
+            onKeyDown={[Function]}
+            onOpen={[Function]}
+          />
+        </Popup>
+      </Menu>
+    </ValueEditDialog>
+  </MrsSchemaDialog>
+  <MrsDbObjectDialog
+    key="MrsDbObjectDialog"
+  >
+    <ValueEditDialog
+      id="mrsDbObjectDialog"
+      onClose={[Function]}
+      onValidate={[Function]}
+    >
+      <Dialog
+        actions={
+          {
+            "begin": [],
+            "end": [
+              <Button
+                caption="OK"
+                disabled={false}
+                id="ok"
+                onClick={[Function]}
+              />,
+              <Button
+                caption="Cancel"
+                id="cancel"
+                onClick={[Function]}
+              />,
+            ],
+          }
+        }
+        caption={
+          <p>
+            <Icon
+              disabled={false}
+              src={389}
+            />
+            <Label />
+          </p>
+        }
+        className="msg valueEditDialog"
+        container={
+          <body
+            theme="dark"
+          />
+        }
+        content={
+          <Grid
+            columnGap={16}
+            columns={8}
+            id="contentGrid"
+            rowGap={16}
+          />
+        }
+        id="mrsDbObjectDialog"
+        onClose={[Function]}
+      >
+        <Portal
+          container={
+            <body
+              theme="dark"
+            />
+          }
+          id="mrsDbObjectDialog"
+          onClose={[Function]}
+          onOpen={[Function]}
+        />
+      </Dialog>
+      <Menu
+        onItemClick={[Function]}
+        orientation="column"
+        placement="right-start"
+      >
+        <Popup
+          className="msg menu"
+          onClose={[Function]}
+          onKeyDown={[Function]}
+          onOpen={[Function]}
+          orientation="column"
+          pinned={false}
+          placement="right-start"
+          showArrow={false}
+        >
+          <Portal
+            className="popupPortal"
+            onClose={[Function]}
+            onKeyDown={[Function]}
+            onOpen={[Function]}
+          />
+        </Popup>
+      </Menu>
+    </ValueEditDialog>
+  </MrsDbObjectDialog>
+  <MrsContentSetDialog
+    key="MrsContentSetDialog"
+  >
+    <ValueEditDialog
+      id="mrsContentSetDialog"
+      onClose={[Function]}
+      onValidate={[Function]}
+    >
+      <Dialog
+        actions={
+          {
+            "begin": [],
+            "end": [
+              <Button
+                caption="OK"
+                disabled={false}
+                id="ok"
+                onClick={[Function]}
+              />,
+              <Button
+                caption="Cancel"
+                id="cancel"
+                onClick={[Function]}
+              />,
+            ],
+          }
+        }
+        caption={
+          <p>
+            <Icon
+              disabled={false}
+              src={389}
+            />
+            <Label />
+          </p>
+        }
+        className="msg valueEditDialog"
+        container={
+          <body
+            theme="dark"
+          />
+        }
+        content={
+          <Grid
+            columnGap={16}
+            columns={8}
+            id="contentGrid"
+            rowGap={16}
+          />
+        }
+        id="mrsContentSetDialog"
+        onClose={[Function]}
+      >
+        <Portal
+          container={
+            <body
+              theme="dark"
+            />
+          }
+          id="mrsContentSetDialog"
+          onClose={[Function]}
+          onOpen={[Function]}
+        />
+      </Dialog>
+      <Menu
+        onItemClick={[Function]}
+        orientation="column"
+        placement="right-start"
+      >
+        <Popup
+          className="msg menu"
+          onClose={[Function]}
+          onKeyDown={[Function]}
+          onOpen={[Function]}
+          orientation="column"
+          pinned={false}
+          placement="right-start"
+          showArrow={false}
+        >
+          <Portal
+            className="popupPortal"
+            onClose={[Function]}
+            onKeyDown={[Function]}
+            onOpen={[Function]}
+          />
+        </Popup>
+      </Menu>
+    </ValueEditDialog>
+  </MrsContentSetDialog>
+  <MrsAuthenticationAppDialog
+    key="MrsAuthenticationAppDialog"
+  >
+    <ValueEditDialog
+      id="mrsAuthenticationAppDialog"
+      onClose={[Function]}
+      onValidate={[Function]}
+    >
+      <Dialog
+        actions={
+          {
+            "begin": [],
+            "end": [
+              <Button
+                caption="OK"
+                disabled={false}
+                id="ok"
+                onClick={[Function]}
+              />,
+              <Button
+                caption="Cancel"
+                id="cancel"
+                onClick={[Function]}
+              />,
+            ],
+          }
+        }
+        caption={
+          <p>
+            <Icon
+              disabled={false}
+              src={389}
+            />
+            <Label />
+          </p>
+        }
+        className="msg valueEditDialog"
+        container={
+          <body
+            theme="dark"
+          />
+        }
+        content={
+          <Grid
+            columnGap={16}
+            columns={8}
+            id="contentGrid"
+            rowGap={16}
+          />
+        }
+        id="mrsAuthenticationAppDialog"
+        onClose={[Function]}
+      >
+        <Portal
+          container={
+            <body
+              theme="dark"
+            />
+          }
+          id="mrsAuthenticationAppDialog"
+          onClose={[Function]}
+          onOpen={[Function]}
+        />
+      </Dialog>
+      <Menu
+        onItemClick={[Function]}
+        orientation="column"
+        placement="right-start"
+      >
+        <Popup
+          className="msg menu"
+          onClose={[Function]}
+          onKeyDown={[Function]}
+          onOpen={[Function]}
+          orientation="column"
+          pinned={false}
+          placement="right-start"
+          showArrow={false}
+        >
+          <Portal
+            className="popupPortal"
+            onClose={[Function]}
+            onKeyDown={[Function]}
+            onOpen={[Function]}
+          />
+        </Popup>
+      </Menu>
+    </ValueEditDialog>
+  </MrsAuthenticationAppDialog>
+  <MrsUserDialog
+    key="MrsUserDialog"
+  >
+    <ValueEditDialog
+      id="mrsUserDialog"
+      onClose={[Function]}
+      onValidate={[Function]}
+    >
+      <Dialog
+        actions={
+          {
+            "begin": [],
+            "end": [
+              <Button
+                caption="OK"
+                disabled={false}
+                id="ok"
+                onClick={[Function]}
+              />,
+              <Button
+                caption="Cancel"
+                id="cancel"
+                onClick={[Function]}
+              />,
+            ],
+          }
+        }
+        caption={
+          <p>
+            <Icon
+              disabled={false}
+              src={389}
+            />
+            <Label />
+          </p>
+        }
+        className="msg valueEditDialog"
+        container={
+          <body
+            theme="dark"
+          />
+        }
+        content={
+          <Grid
+            columnGap={16}
+            columns={8}
+            id="contentGrid"
+            rowGap={16}
+          />
+        }
+        id="mrsUserDialog"
+        onClose={[Function]}
+      >
+        <Portal
+          container={
+            <body
+              theme="dark"
+            />
+          }
+          id="mrsUserDialog"
+          onClose={[Function]}
+          onOpen={[Function]}
+        />
+      </Dialog>
+      <Menu
+        onItemClick={[Function]}
+        orientation="column"
+        placement="right-start"
+      >
+        <Popup
+          className="msg menu"
+          onClose={[Function]}
+          onKeyDown={[Function]}
+          onOpen={[Function]}
+          orientation="column"
+          pinned={false}
+          placement="right-start"
+          showArrow={false}
+        >
+          <Portal
+            className="popupPortal"
+            onClose={[Function]}
+            onKeyDown={[Function]}
+            onOpen={[Function]}
+          />
+        </Popup>
+      </Menu>
+    </ValueEditDialog>
+  </MrsUserDialog>
+</MrsHub>
+`;

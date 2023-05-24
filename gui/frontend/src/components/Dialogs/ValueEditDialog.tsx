@@ -381,7 +381,7 @@ interface IRelatedValues {
 }
 
 /** A collection of values to configure the invocation of the value editor. */
-interface IValueEditDialogShowOptions {
+export interface IValueEditDialogShowOptions {
     /** The dialog contexts that should be active initially. */
     contexts?: string[];
 

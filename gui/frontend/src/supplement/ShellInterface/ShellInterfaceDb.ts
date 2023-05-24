@@ -171,7 +171,7 @@ export class ShellInterfaceDb {
         return result;
     }
 
-    protected get moduleSessionId(): string | undefined {
+    public get moduleSessionId(): string | undefined {
         return webSession.moduleSessionId(this.moduleSessionLookupId);
     }
 

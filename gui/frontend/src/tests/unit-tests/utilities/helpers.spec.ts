@@ -24,9 +24,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 
 import {
-    binarySearch, clampValue, deepEqual, flattenObject, selectFile, sleep, strictEval, uuid, waitFor,
+    binarySearch, clampValue, flattenObject, selectFile, sleep, strictEval, uuid, waitFor, deepEqual,
 } from "../../../utilities/helpers";
-import { nextProcessTick, uuidPattern } from "../test-helpers";
+import {
+    convertCamelToSnakeCase, convertSnakeToCamelCase, convertCamelToTitleCase, convertTitleToCamelCase, stripAnsiCode,
+} from "../../../utilities/string-helpers";
+import { loremIpsum, nextProcessTick, uuidPattern } from "../test-helpers";
 
 describe("Utilities Tests", (): void => {
     it("flattenObject", (): void => {

@@ -37,6 +37,7 @@ exports[`Message Panel Tests Render Test 1`] = `
         
       </Container>
     }
+    onClose={[Function]}
   >
     <Portal
       container={

@@ -53,33 +53,34 @@ describe("Message Panel Tests", (): void => {
         portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
 
-        // The first line in the list is used as caption if there are more than one line.
+        setTimeout(() => {
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(1);
+            expect(portals[0]).toMatchSnapshot();
+
+            // Close the dialog using the escape key.
+            sendKeyPress(keyboardKey.Escape);
+        }, 1000);
+
+        // The first line in the list is used as caption if there is more than one line.
         await requisitions.execute("showError", ["One line"]);
-        await nextProcessTick();
 
-        portals = document.getElementsByClassName("portal");
-        expect(portals.length).toBe(1);
-        expect(portals[0]).toMatchSnapshot();
+        setTimeout(() => {
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(1);
+            expect(portals[0]).toMatchSnapshot();
 
-        // Close the dialog using the escape key.
-        sendKeyPress(keyboardKey.Escape);
+            // Close the dialog using the close button.
+            const buttons = portals[0].getElementsByClassName("button");
+            expect(buttons).toHaveLength(2);
+            (buttons[1] as HTMLButtonElement).click();
+        }, 1000);
 
         await requisitions.execute("showError", [
             "Caption",
             "Line 1",
             "Line 2",
         ]);
-        await nextProcessTick();
-
-        portals = document.getElementsByClassName("portal");
-        expect(portals.length).toBe(1);
-        expect(portals[0]).toMatchSnapshot();
-
-        // Close the dialog using the close button.
-        const buttons = portals[0].getElementsByClassName("button");
-        expect(buttons).toHaveLength(2);
-        (buttons[1] as HTMLButtonElement).click();
-        await nextProcessTick();
 
         portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);

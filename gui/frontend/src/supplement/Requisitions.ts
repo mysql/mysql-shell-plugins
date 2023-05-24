@@ -28,14 +28,14 @@ import {
 import {
     IDialogRequest, IDialogResponse, IDictionary, IServicePasswordRequest, IStatusbarInfo,
 } from "../app-logic/Types";
-import {
-    IEmbeddedMessage, IEmbeddedSourceType, IMySQLDbSystem,
-} from "../communication";
-import { IWebSessionData, IShellProfile, IShellPromptValues } from "../communication/ProtocolGui";
-import { IMrsDbObjectData } from "../communication/ProtocolMrs";
+import type { IEmbeddedMessage, IEmbeddedSourceType, IMySQLDbSystem } from "../communication";
+import { IShellProfile, IShellPromptValues, IWebSessionData } from "../communication/ProtocolGui";
+import type {
+    IMrsAuthAppData, IMrsContentSetData, IMrsDbObjectData, IMrsSchemaData, IMrsServiceData, IMrsUserData,
+} from "../communication/ProtocolMrs";
 
 import { IThemeChangeData } from "../components/Theming/ThemeManager";
-import { IEditorStatusInfo, ISchemaTreeEntry, EntityType } from "../modules/db-editor";
+import { EntityType, IEditorStatusInfo, ISchemaTreeEntry } from "../modules/db-editor";
 import { RequisitionPipeline } from "./RequisitionPipeline";
 import { DBType, IConnectionDetails, IShellSessionDetails } from "./ShellInterface";
 
@@ -89,7 +89,7 @@ const parseAppParameters = (): void => {
     }
 };
 
-type SimpleCallback = (_: unknown) => Promise<boolean>;
+export type SimpleCallback = (_: unknown) => Promise<boolean>;
 
 export interface IOpenDialogFilters {
     [key: string]: string[];
@@ -207,9 +207,29 @@ export interface IProxyRequest {
 export type InitialEditor = "default" | "none" | "notebook" | "script";
 
 export interface IMrsDbObjectEditRequest extends IDictionary {
-    dbObject: IMrsDbObjectData,
-    createObject: boolean,
+    dbObject: IMrsDbObjectData;
+    createObject: boolean;
     schemaName?: string;
+}
+
+export interface IMrsSchemaEditRequest extends IDictionary {
+    schemaName?: string;
+    schema?: IMrsSchemaData;
+}
+
+export interface IMrsContentSetEditRequest extends IDictionary {
+    directory?: string;
+    contentSet?: IMrsContentSetData;
+}
+
+export interface IMrsAuthAppEditRequest extends IDictionary {
+    authApp?: IMrsAuthAppData;
+    service?: IMrsServiceData;
+}
+
+export interface IMrsUserEditRequest extends IDictionary {
+    authApp: IMrsAuthAppData;
+    user?: IMrsUserData;
 }
 
 /**
@@ -226,6 +246,7 @@ export interface IRequestTypeMap {
     "webSessionStarted": (data: IWebSessionData) => Promise<boolean>;
     "userAuthenticated": (activeProfile: IShellProfile) => Promise<boolean>;
 
+    /** Updates for the web app or the host status bar. */
     "updateStatusbar": (items: IStatusbarInfo[]) => Promise<boolean>;
     "profileLoaded": SimpleCallback;
     "changeProfile": (id: string | number) => Promise<boolean>;
@@ -366,8 +387,23 @@ export interface IRequestTypeMap {
 
     "hostThemeChange": (data: { css: string; themeClass: string; }) => Promise<boolean>;
 
-    /** Shows the dialog to create or update a MRS DB object. */
+    /** Shows the dialog to create or update an MRS service. */
+    "showMrsServiceDialog": (data?: IMrsServiceData) => Promise<boolean>;
+
+    /** Shows the dialog to create or update an MRS schema. */
+    "showMrsSchemaDialog": (data: IMrsSchemaEditRequest) => Promise<boolean>;
+
+    /** Shows the dialog to create or update an MRS DB object. */
     "showMrsDbObjectDialog": (data: IMrsDbObjectEditRequest) => Promise<boolean>;
+
+    /** Shows the dialog to create or update an MRS content set. */
+    "showMrsContentSetDialog": (data: IMrsContentSetEditRequest) => Promise<boolean>;
+
+    /** Shows the dialog to create or update an MRS authentication app. */
+    "showMrsAuthAppDialog": (data: IMrsAuthAppEditRequest) => Promise<boolean>;
+
+    /** Shows the dialog to create or update an MRS user. */
+    "showMrsUserDialog": (data: IMrsUserEditRequest) => Promise<boolean>;
 
     /** A list of requests that must be executed sequentially. */
     "job": (job: Array<IRequestListEntry<keyof IRequestTypeMap>>) => Promise<boolean>;

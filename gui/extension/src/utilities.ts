@@ -24,7 +24,6 @@
 import { window, ProgressLocation, MessageOptions, commands, ProviderResult } from "vscode";
 import { waitFor } from "../../frontend/src/utilities/helpers";
 
-
 /**
  * Dynamically switches a VS Code context on or off. Such a context is used to enable/disable VS Code commands,
  * menus, views and others.

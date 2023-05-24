@@ -21,10 +21,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { commands, ExtensionContext } from "vscode";
+import { commands } from "vscode";
 
 import { IWebviewProvider, requisitions } from "../../frontend/src/supplement/Requisitions";
 import { IShellSessionDetails } from "../../frontend/src/supplement/ShellInterface";
+import { ExtensionHost } from "./ExtensionHost";
 import { ConnectionTreeItem } from "./tree-providers/ConnectionsTreeProvider/ConnectionTreeItem";
 import {
     IEditorConnectionEntry, IShellSessionEntry,
@@ -36,7 +37,9 @@ export class ShellConsoleCommandHandler {
     private providers: ShellConsoleViewProvider[] = [];
     private url?: URL;
 
-    public setup(context: ExtensionContext): void {
+    public setup(host: ExtensionHost): void {
+        const context = host.context;
+
         requisitions.register("connectedToUrl", this.connectedToUrl);
 
         context.subscriptions.push(commands.registerCommand("msg.openSessionBrowser", (provider?: IWebviewProvider) => {

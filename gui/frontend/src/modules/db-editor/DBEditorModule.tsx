@@ -51,7 +51,10 @@ import {
 import { ICodeEditorModel } from "../../components/ui/CodeEditor/CodeEditor";
 import { CodeEditorMode, Monaco } from "../../components/ui/CodeEditor";
 import { ExecutionContexts } from "../../script-execution/ExecutionContexts";
-import { appParameters, IMrsDbObjectEditRequest, InitialEditor, requisitions } from "../../supplement/Requisitions";
+import {
+    appParameters, IMrsAuthAppEditRequest, IMrsContentSetEditRequest, IMrsDbObjectEditRequest, IMrsSchemaEditRequest,
+    IMrsUserEditRequest, InitialEditor, requisitions,
+} from "../../supplement/Requisitions";
 import { Settings } from "../../supplement/Settings/Settings";
 import { DBType, IConnectionDetails } from "../../supplement/ShellInterface";
 import { EntityType, IDBDataEntry, IDBEditorScriptState, ISavedGraphData, ISchemaTreeEntry, IToolbarItems } from ".";
@@ -84,7 +87,8 @@ import { ProgressIndicator } from "../../components/ui/ProgressIndicator/Progres
 import { ITabviewPage, Tabview, TabPosition } from "../../components/ui/Tabview/Tabview";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface";
 import { IOpenConnectionData, IShellPasswordFeedbackRequest } from "../../communication/ProtocolGui";
-import { MrsTurnstile } from "../mrs/MrsTurnstile";
+import { MrsHub } from "../mrs/MrsHub";
+import { IMrsServiceData } from "../../communication/ProtocolMrs";
 
 import scriptingRuntime from "./assets/typings/scripting-runtime.d.ts?raw";
 
@@ -135,7 +139,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
     private pendingProgress: ReturnType<typeof setTimeout> | null;
 
     private actionMenuRef = createRef<Menu>();
-    private mrsTurnstileRef = createRef<MrsTurnstile>();
+    private mrsHubRef = createRef<MrsHub>();
 
     public static get info(): IModuleInfo {
         return {
@@ -200,7 +204,13 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         requisitions.register("editorClose", this.editorClose);
         requisitions.register("profileLoaded", this.profileLoaded);
         requisitions.register("webSessionStarted", this.webSessionStarted);
+
         requisitions.register("showMrsDbObjectDialog", this.showMrsDbObjectDialog);
+        requisitions.register("showMrsServiceDialog", this.showMrsServiceDialog);
+        requisitions.register("showMrsSchemaDialog", this.showMrsSchemaDialog);
+        requisitions.register("showMrsContentSetDialog", this.showMrsContentSetDialog);
+        requisitions.register("showMrsAuthAppDialog", this.showMrsAuthAppDialog);
+        requisitions.register("showMrsUserDialog", this.showMrsUserDialog);
     }
 
     public componentWillUnmount(): void {
@@ -214,7 +224,13 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         requisitions.unregister("editorClose", this.editorClose);
         requisitions.unregister("profileLoaded", this.profileLoaded);
         requisitions.unregister("webSessionStarted", this.webSessionStarted);
+
         requisitions.unregister("showMrsDbObjectDialog", this.showMrsDbObjectDialog);
+        requisitions.unregister("showMrsServiceDialog", this.showMrsServiceDialog);
+        requisitions.unregister("showMrsSchemaDialog", this.showMrsSchemaDialog);
+        requisitions.unregister("showMrsContentSetDialog", this.showMrsContentSetDialog);
+        requisitions.unregister("showMrsAuthAppDialog", this.showMrsAuthAppDialog);
+        requisitions.unregister("showMrsUserDialog", this.showMrsUserDialog);
     }
 
     public render(): ComponentChild {
@@ -511,7 +527,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     <MenuItem key="item4" id="addJSScript" caption="New JS Script" icon={javascriptIcon} />
                 </Menu>
             }
-            <MrsTurnstile ref={this.mrsTurnstileRef} />
+            <MrsHub ref={this.mrsHubRef} />
         </>;
     }
 
@@ -696,13 +712,91 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
     };
 
     private showMrsDbObjectDialog = async (request: IMrsDbObjectEditRequest): Promise<boolean> => {
-        if (this.mrsTurnstileRef.current) {
+        if (this.mrsHubRef.current) {
             const { selectedPage, editorTabs } = this.state;
             const tab = editorTabs.find((entry) => { return entry.tabId === selectedPage; });
             if (tab) {
                 const state = this.connectionState.get(selectedPage);
                 if (state) {
-                    return this.mrsTurnstileRef.current.showMrsDbObjectDialog(state.backend, request);
+                    return this.mrsHubRef.current.showMrsDbObjectDialog(state.backend, request);
+                }
+            }
+        }
+
+        return false;
+    };
+
+    private showMrsServiceDialog = async (request?: IMrsServiceData): Promise<boolean> => {
+        if (this.mrsHubRef.current) {
+            const { selectedPage, editorTabs } = this.state;
+            const tab = editorTabs.find((entry) => { return entry.tabId === selectedPage; });
+            if (tab) {
+                const state = this.connectionState.get(selectedPage);
+                if (state) {
+                    return this.mrsHubRef.current.showMrsServiceDialog(state.backend, request);
+                }
+            }
+        }
+
+        return false;
+    };
+
+    private showMrsSchemaDialog = async (request: IMrsSchemaEditRequest): Promise<boolean> => {
+        if (this.mrsHubRef.current) {
+            const { selectedPage, editorTabs } = this.state;
+            const tab = editorTabs.find((entry) => { return entry.tabId === selectedPage; });
+            if (tab) {
+                const state = this.connectionState.get(selectedPage);
+                if (state) {
+                    return this.mrsHubRef.current.showMrsSchemaDialog(state.backend, request.schemaName,
+                        request.schema);
+                }
+            }
+        }
+
+        return false;
+    };
+
+    private showMrsContentSetDialog = async (request: IMrsContentSetEditRequest): Promise<boolean> => {
+        if (this.mrsHubRef.current) {
+            const { selectedPage, editorTabs } = this.state;
+            const tab = editorTabs.find((entry) => { return entry.tabId === selectedPage; });
+            if (tab) {
+                const state = this.connectionState.get(selectedPage);
+                if (state) {
+                    return this.mrsHubRef.current.showMrsContentSetDialog(state.backend, request.directory,
+                        request.contentSet);
+                }
+            }
+        }
+
+        return false;
+    };
+
+    private showMrsAuthAppDialog = async (request: IMrsAuthAppEditRequest): Promise<boolean> => {
+        if (this.mrsHubRef.current) {
+            const { selectedPage, editorTabs } = this.state;
+            const tab = editorTabs.find((entry) => { return entry.tabId === selectedPage; });
+            if (tab) {
+                const state = this.connectionState.get(selectedPage);
+                if (state) {
+                    return this.mrsHubRef.current.showMrsAuthAppDialog(state.backend, request.authApp,
+                        request.service);
+                }
+            }
+        }
+
+        return false;
+    };
+
+    private showMrsUserDialog = async (request: IMrsUserEditRequest): Promise<boolean> => {
+        if (this.mrsHubRef.current) {
+            const { selectedPage, editorTabs } = this.state;
+            const tab = editorTabs.find((entry) => { return entry.tabId === selectedPage; });
+            if (tab) {
+                const state = this.connectionState.get(selectedPage);
+                if (state) {
+                    return this.mrsHubRef.current.showMrsUserDialog(state.backend, request.authApp, request.user);
                 }
             }
         }

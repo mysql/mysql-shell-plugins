@@ -40,7 +40,6 @@ import { ProfileSelector } from "./ProfileSelector";
 import { ShellModule } from "../modules/shell/ShellModule";
 import { DBEditorModule } from "../modules/db-editor/DBEditorModule";
 import { InnoDBClusterModule } from "../modules/innodb-cluster/InnoDBClusterModule";
-import { MDSModule } from "../modules/mds/MDSModule";
 import { ApplicationDB } from "./ApplicationDB";
 import { IDialogResponse } from "./Types";
 import { MessageScheduler } from "../communication/MessageScheduler";
@@ -318,7 +317,6 @@ export class App extends Component<{}, IAppState> {
             // Register the known modules first.
             ModuleRegistry.registerModule(DBEditorModule);
             ModuleRegistry.registerModule(ShellModule);
-            ModuleRegistry.registerModule(MDSModule);
             ModuleRegistry.registerModule(InnoDBClusterModule);
 
             list.forEach((id: string) => {
