@@ -41,7 +41,7 @@ import { OciLoadBalancerTreeItem } from "./tree-providers/OCITreeProvider/OciLoa
 import { OciConfigProfileTreeItem } from "./tree-providers/OCITreeProvider/OciProfileTreeItem";
 import { DbSystem } from "../../frontend/src/oci-typings/oci-mysql/lib/model";
 
-import { DialogResponseClosure, DialogType, IDictionary } from "../../frontend/src/app-logic/Types";
+import { DialogResponseClosure, IDictionary, MdsDialogType } from "../../frontend/src/app-logic/Types";
 import { DialogWebviewManager } from "./web-views/DialogWebviewProvider";
 import { ConnectionsTreeBaseItem } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeBaseItem";
 import { SchemaMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaMySQLTreeItem";
@@ -597,7 +597,7 @@ export class MDSCommandHandler {
 
             const request = {
                 id: "mdsHWClusterDialog",
-                type: DialogType.MdsHeatWaveCluster,
+                type: MdsDialogType.MdsHeatWaveCluster,
                 title,
                 parameters: { shapes: summaries },
                 values: {
@@ -676,7 +676,7 @@ export class MDSCommandHandler {
 
         const request = {
             id: "mdsHWLoadDataDialog",
-            type: DialogType.MdsHeatWaveLoadData,
+            type: MdsDialogType.MdsHeatWaveLoadData,
             title,
             parameters: {},
             values: {

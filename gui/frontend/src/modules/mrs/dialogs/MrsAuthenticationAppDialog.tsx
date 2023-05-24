@@ -21,42 +21,76 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { createRef, ComponentChild } from "preact";
-
 import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types";
 import { IMrsAuthAppData, IMrsAuthVendorData, IMrsRoleData } from "../../../communication/ProtocolMrs";
-import { ValueDialogBase } from "../../../components/Dialogs/ValueDialogBase";
+import { AwaitableValueEditDialog } from "../../../components/Dialogs/AwaitableValueEditDialog";
 import {
-    CommonDialogValueOption, IDialogSection, IDialogValidations, IDialogValues, ValueEditDialog,
+    CommonDialogValueOption, IDialogSection, IDialogValidations, IDialogValues,
 } from "../../../components/Dialogs/ValueEditDialog";
 
-export class MrsAuthenticationAppDialog extends ValueDialogBase {
-    private dialogRef = createRef<ValueEditDialog>();
+export interface IMrsAuthenticationAppDialogData extends IDictionary {
+    authVendorName: string;
+    name: string;
+    description: string;
+    accessToken: string;
+    appId: string;
+    url: string;
+    urlDirectAuth: string;
+    enabled: boolean;
+    limitToRegisteredUsers: boolean;
+    defaultRoleName: string;
+}
 
-    public render(): ComponentChild {
-        return (
-            <ValueEditDialog
-                ref={this.dialogRef}
-                id="mrsAuthenticationAppDialog"
-                onClose={this.handleCloseDialog}
-                onValidate={this.validateInput}
-            />
-        );
+export class MrsAuthenticationAppDialog extends AwaitableValueEditDialog {
+    protected get id(): string {
+        return "mrsAuthenticationAppDialog";
     }
 
-    public show(request: IDialogRequest, title: string): void {
+    public override async show(request: IDialogRequest): Promise<IDictionary | DialogResponseClosure> {
         const authVendors = request.parameters?.authVendors as IMrsAuthVendorData[];
         const roles = request.parameters?.roles as IMrsRoleData[];
 
-        this.dialogRef.current?.show(this.dialogValues(request, title, authVendors, roles),
-            { title: "MySQL REST Authentication App" });
+        const dialogValues = this.dialogValues(request, authVendors, roles);
+        const result = await this.doShow(() => { return dialogValues; }, { title: "MySQL REST Authentication App" });
+
+        if (result.closure === DialogResponseClosure.Accept) {
+            return this.processResults(result.values);
+        }
+
+        return DialogResponseClosure.Cancel;
     }
 
-    private dialogValues(request: IDialogRequest, title: string,
-        authVendors: IMrsAuthVendorData[], roles: IMrsRoleData[]): IDialogValues {
+    protected override validateInput = (closing: boolean, values: IDialogValues): IDialogValidations => {
+        const result: IDialogValidations = {
+            messages: {},
+            requiredContexts: [],
+        };
+
+        const mainSection = values.sections.get("mainSection");
+
+        if (closing) {
+            if (mainSection) {
+                if (!mainSection.values.authVendorName.value) {
+                    result.messages.authVendorName = "The vendor name must not be empty.";
+                }
+                if (!mainSection.values.name.value) {
+                    result.messages.name = "The name must not be empty.";
+                }
+            }
+        } else if (mainSection) {
+            if (mainSection.values.name.value as string === "" || mainSection.values.name.value === undefined) {
+                mainSection.values.name.value = mainSection.values.authVendorName.value as string;
+            }
+        }
+
+        return result;
+    };
+
+    private dialogValues(request: IDialogRequest, authVendors: IMrsAuthVendorData[],
+        roles: IMrsRoleData[]): IDialogValues {
         const appData = (request.values as unknown) as IMrsAuthAppData;
         const mainSection: IDialogSection = {
-            caption: title,
+            caption: request.title,
             values: {
                 authVendorName: {
                     type: "choice",
@@ -148,56 +182,27 @@ export class MrsAuthenticationAppDialog extends ValueDialogBase {
         };
     }
 
-    private handleCloseDialog = (closure: DialogResponseClosure, dialogValues: IDialogValues): void => {
-        const { onClose } = this.props;
+    private processResults = (dialogValues: IDialogValues): IDictionary => {
+        const mainSection = dialogValues.sections.get("mainSection");
 
-        if (closure === DialogResponseClosure.Accept) {
-            const mainSection = dialogValues.sections.get("mainSection");
+        if (mainSection) {
+            const values: IMrsAuthenticationAppDialogData = {
+                authVendorName: mainSection.values.authVendorName.value as string,
+                name: mainSection.values.name.value as string,
+                description: mainSection.values.description.value as string,
+                accessToken: mainSection.values.accessToken.value as string,
+                appId: mainSection.values.appId.value as string,
+                url: mainSection.values.url.value as string,
+                urlDirectAuth: mainSection.values.urlDirectAuth.value as string,
+                enabled: mainSection.values.enabled.value as boolean,
+                limitToRegisteredUsers: mainSection.values.limitToRegisteredUsers.value as boolean,
+                defaultRoleName: mainSection.values.defaultRoleName.value as string,
+            };
 
-            if (mainSection) {
-                const values: IDictionary = {};
-                values.authVendorName = mainSection.values.authVendorName.value as string;
-                values.name = mainSection.values.name.value as string;
-                values.description = mainSection.values.description.value as string;
-                values.accessToken = mainSection.values.accessToken.value as string;
-                values.appId = mainSection.values.appId.value as string;
-                values.url = mainSection.values.url.value as string;
-                values.urlDirectAuth = mainSection.values.urlDirectAuth.value as string;
-                values.enabled = mainSection.values.enabled.value as string;
-                values.limitToRegisteredUsers = mainSection.values.limitToRegisteredUsers.value as string;
-                values.defaultRoleName = mainSection.values.defaultRoleName.value as string;
-
-                onClose(closure, values);
-            }
-        } else {
-            onClose(closure);
-        }
-    };
-
-    private validateInput = (closing: boolean, values: IDialogValues): IDialogValidations => {
-        const result: IDialogValidations = {
-            messages: {},
-            requiredContexts: [],
-        };
-
-        const mainSection = values.sections.get("mainSection");
-
-        if (closing) {
-            if (mainSection) {
-                if (!mainSection.values.authVendorName.value) {
-                    result.messages.authVendorName = "The vendor name must not be empty.";
-                }
-                if (!mainSection.values.name.value) {
-                    result.messages.name = "The name must not be empty.";
-                }
-            }
-        } else if (mainSection) {
-            if (mainSection.values.name.value as string === "" || mainSection.values.name.value === undefined) {
-                mainSection.values.name.value = mainSection.values.authVendorName.value as string;
-            }
+            return values;
         }
 
-        return result;
+        return {};
     };
 
 }

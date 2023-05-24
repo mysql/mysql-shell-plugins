@@ -47,8 +47,7 @@ export class ShellPromptHandler {
      *
      * @returns True, if the result is a prompt request, otherwise false (and the result is not handled).
      */
-    public static handleShellPrompt(result: IShellResultType | undefined,
-        requestId: string,
+    public static handleShellPrompt(result: IShellResultType | undefined, requestId: string,
         backend: IPromptReplyBackend, title?: string, payload?: IDictionary): boolean {
         if (this.isShellPromptResult(result)) {
             switch (result.type) {

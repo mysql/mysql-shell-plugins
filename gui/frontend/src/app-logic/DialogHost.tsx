@@ -21,122 +21,135 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ComponentChild, createRef, RefObject } from "preact";
+import { ComponentChild, createRef } from "preact";
 
 import { ComponentBase } from "../components/ui/Component/ComponentBase";
-import { MdsHWClusterDialog } from "../modules/mds/dialogs/MdsHWClusterDialog";
-import { MdsHWLoadDataDialog } from "../modules/mds/dialogs/MdsHWLoadDataDialog";
-import { MrsSchemaDialog } from "../modules/mrs/dialogs/MrsSchemaDialog";
-import { MrsContentSetDialog } from "../modules/mrs/dialogs/MrsContentSetDialog";
-import { MrsAuthenticationAppDialog } from "../modules/mrs/dialogs/MrsAuthenticationAppDialog";
-import { MrsUserDialog } from "../modules/mrs/dialogs/MrsUserDialog";
 import { requisitions } from "../supplement/Requisitions";
-import { DialogResponseClosure, DialogType, IDialogRequest, IDialogResponse, IDictionary } from "./Types";
+import {
+    DialogResponseClosure, DialogType, IDialogRequest, IDialogResponse, IDictionary, MdsDialogType,
+} from "./Types";
 import { ConfirmDialog } from "../components/Dialogs/ConfirmDialog";
 import { PasswordDialog } from "../components/Dialogs/PasswordDialog";
 import { MrsAuthDialog } from "../modules/mrs/dialogs/MrsAuthDialog";
-import { ValueDialogBase } from "../components/Dialogs/ValueDialogBase";
 import {
     ValueEditDialog, IDialogSection, CommonDialogValueOption, IDialogValues, IChoiceDialogValue,
 } from "../components/Dialogs/ValueEditDialog";
-import { MrsServiceDialog } from "../modules/mrs/dialogs/MrsServiceDialog";
+import { Semaphore } from "../supplement/Semaphore";
+import { MdsHWClusterDialog } from "../modules/mds/dialogs/MdsHWClusterDialog";
+import { MdsHWLoadDataDialog } from "../modules/mds/dialogs/MdsHWLoadDataDialog";
 
 /**
- * A component to host certain application wide dialogs in a central place.
+ * A component to host certain application wide common dialogs in a central place.
  * They are all accessible via requisitions.
  */
 export class DialogHost extends ComponentBase {
-    // Holds the currently running dialog type (only one of each type can run at the same time) and last
-    // active HTML element, when this dialog was launched.
-    private runningDialogs = new Map<DialogType, Element | null>();
+    static #instance: DialogHost;
 
-    private dialogRefs = new Map<DialogType, RefObject<ValueDialogBase>>();
+    // Used like stack. Last element is the element which was focused before the dialog was opened.
+    #focusedElements: Array<Element | null> = [];
 
-    // The value edit dialog is special, as it uses a different approach for editing complex values.
-    private promptDialogRef = createRef<ValueEditDialog>();
+    #promptDialogRef = createRef<ValueEditDialog>();
+    // Tri-state: undefined = not active, null = active (use requisitions, assigned = active (use this).
+    #promptDialogSignal: Semaphore<IDialogResponse> | undefined | null;
 
-    private confirmDialogRef = createRef<ConfirmDialog>();
+    #confirmDialogRef = createRef<ConfirmDialog>();
+    #confirmDialogSignal: Semaphore<IDialogResponse> | undefined | null;
+
+    #mdsClusterDialogRef = createRef<MdsHWClusterDialog>();
+    #mdsLoadDataDialogRef = createRef<MdsHWLoadDataDialog>();
 
     public constructor(props: {}) {
-        super(props);
+        // Make the DialogHost a singleton and allow access to it via class methods.
+        if (DialogHost.#instance) {
+            return DialogHost.#instance;
+        }
 
-        requisitions.register("showDialog", this.showDialog);
+        super(props);
+        DialogHost.#instance = this;
+
+        requisitions.register("showDialog", this.showDialogNoWait);
     }
+
+    /**
+     * Directly shows one of the standard dialog and allows to wait for the user's response.
+     *
+     * @param request The request with the data for the dialog.
+     *
+     * @returns A promise which resolves to the user's response.
+     */
+    public static showDialog = async (request: IDialogRequest): Promise<IDialogResponse> => {
+        switch (request.type) {
+            case DialogType.Prompt: {
+                if (this.#instance.#promptDialogSignal !== undefined) {
+                    throw new Error("Prompt dialog already active.");
+                }
+
+                this.#instance.#promptDialogSignal = new Semaphore<IDialogResponse>();
+                this.#instance.runPromptDialog(request);
+
+                return this.#instance.#promptDialogSignal.wait();
+            }
+
+            case DialogType.Confirm: {
+                if (this.#instance.#confirmDialogSignal !== undefined) {
+                    throw new Error("Confirm dialog already active.");
+                }
+
+                this.#instance.#confirmDialogSignal = new Semaphore<IDialogResponse>();
+                this.#instance.runConfirmDialog(request);
+
+                return this.#instance.#confirmDialogSignal.wait();
+            }
+
+            case DialogType.Select: {
+                // Both selection and prompt dialogs use the signal.
+                if (this.#instance.#promptDialogSignal !== undefined) {
+                    throw new Error("Select dialog already active.");
+                }
+
+                this.#instance.#promptDialogSignal = new Semaphore<IDialogResponse>();
+                this.#instance.runSelectDialog(request);
+
+                return this.#instance.#promptDialogSignal.wait();
+            }
+
+            default: {
+                throw new Error(`Unknown dialog type: ${request.type}`);
+            }
+        }
+    };
 
     public render(): ComponentChild {
         const dialogs: ComponentChild[] = [
             // The password dialog has it's own command handling. Just host it here.
             <PasswordDialog key="passwordDialog" />,
 
-            // The password dialog has it's own command handling. Just host it here.
+            // The MRS auth dialog has it's own command handling. Just host it here.
             <MrsAuthDialog key="mrsAuthDialog" />,
 
-            // The value edit dialog has a different value handling, so it's not added to the dialogRefs list.
             <ValueEditDialog
-                key="valueEditDialog"
-                ref={this.promptDialogRef}
+                key="promptDialog"
+                ref={this.#promptDialogRef}
                 onClose={this.handlePromptDialogClose}
             />,
 
             <ConfirmDialog
                 key="confirmDialog"
-                ref={this.confirmDialogRef}
-                onClose={this.handleDialogClose.bind(this, DialogType.Confirm)}
+                ref={this.#confirmDialogRef}
+                onClose={this.handleConfirmDialogClose.bind(this, DialogType.Confirm)}
             />,
         ];
 
-        const refMrs1 = createRef<MrsServiceDialog>();
-        this.dialogRefs.set(DialogType.MrsService, refMrs1);
-        dialogs.push(<MrsServiceDialog
-            key="mrsServiceDialog"
-            ref={refMrs1}
-            onClose={this.handleDialogClose.bind(this, DialogType.MrsService)}
-        />);
-
-        const refMrs2 = createRef<MrsSchemaDialog>();
-        this.dialogRefs.set(DialogType.MrsSchema, refMrs2);
-        dialogs.push(<MrsSchemaDialog
-            key="mrsSchemaDialog"
-            ref={refMrs2}
-            onClose={this.handleDialogClose.bind(this, DialogType.MrsSchema)}
-        />);
-
-        const refMrs4 = createRef<MrsContentSetDialog>();
-        this.dialogRefs.set(DialogType.MrsContentSet, refMrs4);
-        dialogs.push(<MrsContentSetDialog
-            key="mrsContentSetDialog"
-            ref={refMrs4}
-            onClose={this.handleDialogClose.bind(this, DialogType.MrsContentSet)}
-        />);
-
-        const refMrs5 = createRef<MrsAuthenticationAppDialog>();
-        this.dialogRefs.set(DialogType.MrsAuthenticationApp, refMrs5);
-        dialogs.push(<MrsAuthenticationAppDialog
-            key="mrsAuthenticationAppDialog"
-            ref={refMrs5}
-            onClose={this.handleDialogClose.bind(this, DialogType.MrsAuthenticationApp)}
-        />);
-
-        const refMrs6 = createRef<MrsUserDialog>();
-        this.dialogRefs.set(DialogType.MrsUser, refMrs6);
-        dialogs.push(<MrsUserDialog
-            key="mrsUserDialog"
-            ref={refMrs6}
-            onClose={this.handleDialogClose.bind(this, DialogType.MrsUser)}
-        />);
-
-        const refMds1 = createRef<MdsHWClusterDialog>();
-        this.dialogRefs.set(DialogType.MdsHeatWaveCluster, refMds1);
+        this.#mdsClusterDialogRef = createRef<MdsHWClusterDialog>();
         dialogs.push(<MdsHWClusterDialog
-            ref={refMds1}
-            onClose={this.handleDialogClose.bind(this, DialogType.MdsHeatWaveCluster)}
+            ref={this.#mdsClusterDialogRef}
+            onClose={this.handleDialogClose.bind(this, MdsDialogType.MdsHeatWaveCluster)}
         />);
 
-        const refMds2 = createRef<MdsHWLoadDataDialog>();
-        this.dialogRefs.set(DialogType.MdsHeatWaveLoadData, refMds2);
+        this.#mdsLoadDataDialogRef = createRef<MdsHWLoadDataDialog>();
         dialogs.push(<MdsHWLoadDataDialog
-            ref={refMds2}
-            onClose={this.handleDialogClose.bind(this, DialogType.MdsHeatWaveLoadData)}
+            ref={this.#mdsLoadDataDialogRef}
+            onClose={this.handleDialogClose.bind(this, MdsDialogType.MdsHeatWaveLoadData)}
         />);
 
         return (
@@ -146,41 +159,63 @@ export class DialogHost extends ComponentBase {
         );
     }
 
-    private showDialog = (request: IDialogRequest): Promise<boolean> => {
-        // Check if a dialog of the given type is already active.
-        // Only one of each type can be active at any time.
-        if (!this.runningDialogs.has(request.type)) {
-            switch (request.type) {
-                case DialogType.Prompt: {
+    /**
+     * Triggered by the `showDialog` requisition. It shows a dialog without waiting for a response. Instead the response
+     * is posted by the `handlePromptDialogClose` method, in form of another requisition call.
+     *
+     * @param request The request with the data for the dialog.
+     *
+     * @returns A promise which resolves to `true` if the dialog was shown, or `false` if a dialog of the given type
+     *         is already active or no dialog exists for the given request type.
+     */
+    private showDialogNoWait = (request: IDialogRequest): Promise<boolean> => {
+        switch (request.type) {
+            case DialogType.Prompt: {
+                if (this.#promptDialogSignal === undefined) {
+                    this.#promptDialogSignal = null;
                     this.runPromptDialog(request);
 
                     return Promise.resolve(true);
                 }
 
-                case DialogType.Confirm: {
+                break;
+            }
+
+            case DialogType.Confirm: {
+                if (this.#confirmDialogSignal === undefined) {
+                    this.#confirmDialogSignal = null;
                     this.runConfirmDialog(request);
 
                     return Promise.resolve(true);
                 }
 
-                case DialogType.Select: {
+                break;
+            }
+
+            case DialogType.Select: {
+                if (this.#promptDialogSignal === undefined) {
+                    this.#promptDialogSignal = null;
                     this.runSelectDialog(request);
 
                     return Promise.resolve(true);
                 }
 
-                default: { // All dialogs with the base value editor return signature.
-                    const ref = this.dialogRefs.get(request.type);
-                    if (ref && ref.current) {
-                        this.runningDialogs.set(request.type, document.activeElement);
-                        ref.current.show(request, request.title);
-
-                        return Promise.resolve(true);
-                    }
-
-                    break;
-                }
+                break;
             }
+
+            case MdsDialogType.MdsHeatWaveCluster: {
+                this.#focusedElements.push(document.activeElement);
+
+                if (this.#mdsClusterDialogRef.current) {
+                    void this.#mdsClusterDialogRef.current.show(request, request.title ?? "");
+
+                    return Promise.resolve(true);
+                }
+                break;
+            }
+
+
+            default:
         }
 
         return Promise.resolve(false);
@@ -197,7 +232,7 @@ export class DialogHost extends ComponentBase {
      * @param request The request with the data for the dialog.
      */
     private runPromptDialog = (request: IDialogRequest): void => {
-        this.runningDialogs.set(DialogType.Prompt, document.activeElement);
+        this.#focusedElements.push(document.activeElement);
 
         const promptSection: IDialogSection = {
             values: {
@@ -211,7 +246,7 @@ export class DialogHost extends ComponentBase {
             },
         };
 
-        this.promptDialogRef.current?.show(
+        this.#promptDialogRef.current?.show(
             {
                 id: request.id,
                 sections: new Map<string, IDialogSection>([
@@ -242,9 +277,9 @@ export class DialogHost extends ComponentBase {
      * @param request The request with the data for the dialog.
      */
     private runConfirmDialog = (request: IDialogRequest): void => {
-        this.runningDialogs.set(DialogType.Confirm, document.activeElement);
+        this.#focusedElements.push(document.activeElement);
 
-        this.confirmDialogRef.current?.show(
+        this.#confirmDialogRef.current?.show(
             request.parameters?.prompt as string ?? "",
             {
                 accept: request.parameters?.accept as string ?? "",
@@ -271,7 +306,7 @@ export class DialogHost extends ComponentBase {
      * @param request The request with the data for the dialog.
      */
     private runSelectDialog = (request: IDialogRequest): void => {
-        this.runningDialogs.set(DialogType.Select, document.activeElement);
+        this.#focusedElements.push(document.activeElement);
 
         const promptSection: IDialogSection = {
             values: {},
@@ -296,7 +331,7 @@ export class DialogHost extends ComponentBase {
             options: [CommonDialogValueOption.AutoFocus],
         };
 
-        this.promptDialogRef.current?.show(
+        this.#promptDialogRef.current?.show(
             {
                 id: request.id,
                 sections: new Map<string, IDialogSection>([
@@ -311,9 +346,9 @@ export class DialogHost extends ComponentBase {
         );
     };
 
-    private handleDialogClose = (type: DialogType, closure: DialogResponseClosure, data?: IDictionary): void => {
-        const element = this.runningDialogs.get(type);
-        this.runningDialogs.delete(type);
+    private handleConfirmDialogClose = (type: DialogType, closure: DialogResponseClosure,
+        data?: IDictionary): void => {
+        const element = this.#focusedElements.pop();
 
         const response: IDialogResponse = {
             id: data?.id as string ?? "",
@@ -322,7 +357,12 @@ export class DialogHost extends ComponentBase {
             data,
         };
 
-        void requisitions.execute("dialogResponse", response);
+        if (this.#confirmDialogSignal) {
+            this.#confirmDialogSignal.notifyAll(response);
+        } else {
+            void requisitions.execute("dialogResponse", response);
+        }
+        this.#confirmDialogSignal = undefined;
 
         if (element instanceof HTMLTextAreaElement || element instanceof HTMLInputElement) {
             element.focus();
@@ -333,8 +373,7 @@ export class DialogHost extends ComponentBase {
         data?: IDictionary): void => {
 
         const type = data?.type as DialogType ?? DialogType.Prompt;
-        const element = this.runningDialogs.get(type);
-        this.runningDialogs.delete(type);
+        const element = this.#focusedElements.pop();
 
         const promptSection = values.sections.get("prompt");
         if (promptSection) {
@@ -361,7 +400,12 @@ export class DialogHost extends ComponentBase {
                 data,
             };
 
-            void requisitions.execute("dialogResponse", response);
+            if (this.#promptDialogSignal) {
+                this.#promptDialogSignal.notifyAll(response);
+            } else {
+                void requisitions.execute("dialogResponse", response);
+            }
+            this.#promptDialogSignal = undefined;
         }
 
         if (element instanceof HTMLTextAreaElement || element instanceof HTMLInputElement) {
@@ -369,4 +413,20 @@ export class DialogHost extends ComponentBase {
         }
     };
 
+    private handleDialogClose = (type: MdsDialogType, closure: DialogResponseClosure, data?: IDictionary): void => {
+        const element = this.#focusedElements.pop();
+
+        const response: IDialogResponse = {
+            id: data?.id as string ?? "",
+            type,
+            closure,
+            data,
+        };
+
+        void requisitions.execute("dialogResponse", response);
+
+        if (element instanceof HTMLTextAreaElement || element instanceof HTMLInputElement) {
+            element.focus();
+        }
+    };
 }

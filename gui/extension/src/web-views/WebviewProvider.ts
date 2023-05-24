@@ -26,11 +26,11 @@ import * as path from "path";
 import { commands, Uri, ViewColumn, WebviewPanel, window, workspace } from "vscode";
 
 import {
-    IRequestTypeMap, IRequisitionCallbackValues, IWebviewProvider, RequisitionHub, requisitions,
+    IRequestTypeMap, IRequisitionCallbackValues, IWebviewProvider, RequisitionHub, requisitions, SimpleCallback,
 } from "../../../frontend/src/supplement/Requisitions";
 
 import { IEmbeddedMessage } from "../../../frontend/src/communication";
-import { IDialogResponse } from "../../../frontend/src/app-logic/Types";
+import { IDialogResponse, IStatusbarInfo } from "../../../frontend/src/app-logic/Types";
 
 import { printChannelOutput } from "../extension";
 import { prepareWebviewContent } from "./webview";
@@ -189,6 +189,12 @@ export class WebviewProvider implements IWebviewProvider {
             this.requisitions.register("settingsChanged", this.updateVscodeSettings);
             this.requisitions.register("selectConnectionTab", this.selectConnectionTab);
             this.requisitions.register("dialogResponse", this.dialogResponse);
+            this.requisitions.register("updateStatusbar", this.updateStatusbar);
+
+            this.requisitions.register("closeInstance",
+                this.forwardSimple.bind(this, "closeInstance") as SimpleCallback);
+            this.requisitions.register("refreshConnections",
+                this.forwardSimple.bind(this, "refreshConnections") as SimpleCallback);
         }
     }
 
@@ -209,6 +215,29 @@ export class WebviewProvider implements IWebviewProvider {
         return requisitions.execute("proxyRequest", {
             provider: this,
             original: { requestType: "dialogResponse", parameter: response },
+        });
+    };
+
+    private updateStatusbar = (items: IStatusbarInfo[]): Promise<boolean> => {
+        // Proxy the notification over the global requisitions.
+        return requisitions.execute("proxyRequest", {
+            provider: this,
+            original: { requestType: "updateStatusbar", parameter: items },
+        });
+    };
+
+    /**
+     * Used to forward all requests to the global requisitions, which have no parameters.
+     *
+     * @param requestType The request type to forward.
+     *
+     * @returns A promise that resolves when the request was forwarded.
+     */
+    private forwardSimple = (requestType: keyof IRequestTypeMap): Promise<boolean> => {
+        // Proxy the notification over the global requisitions.
+        return requisitions.execute("proxyRequest", {
+            provider: this,
+            original: { requestType, parameter: undefined },
         });
     };
 

@@ -21,39 +21,112 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ComponentChild, createRef } from "preact";
 import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types";
-import { IMrsAuthVendorData, IMrsAuthAppData } from "../../../communication/ProtocolMrs";
-import { ValueDialogBase } from "../../../components/Dialogs/ValueDialogBase";
+import { IMrsAuthAppData, IMrsAuthVendorData } from "../../../communication/ProtocolMrs";
+import { AwaitableValueEditDialog } from "../../../components/Dialogs/AwaitableValueEditDialog";
 import {
-    ValueEditDialog, IDialogValues, IDialogSection, CommonDialogValueOption, IDialogValidations,
-    IRelationDialogValue,
+    CommonDialogValueOption, IDialogSection, IDialogValidations, IDialogValues, IRelationDialogValue,
 } from "../../../components/Dialogs/ValueEditDialog";
 
-export class MrsServiceDialog extends ValueDialogBase {
-    private dialogRef = createRef<ValueEditDialog>();
+export interface IMrsServiceDialogData extends IDictionary {
+    servicePath: string;
+    comments: string;
+    hostName: string;
+    isCurrent: boolean;
+    enabled: boolean;
+    protocols: string[];
+    options: string;
+    authPath: string;
+    authCompletedUrlValidation: string;
+    authCompletedUrl: string;
+    authCompletedPageContent: string;
+    authApps: Array<IMrsAuthAppData & IDictionary>;
+}
 
-    public render(): ComponentChild {
-        return (
-            <ValueEditDialog
-                ref={this.dialogRef}
-                id="mrsServiceDialog"
-                onClose={this.handleCloseDialog}
-                onValidate={this.validateInput}
-            />
-        );
+export class MrsServiceDialog extends AwaitableValueEditDialog {
+    protected get id(): string {
+        return "mrsServiceDialog";
     }
 
-    public show(request: IDialogRequest, title: string): void {
+    public override async show(request: IDialogRequest): Promise<IDictionary | DialogResponseClosure> {
         const authVendors = request.parameters?.authVendors as IMrsAuthVendorData[];
 
-        this.dialogRef.current?.show(this.dialogValues(request, title, authVendors), { title: "MySQL REST Service" },
-            request.parameters?.payload as IDictionary);
+        const dialogValues = this.dialogValues(request, authVendors);
+        const result = await this.doShow(() => { return dialogValues; }, { title: "MySQL REST Service" });
+
+        if (result.closure === DialogResponseClosure.Accept) {
+            return this.processResults(result.values);
+        }
+
+        return DialogResponseClosure.Cancel;
     }
 
-    private dialogValues(request: IDialogRequest, title: string, authVendors: IMrsAuthVendorData[]): IDialogValues {
+    protected override validateInput = (closing: boolean, values: IDialogValues): IDialogValidations => {
+        const result: IDialogValidations = {
+            messages: {},
+            requiredContexts: [],
+        };
+
+        if (closing) {
+            const mainSection = values.sections.get("mainSection");
+            if (mainSection) {
+                if (!mainSection.values.servicePath.value) {
+                    result.messages.servicePath = "The service name must not be empty.";
+                } else {
+                    const servicePath = mainSection.values.servicePath.value as string;
+                    if (!servicePath.startsWith("/")) {
+                        result.messages.servicePath = "The request path must start with /.";
+                    }
+                }
+            }
+        } else {
+            // Detect change of the <new> entry
+            const authAppSection = values.sections.get("authAppSection");
+            if (authAppSection && authAppSection.values.authApps) {
+                const authAppsDlgValue = authAppSection.values.authApps as IRelationDialogValue;
+                const authApps = authAppsDlgValue.value as Array<IMrsAuthAppData & IDictionary>;
+                const newEntry = authApps.find((p) => {
+                    return p.id === "";
+                });
+                // Detect a change of the <new> entry
+                if (newEntry && (newEntry.authVendorName !== "" || newEntry.name !== "<new>")) {
+                    // Update id and position
+                    newEntry.id = `${authApps.length * -1}`;
+                    newEntry.position = authApps.length;
+
+                    if (newEntry.authVendorName && newEntry.name === "<new>") {
+                        newEntry.name = newEntry.authVendorName;
+                    }
+
+                    authAppsDlgValue.active = newEntry.id;
+
+
+                    authApps.push({
+                        id: "",
+                        authVendorId: "",
+                        authVendorName: "",
+                        serviceId: "",
+                        name: "<new>",
+                        description: "",
+                        url: "",
+                        urlDirectAuth: "",
+                        accessToken: "",
+                        appId: "",
+                        enabled: true,
+                        useBuiltInAuthorization: true,
+                        limitToRegisteredUsers: true,
+                        defaultRoleId: "MQAAAAAAAAAAAAAAAAAAAA==",
+                    });
+                }
+            }
+        }
+
+        return result;
+    };
+
+    private dialogValues(request: IDialogRequest, authVendors: IMrsAuthVendorData[]): IDialogValues {
         const mainSection: IDialogSection = {
-            caption: title,
+            caption: request.title,
             values: {
                 servicePath: {
                     type: "text",
@@ -287,100 +360,31 @@ export class MrsServiceDialog extends ValueDialogBase {
         };
     }
 
-    private handleCloseDialog = (closure: DialogResponseClosure, dialogValues: IDialogValues,
-        payload?: IDictionary): void => {
-        const { onClose } = this.props;
+    private processResults = (dialogValues: IDialogValues): IDictionary => {
+        const mainSection = dialogValues.sections.get("mainSection");
+        const optionsSection = dialogValues.sections.get("optionsSection");
+        const authSection = dialogValues.sections.get("authSection");
+        const authAppSection = dialogValues.sections.get("authAppSection");
 
-        if (closure === DialogResponseClosure.Accept) {
-            const mainSection = dialogValues.sections.get("mainSection");
-            const optionsSection = dialogValues.sections.get("optionsSection");
-            const authSection = dialogValues.sections.get("authSection");
-            const authAppSection = dialogValues.sections.get("authAppSection");
-            if (mainSection && optionsSection && authSection && authAppSection) {
-                const values: IDictionary = {};
-                values.servicePath = mainSection.values.servicePath.value as string;
-                values.comments = mainSection.values.comments.value as string;
-                values.hostName = mainSection.values.hostName.value as string;
-                values.isCurrent = mainSection.values.makeDefault.value as boolean;
-                values.enabled = mainSection.values.enabled.value as boolean;
-                values.protocols = mainSection.values.protocols.value as string[];
-                values.options = optionsSection.values.options.value as string;
-                values.authPath = authSection.values.authPath.value as string;
-                values.authCompletedUrlValidation =
-                    authSection.values.authCompletedUrlValidation.value as string;
-                values.authCompletedUrl = authSection.values.authCompletedUrl.value as string;
-                values.authCompletedPageContent = authSection.values.authCompletedPageContent.value as string;
-                values.authApps = authAppSection.values.authApps.value as Array<IMrsAuthAppData & IDictionary>;
-                values.payload = payload;
+        if (mainSection && optionsSection && authSection && authAppSection) {
+            const values: IMrsServiceDialogData = {
+                servicePath: mainSection.values.servicePath.value as string,
+                comments: mainSection.values.comments.value as string,
+                hostName: mainSection.values.hostName.value as string,
+                isCurrent: mainSection.values.makeDefault.value as boolean,
+                enabled: mainSection.values.enabled.value as boolean,
+                protocols: mainSection.values.protocols.value as string[],
+                options: optionsSection.values.options.value as string,
+                authPath: authSection.values.authPath.value as string,
+                authCompletedUrlValidation: authSection.values.authCompletedUrlValidation.value as string,
+                authCompletedUrl: authSection.values.authCompletedUrl.value as string,
+                authCompletedPageContent: authSection.values.authCompletedPageContent.value as string,
+                authApps: authAppSection.values.authApps.value as Array<IMrsAuthAppData & IDictionary>,
+            };
 
-                onClose(closure, values);
-            }
-        } else {
-            onClose(closure);
-        }
-    };
-
-    private validateInput = (closing: boolean, values: IDialogValues): IDialogValidations => {
-        const result: IDialogValidations = {
-            messages: {},
-            requiredContexts: [],
-        };
-
-        if (closing) {
-            const mainSection = values.sections.get("mainSection");
-            if (mainSection) {
-                if (!mainSection.values.servicePath.value) {
-                    result.messages.servicePath = "The service name must not be empty.";
-                } else {
-                    const servicePath = mainSection.values.servicePath.value as string;
-                    if (!servicePath.startsWith("/")) {
-                        result.messages.servicePath = "The request path must start with /.";
-                    }
-                }
-            }
-        } else {
-            // Detect change of the <new> entry
-            const authAppSection = values.sections.get("authAppSection");
-            if (authAppSection && authAppSection.values.authApps) {
-                const authAppsDlgValue = authAppSection.values.authApps as IRelationDialogValue;
-                const authApps = authAppsDlgValue.value as Array<IMrsAuthAppData & IDictionary>;
-                const newEntry = authApps.find((p) => {
-                    return p.id === "";
-                });
-                // Detect a change of the <new> entry
-                if (newEntry && (newEntry.authVendorName !== "" || newEntry.name !== "<new>")) {
-                    // Update id and position
-                    newEntry.id = `${authApps.length * -1}`;
-                    newEntry.position = authApps.length;
-
-                    if (newEntry.authVendorName && newEntry.name === "<new>") {
-                        newEntry.name = newEntry.authVendorName;
-                    }
-
-                    authAppsDlgValue.active = newEntry.id;
-
-
-                    authApps.push({
-                        id: "",
-                        authVendorId: "",
-                        authVendorName: "",
-                        serviceId: "",
-                        name: "<new>",
-                        description: "",
-                        url: "",
-                        urlDirectAuth: "",
-                        accessToken: "",
-                        appId: "",
-                        enabled: true,
-                        useBuiltInAuthorization: true,
-                        limitToRegisteredUsers: true,
-                        defaultRoleId: "MQAAAAAAAAAAAAAAAAAAAA==",
-                    });
-                }
-            }
+            return values;
         }
 
-        return result;
+        return {};
     };
-
 }

@@ -21,37 +21,68 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ComponentChild, createRef } from "preact";
-
 import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types";
 import { IMrsServiceData } from "../../../communication/ProtocolMrs";
-import { ValueDialogBase } from "../../../components/Dialogs/ValueDialogBase";
+import { AwaitableValueEditDialog } from "../../../components/Dialogs/AwaitableValueEditDialog";
 import {
-    ValueEditDialog, IDialogValues, IDialogSection, CommonDialogValueOption, IDialogValidations,
+    IDialogValues, IDialogSection, CommonDialogValueOption, IDialogValidations,
 } from "../../../components/Dialogs/ValueEditDialog";
 
-export class MrsSchemaDialog extends ValueDialogBase {
-    private dialogRef = createRef<ValueEditDialog>();
+export interface IMrsSchemaDialogData extends IDictionary {
+    name: string;
+    serviceId: string;
+    requestPath: string;
+    requiresAuth: boolean;
+    enabled: boolean;
+    itemsPerPage: number;
+    comments: string;
+    options: string;
+}
 
-    public render(): ComponentChild {
-        return (
-            <ValueEditDialog
-                ref={this.dialogRef}
-                id="mrsSchemaDialog"
-                onClose={this.handleCloseDialog}
-                onValidate={this.validateInput}
-            />
-        );
+export class MrsSchemaDialog extends AwaitableValueEditDialog {
+    protected get id(): string {
+        return "mrsSchemaDialog";
     }
 
-    public show(request: IDialogRequest, title: string): void {
-        const services = request.parameters?.services as IMrsServiceData[];
+    public override async show(request: IDialogRequest): Promise<IDictionary | DialogResponseClosure> {
+        const services = request.parameters?.services as IMrsServiceData[] ?? [];
 
-        this.dialogRef.current?.show(this.dialogValues(request, title, services), { title: "MySQL REST Service" },
-            { services });
+        const dialogValues = this.dialogValues(request, services);
+        const result = await this.doShow(() => { return dialogValues; }, { title: "MySQL REST Schema" });
+        if (result.closure === DialogResponseClosure.Accept) {
+            return this.processResults(result.values, services);
+        }
+
+        return DialogResponseClosure.Cancel;
     }
 
-    private dialogValues(request: IDialogRequest, title: string, services: IMrsServiceData[]): IDialogValues {
+    protected override validateInput = (closing: boolean, values: IDialogValues): IDialogValidations => {
+        const result: IDialogValidations = {
+            messages: {},
+            requiredContexts: [],
+        };
+
+        if (closing) {
+            const mainSection = values.sections.get("mainSection");
+            if (mainSection) {
+                if (!mainSection.values.name.value) {
+                    result.messages.name = "The schema name must not be empty.";
+                }
+                if (!mainSection.values.requestPath.value) {
+                    result.messages.requestPath = "The request path must not be empty.";
+                } else {
+                    const requestPath = mainSection.values.requestPath.value as string;
+                    if (!requestPath.startsWith("/")) {
+                        result.messages.requestPath = "The request path must start with /.";
+                    }
+                }
+            }
+        }
+
+        return result;
+    };
+
+    private dialogValues(request: IDialogRequest, services: IMrsServiceData[]): IDialogValues {
 
         let selectedService = services.find((service) => {
             return service.isCurrent === 1;
@@ -62,7 +93,7 @@ export class MrsSchemaDialog extends ValueDialogBase {
         }
 
         const mainSection: IDialogSection = {
-            caption: title,
+            caption: request.title,
             values: {
                 service: {
                     type: "choice",
@@ -144,58 +175,26 @@ export class MrsSchemaDialog extends ValueDialogBase {
         };
     }
 
-    private handleCloseDialog = (closure: DialogResponseClosure, dialogValues: IDialogValues,
-        data?: IDictionary): void => {
-        const { onClose } = this.props;
-
-        if (closure === DialogResponseClosure.Accept && data) {
-            const services = data.services as IMrsServiceData[] ?? [];
-            const mainSection = dialogValues.sections.get("mainSection");
-            if (mainSection) {
-                const values: IDictionary = {};
-                values.name = mainSection.values.name.value as string;
-                values.serviceId = services.find((service) => {
+    private processResults = (dialogValues: IDialogValues, services: IMrsServiceData[]): IDictionary => {
+        const mainSection = dialogValues.sections.get("mainSection");
+        if (mainSection) {
+            const values: IMrsSchemaDialogData = {
+                name: mainSection.values.name.value as string,
+                serviceId: services.find((service) => {
                     return mainSection.values.service.value === service.hostCtx;
-                })?.id;
+                })?.id ?? "",
+                requestPath: mainSection.values.requestPath.value as string,
+                requiresAuth: mainSection.values.requiresAuth.value as boolean,
+                enabled: mainSection.values.enabled.value as boolean,
+                itemsPerPage: mainSection.values.itemsPerPage.value as number,
+                comments: mainSection.values.comments.value as string,
+                options: mainSection.values.options.value as string,
+            };
 
-                values.requestPath = mainSection.values.requestPath.value as string;
-                values.requiresAuth = mainSection.values.requiresAuth.value as boolean;
-                values.enabled = mainSection.values.enabled.value as boolean;
-                values.itemsPerPage = mainSection.values.itemsPerPage.value as number;
-                values.comments = mainSection.values.comments.value as string;
-                values.options = mainSection.values.options.value as string;
-
-                onClose(closure, values);
-            }
-        } else {
-            onClose(closure);
-        }
-    };
-
-    private validateInput = (closing: boolean, values: IDialogValues): IDialogValidations => {
-        const result: IDialogValidations = {
-            messages: {},
-            requiredContexts: [],
-        };
-
-        if (closing) {
-            const mainSection = values.sections.get("mainSection");
-            if (mainSection) {
-                if (!mainSection.values.name.value) {
-                    result.messages.name = "The schema name must not be empty.";
-                }
-                if (!mainSection.values.requestPath.value) {
-                    result.messages.requestPath = "The request path must not be empty.";
-                } else {
-                    const requestPath = mainSection.values.requestPath.value as string;
-                    if (!requestPath.startsWith("/")) {
-                        result.messages.requestPath = "The request path must start with /.";
-                    }
-                }
-            }
+            return values;
         }
 
-        return result;
+        return {};
     };
 
 }

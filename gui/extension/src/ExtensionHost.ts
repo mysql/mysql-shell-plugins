@@ -208,7 +208,7 @@ export class ExtensionHost {
         void NodeMessageScheduler.get;
 
         this.dbEditorCommandHandler.setup(this);
-        this.shellConsoleCommandHandler.setup(this.context);
+        this.shellConsoleCommandHandler.setup(this);
         this.notebookProvider.setup(this);
         this.mrsCommandHandler.setup(this);
         this.mdsCommandHandler.setup(this);

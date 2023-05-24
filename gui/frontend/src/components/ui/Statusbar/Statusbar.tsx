@@ -47,13 +47,21 @@ export interface IStatusbarItem {
     type: ControlType;
     text?: string;
     icon?: string | codicon.Codicon;
-    rightAlign?: boolean;        // If true the item is right aligned in the status bar.
+
+    /** If true the item is right aligned in the status bar. */
+    rightAlign?: boolean;
     visible?: boolean;
     tooltip?: string;
     choices?: Array<{ label: string; data: IDictionary; }>;
-    color?: string | ThemeColor; // Dedicated background color for the item.
-    commandId?: string;          // If set the item can be clicked to trigger an action.
-    standout?: boolean;          // If true then the item gets a slightly lighter background.
+
+    /** Dedicated background color for the item. */
+    color?: string | ThemeColor;
+
+    /** If set the item can be clicked to trigger an action. */
+    commandId?: string;
+
+    /** If true then the item gets a slightly lighter background. */
+    standout?: boolean;
 }
 
 interface IStatusbarProperties extends IComponentProperties {
@@ -65,7 +73,13 @@ interface IStatusbarState extends IComponentState {
     itemDetails: Map<string, IStatusbarInfo>;
 }
 
-// The status bar is a collection of buttons that show state and/or can trigger commands.
+/**
+ * This is the web application status bar, used when running the application standalone or in certain hosts.
+ * If vscode is the host then the status bar is provided by the host and this component is not used.
+ *
+ * This implementation is based on predefined status bar items, which are defined in the properties.
+ * Statusbar updates are matched using the item id.
+ */
 export class Statusbar extends ComponentBase<IStatusbarProperties, IStatusbarState> {
 
     public constructor(props: IStatusbarProperties) {

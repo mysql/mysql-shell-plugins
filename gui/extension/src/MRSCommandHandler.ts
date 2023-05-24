@@ -27,8 +27,6 @@ import fs from "fs";
 
 import { commands, env, ExtensionContext, TerminalExitStatus, Uri, ViewColumn, WebviewPanel, window } from "vscode";
 
-import { DialogResponseClosure, DialogType } from "../../frontend/src/app-logic/Types";
-
 import { DBType } from "../../frontend/src/supplement/ShellInterface";
 
 import { ExtensionHost } from "./ExtensionHost";
@@ -41,10 +39,7 @@ import { SchemaMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvider/Sc
 import { showMessageWithTimeout, showModalDialog } from "./utilities";
 import { openSqlEditorSessionAndConnection, openSqlEditorConnection } from "./utilitiesShellGui";
 import { DialogWebviewManager } from "./web-views/DialogWebviewProvider";
-import { IShellDictionary } from "../../frontend/src/communication/Protocol";
-import {
-    IMrsServiceData, IMrsAuthAppData, IMrsSchemaData, IMrsContentSetData, IMrsUserData, IMrsUserRoleData,
-} from "../../frontend/src/communication/ProtocolMrs";
+import { IMrsServiceData } from "../../frontend/src/communication/ProtocolMrs";
 import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
 import { ConnectionMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvider/ConnectionMySQLTreeItem";
 import { MrsDbObjectTreeItem } from "./tree-providers/ConnectionsTreeProvider/MrsDbObjectTreeItem";
@@ -140,7 +135,8 @@ export class MRSCommandHandler {
 
         host.context.subscriptions.push(commands.registerCommand("msg.mrs.addService", (item?: MrsTreeItem) => {
             if (item?.entry.backend) {
-                this.showMrsServiceDialog(item.entry.backend).catch((reason) => {
+                const connectionId = String(item.entry.details.id);
+                this.dialogManager.showMrsServiceDialog("Add MRS Service", connectionId).catch((reason) => {
                     void window.showErrorMessage(`${String(reason)}`);
                 });
             }
@@ -148,9 +144,11 @@ export class MRSCommandHandler {
 
         host.context.subscriptions.push(commands.registerCommand("msg.mrs.editService", (item?: MrsServiceTreeItem) => {
             if (item?.entry.backend) {
-                this.showMrsServiceDialog(item.entry.backend, item.value).catch((reason) => {
-                    void window.showErrorMessage(`${String(reason)}`);
-                });
+                const connectionId = String(item.entry.details.id);
+                this.dialogManager.showMrsServiceDialog("Edit MRS Service", connectionId, item.value)
+                    .catch((reason) => {
+                        void window.showErrorMessage(`${String(reason)}`);
+                    });
             }
         }));
 
@@ -230,15 +228,18 @@ export class MRSCommandHandler {
 
         host.context.subscriptions.push(commands.registerCommand("msg.mrs.editSchema", (item?: MrsSchemaTreeItem) => {
             if (item?.entry.backend) {
-                this.showMrsSchemaDialog(item.entry.backend, item.value.name, item.value).catch((reason) => {
-                    void window.showErrorMessage(`${String(reason)}`);
-                });
+                const connectionId = String(item.entry.details.id);
+                this.dialogManager.showMrsSchemaDialog("Edit MRS Schema", connectionId, item.value.name, item.value)
+                    .catch((reason) => {
+                        void window.showErrorMessage(`${String(reason)}`);
+                    });
             }
         }));
 
         host.context.subscriptions.push(commands.registerCommand("msg.mrs.addSchema", (item?: SchemaMySQLTreeItem) => {
             if (item?.entry.backend) {
-                this.showMrsSchemaDialog(item.entry.backend, item.schema).catch((reason) => {
+                const connectionId = String(item.entry.details.id);
+                this.dialogManager.showMrsSchemaDialog("Add MRS Schema", connectionId, item.schema).catch((reason) => {
                     void window.showErrorMessage(`${String(reason)}`);
                 });
             }
@@ -310,7 +311,8 @@ export class MRSCommandHandler {
 
         host.context.subscriptions.push(commands.registerCommand("msg.mrs.editAuthApp", (item?: MrsAuthAppTreeItem) => {
             if (item?.entry.backend) {
-                this.showMrsAuthAppDialog(item.entry.backend, item.value).catch((reason) => {
+                const connectionId = String(item.entry.details.id);
+                this.dialogManager.showMrsAuthAppDialog("Edit Auth App", connectionId, item.value).catch((reason) => {
                     void window.showErrorMessage(`${String(reason)}`);
                 });
             }
@@ -321,9 +323,11 @@ export class MRSCommandHandler {
             (item?: MrsServiceTreeItem) => {
                 try {
                     if (item?.entry.backend && item.value) {
-                        this.showMrsAuthAppDialog(item.entry.backend, undefined, item.value).catch((reason) => {
-                            void window.showErrorMessage(`${String(reason)}`);
-                        });
+                        const connectionId = String(item.entry.details.id);
+                        this.dialogManager.showMrsAuthAppDialog("Add Auth App", connectionId, undefined, item.value)
+                            .catch((reason) => {
+                                void window.showErrorMessage(`${String(reason)}`);
+                            });
                     }
                 } catch (reason) {
                     void window.showErrorMessage(`Error adding a new MRS Authentication App: ${String(reason)}`);
@@ -382,9 +386,11 @@ export class MRSCommandHandler {
             (item?: MrsAuthAppTreeItem) => {
                 try {
                     if (item?.entry.backend && item.value) {
-                        this.showMrsUserDialog(item.entry.backend, item.value).catch((reason) => {
-                            void window.showErrorMessage(`${String(reason)}`);
-                        });
+                        const connectionId = String(item.entry.details.id);
+                        this.dialogManager.showMrsUserDialog("Add MRS User", connectionId, item.value)
+                            .catch((reason) => {
+                                void window.showErrorMessage(`${String(reason)}`);
+                            });
                     }
                 } catch (reason) {
                     void window.showErrorMessage(`Error adding a new User: ${String(reason)}`);
@@ -398,9 +404,11 @@ export class MRSCommandHandler {
                     if (backend && item.value && item.value.authAppId) {
                         const authApp = await backend.mrs.getAuthApp(item.value.authAppId);
                         if (authApp) {
-                            this.showMrsUserDialog(backend, authApp, item.value).catch((reason) => {
-                                void window.showErrorMessage(`${String(reason)}`);
-                            });
+                            const connectionId = String(item.entry.details.id);
+                            this.dialogManager.showMrsUserDialog("Edit MRS User", connectionId, authApp, item.value)
+                                .catch((reason) => {
+                                    void window.showErrorMessage(`${String(reason)}`);
+                                });
                         } else {
                             throw new Error("Unable to find authApp");
                         }
@@ -431,7 +439,8 @@ export class MRSCommandHandler {
 
                             statusbarItem.hide();
 
-                            await this.showMrsContentSetDialog(sqlEditor, directory);
+                            await this.dialogManager.showMrsContentSetDialog("Add MRS Content Set",
+                                directory.toString());
                         } catch (error) {
                             void window.showErrorMessage("A error occurred when trying to show the MRS Static " +
                                 `Content Set Dialog. Error: ${error instanceof Error ? error.message : String(error)}`);
@@ -953,667 +962,6 @@ export class MRSCommandHandler {
                     void env.openExternal(Uri.parse("https://labs.mysql.com"));
                 }
             }
-        }
-    };
-
-    /**
-     * Shows a dialog to create a new or edit an existing MRS service.
-     *
-     * @param backend The interface for sending the requests.
-     * @param authApp If not assigned then a new service must be created otherwise this contains the existing values.
-     * @param service If the authApp is not assigned, the service must be available, so that we can create
-     * a new authApp for this service.
-     */
-    private showMrsAuthAppDialog = async (backend: ShellInterfaceSqlEditor,
-        authApp?: IMrsAuthAppData, service?: IMrsServiceData): Promise<void> => {
-
-        const title = authApp
-            ? "Adjust the MRS Authentication App Configuration"
-            : "Enter Configuration Values for the New MRS Authentication App";
-        const tabTitle = authApp
-            ? "Edit MRS Authentication App"
-            : "Add MRS Authentication App";
-
-
-        const authVendors = await backend.mrs.getAuthVendors();
-        const roles = await backend.mrs.listRoles();
-
-        const authVendorName = authVendors.find((vendor) => {
-            return authApp?.authVendorId === vendor.id;
-        })?.name ?? "";
-
-        const defaultRole = roles.find((role) => {
-            return authApp?.defaultRoleId === role.id;
-        })?.caption ?? (roles.length > 0) ? roles[0].caption : "";
-
-        const request = {
-            id: "mrsAuthenticationAppDialog",
-            type: DialogType.MrsAuthenticationApp,
-            title,
-            parameters: {
-                protocols: ["HTTPS", "HTTP"],
-                authVendors,
-                roles,
-            },
-            values: {
-                create: authApp !== undefined,
-                id: "",
-                authVendorName,
-                name: authApp?.name,
-                description: authApp?.description,
-                accessToken: authApp?.accessToken,
-                appId: authApp?.appId,
-                url: authApp?.url,
-                urlDirectAuth: authApp?.urlDirectAuth,
-                enabled: authApp?.enabled ?? true,
-                limitToRegisteredUsers: authApp?.limitToRegisteredUsers,
-                defaultRoleId: defaultRole,
-            },
-        };
-
-        const response = await this.dialogManager.showDialog(request, tabTitle);
-        if (!response || response.closure !== DialogResponseClosure.Accept) {
-            return;
-        }
-
-        const authVendorId = authVendors.find((vendor) => {
-            return response.data?.authVendorName === vendor.name;
-        })?.id ?? "";
-
-        const defaultRoleId = roles.find((role) => {
-            return response.data?.defaultRoleName === role.caption;
-        })?.id ?? null;
-
-
-        if (authApp) {
-            if (response.data) {
-                try {
-                    await backend.mrs.updateAuthApp(authApp.id as string, {
-                        name: response.data.name as string,
-                        description: response.data.description as string,
-                        url: response.data.url as string,
-                        urlDirectAuth: response.data.urlDirectAuth as string,
-                        accessToken: response.data.accessToken as string,
-                        appId: response.data.appId as string,
-                        enabled: response.data.enabled as boolean,
-                        limitToRegisteredUsers: response.data.limitToRegisteredUsers as boolean,
-                        defaultRoleId,
-                    });
-
-                    void commands.executeCommand("msg.refreshConnections");
-                    showMessageWithTimeout("The MRS Authentication App has been updated.", 5000);
-                } catch (error) {
-                    void window.showErrorMessage(
-                        `Error while updating MySQL REST Authentication App: ${String(error)}`);
-                }
-            }
-        } else {
-            if (response.data) {
-                try {
-                    if (service) {
-                        await backend.mrs.addAuthApp(service.id, {
-                            authVendorId,
-                            name: response.data.name as string,
-                            description: response.data.description as string,
-                            url: response.data.url as string,
-                            urlDirectAuth: response.data.urlDirectAuth as string,
-                            accessToken: response.data.accessToken as string,
-                            appId: response.data.appId as string,
-                            enabled: response.data.enabled as boolean,
-                            limitToRegisteredUsers: response.data.limitToRegisteredUsers as boolean,
-                            defaultRoleId,
-                        }, []);
-                    }
-
-                    void commands.executeCommand("msg.refreshConnections");
-                    showMessageWithTimeout("The MRS Authentication App has been added.", 5000);
-                } catch (error) {
-                    void window.showErrorMessage(`Error while adding MySQL REST Authentication App: ${String(error)}`);
-                }
-            }
-        }
-
-        return;
-    };
-
-
-    /**
-     * Shows a dialog to create a new or edit an existing MRS service.
-     *
-     * @param backend The interface for sending the requests.
-     * @param authApp If the user is not assigned, the authApp must be available, so that we can create
-     * @param user If not assigned then a new user must be created otherwise this contains the existing values.
-     * a new authApp for this service.
-     */
-    private showMrsUserDialog = async (backend: ShellInterfaceSqlEditor,
-        authApp: IMrsAuthAppData, user?: IMrsUserData): Promise<void> => {
-
-        const title = user
-            ? `Adjust the REST User`
-            : `Enter new MySQL REST User Values`;
-        const tabTitle = user
-            ? "Edit REST User"
-            : "Add REST User";
-
-        const authApps = await backend.mrs.getAuthApps(authApp.serviceId ?? "unknown");
-        const availableRoles = await backend.mrs.listRoles(authApp?.serviceId);
-
-        let userRoles: IMrsUserRoleData[] = [];
-
-        if (user && user.id) {
-            userRoles = await backend.mrs.listUserRoles(user.id);
-        } else if (authApp.defaultRoleId) {
-            userRoles = [{
-                userId: null,
-                roleId: authApp.defaultRoleId,
-                comments: null,
-            }];
-        }
-
-        const request = {
-            id: "mrsUserDialog",
-            type: DialogType.MrsUser,
-            title,
-            parameters: {
-                authApp,
-                authApps,
-                availableRoles,
-                userRoles,
-            },
-            values: {
-                name: user?.name,
-                email: user?.email,
-                vendorUserId: user?.vendorUserId,
-                loginPermitted: user?.loginPermitted ?? true,
-                mappedUserId: user?.mappedUserId,
-                appOptions: user?.appOptions,
-                authString: user?.authString,
-            },
-        };
-
-        const response = await this.dialogManager.showDialog(request, tabTitle);
-        if (!response || response.closure !== DialogResponseClosure.Accept) {
-            return;
-        }
-
-        const authAppId = authApps.find((authApp) => {
-            return authApp.name === response.data?.authAppName;
-        })?.id;
-
-        const rolesToUpdate = (response.data?.userRoles as string[]).map((roleToUpdate) => {
-            return {
-                userId: user?.id ?? null,
-                roleId: availableRoles.find((availableRole) => {
-                    return availableRole.caption === roleToUpdate;
-                })!.id,
-                comments: null,
-            };
-        });
-
-        if (user) {
-            if (response.data && user.id) {
-                try {
-                    await backend.mrs.updateUser(user.id, {
-                        authAppId,
-                        name: response.data.name as string || null,
-                        email: response.data.email as string || null,
-                        vendorUserId: response.data.vendorUserId as string || null,
-                        loginPermitted: response.data.loginPermitted as boolean,
-                        mappedUserId: response.data.mappedUserId as string || null,
-                        appOptions: response.data.appOptions ?
-                            JSON.parse(response.data.appOptions as string) as IShellDictionary : null,
-                        authString: response.data.authString as string || null,
-                    }, rolesToUpdate);
-
-                    void commands.executeCommand("msg.refreshConnections");
-                    showMessageWithTimeout("The MRS User has been updated.", 5000);
-                } catch (error) {
-                    void window.showErrorMessage(`Error while updating MySQL REST User: ${String(error)}`);
-                }
-            }
-        } else {
-            try {
-                if (response.data && authApp && authApp.id) {
-                    await backend.mrs.addUser(authApp.id,
-                        response.data.name as string,
-                        response.data.email as string,
-                        response.data.vendorUserId as string,
-                        response.data.loginPermitted as boolean,
-                        response.data.mappedUserId as string,
-                        response.data.appOptions ?
-                            JSON.parse(response.data.appOptions as string) as IShellDictionary : null,
-                        response.data.authString as string,
-                        rolesToUpdate);
-                }
-
-                void commands.executeCommand("msg.refreshConnections");
-                showMessageWithTimeout("The MRS User has been added.", 5000);
-            } catch (error) {
-                void window.showErrorMessage(`Error while adding MySQL REST User: ${String(error)}`);
-            }
-        }
-
-        return;
-    };
-
-    /**
-     * Shows a dialog to create a new or edit an existing MRS service.
-     *
-     * @param backend The interface for sending the requests.
-     * @param service If not assigned then a new service must be created otherwise this contains the existing values.
-     */
-    private showMrsServiceDialog = async (backend: ShellInterfaceSqlEditor,
-        service?: IMrsServiceData): Promise<void> => {
-
-        const authVendors = await backend.mrs.getAuthVendors();
-
-        const title = service
-            ? "Adjust the REST Service Configuration"
-            : "Enter Configuration Values for the New REST Service";
-        const tabTitle = service
-            ? "Edit REST Service"
-            : "Add REST Service";
-        const authAppNewItem: IMrsAuthAppData = {
-            id: "",
-            authVendorId: "",
-            authVendorName: "",
-            serviceId: "",
-            name: "<new>",
-            description: "",
-            url: "",
-            urlDirectAuth: "",
-            accessToken: "",
-            appId: "",
-            enabled: true,
-            limitToRegisteredUsers: true,
-            defaultRoleId: "MQAAAAAAAAAAAAAAAAAAAA==",
-        };
-
-        if (service && (!service.authApps)) {
-            service.authApps = await backend.mrs.getAuthApps(service.id);
-
-            // Add entry for <new> item.
-            service.authApps.push(authAppNewItem);
-
-            // Set the authVendorName fields of the app list so it can be used for the dropdown.
-            for (const app of service.authApps) {
-                app.authVendorName = authVendors.find((vendor) => {
-                    return app.authVendorId === vendor.id;
-                })?.name ?? "";
-            }
-        }
-
-        const defaultOptions = {
-            headers: {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                "Access-Control-Allow-Credentials": "true",
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, Origin, X-Auth-Token",
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            },
-            http: {
-                allowedOrigin: "auto",
-            },
-            logging: {
-                exceptions: true,
-                request: {
-                    body: true,
-                    headers: true,
-                },
-                response: {
-                    body: true,
-                    headers: true,
-                },
-            },
-            returnInternalErrorDetails: true,
-        };
-
-        let serviceOptions = "";
-        if (service?.options) {
-            serviceOptions = JSON.stringify(service.options, undefined, 4);
-        } else if (!service) {
-            serviceOptions = JSON.stringify(defaultOptions, undefined, 4);
-        }
-
-        const request = {
-            id: "mrsServiceDialog",
-            type: DialogType.MrsService,
-            title,
-            parameters: {
-                protocols: ["HTTPS", "HTTP"],
-                authVendors,
-            },
-            values: {
-                serviceId: service?.id ?? 0,
-                servicePath: service?.urlContextRoot ?? "/myService",
-                hostName: service?.urlHostName,
-                protocols: service?.urlProtocol ?? ["HTTPS"],
-                isCurrent: !service || service.isCurrent === 1,
-                enabled: !service || service.enabled === 1,
-                comments: service?.comments ?? "",
-                options: serviceOptions,
-                authPath: service?.authPath ?? "/authentication",
-                authCompletedUrlValidation: service?.authCompletedUrlValidation ?? "",
-                authCompletedUrl: service?.authCompletedUrl ?? "",
-                authCompletedPageContent: service?.authCompletedPageContent ?? "",
-                authApps: service?.authApps ?? [authAppNewItem],
-            },
-        };
-
-        const response = await this.dialogManager.showDialog(request, tabTitle);
-        if (!response || response.closure !== DialogResponseClosure.Accept) {
-            return;
-        }
-
-        if (response.data) {
-            const urlContextRoot = response.data.servicePath as string;
-            const protocols = response.data.protocols as string[];
-            const hostName = response.data.hostName as string;
-            const comments = response.data.comments as string;
-            const isCurrent = response.data.isCurrent as boolean;
-            const enabled = response.data.enabled as boolean;
-            const options = response.data.options === "" ?
-                null : JSON.parse(response.data.options as string) as IShellDictionary;
-            const authPath = response.data.authPath as string;
-            const authCompletedUrl = response.data.authCompletedUrl as string;
-            const authCompletedUrlValidation = response.data.authCompletedUrlValidation as string;
-            const authCompletedPageContent = response.data.authCompletedPageContent as string;
-
-            // Remove entry for <new> item.
-            const authApps = (response.data.authApps as IMrsAuthAppData[]).filter((a: IMrsAuthAppData) => {
-                return a.id !== "";
-            });
-
-            // Set the authVendorId based on the authVendorName.
-            for (const app of authApps) {
-                app.authVendorId = authVendors.find((vendor) => {
-                    return app.authVendorName === vendor.name;
-                })?.id ?? "";
-                app.serviceId = app.serviceId === "" ? undefined : app.serviceId;
-                app.authVendorId = app.authVendorId === "" ? undefined : app.authVendorId;
-                app.defaultRoleId = app.defaultRoleId === "" ? null : app.defaultRoleId;
-            }
-
-
-            if (!service) {
-                try {
-                    const service = await backend.mrs.addService(urlContextRoot, protocols, hostName ?? "",
-                        comments, enabled,
-                        options,
-                        authPath, authCompletedUrl, authCompletedUrlValidation, authCompletedPageContent,
-                        authApps);
-
-                    if (isCurrent) {
-                        await backend.mrs.setCurrentService(service.id);
-                    }
-
-                    void commands.executeCommand("msg.refreshConnections");
-                    showMessageWithTimeout("The MRS service has been created.", 5000);
-                } catch (error) {
-                    void window.showErrorMessage(`Error while adding MySQL REST service: ${String(error)}`);
-                }
-            } else {
-                // Send update request.
-                try {
-                    await backend.mrs.updateService(
-                        service.id,
-                        service.urlContextRoot,
-                        service.urlHostName,
-                        {
-                            urlContextRoot,
-                            urlProtocol: protocols,
-                            urlHostName: hostName,
-                            enabled,
-                            comments,
-                            options,
-                            authPath,
-                            authCompletedUrl,
-                            authCompletedUrlValidation,
-                            authCompletedPageContent,
-                            authApps,
-                        },
-                    );
-
-                    if (isCurrent) {
-                        await backend.mrs.setCurrentService(service.id);
-                    }
-
-                    void commands.executeCommand("msg.refreshConnections");
-                    showMessageWithTimeout("The MRS service has been successfully updated.", 5000);
-
-                } catch (error) {
-                    void window.showErrorMessage(`Error while updating MySQL REST service: ${String(error)}`);
-                }
-            }
-        }
-    };
-
-    /**
-     * Shows a dialog to create a new or edit an existing MRS schema.
-     *
-     * @param backend The interface for sending the requests.
-     * @param schemaName The name of the database schema.
-     * @param schema If not assigned then a new schema must be created otherwise this contains the existing values.
-     */
-    private showMrsSchemaDialog = async (backend: ShellInterfaceSqlEditor, schemaName?: string,
-        schema?: IMrsSchemaData): Promise<void> => {
-
-        try {
-            const services = await backend.mrs.listServices();
-            const title = schema
-                ? "Adjust the REST Schema Configuration"
-                : "Enter Configuration Values for the New REST Schema";
-            const tabTitle = schema
-                ? "Edit REST Schema"
-                : "Add REST Schema";
-
-            const request = {
-                id: "mrsSchemaDialog",
-                type: DialogType.MrsSchema,
-                title,
-                parameters: { services },
-                values: {
-                    serviceId: schema?.serviceId,
-                    name: schema?.name ?? schemaName,
-                    requestPath: schema?.requestPath ?? `/${schemaName ?? ""}`,
-                    requiresAuth: schema?.requiresAuth === 1,
-                    enabled: !schema || schema.enabled === 1,
-                    itemsPerPage: schema?.itemsPerPage,
-                    comments: schema?.comments ?? "",
-                    options: schema?.options ? JSON.stringify(schema?.options) : "",
-                },
-            };
-
-            const response = await this.dialogManager.showDialog(request, tabTitle);
-            // The request was not sent at all (e.g. there was already one running).
-            if (!response || response.closure !== DialogResponseClosure.Accept) {
-                return;
-            }
-
-            if (response.data) {
-                const serviceId = response.data.serviceId as string;
-                const name = response.data.name as string;
-                const requestPath = response.data.requestPath as string;
-                const requiresAuth = response.data.requiresAuth as boolean;
-                const itemsPerPage = response.data.itemsPerPage ? response.data.itemsPerPage as number : null;
-                const comments = response.data.comments as string;
-                const enabled = response.data.enabled as boolean;
-                const options = response.data.options === "" ?
-                    null : JSON.parse(response.data.options as string) as IShellDictionary;
-
-                if (!schema) {
-                    try {
-                        await backend.mrs.addSchema(
-                            serviceId, name, requestPath, requiresAuth, options,
-                            itemsPerPage, comments);
-
-                        void commands.executeCommand("msg.refreshConnections");
-                        showMessageWithTimeout(
-                            "The MRS schema has been added successfully.", 5000);
-                    } catch (error) {
-                        void window.showErrorMessage(`Error while adding MRS schema: ` +
-                            `${String(error) ?? "<unknown>"}`);
-                    }
-                } else {
-                    try {
-                        await backend.mrs.updateSchema(schema.id, name, requestPath,
-                            requiresAuth, enabled, itemsPerPage, comments,
-                            options);
-
-                        void commands.executeCommand("msg.refreshConnections");
-                        showMessageWithTimeout(
-                            "The MRS schema has been updated successfully.", 5000);
-                    } catch (error) {
-                        void window.showErrorMessage(`Error while updating MRS schema: ` +
-                            `${String(error) ?? "<unknown>"}`);
-                    }
-                }
-            }
-        } catch (error) {
-            void window.showErrorMessage(`Error while listing MySQL REST services: ` +
-                `${String(error) ?? "<unknown>"}`);
-        }
-    };
-
-    /**
-     * Shows a dialog to create a new or edit an existing MRS content set.
-     *
-     * @param backend The interface for sending the requests.
-     * @param directory The directory to upload as content set
-     * @param contentSet If not assigned then a new schema must be created otherwise this contains the existing values.
-     */
-    private showMrsContentSetDialog = async (backend: ShellInterfaceSqlEditor, directory?: Uri,
-        contentSet?: IMrsContentSetData): Promise<void> => {
-
-        try {
-            const services = await backend.mrs.listServices();
-            const title = contentSet
-                ? "Adjust the MRS Static Content Set Configuration"
-                : "Enter Configuration Values for the New MRS Static Content Set";
-
-            let requestPath = contentSet?.requestPath;
-            if (!requestPath) {
-                if (directory) {
-                    const getOneBeforeLastFolder = (dir: Uri) => {
-                        const lastSlash = dir.path.lastIndexOf("/");
-
-                        return dir.fsPath.substring(dir.path.substring(0, lastSlash).lastIndexOf("/"), lastSlash);
-                    };
-
-                    // If the given directory path ends with common build folder names, pick the folder before
-                    if (directory.path.endsWith("/build") || directory.path.endsWith("/output") ||
-                        directory.path.endsWith("/out") || directory.path.endsWith("/web")) {
-                        requestPath = getOneBeforeLastFolder(directory);
-                    } else {
-                        requestPath = directory.fsPath.substring(directory.path.lastIndexOf("/"));
-                    }
-                } else {
-                    requestPath = "/content";
-                }
-            }
-
-            const request = {
-                id: "mrsContentSetDialog",
-                type: DialogType.MrsContentSet,
-                title,
-                parameters: { services, backend },
-                values: {
-                    directory: directory?.fsPath,
-                    serviceId: contentSet?.serviceId,
-                    requestPath: contentSet?.requestPath
-                        ?? requestPath,
-                    requiresAuth: contentSet?.requiresAuth === 1,
-                    enabled: !contentSet || contentSet.enabled === 1,
-                    comments: contentSet?.comments ?? "",
-                    options: contentSet?.options ? JSON.stringify(contentSet?.options) : "",
-                },
-            };
-
-            const response = await this.dialogManager.showDialog(request, title);
-            // The request was not sent at all (e.g. there was already one running).
-            if (!response || response.closure !== DialogResponseClosure.Accept) {
-                return;
-            }
-
-            if (response.data) {
-                const serviceId = response.data.serviceId as string;
-                const requestPath = response.data.requestPath as string;
-                const requiresAuth = response.data.requiresAuth as boolean;
-                const comments = response.data.comments as string;
-                const enabled = response.data.enabled as boolean;
-                const options = response.data.options === "" ?
-                    null : JSON.parse(response.data.options as string) as IShellDictionary;
-                const directory = response.data.directory as string;
-
-
-                let requestPathValid = false;
-                // Check if the request path is valid for this service and does not overlap with other services
-                try {
-                    requestPathValid = await backend.mrs.getServiceRequestPathAvailability(serviceId, requestPath);
-                    if (!requestPathValid) {
-                        // Check if the request path is taken by another content set
-                        const existingContentSets = await backend.mrs.listContentSets(serviceId, requestPath);
-                        if (existingContentSets.length > 0) {
-                            const answer = await window.showInformationMessage(
-                                `The request path ${requestPath} is already used by another ` +
-                                "static content set. Do you want to replace the existing one?", "Yes", "No");
-
-                            if (answer === "Yes") {
-                                requestPathValid = true;
-                            } else {
-                                showMessageWithTimeout("Cancelled the upload.");
-                            }
-                        } else {
-                            void window.showErrorMessage(
-                                `The request path ${requestPath} is already used on this service.`);
-                        }
-                    }
-                } catch (error) {
-                    void window.showErrorMessage(`Error while checking the MRS content set request path: ` +
-                        `${String(error) ?? "<unknown>"}`);
-                }
-
-                if (requestPathValid) {
-                    if (!contentSet) {
-                        const statusbarItem = window.createStatusBarItem();
-                        try {
-                            statusbarItem.text = `$(loading~spin) Starting to load static content set ...`;
-                            statusbarItem.show();
-
-                            const contentSet = await backend.mrs.addContentSet(
-                                directory, requestPath,
-                                requiresAuth, options, serviceId, comments,
-                                enabled, true, (message) => {
-                                    statusbarItem.text = "$(loading~spin) " + message;
-                                });
-
-                            statusbarItem.hide();
-
-                            void commands.executeCommand("msg.refreshConnections");
-                            showMessageWithTimeout(
-                                "The MRS static content set has been added successfully. " +
-                                `${contentSet.numberOfFilesUploaded ?? ""} file` +
-                                `${contentSet.numberOfFilesUploaded ?? 2 > 1 ? "s" : ""} have been uploaded`);
-                        } catch (error) {
-                            void window.showErrorMessage(`Error while adding MRS content set: ` +
-                                `${String(error) ?? "<unknown>"}`);
-                        } finally {
-                            statusbarItem.hide();
-                        }
-                    } else {
-                        try {
-                            // Todo
-                        } catch (error) {
-                            void window.showErrorMessage(`Error while updating MRS content set: ` +
-                                `${String(error) ?? "<unknown>"}`);
-                        }
-                    }
-                }
-            }
-        } catch (error) {
-            void window.showErrorMessage(`Error while listing MySQL REST services: ` +
-                `${String(error) ?? "<unknown>"}`);
         }
     };
 

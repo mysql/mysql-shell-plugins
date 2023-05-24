@@ -1197,7 +1197,7 @@ export interface IProtocolMrsParameters {
 
 }
 
-export interface IMrsDbObjectFieldData {
+export interface IMrsDbObjectFieldData extends IDictionary {
     id?: string;
     dbObjectId?: string;
     position: number;
@@ -1555,4 +1555,3 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsSetObjectFieldsWithReferences]: {};
     [ShellAPIMrs.MrsDumpSdkServiceFiles]: { result: boolean; };
 }
-

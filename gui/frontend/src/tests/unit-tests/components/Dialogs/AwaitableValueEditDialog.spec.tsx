@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,27 +21,18 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import icon from "./../../assets/images/modules/module-mds.svg";
+import { mount } from "enzyme";
 
-import { ComponentChild } from "preact";
+import { AwaitableValueEditDialog } from "../../../../components/Dialogs/AwaitableValueEditDialog";
 
-import { ModuleBase, IModuleInfo } from "../ModuleBase";
-import { MDSModuleId } from "../ModuleInfo";
-
-export class MDSModule extends ModuleBase {
-
-    public static get info(): IModuleInfo {
-        return {
-            id: MDSModuleId,
-            caption: "MDS",
-            icon,
-        };
-    }
-
-    public render(): ComponentChild {
-        return (
-            null
+describe("Awaitable Value Edit Dialog Tests", (): void => {
+    it("Render Test", () => {
+        // This class is just the common base of several other dialogs, so tests are very simple here.
+        const component = mount<AwaitableValueEditDialog>(
+            <AwaitableValueEditDialog />,
         );
-    }
 
-}
+        expect(component).toMatchSnapshot();
+        component.unmount();
+    });
+});

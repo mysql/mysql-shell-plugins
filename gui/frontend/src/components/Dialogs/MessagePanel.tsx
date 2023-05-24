@@ -33,6 +33,7 @@ import { Dialog } from "../ui/Dialog/Dialog";
 import { Icon } from "../ui/Icon/Icon";
 import { Label } from "../ui/Label/Label";
 import { Button } from "../ui/Button/Button";
+import { Semaphore } from "../../supplement/Semaphore";
 
 interface IMessagePanelState extends IComponentState {
     isError: boolean;
@@ -42,7 +43,8 @@ interface IMessagePanelState extends IComponentState {
 
 export class MessagePanel extends ComponentBase<{}, IMessagePanelState> {
 
-    private dialogRef = createRef<Dialog>();
+    #dialogRef = createRef<Dialog>();
+    #signal: Semaphore<boolean> | undefined;
 
     public constructor(props: {}) {
         super(props);
@@ -71,7 +73,7 @@ export class MessagePanel extends ComponentBase<{}, IMessagePanelState> {
 
         return (
             <Dialog
-                ref={this.dialogRef}
+                ref={this.#dialogRef}
                 className={className}
                 caption={
                     <>
@@ -93,54 +95,81 @@ export class MessagePanel extends ComponentBase<{}, IMessagePanelState> {
                         <Button
                             key="close"
                             caption="Close"
-                            onClick={this.closePanel}
+                            onClick={this.handleActionClick}
                         />,
                     ],
                 }}
+                onClose={this.closePanel}
             >
             </Dialog>
         );
     }
 
     private showError = (values: string[]): Promise<boolean> => {
-        return this.show(true, values);
+        if (this.#signal) {
+            throw new Error("Only one message can be shown at a time.");
+        }
+
+        this.show(true, values);
+        if (!this.#signal) {
+            return Promise.resolve(true);
+        }
+
+        // Need the cast to avoid TS + eslint errors about a `never` type being used here.
+        // Seems they do not count the creation of the semaphore in the `show` method.
+        return (this.#signal as Semaphore<boolean>).wait();
     };
 
     private showInfo = (values: string[]): Promise<boolean> => {
-        return this.show(false, values);
+        if (this.#signal) {
+            throw new Error("Only one message can be shown at a time.");
+        }
+
+        this.show(false, values);
+        if (!this.#signal) {
+            return Promise.resolve(true);
+        }
+
+        return (this.#signal as Semaphore<boolean>).wait();
     };
 
-    private show = (isError: boolean, values: string[]): Promise<boolean> => {
+    private show = (isError: boolean, values: string[]): void => {
         // Forward info messages to the hosting application.
         if (!isError && appParameters.embedded) {
             const result = requisitions.executeRemote("showInfo", values);
             if (result) {
-                return Promise.resolve(true);
+                return;
             }
         }
 
-        return new Promise((resolve) => {
-            if (values.length > 0) {
-                let caption = isError ? "Error" : "Information";
-                let message = values[0];
+        if (values.length > 0) {
+            this.#signal = new Semaphore<boolean>();
 
-                if (values.length > 1) {
-                    caption = message;
-                    message = values.slice(1).join("\n");
-                }
+            let caption = isError ? "Error" : "Information";
+            let message = values[0];
 
-                this.setState({ isError, caption, message }, () => {
-                    this.dialogRef.current?.open();
-                    resolve(true);
-                });
-            } else {
-                resolve(true);
+            if (values.length > 1) {
+                caption = message;
+                message = values.slice(1).join("\n");
             }
-        });
+
+            this.setState({ isError, caption, message }, () => {
+                this.#dialogRef.current?.open();
+            });
+        }
     };
 
-    private closePanel = (): void => {
-        this.dialogRef.current?.close(false);
+    private handleActionClick = (): void => {
+        this.#dialogRef.current?.close(false);
+    };
+
+    private closePanel = (cancelled?: boolean): void => {
+        if (cancelled) {
+            this.#dialogRef.current?.close(false);
+        }
+
+        this.#signal?.notifyAll(true);
+        this.#signal = undefined;
     };
 
 }

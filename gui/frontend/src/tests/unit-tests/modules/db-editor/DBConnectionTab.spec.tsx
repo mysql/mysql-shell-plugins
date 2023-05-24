@@ -59,7 +59,7 @@ describe("DBConnectionTab tests", (): void => {
     let launcher: MySQLShellLauncher;
 
     beforeAll(async () => {
-        launcher = await setupShellForTests(false, true, "DEBUG2");
+        launcher = await setupShellForTests(false, true);
     });
 
     afterAll(async () => {

@@ -85,7 +85,9 @@ export class DBEditorCommandHandler {
     public constructor(private connectionsProvider: ConnectionsTreeDataProvider) { }
 
     public setup(host: ExtensionHost): void {
-        this.codeBlocks.setup(host.context);
+        const context = host.context;
+
+        this.codeBlocks.setup(context);
         const dbConnectionsTreeView = window.createTreeView(
             "msg.connections",
             {
@@ -139,7 +141,6 @@ export class DBEditorCommandHandler {
 
         requisitions.register("connectedToUrl", this.connectedToUrl);
         requisitions.register("editorRunQuery", this.editorRunQuery);
-
         requisitions.register("proxyRequest", this.proxyRequest);
 
         host.context.subscriptions.push(commands.registerCommand("msg.refreshConnections", () => {
