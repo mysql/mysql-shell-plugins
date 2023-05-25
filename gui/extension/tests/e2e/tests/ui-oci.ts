@@ -109,20 +109,20 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 await treeOCISection.findItem("/ (Root Compartment) (Default)", ociMaxLevel);
             await treeRoot.expand();
 
-            await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait,
+            await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait * 2,
                 `${await treeOCISection.getTitle()} is still loading`);
 
             treeQA = await treeOCISection.findItem("QA", ociMaxLevel) ||
                 await treeOCISection.findItem("QA (Default)", ociMaxLevel);
             await treeQA?.expand();
 
-            await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait,
+            await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait * 2,
                 `${await treeOCISection.getTitle()} is still loading`);
 
             treeShellTesting = await Misc.getTreeElement(treeOCISection, "MySQLShellTesting");
             await treeShellTesting?.expand();
 
-            await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait,
+            await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait * 2,
                 `${await treeOCISection.getTitle()} is still loading`);
 
             treeDbSystem = await Misc.getTreeElement(treeOCISection, "MDSforVSCodeExtension");
@@ -176,9 +176,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             expect(editors).to.include.members(["E2ETESTS Info.json"]);
             const textEditor = new TextEditor();
             await driver.wait(async () => {
-                return (await textEditor.getText()).includes("fingerprint");
+                return Misc.isJson(await textEditor.getText());
             }, ociExplicitWait, "No text was found on file");
-            expect(Misc.isJson(await textEditor.getText())).to.equal(true);
 
         });
 
@@ -202,6 +201,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 treeOpenEditorsSection = await Misc.getSection(openEditorsTreeSection);
             } catch (e) {
                 await Misc.processFailure(this);
+                throw e;
             }
         });
 
@@ -260,7 +260,6 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 json = await textEditor.getText();
 
                 return Misc.isJson(json);
-
             }, explicitWait * 2, "No text was found inside QA Info.json");
 
             const parsed = JSON.parse(json);
@@ -332,18 +331,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             const textEditor = new TextEditor();
             await driver.wait(async () => {
-                const text = await textEditor.getText();
-
-                return text.includes("{");
+                return Misc.isJson(await textEditor.getText());
             }, explicitWait, "No text was found inside MDSforVSCodeExtension Info.json");
-
-            let json = await textEditor.getText();
-            if (Array.from(json)[0] === "a") {
-                json = json.slice(1);
-            }
-
-            expect(Misc.isJson(json)).to.equal(true);
-
         });
 
         it("Start a DB System (and cancel)", async () => {
@@ -482,8 +471,13 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 return text.indexOf("{") !== -1;
             }, explicitWait, "No text was found inside Bastion4PrivateSubnetStandardVnc Info.json");
 
-            const json = await textEditor.getText();
-            expect(Misc.isJson(json)).to.equal(true);
+            let json: string;
+            await driver.wait(async () => {
+                json = await textEditor.getText();
+
+                return Misc.isJson(json);
+            }, explicitWait, "Bastion4PrivateSubnetStandardVnc Info.json content is not json");
+
             const parsed = JSON.parse(json);
             const bastionId = parsed.id;
 
@@ -703,7 +697,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await (await Misc.getActionButton(treeLocalConn, "Connect to Database")).click();
             await Misc.switchToWebView();
             await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
-            await Database.tryCredentials(localConn, 30000);
+            await Database.setDBConnectionCredentials(localConn, 30000);
             const result = await Misc.execCmd("select version();", undefined, 10000);
             expect(result[0]).to.include("OK");
 

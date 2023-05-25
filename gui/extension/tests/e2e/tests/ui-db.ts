@@ -131,6 +131,7 @@ describe("DATABASE CONNECTIONS", () => {
                 await Misc.sectionFocus(dbTreeSection);
             } catch (e) {
                 await Misc.processFailure(this);
+                throw e;
             }
         });
 
@@ -153,6 +154,7 @@ describe("DATABASE CONNECTIONS", () => {
                 await new BottomBarPanel().toggle(false);
             } catch (e) {
                 await Misc.processFailure(this);
+                throw e;
             }
         });
 
@@ -175,7 +177,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             treeConn = await Misc.getTreeElement(treeDBSection, globalConn.caption);
             await treeConn.expand();
-            await Misc.setInputPassword((globalConn.basic as IConnBasicMySQL).password);
+            await Misc.setInputPassword(treeGlobalConn, (globalConn.basic as IConnBasicMySQL).password);
             const treeGlobalSchema = await Misc.getTreeElement(treeDBSection,
                 (globalConn.basic as IConnBasicMySQL).schema);
             await treeGlobalSchema.expand();
@@ -447,8 +449,7 @@ describe("DATABASE CONNECTIONS", () => {
                 dbConn,
             );
 
-            await Database.tryCredentials(globalConn);
-
+            await Database.setDBConnectionCredentials(globalConn);
             await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
             const result = await Misc.execCmd("SHOW STATUS LIKE 'Ssl_cipher';");
             expect(result[0]).to.include("1 record retrieved");
@@ -469,7 +470,7 @@ describe("DATABASE CONNECTIONS", () => {
                 await (await Misc.getActionButton(treeGlobalConn, "Connect to Database")).click();
                 await Misc.switchToWebView();
                 await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
-                await Database.tryCredentials(globalConn);
+                await Database.setDBConnectionCredentials(globalConn);
                 await driver.wait(until.elementLocated(By.css("textarea")), explicitWait, "erro");
             } catch (e) {
                 await Misc.processFailure(this);
@@ -889,7 +890,7 @@ describe("DATABASE CONNECTIONS", () => {
                 await (await Misc.getActionButton(treeGlobalConn, "Connect to Database")).click();
                 await Misc.switchToWebView();
                 await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
-                await Database.tryCredentials(globalConn);
+                await Database.setDBConnectionCredentials(globalConn);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -980,7 +981,7 @@ describe("DATABASE CONNECTIONS", () => {
                 await Misc.sectionFocus(dbTreeSection);
                 await treeGlobalConn.expand();
                 try {
-                    await Misc.setInputPassword((globalConn.basic as IConnBasicMySQL).password);
+                    await Misc.setInputPassword(treeGlobalConn, (globalConn.basic as IConnBasicMySQL).password);
                 } catch (e) {
                     // continue
                 }
@@ -1015,7 +1016,7 @@ describe("DATABASE CONNECTIONS", () => {
             await (await Misc.getTreeElement(treeDBSection, "Server Status")).click();
             await Misc.switchToWebView();
             await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
-            await Database.tryCredentials(globalConn);
+            await Database.setDBConnectionCredentials(globalConn);
             expect(await Database.getCurrentEditor()).to.equals("Server Status");
             const sections = await driver.findElements(By.css(".grid .heading label"));
             const headings = [];
@@ -1102,17 +1103,8 @@ describe("DATABASE CONNECTIONS", () => {
                 treeLocalConn = await Misc.getTreeElement(treeDBSection, localConn.caption, true);
             } catch (e) {
                 await Misc.processFailure(this);
+                throw e;
             }
-        });
-
-        beforeEach(async function () {
-
-            try {
-                await Misc.sectionFocus(openEditorsTreeSection);
-            } catch (e) {
-                await Misc.processFailure(this);
-            }
-
         });
 
         afterEach(async function () {
@@ -1145,7 +1137,7 @@ describe("DATABASE CONNECTIONS", () => {
             await (await Misc.getActionButton(treeLocalConn, "Connect to Database")).click();
             await Misc.switchToWebView();
             await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
-            await Database.tryCredentials(localConn);
+            await Database.setDBConnectionCredentials(localConn);
             await driver.switchTo().defaultContent();
             await Misc.sectionFocus(openEditorsTreeSection);
             expect(await Misc.getTreeElement(treeOpenEditorsSection,
@@ -1155,7 +1147,7 @@ describe("DATABASE CONNECTIONS", () => {
             await (await Misc.getActionButton(treeGlobalConn, "Connect to Database")).click();
             await Misc.switchToWebView();
             await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
-            await Database.tryCredentials(globalConn);
+            await Database.setDBConnectionCredentials(globalConn);
             await driver.switchTo().defaultContent();
             await new EditorView().openEditor(globalConn.caption);
 
@@ -1312,7 +1304,7 @@ describe("DATABASE CONNECTIONS", () => {
 
                 await treeGlobalConn.expand();
                 try {
-                    await Misc.setInputPassword((globalConn.basic as IConnBasicMySQL).password);
+                    await Misc.setInputPassword(treeGlobalConn, (globalConn.basic as IConnBasicMySQL).password);
                 } catch (e) {
                     // continue
                 }
@@ -1369,19 +1361,14 @@ describe("DATABASE CONNECTIONS", () => {
             await new EditorView().openEditor(dbEditorDefaultName);
             await Misc.switchToWebView();
             await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
-            await Database.tryCredentials(globalConn);
-
+            await Database.setDBConnectionCredentials(globalConn);
             const item = await driver.wait(until.elementLocated(By.css(".zoneHost")),
                 explicitWait, "zoneHost not found");
 
             expect(item).to.exist;
-
             await driver.switchTo().defaultContent();
-
             await treeOpenEditorsSection.expand();
-
             await Misc.sectionFocus(openEditorsTreeSection);
-
             const treeOEGlobalConn = await Misc.getTreeElement(treeOpenEditorsSection,
                 `DB Notebook (${String(globalConn.caption)})`);
 
@@ -1395,7 +1382,7 @@ describe("DATABASE CONNECTIONS", () => {
             await new EditorView().openEditor(`${dbEditorDefaultName} (1)`);
             await Misc.switchToWebView();
             await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
-            await Database.tryCredentials(globalConn);
+            await Database.setDBConnectionCredentials(globalConn);
             await driver.switchTo().defaultContent();
             await Misc.sectionFocus(openEditorsTreeSection);
             let treeOEMySQLShell = await Misc.getTreeElement(treeOpenEditorsSection,
@@ -1424,7 +1411,7 @@ describe("DATABASE CONNECTIONS", () => {
             await new EditorView().openEditor("MySQL Shell Consoles");
             await Misc.switchToWebView();
             await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
-            await Database.tryCredentials(globalConn);
+            await Database.setDBConnectionCredentials(globalConn);
             const item = await driver.wait(until
                 .elementLocated(By.css(".zoneHost .actionLabel > span")), 10000, "MySQL Shell Console was not loaded");
             expect(await item.getText()).to.include("Welcome to the MySQL Shell - GUI Console");
@@ -1543,7 +1530,7 @@ describe("DATABASE CONNECTIONS", () => {
             await new EditorView().openEditor(dbEditorDefaultName);
             await Misc.switchToWebView();
             await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
-            await Database.tryCredentials(globalConn);
+            await Database.setDBConnectionCredentials(globalConn);
 
             const random = String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000));
             const testSchema = `testschema${random}`;
@@ -1748,7 +1735,7 @@ describe("DATABASE CONNECTIONS", () => {
             await new EditorView().openEditor(dbEditorDefaultName);
             await Misc.switchToWebView();
             await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
-            await Database.tryCredentials(globalConn);
+            await Database.setDBConnectionCredentials(globalConn);
             const result = await Database.getScriptResult();
             expect(result[0]).to.match(/OK/);
             await driver.wait(new Condition("", async () => {
@@ -1791,7 +1778,7 @@ describe("DATABASE CONNECTIONS", () => {
                 await (await Misc.getActionButton(treeGlobalConn, "Connect to Database")).click();
                 await Misc.switchToWebView();
                 await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
-                await Database.tryCredentials(globalConn);
+                await Database.setDBConnectionCredentials(globalConn);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -1867,7 +1854,7 @@ describe("DATABASE CONNECTIONS", () => {
             await new EditorView().openEditor("test.mysql-notebook");
             await Misc.switchToWebView();
             await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
-            await Database.tryCredentials(globalConn);
+            await Database.setDBConnectionCredentials(globalConn);
             await Database.verifyNotebook("SELECT VERSION();", "1 record retrieved");
 
         });
@@ -1889,7 +1876,8 @@ describe("DATABASE CONNECTIONS", () => {
             await (await input.findQuickPick(globalConn.caption)).select();
             await new EditorView().openEditor("test.mysql-notebook");
             await Misc.switchToWebView();
-            await Database.tryCredentials(globalConn);
+            await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
+            await Database.setDBConnectionCredentials(globalConn);
             await Database.verifyNotebook("SELECT VERSION();", "1 record retrieved");
 
         });
@@ -1907,7 +1895,8 @@ describe("DATABASE CONNECTIONS", () => {
             const file = await section.findItem("test.mysql-notebook", 3);
             await file.click();
             await Misc.switchToWebView();
-            await Database.tryCredentials(globalConn);
+            await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
+            await Database.setDBConnectionCredentials(globalConn);
             await driver.switchTo().defaultContent();
             await new EditorView().openEditor("test.mysql-notebook");
             const activityBar = new ActivityBar();

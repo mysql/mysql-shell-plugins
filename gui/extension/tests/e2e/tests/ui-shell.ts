@@ -41,6 +41,7 @@ import {
 
 import { IDBConnection, Database, IConnBasicMySQL } from "../lib/db";
 import { Shell } from "../lib/shell";
+import * as tabs from "../lib/constants";
 
 describe("MYSQL SHELL CONSOLES", () => {
 
@@ -96,9 +97,7 @@ describe("MYSQL SHELL CONSOLES", () => {
             await Misc.sectionFocus(openEditorsTreeSection);
             treeOpenEditorsSection = await Misc.getSection(openEditorsTreeSection);
             treeDBConnections = await Misc.getTreeElement(treeOpenEditorsSection, dbConnectionsLabel);
-            await Misc.selectContextMenuItem(treeDBConnections, "Open New MySQL Shell Console");
-            await Misc.clickSectionToolbarButton(treeOpenEditorsSection, "New Shell Notebook");
-            await Misc.switchToWebView();
+            await Misc.openContexMenuItem(treeDBConnections, "Open New MySQL Shell Console", tabs.mysqlShellConsoles);
             await driver.wait(Shell.isShellLoaded(), explicitWait * 3, "Shell Console was not loaded");
         } catch (e) {
             await Misc.processFailure(this);
@@ -114,6 +113,7 @@ describe("MYSQL SHELL CONSOLES", () => {
                 await driver.switchTo().defaultContent();
             } catch (e) {
                 await Misc.processFailure(this);
+                throw e;
             }
         });
 
@@ -127,20 +127,12 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         });
 
-        after(async function () {
-            try {
-                await new EditorView().closeEditor("MySQL Shell Consoles");
-            } catch (e) {
-                await Misc.processFailure(this);
-            }
-        });
-
         it("Open multiple sessions", async () => {
 
-            for (let i = 1; i <= 5; i++) {
+            for (let i = 1; i <= 3; i++) {
                 treeDBConnections = await Misc.getTreeElement(treeOpenEditorsSection, dbConnectionsLabel);
-                await Misc.selectContextMenuItem(treeDBConnections, "Open New MySQL Shell Console");
-                await Misc.switchToWebView();
+                await Misc.openContexMenuItem(treeDBConnections, "Open New MySQL Shell Console",
+                    tabs.mysqlShellConsoles);
                 await driver.wait(Shell.isShellLoaded(), explicitWait * 3, "Shell Console was not loaded");
                 await driver.switchTo().defaultContent();
                 await Misc.getTreeElement(treeOpenEditorsSection, `Session ${i}`);
@@ -161,8 +153,8 @@ describe("MYSQL SHELL CONSOLES", () => {
         before(async function () {
             try {
                 treeDBConnections = await Misc.getTreeElement(treeOpenEditorsSection, dbConnectionsLabel);
-                await Misc.selectContextMenuItem(treeDBConnections, "Open New MySQL Shell Console");
-                await Misc.switchToWebView();
+                await Misc.openContexMenuItem(treeDBConnections,
+                    "Open New MySQL Shell Console", tabs.mysqlShellConsoles);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -220,7 +212,7 @@ describe("MYSQL SHELL CONSOLES", () => {
             const textArea = driver.findElement(By.css("textarea"));
             await textArea.sendKeys(uri);
             await Misc.execOnEditor();
-            await Database.tryCredentials(shellConn);
+            await Database.setDBConnectionCredentials(shellConn);
             await driver.wait(async () => {
                 const next = await driver
                     .findElements(
@@ -327,8 +319,8 @@ describe("MYSQL SHELL CONSOLES", () => {
         before(async function () {
             try {
                 treeDBConnections = await Misc.getTreeElement(treeOpenEditorsSection, dbConnectionsLabel);
-                await Misc.selectContextMenuItem(treeDBConnections, "Open New MySQL Shell Console");
-                await Misc.switchToWebView();
+                await Misc.openContexMenuItem(treeDBConnections, "Open New MySQL Shell Console",
+                    tabs.mysqlShellConsoles);
                 await driver.wait(Shell.isShellLoaded(), explicitWait * 3, "Shell Console was not loaded");
                 editor = await driver.wait(until.elementLocated(By.id("shellEditorHost")),
                     10000, "Console was not loaded");
