@@ -44,10 +44,7 @@ def init_mrs():
         helpers.reset_mrs_database(session)
     else:
         session.run_sql("DROP DATABASE IF EXISTS mysql_rest_service_metadata;")
-
-    helpers.create_test_db(session, "PhoneBook")
-    helpers.create_test_db(session, "MobilePhoneBook")
-    helpers.create_test_db(session, "AnalogPhoneBook")
+        session.run_sql("REVOKE ALL PRIVILEGES ON *.* FROM 'mysql_rest_service_data_provider'@'%'")
 
     general.configure(session=session)
 
