@@ -21,8 +21,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import _ from "lodash";
-
 import { IPosition, IRange, languages } from "monaco-editor";
 import { ScopedSymbol, Symbol, SymbolTable } from "antlr4-c3";
 
@@ -43,6 +41,7 @@ import {
 import { WorkerPool } from "../../supplement/WorkerPool";
 import { Settings } from "../../supplement/Settings/Settings";
 import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext";
+import { deepEqual } from "../../utilities/helpers";
 
 // A string for lookup if schemas have been loaded already.
 const schemaKey = "\u0010schemas\u0010";
@@ -222,7 +221,7 @@ export class RdbmsLanguageService {
         const handledKinds: ICompletionObjectDetails[] = [];
         const findHandledKind = (details: ICompletionObjectDetails): boolean => {
             const index = handledKinds.findIndex((candidate) => {
-                return _.isEqual(candidate, details);
+                return deepEqual(candidate, details);
             });
 
             return index > -1;

@@ -24,7 +24,6 @@
 import "./Menu.css";
 
 import { cloneElement, ComponentChild, createRef } from "preact";
-import keyboardKey from "keyboard-key";
 
 import { IPortalOptions } from "../Portal/Portal";
 import { collectVNodes } from "../../../utilities/ts-helpers";
@@ -32,6 +31,7 @@ import { IComponentState, ComponentBase, ComponentPlacement } from "../Component
 import { Orientation } from "../Container/Container";
 import { IPopupProperties, Popup } from "../Popup/Popup";
 import { IMenuItemProperties, MenuItem } from "./MenuItem";
+import { KeyboardKeys } from "../../../utilities/helpers";
 
 export interface IMenuProperties extends IPopupProperties {
     /** Not used in the menu itself, but as the menu item title in a menu bar. */
@@ -88,8 +88,8 @@ export class Menu extends ComponentBase<IMenuProperties, IMenuState> {
 
     private static handleDocumentKeyDown = (e: KeyboardEvent): void => {
         if (Menu.menuStack.length > 0) {
-            switch (keyboardKey.getCode(e)) {
-                case keyboardKey.Tab: {
+            switch (e.key) {
+                case KeyboardKeys.Tab: {
                     Menu.menuStack[0].close();
                     break;
                 }
@@ -219,8 +219,8 @@ export class Menu extends ComponentBase<IMenuProperties, IMenuState> {
         if (this.itemRefs.length > 0) {
             const { activeItemIndex } = this.state;
 
-            switch (keyboardKey.getCode(e)) {
-                case keyboardKey.ArrowDown: {
+            switch (e.key) {
+                case KeyboardKeys.ArrowDown: {
                     let newIndex = activeItemIndex + 1;
                     if (newIndex === this.itemRefs.length) {
                         newIndex = 0;
@@ -233,7 +233,7 @@ export class Menu extends ComponentBase<IMenuProperties, IMenuState> {
                     break;
                 }
 
-                case keyboardKey.ArrowUp: {
+                case KeyboardKeys.ArrowUp: {
                     let newIndex = activeItemIndex - 1;
                     if (newIndex < 0) {
                         newIndex = this.itemRefs.length - 1;
@@ -246,7 +246,7 @@ export class Menu extends ComponentBase<IMenuProperties, IMenuState> {
                     break;
                 }
 
-                case keyboardKey.ArrowLeft: {
+                case KeyboardKeys.ArrowLeft: {
                     const { onMenuBack } = this.mergedProps;
                     onMenuBack?.();
 
@@ -256,7 +256,7 @@ export class Menu extends ComponentBase<IMenuProperties, IMenuState> {
                     break;
                 }
 
-                case keyboardKey.ArrowRight: {
+                case KeyboardKeys.ArrowRight: {
                     if (activeItemIndex === -1) {
                         this.setState({ activeItemIndex: 0 });
                     } else {
@@ -269,8 +269,8 @@ export class Menu extends ComponentBase<IMenuProperties, IMenuState> {
                     break;
                 }
 
-                case keyboardKey.Spacebar:
-                case keyboardKey.Enter: {
+                case KeyboardKeys.Space:
+                case KeyboardKeys.Enter: {
                     if (activeItemIndex > -1) {
                         this.itemRefs[activeItemIndex].current?.click(e);
                     }

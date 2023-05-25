@@ -21,9 +21,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import _ from "lodash";
 import { Buffer } from "buffer";
 import Anser from "anser";
+import { deepMapKeys } from "./helpers";
 
 // A web worker friendly module for specific string handling.
 
@@ -371,7 +371,7 @@ interface IConversionOptions {
  * @returns A new object with the converted keys.
  */
 export const convertCamelToSnakeCase = (o: object, options?: IConversionOptions): object => {
-    return _.deepMapKeys(o, options?.ignore ?? [], (value, key) => {
+    return deepMapKeys(o, options?.ignore ?? [], (value, key) => {
         const snakeCased = key.replace(/([a-z])([A-Z])/g, (full, match1: string, match2: string) => {
             return `${match1}_${match2.toLowerCase()}`;
         });
@@ -389,7 +389,7 @@ export const convertCamelToSnakeCase = (o: object, options?: IConversionOptions)
  * @returns A new object with the converted keys.
  */
 export const convertSnakeToCamelCase = (o: object, options?: IConversionOptions): object => {
-    return _.deepMapKeys(o, options?.ignore ?? [], (value, key) => {
+    return deepMapKeys(o, options?.ignore ?? [], (value, key) => {
         return key.replace(/_([a-z0-9])/gi, (full, match: string) => {
             return match.toUpperCase();
         });

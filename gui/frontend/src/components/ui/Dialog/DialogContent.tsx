@@ -24,7 +24,6 @@
 import closeButton from "../../../assets/images/close2.svg";
 
 import { ComponentChild, createRef } from "preact";
-import { isNil } from "lodash";
 
 import { IComponentProperties, ComponentBase, IComponentSnapshot } from "../Component/ComponentBase";
 import { Container, Orientation } from "../Container/Container";
@@ -76,7 +75,7 @@ export class DialogContent extends ComponentBase<IDialogContentProperties> {
         const className = this.getEffectiveClassNames(["dialog", "visible"]);
 
         let dialogContent;
-        if (!isNil(children)) {
+        if (children != null) {
             dialogContent = children;
         } else {
             dialogContent = (

@@ -25,7 +25,6 @@ import "./ComponentBase.css";
 
 import { Component, ComponentChildren } from "preact";
 import cx from "classnames";
-import { isNil } from "lodash";
 
 import { IDictionary } from "../../../app-logic/Types";
 import { CSSProperties } from "preact/compat";
@@ -328,7 +327,7 @@ export abstract class ComponentBase<P extends IComponentProperties = {}, S exten
      * @returns The class name or undefined, depending on the truthiness of the value.
      */
     protected classFromProperty(value: unknown, c: string | string[]): string | undefined {
-        if (isNil(value)) {
+        if (value == null) {
             return undefined;
         }
 

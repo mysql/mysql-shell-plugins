@@ -25,7 +25,6 @@ import "./Toggle.css";
 
 import { ComponentChild, createRef } from "preact";
 import Color from "color";
-import { isNil } from "lodash";
 
 import { convertPropValue } from "../../../utilities/string-helpers";
 import { CheckState } from "../Checkbox/Checkbox";
@@ -94,7 +93,7 @@ export class Toggle extends ComponentBase<IToggleProperties> {
         ]);
 
         let content = children;
-        if (isNil(content)) {
+        if (content == null) {
             content = caption;
         }
 

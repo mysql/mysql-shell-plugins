@@ -24,7 +24,6 @@
 import "./Selector.css";
 
 import { cloneElement, ComponentChild, createRef, VNode } from "preact";
-import { isNil } from "lodash";
 
 import {
     ComponentBase, IComponentProperties, DragEventType, ClickEventCallback, DragEventCallback,
@@ -107,7 +106,7 @@ export class Selector extends ComponentBase<ISelectorProperties> {
         const baseId = (id ?? "selector") + "Item";
 
         let content = children;
-        if (isNil(content)) {
+        if (content == null) {
             content = items?.map((item: ISelectorDef, index: number): ComponentChild => {
                 const selectorId = item.id ?? `${baseId}${index}`;
                 const active = activeItemId === selectorId;

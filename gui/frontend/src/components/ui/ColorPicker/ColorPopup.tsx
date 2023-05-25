@@ -29,7 +29,6 @@ import resetIcon from "./assets/reset.svg";
 import { ComponentChild, createRef } from "preact";
 import { CSSProperties } from "preact/compat";
 import Color from "color";
-import { isNil } from "lodash";
 
 import { Grid } from "../Grid/Grid";
 import { GridCell } from "../Grid/GridCell";
@@ -86,7 +85,7 @@ export class ColorPopup extends ComponentBase<{}, IColorPopupState> {
         const { currentColor, cssColorString } = this.state;
         const className = this.getEffectiveClassNames(["colorPopup"]);
 
-        const haveUserValue = !isNil(cssColorString);
+        const haveUserValue = cssColorString != null;
 
         const components = currentColor.hsl().array();
         if (components.length < 4) {
@@ -241,7 +240,7 @@ export class ColorPopup extends ComponentBase<{}, IColorPopupState> {
     public open = (currentTarget: HTMLElement, color: Color | undefined, callback: ColorChangeCallback): void => {
         this.setState({
             currentColor: color || new Color("#00000000"),
-            isValid: !isNil(color),
+            isValid: color != null,
             cssColorString: undefined,
             callback,
         }, () => {
@@ -260,7 +259,7 @@ export class ColorPopup extends ComponentBase<{}, IColorPopupState> {
         const { callback } = this.state;
         color = callback?.(color);
 
-        const isValid = !isNil(color);
+        const isValid = color != null;
         this.setState({ currentColor: color || new Color("#00000000"), isValid, cssColorString: undefined }, () => {
             this.updateHueRing();
         });
@@ -439,7 +438,7 @@ export class ColorPopup extends ComponentBase<{}, IColorPopupState> {
             const components = isValid ? currentColor.hsl().array() : [0, 0, 0, 0];
             this.saturationSliderRef.current.value = components[1] / 100;
             this.luminanceSliderRef.current.value = components[2] / 100;
-            this.alphaSliderRef.current.value = isNil(components[3]) ? 1 : components[3];
+            this.alphaSliderRef.current.value = components[3] == null ? 1 : components[3];
         }
         this.updating = false;
     }

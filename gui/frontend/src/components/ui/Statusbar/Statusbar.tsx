@@ -24,7 +24,6 @@
 import "./Statusbar.css";
 
 import { ComponentChild } from "preact";
-import { isNil } from "lodash";
 import * as codicon from "../Codicon";
 
 import { ThemeColor } from "../../Theming/ThemeColor";
@@ -171,7 +170,7 @@ export class Statusbar extends ComponentBase<IStatusbarProperties, IStatusbarSta
 
                     default: {
                         let icon;
-                        if (!isNil(item.icon)) {
+                        if (item.icon != null) {
                             icon = <Icon src={item.icon} />;
                         }
 

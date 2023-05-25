@@ -24,15 +24,13 @@
 import { ComponentChild, createRef } from "preact";
 import cx from "classnames";
 
-import { isNil } from "lodash";
-import keyboardKey from "keyboard-key";
-
 import { Container, ContentAlignment, Orientation } from "../Container/Container";
 import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
 import { Icon } from "../Icon/Icon";
 import { Label } from "../Label/Label";
 import { MenuItem, IMenuItemProperties } from "../Menu/MenuItem";
 import { IAccordionAction, IAccordionActionChoice } from "./Accordion";
+import { KeyboardKeys } from "../../../utilities/helpers";
 
 export interface IAccordionSectionProperties extends IComponentProperties {
     caption: string;
@@ -93,7 +91,7 @@ export class AccordionSection extends ComponentBase<IAccordionSectionProperties>
                     >
                         {
                             actions?.map((action: IAccordionAction) => {
-                                if (isNil(action.choices)) {
+                                if (action.choices == null) {
                                     return <Icon
                                         src={action.icon}
                                         id={action.id}
@@ -148,8 +146,7 @@ export class AccordionSection extends ComponentBase<IAccordionSectionProperties>
     };
 
     private handleKeyPress = (e: KeyboardEvent): void => {
-        const key = keyboardKey.getCode(e);
-        if (key === keyboardKey.Spacebar || key === keyboardKey.Enter) {
+        if (e.key === KeyboardKeys.Space || e.key === KeyboardKeys.Enter) {
             this.toggleExpandState();
         }
     };
@@ -167,8 +164,7 @@ export class AccordionSection extends ComponentBase<IAccordionSectionProperties>
     };
 
     private handleActionKeyPress = (e: KeyboardEvent, props: IComponentProperties): void => {
-        const key = keyboardKey.getCode(e);
-        if (key === keyboardKey.Spacebar || key === keyboardKey.Enter) {
+        if (e.key === KeyboardKeys.Space || e.key === KeyboardKeys.Enter) {
             e.stopPropagation();
 
             const { onAction } = this.props;

@@ -23,8 +23,6 @@
 
 import { ComponentChild, createRef } from "preact";
 import { Children } from "preact/compat";
-import { isNil } from "lodash";
-
 
 import editIcon from "../assets/images/edit.svg";
 import deleteIcon from "../assets/images/close2.svg";
@@ -283,7 +281,7 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
             case "add": {
                 const useExistingProfile = sectionValues.copyProfile.value;
                 sectionValues.definedProfiles.options = !useExistingProfile ? [CommonDialogValueOption.ReadOnly] : [];
-                if (useExistingProfile && isNil(sectionValues.definedProfiles.value)) {
+                if (useExistingProfile && (sectionValues.definedProfiles.value == null)) {
                     result.messages.databaseType = "Select one of the existing profile";
                 }
 

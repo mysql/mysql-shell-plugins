@@ -25,11 +25,11 @@ import "./Tooltip.css";
 
 import { ComponentChild, createRef } from "preact";
 import { createPortal, CSSProperties } from "preact/compat";
-import keyboardKey from "keyboard-key";
 
 import { computeContentPosition } from "../html-helpers";
 import { ComponentBase, ComponentPlacement, IComponentProperties, IComponentState } from "../Component/ComponentBase";
 import { Container } from "../Container/Container";
+import { KeyboardKeys } from "../../../utilities/helpers";
 
 interface ITooltipProviderProperties extends IComponentProperties {
     /** Time to wait until the tooltip is shown, in milliseconds. */
@@ -179,7 +179,7 @@ export class TooltipProvider extends ComponentBase<ITooltipProviderProperties, I
     };
 
     private handleDocumentKeyUp = (e: KeyboardEvent): void => {
-        if (this.state.target && keyboardKey.getCode(e) === keyboardKey.Escape) {
+        if (this.state.target && e.key === KeyboardKeys.Escape) {
             this.setState({ target: undefined });
         }
     };

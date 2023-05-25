@@ -22,7 +22,6 @@
  */
 
 import { ComponentChild } from "preact";
-import { isNil } from "lodash";
 
 import { ComponentBase, IComponentProperties, DragEventType } from "../Component/ComponentBase";
 import { Codicon } from "../Codicon";
@@ -74,7 +73,7 @@ export class SelectorItem extends ComponentBase<ISelectorItemProperties> {
             "selectorItem",
             this.classFromProperty(selected, "selected"),
             this.classFromProperty(disabled, "disabled"),
-            this.classFromProperty(!isNil(auxillary), "hasAuxillary"),
+            this.classFromProperty(auxillary != null, "hasAuxillary"),
             type,
         ]);
 

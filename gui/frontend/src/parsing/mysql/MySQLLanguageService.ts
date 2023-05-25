@@ -26,7 +26,7 @@ import { IRdbmsDataTypeInfo, ServiceLanguage } from "../parser-common";
 import { CharsetSymbol, SystemVariableSymbol, SystemFunctionSymbol, DBSymbolTable } from "../DBSymbolTable";
 import { LanguageWorkerPool } from "../worker/LanguageWorkerPool";
 import { mysqlInfo } from "../../app-logic/RdbmsInfo";
-import { DBDataType, IDictionary, ParameterFormatType } from "../../app-logic/Types";
+import { DBDataType, ParameterFormatType } from "../../app-logic/Types";
 import { convertCamelToTitleCase } from "../../utilities/string-helpers";
 import { RdbmsLanguageService } from "../worker/RdbmsLanguageService";
 

@@ -24,7 +24,6 @@
 import "./Dropdown.css";
 
 import { ComponentChild, VNode } from "preact";
-import { isNil } from "lodash";
 
 import { Container, ContentAlignment, Orientation } from "../Container/Container";
 import { Checkbox, CheckState } from "../Checkbox/Checkbox";
@@ -60,7 +59,7 @@ export class DropdownItem<T extends IDropdownItemProperties> extends ComponentBa
 
         let content = children as ComponentChild | undefined;
         if (!content) {
-            if (!isNil(checked)) {
+            if (checked != null) {
                 content = <Checkbox
                     checkState={checked ? CheckState.Checked : CheckState.Unchecked}
                     caption={caption}

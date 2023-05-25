@@ -21,8 +21,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import _ from "lodash";
-
 import { IDictionary } from "../app-logic/Types";
 import { convertHexToBase64 } from "./string-helpers";
 
@@ -101,11 +99,11 @@ export const saveTextAsFile = (text: string, fileName: string): void => {
  * @returns The given value, trimmed to the min and max bounds.
  */
 export const clampValue = (value: number, min?: number | undefined, max?: number | undefined): number => {
-    if (!_.isNil(min) && value < min) {
+    if (min != null && value < min) {
         return min;
     }
 
-    if (!_.isNil(max) && value > max) {
+    if (max != null && value > max) {
         return max;
     }
 
@@ -231,6 +229,26 @@ export const flattenObject = (o: IDictionary): object => {
     }
 
     return o;
+};
+
+/**
+ * Duplicates the given object by creating a deep clone of it.
+ *
+ * @param o The object to clone.
+ *
+ * @returns The cloned object.
+ */
+export const deepClone = <T extends Object>(o: T): T => {
+    if (typeof o !== "object") {
+        return o;
+    }
+
+    const result: IDictionary = {};
+    for (const [key, value] of Object.entries(o)) {
+        result[key] = deepClone(value);
+    }
+
+    return result as unknown as T;
 };
 
 interface IIgnoreMarker {
@@ -403,42 +421,329 @@ export const strictEval = (code: string): unknown => {
     return Function("'use strict';return (" + code + ")")();
 };
 
-declare module "lodash" {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    interface LoDashStatic {
-        deepMapKeys: (o: object, ignoreList: string[], fn: (value: unknown, key: string) => unknown) => object;
-        deepMapArray: (a: unknown[], ignoreList: string[], fn: (value: unknown, key: string) => unknown) => unknown[];
+/**
+ * Helper method to convert the keys of an object, using a mapping function. The function is called for each key
+ * and the return value is used as the new key. The value is not changed.
+ * If the value is an array or an object, the function is called recursively.
+ *
+ * @param o The object to convert.
+ * @param ignoreList A list of keys that should not be converted.
+ * @param fn The mapping function to use.
+ *
+ * @returns A new object with the converted values.
+ */
+export const deepMapKeys = (o: object, ignoreList: string[], fn: (value: unknown, key: string) => string): object => {
+    const result: IDictionary = {};
+
+    for (const [k, v] of Object.entries(o)) {
+        let actualValue = v;
+        if (!ignoreList.includes(k)) {
+            if (Array.isArray(v)) {
+                // eslint-disable-next-line @typescript-eslint/no-use-before-define
+                actualValue = deepMapArray(v, ignoreList, fn);
+            } else if (v !== null && typeof v === "object") {
+                actualValue = deepMapKeys(v as object, ignoreList, fn);
+            }
+        }
+
+        result[fn(v, k)] = actualValue;
     }
-}
 
-// Add lodash mixins to recursively map object keys.
-_.mixin({
-    deepMapKeys: (o: object, ignoreList: string[], fn: (value: unknown, key: string) => string): object => {
-        const result: IDictionary = {};
+    return result;
+};
 
-        _.forOwn(o, (v: unknown, k: string) => {
-            if (!ignoreList.includes(k)) {
-                if (_.isPlainObject(v)) {
-                    v = _.deepMapKeys(v as object, ignoreList, fn);
-                } else if (_.isArray(v)) {
-                    v = _.deepMapArray(v, ignoreList, fn);
-                }
-            }
-            result[fn(v, k)] = v;
-        });
+/**
+ * Helper method to recursively convert array values which are objects, by replacing their keys using a mapping
+ * function.
+ *
+ * @param a The array to convert.
+ * @param ignoreList A list of keys that should not be converted.
+ * @param fn The mapping function to use.
+ *
+ * @returns A new array with the converted values.
+ */
+export const deepMapArray = (a: unknown[], ignoreList: string[],
+    fn: (value: unknown, key: string) => string): unknown[] => {
+    return a.map((v) => {
+        if (Array.isArray(v)) {
+            return deepMapArray(v as unknown[], ignoreList, fn);
+        } else if (v !== null && typeof v === "object") {
+            return deepMapKeys(v, ignoreList, fn);
+        }
 
-        return result;
-    },
+        return v;
+    });
+};
 
-    deepMapArray: (a: unknown[], ignoreList: string[], fn: (value: unknown, key: string) => unknown): unknown[] => {
-        return a.map((v) => {
-            if (_.isPlainObject(v)) {
-                return _.deepMapKeys(v as object, ignoreList, fn);
-            } else if (_.isArray(v)) {
-                return _.deepMapArray(v as unknown[], ignoreList, fn);
-            }
+/* eslint-disable @typescript-eslint/naming-convention */
+/** Key names to key string. */
+export const KeyboardKeys = {
+    // Modifier keys
+    Alt: "Alt",
+    AltGraph: "AltGraph",
+    CapsLock: "CapsLock",
+    Control: "Control",
+    Fn: "Fn",
+    FnLock: "FnLock",
+    Hyper: "Hyper",
+    Meta: "Meta",
+    NumLock: "NumLock",
+    ScrollLock: "ScrollLock",
+    Shift: "Shift",
+    Super: "Super",
+    Symbol: "Symbol",
+    SymbolLock: "SymbolLock",
 
-            return v;
-        });
-    },
-});
+    // Whitespace keys
+    Enter: "Enter",
+    Tab: "Tab",
+    Space: " ",
+
+    // Navigation keys
+    ArrowDown: "ArrowDown",
+    ArrowLeft: "ArrowLeft",
+    ArrowRight: "ArrowRight",
+    ArrowUp: "ArrowUp",
+    End: "End",
+    Home: "Home",
+    PageDown: "PageDown",
+    PageUp: "PageUp",
+
+    // Editing keys
+    Backspace: "Backspace",
+    Clear: "Clear",
+    Copy: "Copy",
+    CrSel: "CrSel",
+    Cut: "Cut",
+    Delete: "Delete",
+    EraseEof: "EraseEof",
+    ExSel: "ExSel",
+    Insert: "Insert",
+    Paste: "Paste",
+    Redo: "Redo",
+    Undo: "Undo",
+
+    // UI Keys
+    Accept: "Accept",
+    Again: "Again",
+    Attn: "Attn",
+    Cancel: "Cancel",
+    ContextMenu: "ContextMenu",
+    Escape: "Escape",
+    Execute: "Execute",
+    Find: "Find",
+    Finish: "Finish",
+    Help: "Help",
+    Pause: "Pause",
+    Play: "Play",
+    Props: "Props",
+    Select: "Select",
+    ZoomIn: "ZoomIn",
+    ZoomOut: "ZoomOut",
+
+    // Device keys
+    BrightnessDown: "BrightnessDown",
+    BrightnessUp: "BrightnessUp",
+    Eject: "Eject",
+    LogOff: "LogOff",
+    Power: "Power",
+    PowerOff: "PowerOff",
+    PrintScreen: "PrintScreen",
+    Hibernate: "Hibernate",
+    Standby: "Standby",
+    WakeUp: "WakeUp",
+
+    // IME and composition keys
+    AllCandidates: "AllCandidates",
+    Alphanumeric: "Alphanumeric",
+    CodeInput: "CodeInput",
+    Compose: "Compose",
+    Convert: "Convert",
+    Dead: "Dead",
+    FinalMode: "FinalMode",
+    GroupFirst: "GroupFirst",
+    GroupLast: "GroupLast",
+    GroupNext: "GroupNext",
+    GroupPrevious: "GroupPrevious",
+    ModeChange: "ModeChange",
+    NextCandidate: "NextCandidate",
+    NonConvert: "NonConvert",
+    PreviousCandidate: "PreviousCandidate",
+    Process: "Process",
+    SingleCandidate: "SingleCandidate",
+
+    // Function keys
+    F1: "F1",
+    F2: "F2",
+    F3: "F3",
+    F4: "F4",
+    F5: "F5",
+    F6: "F6",
+    F7: "F7",
+    F8: "F8",
+    F9: "F9",
+    F10: "F10",
+    F11: "F11",
+    F12: "F12",
+    F13: "F13",
+    F14: "F14",
+    F15: "F15",
+    F16: "F16",
+    F17: "F17",
+    F18: "F18",
+    F19: "F19",
+    F20: "F20",
+    Soft1: "Soft1",
+    Soft2: "Soft2",
+    Soft3: "Soft3",
+    Soft4: "Soft4",
+
+    // Phone keys
+    AppSwitch: "AppSwitch",
+    Call: "Call",
+    Camera: "Camera",
+    CameraFocus: "CameraFocus",
+    EndCall: "EndCall",
+    GoBack: "GoBack",
+    GoHome: "GoHome",
+    HeadsetHook: "HeadsetHook",
+    LastNumberRedial: "LastNumberRedial",
+    Notification: "Notification",
+    MannerMode: "MannerMode",
+    VoiceDial: "VoiceDial",
+
+    // Multimedia keys
+    ChannelDown: "ChannelDown",
+    ChannelUp: "ChannelUp",
+    MediaFastForward: "MediaFastForward",
+    MediaPause: "MediaPause",
+    MediaPlay: "MediaPlay",
+    MediaPlayPause: "MediaPlayPause",
+    MediaRecord: "MediaRecord",
+    MediaRewind: "MediaRewind",
+    MediaStop: "MediaStop",
+    MediaTrackNext: "MediaTrackNext",
+    MediaTrackPrevious: "MediaTrackPrevious",
+
+    // Audio control keys
+    AudioBalanceLeft: "AudioBalanceLeft",
+    AudioBalanceRight: "AudioBalanceRight",
+    AudioBassDown: "AudioBassDown",
+    AudioBassBoostDown: "AudioBassBoostDown",
+    AudioBassBoostToggle: "AudioBassBoostToggle",
+    AudioBassBoostUp: "AudioBassBoostUp",
+    AudioBassUp: "AudioBassUp",
+    AudioFaderFront: "AudioFaderFront",
+    AudioFaderRear: "AudioFaderRear",
+    AudioSurroundModeNext: "AudioSurroundModeNext",
+    AudioTrebleDown: "AudioTrebleDown",
+    AudioTrebleUp: "AudioTrebleUp",
+    AudioVolumeDown: "AudioVolumeDown",
+    AudioVolumeMute: "AudioVolumeMute",
+    AudioVolumeUp: "AudioVolumeUp",
+    MicrophoneToggle: "MicrophoneToggle",
+    MicrophoneVolumeDown: "MicrophoneVolumeDown",
+    MicrophoneVolumeMute: "MicrophoneVolumeMute",
+    MicrophoneVolumeUp: "MicrophoneVolumeUp",
+
+    // Document keys
+    Close: "Close",
+    New: "New",
+    Open: "Open",
+    Print: "Print",
+    Save: "Save",
+    SpellCheck: "SpellCheck",
+    MailForward: "MailForward",
+    MailReply: "MailReply",
+    MailSend: "MailSend",
+
+    // Application selector keys
+    LaunchCalculator: "LaunchCalculator",
+    LaunchCalendar: "LaunchCalendar",
+    LaunchContacts: "LaunchContacts",
+    LaunchMail: "LaunchMail",
+    LaunchMediaPlayer: "LaunchMediaPlayer",
+    LaunchMusicPlayer: "LaunchMusicPlayer",
+    LaunchMyComputer: "LaunchMyComputer",
+    LaunchPhone: "LaunchPhone",
+    LaunchScreenSaver: "LaunchScreenSaver",
+    LaunchSpreadsheet: "LaunchSpreadsheet",
+    LaunchWebBrowser: "LaunchWebBrowser",
+    LaunchWebCam: "LaunchWebCam",
+    LaunchWordProcessor: "LaunchWordProcessor",
+    LaunchApplication1: "LaunchApplication1",
+    LaunchApplication2: "LaunchApplication2",
+    LaunchApplication3: "LaunchApplication3",
+    LaunchApplication4: "LaunchApplication4",
+    LaunchApplication5: "LaunchApplication5",
+    LaunchApplication6: "LaunchApplication6",
+    LaunchApplication7: "LaunchApplication7",
+    LaunchApplication8: "LaunchApplication8",
+    LaunchApplication9: "LaunchApplication9",
+    LaunchApplication10: "LaunchApplication10",
+    LaunchApplication11: "LaunchApplication11",
+    LaunchApplication12: "LaunchApplication12",
+    LaunchApplication13: "LaunchApplication13",
+    LaunchApplication14: "LaunchApplication14",
+    LaunchApplication15: "LaunchApplication15",
+    LaunchApplication16: "LaunchApplication16",
+
+    // Browser control keys
+    BrowserBack: "BrowserBack",
+    BrowserFavorites: "BrowserFavorites",
+    BrowserForward: "BrowserForward",
+    BrowserHome: "BrowserHome",
+    BrowserRefresh: "BrowserRefresh",
+    BrowserSearch: "BrowserSearch",
+    BrowserStop: "BrowserStop",
+
+    // Numeric keypad keys
+    Decimal: "Decimal",
+    Key11: "Key11",
+    Key12: "Key12",
+    Multiply: "Multiply",
+    Add: "Add",
+    Divide: "Divide",
+    Subtract: "Subtract",
+    Separator: "Separator",
+    Zero: "0",
+    One: "1",
+    Two: "2",
+    Three: "3",
+    Four: "4",
+    Five: "5",
+    Six: "6",
+    Seven: "7",
+    Eight: "8",
+    Nine: "9",
+
+    // Standard letter keys
+    A: "a",
+    B: "b",
+    C: "c",
+    D: "d",
+    E: "e",
+    F: "f",
+    G: "g",
+    H: "h",
+    I: "i",
+    J: "j",
+    K: "k",
+    L: "l",
+    M: "m",
+    N: "n",
+    O: "o",
+    P: "p",
+    Q: "q",
+    R: "r",
+    S: "s",
+    T: "t",
+    U: "u",
+    V: "v",
+    W: "w",
+    X: "x",
+    Y: "y",
+    Z: "z",
+
+    /* eslint-enable @typescript-eslint/naming-convention */
+};

@@ -28,7 +28,6 @@ import { ComponentChild, createRef, render } from "preact";
 
 import Color from "color";
 import { CellComponent, ColumnDefinition } from "tabulator-tables";
-import _ from "lodash";
 
 import { ITokenEntry, ThemeManager } from "./ThemeManager";
 import { TokenEditor } from "./TokenEditor";
@@ -41,6 +40,7 @@ import { Icon } from "../ui/Icon/Icon";
 import { Label } from "../ui/Label/Label";
 import { ITabviewPage, Tabview, TabPosition } from "../ui/Tabview/Tabview";
 import { ITreeGridOptions, TreeGrid } from "../ui/TreeGrid/TreeGrid";
+import { deepClone } from "../../utilities/helpers";
 
 const noPreviewText = "No preview is available for this color. It's not used in this application.";
 
@@ -448,7 +448,7 @@ export class ThemeEditorLists extends ComponentBase<IThemeEditorListsProperties,
 
     private duplicateToken = (id: string, token: ITokenEntry): void => {
         const index = parseInt(id, 10);
-        this.tokens.splice(index + 1, 0, _.cloneDeep(token));
+        this.tokens.splice(index + 1, 0, deepClone(token));
         this.forceUpdate();
         this.props.onThemeChange();
     };

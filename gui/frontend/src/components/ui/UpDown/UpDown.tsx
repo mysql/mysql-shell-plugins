@@ -24,7 +24,6 @@
 import "./UpDown.css";
 
 import { ComponentChild, createRef } from "preact";
-import { isNil } from "lodash";
 
 import { convertPropValue } from "../../../utilities/string-helpers";
 import { Container, ContentAlignment, Orientation } from "../Container/Container";
@@ -76,9 +75,9 @@ export class UpDown extends ComponentBase<IUpDownProperties, IUpDownState> {
 
         this.containerRef = props.innerRef ?? createRef<HTMLDivElement>();
 
-        const useNumeric = !isNil(props.min) || !isNil(props.max) || !isNil(props.step);
+        const useNumeric = props.min != null || props.max != null || props.step != null;
         let min = props.min;
-        if (!isNil(min) && !isNil(props.max)) {
+        if (min != null && props.max != null) {
             min = Math.min(min, props.max);
         }
 

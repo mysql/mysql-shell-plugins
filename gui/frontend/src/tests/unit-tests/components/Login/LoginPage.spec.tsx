@@ -27,12 +27,12 @@ import {
     changeInputValue, nextRunLoop, sendKeyPress, setupShellForTests, stateChange,
 } from "../../test-helpers";
 import { LoginPage } from "../../../../components/Login/LoginPage";
-import keyboardKey from "keyboard-key";
 import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher";
 import { MessageScheduler } from "../../../../communication/MessageScheduler";
 import { IShellProfile } from "../../../../communication/ProtocolGui";
 import { ResponseError } from "../../../../communication/ResponseError";
 import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface";
+import { KeyboardKeys } from "../../../../utilities/helpers";
 
 describe("Login Page Tests", (): void => {
     let launcher: MySQLShellLauncher;
@@ -107,7 +107,7 @@ describe("Login Page Tests", (): void => {
         // Wrong user name.
         await stateChange(component, { errorMessage: "", userName: "mike1", password: "swordfish" });
 
-        sendKeyPress(keyboardKey.Enter, edits[0]);
+        sendKeyPress(KeyboardKeys.Enter, edits[0]);
         await nextRunLoop();
 
         expect(component.state().errorMessage).toBe("User unknown");
@@ -115,7 +115,7 @@ describe("Login Page Tests", (): void => {
         // Wrong password.
         await stateChange(component, { errorMessage: "", userName: "mike", password: "" });
 
-        sendKeyPress(keyboardKey.Enter, edits[0]);
+        sendKeyPress(KeyboardKeys.Enter, edits[0]);
         await nextRunLoop();
 
         expect(component.state().errorMessage).toBe("Wrong password");
@@ -123,7 +123,7 @@ describe("Login Page Tests", (): void => {
         // Correct login.
         await stateChange(component, { errorMessage: "", userName: "mike", password: "swordfish" });
 
-        sendKeyPress(keyboardKey.Enter, edits[0]);
+        sendKeyPress(KeyboardKeys.Enter, edits[0]);
         await nextRunLoop();
 
         expect(component.state().errorMessage).toBe("");

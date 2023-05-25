@@ -24,7 +24,6 @@
 import "./Dropdown.css";
 
 import { cloneElement, ComponentChild, createRef } from "preact";
-import keyboardKey from "keyboard-key";
 
 import { DropdownItem, IDropdownItemProperties } from "./DropdownItem";
 import { convertPropValue } from "../../../utilities/string-helpers";
@@ -35,6 +34,7 @@ import { Divider } from "../Divider/Divider";
 import { Label } from "../Label/Label";
 import { Popup } from "../Popup/Popup";
 import { ITag, TagInput } from "../TagInput/TagInput";
+import { KeyboardKeys } from "../../../utilities/helpers";
 
 export interface IDropdownProperties extends IComponentProperties {
     selection?: string | Set<string>;
@@ -250,11 +250,10 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
         const { children } = this.mergedProps;
         const childArray = collectVNodes<IDropdownItemProperties>(children);
 
-        const code = keyboardKey.getCode(e);
         const element = e.currentTarget as HTMLElement;
-        switch (code) {
-            case keyboardKey.Enter:
-            case keyboardKey.Spacebar: {
+        switch (e.key) {
+            case KeyboardKeys.Enter:
+            case KeyboardKeys.Space: {
                 if (this.popupRef.current?.isOpen) {
                     // The dropdown is already open, which means the user accepts the current selection.
                     this.saveSelection();
@@ -274,7 +273,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
                 break;
             }
 
-            case keyboardKey.ArrowDown: {
+            case KeyboardKeys.ArrowDown: {
                 if (this.currentSelectionIndex === -1) {
                     this.currentSelectionIndex = this.indexOfFirstSelectedEntry + 1;
                 } else {
@@ -296,7 +295,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
                 break;
             }
 
-            case keyboardKey.ArrowUp: {
+            case KeyboardKeys.ArrowUp: {
                 if (this.currentSelectionIndex === -1) {
                     this.currentSelectionIndex = this.indexOfFirstSelectedEntry - 1;
                 } else {
@@ -319,7 +318,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
                 break;
             }
 
-            case keyboardKey.Tab: {
+            case KeyboardKeys.Tab: {
                 this.saveSelection();
                 this.popupRef.current?.close();
 

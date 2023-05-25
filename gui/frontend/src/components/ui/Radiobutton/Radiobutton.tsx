@@ -24,9 +24,9 @@
 import "./Radiobutton.css";
 
 import { createRef, ComponentChild } from "preact";
-import keyboardKey from "keyboard-key";
 import { CheckState } from "../Checkbox/Checkbox";
 import { IComponentProperties, ComponentBase, MouseEventType } from "../Component/ComponentBase";
+import { KeyboardKeys } from "../../../utilities/helpers";
 
 export interface IRadiobuttonProperties extends IComponentProperties {
     checkState?: CheckState;
@@ -117,7 +117,7 @@ export class Radiobutton extends ComponentBase<IRadiobuttonProperties> {
             return;
         }
 
-        if (keyboardKey.getCode(e) === keyboardKey.Spacebar || keyboardKey.getCode(e) === keyboardKey.Enter) {
+        if (e.key === KeyboardKeys.Space || e.key === KeyboardKeys.Enter) {
             this.setChecked();
             e.preventDefault();
         }

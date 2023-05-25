@@ -23,7 +23,6 @@
 
 import "./SplitContainer.css";
 
-import { isNil } from "lodash";
 import { ComponentChild, createRef } from "preact";
 
 import { ComponentBase, IComponentProperties } from "../Component/ComponentBase";
@@ -456,7 +455,7 @@ export class SplitContainer extends ComponentBase<ISplitContainerProperties> {
                         // No initial size was set so far.
                         // Use the given size (if there's one) or determine a default one.
                         let size = 0;
-                        if (!isNil(entry.initialSize)) {
+                        if (entry.initialSize != null) {
                             size = Math.max(Math.min(entry.initialSize, entry.maxSize ?? 1e100), entry.minSize ?? 0);
                         } else {
                             size = Math.max(Math.min(200, entry.maxSize ?? 1e100), entry.minSize ?? 0);

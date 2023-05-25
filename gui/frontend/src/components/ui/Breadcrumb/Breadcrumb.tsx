@@ -23,8 +23,6 @@
 
 import "./Breadcrumb.css";
 
-import { isNil } from "lodash";
-
 import { ComponentChild, Fragment } from "preact";
 import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
 import { Container, Orientation } from "../Container/Container";
@@ -63,7 +61,7 @@ export class Breadcrumb extends ComponentBase<IBreadcrumbProperties> {
         const baseId = id as string || "breadcrumb";
         let content;
 
-        if (!isNil(children)) {
+        if (children != null) {
             content = children;
         } else {
             const separatorItem = typeof separator === "string"

@@ -22,10 +22,10 @@
  */
 
 import { mount } from "enzyme";
-import keyboardKey from "keyboard-key";
 
 import { changeInputValue, nextProcessTick, sendKeyPress } from "../../test-helpers";
 import { ParamDialog } from "../../../../components/Dialogs/ParamDialog";
+import { KeyboardKeys } from "../../../../utilities/helpers";
 
 describe("Param Dialog Tests", (): void => {
     it("Render Test", () => {
@@ -61,7 +61,7 @@ describe("Param Dialog Tests", (): void => {
         expect(portals.length).toBe(1);
         expect(portals[0]).toMatchSnapshot();
 
-        sendKeyPress(keyboardKey.Escape);
+        sendKeyPress(KeyboardKeys.Escape);
         await nextProcessTick();
 
         portals = document.getElementsByClassName("portal");

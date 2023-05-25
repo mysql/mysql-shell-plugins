@@ -21,14 +21,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import keyboardKey from "keyboard-key";
-
 import { mount } from "enzyme";
 
 import { DialogHost } from "./../../../app-logic/DialogHost";
 import { JestReactWrapper, nextProcessTick, sendKeyPress } from "../test-helpers";
 import { DialogType, IDialogRequest } from "../../../app-logic/Types";
 import { requisitions } from "../../../supplement/Requisitions";
+import { KeyboardKeys } from "../../../utilities/helpers";
 
 describe("DialogHost Tests", () => {
     let host: JestReactWrapper;
@@ -73,7 +72,7 @@ describe("DialogHost Tests", () => {
         portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(1);
 
-        sendKeyPress(keyboardKey.Escape);
+        sendKeyPress(KeyboardKeys.Escape);
         await nextProcessTick();
 
         portals = document.getElementsByClassName("portal");
