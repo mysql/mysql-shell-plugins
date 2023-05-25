@@ -50,14 +50,6 @@ try {
         Throw "Please define 'VSCODE_VERSION' env variable"
     }
 
-    if (!$env:HTTP_PROXY){
-        Throw "Please define 'HTTP_PROXY' env variable"
-    }
-
-    if (!$env:HTTPS_PROXY){
-        Throw "Please define 'HTTP_PROXY' env variable"
-    }
-
     $aux_proxy = $env:HTTP_PROXY
     $aux_http_proxy = $env:HTTPS_PROXY
 
@@ -144,6 +136,40 @@ try {
         return $info[0]
     }
 
+    function removeExtensions () {
+        $extDb = Join-Path $env:userprofile "test-resources-db" "ext"
+        $extOci = Join-Path $env:userprofile "test-resources-oci" "ext"
+        $extShell = Join-Path $env:userprofile "test-resources-shell" "ext"
+        $extRest = Join-Path $env:userprofile "test-resources-rest" "ext"
+
+        $job1 = Start-Job -Name "rm-ext-db" -ScriptBlock { 
+            Remove-Item -Path $using:extDb -Force -Recurse
+        }
+        $job2 = Start-Job -Name "rm-ext-oci" -ScriptBlock { 
+            Remove-Item -Path $using:extOci -Force -Recurse
+        }
+        $job3 = Start-Job -Name "rm-ext-shell" -ScriptBlock { 
+            Remove-Item -Path $using:extShell -Force -Recurse
+        }
+        $job4 = Start-Job -Name "rm-ext-rest" -ScriptBlock { 
+            Remove-Item -Path $using:extRest -Force -Recurse
+        }
+        
+        # Wait for it all to complete
+        While ( 
+                ((Get-Job -Name "rm-ext-db").state -eq "Running") -or
+                ((Get-Job -Name "rm-ext-oci").state -eq "Running") -or
+                ((Get-Job -Name "rm-ext-shell").state -eq "Running") -or
+                ((Get-Job -Name "rm-ext-rest").state -eq "Running")
+            ){
+            Receive-Job -Job $job1
+            Receive-Job -Job $job2
+            Receive-Job -Job $job3
+            Receive-Job -Job $job4
+        }
+        
+    }
+
     if ($isLinux) {
         $env:userprofile = $env:HOME
         $webCerts = Join-Path $env:userprofile ".mysqlsh-gui" "plugin_data" "gui_plugin" "web_certs"
@@ -174,19 +200,10 @@ try {
     writeMsg "USER PROFILE: $env:USERPROFILE"
     writeMsg "BASE PATH: $basePath"
 
-    # REMOVE INSTALLED EXTENSION
-    $paths = @()
-    $paths += Join-Path $env:userprofile "test-resources-db" "ext"
-    $paths += Join-Path $env:userprofile "test-resources-oci" "ext"
-    $paths += Join-Path $env:userprofile "test-resources-shell" "ext"
-    $paths += Join-Path $env:userprofile "test-resources-rest" "ext"
-    ForEach ($path in $paths) {
-        Get-ChildItem -Path $path | % {
-        writeMsg "Removing $_ ..." "-NoNewLine"
-        Remove-Item -Path $_ -Force -Recurse
-        writeMsg "DONE"
-        }
-    }
+    # REMOVE INSTALLED EXTENSIONS
+    writeMsg "Removing VSCode extensions..." "-NoNewLine"
+    removeExtensions
+    writeMsg "DONE"
     
     # REMOVE PACKAGE-LOCK.JSON
     if (Test-Path -Path "$basePath\package-lock.json"){
@@ -246,9 +263,12 @@ try {
     } 
     writeMsg "DONE"
 
-    $env:HTTP_PROXY=$aux_proxy
-    $env:HTTPS_PROXY=$aux_http_proxy
-
+    if ($env:USE_PROXY) {
+        writeMsg "Using PROXY $env:USE_PROXY"
+        $env:HTTP_PROXY=$env:USE_PROXY
+        $env:HTTPS_PROXY=$env:USE_PROXY
+    }
+    
     writeMsg "Checking if VSCode exists..." "-NoNewLine"
 
     if (!(Test-Path -Path $testResourcesDb)) {

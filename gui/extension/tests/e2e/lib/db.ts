@@ -33,7 +33,7 @@ import {
 import { expect } from "chai";
 import { basename } from "path";
 
-import { driver, Misc, dbTreeSection, explicitWait, ociExplicitWait } from "./misc";
+import { driver, Misc, dbTreeSection, explicitWait, ociExplicitWait, credentialHelperOk } from "./misc";
 
 export interface IConnBasicMySQL {
     hostname?: string;
@@ -625,7 +625,15 @@ export class Database {
         if (mrsService) {
             const selectService = await dialog.findElement(By.id("service"));
             await selectService.click();
-            await driver.findElement(By.id(mrsService)).click();
+            const mrsServiceArr = mrsService.split("|");
+            for (const item of mrsServiceArr) {
+                try {
+                    await driver.findElement(By.id(item)).click();
+                    break;
+                } catch (e) {
+                    // continue
+                }
+            }
         }
         if (requestPath) {
             const inputRequestPath = await dialog.findElement(By.id("requestPath"));
@@ -1145,24 +1153,10 @@ export class Database {
         throw new Error(`Coult not find ${editorName} with type ${editorType}`);
     };
 
-    public static tryCredentials = async (data: IDBConnection, timeout?: number): Promise<void> => {
-        let passwordDialog: WebElement[] | undefined;
-        let textArea: WebElement[] | undefined;
-
-        await driver.wait(async () => {
-            passwordDialog = await driver.wait(until.elementsLocated(By.css(".passwordDialog")), 1000, "")
-                .catch(() => { return []; });
-            textArea = await driver.findElements(By.css("textarea"));
-            if (passwordDialog.length > 0 || textArea.length > 0) {
-                return true;
-            }
-        }, explicitWait, "Connection is still loading");
-
-        if (passwordDialog.length > 0) {
-            await Database.setPassword(data);
-            await Misc.setConfirmDialog(data, "no", timeout).catch(() => {
-                // continue
-            });
+    public static setDBConnectionCredentials = async (data: IDBConnection, timeout?: number): Promise<void> => {
+        await Database.setPassword(data);
+        if (credentialHelperOk) {
+            await Misc.setConfirmDialog(data, "no", timeout);
         }
     };
 

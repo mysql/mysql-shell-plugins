@@ -35,6 +35,7 @@ import {
 } from "vscode-extension-tester";
 import { Database, IConnBasicMySQL, IDBConnection } from "./db";
 
+export const extensionName = "MySQL Shell for VS Code";
 export const dbTreeSection = "DATABASE CONNECTIONS";
 export const ociTreeSection = "ORACLE CLOUD INFRASTRUCTURE";
 export const openEditorsTreeSection = "OPEN EDITORS";
@@ -42,21 +43,17 @@ export const tasksTreeSection = "MYSQL SHELL TASKS";
 export const openEditorsDBNotebook = "DB Notebook";
 export const dbEditorDefaultName = "MySQL Shell";
 export const dbConnectionsLabel = "DB Connections";
-
 export const explicitWait = 5000;
 export const ociExplicitWait = 10000;
 export const ociTasksExplicitWait = 50000;
-
 export const dbMaxLevel = 5;
 export const ociMaxLevel = 5;
 export const openEditorsMaxLevel = 5;
 export const tasksMaxLevel = 1;
 export let driver: WebDriver;
-
 export const basePath = process.env.USERPROFILE ?? process.env.HOME;
-
 export let browser: VSBrowser;
-
+export let credentialHelperOk = true;
 export const execFullBlockSql = "Execute the selection or everything in the current block and create a new block";
 export const execFullBlockJs = "Execute everything in the current block and create a new block";
 export const execCaret = "Execute the statement at the caret position";
@@ -82,11 +79,17 @@ export class Misc {
                         return false;
                     });
             }, explicitWait * 3, "Reload window did not went well");
-            await Misc.checkMySQLShLog("Certificate is installed", explicitWait*4);
-            await Misc.checkMySQLShLog("Mode: Single user");
-            await Misc.checkMySQLShLog("Registering session...");
+            await driver.wait(async () => {
+                return Misc.findOnMySQLShLog("Certificate is installed");
+            }, explicitWait * 4, "'Certificate is installed' was not found on mysqlsh log file");
+            await driver.wait(async () => {
+                return Misc.findOnMySQLShLog("Registering session...");
+            }, explicitWait * 4, "'Registering session...' was not found on mysqlsh log file");
+
+            credentialHelperOk = !(await Misc
+                .findOnMySQLShLog(`Failed to initialize the default helper "windows-credential"`));
             const activityBar = new ActivityBar();
-            await (await activityBar.getViewControl("MySQL Shell for VS Code"))?.openView();
+            await (await activityBar.getViewControl(extensionName))?.openView();
 
             return driver.wait(async () => {
                 const editors = await new EditorView().getOpenEditorTitles();
@@ -184,6 +187,46 @@ export class Misc {
             }, explicitWait, `Could not select '${ctxMenuItem}' for Tree Item '${await treeItem.getLabel()}'`);
         } else {
             throw new Error(`TreeItem for context menu '${ctxMenuItem}' is undefined`);
+        }
+    };
+
+    public static openContexMenuItem = async (
+        treeItem: TreeItem,
+        ctxMenuItem: string,
+        webViewName?: string): Promise<void> => {
+
+        if (webViewName) {
+            await driver.wait(async () => {
+                await Misc.selectContextMenuItem(treeItem, ctxMenuItem);
+                try {
+                    await driver.wait(async () => {
+                        try {
+                            await new EditorView().openEditor(webViewName);
+
+                            return true;
+                        } catch (e) {
+                            return false;
+                        }
+                    }, 3000, `${webViewName} was not opened after 3secs`);
+                } catch (e) {
+                    return false;
+                }
+                try {
+                    await Misc.switchToWebView();
+
+                    return true;
+                } catch (e) {
+                    if (e instanceof Error) {
+                        if (!String(e.message).includes("Could not find a visible iframe div")) {
+                            throw e;
+                        } else {
+                            await new EditorView().closeEditor(webViewName);
+                        }
+                    }
+                }
+            }, explicitWait * 3, `${webViewName} was not opened`);
+        } else {
+            await Misc.selectContextMenuItem(treeItem, ctxMenuItem);
         }
     };
 
@@ -441,12 +484,13 @@ export class Misc {
         const expectedFrames = 2;
 
         const firstIframe = await visibleDiv.findElement(By.css("iframe"));
-        await driver.wait(until.ableToSwitchToFrame(firstIframe));
+        await driver.wait(until.ableToSwitchToFrame(firstIframe), explicitWait, "Could not enter the first iframe");
 
         for (let i = 0; i <= expectedFrames - 1; i++) {
             const frame = await driver.findElements(By.css("iframe"));
             if (frame.length > 0) {
-                await driver.wait(until.ableToSwitchToFrame(frame[0]));
+                await driver.wait(until.ableToSwitchToFrame(frame[0]),
+                    explicitWait, "Could not enter the second iframe");
                 const deepestFrame = await driver.findElements(By.css("iframe"));
                 if (deepestFrame.length > 0) {
                     await driver.executeScript("arguments[0].style.width='100%';", deepestFrame[0]);
@@ -469,8 +513,11 @@ export class Misc {
                 }
             }
         } else {
-            if (process.env.PATH.includes("mysql-router")) {
-                return true;
+            const dirFiles = await fs.readdir("/usr/bin");
+            for (const item of dirFiles) {
+                if (item.includes("mysqlrouter")) {
+                    return true;
+                }
             }
         }
     };
@@ -551,24 +598,43 @@ export class Misc {
         });
     };
 
-    public static setInputPassword = async (password: string): Promise<void> => {
-        await driver.wait(async () => {
-            try {
-                const input = new InputBox();
-                await input.setText(password);
-                await input.confirm();
-                try {
-                    await input.setText("N");
-                    await input.confirm();
-                } catch (e) {
-                    // continue
-                }
+    public static setInputPassword = async (connection: TreeItem, password: string): Promise<void> => {
+        let inputBox: InputBox;
 
-                return true;
-            } catch (e) {
-                return false;
-            }
-        }, explicitWait, "Input password was not displayed");
+        await driver.wait(async () => {
+            inputBox = new InputBox();
+
+            return inputBox.getTitle()
+                .then((title) => {
+                    return title.includes("Please provide the password");
+                }).catch(() => {
+                    return false;
+                });
+        }, explicitWait * 3, "Provide password dialog was not displayed");
+
+        await inputBox.setText(password);
+        await inputBox.confirm();
+
+        if (credentialHelperOk) {
+            await driver.wait(async () => {
+                inputBox = new InputBox();
+
+                return inputBox.getTitle()
+                    .then((title) => {
+                        return title.includes("Save password");
+                    }).catch(() => {
+                        return false;
+                    });
+            }, explicitWait * 3, "Save password Input Box was not displayed");
+
+            await inputBox.setText("N");
+            await inputBox.confirm();
+        }
+
+        await driver.wait(async () => {
+            return connection.hasChildren();
+        }, explicitWait * 3, `Could not Save the password for ${await connection.getLabel()}`);
+
     };
 
 
@@ -1016,35 +1082,23 @@ export class Misc {
 
     private static getTerminalOutput = async (): Promise<string> => {
         let out: string;
-        if (platform() === "linux") {
-            const bootomBar = new BottomBarPanel();
-            const terminal = await bootomBar.openTerminalView();
-            await driver.wait(async () => {
-                try {
-                    out = await terminal.getText();
+        const bootomBar = new BottomBarPanel();
+        await bootomBar.openTerminalView();
+        await driver.wait(until.elementLocated(By.css("#terminal textarea")),
+            explicitWait, "Terminal was not opened");
+        await driver.wait(async () => {
+            try {
+                const workbench = new Workbench();
+                await workbench.executeCommand("terminal select all");
+                await driver.sleep(1000);
+                out = clipboard.readSync();
+                clipboard.writeSync("");
 
-                    return true;
-                } catch (e) {
-                    // continue. Clipboard may be in use by other tests
-                }
-            }, explicitWait * 2, "Cliboard was in use after 10 secs");
-        } else {
-            const workbench = new Workbench();
-            await workbench.executeCommand("terminal select all");
-            await driver.sleep(1000);
-            await driver.wait(async () => {
-                try {
-                    const terminal = await driver.findElement(By.css("#terminal textarea"));
-                    await terminal.sendKeys(Key.chord(Key.CONTROL, "c"));
-                    out = clipboard.readSync();
-                    clipboard.writeSync("");
-
-                    return true;
-                } catch (e) {
-                    // continue. Clipboard may be in use by other tests
-                }
-            }, explicitWait * 2, "Cliboard was in use after 10 secs");
-        }
+                return true;
+            } catch (e) {
+                // continue. Clipboard may be in use by other tests
+            }
+        }, explicitWait * 2, "Cliboard was in use after 10 secs");
 
         return out;
     };
@@ -1228,12 +1282,10 @@ export class Misc {
         return sentence;
     };
 
-    private static checkMySQLShLog = async (textToFind: string, timeout = explicitWait): Promise<void> => {
-        await driver.wait(async () => {
-            const text = await fs.readFile(Misc.getMysqlshLog());
+    private static findOnMySQLShLog = async (textToFind: string): Promise<boolean> => {
+        const text = await fs.readFile(Misc.getMysqlshLog());
 
-            return text.includes(textToFind);
-        }, timeout, `${textToFind} was not found on mysqlsh.log`);
+        return text.includes(textToFind);
     };
 
 }
