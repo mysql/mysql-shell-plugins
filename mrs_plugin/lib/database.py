@@ -142,6 +142,15 @@ def grant_db_object(session, schema_name, db_object_name, grant_privileges):
     session.run_sql(sql)
 
 
+def revoke_all_from_db_object(session, schema_name, db_object_name):
+    sql = f"""
+        REVOKE IF EXISTS ALL PRIVILEGES
+        ON {schema_name}.{db_object_name}
+        FROM 'mysql_rest_service_data_provider'@'%'
+    """
+    session.run_sql(sql)
+
+
 def get_table_columns_with_references(session, schema_name, db_object_name, db_object_type):
     sql = """
         SELECT *

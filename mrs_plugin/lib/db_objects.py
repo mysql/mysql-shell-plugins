@@ -98,6 +98,11 @@ def delete_db_object(session, db_object_ids: list):
 
     # Update all given services
     for db_object_id in db_object_ids:
+        db_object = get_db_object(session, db_object_id)
+        db_schema = schemas.get_schema(session, db_object["db_schema_id"])
+
+        database.revoke_all_from_db_object(session, db_schema["name"], db_object["name"])
+
         # remove the db_object
         core.delete(table="db_object",
                     where="id=?"
@@ -452,10 +457,15 @@ def update_db_objects(session, db_object_ids, value):
         grant_privileges = map_crud_operations(
             value.get("crud_operations", []))
 
+
+        db_object = get_db_object(session, db_object_id)
+        schema = schemas.get_schema(session, db_object["db_schema_id"])
+
+        # Revoke all grants before granting the necessary ones
+        database.revoke_all_from_db_object(session, schema["name"], db_object["name"])
+
         # Grant privilege to the 'mysql_rest_service_data_provider' role
         if grant_privileges:
-            db_object = get_db_object(session, db_object_id)
-            schema = schemas.get_schema(session, db_object["db_schema_id"])
 
             if db_object["object_type"] == "PROCEDURE":
                 database.grant_procedure(

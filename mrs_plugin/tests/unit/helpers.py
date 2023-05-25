@@ -198,38 +198,6 @@ class TableContents(object):
         return ""
 
 
-def create_test_db(session, schema_name):
-    session.run_sql(f"DROP SCHEMA IF EXISTS `{schema_name}`;")
-    session.run_sql(f"CREATE SCHEMA IF NOT EXISTS `{schema_name}` DEFAULT CHARACTER SET utf8;")
-
-
-    session.run_sql(f"USE `{schema_name}`;")
-    session.run_sql(f"""CREATE TABLE IF NOT EXISTS `{schema_name}`.`Contacts` (
-                        `id` INT NOT NULL,
-                        `f_name` VARCHAR(45) NULL,
-                        `l_name` VARCHAR(45) NULL,
-                        `number` VARCHAR(20) NULL,
-                        `email` VARCHAR(45) NULL,
-                        PRIMARY KEY (`id`))
-                        ENGINE = InnoDB;""")
-    session.run_sql(f"""CREATE TABLE IF NOT EXISTS `{schema_name}`.`Addresses` (
-                        `id` INT NOT NULL,
-                        `address_line` VARCHAR(256) NULL,
-                        `city` VARCHAR(128) NULL,
-                        PRIMARY KEY (`id`))
-                        ENGINE = InnoDB;""")
-    session.run_sql("""CREATE PROCEDURE `GetAllContacts` ()
-                        BEGIN
-                            SELECT * FROM Contacts;
-                        END""")
-    session.run_sql("""CREATE OR REPLACE VIEW `ContactsWithEmail` AS
-                        SELECT * FROM `Contacts`
-                        WHERE `email` is not NULL;""")
-    session.run_sql("""CREATE OR REPLACE VIEW `ContactBasicInfo` AS
-                        SELECT f_name, l_name, number FROM `Contacts`
-                        WHERE `email` is not NULL;""")
-
-
 def reset_mrs_database(session):
     session.run_sql("DELETE FROM mysql_rest_service_metadata.audit_log")
     session.run_sql("DELETE FROM mysql_rest_service_metadata.content_file")
@@ -248,8 +216,29 @@ def reset_mrs_database(session):
     session.run_sql("DELETE FROM mysql_rest_service_metadata.config")
     session.run_sql("INSERT INTO mysql_rest_service_metadata.config (id, service_enabled, data) VALUES (1, 1, '{}')")
 
+    session.run_sql("REVOKE ALL PRIVILEGES ON *.* FROM 'mysql_rest_service_data_provider'@'%'")
+
+
+    session.run_sql("DELETE FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES WHERE GRANTEE LIKE '%mysql_rest_service_data_provider%'")
+    session.run_sql("DELETE FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES WHERE TABLE_SCHEMA = 'PhoneBook'")
+
+    entries = lib.core.MrsDbExec(f"""
+        SELECT *
+        FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES
+        WHERE GRANTEE LIKE '%mysql_rest_service_data_provider%'
+        """).exec(session).items
+
+    #print(f"---> {entries}")
+    assert len(entries) == 0
+
 
 def create_mrs_phonebook_schema(session, service_context_root, schema_name, temp_dir):
+
+    entries = lib.core.MrsDbExec(f"""
+        SELECT *
+        FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES
+        WHERE GRANTEE LIKE '%mysql_rest_service_data_provider%'
+        """).exec(session).items
 
     service = lib.services.get_service(session, url_context_root=service_context_root)
 
@@ -362,6 +351,27 @@ def create_mrs_phonebook_schema(session, service_context_root, schema_name, temp
     db_object_id = add_db_object(**db_object)
     assert id is not None
 
+    db_object = lib.db_objects.get_db_object(session, db_object_id)
+    assert db_object is not None
+
+
+    entries = lib.core.MrsDbExec(f"""
+        SELECT *
+        FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES
+        WHERE GRANTEE LIKE '%mysql_rest_service_data_provider%'
+        """).exec(session).items
+
+    grants = lib.core.MrsDbExec(f"""
+        SELECT *
+        FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES
+        WHERE TABLE_SCHEMA = '{db_object['schema_name']}'
+            AND TABLE_NAME = '{db_object['name']}'
+        """).exec(session).items
+
+    grants = [g["PRIVILEGE_TYPE"] for g in grants]
+    assert sorted(grants) == ['SELECT'], f"{sorted(grants)}"
+
+
     args = {
         "auth_vendor_id": "0x30000000000000000000000000000000",
         "description": "Authentication via MySQL accounts",
@@ -435,3 +445,14 @@ def create_mrs_phonebook_schema(session, service_context_root, schema_name, temp
         "mrs_user1": user["id"],
         "roles": roles,
     }
+
+
+def get_db_object_privileges(session, schema_name, db_object_name):
+    grants = lib.core.MrsDbExec(f"""
+        SELECT PRIVILEGE_TYPE
+        FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES
+        WHERE TABLE_SCHEMA = '{schema_name}'
+            AND TABLE_NAME = '{db_object_name}'
+        """).exec(session).items
+
+    return [g["PRIVILEGE_TYPE"] for g in grants]

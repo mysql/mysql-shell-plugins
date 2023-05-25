@@ -21,7 +21,7 @@
 
 import pytest
 from mrs_plugin import lib
-
+from ..helpers import get_db_object_privileges
 
 @pytest.mark.usefixtures("phone_book")
 def test_add_db_object(phone_book, table_contents):
@@ -201,6 +201,10 @@ def test_set_crud_operations(phone_book, mobile_phone_book, table_contents):
             'service_id': phone_book["service_id"],
         }
 
+        grants = get_db_object_privileges(session,
+            result['schema_name'], result['name'])
+        assert sorted(grants) == sorted(lib.db_objects.map_crud_operations(result["crud_operations"]))
+
         db_object_table_data = db_object_table.get("id", phone_book["db_object_id"])
         assert db_object_table_data["crud_operations"] == ["CREATE","READ","UPDATE"]
 
@@ -265,6 +269,10 @@ def test_set_crud_operations(phone_book, mobile_phone_book, table_contents):
         db_object_table_data = db_object_table.get("id", phone_book["db_object_id"])
         assert db_object_table_data["crud_operations"] == ["CREATE","READ","UPDATE","DELETE"]
 
+        grants = get_db_object_privileges(session,
+            result['schema_name'], result['name'])
+        assert sorted(grants) == sorted(lib.db_objects.map_crud_operations(result["crud_operations"]))
+
 
 def test_db_object_update(phone_book, table_contents):
 
@@ -315,5 +323,11 @@ def test_db_object_update(phone_book, table_contents):
             'row_user_ownership_enforced': db_object["row_user_ownership_enforced"],
         })
         assert db_object_table.same_as_snapshot
+
+        result = lib.db_objects.get_db_object(session, db_object_id=phone_book["db_object_id"])
+
+        grants = get_db_object_privileges(session,
+            result['schema_name'], result['name'])
+        assert sorted(grants) == sorted(lib.db_objects.map_crud_operations(result["crud_operations"]))
 
 

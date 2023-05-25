@@ -21,7 +21,8 @@
 
 import pytest
 from ... db_objects import *
-import json
+from .helpers import get_db_object_privileges
+
 
 def test_add_db_object(phone_book, table_contents):
     db_objects_table = table_contents("db_object")
@@ -347,8 +348,16 @@ def test_delete(phone_book, table_contents):
     assert id is not None
     assert db_object_table.count == db_object_table.snapshot.count + 1
 
+    grants = get_db_object_privileges(phone_book["session"],
+        db_object['schema_name'], db_object['db_object_name'])
+    assert grants == ['SELECT']
+
     delete_db_object(session=phone_book["session"], db_object_name="ContactBasicInfo", schema_id=phone_book["schema_id"])
     assert db_object_table.count == db_object_table.snapshot.count
+
+    grants = get_db_object_privileges(phone_book["session"],
+        db_object['schema_name'], db_object['db_object_name'])
+    assert grants == []
 
 
     id = add_db_object(**db_object)
