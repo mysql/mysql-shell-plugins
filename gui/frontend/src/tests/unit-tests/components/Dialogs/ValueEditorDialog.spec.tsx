@@ -22,7 +22,6 @@
  */
 
 import { mount } from "enzyme";
-import keyboardKey from "keyboard-key";
 
 import {
     CommonDialogValueOption, IChoiceDialogValue, IDialogSection, IDialogValidations, IDialogValues,
@@ -34,6 +33,7 @@ import {
 import { IDictionary } from "../../../../app-logic/Types";
 import { ICheckboxProperties, CheckState } from "../../../../components/ui/Checkbox/Checkbox";
 import { Label } from "../../../../components/ui/Label/Label";
+import { KeyboardKeys } from "../../../../utilities/helpers";
 
 describe("Value Edit Dialog Tests", (): void => {
     const clickButton = jest.fn((_id: string, _values: IDialogValues): void => {
@@ -245,7 +245,7 @@ describe("Value Edit Dialog Tests", (): void => {
 
         expect(portals[0]).toMatchSnapshot();
 
-        sendKeyPress(keyboardKey.Escape);
+        sendKeyPress(KeyboardKeys.Escape);
         await nextProcessTick();
 
         portals = document.getElementsByClassName("portal");
@@ -276,7 +276,7 @@ describe("Value Edit Dialog Tests", (): void => {
         expect(component.state().activeContexts).toContain("advanced");
 
         // Cancel the dialog and launch it again. This time without the advanced context in the show call.
-        sendKeyPress(keyboardKey.Escape);
+        sendKeyPress(KeyboardKeys.Escape);
         await nextProcessTick();
 
         component.instance().show(
@@ -296,7 +296,7 @@ describe("Value Edit Dialog Tests", (): void => {
         const portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(1);
 
-        sendKeyPress(keyboardKey.Escape);
+        sendKeyPress(KeyboardKeys.Escape);
         await nextProcessTick();
 
         component.unmount();
@@ -609,7 +609,7 @@ describe("Value Edit Dialog Tests", (): void => {
         }
 
         // Pressing escape cancels the dialog regardless of its validation status.
-        sendKeyPress(keyboardKey.Escape);
+        sendKeyPress(KeyboardKeys.Escape);
         await nextProcessTick();
         portals = document.getElementsByClassName("portal");
         expect(portals).toHaveLength(0);
@@ -847,7 +847,7 @@ describe("Value Edit Dialog Tests", (): void => {
         portals = document.getElementsByClassName("portal");
         expect(portals).toHaveLength(2);
 
-        sendKeyPress(keyboardKey.Escape);
+        sendKeyPress(KeyboardKeys.Escape);
         await nextProcessTick();
 
         button = document.getElementById("buttonRemoveEntry");
@@ -978,7 +978,7 @@ describe("Value Edit Dialog Tests", (): void => {
             expect(elements).toHaveLength(1);
 
             let count = close.mock.calls.length;
-            sendKeyPress(keyboardKey.Enter, elements[0]);
+            sendKeyPress(KeyboardKeys.Enter, elements[0]);
             expect(close).toHaveBeenCalledTimes(count + 1);
 
             elements = portals[0].getElementsByClassName("valueEditor input");

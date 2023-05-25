@@ -62,9 +62,6 @@ import typescriptIcon from "../../assets/images/file-icons/scriptTs.svg";
 import { ComponentChild, createRef, render } from "preact";
 import { CellComponent, ColumnDefinition, RowComponent } from "tabulator-tables";
 
-import keyboardKey from "keyboard-key";
-import { isNil } from "lodash";
-
 import { EntityType, IDBDataEntry, IDBEditorScriptState, IEntityBase, ISchemaTreeEntry, SchemaTreeType } from ".";
 import { Codicon } from "../../components/ui/Codicon";
 import { IOpenEditorState } from "./DBConnectionTab";
@@ -85,7 +82,7 @@ import { TreeGrid, ITreeGridOptions, TabulatorProxy } from "../../components/ui/
 import { DBType } from "../../supplement/ShellInterface";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor";
 import { ISplitterPaneSizeInfo } from "../../components/ui/SplitContainer/SplitContainer";
-import { uuid } from "../../utilities/helpers";
+import { KeyboardKeys, uuid } from "../../utilities/helpers";
 import { quote } from "../../utilities/string-helpers";
 import { Settings } from "../../supplement/Settings/Settings";
 
@@ -268,7 +265,7 @@ export class Explorer extends ComponentBase<IExplorerProperties, IExplorerState>
                             maxSize: 150,
                             expanded: editorSectionState.expanded,
                             initialSize: editorSectionState.size,
-                            dimmed: !isNil(editing),
+                            dimmed: editing != null,
                             actions: [
                                 {
                                     id: "addConsole",
@@ -330,7 +327,7 @@ export class Explorer extends ComponentBase<IExplorerProperties, IExplorerState>
                         {
                             id: "scriptSection",
                             caption: "SCRIPTS",
-                            dimmed: !isNil(editing),
+                            dimmed: editing != null,
                             expanded: scriptSectionState.expanded,
                             initialSize: scriptSectionState.size,
                             stretch: true,
@@ -1052,7 +1049,7 @@ export class Explorer extends ComponentBase<IExplorerProperties, IExplorerState>
     };
 
     private handleKeyPress = (e: KeyboardEvent, props: IComponentProperties): void => {
-        if (keyboardKey.getCode(e) === keyboardKey.Enter) {
+        if (e.key === KeyboardKeys.Enter) {
             // Starting an edit action.
             const { editors } = this.props;
             const item = editors.find((candidate: IEntityBase) => {

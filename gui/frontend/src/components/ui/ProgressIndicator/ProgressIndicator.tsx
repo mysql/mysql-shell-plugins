@@ -23,7 +23,6 @@
 
 import "./ProgressIndicator.css";
 
-import { isNil } from "lodash";
 import { ComponentChild } from "preact";
 
 import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
@@ -63,7 +62,7 @@ export class ProgressIndicator extends ComponentBase<IProgressIndicatorPropertie
         let width = indicatorWidth ?? 400;
         let height = indicatorHeight ?? 10;
         if (linear) {
-            const barClassName = isNil(position) ? "linear animated" : "linear";
+            const barClassName = position == null ? "linear animated" : "linear";
             indicator = <div className="linearBackground">
                 <div className={barClassName} />
             </div>;
@@ -71,7 +70,7 @@ export class ProgressIndicator extends ComponentBase<IProgressIndicatorPropertie
             width = indicatorWidth ?? 80;
             height = indicatorHeight ?? 80;
 
-            const circleClassName = isNil(position) ? "circleBackground animated" : "circleBackground";
+            const circleClassName = position == null ? "circleBackground animated" : "circleBackground";
             const radius = (width - 2 * strokeWidth) / 2;
             const offset = (width - strokeWidth) / 2;
             indicator = <svg className={circleClassName}>

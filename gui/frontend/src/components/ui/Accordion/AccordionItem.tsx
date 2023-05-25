@@ -22,7 +22,6 @@
  */
 
 import { ComponentChild, VNode } from "preact";
-import keyboardKey from "keyboard-key";
 
 import { Container, ContentAlignment } from "../Container/Container";
 import { IDictionary } from "../../../app-logic/Types";
@@ -31,6 +30,7 @@ import { IComponentProperties, ComponentBase } from "../Component/ComponentBase"
 import { Icon } from "../Icon/Icon";
 import { Label } from "../Label/Label";
 import { Image } from "../Image/Image";
+import { KeyboardKeys } from "../../../utilities/helpers";
 
 export interface IAccordionItemProperties extends IComponentProperties {
     caption: string;
@@ -98,8 +98,8 @@ export class AccordionItem extends ComponentBase<IAccordionItemProperties> {
     }
 
     private handleCloseKeyPress = (e: KeyboardEvent): void => {
-        const key = keyboardKey.getCode(e);
-        if (key === keyboardKey.Spacebar || key === keyboardKey.Enter) {
+        const key = e.key;
+        if (key === KeyboardKeys.Space || key === KeyboardKeys.Enter) {
             e.stopPropagation();
 
             const { onClose } = this.props;

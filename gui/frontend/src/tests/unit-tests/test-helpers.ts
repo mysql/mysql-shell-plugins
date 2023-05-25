@@ -27,7 +27,6 @@ import { CommonWrapper, ReactWrapper } from "enzyme";
 import fs from "fs";
 import path from "path";
 import os from "os";
-import keyboardKey from "keyboard-key";
 
 import { appParameters, requisitions } from "../../supplement/Requisitions";
 import { webSession } from "../../supplement/WebSession";
@@ -236,11 +235,10 @@ export const nextRunLoop = async (): Promise<void> => {
  * @param code The key code to send.
  * @param element The target element to dispatch the keypress for. Default is document.body.
  */
-export const sendKeyPress = (code: number, element: Element = document.body): void => {
-    const codes = keyboardKey.codes[code];
-    let event = new KeyboardEvent("keydown", { key: Array.isArray(codes) ? codes[0] : codes, bubbles: true });
+export const sendKeyPress = (code: string, element: Element = document.body): void => {
+    let event = new KeyboardEvent("keydown", { key: code, bubbles: true });
     element.dispatchEvent(event);
-    event = new KeyboardEvent("keyup", { key: Array.isArray(codes) ? codes[0] : codes, bubbles: true });
+    event = new KeyboardEvent("keyup", { key: code, bubbles: true });
     element.dispatchEvent(event);
 };
 

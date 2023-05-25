@@ -25,8 +25,6 @@ import {
     commands, ExtensionContext, window, workspace, ConfigurationChangeEvent, WorkspaceConfiguration, StatusBarItem,
 } from "vscode";
 
-import { isNil } from "lodash";
-
 import { DBType } from "../../frontend/src/supplement/ShellInterface";
 import { webSession } from "../../frontend/src/supplement/WebSession";
 import { ISettingCategory, settingCategories } from "../../frontend/src/supplement/Settings/SettingsRegistry";
@@ -432,7 +430,7 @@ export class ExtensionHost {
                 children?.forEach((child) => {
                     child.values.forEach((value) => {
                         const configValue = configuration?.get(`${child.key}.${value.key}`);
-                        if (!isNil(configValue)) {
+                        if (configValue != null) {
                             Settings.set(value.id, configValue);
                         }
                     });
@@ -447,7 +445,7 @@ export class ExtensionHost {
                     const configuration = workspace.getConfiguration(`msg.${category.key}`);
                     category.values.forEach((value) => {
                         const configValue = configuration.get(value.key);
-                        if (!isNil(configValue)) {
+                        if (configValue != null) {
                             Settings.set(value.id, configValue);
                         }
                     });

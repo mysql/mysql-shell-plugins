@@ -135,6 +135,25 @@ export class ShellInterfaceMrs {
         });
     }
 
+    public async getService(serviceId: string | null, urlContextRoot: string | null, urlHostName: string | null,
+        getDefault: boolean | null, autoSelectSingle: boolean | null): Promise<IMrsServiceData> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsGetService,
+            parameters: {
+                kwargs: {
+                    serviceId,
+                    urlContextRoot,
+                    urlHostName,
+                    getDefault,
+                    autoSelectSingle,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
     public async setCurrentService(serviceId: string): Promise<void> {
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsSetCurrentService,

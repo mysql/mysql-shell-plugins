@@ -22,11 +22,11 @@
  */
 
 import { mount } from "enzyme";
-import keyboardKey from "keyboard-key";
 
 import { nextProcessTick, sendKeyPress } from "../../test-helpers";
 import { requisitions } from "../../../../supplement/Requisitions";
 import { MessagePanel } from "../../../../components/Dialogs/MessagePanel";
+import { KeyboardKeys } from "../../../../utilities/helpers";
 
 describe("Message Panel Tests", (): void => {
     it("Render Test", () => {
@@ -59,7 +59,7 @@ describe("Message Panel Tests", (): void => {
             expect(portals[0]).toMatchSnapshot();
 
             // Close the dialog using the escape key.
-            sendKeyPress(keyboardKey.Escape);
+            sendKeyPress(KeyboardKeys.Escape);
         }, 1000);
 
         // The first line in the list is used as caption if there is more than one line.

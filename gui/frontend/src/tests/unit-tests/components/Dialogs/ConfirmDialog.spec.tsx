@@ -22,13 +22,13 @@
  */
 
 import { mount } from "enzyme";
-import keyboardKey from "keyboard-key";
 
 import { Label } from "../../../../components/ui/Label/Label";
 
 import { nextProcessTick, sendKeyPress } from "../../test-helpers";
 import { DialogResponseClosure } from "../../../../app-logic/Types";
 import { ConfirmDialog } from "../../../../components/Dialogs/ConfirmDialog";
+import { KeyboardKeys } from "../../../../utilities/helpers";
 
 describe("Confirm Dialog Tests", (): void => {
 
@@ -58,7 +58,7 @@ describe("Confirm Dialog Tests", (): void => {
         expect(portals.length).toBe(1);
 
         expect(portals[0]).toMatchSnapshot();
-        sendKeyPress(keyboardKey.Escape);
+        sendKeyPress(KeyboardKeys.Escape);
 
         await nextProcessTick();
 
@@ -73,7 +73,7 @@ describe("Confirm Dialog Tests", (): void => {
         expect(portals.length).toBe(1);
 
         expect(portals[0]).toMatchSnapshot();
-        sendKeyPress(keyboardKey.Escape);
+        sendKeyPress(KeyboardKeys.Escape);
 
         await nextProcessTick();
 
@@ -100,7 +100,7 @@ describe("Confirm Dialog Tests", (): void => {
         expect(portals.length).toBe(1);
 
         expect(portals[0]).toMatchSnapshot();
-        sendKeyPress(keyboardKey.Escape);
+        sendKeyPress(KeyboardKeys.Escape);
 
         await nextProcessTick();
 

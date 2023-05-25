@@ -31,7 +31,6 @@ import {
 } from "tabulator-tables";
 
 import { ComponentChild, createRef } from "preact";
-import { isNil } from "lodash";
 
 import { waitFor } from "../../../utilities/helpers";
 import { appParameters } from "../../../supplement/Requisitions";
@@ -430,7 +429,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
             columns,
             data: tableData,
 
-            dataTree: !isNil(options?.treeColumn),
+            dataTree: options?.treeColumn != null,
             dataTreeChildIndent: options?.treeChildIndent ?? 0,
             dataTreeChildField: options?.childKey ?? "children",
             dataTreeElementColumn: options?.treeColumn,

@@ -24,10 +24,10 @@
 import "./Portal.css";
 
 import { ComponentChild, render } from "preact";
-import keyboardKey from "keyboard-key";
 
 import { ComponentBase, IComponentProperties, IComponentState } from "../Component/ComponentBase";
 import { Stack } from "../../../supplement";
+import { KeyboardKeys } from "../../../utilities/helpers";
 
 /** Options that can change on every show action. */
 export interface IPortalOptions {
@@ -193,7 +193,7 @@ export class Portal extends ComponentBase<IPortalProperties, IPortalState> {
     static {
         // Add a single keydown handler for all portals.
         document.body.addEventListener("keydown", (e: KeyboardEvent): void => {
-            if (Portal.portalStack.length > 0 && keyboardKey.getCode(e) === keyboardKey.Escape) {
+            if (Portal.portalStack.length > 0 && e.key === KeyboardKeys.Escape) {
                 const portal = Portal.portalStack.top;
                 if (portal) {
                     const { options } = portal.state;

@@ -22,12 +22,12 @@
  */
 
 import { mount } from "enzyme";
-import keyboardKey from "keyboard-key";
 
 import { changeInputValue, nextProcessTick, sendKeyPress } from "../../test-helpers";
 import { requisitions } from "../../../../supplement/Requisitions";
 import { IServicePasswordRequest } from "../../../../app-logic/Types";
 import { PasswordDialog } from "../../../../components/Dialogs/PasswordDialog";
+import { KeyboardKeys } from "../../../../utilities/helpers";
 
 describe("Password Dialog Tests", (): void => {
     it("Render Test", () => {
@@ -75,7 +75,7 @@ describe("Password Dialog Tests", (): void => {
         expect(portals.length).toBe(1);
         expect(portals[0]).toMatchSnapshot();
 
-        sendKeyPress(keyboardKey.Escape);
+        sendKeyPress(KeyboardKeys.Escape);
         await nextProcessTick();
 
         portals = document.getElementsByClassName("portal");
@@ -131,7 +131,7 @@ describe("Password Dialog Tests", (): void => {
         expect(component.state().password).toBe("swordfish");
 
         // Close dialog using the enter key in the password field.
-        sendKeyPress(keyboardKey.Enter, inputs[0]);
+        sendKeyPress(KeyboardKeys.Enter, inputs[0]);
         await nextProcessTick();
 
         portals = document.getElementsByClassName("portal");

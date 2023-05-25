@@ -22,7 +22,6 @@
  */
 
 import { createRef } from "preact";
-import keyboardKey from "keyboard-key";
 
 import { mount } from "enzyme";
 import {
@@ -37,7 +36,7 @@ import { ShellInterface } from "../../../../../supplement/ShellInterface/ShellIn
 import { webSession } from "../../../../../supplement/WebSession";
 import { IMySQLConnectionOptions, MySQLConnectionScheme } from "../../../../../communication/MySQL";
 import { IConnectionDetails, DBType } from "../../../../../supplement/ShellInterface";
-import { sleep } from "../../../../../utilities/helpers";
+import { KeyboardKeys, sleep } from "../../../../../utilities/helpers";
 
 describe("MrsHub Tests", () => {
     let host: JestReactWrapper;
@@ -122,7 +121,7 @@ describe("MrsHub Tests", () => {
         expect(portals[0]).toMatchSnapshot();
 
         setTimeout(() => {
-            sendKeyPress(keyboardKey.Escape);
+            sendKeyPress(KeyboardKeys.Escape);
         }, 250);
 
         await promise;
@@ -144,7 +143,7 @@ describe("MrsHub Tests", () => {
         expect(portals[0]).toMatchSnapshot();
 
         setTimeout(() => {
-            sendKeyPress(keyboardKey.Escape);
+            sendKeyPress(KeyboardKeys.Escape);
         }, 250);
 
         await promise;
@@ -176,7 +175,7 @@ describe("MrsHub Tests", () => {
         expect(portals[0]).toMatchSnapshot();
 
         setTimeout(() => {
-            sendKeyPress(keyboardKey.Escape);
+            sendKeyPress(KeyboardKeys.Escape);
         }, 250);
 
         await promise;
@@ -198,7 +197,7 @@ describe("MrsHub Tests", () => {
         expect(portals[0]).toMatchSnapshot();
 
         setTimeout(() => {
-            sendKeyPress(keyboardKey.Escape);
+            sendKeyPress(KeyboardKeys.Escape);
         }, 250);
 
         await promise;
@@ -220,7 +219,7 @@ describe("MrsHub Tests", () => {
         expect(portals[0]).toMatchSnapshot();
 
         setTimeout(() => {
-            sendKeyPress(keyboardKey.Escape);
+            sendKeyPress(KeyboardKeys.Escape);
         }, 250);
 
         await promise;
@@ -249,7 +248,7 @@ describe("MrsHub Tests", () => {
         expect(portals[0]).toMatchSnapshot();
 
         setTimeout(() => {
-            sendKeyPress(keyboardKey.Escape);
+            sendKeyPress(KeyboardKeys.Escape);
         }, 250);
 
         await promise;

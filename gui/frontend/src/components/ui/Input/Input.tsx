@@ -25,9 +25,9 @@ import "./Input.css";
 
 import { ComponentChild, createRef } from "preact";
 
-import keyboardKey from "keyboard-key";
 import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
 import { TextAlignment } from "../Label/Label";
+import { KeyboardKeys } from "../../../utilities/helpers";
 
 export interface IInputProperties extends IComponentProperties {
     placeholder?: string;
@@ -129,8 +129,8 @@ export class Input extends ComponentBase<IInputProperties> {
     private handleKeyDown = (e: KeyboardEvent): void => {
         const { multiLine, onConfirm, onCancel } = this.mergedProps;
 
-        switch (keyboardKey.getCode(e)) {
-            case keyboardKey.Enter: {
+        switch (e.key) {
+            case KeyboardKeys.Enter: {
                 if (!multiLine) {
                     const element = e.target as HTMLInputElement;
                     onConfirm?.(e, { ...this.mergedProps, value: element.value });
@@ -139,22 +139,22 @@ export class Input extends ComponentBase<IInputProperties> {
                 break;
             }
 
-            case keyboardKey.A: {
+            case KeyboardKeys.A: {
                 if (e.metaKey && this.inputRef.current instanceof HTMLInputElement) {
                     this.inputRef.current.select();
                 }
                 break;
             }
 
-            case keyboardKey.Escape: {
+            case KeyboardKeys.Escape: {
                 onCancel?.(e, this.mergedProps);
                 break;
             }
 
-            case keyboardKey.ArrowLeft:
-            case keyboardKey.ArrowRight:
-            case keyboardKey.ArrowUp:
-            case keyboardKey.ArrowDown: {
+            case KeyboardKeys.ArrowLeft:
+            case KeyboardKeys.ArrowRight:
+            case KeyboardKeys.ArrowUp:
+            case KeyboardKeys.ArrowDown: {
                 if (multiLine) {
                     // Make sure arrow navigation in a multi line input stays intact.
                     // Owning controls (like the TreeGrid) may otherwise do additional handling.

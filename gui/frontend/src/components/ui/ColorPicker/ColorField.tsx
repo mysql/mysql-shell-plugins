@@ -25,12 +25,12 @@ import emptyHatch from "./assets/empty-hatch.svg";
 
 import { ComponentChild } from "preact";
 import { CSSProperties } from "preact/compat";
-import _ from "lodash";
 
 import Color from "color";
 import { ColorPopup } from "./ColorPopup";
 import { Image } from "../Image/Image";
 import { IComponentProperties, IComponentState, ComponentBase, DragEventType } from "../Component/ComponentBase";
+import { deepEqual } from "../../../utilities/helpers";
 
 export interface IColorFieldProperties extends IComponentProperties {
     initialColor?: Color; // The color to show. If not given a hatch pattern is shown instead.
@@ -59,7 +59,7 @@ export class ColorField extends ComponentBase<IColorFieldProperties, IColorField
     public static getDerivedStateFromProps(newProps: IColorFieldProperties, state: IColorFieldState): IColorFieldState {
         const newColor = newProps.initialColor?.unitArray() || [];
         const oldColor = state.originalColor?.unitArray() || [];
-        if (!_.isEqual(newColor, oldColor)) {
+        if (!deepEqual(newColor, oldColor)) {
             return {
                 originalColor: newProps.initialColor,
                 currentColor: newProps.initialColor,

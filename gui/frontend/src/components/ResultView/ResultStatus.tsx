@@ -22,7 +22,6 @@
  */
 
 import { ComponentChild } from "preact";
-import { isNil } from "lodash";
 
 import { IExecutionInfo, MessageType } from "../../app-logic/Types";
 import { IComponentProperties, ComponentBase } from "../ui/Component/ComponentBase";
@@ -52,7 +51,7 @@ export class ResultStatus extends ComponentBase<IResultStatusProperties> {
 
         let text;
         let messageClass = "";
-        if (!isNil(executionInfo.type) && executionInfo.type !== MessageType.Response) {
+        if ((executionInfo.type != null) && executionInfo.type !== MessageType.Response) {
             messageClass = "containsMessage";
             text = <Message type={executionInfo.type}>{executionInfo.text}</Message>;
         } else {
@@ -68,7 +67,7 @@ export class ResultStatus extends ComponentBase<IResultStatusProperties> {
                 {...this.unhandledProperties}
             >
                 {text}
-                {isNil(executionInfo.type) && children}
+                {(executionInfo.type == null) && children}
             </Container>
         );
     }

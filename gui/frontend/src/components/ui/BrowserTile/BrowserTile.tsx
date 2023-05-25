@@ -23,7 +23,6 @@
 
 import "./BrowserTile.css";
 
-import keyboardKey from "keyboard-key";
 import { ComponentChild, createRef } from "preact";
 
 import { Container, ContentAlignment, Orientation } from "../Container/Container";
@@ -32,6 +31,7 @@ import { IComponentProperties, ComponentBase, DragEventType } from "../Component
 import { Icon } from "../Icon/Icon";
 import { Label } from "../Label/Label";
 import { Button } from "../Button/Button";
+import { KeyboardKeys } from "../../../utilities/helpers";
 
 export enum BrowserTileType {
     Open,
@@ -199,7 +199,7 @@ export abstract class BrowserTile<P extends IBrowserTileProperties> extends Comp
     };
 
     private handleKeydown = (e: KeyboardEvent): void => {
-        if (keyboardKey.getCode(e) === 97) { // Unmodified A key.
+        if (e.key === KeyboardKeys.A) { // Unmodified A key.
             e.stopPropagation();
             const { type, onAction } = this.mergedProps;
             if (type === BrowserTileType.Open) {

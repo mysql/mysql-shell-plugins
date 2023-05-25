@@ -23,10 +23,10 @@
 
 import { mount } from "enzyme";
 import { act } from "preact/test-utils";
-import keyboardKey from "keyboard-key";
 
 import { CheckState } from "../../../../components/ui/Checkbox/Checkbox";
 import { Radiobutton, IRadiobuttonProperties } from "../../../../components/ui/Radiobutton/Radiobutton";
+import { KeyboardKeys } from "../../../../utilities/helpers";
 
 import { nextProcessTick, sendKeyPress } from "../../test-helpers";
 import { mouseEventMock } from "../../__mocks__/MockEvents";
@@ -86,7 +86,7 @@ describe("Radiobutton component tests", (): void => {
         const button = component.find(Radiobutton);
         expect(button).not.toBeNull();
 
-        sendKeyPress(keyboardKey.Spacebar);
+        sendKeyPress(KeyboardKeys.Space);
         await nextProcessTick();
 
         component.unmount();

@@ -24,9 +24,9 @@
 import "./Checkbox.css";
 
 import { ComponentChild } from "preact";
-import keyboardKey from "keyboard-key";
 
 import { IComponentProperties, ComponentBase, MouseEventType } from "../Component/ComponentBase";
+import { KeyboardKeys } from "../../../utilities/helpers";
 
 export enum CheckState {
     Unchecked,
@@ -102,7 +102,7 @@ export class Checkbox extends ComponentBase<ICheckboxProperties> {
             return;
         }
 
-        if (keyboardKey.getCode(e) === keyboardKey.Spacebar || keyboardKey.getCode(e) === keyboardKey.Enter) {
+        if (e.key === KeyboardKeys.Space || e.key === KeyboardKeys.Enter) {
             this.toggleCheckState();
             e.preventDefault();
         }

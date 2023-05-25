@@ -1426,7 +1426,7 @@ export interface IMrsObject {
 
 export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsAddService]: { result: IMrsServiceData; };
-    [ShellAPIMrs.MrsGetService]: {};
+    [ShellAPIMrs.MrsGetService]: { result: IMrsServiceData; };
     [ShellAPIMrs.MrsListServices]: { result: IMrsServiceData[]; };
     [ShellAPIMrs.MrsEnableService]: {};
     [ShellAPIMrs.MrsDisableService]: {};

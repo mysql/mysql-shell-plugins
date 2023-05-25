@@ -22,7 +22,6 @@
  */
 
 import { ComponentChild, createRef, render } from "preact";
-import { isNil } from "lodash";
 import { CellComponent, ColumnDefinition, RowComponent } from "tabulator-tables";
 
 import { ComponentBase, IComponentProperties, IComponentState, SelectionType } from "../ui/Component/ComponentBase";
@@ -220,7 +219,7 @@ export class SettingsEditorList extends ComponentBase<ISettingsEditorListPropert
         if (data.valueType) {
             const data = cell.getData() as ISettingValue;
             let value = Settings.get(data.id);
-            usesDefault = isNil(value) || value === data.defaultValue;
+            usesDefault = (value == null) || value === data.defaultValue;
             if (usesDefault) {
                 value = data.defaultValue;
             }
