@@ -716,7 +716,7 @@ describe("MySQL REST Service", () => {
                 await treeMySQLRESTService.expand();
                 await Misc.openContexMenuItem(treeMySQLRESTService, "Add REST Service...", tabs.addMRSService);
                 await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
-            await Database.setDBConnectionCredentials(globalConn);
+                await Database.setDBConnectionCredentials(globalConn);
                 await Database.setRestService(`/${service}`, "", "localhost:8443", ["HTTP", "HTTPS"], true, true);
                 await driver.switchTo().defaultContent();
                 //await Misc.verifyNotification("The MRS service has been created.", true);

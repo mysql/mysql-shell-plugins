@@ -1,4 +1,5 @@
 {
     "terminal.integrated.copyOnSelection": true,
-    "terminal.integrated.sendKeybindingsToShell": true
+    "terminal.integrated.sendKeybindingsToShell": true,
+    "window.dialogStyle": "custom"
 }

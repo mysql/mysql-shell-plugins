@@ -184,6 +184,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         it("Set as New Default Config Profile", async () => {
 
             await Misc.selectContextMenuItem(treeE2eTests, "Set as New Default Config Profile");
+            await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait * 3,
+                `${await treeOCISection.getTitle()} is still loading`);
             await driver.wait(async () => {
                 return Misc.isDefaultItem(treeE2eTests, "profile");
             }, explicitWait, "E2e tests is not the deault item");
@@ -270,6 +272,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         it("Set as Current Compartment", async () => {
 
             await Misc.selectContextMenuItem(treeQA, "Set as Current Compartment");
+            await driver.wait(Misc.isNotLoading(treeOCISection), ociExplicitWait * 3,
+                `${await treeOCISection.getTitle()} is still loading`);
             expect(await Misc.isDefaultItem(treeQA, "compartment")).to.be.true;
             treeQA = await treeOCISection.findItem("QA", ociMaxLevel) ||
                 await treeOCISection.findItem("QA (Default)", ociMaxLevel);

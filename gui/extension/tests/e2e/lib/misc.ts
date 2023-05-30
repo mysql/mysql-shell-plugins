@@ -448,6 +448,7 @@ export class Misc {
 
     public static processFailure = async (testContext: Mocha.Context): Promise<void> => {
 
+        await Misc.expandNotifications();
         const img = await driver.takeScreenshot();
         const testName = testContext.currentTest?.title ?? String(process.env.TEST_SUITE);
         const ssDir = join(process.cwd(), "../../../../", "screenshots");
@@ -529,7 +530,7 @@ export class Misc {
             ntfs = await new Workbench().getNotifications();
 
             return ntfs.length > 0;
-        }), ociExplicitWait, "Could not find any notification");
+        }), explicitWait, "Could not find any notification");
 
         for (const ntf of ntfs) {
             if ((await ntf.getMessage()).includes(text)) {
@@ -544,9 +545,9 @@ export class Misc {
     };
 
     public static execOnTerminal = async (cmd: string, timeout: number): Promise<void> => {
+        timeout = timeout ?? explicitWait;
         const bootomBar = new BottomBarPanel();
         const terminal = await bootomBar.openTerminalView();
-        timeout = timeout ?? explicitWait;
         await terminal.executeCommand(cmd, timeout);
     };
 
@@ -990,6 +991,13 @@ export class Misc {
         }
     };
 
+    public static expandNotifications = async (): Promise<void> => {
+        const notifs = await new Workbench().getNotifications();
+        for (const notif of notifs) {
+            await notif.expand();
+        }
+    };
+
     public static getTreeElement = async (
         section: CustomTreeSection,
         itemName: string,
@@ -1022,7 +1030,6 @@ export class Misc {
         const treeSection = await Misc.getSection(dbTreeSection);
         const treeItem = await Misc.getTreeElement(treeSection, dbName);
         await Misc.selectContextMenuItem(treeItem, "Delete DB Connection");
-
         const editorView = new EditorView();
         await driver.wait(async () => {
             const activeTab = await editorView.getActiveTab();
@@ -1035,12 +1042,15 @@ export class Misc {
             By.css(".visible.confirmDialog")), 7000, "confirm dialog was not found");
         await dialog.findElement(By.id("accept")).click();
         await driver.switchTo().defaultContent();
-
         await driver.wait(async () => {
-            const treeSection = await Misc.getSection(dbTreeSection);
-            await Misc.clickSectionToolbarButton(treeSection, "Reload the connection list");
+            try {
+                const treeSection = await Misc.getSection(dbTreeSection);
+                await Misc.clickSectionToolbarButton(treeSection, "Reload the connection list");
 
-            return (await treeSection.findItem(dbName)) === undefined;
+                return (await treeSection.findItem(dbName)) === undefined;
+            } catch (e) {
+                return false;
+            }
         }, explicitWait, `${dbName} was not deleted`);
     };
 
