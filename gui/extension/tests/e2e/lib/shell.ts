@@ -21,14 +21,15 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 import { WebElement, By, until, Condition } from "vscode-extension-tester";
-import { driver, explicitWait } from "./misc";
+import { driver } from "./misc";
+import * as constants from "../lib/constants";
 
 export class Shell {
 
     public static getTech = async (el: WebElement): Promise<string> => {
         const divs = await driver.wait(async () => {
             return el.findElements(By.css(".margin-view-overlays div div"));
-        }, explicitWait, "'.margin-view-overlays div div' did not find anything");
+        }, constants.explicitWait, "'.margin-view-overlays div div' did not find anything");
 
         const lastDiv = divs[divs.length - 1];
         const classes = (await lastDiv.getAttribute("class")).split(" ");
@@ -84,7 +85,7 @@ export class Shell {
                 if (cells.length > 0) {
                     return cells;
                 }
-            }, explicitWait, "No cells were found");
+            }, constants.explicitWait, "No cells were found");
 
             for (const cell of cells) {
                 const text = await cell.getText();

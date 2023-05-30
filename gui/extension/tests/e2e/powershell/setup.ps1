@@ -358,16 +358,13 @@ try {
         writeMsg "DONE"
     }
 
-    $childs = Get-ChildItem -Path $ociPath
-    if ($childs.count -eq 0){
-        $itemsPath = Join-Path $basePath "oci_files"
-        Get-ChildItem -Path $itemsPath | % {
-            writeMsg "Copying $_ file to .oci folder..." "-NoNewLine"
-            Copy-Item -Path $_ $ociPath
-            writeMsg "DONE"
-        }
+    $itemsPath = Join-Path $basePath "oci_files"
+    Get-ChildItem -Path $itemsPath | % {
+        writeMsg "Copying $_ file to .oci folder..." "-NoNewLine"
+        Copy-Item -Path $_ $ociPath -Force
+        writeMsg "DONE"
     }
-
+    
     # INSTALL VSIX
     $extDBPath = Join-Path $testResourcesDb "ext"
     $extOCIPath = Join-Path $testResourcesOci "ext"

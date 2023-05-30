@@ -25,6 +25,7 @@ import { Misc, driver, IDBConnection } from "../../lib/misc";
 import { By, WebElement, until } from "selenium-webdriver";
 import { GuiConsole } from "../../lib/guiConsole";
 import { ShellSession } from "../../lib/shellSession";
+import { Settings } from "../../lib/settings";
 
 describe("MySQL Shell Connections", () => {
 
@@ -58,6 +59,7 @@ describe("MySQL Shell Connections", () => {
             await Misc.waitForHomePage();
         }
 
+        await Settings.setCurrentTheme("Default Dark");
         await driver.findElement(By.id("gui.shell")).click();
         await GuiConsole.openSession();
     });
@@ -160,7 +162,7 @@ describe("MySQL Shell Connections", () => {
                 `\\c ${localConn.username}@${localConn.hostname}/${localConn.schema}`);
 
             const dialog = await driver.wait(until.elementLocated(By.css(".passwordDialog")),
-            500, "No Password dialog was found");
+                500, "No Password dialog was found");
 
             await dialog.findElement(By.id("cancel")).click();
 
@@ -183,7 +185,7 @@ describe("MySQL Shell Connections", () => {
             let uri = `shell.connect('${globalConn.username}:${globalConn.password}@${globalConn.hostname}:`;
             uri += `${String(globalConn.portX)}/${globalConn.schema}')`;
 
-            await Misc.execCmd(textArea,uri);
+            await Misc.execCmd(textArea, uri);
 
             uri = `Creating a session to '${globalConn.username}@${globalConn.hostname}:`;
             uri += `${String(globalConn.portX)}/${globalConn.schema}'`;

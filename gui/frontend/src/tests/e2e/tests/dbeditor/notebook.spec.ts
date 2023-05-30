@@ -36,6 +36,7 @@ import {
 } from "../../lib/dbNotebooks";
 import fs from "fs/promises";
 import { join } from "path";
+import { Settings } from "../../lib/settings";
 
 describe("Notebook", () => {
 
@@ -69,6 +70,7 @@ describe("Notebook", () => {
             await Misc.waitForHomePage();
         }
 
+        await Settings.setCurrentTheme("Default Dark");
         await driver.findElement(By.id("gui.sqleditor")).click();
 
         let db: WebElement | undefined;
@@ -94,7 +96,7 @@ describe("Notebook", () => {
                 }
             }
         }
-        await driver.wait(until.elementLocated(By.id("dbEditorToolbar")), explicitWait*2, "Notebook was not loaded");
+        await driver.wait(until.elementLocated(By.id("dbEditorToolbar")), explicitWait * 2, "Notebook was not loaded");
 
         await driver.wait(until.elementLocated(By.id("dbEditorToolbar")), explicitWait * 2, "Notebook was not loaded");
     });
@@ -1038,7 +1040,7 @@ describe("Notebook", () => {
         await driver.wait(async () => {
             const files = await fs.readdir(String(outDir));
 
-            for(const file of files) {
+            for (const file of files) {
                 if (file.includes(".mysql-notebook")) {
                     notebook = join(String(outDir), file);
 

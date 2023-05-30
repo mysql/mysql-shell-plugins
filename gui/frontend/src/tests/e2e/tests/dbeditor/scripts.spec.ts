@@ -25,6 +25,7 @@ import { Misc, driver, IDBConnection, explicitWait } from "../../lib/misc";
 import { DBConnection } from "../../lib/dbConnection";
 import { DBNotebooks, execFullScript, execCaret } from "../../lib/dbNotebooks";
 import { By, WebElement, until } from "selenium-webdriver";
+import { Settings } from "../../lib/settings";
 
 describe("Scripts", () => {
 
@@ -57,6 +58,7 @@ describe("Scripts", () => {
             await Misc.waitForHomePage();
         }
 
+        await Settings.setCurrentTheme("Default Dark");
         await driver.findElement(By.id("gui.sqleditor")).click();
 
         let db: WebElement | undefined;
