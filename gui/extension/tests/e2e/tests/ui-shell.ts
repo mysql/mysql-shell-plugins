@@ -90,8 +90,7 @@ describe("MYSQL SHELL CONSOLES", () => {
             await Misc.sectionFocus(constants.openEditorsTreeSection);
             treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
             treeDBConnections = await Misc.getTreeElement(treeOpenEditorsSection, constants.dbConnectionsLabel);
-            await Misc.openContexMenuItem(treeDBConnections, "Open New MySQL Shell Console",
-                constants.mysqlShellConsoles);
+            await Misc.openContexMenuItem(treeDBConnections, "Open New MySQL Shell Console", true);
             await driver.wait(Shell.isShellLoaded(), constants.explicitWait * 3, "Shell Console was not loaded");
         } catch (e) {
             await Misc.processFailure(this);
@@ -125,8 +124,7 @@ describe("MYSQL SHELL CONSOLES", () => {
 
             for (let i = 1; i <= 3; i++) {
                 treeDBConnections = await Misc.getTreeElement(treeOpenEditorsSection, constants.dbConnectionsLabel);
-                await Misc.openContexMenuItem(treeDBConnections, "Open New MySQL Shell Console",
-                    constants.mysqlShellConsoles);
+                await Misc.openContexMenuItem(treeDBConnections, "Open New MySQL Shell Console", true);
                 await driver.wait(Shell.isShellLoaded(), constants.explicitWait * 3, "Shell Console was not loaded");
                 await driver.switchTo().defaultContent();
                 await Misc.getTreeElement(treeOpenEditorsSection, `Session ${i}`);
@@ -148,7 +146,7 @@ describe("MYSQL SHELL CONSOLES", () => {
             try {
                 treeDBConnections = await Misc.getTreeElement(treeOpenEditorsSection, constants.dbConnectionsLabel);
                 await Misc.openContexMenuItem(treeDBConnections,
-                    "Open New MySQL Shell Console", constants.mysqlShellConsoles);
+                    "Open New MySQL Shell Console", true);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -320,8 +318,7 @@ describe("MYSQL SHELL CONSOLES", () => {
         before(async function () {
             try {
                 treeDBConnections = await Misc.getTreeElement(treeOpenEditorsSection, constants.dbConnectionsLabel);
-                await Misc.openContexMenuItem(treeDBConnections, "Open New MySQL Shell Console",
-                    constants.mysqlShellConsoles);
+                await Misc.openContexMenuItem(treeDBConnections, "Open New MySQL Shell Console", true);
                 await driver.wait(Shell.isShellLoaded(), constants.explicitWait * 3, "Shell Console was not loaded");
                 editor = await driver.wait(until.elementLocated(By.id("shellEditorHost")),
                     10000, "Console was not loaded");

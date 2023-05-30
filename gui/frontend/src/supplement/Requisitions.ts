@@ -371,7 +371,7 @@ export interface IRequestTypeMap {
 
     /** Triggered when the list of connections has been updated and is now available. */
     "connectionsUpdated": SimpleCallback;
-    "selectConnectionTab": (page: string) => Promise<boolean>;
+    "selectConnectionTab": (details: { connectionId: number, page: string; }) => Promise<boolean>;
 
     "codeBlocksUpdate": (data: { linkId: number; code: string; }) => Promise<boolean>;
 

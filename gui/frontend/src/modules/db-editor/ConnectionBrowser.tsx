@@ -469,7 +469,8 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
                         });
 
                     // Notify the wrapper, if there's one, in case it has to update UI for the changed page.
-                    requisitions.executeRemote("selectConnectionTab", details?.caption);
+                    requisitions.executeRemote("selectConnectionTab",
+                        { connectionId: details?.id, page: "" });
                 }
 
                 break;

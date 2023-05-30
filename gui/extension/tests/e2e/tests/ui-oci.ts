@@ -266,8 +266,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await treeOpenEditorsSection.expand();
             treeDBConnections = await Misc.getTreeElement(treeOpenEditorsSection,
                 constants.dbConnectionsLabel);
-            await Misc.openContexMenuItem(treeDBConnections, "Open New MySQL Shell Console",
-                constants.mysqlShellConsoles);
+            await Misc.openContexMenuItem(treeDBConnections, "Open New MySQL Shell Console", true);
             await driver.wait(Shell.isShellLoaded(), constants.explicitWait * 3, "Shell Console was not loaded");
             const result = await Misc.execCmd("mds.get.currentCompartmentId()", undefined, 60000);
             expect(result[0]).to.equal(compartmentId);
