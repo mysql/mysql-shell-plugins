@@ -22,7 +22,7 @@
  */
 import {
     ActivityBar, BottomBarPanel, By, Condition, CustomTreeSection, EditorView, InputBox, Key, ModalDialog, TreeItem,
-    until, WebElement, Workbench,
+    until, WebElement, Workbench, error,
 } from "vscode-extension-tester";
 
 import { expect } from "chai";
@@ -579,8 +579,17 @@ describe("DATABASE CONNECTIONS", () => {
             const result = await Misc.execCmd("", execFullBlockSql);
 
             expect(result[0]).to.include("OK");
-            const tabs = await (result[1] as WebElement).findElements(By.css(".tabArea label"));
-            expect(tabs.length).to.equals(2);
+            let tabs: WebElement[];
+            await driver.wait(async () => {
+                try {
+                    tabs = await (result[1] as WebElement).findElements(By.css(".tabArea label"));
+
+                    return tabs.length === 2;
+                } catch (e) {
+                    return false;
+                }
+            }, explicitWait, "No result tabs were found on result");
+
             expect(await tabs[0].getAttribute("innerHTML")).to.include("Result");
             expect(await tabs[1].getAttribute("innerHTML")).to.include("Result");
 
@@ -588,8 +597,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Connection toolbar buttons - Execute selection or full block and create a new block", async () => {
 
-            const result = await Misc.execCmd("SELECT * FROM ACTOR;", execFullBlockSql);
-
+            const result = await Misc.execCmd("SELECT * FROM sakila.actor;", execFullBlockSql);
             expect(result[0]).to.match(/(\d+) record/);
             expect(await Database.hasNewPrompt()).to.be.true;
         });
@@ -605,11 +613,23 @@ describe("DATABASE CONNECTIONS", () => {
                 await textArea.sendKeys(Key.ARROW_UP);
                 await textArea.sendKeys(Key.ARROW_LEFT);
                 let result = await Misc.execCmd("", "Execute the statement at the caret position");
-                expect(await Misc.getResultColumns(result[1] as WebElement)).to.include("actor_id");
+                await driver.wait(async () => {
+                    try {
+                        return (await Misc.getResultColumns(result[1] as WebElement)).includes("actor_id");
+                    } catch (e) {
+                        return false;
+                    }
+                }, explicitWait, "actor_id was not found");
                 await textArea.sendKeys(Key.ARROW_DOWN);
-                await driver.sleep(150);
+                await driver.sleep(500);
                 result = await Misc.execCmd("", "Execute the statement at the caret position");
-                expect(await Misc.getResultColumns(result[1] as WebElement)).to.include("address_id");
+                await driver.wait(async () => {
+                    try {
+                        return (await Misc.getResultColumns(result[1] as WebElement)).includes("address_id");
+                    } catch (e) {
+                        return false;
+                    }
+                }, explicitWait, "address_id was not found");
             } finally {
                 clean = true;
             }
@@ -762,9 +782,16 @@ describe("DATABASE CONNECTIONS", () => {
                 await textArea.sendKeys(Key.ARROW_DOWN);
                 await driver.sleep(500);
                 await Misc.execOnEditor();
-                const otherResult1 = await Misc.getCmdResultMsg();
-                expect(otherResult1).to.match(/(\d+).(\d+)/);
-                expect(otherResult1 !== result4[0]).equals(true);
+                await driver.wait(async () => {
+                    try {
+                        const otherResult1 = await Misc.getCmdResultMsg();
+                        expect(otherResult1).to.match(/(\d+).(\d+)/);
+
+                        return otherResult1 !== result4[0];
+                    } catch (e) {
+                        return false;
+                    }
+                }, explicitWait, `Results should be different`);
             } finally {
                 clean = true;
             }
@@ -1055,9 +1082,12 @@ describe("DATABASE CONNECTIONS", () => {
             expect(test).to.include("Aborted Clients");
             expect(test).to.include("Aborted Connections");
             expect(test).to.include("Errors");
-            const list = await driver.findElement(By.id("connectionList"));
-            const rows = await list.findElements(By.css(".tabulator-row"));
-            expect(rows.length).to.be.above(0);
+            await driver.wait(async () => {
+                const list = await driver.findElement(By.id("connectionList"));
+                const rows = await list.findElements(By.css(".tabulator-row"));
+
+                return rows.length > 0;
+            }, explicitWait, "Connections list is empty");
         });
 
         it("Performance Dashboard", async () => {
@@ -1149,7 +1179,15 @@ describe("DATABASE CONNECTIONS", () => {
             await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
             await Database.setDBConnectionCredentials(globalConn);
             await driver.switchTo().defaultContent();
-            await new EditorView().openEditor(globalConn.caption);
+            await driver.wait(async () => {
+                try {
+                    await new EditorView().openEditor(globalConn.caption);
+
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            }, explicitWait, `${String(globalConn.caption)} tab was not opened`);
 
             const treeOEGlobalConn = await Misc.getTreeElement(treeOpenEditorsSection,
                 globalConn.caption);
@@ -1624,17 +1662,20 @@ describe("DATABASE CONNECTIONS", () => {
             expect(result[0]).to.include("OK");
             await driver.switchTo().defaultContent();
             const treeTestTable = await Misc.getTreeElement(treeDBSection, testTable, true);
-            await Misc.selectContextMenuItem(treeTestTable, "Drop Table...");
-            const ntf = await driver.findElements(By.css(".notifications-toasts.visible"));
-            if (ntf.length > 0) {
-                await ntf[0].findElement(By.xpath(`//a[contains(@title, 'Drop ${testTable}')]`)).click();
-            } else {
-                const dialog = new ModalDialog();
-                await dialog.pushButton(`Drop ${testTable}`);
-            }
+            await driver.wait(async () => {
+                try {
+                    await Misc.selectContextMenuItem(treeTestTable, "Drop Table...");
+                    const dialog = new ModalDialog();
+                    await dialog.pushButton(`Drop ${testTable}`);
 
+                    return true;
+                } catch (e) {
+                    if (!(e instanceof error.NoSuchElementError)) {
+                        throw e;
+                    }
+                }
+            }, explicitWait * 2, "Drop View dialog was not displayed");
             await Misc.verifyNotification(`The object ${testTable} has been dropped successfully.`, true);
-
             await driver.wait(async () => {
                 await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
                 treeDBSection = await Misc.getSection(dbTreeSection);
@@ -1707,24 +1748,27 @@ describe("DATABASE CONNECTIONS", () => {
             await treeGlobalConn.expand();
             await treeGlobalSchema.expand();
             await treeGlobalSchemaViews.expand();
-            await Misc.selectContextMenuItem(treeTestView, "Drop View...");
-            const ntf = await driver.findElements(By.css(".notifications-toasts.visible"));
-            if (ntf.length > 0) {
-                await ntf[0].findElement(By.xpath(`//a[contains(@title, 'Drop ${testView}')]`)).click();
-            } else {
-                const dialog = new ModalDialog();
-                await dialog.pushButton(`Drop ${testView}`);
-            }
+            await driver.wait(async () => {
+                try {
+                    await Misc.selectContextMenuItem(treeTestView, "Drop View...");
+                    const dialog = new ModalDialog();
+                    await dialog.pushButton(`Drop ${testView}`);
+
+                    return true;
+                } catch (e) {
+                    if (!(e instanceof error.NoSuchElementError)) {
+                        throw e;
+                    }
+                }
+            }, explicitWait * 2, "Drop View dialog was not displayed");
 
             await Misc.verifyNotification(`The object ${testView} has been dropped successfully.`, true);
-
             await driver.wait(async () => {
                 await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
                 treeDBSection = await Misc.getSection(dbTreeSection);
 
                 return (await treeDBSection.findItem(testView)) === undefined;
             }, explicitWait, `${testView} was not deleted`);
-
         });
 
         it("Table - Show Data", async () => {
@@ -1904,7 +1948,6 @@ describe("DATABASE CONNECTIONS", () => {
             await Misc.deleteConnection(globalConn.caption);
             const tabs = await new EditorView().getOpenEditorTitles();
             expect(tabs).to.not.include("test.mysql-notebook");
-
         });
 
         it("Open the Notebook from file with no DB connections", async () => {
