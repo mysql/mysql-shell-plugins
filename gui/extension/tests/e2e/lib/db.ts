@@ -33,7 +33,8 @@ import {
 import { expect } from "chai";
 import { basename } from "path";
 
-import { driver, Misc, dbTreeSection, explicitWait, ociExplicitWait, credentialHelperOk } from "./misc";
+import { driver, Misc, credentialHelperOk } from "./misc";
+import * as constants from "../lib/constants";
 
 export interface IConnBasicMySQL {
     hostname?: string;
@@ -105,7 +106,7 @@ export class Database {
     ): Promise<void> => {
 
         const dialog = await driver.wait(until.elementLocated(By.css(".visible.valueEditDialog")),
-            explicitWait, "Connection dialog was not displayed");
+            constants.explicitWait, "Connection dialog was not displayed");
 
         if (dbType) {
             const inDBType = await dialog.findElement(By.id("databaseType"));
@@ -202,7 +203,7 @@ export class Database {
                     const dbSystemName = dialog.findElement(By.id("mysqlDbSystemName"));
                     await driver.wait(new Condition("", async () => {
                         return !(await dbSystemName.getAttribute("value")).includes("Loading");
-                    }), ociExplicitWait, "DB System name is still loading");
+                    }), constants.ociExplicitWait, "DB System name is still loading");
                 }
                 if (mds.bastionOCID) {
                     const inDBSystem = await dialog.findElement(By.id("bastionId"));
@@ -213,7 +214,7 @@ export class Database {
                     const bastionName = dialog.findElement(By.id("bastionName"));
                     await driver.wait(new Condition("", async () => {
                         return !(await bastionName.getAttribute("value")).includes("Loading");
-                    }), ociExplicitWait, "Bastion name is still loading");
+                    }), constants.ociExplicitWait, "Bastion name is still loading");
                 }
             }
 
@@ -251,7 +252,8 @@ export class Database {
     public static createConnection = async (dbConfig: IDBConnection): Promise<void> => {
 
         await driver.switchTo().defaultContent();
-        await Misc.clickSectionToolbarButton(await Misc.getSection(dbTreeSection), "Create New DB Connection");
+        await Misc.clickSectionToolbarButton(await Misc.getSection(constants.dbTreeSection),
+            "Create New DB Connection");
         await Misc.switchToWebView();
         await Database.setConnection(
             dbConfig.dbType,
@@ -286,7 +288,7 @@ export class Database {
             }
 
             return undefined;
-        }, explicitWait, "No DB was found");
+        }, constants.explicitWait, "No DB was found");
 
         if (useFrame) {
             await driver.switchTo().defaultContent();
@@ -297,7 +299,7 @@ export class Database {
 
     public static setPassword = async (dbConfig: IDBConnection): Promise<void> => {
         const dialog = await driver.wait(until.elementLocated(
-            By.css(".passwordDialog")), explicitWait, "No password dialog was found");
+            By.css(".passwordDialog")), constants.explicitWait, "No password dialog was found");
         const title = await dialog.findElement(By.css(".title .label"));
         const gridDivs = await dialog.findElements(By.css("div.grid > div"));
 
@@ -412,7 +414,7 @@ export class Database {
                     throw e;
                 }
             }
-        }, explicitWait, "Lines were stale");
+        }, constants.explicitWait, "Lines were stale");
 
         return flag;
     };
@@ -490,7 +492,7 @@ export class Database {
 
             return isCtxMenuDisplayed();
 
-        }, explicitWait, "Context menu was not displayed");
+        }, constants.explicitWait, "Context menu was not displayed");
 
         await driver.wait(async () => {
             try {
@@ -504,7 +506,7 @@ export class Database {
                     return true;
                 }
             }
-        }, explicitWait, "Context menu is still displayed");
+        }, constants.explicitWait, "Context menu is still displayed");
     };
 
     public static hasNewPrompt = async (): Promise<boolean | undefined> => {
@@ -536,7 +538,7 @@ export class Database {
         mrsEnabled: boolean): Promise<void> => {
 
         const dialog = await driver.wait(until.elementLocated(By.id("mrsServiceDialog")),
-            explicitWait, "MRS Service dialog was not displayed");
+            constants.explicitWait, "MRS Service dialog was not displayed");
 
         const inputServPath = await dialog.findElement(By.id("servicePath"));
         await inputServPath.clear();
@@ -553,7 +555,7 @@ export class Database {
         const protocolsSelect = await driver.findElement(By.id("protocols"));
         await protocolsSelect.click();
 
-        await driver.wait(until.elementLocated(By.id("protocolsPopup")), ociExplicitWait,
+        await driver.wait(until.elementLocated(By.id("protocolsPopup")), constants.ociExplicitWait,
             "Protocols Drop down list was not opened");
 
         const availableProtocols = await driver.findElements(By.css("#protocolsPopup div.dropdownItem"));
@@ -615,7 +617,7 @@ export class Database {
         comments?: string): Promise<void> => {
 
         const dialog = await driver.wait(until.elementLocated(By.id("mrsSchemaDialog")),
-            explicitWait, "MRS Schema dialog was not displayed");
+            constants.explicitWait, "MRS Schema dialog was not displayed");
 
         if (schemaName) {
             const inputSchemaName = await dialog.findElement(By.id("name"));
@@ -711,12 +713,12 @@ export class Database {
     ): Promise<void> => {
 
         const dialog = await driver.wait(until.elementLocated(By.id("mrsAuthenticationAppDialog")),
-            explicitWait * 2, "Authentication app dialog was not displayed");
+            constants.explicitWait * 2, "Authentication app dialog was not displayed");
 
         if (vendor) {
             await dialog.findElement(By.id("authVendorName")).click();
             const popup = await driver.wait(until.elementLocated(By.id("authVendorNamePopup")),
-                explicitWait, "Auth vendor drop down list was not displayed");
+                constants.explicitWait, "Auth vendor drop down list was not displayed");
 
             await popup.findElement(By.id(vendor)).click();
         }
@@ -756,7 +758,7 @@ export class Database {
         if (defaultRole) {
             await dialog.findElement(By.id("defaultRoleName")).click();
             const popup = await driver.wait(until.elementLocated(By.id("defaultRoleNamePopup")),
-                explicitWait, "Auth vendor drop down list was not displayed");
+                constants.explicitWait, "Auth vendor drop down list was not displayed");
 
             await popup.findElement(By.id(defaultRole)).click();
         }
@@ -811,7 +813,7 @@ export class Database {
 
 
         const dialog = await driver.wait(until.elementLocated(By.id("mrsUserDialog")),
-            explicitWait * 2, "User dialog was not displayed");
+            constants.explicitWait * 2, "User dialog was not displayed");
 
         const nameInput = await dialog.findElement(By.id("name"));
         const passwordInput = await dialog.findElement(By.id("authString"));
@@ -825,7 +827,7 @@ export class Database {
         if (authApp) {
             await dialog.findElement(By.id("authApp")).click();
             const popup = await driver.wait(until.elementLocated(By.id("authAppPopup")),
-                explicitWait, "Auth app drop down list was not displayed");
+                constants.explicitWait, "Auth app drop down list was not displayed");
 
             await popup.findElement(By.id(authApp)).click();
         }
@@ -839,7 +841,7 @@ export class Database {
         if (roles) {
             await dialog.findElement(By.id("roles")).click();
             const popup = await driver.wait(until.elementLocated(By.id("rolesPopup")),
-                explicitWait, "Roles drop down list was not displayed");
+                constants.explicitWait, "Roles drop down list was not displayed");
 
             const rolesLabel = await popup.findElement(By.css(`#${roles} label`));
             const rolesLabelClass = await rolesLabel.getAttribute("class");
@@ -896,13 +898,13 @@ export class Database {
     ): Promise<void> => {
 
         const dialog = await driver.wait(until.elementLocated(By.id("mrsDbObjectDialog")),
-            explicitWait * 2, "Edit REST Object dialog was not displayed");
+            constants.explicitWait * 2, "Edit REST Object dialog was not displayed");
 
         if (service) {
             const inService = await dialog.findElement(By.id("service"));
             await inService.click();
             const popup = await driver.wait(until.elementLocated(By.id("servicePopup")),
-                explicitWait, "#servicePopup not found");
+                constants.explicitWait, "#servicePopup not found");
             await popup.findElement(By.id(service)).click();
         }
         if (restObjPath) {
@@ -977,7 +979,7 @@ export class Database {
     public static getCurrentEditor = async (): Promise<string> => {
         const getData = async (): Promise<string> => {
             const selector = await driver.wait(until.elementLocated(By.id("documentSelector")),
-                explicitWait, "Document selector was not found");
+                constants.explicitWait, "Document selector was not found");
             const label = await selector.findElement(By.css("label"));
 
             return label.getText();
@@ -1042,7 +1044,7 @@ export class Database {
     public static getAutoCompleteMenuItems = async (): Promise<string[]> => {
         const els = [];
         let items = await driver.wait(until.elementsLocated(By.css(".monaco-list .monaco-highlighted-label span")),
-            explicitWait, "Auto complete items were not displayed");
+            constants.explicitWait, "Auto complete items were not displayed");
 
         for (const item of items) {
             els.push(await item.getText());
@@ -1051,7 +1053,7 @@ export class Database {
         await driver.findElement(By.css("textarea")).sendKeys(Key.ARROW_UP);
 
         items = await driver.wait(until.elementsLocated(By.css(".monaco-list .monaco-highlighted-label span")),
-            explicitWait, "Auto complete items were not displayed");
+            constants.explicitWait, "Auto complete items were not displayed");
 
         for (const item of items) {
             els.push(await item.getText());
@@ -1130,7 +1132,7 @@ export class Database {
                         const selected = await selector.findElement(By.css("label")).getText();
 
                         return selected === editorName;
-                    }, explicitWait, `${editorName} with type ${editorType} was not properly selected`);
+                    }, constants.explicitWait, `${editorName} with type ${editorType} was not properly selected`);
 
                     await driver.wait(
                         async () => {
@@ -1173,7 +1175,7 @@ export class Database {
             try {
                 const cmds = await driver.wait(
                     until.elementsLocated(By.css(".view-lines.monaco-mouse-cursor-text > div > span")),
-                    explicitWait, "No lines were found");
+                    constants.explicitWait, "No lines were found");
                 for (const cmd of cmds) {
                     const spans = await cmd.findElements(By.css("span"));
                     let sentence = "";
@@ -1189,7 +1191,7 @@ export class Database {
                     throw e;
                 }
             }
-        }, explicitWait, "No SQL commands were found on the notebook");
+        }, constants.explicitWait, "No SQL commands were found on the notebook");
 
 
         if (!commands.includes(sql)) {

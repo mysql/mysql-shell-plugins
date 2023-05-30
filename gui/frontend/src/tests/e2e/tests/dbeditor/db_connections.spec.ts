@@ -25,6 +25,7 @@ import { Misc, driver, IDBConnection, explicitWait } from "../../lib/misc";
 import { By, until, Key, WebElement } from "selenium-webdriver";
 import { DBConnection } from "../../lib/dbConnection";
 import { DBNotebooks, execFullBlockSql } from "../../lib/dbNotebooks";
+import { Settings } from "../../lib/settings";
 
 jest.retryTimes(1);
 
@@ -59,6 +60,7 @@ describe("Database Connections", () => {
             await Misc.waitForHomePage();
         }
 
+        await Settings.setCurrentTheme("Default Dark");
         await driver.findElement(By.id("gui.sqleditor")).click();
         await DBNotebooks.initConDialog();
         await DBNotebooks.createDBconnection(globalConn);

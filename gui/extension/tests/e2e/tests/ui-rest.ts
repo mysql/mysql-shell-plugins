@@ -28,20 +28,15 @@ import {
     TreeItem,
     CustomTreeSection,
     BottomBarPanel,
+    error,
 } from "vscode-extension-tester";
 
 import { before, afterEach } from "mocha";
 import { expect } from "chai";
-import {
-    dbTreeSection,
-    driver,
-    explicitWait,
-    Misc,
-} from "../lib/misc";
-
+import { driver, Misc } from "../lib/misc";
 import { hostname } from "os";
 import { IDBConnection, Database, IConnBasicMySQL } from "../lib/db";
-import * as tabs from "../lib/constants";
+import * as constants from "../lib/constants";
 
 describe("MySQL REST Service", () => {
 
@@ -88,12 +83,12 @@ describe("MySQL REST Service", () => {
 
         try {
             await Misc.cleanCredentials();
-            await driver.wait(Misc.extensionIsReady(), explicitWait * 4, "Extension was not ready");
+            await driver.wait(Misc.extensionIsReady(), constants.explicitWait * 4, "Extension was not ready");
             await Misc.toggleBottomBar(false);
-            await Misc.sectionFocus(dbTreeSection);
+            await Misc.sectionFocus(constants.dbTreeSection);
             const randomCaption = String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000));
             globalConn.caption += randomCaption;
-            treeDBSection = await Misc.getSection(dbTreeSection);
+            treeDBSection = await Misc.getSection(constants.dbTreeSection);
             await Database.createConnection(globalConn);
             expect(await Database.getWebViewConnection(globalConn.caption)).to.exist;
             const edView = new EditorView();
@@ -102,11 +97,12 @@ describe("MySQL REST Service", () => {
             treeGlobalConn = await Misc.getTreeElement(treeDBSection, globalConn.caption, true);
             await (await Misc.getActionButton(treeGlobalConn, "Connect to Database")).click();
             await Misc.switchToWebView();
-            await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
+            await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
+                "DB Connection was not loaded");
             await Database.setDBConnectionCredentials(globalConn);
 
             const result = await Misc.execCmd("DROP SCHEMA IF EXISTS `mysql_rest_service_metadata`;",
-                undefined, explicitWait * 2);
+                undefined, constants.explicitWait * 2);
             expect(result[0]).to.match(/OK/);
             await driver.switchTo().defaultContent();
             await new EditorView().closeAllEditors();
@@ -199,13 +195,13 @@ describe("MySQL REST Service", () => {
 
             expect(await Misc.isRouterInstalled(), "Please install MySQL Router manually").to.be.true;
             await Misc.openContexMenuItem(treeMySQLRESTService, "Bootstrap Local MySQL Router Instance");
-            await Misc.waitForTerminalText("Please enter MySQL password for root:", explicitWait * 2);
-            await Misc.execOnTerminal((globalConn.basic as IConnBasicMySQL).password, explicitWait * 2);
-            await Misc.waitForTerminalText("JWT secret:", explicitWait * 2);
-            await Misc.execOnTerminal("1234", explicitWait * 2);
-            await Misc.waitForTerminalText("Once the MySQL Router is started", explicitWait * 2);
+            await Misc.waitForTerminalText("Please enter MySQL password for root:", constants.explicitWait * 2);
+            await Misc.execOnTerminal((globalConn.basic as IConnBasicMySQL).password, constants.explicitWait * 2);
+            await Misc.waitForTerminalText("JWT secret:", constants.explicitWait * 2);
+            await Misc.execOnTerminal("1234", constants.explicitWait * 2);
+            await Misc.waitForTerminalText("Once the MySQL Router is started", constants.explicitWait * 2);
             expect(await Misc.terminalHasErrors()).to.be.false;
-            treeDBSection = await Misc.getSection(dbTreeSection);
+            treeDBSection = await Misc.getSection(constants.dbTreeSection);
             treeRouter = await driver.wait(async () => {
                 await (await Misc.getActionButton(treeGlobalConn, "Reload Database Information")).click();
                 const children = await treeMySQLRESTService.getChildren();
@@ -214,7 +210,7 @@ describe("MySQL REST Service", () => {
                         return child;
                     }
                 }
-            }, explicitWait, `${hostname()} tree item was not found`);
+            }, constants.explicitWait, `${hostname()} tree item was not found`);
 
         });
 
@@ -226,11 +222,11 @@ describe("MySQL REST Service", () => {
             const workbench = new Workbench();
             const ntfs = await workbench.getNotifications();
             await ntfs[ntfs.length - 1].takeAction("Yes");
-            await Misc.waitForTerminalText("Please enter MySQL password for root:", explicitWait * 2);
-            await Misc.execOnTerminal((globalConn.basic as IConnBasicMySQL).password, explicitWait * 2);
-            await Misc.waitForTerminalText("JWT secret:", explicitWait * 2);
-            await Misc.execOnTerminal("1234", explicitWait * 2);
-            await Misc.waitForTerminalText("Once the MySQL Router is started", explicitWait * 2);
+            await Misc.waitForTerminalText("Please enter MySQL password for root:", constants.explicitWait * 2);
+            await Misc.execOnTerminal((globalConn.basic as IConnBasicMySQL).password, constants.explicitWait * 2);
+            await Misc.waitForTerminalText("JWT secret:", constants.explicitWait * 2);
+            await Misc.execOnTerminal("1234", constants.explicitWait * 2);
+            await Misc.waitForTerminalText("Once the MySQL Router is started", constants.explicitWait * 2);
             expect(await Misc.terminalHasErrors()).to.be.false;
             treeRouter = await driver.wait(async () => {
                 await (await Misc.getActionButton(treeGlobalConn, "Reload Database Information")).click();
@@ -240,7 +236,7 @@ describe("MySQL REST Service", () => {
                         return child;
                     }
                 }
-            }, explicitWait, `${hostname()} tree item was not found`);
+            }, constants.explicitWait, `${hostname()} tree item was not found`);
 
         });
 
@@ -249,7 +245,7 @@ describe("MySQL REST Service", () => {
             await Misc.openContexMenuItem(treeMySQLRESTService, "Start Local MySQL Router Instance");
             await Misc.waitForTerminalText(
                 "Start accepting connections for routing routing:bootstrap_x_rw listening on",
-                explicitWait * 2);
+                constants.explicitWait * 2);
 
             expect(await Misc.terminalHasErrors()).to.be.false;
             await driver.wait(async () => {
@@ -261,17 +257,17 @@ describe("MySQL REST Service", () => {
                             return child;
                         }
                     }
-                }, explicitWait, `${hostname()} tree item was not found`);
+                }, constants.explicitWait, `${hostname()} tree item was not found`);
 
                 return (await Misc.isRouterActive(treeRouter)) === true;
-            }, explicitWait * 2, `${await treeRouter.getLabel()} did not became active`);
+            }, constants.explicitWait * 2, `${await treeRouter.getLabel()} did not became active`);
 
         });
 
         it("Stop Local MySQL Router Instance", async () => {
 
             await Misc.openContexMenuItem(treeMySQLRESTService, "Stop Local MySQL Router Instance");
-            await Misc.waitForTerminalText(["mysqlrouter\\stop", "Unloading all plugins"], explicitWait * 2);
+            await Misc.waitForTerminalText(["mysqlrouter\\stop", "Unloading all plugins"], constants.explicitWait * 2);
             expect(await Misc.terminalHasErrors()).to.be.false;
             await driver.wait(async () => {
                 treeRouter = await driver.wait(async () => {
@@ -282,17 +278,17 @@ describe("MySQL REST Service", () => {
                             return child;
                         }
                     }
-                }, explicitWait, `${hostname()} tree item was not found`);
+                }, constants.explicitWait, `${hostname()} tree item was not found`);
 
                 return (await Misc.isRouterActive(treeRouter)) === false;
-            }, explicitWait * 3, `${await treeRouter.getLabel()} did not became inactive`);
+            }, constants.explicitWait * 3, `${await treeRouter.getLabel()} did not became inactive`);
 
         });
 
         it("Browse the MySQL REST Service Documentation", async () => {
 
             await Misc.openContexMenuItem(treeMySQLRESTService, "Browse the MySQL REST Service Documentation",
-                tabs.mrsDocs);
+                constants.mrsDocs);
             await driver.wait(async () => {
                 const titles = await driver.findElements(By.css("h1"));
                 for (const title of titles) {
@@ -300,7 +296,7 @@ describe("MySQL REST Service", () => {
                         return true;
                     }
                 }
-            }, explicitWait, "Could not find the title 'MRS Developer's Guide'");
+            }, constants.explicitWait, "Could not find the title 'MRS Developer's Guide'");
         });
 
     });
@@ -315,15 +311,16 @@ describe("MySQL REST Service", () => {
         before(async function () {
             try {
                 await treeMySQLRESTService.expand();
-                await Misc.openContexMenuItem(treeMySQLRESTService, "Add REST Service...", tabs.addMRSService);
-                await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
+                await Misc.openContexMenuItem(treeMySQLRESTService, "Add REST Service...", constants.addMRSService);
+                await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
+                    "DB Connection was not loaded");
                 await Database.setDBConnectionCredentials(globalConn);
                 await Database.setRestService(`/${service}`, "", "localhost", ["HTTP"], true, true);
                 await driver.switchTo().defaultContent();
                 await (await Misc.getActionButton(treeGlobalConn, "Reload Database Information")).click();
                 treeRandomService = await Misc
                     .getTreeElement(treeDBSection, `/${service} (localhost)`, true);
-                await driver.wait(Misc.isNotLoading(treeDBSection), explicitWait * 2,
+                await driver.wait(Misc.isNotLoading(treeDBSection), constants.explicitWait * 2,
                     `${await treeDBSection.getTitle()} is still loading`);
                 await driver.switchTo().defaultContent();
             } catch (e) {
@@ -350,7 +347,7 @@ describe("MySQL REST Service", () => {
                     }
                 }
             }
-            await driver.wait(Misc.isNotLoading(treeDBSection), explicitWait * 2,
+            await driver.wait(Misc.isNotLoading(treeDBSection), constants.explicitWait * 2,
                 `${await treeDBSection.getTitle()} is still loading`);
             await new EditorView().closeAllEditors();
         });
@@ -364,8 +361,9 @@ describe("MySQL REST Service", () => {
 
         it("Edit REST Service", async () => {
 
-            await Misc.openContexMenuItem(treeRandomService, "Edit REST Service...", tabs.editMRSService);
-            await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
+            await Misc.openContexMenuItem(treeRandomService, "Edit REST Service...", constants.editMRSService);
+            await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
+                "DB Connection was not loaded");
             await Database.setDBConnectionCredentials(globalConn);
             await Database.setRestService(`/edited${service}`, "edited",
                 "localhost", [], false, false);
@@ -375,11 +373,12 @@ describe("MySQL REST Service", () => {
             treeRandomService = await Misc
                 .getTreeElement(treeDBSection, `/edited${service} (localhost)`, true);
 
-            await Misc.openContexMenuItem(treeRandomService, "Edit REST Service...", tabs.editMRSService);
-            await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
+            await Misc.openContexMenuItem(treeRandomService, "Edit REST Service...", constants.editMRSService);
+            await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
+                "DB Connection was not loaded");
             await Database.setDBConnectionCredentials(globalConn);
             const dialog = await driver.wait(until.elementLocated(By.id("mrsServiceDialog")),
-                explicitWait, "MRS Service dialog was not displayed");
+                constants.explicitWait, "MRS Service dialog was not displayed");
             const inputServPath = await dialog.findElement(By.id("servicePath"));
             const inputComments = await dialog.findElement(By.id("comments"));
             const inputHost = await dialog.findElement(By.id("hostName"));
@@ -398,8 +397,9 @@ describe("MySQL REST Service", () => {
 
             const randomServiceLabel = await treeRandomService.getLabel();
             const treeSakila = await Misc.getTreeElement(treeDBSection, "sakila");
-            await Misc.openContexMenuItem(treeSakila, "Add Schema to REST Service", tabs.addMRSSchema);
-            await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
+            await Misc.openContexMenuItem(treeSakila, "Add Schema to REST Service", constants.addMRSSchema);
+            await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
+                "DB Connection was not loaded");
             await Database.setDBConnectionCredentials(globalConn);
             await Database.setRestSchema(`localhost/edited${service}|localhost/${service}`,
                 "sakila", "/sakila", 1, true, true, "sakila");
@@ -417,19 +417,21 @@ describe("MySQL REST Service", () => {
             const treeService = await Misc.getTreeElement(treeDBSection, String(randomServiceLabel));
             await treeService.expand();
             treeMySQLRESTSchema = await Misc.getTreeElement(treeDBSection, "/sakila (sakila)");
-            await Misc.openContexMenuItem(treeMySQLRESTSchema, "Edit REST Schema...", tabs.editMRSSchema);
-            await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
+            await Misc.openContexMenuItem(treeMySQLRESTSchema, "Edit REST Schema...", constants.editMRSSchema);
+            await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
+                "DB Connection was not loaded");
             await Database.setDBConnectionCredentials(globalConn);
             await Database.setRestSchema(`localhost/edited${service}|localhost/${service}`,
                 "sakila", "/edited", 5, false, false, "edited");
             await driver.switchTo().defaultContent();
             //await Misc.verifyNotification("The MRS schema has been updated successfully.", true);
             const treeSakilaEdited = await Misc.getTreeElement(treeDBSection, "/edited (sakila)", true);
-            await Misc.openContexMenuItem(treeSakilaEdited, "Edit REST Schema...", tabs.editMRSSchema);
-            await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
+            await Misc.openContexMenuItem(treeSakilaEdited, "Edit REST Schema...", constants.editMRSSchema);
+            await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
+                "DB Connection was not loaded");
             await Database.setDBConnectionCredentials(globalConn);
             const dialog = await driver.wait(until.elementLocated(By.id("mrsSchemaDialog")),
-                explicitWait, "MRS Schema dialog was not displayed");
+                constants.explicitWait, "MRS Schema dialog was not displayed");
             const inputSchemaName = await dialog.findElement(By.id("name"));
             const inputRequestPath = await dialog.findElement(By.id("requestPath"));
             const inputRequiresAuth = await dialog.findElement(By.id("requiresAuth"));
@@ -456,8 +458,9 @@ describe("MySQL REST Service", () => {
             const treeTables = await Misc.getTreeElement(treeDBSection, "Tables");
             await treeTables.expand();
             const treeActor = await Misc.getTreeElement(treeDBSection, "actor");
-            await Misc.openContexMenuItem(treeActor, "Add Database Object to REST Service", tabs.dbDefaultEditor);
-            await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
+            await Misc.openContexMenuItem(treeActor, "Add Database Object to REST Service", constants.dbDefaultEditor);
+            await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
+                "DB Connection was not loaded");
             await Database.setDBConnectionCredentials(globalConn);
             await Database.setRestObject(`localhost/edited${service}`);
             await driver.switchTo().defaultContent();
@@ -470,8 +473,9 @@ describe("MySQL REST Service", () => {
 
         it("Add New Authentication App", async () => {
 
-            await Misc.openContexMenuItem(treeRandomService, "Add New Authentication App", tabs.addAuthApp);
-            await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
+            await Misc.openContexMenuItem(treeRandomService, "Add New Authentication App", constants.addAuthApp);
+            await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
+                "DB Connection was not loaded");
             await Database.setDBConnectionCredentials(globalConn);
             await Database.setAuthenticationApp(
                 "MRS",
@@ -495,8 +499,9 @@ describe("MySQL REST Service", () => {
 
         it("Add User", async () => {
 
-            await Misc.openContexMenuItem(treeAuthApp, "Add User", tabs.addUser);
-            await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
+            await Misc.openContexMenuItem(treeAuthApp, "Add User", constants.addUser);
+            await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
+                "DB Connection was not loaded");
             await Database.setDBConnectionCredentials(globalConn);
             await Database.setUser(
                 "gui",
@@ -513,15 +518,16 @@ describe("MySQL REST Service", () => {
             await driver.switchTo().defaultContent();
             //await Misc.verifyNotification("The MRS User has been added", true);
             await treeAuthApp.expand();
-            treeDBSection = await Misc.getSection(dbTreeSection);
+            treeDBSection = await Misc.getSection(constants.dbTreeSection);
             treeUser = await Misc.getTreeElement(treeDBSection, "gui", true);
 
         });
 
         it("Edit Authentication App", async () => {
 
-            await Misc.openContexMenuItem(treeAuthApp, "Edit Authentication App", tabs.editAuthApp);
-            await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
+            await Misc.openContexMenuItem(treeAuthApp, "Edit Authentication App", constants.editAuthApp);
+            await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
+                "DB Connection was not loaded");
             await Database.setDBConnectionCredentials(globalConn);
             await Database.setAuthenticationApp(
                 undefined,
@@ -537,12 +543,15 @@ describe("MySQL REST Service", () => {
 
             await driver.switchTo().defaultContent();
             //await Misc.verifyNotification("The MRS Authentication App has been updated", true);
+            await driver.wait(Misc.isNotLoading(treeDBSection), constants.explicitWait * 2,
+                `${await treeDBSection.getTitle()} is still loading`);
             treeAuthApp = await Misc.getTreeElement(treeDBSection, "MRSedited (MRS)", true);
-            await Misc.openContexMenuItem(treeAuthApp, "Edit Authentication App", tabs.editAuthApp);
-            await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
+            await Misc.openContexMenuItem(treeAuthApp, "Edit Authentication App", constants.editAuthApp);
+            await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
+                "DB Connection was not loaded");
             await Database.setDBConnectionCredentials(globalConn);
             const dialog = await driver.wait(until.elementLocated(By.id("mrsAuthenticationAppDialog")),
-                explicitWait, "Authentication App dialog was not displayed");
+                constants.explicitWait, "Authentication App dialog was not displayed");
             expect(await dialog.findElement(By.css("#authVendorName label")).getText()).to.equals("MRS");
             expect(await dialog.findElement(By.id("name")).getAttribute("value")).to.equals("MRSedited");
             expect(await dialog.findElement(By.id("description"))
@@ -566,8 +575,9 @@ describe("MySQL REST Service", () => {
             treeAuthApp = await Misc.getTreeElement(treeDBSection, "MRSedited (MRS)");
             await treeAuthApp.expand();
             treeUser = await Misc.getTreeElement(treeDBSection, "gui");
-            await Misc.openContexMenuItem(treeUser, "Edit User", tabs.editUser);
-            await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
+            await Misc.openContexMenuItem(treeUser, "Edit User", constants.editUser);
+            await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
+                "DB Connection was not loaded");
             await Database.setDBConnectionCredentials(globalConn);
             await Database.setUser(
                 "test",
@@ -583,13 +593,14 @@ describe("MySQL REST Service", () => {
             await driver.switchTo().defaultContent();
             //await Misc.verifyNotification(`The MRS User has been updated`, true);
             await (await Misc.getActionButton(treeGlobalConn, "Reload Database Information")).click();
-            treeDBSection = await Misc.getSection(dbTreeSection);
+            treeDBSection = await Misc.getSection(constants.dbTreeSection);
             treeUser = await Misc.getTreeElement(treeDBSection, "test");
-            await Misc.openContexMenuItem(treeUser, "Edit User", tabs.editUser);
-            await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
+            await Misc.openContexMenuItem(treeUser, "Edit User", constants.editUser);
+            await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
+                "DB Connection was not loaded");
             await Database.setDBConnectionCredentials(globalConn);
             const dialog = await driver.wait(until.elementLocated(By.id("mrsUserDialog")),
-                explicitWait, "User dialog was not displayed");
+                constants.explicitWait, "User dialog was not displayed");
             expect(await dialog.findElement(By.id("name")).getAttribute("value")).to.equals("test");
             expect(await dialog.findElement(By.css("#authApp label")).getText()).to.equals("MRSedited");
             expect(await dialog.findElement(By.id("email")).getAttribute("value")).to.equals("as1@as1.com");
@@ -606,7 +617,7 @@ describe("MySQL REST Service", () => {
 
         it("MRS Service Documentation", async () => {
 
-            await Misc.openContexMenuItem(treeRandomService, "MRS Service Documentation", tabs.mrsDocs);
+            await Misc.openContexMenuItem(treeRandomService, "MRS Service Documentation", constants.mrsDocs);
             await driver.findElement(By.id("rest-service-properties"));
 
         });
@@ -625,12 +636,17 @@ describe("MySQL REST Service", () => {
             //    .verifyNotification(`The MRS User ${await treeUser.getLabel()} has been deleted`, true);
 
             await driver.wait(async () => {
-                await (await Misc.getActionButton(treeGlobalConn, "Reload Database Information")).click();
-                treeDBSection = await Misc.getSection(dbTreeSection);
+                try {
+                    await (await Misc.getActionButton(treeGlobalConn, "Reload Database Information")).click();
+                    treeDBSection = await Misc.getSection(constants.dbTreeSection);
 
-                return (await treeDBSection.findItem(userLabel)) === undefined;
-            }, explicitWait, `user '${userLabel}' was not deleted`);
-
+                    return (await treeDBSection.findItem(userLabel)) === undefined;
+                } catch (e) {
+                    if (!(e instanceof error.StaleElementReferenceError)) {
+                        throw e;
+                    }
+                }
+            }, constants.explicitWait, `user '${userLabel}' was not deleted`);
         });
 
         it("Delete Authentication App", async () => {
@@ -648,10 +664,10 @@ describe("MySQL REST Service", () => {
 
             await driver.wait(async () => {
                 await (await Misc.getActionButton(treeGlobalConn, "Reload Database Information")).click();
-                treeDBSection = await Misc.getSection(dbTreeSection);
+                treeDBSection = await Misc.getSection(constants.dbTreeSection);
 
                 return (await treeDBSection.findItem(authAppLabel)) === undefined;
-            }, explicitWait, `MRSedited (MRS) Authorization App was not deleted`);
+            }, constants.explicitWait, `MRSedited (MRS) Authorization App was not deleted`);
 
         });
 
@@ -668,10 +684,10 @@ describe("MySQL REST Service", () => {
 
             await driver.wait(async () => {
                 await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
-                treeDBSection = await Misc.getSection(dbTreeSection);
+                treeDBSection = await Misc.getSection(constants.dbTreeSection);
 
                 return (await treeDBSection.findItem(label)) === undefined;
-            }, explicitWait, `${label} schema was not deleted`);
+            }, constants.explicitWait, `${label} schema was not deleted`);
 
         });
 
@@ -688,10 +704,10 @@ describe("MySQL REST Service", () => {
 
             await driver.wait(async () => {
                 await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
-                treeDBSection = await Misc.getSection(dbTreeSection);
+                treeDBSection = await Misc.getSection(constants.dbTreeSection);
 
                 return (await treeDBSection.findItem(label)) === undefined;
-            }, explicitWait, `${label} Service was not deleted`);
+            }, constants.explicitWait, `${label} Service was not deleted`);
 
         });
 
@@ -712,10 +728,11 @@ describe("MySQL REST Service", () => {
             try {
                 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
                 await Misc.cleanCredentials();
-                treeDBSection = await Misc.getSection(dbTreeSection);
+                treeDBSection = await Misc.getSection(constants.dbTreeSection);
                 await treeMySQLRESTService.expand();
-                await Misc.openContexMenuItem(treeMySQLRESTService, "Add REST Service...", tabs.addMRSService);
-                await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
+                await Misc.openContexMenuItem(treeMySQLRESTService, "Add REST Service...", constants.addMRSService);
+                await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
+                    "DB Connection was not loaded");
                 await Database.setDBConnectionCredentials(globalConn);
                 await Database.setRestService(`/${service}`, "", "localhost:8443", ["HTTP", "HTTPS"], true, true);
                 await driver.switchTo().defaultContent();
@@ -728,7 +745,7 @@ describe("MySQL REST Service", () => {
                     await sakila.expand();
 
                     return (await sakila.isExpanded()) && (sakila.hasChildren());
-                }, explicitWait, "sakila tree item was not expanded");
+                }, constants.explicitWait, "sakila tree item was not expanded");
                 await (await Misc.getTreeElement(treeDBSection, "Tables")).expand();
                 const treeActor = await Misc.getTreeElement(treeDBSection, "actor");
                 await Misc.openContexMenuItem(treeActor, "Add Database Object to REST Service");
@@ -739,7 +756,8 @@ describe("MySQL REST Service", () => {
                 const ntfs = await workbench.getNotifications();
                 await ntfs[ntfs.length - 1].takeAction("Yes");
                 await Misc.switchToWebView();
-                await driver.wait(Database.isConnectionLoaded(), explicitWait * 3, "DB Connection was not loaded");
+                await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
+                    "DB Connection was not loaded");
                 await Database.setDBConnectionCredentials(globalConn);
                 await Database.setRestObject(`${hostName}/${service}`, undefined, undefined,
                     ["CREATE", "READ", "UPDATE", "DELETE"], undefined, false);
@@ -754,18 +772,18 @@ describe("MySQL REST Service", () => {
                             return child;
                         }
                     }
-                }, explicitWait, `${hostname()} tree item was not found`);
+                }, constants.explicitWait, `${hostname()} tree item was not found`);
                 if (!await Misc.isRouterActive(treeRouter)) {
                     await Misc.openContexMenuItem(treeMySQLRESTService, "Start Local MySQL Router Instance");
                     await Misc.waitForTerminalText(
                         "Start accepting connections for routing routing:bootstrap_x_rw listening on",
-                        explicitWait * 2);
+                        constants.explicitWait * 2);
 
                     await driver.wait(async () => {
                         await (await Misc.getActionButton(treeGlobalConn, "Reload Database Information")).click();
 
                         return (await Misc.isRouterActive(treeRouter)) === true;
-                    }, explicitWait * 2, `Router did not became active`);
+                    }, constants.explicitWait * 2, `Router did not became active`);
                 }
                 hostName = "127.0.0.1:8443";
             } catch (e) {

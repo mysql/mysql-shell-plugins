@@ -25,6 +25,7 @@ import { Misc, driver, IDBConnection, explicitWait } from "../../lib/misc";
 import { By, WebElement } from "selenium-webdriver";
 import { GuiConsole } from "../../lib/guiConsole";
 import { ShellSession } from "../../lib/shellSession";
+import { Settings } from "../../lib/settings";
 
 describe("Sessions", () => {
 
@@ -59,6 +60,7 @@ describe("Sessions", () => {
             await Misc.waitForHomePage();
         }
 
+        await Settings.setCurrentTheme("Default Dark");
         await driver.findElement(By.id("gui.shell")).click();
         await GuiConsole.openSession();
 
