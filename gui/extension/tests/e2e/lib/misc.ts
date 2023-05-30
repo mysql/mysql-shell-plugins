@@ -139,38 +139,31 @@ export class Misc {
     public static openContexMenuItem = async (
         treeItem: TreeItem,
         ctxMenuItem: string,
-        webViewName?: string): Promise<void> => {
+        verifyEditorAndWebView = false): Promise<void> => {
 
-        if (webViewName) {
+        let activeTab: string;
+        if (verifyEditorAndWebView) {
             await driver.wait(async () => {
-                await Misc.selectContextMenuItem(treeItem, ctxMenuItem);
                 try {
-                    await driver.wait(async () => {
-                        try {
-                            await new EditorView().openEditor(webViewName);
+                    const prevOpenedTabs = await new EditorView().getOpenEditorTitles();
+                    await Misc.selectContextMenuItem(treeItem, ctxMenuItem);
+                    const currentOpenedTabs = await new EditorView().getOpenEditorTitles();
+                    if (currentOpenedTabs.length > prevOpenedTabs.length || currentOpenedTabs.length > 0) {
+                        activeTab = await (await new EditorView().getActiveTab()).getTitle();
+                        await Misc.switchToWebView();
 
-                            return true;
-                        } catch (e) {
-                            return false;
-                        }
-                    }, 3000, `${webViewName} was not opened after 3secs`);
-                } catch (e) {
-                    return false;
-                }
-                try {
-                    await Misc.switchToWebView();
-
-                    return true;
+                        return true;
+                    }
                 } catch (e) {
                     if (e instanceof Error) {
                         if (!String(e.message).includes("Could not find a visible iframe div")) {
                             throw e;
                         } else {
-                            await new EditorView().closeEditor(webViewName);
+                            await new EditorView().closeEditor(activeTab);
                         }
                     }
                 }
-            }, constants.explicitWait * 3, `${webViewName} was not opened`);
+            }, constants.explicitWait * 3, `No new editor was opened after selecting '${ctxMenuItem}' after 15secs`);
         } else {
             await Misc.selectContextMenuItem(treeItem, ctxMenuItem);
         }

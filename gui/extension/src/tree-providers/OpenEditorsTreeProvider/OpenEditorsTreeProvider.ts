@@ -419,9 +419,9 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
             }
 
             case "selectConnectionTab": {
-                const response = request.original.parameter as { page: string; };
+                const response = request.original.parameter as { connectionId: number, page: string; };
 
-                return this.selectItem(request.provider, -1, response.page);
+                return this.selectItem(request.provider, response.connectionId, response.page);
             }
 
             case "refreshSessions": {
@@ -460,7 +460,7 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
         if (connection) {
             const editor = connection.editors.find((item) => {
                 return item.id === editorOrPage;
-            });
+            }) ?? connection.editors[0];
 
             if (editor) {
                 this.#lastSelectedItems.set(provider, editor);

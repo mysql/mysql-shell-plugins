@@ -338,6 +338,10 @@ export class Database {
         });
     };
 
+    public static requiresCredentials = async (): Promise<boolean> => {
+        return (await driver.findElements(By.css(".msg.portal"))).length > 0;
+    };
+
     public static closeConnection = async (name: string): Promise<void> => {
         await driver.switchTo().defaultContent();
         const edView = new EditorView();
