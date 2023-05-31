@@ -183,6 +183,46 @@ export class ThemeManager {
     }
 
     /**
+     * Locates the settings for the given scope in the current theme and returns the foreground color.
+     *
+     * @param scope A token scope, e.g. `comment`, `string`, `variable`, etc.
+     *
+     * @returns The foreground color for the given scope, or `undefined` if not found.
+     */
+    public getTokenForegroundColor(scope: string): string | undefined {
+        const definitions = this.themeDefinitions.get(this.currentTheme);
+        if (definitions) {
+            const tokenColors = definitions.json.tokenColors || definitions.json.settings;
+            if (tokenColors) {
+                // Start by collecting all entries with scopes that either fully match the given scope, or
+                // at are a suffix of the given scope.
+                const candidates: Array<[string, string]> = [];
+
+                for (const entry of tokenColors) {
+                    const scopes = Array.isArray(entry.scope) ? entry.scope : entry.scope.split(",");
+                    scopes.forEach((candidate) => {
+                        if (scope.startsWith(candidate.trim()) && entry.settings.foreground) {
+                            candidates.push([candidate, entry.settings.foreground]);
+                        }
+                    });
+                }
+
+                // Now sort the candidates by length of the scope, so that the longest match is first.
+                candidates.sort((a, b) => {
+                    return b[0].length - a[0].length;
+                });
+
+                // And return the first candidate.
+                if (candidates.length > 0) {
+                    return candidates[0][1];
+                }
+            }
+        }
+
+        return undefined;
+    }
+
+    /**
      * Reads out the current value from our theme variables and stores them in the theme definition.
      */
     public saveTheme(): void {

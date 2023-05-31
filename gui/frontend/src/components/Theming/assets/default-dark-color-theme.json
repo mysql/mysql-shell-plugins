@@ -960,19 +960,17 @@
             }
         },
         {
-            "name": "JSON String",
+            "name": "JSON Value String",
             "scope": [
-                "string.value",
                 "string.value.json"
             ],
             "settings": {
-                "foreground": "#CFCFC2"
+                "foreground": "#46c1f1"
             }
         },
         {
             "name": "diff.header",
             "scope": [
-                "meta.diff",
                 "meta.diff.header"
             ],
             "settings": {
@@ -1073,6 +1071,253 @@
             "settings": {
                 "fontStyle": "italic",
                 "foreground": "#569cd6"
+            }
+        },
+        {
+            "scope": "",
+            "settings": {
+                "foreground": "#D4D4D4",
+                "background": "#1E1E1E"
+            }
+        },
+        {
+            "scope": "emphasis",
+            "settings": {
+                "fontStyle": "italic"
+            }
+        },
+        {
+            "scope": "strong",
+            "settings": {
+                "fontStyle": "bold"
+            }
+        },
+        {
+            "scope": "variable.predefined",
+            "settings": {
+                "foreground": "#4864AA"
+            }
+        },
+        {
+            "scope": "constant",
+            "settings": {
+                "foreground": "#569CD6"
+            }
+        },
+        {
+            "scope": "comment",
+            "settings": {
+                "foreground": "#608B4E"
+            }
+        },
+        {
+            "scope": "number",
+            "settings": {
+                "foreground": "#B5CEA8"
+            }
+        },
+        {
+            "scope": "number.hex",
+            "settings": {
+                "foreground": "#5BB498"
+            }
+        },
+        {
+            "scope": "regexp",
+            "settings": {
+                "foreground": "#B46695"
+            }
+        },
+        {
+            "scope": "annotation",
+            "settings": {
+                "foreground": "#cc6666"
+            }
+        },
+        {
+            "scope": "type",
+            "settings": {
+                "foreground": "#3DC9B0"
+            }
+        },
+        {
+            "scope": "delimiter",
+            "settings": {
+                "foreground": "#DCDCDC"
+            }
+        },
+        {
+            "scope": "delimiter.html",
+            "settings": {
+                "foreground": "#808080"
+            }
+        },
+        {
+            "scope": "delimiter.xml",
+            "settings": {
+                "foreground": "#808080"
+            }
+        },
+        {
+            "scope": "delimiter.colon",
+            "settings": {
+                "foreground": "#80AA80"
+            }
+        },
+        {
+            "scope": "tag",
+            "settings": {
+                "foreground": "#569CD6"
+            }
+        },
+        {
+            "scope": "tag.id.pug",
+            "settings": {
+                "foreground": "#4F76AC"
+            }
+        },
+        {
+            "scope": "tag.class.pug",
+            "settings": {
+                "foreground": "#4F76AC"
+            }
+        },
+        {
+            "scope": "meta.scss",
+            "settings": {
+                "foreground": "#A79873"
+            }
+        },
+        {
+            "scope": "meta.tag",
+            "settings": {
+                "foreground": "#CE9178"
+            }
+        },
+        {
+            "scope": "metatag",
+            "settings": {
+                "foreground": "#DD6A6F"
+            }
+        },
+        {
+            "scope": "metatag.content.html",
+            "settings": {
+                "foreground": "#9CDCFE"
+            }
+        },
+        {
+            "scope": "metatag.html",
+            "settings": {
+                "foreground": "#569CD6"
+            }
+        },
+        {
+            "scope": "metatag.xml",
+            "settings": {
+                "foreground": "#569CD6"
+            }
+        },
+        {
+            "scope": "metatag.php",
+            "settings": {
+                "fontStyle": "bold"
+            }
+        },
+        {
+            "scope": "key",
+            "settings": {
+                "foreground": "#9CDCFE"
+            }
+        },
+        {
+            "scope": "string.key.json",
+            "settings": {
+                "foreground": "#209688"
+            }
+        },
+        {
+            "scope": "attribute.name",
+            "settings": {
+                "foreground": "#9CDCFE"
+            }
+        },
+        {
+            "scope": "attribute.value",
+            "settings": {
+                "foreground": "#CE9178"
+            }
+        },
+        {
+            "scope": "attribute.value.number.css",
+            "settings": {
+                "foreground": "#B5CEA8"
+            }
+        },
+        {
+            "scope": "attribute.value.unit.css",
+            "settings": {
+                "foreground": "#B5CEA8"
+            }
+        },
+        {
+            "scope": "attribute.value.hex.css",
+            "settings": {
+                "foreground": "#D4D4D4"
+            }
+        },
+        {
+            "scope": "string",
+            "settings": {
+                "foreground": "#CE9178"
+            }
+        },
+        {
+            "scope": "string.sql",
+            "settings": {
+                "foreground": "#FF0000"
+            }
+        },
+        {
+            "scope": "keyword.flow",
+            "settings": {
+                "foreground": "#C586C0"
+            }
+        },
+        {
+            "scope": "keyword.json",
+            "settings": {
+                "foreground": "#CE9178"
+            }
+        },
+        {
+            "scope": "keyword.flow.scss",
+            "settings": {
+                "foreground": "#569CD6"
+            }
+        },
+        {
+            "scope": "operator.scss",
+            "settings": {
+                "foreground": "#909090"
+            }
+        },
+        {
+            "scope": "operator.sql",
+            "settings": {
+                "foreground": "#778899"
+            }
+        },
+        {
+            "scope": "operator.swift",
+            "settings": {
+                "foreground": "#909090"
+            }
+        },
+        {
+            "scope": "predefined.sql",
+            "settings": {
+                "foreground": "#FF00FF"
             }
         }
     ]

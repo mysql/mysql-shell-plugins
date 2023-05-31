@@ -260,7 +260,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
 
         Monaco.defineTheme(theme, {
             base: type === "light" ? "vs" : "vs-dark",
-            inherit: true,
+            inherit: false,
             rules: tokenRules,
             colors: entries,
         });

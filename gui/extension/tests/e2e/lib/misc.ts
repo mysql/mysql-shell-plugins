@@ -756,16 +756,26 @@ export class Misc {
 
                 const actionLabel = await context.findElements(By.css(".actionLabel"));
                 if (actionLabel.length > 0) {
-                    resultToReturn = await actionLabel[0].getAttribute("innerHTML");
+                    resultToReturn = await actionLabel[actionLabel.length - 1].getAttribute("innerHTML");
 
                     return resultToReturn;
                 }
 
                 const actionOutput = await context.findElements(By.css(".actionOutput"));
                 if (actionOutput.length > 0) {
-                    resultToReturn = await actionOutput[0].findElement(By.css(".info")).getAttribute("innerHTML");
+                    const info = await actionOutput[actionOutput.length - 1].findElements(By.css(".info"));
+                    if (info.length > 0) {
+                        resultToReturn = await info[info.length - 1].getAttribute("innerHTML");
 
-                    return resultToReturn;
+                        return resultToReturn;
+                    }
+                    const json = await actionOutput[actionOutput.length - 1]
+                        .findElements(By.css(".jsonView span > span"));
+                    if (json.length > 0) {
+                        resultToReturn = await json[json.length - 1].getAttribute("innerHTML");
+
+                        return resultToReturn;
+                    }
                 }
 
                 const graphHost = await context.findElements(By.css(".graphHost"));
@@ -1155,8 +1165,9 @@ export class Misc {
                 .then((result) => {
                     toReturn.push(result);
                 })
-                .catch((e) => {
+                .catch(async (e) => {
                     if (String(e).includes("Could not return")) {
+                        console.log(await zoneHost.getAttribute("outerHTML"));
                         throw new Error(`Could not get result for '${cmd}'`);
                     } else {
                         throw e;

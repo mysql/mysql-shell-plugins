@@ -32,13 +32,18 @@ describe("GUI Console", () => {
     beforeAll(async () => {
         await Misc.loadDriver();
         try {
-            await Misc.loadPage(String(process.env.SHELL_UI_HOSTNAME));
-            await Misc.waitForHomePage();
+            try {
+                await Misc.loadPage(String(process.env.SHELL_UI_HOSTNAME));
+                await Misc.waitForHomePage();
+            } catch (e) {
+                await driver.navigate().refresh();
+                await Misc.waitForHomePage();
+            }
+            await driver.findElement(By.id("gui.shell")).click();
         } catch (e) {
-            await driver.navigate().refresh();
-            await Misc.waitForHomePage();
+            await Misc.storeScreenShot("beforeAll_GuiConsole");
+            throw e;
         }
-        await driver.findElement(By.id("gui.shell")).click();
     });
 
     afterEach(async () => {

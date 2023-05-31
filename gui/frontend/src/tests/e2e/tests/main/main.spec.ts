@@ -31,11 +31,16 @@ describe("Main pages", () => {
     beforeAll(async () => {
         await Misc.loadDriver();
         try {
-            await Misc.loadPage(String(process.env.SHELL_UI_HOSTNAME));
-            await Misc.waitForHomePage();
+            try {
+                await Misc.loadPage(String(process.env.SHELL_UI_HOSTNAME));
+                await Misc.waitForHomePage();
+            } catch (e) {
+                await driver.navigate().refresh();
+                await Misc.waitForHomePage();
+            }
         } catch (e) {
-            await driver.navigate().refresh();
-            await Misc.waitForHomePage();
+            await Misc.storeScreenShot("beforeAll_Main");
+            throw e;
         }
     });
 
@@ -409,25 +414,27 @@ describe("Main pages", () => {
 
             expect(await themePreviewLabels[10].getText()).toBe("Tabview");
 
-            expect(await themePreviewLabels[11].getText()).toBe("Code Editor");
+            expect(await themePreviewLabels[11].getText()).toBe("JSON View");
 
-            expect(await themePreviewLabels[12].getText()).toBe(
+            expect(await themePreviewLabels[12].getText()).toBe("Code Editor");
+
+            expect(await themePreviewLabels[13].getText()).toBe(
                 "Mixed Language Code Editor with Embedded Results",
             );
 
-            expect(await themePreviewLabels[13].getText()).toBe("Browser Tiles");
+            expect(await themePreviewLabels[14].getText()).toBe("Browser Tiles");
 
-            expect(await themePreviewLabels[14].getText()).toBe("Title Bar");
+            expect(await themePreviewLabels[15].getText()).toBe("Title Bar");
 
-            expect(await themePreviewLabels[15].getText()).toBe("Menu + Menubar");
+            expect(await themePreviewLabels[16].getText()).toBe("Menu + Menubar");
 
-            expect(await themePreviewLabels[16].getText()).toBe("Terminal Colors");
+            expect(await themePreviewLabels[17].getText()).toBe("Terminal Colors");
 
-            expect(await themePreviewLabels[17].getText()).toBe("ANSI Escapes Output Rendering");
+            expect(await themePreviewLabels[18].getText()).toBe("ANSI Escapes Output Rendering");
 
-            expect(await themePreviewLabels[18].getText()).toBe("Breadcrumb");
+            expect(await themePreviewLabels[19].getText()).toBe("Breadcrumb");
 
-            expect(await themePreviewLabels[19].getText()).toBe("Symbols");
+            expect(await themePreviewLabels[20].getText()).toBe("Symbols");
         } catch (e) {
             testFailed = true;
             throw e;

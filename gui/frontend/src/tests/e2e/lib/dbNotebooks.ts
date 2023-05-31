@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { By, until, WebElement, Key } from "selenium-webdriver";
+import { By, until, WebElement, Key, error } from "selenium-webdriver";
 import { driver, explicitWait, IDBConnection } from "./misc";
 
 export const execFullBlockSql = "Execute the selection or everything in the current block and create a new block";
@@ -83,10 +83,28 @@ export class DBNotebooks {
      * @returns Promise resolving with the connection created
      */
     public static createDBconnection = async (dbConfig: IDBConnection): Promise<WebElement | undefined> => {
-        const ctx = await driver.findElement(By.css(".connectionBrowser"));
-        await ctx.findElement(By.id("-1")).click();
-        const newConDialog = await driver.wait(until.elementLocated(By.css(".valueEditDialog")),
-            explicitWait, "Dialog was not displayed");
+        const ctx = await driver.wait(until.elementLocated(By.css(".connectionBrowser")),
+            explicitWait, "DB Connections page was not loaded");
+
+        await driver.wait(async () => {
+            const isDialogVisible = (await driver.findElements(By.css(".valueEditDialog"))).length > 0;
+            if (isDialogVisible) {
+                return true;
+            } else {
+                try {
+                    await ctx.findElement(By.id("-1")).click();
+                } catch (e) {
+                    if (!(e instanceof error.ElementClickInterceptedError)) {
+                        throw e;
+                    }
+                }
+
+                return false;
+            }
+        }, explicitWait, "Connection dialog was not displayed");
+
+        const newConDialog = await driver.findElement(By.css(".valueEditDialog"));
+
         await driver.wait(async () => {
             await newConDialog.findElement(By.id("caption")).clear();
 
@@ -208,19 +226,29 @@ export class DBNotebooks {
      *
      * @returns A promise resolving when the init is made
      */
-    public static initConDialog = async (): Promise<void> => {
+    /*public static initConDialog = async (): Promise<void> => {
 
         const connBrowser = await driver.wait(until.elementLocated(By.css(".connectionBrowser")),
             explicitWait, "Connection browser was not found");
 
-        await connBrowser.findElement(By.id("-1")).click();
+        let dialog: WebElement;
+        await driver.wait(async () => {
+            try {
+                await connBrowser.findElement(By.id("-1")).click();
+                dialog = driver.findElement(By.css(".valueEditDialog"));
 
-        const dialog = driver.findElement(By.css(".valueEditDialog"));
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }, explicitWait, "Connection dialog was not displayed");
+
+        dialog = driver.findElement(By.css(".valueEditDialog"));
         await dialog.findElement(By.id("cancel")).click();
         await driver.wait(until.stalenessOf(dialog), 2000, "Connection dialog is still displayed");
         await driver.findElement(By.id("gui.shell")).click();
         await driver.findElement(By.id("gui.sqleditor")).click();
-    };
+    };*/
 
     /**
      * Returns the autocomplete context item list

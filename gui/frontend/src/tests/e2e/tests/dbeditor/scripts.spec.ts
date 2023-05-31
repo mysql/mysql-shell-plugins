@@ -21,11 +21,10 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { Misc, driver, IDBConnection, explicitWait } from "../../lib/misc";
+import { By, until } from "selenium-webdriver";
 import { DBConnection } from "../../lib/dbConnection";
-import { DBNotebooks, execFullScript, execCaret } from "../../lib/dbNotebooks";
-import { By, WebElement, until } from "selenium-webdriver";
-import { Settings } from "../../lib/settings";
+import { DBNotebooks, execCaret, execFullScript } from "../../lib/dbNotebooks";
+import { IDBConnection, Misc, driver, explicitWait } from "../../lib/misc";
 
 describe("Scripts", () => {
 
@@ -51,40 +50,35 @@ describe("Scripts", () => {
     beforeAll(async () => {
         await Misc.loadDriver();
         try {
-            await Misc.loadPage(String(process.env.SHELL_UI_HOSTNAME));
-            await Misc.waitForHomePage();
-        } catch (e) {
-            await driver.navigate().refresh();
-            await Misc.waitForHomePage();
-        }
+            try {
+                await Misc.loadPage(String(process.env.SHELL_UI_HOSTNAME));
+                await Misc.waitForHomePage();
+            } catch (e) {
+                await driver.navigate().refresh();
+                await Misc.waitForHomePage();
+            }
 
-        await Settings.setCurrentTheme("Default Dark");
-        await driver.findElement(By.id("gui.sqleditor")).click();
+            await driver.findElement(By.id("gui.sqleditor")).click();
+            const db = await DBNotebooks.createDBconnection(globalConn);
 
-        let db: WebElement | undefined;
-        try {
-            db = await DBNotebooks.getConnection("conn");
-        } catch (e) {
-            db = undefined;
-        }
-
-        if (!db) {
-            await DBNotebooks.initConDialog();
-            db = await DBNotebooks.createDBconnection(globalConn);
-        }
-
-        try {
-            await driver.executeScript("arguments[0].click();", db);
-            await Misc.setPassword(globalConn);
-            await Misc.setConfirmDialog(globalConn, "no");
-        } catch (e) {
-            if (e instanceof Error) {
-                if (e.message.indexOf("dialog was found") === -1) {
-                    throw e;
+            try {
+                await driver.executeScript("arguments[0].click();", db);
+                await Misc.setPassword(globalConn);
+                await Misc.setConfirmDialog(globalConn, "no");
+            } catch (e) {
+                if (e instanceof Error) {
+                    if (e.message.indexOf("dialog was found") === -1) {
+                        throw e;
+                    }
                 }
             }
+            await driver.wait(until.elementLocated(By.id("dbEditorToolbar")), explicitWait * 2,
+                "Notebook was not loaded");
+        } catch (e) {
+            await Misc.storeScreenShot("beforeAll_Scripts");
+            throw e;
         }
-        await driver.wait(until.elementLocated(By.id("dbEditorToolbar")), explicitWait * 2, "Notebook was not loaded");
+
     });
 
     afterEach(async () => {
@@ -143,10 +137,8 @@ describe("Scripts", () => {
             )!.click();
 
             await driver.wait(async () => {
-                return (await DBConnection.getScriptResult()) !== "";
+                return (await DBConnection.getScriptResult()).match(/(\d+).(\d+)/);
             }, explicitWait, "No results from query were found");
-
-            expect(await DBConnection.getScriptResult()).toMatch(/(\d+).(\d+)/);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -199,10 +191,8 @@ describe("Scripts", () => {
             )!.click();
 
             await driver.wait(async () => {
-                return (await DBConnection.getScriptResult()) !== "";
+                return (await DBConnection.getScriptResult()).match(/(\d+).(\d+)/);
             }, explicitWait, "No results from query were found");
-
-            expect(await DBConnection.getScriptResult()).toMatch(/(\d+).(\d+)/);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -256,10 +246,8 @@ describe("Scripts", () => {
             await execCaretBtn?.click();
 
             await driver.wait(async () => {
-                return (await DBConnection.getScriptResult(true)) !== "";
+                return (await DBConnection.getScriptResult()).match(/OK, (\d+) records/);
             }, explicitWait * 2, "No results from query were found");
-
-            expect(await DBConnection.getScriptResult(true)).toMatch(/OK, (\d+) records/);
         } catch (e) {
             testFailed = true;
             throw e;

@@ -682,16 +682,24 @@ export class DBConnection {
         }
 
         let items = await context.findElements(By.css("label"));
-        const otherItems = await context.findElements(By.css(".textHost span"));
+        //const otherItems = await context.findElements(By.css(".textHost span"));
         let text;
 
         if (items.length > 0) {
             text = await items[0].getText();
-        } else if (otherItems.length > 0) {
-            text = await otherItems[otherItems.length - 1].getText();
         } else {
-            items = await context.findElements(By.css(".info"));
-            text = await items[0].getText();
+            items = await context.findElements(By.css(".textHost span"));
+            if (items.length > 0) {
+                text = await items[items.length - 1].getText();
+            } else {
+                items = await context.findElements(By.css(".entry > span"));
+                if (items.length) {
+                    text = await items[items.length - 1].getText();
+                } else {
+                    items = await context.findElements(By.css(".info"));
+                    text = await items[0].getText();
+                }
+            }
         }
 
         return text;
@@ -742,47 +750,39 @@ export class DBConnection {
     /**
      * Clicks on the DB Editor Context menu
      *
-     * @param itemName Contex menu item name
+     * @param item Contex menu item name
      * @returns A promise resolving when the click is made
      */
-    public static clickContextItem = async (itemName: string): Promise<void> => {
+    public static clickContextItem = async (item: string): Promise<void> => {
+
+        const isCtxMenuDisplayed = async (): Promise<boolean> => {
+            const el = await driver.executeScript(`return document.querySelector(".shadow-root-host").
+                shadowRoot.querySelector("span[aria-label='${item}']")`);
+
+            return el !== null;
+        };
+
+        await driver.wait(async () => {
+            const textArea = await driver.findElement(By.css("textarea"));
+            await driver.actions().contextClick(textArea).perform();
+
+            return isCtxMenuDisplayed();
+
+        }, explicitWait, "Context menu was not displayed");
+
         await driver.wait(async () => {
             try {
-                const lines = await driver.findElements(By.css("#contentHost .editorHost .view-line"));
-                const el = lines[lines.length - 1];
-                await driver
-                    .actions()
-                    .contextClick(el)
-                    .perform();
+                const el: WebElement = await driver.executeScript(`return document.querySelector(".shadow-root-host").
+                shadowRoot.querySelector("span[aria-label='${item}']")`);
+                await el.click();
 
-                return true;
+                return !(await isCtxMenuDisplayed());
             } catch (e) {
-                if (typeof (e) == "object" && String(e).includes("StaleElementReferenceError")) {
-                    return false;
-                } else {
-                    throw e;
+                if (e instanceof TypeError) {
+                    return true;
                 }
             }
-        }, explicitWait, "Line was still stale");
-
-
-        const shadowRootHost = await driver.wait(until.elementLocated(By.css(".shadow-root-host")),
-            2000, "Context menu was not displayed");
-
-        const shadowRoot: WebElement = await driver.executeScript("return arguments[0].shadowRoot", shadowRootHost);
-
-        const menuItems = await shadowRoot.findElements(By.css("a.action-menu-item"));
-
-        for (const menuItem of menuItems) {
-            const item = await menuItem.findElement(By.css("span.action-label"));
-            const text = await item.getText();
-            if (text === itemName) {
-                await menuItem.click();
-
-                return;
-            }
-        }
-        throw new Error(`Could not find item '${itemName}'`);
+        }, explicitWait, "Context menu is still displayed");
     };
 
     /**
@@ -925,22 +925,26 @@ export class DBConnection {
     /**
      * Returns the result after executing a script, on the DB Editor
      *
-     * @param isSQL true if the result comes from a SQL statement
+     * @param timeout wait
      * @returns A promise resolving with the result
      */
-    public static getScriptResult = async (isSQL?: boolean): Promise<string> => {
-        let text = "";
-        if (isSQL) {
-            const result = await driver.wait(until.elementLocated(By.css("#resultPaneHost .resultStatus label")),
-                explicitWait, "No results were found for the SQL statement");
-            text = await result.getText();
-        } else {
-            const result = await driver.wait(until.elementLocated(By.css("#resultPaneHost .actionLabel span")),
-                explicitWait, "No results were found");
-            text = await result.getText();
-        }
+    public static getScriptResult = async (timeout = explicitWait): Promise<string> => {
+        let toReturn = "";
+        await driver.wait(async () => {
+            const resultHost = await driver.findElements(By.css(".resultHost"));
+            if (resultHost.length > 0) {
+                const content = await resultHost[0]
+                    .findElements(By.css(".resultStatus .label,.actionOutput span > span"));
 
-        return text;
+                if (content.length) {
+                    toReturn = await content[0].getAttribute("innerHTML");
+
+                    return true;
+                }
+            }
+        }, timeout, `No results were found`);
+
+        return toReturn;
     };
 
     /**

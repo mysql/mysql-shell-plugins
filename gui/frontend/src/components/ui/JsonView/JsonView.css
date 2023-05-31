@@ -1,0 +1,164 @@
+/*
+ * Copyright (c) 2023, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.msg.jsonView .entry {
+    display: block;
+    padding-left: 22px;
+    margin-left: -18px;
+    position: relative;
+
+    user-select: text;
+    font-family: "SourceCodePro+Powerline+Awesome+MySQL";
+}
+
+.msg.jsonView .entry:not(.objProp) {
+    cursor: pointer;
+}
+
+.msg.jsonView .collapsed {
+    white-space: nowrap;
+}
+
+.msg.jsonView .blockInner {
+    display: block;
+    padding-left: 22px;
+    border-left: 1px dotted var(--text-dimmedForeground);
+    margin-left: 3px;
+    margin-top: 3px;
+
+    cursor: text;
+}
+
+.msg.jsonView .collapsed > .blockInner {
+    display: none;
+}
+
+.msg.jsonView .collapsed > .ell:after {
+    content: '…';
+    font-weight: bold;
+}
+
+.msg.jsonView .collapsed > .ell {
+    margin: 0 4px;
+    color: #888;
+}
+
+.msg.jsonView .collapsed .entry {
+    display: inline;
+}
+
+.msg.jsonView .collapsed:after {
+    content: attr(data-size);
+    color: #aaa;
+}
+
+.msg.jsonView .e {
+    width: 20px;
+    height: 18px;
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.5;
+}
+
+.msg.jsonView .e::after {
+    content: '';
+    display: block;
+    width: 0.5em;
+    height: 0.5em;
+    border-right: 1px solid var(--text-dimmedForeground);
+    border-bottom: 1px solid var(--text-dimmedForeground);
+    transform: translate(1px, -2px) rotate(45deg);
+    transition: transform 125ms linear;
+}
+
+.msg.jsonView .collapsed > .e::after {
+    transform: rotate(-45deg);
+}
+
+.msg.jsonView .e:hover {
+    opacity: 0.75;
+}
+
+.msg.jsonView .e:active {
+    opacity: 1;
+}
+
+.msg.jsonView .collapsed .entry .e {
+    display: none;
+}
+
+.msg.jsonView .a {
+    font-weight: bold;
+    color: var(--arrayDelimiterColor);
+}
+
+.msg.jsonView .o {
+    font-weight: bold;
+    color: var(--braceDelimiterColor);
+}
+
+.msg.jsonView .s {
+    color: var(--valueColor);
+    word-wrap: break-word;
+}
+
+.msg.jsonView a:link,
+.msg.jsonView a:visited {
+    text-decoration: none;
+    color: inherit;
+}
+
+.msg.jsonView a:hover,
+.msg.jsonView a:active {
+    text-decoration: underline;
+    color: #050;
+}
+
+.msg.jsonView .bl,
+.msg.jsonView .nl,
+.msg.jsonView .n {
+    font-weight: bold;
+    color: var(--keywordColor);
+}
+
+.msg.jsonView .k {
+    color: var(--keyColor);
+}
+
+.msg.jsonView .del {
+    color: var(--colonDelimiterColor);
+}
+
+.msg.jsonView [hidden] {
+    display: none !important;
+}
+
+.msg.jsonView span {
+    white-space: pre-wrap;
+}

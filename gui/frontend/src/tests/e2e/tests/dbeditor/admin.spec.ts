@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { By, until, WebElement } from "selenium-webdriver";
+import { By, until } from "selenium-webdriver";
 import { Misc, explicitWait, driver, IDBConnection } from "../../lib/misc";
 import { DBConnection } from "../../lib/dbConnection";
 import { DBNotebooks } from "../../lib/dbNotebooks";
@@ -50,38 +50,32 @@ describe("MySQL Administration", () => {
     beforeAll(async () => {
         await Misc.loadDriver();
         try {
-            await Misc.loadPage(String(process.env.SHELL_UI_HOSTNAME));
-            await Misc.waitForHomePage();
-        } catch (e) {
-            await driver.navigate().refresh();
-            await Misc.waitForHomePage();
-        }
+            try {
+                await Misc.loadPage(String(process.env.SHELL_UI_HOSTNAME));
+                await Misc.waitForHomePage();
+            } catch (e) {
+                await driver.navigate().refresh();
+                await Misc.waitForHomePage();
+            }
 
-        await driver.findElement(By.id("gui.sqleditor")).click();
-
-        let db: WebElement | undefined;
-        try {
-            db = await DBNotebooks.getConnection("conn");
-        } catch (e) {
-            db = undefined;
-        }
-
-        if (!db) {
-            await DBNotebooks.initConDialog();
-            db = await DBNotebooks.createDBconnection(globalConn);
-        }
-
-        try {
-            await driver.executeScript("arguments[0].click();", db);
-            await Misc.setPassword(globalConn);
-            await Misc.setConfirmDialog(globalConn, "no");
-        } catch (e) {
-            if (e instanceof Error) {
-                if (e.message.indexOf("dialog was found") === -1) {
-                    throw e;
+            await driver.findElement(By.id("gui.sqleditor")).click();
+            const db = await DBNotebooks.createDBconnection(globalConn);
+            try {
+                await driver.executeScript("arguments[0].click();", db);
+                await Misc.setPassword(globalConn);
+                await Misc.setConfirmDialog(globalConn, "no");
+            } catch (e) {
+                if (e instanceof Error) {
+                    if (e.message.indexOf("dialog was found") === -1) {
+                        throw e;
+                    }
                 }
             }
+        } catch (e) {
+            await Misc.storeScreenShot("beforeAll_Admin");
+            throw e;
         }
+
     });
 
     afterEach(async () => {

@@ -431,6 +431,7 @@
         "no-underscore-dangle": "error",
         "no-unsafe-finally": "error",
         "no-inferrable-types": "off",
+        "no-prototype-builtins": "off",
         "object-shorthand": "error",
         "one-var": [
             "error",

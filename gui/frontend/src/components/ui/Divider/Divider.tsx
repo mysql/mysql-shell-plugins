@@ -48,7 +48,7 @@ export class Divider extends ComponentBase<IDividerProperties> {
     public constructor(props: IDividerProperties) {
         super(props);
 
-        this.addHandledProperties("vertical", "thickness", "innerRef");
+        this.addHandledProperties("vertical", "thickness", "innerRef", "style");
         this.connectEvents("onMouseEnter", "onMouseLeave");
     }
 

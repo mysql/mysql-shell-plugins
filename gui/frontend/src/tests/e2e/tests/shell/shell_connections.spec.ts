@@ -21,11 +21,10 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { Misc, driver, IDBConnection } from "../../lib/misc";
 import { By, WebElement, until } from "selenium-webdriver";
 import { GuiConsole } from "../../lib/guiConsole";
+import { IDBConnection, Misc, driver } from "../../lib/misc";
 import { ShellSession } from "../../lib/shellSession";
-import { Settings } from "../../lib/settings";
 
 describe("MySQL Shell Connections", () => {
 
@@ -52,16 +51,20 @@ describe("MySQL Shell Connections", () => {
     beforeAll(async () => {
         await Misc.loadDriver();
         try {
-            await Misc.loadPage(String(process.env.SHELL_UI_HOSTNAME));
-            await Misc.waitForHomePage();
-        } catch (e) {
-            await driver.navigate().refresh();
-            await Misc.waitForHomePage();
-        }
+            try {
+                await Misc.loadPage(String(process.env.SHELL_UI_HOSTNAME));
+                await Misc.waitForHomePage();
+            } catch (e) {
+                await driver.navigate().refresh();
+                await Misc.waitForHomePage();
+            }
 
-        await Settings.setCurrentTheme("Default Dark");
-        await driver.findElement(By.id("gui.shell")).click();
-        await GuiConsole.openSession();
+            await driver.findElement(By.id("gui.shell")).click();
+            await GuiConsole.openSession();
+        } catch (e) {
+            await Misc.storeScreenShot("beforeAll_ShellConnections");
+            throw e;
+        }
     });
 
     beforeEach(async () => {
@@ -84,7 +87,7 @@ describe("MySQL Shell Connections", () => {
             }, 2000, "There are still more than 1 tab after disconnect");
             expect(await ShellSession.getServerTabStatus()).toBe("The session is not connected to a MySQL server");
         }
-        await Misc.cleanPrompt();
+        //await Misc.cleanPrompt();
     });
 
     afterAll(async () => {

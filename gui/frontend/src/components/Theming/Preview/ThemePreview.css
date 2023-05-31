@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -59,7 +59,7 @@
     transform: rotate(-90deg);
 }
 
-.msg#previewRoot >.grid:not(#symbols) > .gridCell {
+.msg#previewRoot > .grid:not(#symbols) > .gridCell {
     padding: 0 10px 0 0;
     justify-content: center;
     align-items: center;
@@ -180,7 +180,7 @@
 }
 
 .msg#previewRoot .missing {
-    padding: 12px 0px 12px 0px;
+    padding: 12px 0 12px 0;
     color: tomato;
 }
 
@@ -214,20 +214,20 @@
     margin: auto;
 }
 
-.msg#previewRoot .selectorItem .closeButton {
+.msg#previewRoot .tabItem .closeButton {
     width: 12px;
     height: 12px;
     min-width: auto;
     min-height: auto;
     background: transparent;
     border: none;
-    margin: 0px 0px 0px 8px;
+    margin: 0 0 0 8px;
 }
 
-.msg#previewRoot .gridCell .selectorItem .closeButton > .icon {
+.msg#previewRoot .gridCell .tabItem .closeButton > .icon {
     width: 12px;
     height: 12px;
-    margin: 0px;
+    margin: 0;
     background-color: hsl(0, 0%, 71%);
 }
 
@@ -390,7 +390,7 @@
 }
 
 .msg#previewRoot #terminalPreview #cursor > #inner {
-    width: 0px;
+    width: 0;
     padding-left: 1px;
     margin: 0;
 
@@ -401,7 +401,7 @@
 
 @keyframes blink {
     70% {
-      opacity: 0.0;
+        opacity: 0.0;
     }
 }
 
