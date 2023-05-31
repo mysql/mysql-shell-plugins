@@ -902,6 +902,34 @@ describe("DATABASE CONNECTIONS", () => {
             }
         });
 
+        it("Valid and invalid json", async () => {
+            await Misc.execCmd("\\ts ", undefined);
+            let result = await Misc.execCmd(`print('{"a": "b"}')`, undefined);
+            expect((await (result[1] as WebElement)
+                .findElements(By.css("#outputHost .jsonView"))).length, "Result is not a valid JSON").equals(1);
+
+            let copy: WebElement;
+            await driver.wait(async () => {
+                const json = await (result[1] as WebElement).findElement(By.css("#outputHost .jsonView"));
+                await driver.actions().move({ origin: json }).perform();
+                copy = await (result[1] as WebElement).findElement(By.css(".copyButton"));
+
+                return copy.isDisplayed();
+            }, constants.explicitWait * 2, "Copy button was not displayed");
+
+            await copy.click();
+            const clipRead = clipboard.readSync();
+            expect(clipRead).to.include(`{`);
+            expect(clipRead).to.include(`"a"`);
+            expect(clipRead).to.include(`:`);
+            expect(clipRead).to.include(`"b"`);
+            expect(clipRead).to.include(`}`);
+
+            result = await Misc.execCmd(`print('{ a: b }')`, undefined);
+            expect((await (result[1] as WebElement)
+                .findElements(By.css("#outputHost .jsonView"))).length, "Result shoulb not be a valid JSON").equals(0);
+        });
+
     });
 
     describe("Scripts", () => {
@@ -951,7 +979,7 @@ describe("DATABASE CONNECTIONS", () => {
             expect(await Database.getCurrentEditorType()).to.include("Mysql");
 
             const result = await Database.execScript("select * from sakila.actor limit 1;");
-            expect(result[0]).to.match(/OK, (\d+) record/);
+            expect(result).to.match(/OK, (\d+) record/);
 
             await driver.switchTo().defaultContent();
 
@@ -968,7 +996,7 @@ describe("DATABASE CONNECTIONS", () => {
             expect(await Database.getCurrentEditorType()).to.include("scriptTs");
 
             const result = await Database.execScript("Math.random()");
-            expect(result[0]).to.match(/(\d+).(\d+)/);
+            expect(result).to.match(/(\d+).(\d+)/);
 
             await driver.switchTo().defaultContent();
 
@@ -985,7 +1013,7 @@ describe("DATABASE CONNECTIONS", () => {
             expect(await Database.getCurrentEditorType()).to.include("scriptJs");
 
             const result = await Database.execScript("Math.random()");
-            expect(result[0]).to.match(/(\d+).(\d+)/);
+            expect(result).to.match(/(\d+).(\d+)/);
 
             await driver.switchTo().defaultContent();
 
@@ -1753,7 +1781,7 @@ describe("DATABASE CONNECTIONS", () => {
                 "DB Connection was not loaded");
             await Database.setDBConnectionCredentials(globalConn);
             const result = await Database.getScriptResult();
-            expect(result[0]).to.match(/OK/);
+            expect(result).to.match(/OK/);
             await driver.wait(new Condition("", async () => {
                 return Database.isResultTabMaximized();
             }), constants.explicitWait, "Result tab was not maxized");
@@ -1767,7 +1795,7 @@ describe("DATABASE CONNECTIONS", () => {
             await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
                 "DB Connection was not loaded");
             const result = await Database.getScriptResult();
-            expect(result[0]).to.match(/OK/);
+            expect(result).to.match(/OK/);
             await driver.wait(new Condition("", async () => {
                 return Database.isResultTabMaximized();
             }), constants.explicitWait, "Resulta tab was not maxized");

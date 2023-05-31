@@ -21,22 +21,22 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { Misc, driver, IDBConnection, explicitWait } from "../../lib/misc";
-import { By, until, Key, WebElement, error, Condition } from "selenium-webdriver";
+import fs from "fs/promises";
+import { join } from "path";
+import { By, Condition, Key, error, until } from "selenium-webdriver";
 import { DBConnection } from "../../lib/dbConnection";
 import {
     DBNotebooks,
-    execFullBlockSql,
-    execCaret,
     autoCommit,
     commit,
-    rollback,
+    execCaret,
+    execFullBlockSql,
     find,
+    rollback,
     saveNotebook,
 } from "../../lib/dbNotebooks";
-import fs from "fs/promises";
-import { join } from "path";
-import { Settings } from "../../lib/settings";
+import { IDBConnection, Misc, driver, explicitWait } from "../../lib/misc";
+import { ShellSession } from "../../lib/shellSession";
 
 describe("Notebook", () => {
 
@@ -63,42 +63,35 @@ describe("Notebook", () => {
     beforeAll(async () => {
         await Misc.loadDriver();
         try {
-            await Misc.loadPage(String(process.env.SHELL_UI_HOSTNAME));
-            await Misc.waitForHomePage();
-        } catch (e) {
-            await driver.navigate().refresh();
-            await Misc.waitForHomePage();
-        }
+            try {
+                await Misc.loadPage(String(process.env.SHELL_UI_HOSTNAME));
+                await Misc.waitForHomePage();
+            } catch (e) {
+                await driver.navigate().refresh();
+                await Misc.waitForHomePage();
+            }
 
-        await Settings.setCurrentTheme("Default Dark");
-        await driver.findElement(By.id("gui.sqleditor")).click();
-
-        let db: WebElement | undefined;
-        try {
-            db = await DBNotebooks.getConnection("conn");
-        } catch (e) {
-            db = undefined;
-        }
-
-        if (!db) {
-            await DBNotebooks.initConDialog();
-            db = await DBNotebooks.createDBconnection(globalConn);
-        }
-
-        try {
-            await driver.executeScript("arguments[0].click();", db);
-            await Misc.setPassword(globalConn);
-            await Misc.setConfirmDialog(globalConn, "no");
-        } catch (e) {
-            if (e instanceof Error) {
-                if (e.message.indexOf("dialog was found") === -1) {
-                    throw e;
+            await driver.findElement(By.id("gui.sqleditor")).click();
+            const db = await DBNotebooks.createDBconnection(globalConn);
+            try {
+                await driver.executeScript("arguments[0].click();", db);
+                await Misc.setPassword(globalConn);
+                await Misc.setConfirmDialog(globalConn, "no");
+            } catch (e) {
+                if (e instanceof Error) {
+                    if (e.message.indexOf("dialog was found") === -1) {
+                        throw e;
+                    }
                 }
             }
+            await driver.wait(until.elementLocated(By.id("dbEditorToolbar")),
+                explicitWait * 2, "Notebook was not loaded");
+        } catch (e) {
+            await Misc.storeScreenShot("beforeAll_Notebook");
+            throw e;
         }
         await driver.wait(until.elementLocated(By.id("dbEditorToolbar")), explicitWait * 2, "Notebook was not loaded");
 
-        await driver.wait(until.elementLocated(By.id("dbEditorToolbar")), explicitWait * 2, "Notebook was not loaded");
     });
 
     afterEach(async () => {
@@ -1057,6 +1050,31 @@ describe("Notebook", () => {
         } finally {
             await fs.unlink(notebook);
         }
+    });
+
+    it("Valid and invalid json", async () => {
+        const textArea = await driver.findElement(By.css("textarea"));
+        await Misc.execCmd(textArea, "\\typescript", undefined, true);
+        await Misc.execCmd(textArea, `print('{"a": "b"}')`, undefined);
+        await driver.wait(async () => {
+            return ShellSession.isJSON();
+        }, explicitWait, "Result is not a valid json");
+
+        const zoneHosts = await driver.findElements(By.css(".zoneHost"));
+        const outputHost = await zoneHosts[zoneHosts.length - 1].findElement(By.id("outputHost"));
+        const rect = await outputHost.getRect();
+        await driver.actions().move({
+            x: rect.x,
+            y: rect.y,
+        }).perform();
+
+        await zoneHosts[zoneHosts.length - 1].findElement(By.css(".copyButton"));
+
+        await Misc.execCmd(textArea, `print('{ a: b }')`, undefined);
+        await ShellSession.waitForResult("{ a: b }");
+        await driver.wait(async () => {
+            return !(await ShellSession.isJSON());
+        }, explicitWait, "Result should not be a valid json");
     });
 
 });

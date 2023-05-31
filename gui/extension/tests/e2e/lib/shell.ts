@@ -37,12 +37,6 @@ export class Shell {
         return classes[2];
     };
 
-    public static getLangResult = async (resultHost: WebElement): Promise<string> => {
-        const dataLang = await resultHost.findElement(By.css("label")).getAttribute("data-lang");
-
-        return dataLang;
-    };
-
     public static isShellLoaded = (): Condition<boolean> => {
         return new Condition("Shell is not loaded",
             async () => {
@@ -55,7 +49,13 @@ export class Shell {
 
     public static isValueOnJsonResult = (resultHost: WebElement, value: string): Condition<boolean> => {
         return new Condition("Value is not on json result", async () => {
-            const spans = await resultHost.findElements(By.css("label > span > span"));
+            const json = await resultHost.findElements(By.css(".jsonView"));
+            if (json.length > 0) {
+                const jsonString = await json[json.length - 1].getAttribute("innerHTML");
+
+                return jsonString.includes(value);
+            }
+            /*const spans = await resultHost.findElements(By.css("label > span > span"));
             if (spans.length > 0) {
                 for (const span of spans) {
                     const spanText = await span.getText();
@@ -71,9 +71,9 @@ export class Shell {
                         return true;
                     }
                 }
-            }
+            }*/
 
-            return false;
+            //return false;
         });
 
     };

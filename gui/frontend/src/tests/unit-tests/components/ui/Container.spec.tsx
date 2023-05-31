@@ -25,14 +25,14 @@ import overviewPageIcon from "../../../../assets/images/overviewPage.svg";
 
 import { mount } from "enzyme";
 
-import { Container, IContainerProperties, Orientation } from "../../../../components/ui/Container/Container";
+import { Container, Orientation } from "../../../../components/ui/Container/Container";
 import { Icon } from "../../../../components/ui/Icon/Icon";
 import { Button } from "../../../../components/ui/Button/Button";
 
 describe("Container component tests", (): void => {
 
     it("Test Container output (snapshot)", () => {
-        const component = mount<Container<IContainerProperties>>(
+        const component = mount<Container>(
             <Container className="demoContainer">
                 <Container
                     orientation={Orientation.TopDown}

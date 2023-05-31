@@ -70,12 +70,14 @@ export class Misc {
                 let driver: WebDriver;
                 options.addArguments("--no-sandbox");
                 const outDir = process.env.USERPROFILE ?? process.env.HOME;
-                options.setUserPreferences({download: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    default_directory: `${String(outDir)}`,
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    prompt_for_download: "false"},
-                  });
+                options.setUserPreferences({
+                    download: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        default_directory: `${String(outDir)}`,
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        prompt_for_download: "false",
+                    },
+                });
 
                 if (headless === String("1")) {
                     options.headless().windowSize({ width: 1024, height: 768 });
@@ -458,10 +460,17 @@ export class Misc {
 
     /**
      * Takes a screen shot of the current browser window and stores it on disk.
+     *
+     * @param name test name
      */
-    public static async storeScreenShot(): Promise<void> {
+    public static async storeScreenShot(name?: string): Promise<void> {
         const img = await driver.takeScreenshot();
-        const testName = Misc.currentTestName() ?? "<unknown test>";
+        let testName = "";
+        if (!name) {
+            testName = Misc.currentTestName() ?? "<unknown test>";
+        } else {
+            testName = name;
+        }
         await fs.mkdir("src/tests/e2e/screenshots", { recursive: true });
         await fs.writeFile(`src/tests/e2e/screenshots/${testName}_screenshot.png`, img, "base64");
     }

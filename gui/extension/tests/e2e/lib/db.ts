@@ -1035,7 +1035,7 @@ export class Database {
         }, 3000, "Current editor did not changed");
     };
 
-    public static execScript = async (cmd: string, timeout?: number): Promise<Array<string | WebElement>> => {
+    public static execScript = async (cmd: string, timeout?: number): Promise<string> => {
 
         const textArea = await driver?.findElement(By.css("textarea"));
         await textArea.sendKeys(cmd);
@@ -1075,22 +1075,16 @@ export class Database {
         return height > 0;
     };
 
-    public static getScriptResult = async (timeout?: number): Promise<Array<string | WebElement>> => {
-        const toReturn: Array<string | WebElement> = [];
+    public static getScriptResult = async (timeout = constants.explicitWait): Promise<string> => {
+        let toReturn = "";
         await driver.wait(async () => {
             const resultHost = await driver.findElements(By.css(".resultHost"));
             if (resultHost.length > 0) {
-                const resultStatus = await resultHost[0].findElements(By.css(".resultStatus .label"));
-                if (resultStatus.length > 0) {
-                    toReturn.push(await resultStatus[0].getAttribute("innerHTML"));
-                    toReturn.push(await resultHost[0].findElement(By.css(".resultTabview")));
+                const content = await resultHost[resultHost.length - 1]
+                    .findElements(By.css(".resultStatus label,.actionOutput span > span"));
 
-                    return true;
-                }
-
-                const content = await resultHost[0].findElements(By.css(".actionLabel span"));
                 if (content.length) {
-                    toReturn.push(await content[0].getAttribute("innerHTML"));
+                    toReturn = await content[content.length - 1].getAttribute("innerHTML");
 
                     return true;
                 }

@@ -33,62 +33,44 @@ export class ShellSession {
      *
      */
     public static getResult = async (): Promise<string> => {
-        const zoneHost = await driver.findElements(By.css(".zoneHost"));
-        const error = await zoneHost[zoneHost.length - 1].findElements(
-            By.css(".error"),
-        );
-
-        if (error.length > 0) {
-            return error[error.length - 1].getText();
-        } else {
-            let text = "";
-            let results = await zoneHost[zoneHost.length - 1].findElements(By.css("span"));
-
-            if (results.length > 0) {
-                try {
-                    for (const result of results) {
-                        text += (await result.getAttribute("innerHTML")) + "\n";
-                    }
-                } catch (e) {
-                    results = await zoneHost[zoneHost.length - 1].findElements(By.css("span"));
-                    for (const result of results) {
-                        text += (await result.getAttribute("innerHTML")) + "\n";
-                    }
-                }
-
-                return text.trim();
-            } else {
-                results = await zoneHost[zoneHost.length - 1].findElements(By.css("span span"));
-
-                try {
-                    for (const result of results) {
-                        text += await result.getAttribute("innerHTML");
-                    }
-                } catch (e) {
-                    results = await zoneHost[zoneHost.length - 1].findElements(By.css("span span"));
-                    for (const result of results) {
-                        text += await result.getAttribute("innerHTML");
-                    }
-                }
-
-                return text.trim();
+        const zoneHosts = await driver.findElements(By.css(".zoneHost"));
+        const actions = await zoneHosts[zoneHosts.length - 1].findElements(By.css(".actionLabel"));
+        let text = "";
+        for (const action of actions) {
+            const spans = await action.findElements(By.css("span"));
+            for (const span of spans) {
+                text += `${await span.getText()}\r\n`;
             }
         }
+
+        return text;
     };
 
     /**
-     * Returns the result language of a shell session query or instruction. Ex. json
+     * Returns the result of a shell session query or instruction that should generate a json result
+     *
+     * @returns Promise resolving whith the result
+     *
+     */
+    public static getJsonResult = async (): Promise<string> => {
+        const results = await driver.findElements(By.css(".zoneHost .jsonView .arrElem"));
+
+        return results[results.length - 1].getAttribute("innerHTML");
+    };
+
+    /**
+     * Verifies if the last output result is JSON
      *
      * @returns Promise resolving with the result language
      */
-    public static getLangResult = async (): Promise<string> => {
+    public static isJSON = async (): Promise<boolean> => {
         await driver.wait(until.elementLocated(By.css(".zoneHost")), explicitWait);
         const zoneHosts = await driver.findElements(By.css(".zoneHost"));
         const zoneHost = zoneHosts[zoneHosts.length - 1];
 
-        const label = await zoneHost.findElement(By.css("label"));
+        const json = await zoneHost.findElements(By.css("#outputHost .jsonView"));
 
-        return label.getAttribute("data-lang");
+        return json.length > 0;
     };
 
     /**
@@ -217,15 +199,23 @@ export class ShellSession {
      * Waits for the text or regexp to include/match the result of a shell session query or instruction
      *
      * @param text text of regexp to verify
+     * @param isJson true if expected result should be json
      * @returns Promise resolving when the text or the regexp includes/matches the query result
      *
      */
-    public static waitForResult = async (text: string | RegExp): Promise<void> => {
+    public static waitForResult = async (text: string | RegExp, isJson = false): Promise<void> => {
+        let result: string;
         await driver.wait(async () => {
             if (typeof text === "object") {
                 return (await ShellSession.getResult()).match(text);
             } else {
-                return (await ShellSession.getResult()).includes(String(text));
+                if (isJson) {
+                    result = await ShellSession.getJsonResult();
+                } else {
+                    result = await ShellSession.getResult();
+                }
+
+                return result.includes(text);
             }
         }, explicitWait, `'${String(text)}' was not found on result`);
     };

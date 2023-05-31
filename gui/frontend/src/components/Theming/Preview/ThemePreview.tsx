@@ -72,6 +72,7 @@ import { Toolbar } from "../../ui/Toolbar/Toolbar";
 import { Button } from "../../ui/Button/Button";
 import { ISavedEditorState } from "../../../modules/db-editor/DBConnectionTab";
 import { EntityType } from "../../../modules/db-editor";
+import { JsonView } from "../../ui/JsonView/JsonView";
 
 interface IThemePreviewState extends IComponentState {
     editorLanguage: EditorLanguage;
@@ -464,6 +465,12 @@ export class ThemePreview extends ComponentBase<{}, IThemePreviewState> {
                     />
                 </Container>
 
+
+                <p>JSON View</p>
+                <JsonView
+                    json={codeExamples.json as string}
+                />
+
                 <p>Code Editor</p>
                 <Container
                     orientation={Orientation.TopDown}
@@ -521,7 +528,6 @@ export class ThemePreview extends ComponentBase<{}, IThemePreviewState> {
                 <p>Mixed Language Code Editor with Embedded Results</p>
                 <Container
                     orientation={Orientation.TopDown}
-                    style={{ height: "600px" }}
                 >
                     <Notebook
                         savedState={this.#savedState}

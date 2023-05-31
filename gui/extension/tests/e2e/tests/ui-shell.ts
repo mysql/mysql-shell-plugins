@@ -438,7 +438,6 @@ describe("MYSQL SHELL CONSOLES", () => {
 
             await Shell.changeSchemaOnTab("world_x_cst");
             const result1 = await Misc.execCmd("db.countryinfo.find()");
-            expect(await Shell.getLangResult(result1[1] as WebElement)).to.equals("json");
             await driver.wait(Shell.isValueOnJsonResult(result1[1] as WebElement, "Yugoslavia"),
                 constants.explicitWait, "'Yugoslavia' is not the json result");
 

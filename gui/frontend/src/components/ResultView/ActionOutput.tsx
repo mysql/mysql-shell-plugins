@@ -30,6 +30,7 @@ import { Codicon } from "../ui/Codicon";
 import { IComponentProperties, ComponentBase } from "../ui/Component/ComponentBase";
 import { Container, Orientation } from "../ui/Container/Container";
 import { Icon } from "../ui/Icon/Icon";
+import { JsonView } from "../ui/JsonView/JsonView";
 import { Label } from "../ui/Label/Label";
 
 interface IActionOutputProperties extends IComponentProperties {
@@ -91,18 +92,23 @@ export class ActionOutput extends ComponentBase<IActionOutputProperties> {
                 columnSpan = 2;
             }
 
-            cells.push(<Label
-                className={`actionLabel${index === undefined ? "" : " clickable"}`}
-                id={index?.toString()}
-                language={entry.language ?? "ansi"}
-                key={entry.resultId}
-                caption={entry.content}
-                type={entry.type}
-                style={{ gridColumn: `span ${columnSpan}` }}
-                tabIndex={index === undefined ? -1 : 0}
-                data-tooltip={undefined}
-                onClick={this.handleLabelClick}
-            />);
+            try {
+                const json = JSON.parse(entry.content);
+                cells.push(<JsonView json={json} />);
+            } catch (e) {
+                cells.push(<Label
+                    className={`actionLabel${index === undefined ? "" : " clickable"}`}
+                    id={index?.toString()}
+                    language={entry.language ?? "ansi"}
+                    key={entry.resultId}
+                    caption={entry.content}
+                    type={entry.type}
+                    style={{ gridColumn: `span ${columnSpan}` }}
+                    tabIndex={index === undefined ? -1 : 0}
+                    data-tooltip={undefined}
+                    onClick={this.handleLabelClick}
+                />);
+            }
 
             rows.push(
                 <div style={{ display: "flex", gap: "2px", flexDirection: "row" }}>

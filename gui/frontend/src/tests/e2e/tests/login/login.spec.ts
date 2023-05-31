@@ -31,11 +31,16 @@ describe("Login", () => {
     beforeAll(async () => {
         await Misc.loadDriver();
         try {
-            await Misc.loadPage(String(process.env.SHELL_UI_MU_HOSTNAME));
-            await Misc.waitForLoginPage();
+            try {
+                await Misc.loadPage(String(process.env.SHELL_UI_MU_HOSTNAME));
+                await Misc.waitForLoginPage();
+            } catch (e) {
+                await driver.navigate().refresh();
+                await Misc.waitForLoginPage();
+            }
         } catch (e) {
-            await driver.navigate().refresh();
-            await Misc.waitForLoginPage();
+            await Misc.storeScreenShot("beforeAll_Login");
+            throw e;
         }
     });
 

@@ -22,8 +22,7 @@
  */
 
 import { By, until, WebElement } from "selenium-webdriver";
-import { driver, explicitWait } from "../lib/misc";
-import { ThemeEditor } from "../lib/themeEditor";
+import { driver } from "../lib/misc";
 
 export class Settings {
 
@@ -70,21 +69,6 @@ export class Settings {
         } else {
             throw new Error("unknown settingId: " + settingId);
         }
-    };
-
-    /**
-     * Sets the default color theme, on the settings area
-     *
-     * @param theme theme name
-     * @returns A promise resolving when the click is made
-     */
-    public static setCurrentTheme = async (theme: string): Promise<void> => {
-        await driver.wait(until.elementLocated(By.id("settings")),
-            explicitWait, "Settings button was not found").click();
-        const settingsHost = await driver.wait(until.elementLocated(By.id("settingsHost")), explicitWait);
-        const settingsTreeRows = await settingsHost.findElements(By.css(".settingsTreeCell label"));
-        await settingsTreeRows[0].click();
-        await ThemeEditor.selectAppColorTheme(theme);
     };
 
     /**

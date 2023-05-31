@@ -69,13 +69,13 @@ export interface IContainerProperties extends IComponentProperties {
 }
 
 /** A grouping element with flex layout. */
-export class Container<P extends IContainerProperties> extends ComponentBase<P> {
+export class Container extends ComponentBase<IContainerProperties> {
 
     public static defaultProps = {
         orientation: Orientation.LeftToRight,
     };
 
-    public constructor(props: P) {
+    public constructor(props: IContainerProperties) {
         super(props);
 
         this.addHandledProperties("style", "orientation", "mainAlignment", "crossAlignment", "wrap", "scrollPosition",

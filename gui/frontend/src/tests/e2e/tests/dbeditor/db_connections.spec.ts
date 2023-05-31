@@ -21,11 +21,10 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { Misc, driver, IDBConnection, explicitWait } from "../../lib/misc";
-import { By, until, Key, WebElement } from "selenium-webdriver";
+import { By, Key, WebElement, until } from "selenium-webdriver";
 import { DBConnection } from "../../lib/dbConnection";
 import { DBNotebooks, execFullBlockSql } from "../../lib/dbNotebooks";
-import { Settings } from "../../lib/settings";
+import { IDBConnection, Misc, driver, explicitWait } from "../../lib/misc";
 
 jest.retryTimes(1);
 
@@ -53,17 +52,20 @@ describe("Database Connections", () => {
     beforeAll(async () => {
         await Misc.loadDriver();
         try {
-            await Misc.loadPage(String(process.env.SHELL_UI_HOSTNAME));
-            await Misc.waitForHomePage();
-        } catch (e) {
-            await driver.navigate().refresh();
-            await Misc.waitForHomePage();
-        }
+            try {
+                await Misc.loadPage(String(process.env.SHELL_UI_HOSTNAME));
+                await Misc.waitForHomePage();
+            } catch (e) {
+                await driver.navigate().refresh();
+                await Misc.waitForHomePage();
+            }
 
-        await Settings.setCurrentTheme("Default Dark");
-        await driver.findElement(By.id("gui.sqleditor")).click();
-        await DBNotebooks.initConDialog();
-        await DBNotebooks.createDBconnection(globalConn);
+            await driver.findElement(By.id("gui.sqleditor")).click();
+            await DBNotebooks.createDBconnection(globalConn);
+        } catch (e) {
+            await Misc.storeScreenShot("beforeAll_DBConnections");
+            throw e;
+        }
     });
 
     afterEach(async () => {
@@ -475,6 +477,9 @@ describe("Database Connections", () => {
             await newConDialog
                 .findElement(By.id("defaultSchema"))
                 .sendKeys(String(globalConn.schema));
+
+            await driver.findElement(By.css("#port input")).clear();
+            await driver.findElement(By.css("#port input")).sendKeys(String(globalConn.port));
 
             await newConDialog.findElement(By.id("page1")).click();
             await newConDialog.findElement(By.id("sslMode")).click();
