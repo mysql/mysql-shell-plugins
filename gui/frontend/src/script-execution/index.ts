@@ -105,6 +105,9 @@ export interface IResultSet {
     /** An optional index to map a result set to a query that produced it. */
     index?: number;
 
+    /** Optional additional index for queries that return more than one result (e.g. stored routines). */
+    subIndex?: number;
+
     /** The qualifier of the request that generated this result set. */
     resultId: string;
 
@@ -197,6 +200,9 @@ export interface IResponseDataOptions {
 
     /** The index of the query that produced the result data. */
     index?: number;
+
+    /** Optional additional index for queries that return more than one result (e.g. stored routines). */
+    subIndex?: number;
 }
 
 export interface IContextProvider {

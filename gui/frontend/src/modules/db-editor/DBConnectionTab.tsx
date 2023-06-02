@@ -995,11 +995,15 @@ Execute \\help or \\? for help;`;
      * @returns A promise that resolves when all responses have been received.
      */
     private doExecution = async (options: IQueryExecutionOptions): Promise<void> => {
-
         const { id = "" } = this.props;
 
         let resultId = uuid();
         let replaceData = false;
+        let subIndex: number | undefined;
+        if (options.queryType === QueryType.Call) {
+            subIndex = 0;
+        }
+
         try {
             // Prepare the execution (storage, UI).
             if (options.oldResultId) {
@@ -1019,7 +1023,7 @@ Execute \\help or \\? for help;`;
             let setColumns = false;
 
             options.context.executionStarts();
-            const finalData = await options.backend.execute(options.query, options.params, undefined, (data) => {
+            await options.backend.execute(options.query, options.params, undefined, (data) => {
                 const { dbType } = this.props;
 
                 let hasMoreRows = false;
@@ -1091,6 +1095,7 @@ Execute \\help or \\? for help;`;
                         hasMoreRows,
                         currentPage: options.currentPage,
                         index: options.index,
+                        subIndex,
                         sql: options.original,
                     });
 
@@ -1105,6 +1110,7 @@ Execute \\help or \\? for help;`;
                     }, {
                         resultId,
                         index: options.index,
+                        subIndex,
                         sql: options.original,
                         replaceData,
                     });
@@ -1112,6 +1118,9 @@ Execute \\help or \\? for help;`;
 
                 if (resultSummary) {
                     resultId = uuid();
+                    if (options.queryType === QueryType.Call) {
+                        ++subIndex!;
+                    }
                 }
 
                 setColumns = false;
@@ -1119,11 +1128,7 @@ Execute \\help or \\? for help;`;
             });
 
             // Handling of the final response.
-            if (finalData) {
-                // const { dbType } = this.props;
-
-                await this.handleDependentTasks(options.queryType);
-            }
+            await this.handleDependentTasks(options.queryType);
         } catch (reason) {
             const resultTimer = this.resultTimers.get(resultId);
             if (resultTimer) {

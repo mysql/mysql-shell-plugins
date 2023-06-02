@@ -194,9 +194,20 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
             this.viewRefs.set(resultSet.resultId, ref);
 
             if (!showMaximized || resultSet === currentResultSet) {
+                let caption;
+                if (resultSet.index !== undefined) {
+                    caption = `Result #${resultSet.index + 1}`;
+                } else {
+                    caption = `Result #${index + 1}`;
+                }
+
+                if (resultSet.subIndex !== undefined) {
+                    caption += `.${resultSet.subIndex + 1}`;
+                }
+
                 pages.push({
                     id: resultSet.resultId,
-                    caption: `Result #${(resultSet.index ?? index) + 1}`,
+                    caption,
                     auxillary: showMaximizeButton === "tab" && toggleStateButton,
                     content: (
                         <ResultView

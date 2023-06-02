@@ -531,6 +531,7 @@ export class PresentationInterface {
                                     this.resultData.sets.push({
                                         type: "resultSet",
                                         index: dataOptions.index,
+                                        subIndex: dataOptions.subIndex,
                                         resultId: dataOptions?.resultId,
                                         sql: dataOptions.sql ?? "",
                                         columns: data.columns ?? [],
