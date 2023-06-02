@@ -108,12 +108,12 @@ class DbModuleSession(ModuleSession):
 
         return path
 
-    def on_session_message(self, type, message, request_id=None):
+    def on_session_message(self, type, message, result, request_id=None):
         self._web_session.send_response_message(
             msg_type=type,
             msg=message,
             request_id=self._current_request_id if request_id is None else request_id,
-            values=None, api=False)
+            values=result, api=False)
 
     # Note that this function is executed in the DBSession thread
     # def _handle_db_response(self, request_id, values):
