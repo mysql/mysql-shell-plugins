@@ -102,7 +102,7 @@ class DbMysqlSession(DbSession):
         return [SetupTasks.SessionInfoTask(self),
                 SetupTasks.HeatWaveCheckTask(self),
                 SetupTasks.BastionHandlerTask(
-                    self, lambda message: self._message_callback('PENDING', message)),
+                    self, lambda message: self._message_callback('PENDING', "", message)),
                 DbPingHandlerTask(self)]
 
     @property
@@ -228,7 +228,7 @@ class DbMysqlSession(DbSession):
         # Send a notification to the FE so the user is aware about a reconnection happening
         if is_auto_reconnect and self._auto_reconnect == ReconnectionMode.STANDARD:
             self._message_callback(
-                "PENDING", "Connection lost, reconnecting session...", self._current_task_id)
+                "PENDING", "Connection lost, reconnecting session...", None, self._current_task_id)
 
         self._close_database(False)
 
