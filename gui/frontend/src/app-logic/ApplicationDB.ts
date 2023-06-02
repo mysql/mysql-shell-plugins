@@ -53,6 +53,9 @@ export interface IDbModuleResultData {
     /** An optional value to map a result set to the query that produced it. */
     index?: number;
 
+    /** Optional additional index for queries that return more than one result (e.g. stored routines). */
+    subIndex?: number;
+
     /** SQL text exists only for the start response. */
     sql?: string;
 }
