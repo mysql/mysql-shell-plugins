@@ -6,7 +6,7 @@
         "background": "#FFFFFF",
         "window.background": "#FFFFFF",
         "window.headerBackground": "#F2F2F3",
-        "window.footerBackground": "#E6E6E8",
+        "window.footerBackground": "#FFFFFF",
         "text.captionForeground": "#998F8F",
         "text.dimmedForeground": "#707070",
         "button.pressedBackground": "#0062A3",
