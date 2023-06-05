@@ -168,7 +168,7 @@ exports[`Theme editor lists testing Render test 1`] = `
                     },
                     {
                       "children": undefined,
-                      "color": "#272727",
+                      "color": "#212121",
                       "description": "Footer color",
                       "id": "window.footerBackground",
                       "preview": true,
@@ -5506,7 +5506,7 @@ exports[`Theme editor lists testing Render test 1`] = `
                       },
                       {
                         "children": undefined,
-                        "color": "#272727",
+                        "color": "#212121",
                         "description": "Footer color",
                         "id": "window.footerBackground",
                         "preview": true,
