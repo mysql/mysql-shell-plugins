@@ -138,6 +138,22 @@ export class ShellInterfaceUser {
     }
 
     /**
+     * Adds a new user profile.
+     *
+     * @param profile The profile.
+     *
+     * @returns A promise resolving to the data of the just added profile.
+     */
+    public async addProfile(profile: IShellProfile): Promise<number | undefined> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiUsersAddProfile,
+            parameters: { args: { userId: profile.userId, profile } },
+        });
+
+        return response.result;
+    }
+
+    /**
      * Updates the user profile.
      *
      * @param profile The profile to update.
@@ -156,21 +172,17 @@ export class ShellInterfaceUser {
     }
 
     /**
-     * Adds a new user profile.
+     * Deletes a user profile.
      *
-     * @param profile The profile.
+     * @param profile The profile to remove.
      *
-     * @returns A promise resolving to the data of the just added profile.
+     * @returns A promise which resolve when the request was finished.
      */
-    public async addProfile(profile: IShellProfile): Promise<IShellProfile | undefined> {
-        const response = await MessageScheduler.get.sendRequest({
-            requestType: ShellAPIGui.GuiUsersAddProfile,
-            parameters: { args: { userId: profile.userId, profile } },
+    public async deleteProfile(profile: IShellProfile): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiUsersDeleteProfile,
+            parameters: { args: { userId: profile.userId, profileId: profile.id } },
         });
-
-        if (!Array.isArray(response)) {
-            return Promise.resolve(response.result);
-        }
     }
 
     /**

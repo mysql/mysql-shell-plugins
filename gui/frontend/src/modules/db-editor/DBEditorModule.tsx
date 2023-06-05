@@ -91,6 +91,7 @@ import { MrsHub } from "../mrs/MrsHub";
 import { IMrsServiceData } from "../../communication/ProtocolMrs";
 
 import scriptingRuntime from "./assets/typings/scripting-runtime.d.ts?raw";
+import { IGenericResponse } from "../../communication/Protocol";
 
 // Details generated while adding a new tab. These are used in the render method to fill the tab page details.
 interface IDBEditorTabInfo {
@@ -937,7 +938,9 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             const data = await backend.openConnection(connection.id, requestId, ((response, requestId) => {
                 if (!ShellPromptHandler.handleShellPrompt(response.result as IShellPasswordFeedbackRequest, requestId,
                     backend, "Provide Password")) {
-                    this.setProgressMessage("Loading ...");
+
+                    const raw = response as unknown as IGenericResponse;
+                    this.setProgressMessage(raw.requestState.msg);
                 }
             }));
 

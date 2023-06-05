@@ -292,7 +292,7 @@ Execute \\help or \\? for help;`;
         this.notebookRef.current?.focus();
 
         // Update the cachedMrsServiceSdk for the first time
-        void this.updateMrsServiceSdkCache();
+        //void this.updateMrsServiceSdkCache();
     }
 
     public componentWillUnmount(): void {
@@ -1404,7 +1404,7 @@ Execute \\help or \\? for help;`;
             }
 
             case "typescript": {
-                await this.updateMrsServiceSdkCache();
+                //await this.updateMrsServiceSdkCache();
 
                 let mrsServiceSdkCode = "";
                 let libCodeLineNumbers = 0;

@@ -263,9 +263,12 @@ export class SQLExecutionContext extends ExecutionContext {
 
         const result: IStatement[] = [];
 
+        // This selection is from the entire editor. Have to convert the start and end position to the local model.
         const selection = this.presentation.backend?.getSelection();
-        const startOffset = selection ? model.getOffsetAt(selection.getStartPosition()) : 0;
-        const endOffset = selection ? model.getOffsetAt(selection.getEndPosition()) : 0;
+        const startOffset = selection ?
+            (model.getOffsetAt(selection.getStartPosition()) - this.presentation.codeOffset) : 0;
+        const endOffset = selection ?
+            (model.getOffsetAt(selection.getEndPosition()) - this.presentation.codeOffset) : 0;
         if (startOffset < endOffset) {
             // Collect indices of statements that overlap with the selection.
             const indices: number[] = [];

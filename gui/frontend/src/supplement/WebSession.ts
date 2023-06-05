@@ -163,6 +163,7 @@ class WebSession {
     public loadProfile(newProfile: IShellProfile): void {
         this.shellProfile = newProfile;
         this.sessionData.profileId = newProfile.id;
+        this.sessionData.userId = newProfile.userId;
 
         this.writeSessionData();
 
