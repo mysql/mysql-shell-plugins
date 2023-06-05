@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -92,7 +92,7 @@
     padding: 0;
 }
 
-.msg.themeEditor .tabulator-row .tabulator-cell .colorEntry > .colorIdLabel{
+.msg.themeEditor .tabulator-row .tabulator-cell .colorEntry > .colorIdLabel {
     font-size: 0.75rem;
     color: gray;
     padding: 4px 0 0 16px;
@@ -106,7 +106,7 @@
 
 .msg.themeEditor .tabulator-tree-level-0.expanded {
     font-weight: 800;
-    border-image: linear-gradient(to right, var(--text-dimmedForeground) , transparent);
+    border-image: linear-gradient(to right, var(--text-dimmedForeground), transparent);
     border-image-slice: 1;
     border-image-width: 0 0 1 0;
 }
@@ -195,9 +195,14 @@
     margin-bottom: 8px;
 }
 
+.msg.themeEditor .syntaxEntryHost {
+    padding-bottom: 8px;
+}
+
 .msg.themeEditor .syntaxStyleEntry {
     display: table;
-    width: calc(100% - 42px); /* margin + border */
+    width: calc(100% - 42px);
+    /* margin + border */
 
     margin: 12px 20px 4px 20px;
     padding: 16px;

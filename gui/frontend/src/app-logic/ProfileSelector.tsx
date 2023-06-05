@@ -67,16 +67,6 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
     public constructor(props: {}) {
         super(props);
 
-        requisitions.register("userAuthenticated", async (profile: IShellProfile): Promise<boolean> => {
-            this.defaultProfile = profile;
-            if (this.defaultProfile) {
-                this.defaultProfile = profile;
-                await this.initProfileList(profile);
-            }
-
-            return Promise.resolve(true);
-        });
-
         this.state = { menuItems: [] };
     }
 
@@ -87,15 +77,6 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
 
     public open(currentTarget: DOMRect): void {
         this.actionMenuRef?.current?.open(currentTarget, false);
-    }
-
-    public async initProfileList(profile: IShellProfile): Promise<void> {
-        await this.getProfileList(profile.userId);
-        await requisitions.execute("updateStatusbar", [{
-            id: "message",
-            visible: true,
-            text: "Login Successful",
-        }]);
     }
 
     public render(): ComponentChild {
@@ -180,7 +161,10 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
         }
     };
 
-    private profileLoaded = (): Promise<boolean> => {
+    private profileLoaded = async (): Promise<boolean> => {
+        this.defaultProfile = (await ShellInterface.users.getDefaultProfile(webSession.userId)) ?? webSession.profile;
+        await this.getProfileList(webSession.userId);
+
         this.generatePopupMenuEntries();
         this.sendUpdateProfileInfoMsg();
 
@@ -198,8 +182,6 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
                 options: {},
             };
         });
-        this.sendUpdateProfileInfoMsg();
-        this.generatePopupMenuEntries();
     };
 
     private generatePopupMenuEntries = (): void => {
@@ -484,23 +466,24 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
 
     private handleProfileDelete = (closure: DialogResponseClosure): void => {
         if (closure === DialogResponseClosure.Accept) {
-            this.deleteList.forEach((item: IShellProfile) => {
-                void ShellInterface.users.updateProfile(item).then((profile) => {
-                    if (profile) {
-                        const index = this.activeProfiles.findIndex(
-                            (item: IShellProfile) => { return item.id === profile.id; },
-                        );
-
-                        if (index > -1) {
-                            this.activeProfiles.splice(index, 1);
-                        }
-
-                        this.sendUpdateProfileInfoMsg();
-                        this.generatePopupMenuEntries();
-                    }
-                });
-            });
+            void this.doProfileDelete();
         }
+    };
+
+    private doProfileDelete = async (): Promise<void> => {
+        for (const profile of this.deleteList) {
+            await ShellInterface.users.deleteProfile(profile);
+            const index = this.activeProfiles.findIndex(
+                (item: IShellProfile) => { return item.id === profile.id; },
+            );
+
+            if (index > -1) {
+                this.activeProfiles.splice(index, 1);
+            }
+        }
+
+        this.sendUpdateProfileInfoMsg();
+        this.generatePopupMenuEntries();
     };
 
     private insertProfile = (profileName: string, baseProfile?: IShellProfile): void => {
@@ -514,12 +497,13 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
                         id: -1,
                     };
 
-                    void ShellInterface.users.addProfile(newProfile).then((profile) => {
-                        if (profile) {
-                            newProfile.id = profile.id;
+                    void ShellInterface.users.addProfile(newProfile).then((profileId) => {
+                        if (profileId) {
+                            newProfile.id = profileId;
                             this.activeProfiles.push(newProfile);
-                            this.sendUpdateProfileInfoMsg();
-                            this.generatePopupMenuEntries();
+                            webSession.loadProfile(newProfile);
+                            //this.sendUpdateProfileInfoMsg();
+                            //this.generatePopupMenuEntries();
                         }
                     });
                 }
@@ -533,9 +517,9 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
                 options: webSession.profile.options,
             };
 
-            void ShellInterface.users.addProfile(newProfile).then((profile) => {
-                if (profile) {
-                    newProfile.id = profile.id;
+            void ShellInterface.users.addProfile(newProfile).then((profileId) => {
+                if (profileId) {
+                    newProfile.id = profileId;
                     this.activeProfiles.push(newProfile);
                     this.sendUpdateProfileInfoMsg();
                     this.generatePopupMenuEntries();

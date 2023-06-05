@@ -1841,7 +1841,11 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
 
         const advance = (language === "msg") && options.startNewBlock;
         this.executeCurrentContext(
-            { advance: advance || terminalMode, forceSecondaryEngine: options.forceSecondaryEngine });
+            {
+                advance: advance || terminalMode,
+                forceSecondaryEngine: options.forceSecondaryEngine,
+                asText: options.asText,
+            });
         editor?.focus();
 
         return Promise.resolve(true);

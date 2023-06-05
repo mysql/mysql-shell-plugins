@@ -339,7 +339,7 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiUsersListProfiles]: { result: Array<{ id: number; name: string; }>; };
     [ShellAPIGui.GuiUsersGetProfile]: { result: IShellProfile; };
     [ShellAPIGui.GuiUsersUpdateProfile]: { result: IShellProfile; };
-    [ShellAPIGui.GuiUsersAddProfile]: { result: IShellProfile; };
+    [ShellAPIGui.GuiUsersAddProfile]: { result: number; };
     [ShellAPIGui.GuiUsersDeleteProfile]: {};
     [ShellAPIGui.GuiUsersGetDefaultProfile]: { result: IShellProfile; };
     [ShellAPIGui.GuiUsersSetDefaultProfile]: {};

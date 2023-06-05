@@ -123,12 +123,12 @@ describe("ProfileSelector test", () => {
         const component = mount<ProfileSelector>(
             <ProfileSelector />,
         );
-        const initSpy = jest.spyOn(component.instance(), "initProfileList");
 
         const launcher = await launchPromise;
-        await started();
 
-        expect(initSpy).toBeCalled();
+        // Waiting for the "updateStatusbar" notification means to check that the profile selector
+        // has been updated with the new profile.
+        await started();
 
         await launcher.exitProcess();
         component.unmount();
