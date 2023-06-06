@@ -194,14 +194,29 @@ class DbMysqlSession(DbSession):
     def _do_connect(self, failed_cb=None):
         attempts = 3
         exception = None
+
+        # This flag is used to control handling of SSH Bastion Session expiration once
+        # otherwise it will re-create the Bastion Session up to "attempts" times which
+        # is unnecessary
+        handle_expired_tunnel = True
         while attempts > 0:
             try:
+                self._on_connect()
+
                 # Open Shell connection
                 self.session = self._shell.open_session(
                     self._connection_options)
 
                 return True
             except Exception as e:
+                if self.bastion_session is not None and "Tunnel connection cancelled" in str(e) and handle_expired_tunnel:
+                    # Try to recreate a new bastion session by expiring the
+                    # current session first
+                    handle_expired_tunnel = False
+                    attempts -= 1
+                    self.bastion_session.expire()
+                    continue
+
                 # If this is a issue during opening MySQL session
                 # lets try 3 times to connect
                 if "Error opening MySQL" in str(e):
@@ -249,10 +264,6 @@ class DbMysqlSession(DbSession):
             try:
                 logger.debug3(f"Reconnecting {self._id}...")
 
-                self._reset_setup_tasks()
-
-                self._on_connect()
-
                 if self._do_connect():
                     self._on_connected(is_auto_reconnect is False)
                     return True
@@ -260,9 +271,7 @@ class DbMysqlSession(DbSession):
                 self._on_failed_connection()
 
                 logger.error(f"Reconnecting session: {str(e)}")
-                if self.bastion_session is not None and "Tunnel connection cancelled" in str(e):
-                    self.bastion_session.expire()
-                elif attempt < attempt_limit:
+                if attempt < attempt_limit:
                     time.sleep(5)
 
         return False
@@ -683,16 +692,16 @@ class DbMysqlSession(DbSession):
             task_id = context.request_id if context else None
             if type == "Column":
                 self.add_task(MySQLColumnObjectTask(self,
-                                                task_id=task_id,
-                                                sql=sql,
-                                                type=type, name=f"{table_name}.{name}",
-                                                params=params))
+                                                    task_id=task_id,
+                                                    sql=sql,
+                                                    type=type, name=f"{table_name}.{name}",
+                                                    params=params))
             else:
                 self.add_task(MySQLBaseObjectTask(self,
-                                                task_id=task_id,
-                                                sql=sql,
-                                                type=type, name=f"{table_name}.{name}",
-                                                params=params))
+                                                  task_id=task_id,
+                                                  sql=sql,
+                                                  type=type, name=f"{table_name}.{name}",
+                                                  params=params))
         else:
             result = self.execute(sql, params).fetch_one()
             if not result:
@@ -712,7 +721,8 @@ class DbMysqlSession(DbSession):
                 FROM information_schema.COLUMNS
                 WHERE """
         for name in names:
-            where_clause.append("(TABLE_SCHEMA = ? AND TABLE_NAME = ? AND COLUMN_NAME = ?)")
+            where_clause.append(
+                "(TABLE_SCHEMA = ? AND TABLE_NAME = ? AND COLUMN_NAME = ?)")
             params.extend([name['schema'], name['table'], name['column']])
 
         sql += " OR ".join(where_clause)
@@ -720,10 +730,12 @@ class DbMysqlSession(DbSession):
         if self.threaded:
             context = get_context()
             task_id = context.request_id if context else None
-            self.add_task(MySQLColumnsMetadataTask(self, task_id=task_id, sql=sql, params=params))
+            self.add_task(MySQLColumnsMetadataTask(
+                self, task_id=task_id, sql=sql, params=params))
         else:
             result = self.execute(sql, params).fetch_all()
             if not result:
                 column_names = [name['name'] for name in names]
-                raise MSGException(Error.DB_OBJECT_DOESNT_EXISTS, f"The columns {column_names} do not exist.")
+                raise MSGException(Error.DB_OBJECT_DOESNT_EXISTS,
+                                   f"The columns {column_names} do not exist.")
             return {"columns": result}

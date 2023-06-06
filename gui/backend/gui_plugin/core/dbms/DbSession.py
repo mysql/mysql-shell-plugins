@@ -200,6 +200,10 @@ class DbSession(threading.Thread):
                 setup_task.reset(include_data=False)
 
     def _on_connect(self):
+        # Initialize/Reset the setup tasks
+        self._reset_setup_tasks()
+
+        # Now execute
         for setup_task in self._setup_tasks:
             setup_task.on_connect()
 
@@ -212,10 +216,6 @@ class DbSession(threading.Thread):
             setup_task.on_failed_connection()
 
     def _open_database(self, notify_success=True):
-        self._reset_setup_tasks()
-
-        self._on_connect()
-
         # Opens the database
         if self._do_open_database(notify_success=notify_success):
             self._on_connected(notify_success=notify_success)
@@ -224,6 +224,9 @@ class DbSession(threading.Thread):
         raise NotImplementedError()
 
     def _close_database(self, finalize):
+        for setup_task in self._setup_tasks:
+            setup_task.on_close()
+
         self._do_close_database(finalize)
 
     def _do_close_database(self, finalize):
@@ -290,9 +293,6 @@ class DbSession(threading.Thread):
         raise NotImplementedError()
 
     def close(self, after_fail=False):
-        for setup_task in self._setup_tasks:
-            setup_task.on_close()
-
         if self.threaded:
             # If connection failed to open
             # we don't need to close it as it's

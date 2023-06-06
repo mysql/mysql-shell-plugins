@@ -155,6 +155,7 @@ class DbSqliteSession(DbSession):
 
     def _do_open_database(self, notify_success=True):
         try:
+            self._on_connect()
 
             # open the database connection
             self.conn = sqlite3.connect(self._databases[self._current_schema], timeout=5, factory=SqliteConnection,
@@ -449,12 +450,12 @@ class DbSqliteSession(DbSession):
         task_id = context.request_id if context else None
         if type == "Column":
             self.add_task(SqliteColumnObjectTask(self, task_id=task_id, sql=sql,
-                                            type=type, name=f"{schema_name}.{name}",
-                                            params=params))
+                                                 type=type, name=f"{schema_name}.{name}",
+                                                 params=params))
         else:
             self.add_task(SqliteBaseObjectTask(self, task_id=task_id, sql=sql,
-                                            type=type, name=f"{schema_name}.{name}",
-                                            params=params))
+                                               type=type, name=f"{schema_name}.{name}",
+                                               params=params))
 
     def get_columns_metadata(self, names):
         sql_parts = []
@@ -474,4 +475,5 @@ class DbSqliteSession(DbSession):
 
         context = get_context()
         task_id = context.request_id if context else None
-        self.add_task(SqliteColumnsMetadataTask(self, task_id=task_id, sql=sql, params=params))
+        self.add_task(SqliteColumnsMetadataTask(
+            self, task_id=task_id, sql=sql, params=params))

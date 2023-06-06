@@ -9,6 +9,7 @@
 ### Fixes
 
 - BUG#36798924 Renamed connection-timeout to connect-timeout to match the standard name
+- BUG#36798984 Renew the bastion session if expired/deleted
 
 ## Changes in 1.15.0+8.4.0
 
