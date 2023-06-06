@@ -312,7 +312,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         // Map column info from the backend to column definitions for Tabulator.
         return columns.map((info): ColumnDefinition => {
             let formatter: Formatter | undefined;
-            let formatterParams: FormatterParams = { dbDataType: info.dataType.type };
+            const formatterParams: FormatterParams = { dbDataType: info.dataType.type };
             let minWidth = 50;
 
             // TODO: Enable editing related functionality again.
@@ -336,14 +336,6 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                 case DBDataType.Text:
                 case DBDataType.MediumText:
                 case DBDataType.LongText:
-                case DBDataType.Geometry:
-                case DBDataType.Point:
-                case DBDataType.LineString:
-                case DBDataType.Polygon:
-                case DBDataType.GeometryCollection:
-                case DBDataType.MultiPoint:
-                case DBDataType.MultiLineString:
-                case DBDataType.MultiPolygon:
                 case DBDataType.Json:
                 case DBDataType.Enum:
                 case DBDataType.Set: {
@@ -363,6 +355,14 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                     break;
                 }
 
+                case DBDataType.Geometry:
+                case DBDataType.Point:
+                case DBDataType.LineString:
+                case DBDataType.Polygon:
+                case DBDataType.GeometryCollection:
+                case DBDataType.MultiPoint:
+                case DBDataType.MultiLineString:
+                case DBDataType.MultiPolygon:
                 case DBDataType.TinyBlob:
                 case DBDataType.Blob:
                 case DBDataType.MediumBlob:
@@ -375,34 +375,15 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
 
                 case DBDataType.Date:
                 case DBDataType.DateTime:
-                case DBDataType.DateTime_f: {
-                    //formatter = "datetime";
-                    formatter = "plaintext";
-                    //editor = true;
-
-                    break;
-                }
-
+                case DBDataType.DateTime_f:
                 case DBDataType.Time:
-                case DBDataType.Time_f: {
-                    formatter = "datetime";
-                    // TODO: make this locale dependent.
-                    formatterParams.outputFormat = "HH:mm:ss";
-                    //editor = true;
-
-                    break;
-                }
-
+                case DBDataType.Time_f:
                 case DBDataType.Year: {
-                    formatter = "datetime";
-                    formatterParams = {
-                        outputFormat: "YYYY",
-                    };
-                    //editor = true;
+                    formatter = this.dateFormatter;
+                    formatterParams.type = info.dataType.type;
 
                     break;
                 }
-
 
                 case DBDataType.Boolean: {
                     formatter = this.booleanFormatter;
@@ -1121,6 +1102,55 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         render(icon, host);
 
         return host;
+    };
+
+    // istanbul ignore next
+    private dateFormatter = (cell: CellComponent, parameters: FormatterParams): string | HTMLElement => {
+        const value = cell.getValue();
+        const locale = Intl.DateTimeFormat().resolvedOptions().locale;
+
+        if ("type" in parameters) {
+            let date: Date;
+            const options: Intl.DateTimeFormatOptions = {};
+
+            switch (parameters.type as DBDataType) {
+                case DBDataType.Date:
+                case DBDataType.DateTime:
+                case DBDataType.DateTime_f: {
+                    date = new Date(value as string);
+                    options.year = "numeric";
+                    options.month = "2-digit";
+                    options.day = "2-digit";
+
+                    break;
+                }
+
+                case DBDataType.Time:
+                case DBDataType.Time_f: {
+                    date = new Date(`1970-01-01T${value as string}`);
+                    const formattedTime = date.toLocaleTimeString(locale);
+
+                    return formattedTime;
+                }
+
+                case DBDataType.Year: {
+                    date = new Date(value as string);
+                    options.year = "numeric";
+
+                    break;
+                }
+
+                default: {
+                    date = new Date(value as string);
+
+                    break;
+                }
+            }
+
+            return date.toLocaleDateString(locale, options);
+        }
+
+        return value as string;
     };
 
     // istanbul ignore next

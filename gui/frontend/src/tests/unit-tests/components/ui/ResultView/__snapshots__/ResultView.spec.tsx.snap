@@ -707,10 +707,11 @@ exports[`Result View Tests Render with Columns 1`] = `
             },
             {
               "field": "27",
-              "formatter": "plaintext",
-              "formatterClipboard": "plaintext",
+              "formatter": [Function],
+              "formatterClipboard": [Function],
               "formatterParams": {
                 "dbDataType": 26,
+                "type": 26,
               },
               "minWidth": 50,
               "resizable": true,
@@ -719,10 +720,11 @@ exports[`Result View Tests Render with Columns 1`] = `
             },
             {
               "field": "28",
-              "formatter": "plaintext",
-              "formatterClipboard": "plaintext",
+              "formatter": [Function],
+              "formatterClipboard": [Function],
               "formatterParams": {
                 "dbDataType": 27,
+                "type": 27,
               },
               "minWidth": 50,
               "resizable": true,
@@ -731,10 +733,11 @@ exports[`Result View Tests Render with Columns 1`] = `
             },
             {
               "field": "29",
-              "formatter": "plaintext",
-              "formatterClipboard": "plaintext",
+              "formatter": [Function],
+              "formatterClipboard": [Function],
               "formatterParams": {
                 "dbDataType": 28,
+                "type": 28,
               },
               "minWidth": 50,
               "resizable": true,
@@ -743,11 +746,11 @@ exports[`Result View Tests Render with Columns 1`] = `
             },
             {
               "field": "30",
-              "formatter": "datetime",
-              "formatterClipboard": "datetime",
+              "formatter": [Function],
+              "formatterClipboard": [Function],
               "formatterParams": {
                 "dbDataType": 29,
-                "outputFormat": "HH:mm:ss",
+                "type": 29,
               },
               "minWidth": 50,
               "resizable": true,
@@ -756,11 +759,11 @@ exports[`Result View Tests Render with Columns 1`] = `
             },
             {
               "field": "31",
-              "formatter": "datetime",
-              "formatterClipboard": "datetime",
+              "formatter": [Function],
+              "formatterClipboard": [Function],
               "formatterParams": {
                 "dbDataType": 30,
-                "outputFormat": "HH:mm:ss",
+                "type": 30,
               },
               "minWidth": 50,
               "resizable": true,
@@ -769,10 +772,11 @@ exports[`Result View Tests Render with Columns 1`] = `
             },
             {
               "field": "32",
-              "formatter": "datetime",
-              "formatterClipboard": "datetime",
+              "formatter": [Function],
+              "formatterClipboard": [Function],
               "formatterParams": {
-                "outputFormat": "YYYY",
+                "dbDataType": 31,
+                "type": 31,
               },
               "minWidth": 50,
               "resizable": true,
@@ -810,7 +814,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "formatterParams": {
                 "dbDataType": 34,
               },
-              "minWidth": 150,
+              "minWidth": 50,
               "resizable": true,
               "title": "col36",
               "width": undefined,
@@ -822,7 +826,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "formatterParams": {
                 "dbDataType": 35,
               },
-              "minWidth": 150,
+              "minWidth": 50,
               "resizable": true,
               "title": "col37",
               "width": undefined,
@@ -834,7 +838,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "formatterParams": {
                 "dbDataType": 36,
               },
-              "minWidth": 150,
+              "minWidth": 50,
               "resizable": true,
               "title": "col38",
               "width": undefined,
@@ -846,7 +850,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "formatterParams": {
                 "dbDataType": 37,
               },
-              "minWidth": 150,
+              "minWidth": 50,
               "resizable": true,
               "title": "col39",
               "width": undefined,
@@ -858,7 +862,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "formatterParams": {
                 "dbDataType": 38,
               },
-              "minWidth": 150,
+              "minWidth": 50,
               "resizable": true,
               "title": "col40",
               "width": undefined,
@@ -870,7 +874,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "formatterParams": {
                 "dbDataType": 39,
               },
-              "minWidth": 150,
+              "minWidth": 50,
               "resizable": true,
               "title": "col41",
               "width": undefined,
@@ -882,7 +886,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "formatterParams": {
                 "dbDataType": 40,
               },
-              "minWidth": 150,
+              "minWidth": 50,
               "resizable": true,
               "title": "col42",
               "width": undefined,
@@ -894,7 +898,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "formatterParams": {
                 "dbDataType": 41,
               },
-              "minWidth": 150,
+              "minWidth": 50,
               "resizable": true,
               "title": "col43",
               "width": undefined,

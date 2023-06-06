@@ -631,13 +631,13 @@ export class Database {
         if (mrsService) {
             const selectService = await dialog.findElement(By.id("service"));
             await selectService.click();
+            const menu = await driver.wait(until.elementLocated(By.css(".dropdownList")));
+            const menuItems = await menu.findElements(By.css("div"));
             const mrsServiceArr = mrsService.split("|");
-            for (const item of mrsServiceArr) {
-                try {
-                    await driver.findElement(By.id(item)).click();
+            for (const menuItem of menuItems) {
+                if (mrsServiceArr.includes(await menuItem.getAttribute("id"))) {
+                    await menuItem.click();
                     break;
-                } catch (e) {
-                    // continue
                 }
             }
         }

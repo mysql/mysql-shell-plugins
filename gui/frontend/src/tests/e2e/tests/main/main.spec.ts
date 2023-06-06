@@ -450,9 +450,13 @@ describe("Main pages", () => {
             expect(await (await errorPanel.findElement(
                 By.css(".title label"))).getText()).toBe("Communication Error");
 
+            let regex = "Could not establish a connection to the backend.";
+            regex += " Make sure you use valid user credentials and the MySQL Shell is running.";
+            regex += " Trying to reconnect in (\\d+) seconds.";
+
             expect(await (await errorPanel.findElement(
                 By.css(".content label"))).getText())
-                .toMatch(/Could not establish a connection to the backend. Trying to reconnect in (\d+) seconds/);
+                .toMatch(new RegExp(regex));
         } catch (e) {
             testFailed = true;
             throw e;
@@ -469,9 +473,13 @@ describe("Main pages", () => {
             expect(await (await errorPanel.findElement(
                 By.css(".title label"))).getText()).toBe("Communication Error");
 
+            let regex = "Could not establish a connection to the backend.";
+            regex += " Make sure you use valid user credentials and the MySQL Shell is running.";
+            regex += " Trying to reconnect in (\\d+) seconds.";
+
             expect(await (await errorPanel.findElement(
                 By.css(".content label"))).getText())
-                .toMatch(/Could not establish a connection to the backend. Trying to reconnect in (\d+) seconds/);
+                .toMatch(new RegExp(regex));
         } catch (e) {
             testFailed = true;
             throw e;
