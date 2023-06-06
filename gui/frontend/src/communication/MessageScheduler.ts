@@ -469,8 +469,8 @@ export class MessageScheduler {
 
         void requisitions.execute("showError", [
             "Communication Error",
-            `Could not establish a connection to the backend. Trying to reconnect in ` +
-            `${this.reconnectTimeout / 1000} seconds.`,
+            `Could not establish a connection to the backend. Make sure you use valid user credentials and the MySQL ` +
+            `Shell is running. Trying to reconnect in ${this.reconnectTimeout / 1000} seconds.`,
         ]);
     };
 
