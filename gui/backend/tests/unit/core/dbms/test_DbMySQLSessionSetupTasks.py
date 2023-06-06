@@ -68,6 +68,10 @@ class MockDbSession(DbMySQLSession.DbMysqlSession):
         return [self._task_class(self)]
 
     def _do_open_database(self, notify_success=True):
+        # No connection is really done on this mock, but we emulate it was done
+        if self._open_connection:
+            self._on_connect()
+
         return self._open_connection
 
     def _do_connect(self, notify_success=True):
@@ -144,7 +148,7 @@ class TestHeatWaveCheckTask:
             on_connect_options = options.copy()
             on_connect_options.pop(Tasks.HeatWaveCheckTask._OPT)
             session = MockDbSession(Tasks.HeatWaveCheckTask,
-                                    False,
+                                    True,
                                     options,
                                     on_connect_options,
                                     {
