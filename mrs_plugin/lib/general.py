@@ -40,8 +40,8 @@ def get_status(session):
             'service_configured': False,
             'service_enabled': False,
             'service_count': 0,
-            'service_upgradeable': 0,
-            'major_upgrade_required': 0,
+            'service_upgradeable': False,
+            'major_upgrade_required': False,
         }
     else:
         result = {'service_configured': True}
@@ -51,7 +51,7 @@ def get_status(session):
                           cols="service_enabled",
                           where="id=1"
                           ).exec(session).first
-    result['service_enabled'] = row["service_enabled"]
+    result['service_enabled'] = row["service_enabled"] == 1
 
     # Get the number of enabled services
     row = lib.core.select(table="service",
@@ -68,3 +68,79 @@ def get_status(session):
     result["required_router_version"] = REQUIRED_ROUTER_VERSION_STR
 
     return result
+
+
+def configure(session=None, enable_mrs=None, options=None,
+              update_if_available=False, allow_recreation_on_major_upgrade=False):
+    """Initializes and configures the MySQL REST Data Service
+
+    Args:
+        session (object): The database session to use
+        enable_mrs (bool): Whether MRS should be enabled or disabled
+        options (str): a JSON string containing the MRS options
+        update_if_available (bool): Whether the MRS metadata schema should be updated
+        allow_recreation_on_major_upgrade (bool): Whether the MRS metadata schema can be dropped and recreated if needed
+
+    Returns:
+        A dict with status information
+    """
+
+    with lib.core.MrsDbSession(session=session, check_version=False) as session:
+        schema_changed = False
+        if lib.core.mrs_metadata_schema_exists(session):
+            current_db_version = lib.core.get_mrs_schema_version(session)
+
+            if lib.general.DB_VERSION < current_db_version:
+                raise Exception(
+                    "Unsupported MRS metadata database schema "
+                    f"version {lib.general.DB_VERSION_STR}. "
+                    "Please update your MRS Shell Plugin.")
+
+            # Major upgrade available
+            if current_db_version[0] < lib.general.DB_VERSION[0]:
+                # this is a major version upgrade, so allow_recreation_on_major_upgrade
+                # must be set to true
+                if not allow_recreation_on_major_upgrade:
+                    raise Exception(
+                        "This MRS Shell Plugin version requires a new major version of the MRS "
+                        "metadata schema. To drop and recreate the MRS metadata schema please "
+                        "run `mrs.configure(allow_recreation_on_major_upgrade=True)` to upgrade.")
+
+                lib.core.create_mrs_metadata_schema(
+                    session, drop_existing=True)
+                schema_changed = True
+
+            elif current_db_version < lib.general.DB_VERSION:
+                if not update_if_available:
+                    raise Exception(
+                        "The MRS metadata is outdated. Please reconfigure the instance, "
+                        "e.g. run `mrs.configure(update_if_available=True)` to update.")
+
+                # if the major upgrade was accepted or it's a minor upgrade,
+                # proceed to execute it
+                current_db_version = [str(ver) for ver in current_db_version]
+
+                lib.core.update_mrs_metadata_schema(
+                    session, ".".join(current_db_version))
+                schema_changed = True
+        else:
+            lib.core.create_mrs_metadata_schema(session)
+
+        if enable_mrs is not None:
+            lib.core.update(
+                table="config", sets="service_enabled=?", where="id=1"
+            ).exec(session, [1 if enable_mrs else 0])
+        else:
+            row = lib.core.select(table="config", cols="service_enabled", where="id=1"
+                                  ).exec(session).first
+            enable_mrs = row["service_enabled"] if row else 0
+
+        if options is not None:
+            lib.core.update(
+                table="config", sets="data=?", where="id=1"
+            ).exec(session, [options])
+
+        return {
+            "schema_changed": schema_changed,
+            "mrs_enabled": True if enable_mrs else False
+        }

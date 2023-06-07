@@ -210,8 +210,18 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
     };
 
     public static buildDualityViewSql = (data: IMrsObjectFieldEditorData): string | undefined => {
+        const cutLastComma = (fields: string): string => {
+            // Cut the last , away if present
+            if (fields.endsWith(",\n")) {
+                return fields.slice(0, -2);
+            }
+
+            // Otherwise, just cut the last \n
+            return fields.slice(0, -1);
+        };
+
         const walk = (fields: IMrsObjectFieldWithReference[],
-            parentId?: string, level?: number): string => {
+            parentId?: string, level?: number, addDataType?: boolean): string => {
             let s = "";
             const reduceToFieldIds = fields.filter((f) => {
                 return f.objectReference?.reduceToValueOfFieldId !== undefined;
@@ -235,9 +245,13 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                         if (!field.allowFiltering) { s += ` @NOFILTERING`; }
                         if (field.dbColumn?.name === data.dbObject.rowUserOwnershipColumn &&
                             data.dbObject.rowUserOwnershipEnforced) { s += ` @ROWOWNERSHIP`; }
+                        if (addDataType && field.dbColumn && field.dbColumn.datatype) {
+                            s += ` @DATATYPE("${field.dbColumn.datatype}")`;
+                        }
                         s += ",\n";
                     } else if (field.objectReference !== undefined && (field.enabled || field.objectReference.unnest)) {
-                        const c = walk(fields, field.representsReferenceId, (level ?? 1) + 1);
+                        const c = cutLastComma(walk(
+                            fields, field.representsReferenceId, (level ?? 1) + 1, addDataType));
                         const refTable = field.objectReference.referenceMapping.referencedSchema + "." +
                             field.objectReference.referenceMapping.referencedTable;
                         s += `${indent}${field.name}: ${refTable}`;
@@ -254,7 +268,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                                 s += ` @REDUCETO(${String(reduceToField.dbColumn?.name)})`;
                             }
                         }
-                        s += ` {\n${c}${indent}}\n`;
+                        s += ` {\n${c}\n${indent}}\n`;
                     }
                 }
             }
@@ -284,7 +298,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                 }
 
                 if (mrsObject.fields) {
-                    view += " {\n" + walk(mrsObject?.fields).slice(0, -2) + "\n};";
+                    view += ` {\n${cutLastComma(walk(mrsObject?.fields))}\n};`;
                 }
             }
         } else {
@@ -305,7 +319,8 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                 for (const obj of data.mrsObjects) {
                     if (obj.kind !== MrsObjectKind.Parameters) {
                         if (obj.fields) {
-                            view += `\nRESULT ${obj.name} {\n` + walk(obj.fields).slice(0, -2) + "\n}";
+                            view += `\nRESULT ${obj.name} {\n`
+                                + walk(obj.fields, undefined, undefined, true).slice(0, -2) + "\n}";
                         }
                     }
                 }
@@ -483,12 +498,12 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                             className={this.getEffectiveClassNames(
                                 ["sqlPreviewBtn", sqlPreview ? "buttonActivated" : undefined])}
                             key="sqlPreviewBtn"
-                            data-tooltip="Toggle MRS SQL Preview"
+                            data-tooltip="Toggle MRS DDL Preview"
                             onClick={this.toggleSqlPreview}
                             imageOnly={true}
                         >
                             <Icon src={Codicon.Search} width={11} height={11} data-tooltip="inherit" />
-                            <Label caption="SQL Preview" data-tooltip="inherit" />
+                            <Label caption="DDL Preview" data-tooltip="inherit" />
                         </Button>
                     </>
                     <div className="divider" />
@@ -998,7 +1013,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                             selection={cellData.children?.find((item) => {
                                 return item.field.id ===
                                     cellData.field.objectReference?.reduceToValueOfFieldId;
-                            })?.field.dbColumn?.name}
+                            })?.field.name}
                             onSelect={(sel, _props) => {
                                 // Update data
                                 const treeItem = this.findTreeItemById(cellData.field.id, data.currentTreeItems);
@@ -1007,7 +1022,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                                     let reduceToFieldId;
                                     if (selVal.length > 0) {
                                         reduceToFieldId = cellData.children?.find((item) => {
-                                            return item.field.dbColumn?.name ===
+                                            return item.field.name ===
                                                 selVal[0];
                                         })?.field.id;
 

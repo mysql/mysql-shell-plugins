@@ -253,10 +253,6 @@ def add_service(**kwargs):
         options = kwargs.get("options")
 
         kwargs["session"] = session
-        row = lib.core.select(table="service",
-                              cols="COUNT(*) as service_count"
-                              ).exec(session).first
-        service_count = row.get("service_count", 0) if row else 0
 
         # Get url_context_root
         kwargs = resolve_url_context_root(required=True, **kwargs)
@@ -298,21 +294,10 @@ def add_service(**kwargs):
 
         options = resolve_options(options, defaultOptions)
 
-        # Check if any service is active
-        lib.core.check_request_path(session, url_host_name + url_context_root)
-
-        # Get id of the host
-        row = lib.core.select(table="url_host",
-                              cols="id",
-                              where="name=?"
-                              ).exec(session, [url_host_name if url_host_name else '']).first
-        url_host_id = row["id"] if row else None
-
         with lib.core.MrsDbTransaction(session):
             service_id = lib.services.add_service(session, url_host_name, {
                 "url_context_root": url_context_root,
                 "url_protocol": kwargs.get("url_protocol"),
-                "url_host_id": url_host_id,
                 "enabled": int(kwargs.get("enabled", True)),
                 "comments": kwargs.get("comments"),
                 "options": options,

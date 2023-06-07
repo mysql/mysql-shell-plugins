@@ -518,23 +518,34 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                                             "schema? WARNING: All existing MRS data will be lost."
                                             , "Drop and Recreate", "No");
                                         if (answer === "Drop and Recreate") {
-                                            await backend.mrs.configure(true, true);
+                                            await backend.mrs.configure(undefined, true);
                                             addMrsTreeItem = true;
                                         }
                                     }
                                 } else if (status.serviceUpgradeable) {
-                                    const statusbarItem = window.createStatusBarItem();
-                                    try {
-                                        statusbarItem.text = "$(loading~spin) Updating the MySQL REST Service " +
-                                            "Metadata Schema ...";
-                                        statusbarItem.show();
+                                    addMrsTreeItem = false;
 
-                                        await backend.mrs.configure();
+                                    const answer: string | undefined = await window.showInformationMessage(
+                                        "This MySQL Shell version requires a new minor version of the MRS metadata " +
+                                        `schema, ${String(status.requiredMetadataVersion)}. The currently deployed ` +
+                                        `schema version is ${String(status.currentMetadataVersion)}. Do you want to ` +
+                                        "update the MRS metadata schema?"
+                                        , "Yes", "No");
+                                    if (answer === "Yes") {
+                                        addMrsTreeItem = true;
+                                        const statusbarItem = window.createStatusBarItem();
+                                        try {
+                                            statusbarItem.text = "$(loading~spin) Updating the MySQL REST Service " +
+                                                "Metadata Schema ...";
+                                            statusbarItem.show();
 
-                                        showMessageWithTimeout(
-                                            "The MySQL REST Service Metadata Schema has been updated.");
-                                    } finally {
-                                        statusbarItem.hide();
+                                            await backend.mrs.configure(undefined, undefined, true);
+
+                                            showMessageWithTimeout(
+                                                "The MySQL REST Service Metadata Schema has been updated.");
+                                        } finally {
+                                            statusbarItem.hide();
+                                        }
                                     }
                                 }
 

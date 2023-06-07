@@ -1,5 +1,6 @@
-# Copyright (c) 2022, 2023 Oracle and/or its affiliates.
-#
+#!/bin/bash
+# Copyright (c) 2023, Oracle and/or its affiliates.
+
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
 # as published by the Free Software Foundation.
@@ -19,21 +20,33 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from mrs_plugin.lib import auth_apps
-from mrs_plugin.lib import core
-from mrs_plugin.lib import services
-from mrs_plugin.lib import schemas
-from mrs_plugin.lib import db_objects
-from mrs_plugin.lib import content_files
-from mrs_plugin.lib import content_sets
-from mrs_plugin.lib import general
-from mrs_plugin.lib import dump
-from mrs_plugin.lib import users
-from mrs_plugin.lib import roles
-from mrs_plugin.lib import routers
-from mrs_plugin.lib import database
-from mrs_plugin.lib import sdk
-from mrs_plugin.lib import script
-from mrs_plugin.lib import MrsDdlExecutor
-from mrs_plugin.lib import MrsDdlExecutorInterface
-from mrs_plugin.lib import MrsDdlListener
+echo "Starting MRS parser file generation ..."
+
+cd grammar
+
+COPYRIGHT="# Copyright (c) 2023, Oracle and\/or its affiliates."
+ANTLR_JAR=./antlr-4.13.0-complete.jar
+ANTLR_JAR_DOWNLOAD_URL=https://www.antlr.org/download/antlr-4.13.0-complete.jar
+
+if [ ! -f "$ANTLR_JAR" ]; then
+    echo "Downloading ANTLR jar file..."
+    curl -L --output $ANTLR_JAR $ANTLR_JAR_DOWNLOAD_URL
+    if [ $? -eq 0 ]; then
+        echo "Download completed."
+    else
+        echo "Failed to download the ANTLR jar file from $ANTLR_JAR_DOWNLOAD_URL"
+        exit 1
+    fi
+fi
+
+java -jar $ANTLR_JAR -Dlanguage=Python3 ./MRS.g4 -o ../lib/mrs_parser
+if [ $? -eq 0 ]; then
+    sed -i '' "1s/.*/$COPYRIGHT/" ../lib/mrs_parser/MRSParser.py
+    sed -i '' "1s/.*/$COPYRIGHT/" ../lib/mrs_parser/MRSLexer.py
+    sed -i '' "1s/.*/$COPYRIGHT/" ../lib/mrs_parser/MRSListener.py
+
+    echo "MRS parser file generation completed."
+else
+    echo "Failed to complete the MRS parser file generation."
+    exit 1
+fi

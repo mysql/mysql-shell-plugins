@@ -128,6 +128,17 @@ def get_db_object_parameters(session, db_schema_name, db_object_name):
     return core.MrsDbExec(sql).exec(session, [db_schema_name, db_object_name]).items
 
 
+def db_schema_object_is_table(session, db_schema_name, db_object_name):
+    sql = """
+        SELECT TABLE_TYPE FROM INFORMATION_SCHEMA.TABLES
+        WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?
+    """
+
+    row = core.MrsDbExec(sql).exec(
+        session, [db_schema_name, db_object_name]).first
+    return row and "TABLE" in row["TABLE_TYPE"]
+
+
 def grant_procedure(session, schema_name, procedure_name):
     sql = (f"GRANT EXECUTE ON PROCEDURE `"
            f"{schema_name}`.`{procedure_name}` "
@@ -171,6 +182,7 @@ def get_objects(session, db_object_id):
     """
 
     return core.MrsDbExec(sql).exec(session, [db_object_id]).items
+
 
 def get_object_via_absolute_request_path(session, absolute_request_path, ignore_case=True):
     sql = """

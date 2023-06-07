@@ -19,21 +19,6 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from mrs_plugin.lib import auth_apps
-from mrs_plugin.lib import core
-from mrs_plugin.lib import services
-from mrs_plugin.lib import schemas
-from mrs_plugin.lib import db_objects
-from mrs_plugin.lib import content_files
-from mrs_plugin.lib import content_sets
-from mrs_plugin.lib import general
-from mrs_plugin.lib import dump
-from mrs_plugin.lib import users
-from mrs_plugin.lib import roles
-from mrs_plugin.lib import routers
-from mrs_plugin.lib import database
-from mrs_plugin.lib import sdk
-from mrs_plugin.lib import script
-from mrs_plugin.lib import MrsDdlExecutor
-from mrs_plugin.lib import MrsDdlExecutorInterface
-from mrs_plugin.lib import MrsDdlListener
+from mrs_plugin.lib.mrs_parser.MRSLexer import MRSLexer
+from mrs_plugin.lib.mrs_parser.MRSListener import MRSListener
+from mrs_plugin.lib.mrs_parser.MRSParser import MRSParser

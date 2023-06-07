@@ -102,26 +102,29 @@ def add_service(session, url_host_name, service):
     if "options" in service:
         service["options"] = core.convert_json(service["options"])
 
+    # Check if another service already uses this request path
+    core.check_request_path(session, url_host_name +
+                            service.get("url_context_root"))
+
     # If there is no id for the given host yet, create a host entry
     if service.get("url_host_id") is None:
         host = core.select(table="url_host",
-            where=["name=?"]
-        ).exec(session, [url_host_name if url_host_name else '']).first
+                           where=["name=?"]
+                           ).exec(session, [url_host_name if url_host_name else '']).first
 
         if host:
             service["url_host_id"] = host["id"]
         else:
             service["url_host_id"] = core.get_sequence_id(session)
             core.insert(table="url_host",
-                values={
-                    "id": service["url_host_id"],
-                    "name": url_host_name or ''
-                }
-            ).exec(session)
+                        values={
+                            "id": service["url_host_id"],
+                            "name": url_host_name or ''
+                        }
+                        ).exec(session)
 
     auth_apps = service.pop("auth_apps", [])
 
-    # cSpell:ignore mrs
     service["id"] = core.get_sequence_id(session)
 
     if not core.insert(table="service", values=service).exec(session).success:
@@ -139,15 +142,18 @@ def add_service(session, url_host_name, service):
 
 
 def delete_service(session, service_id):
-    res = core.delete(table="service", where=["id=?"]).exec(session, params=[service_id])
+    res = core.delete(table="service", where=["id=?"]).exec(
+        session, params=[service_id])
 
     if not res.success:
         raise Exception(
             f"The specified service with id {service_id} was not found.")
 
+
 def delete_services(session, service_ids):
     for service_id in service_ids:
         delete_service(session, service_id)
+
 
 def update_services(session, service_ids, value):
     """Makes a given change to a MRS service
@@ -171,38 +177,40 @@ def update_services(session, service_ids, value):
         service = get_service(session, service_id=service_id)
 
         if service is None:
-            raise Exception("The specified service with id 1000 was not found.")
+            raise Exception(
+                "The specified service with id 1000 was not found.")
 
         if "url_host_name" in value:
             host = core.select(table="url_host",
-                where="name=?"
-            ).exec(session, [value["url_host_name"]]).first
+                               where="name=?"
+                               ).exec(session, [value["url_host_name"]]).first
 
             if host:
                 host_id = host["id"]
             else:
                 host_id = core.get_sequence_id(session)
                 core.insert(table="url_host",
-                    values={
-                        "id": host_id,
-                        "name": value["url_host_name"]
-                    }
-                ).exec(session)
+                            values={
+                                "id": host_id,
+                                "name": value["url_host_name"]
+                            }
+                            ).exec(session)
 
             del value["url_host_name"]
             value["url_host_id"] = host_id
 
         core.update("service",
-            sets=value,
-            where=["id=?"]).exec(session, [service_id])
+                    sets=value,
+                    where=["id=?"]).exec(session, [service_id])
 
         auth_apps_in_db = core.select(table="auth_app",
-            where="service_id=?"
-        ).exec(session, [service_id]).items
+                                      where="service_id=?"
+                                      ).exec(session, [service_id]).items
 
         for auth_app_in_db in auth_apps_in_db:
             if auth_app_in_db["id"] not in [app["id"] for app in auth_apps]:
-                core.delete(table="auth_app", where="id=?").exec(session, [auth_app_in_db["id"]])
+                core.delete(table="auth_app", where="id=?").exec(
+                    session, [auth_app_in_db["id"]])
 
         for auth_app in auth_apps:
             id = auth_app.pop("id", None)
@@ -214,15 +222,15 @@ def update_services(session, service_ids, value):
             auth_app["service_id"] = service_id
 
             if id:
-                core.update(table="auth_app", sets=auth_app, where="id=?").exec(session, [id])
+                core.update(table="auth_app", sets=auth_app,
+                            where="id=?").exec(session, [id])
             else:
                 auth_app["id"] = core.get_sequence_id(session)
                 core.insert(table="auth_app", values=auth_app).exec(session)
 
 
-
-def query_services(session, service_id: bytes=None, url_context_root=None, url_host_name=None,
-                get_default=False):
+def query_services(session, service_id: bytes = None, url_context_root=None, url_host_name=None,
+                   get_default=False):
     """Query MRS services
 
     If no service is specified, the service that is set as current service is
@@ -265,7 +273,7 @@ def query_services(session, service_id: bytes=None, url_context_root=None, url_h
         wheres.append("se.id = ?")
         params.append(service_id)
     elif not get_default:
-        if url_context_root and url_host_name:
+        if url_context_root and url_host_name is not None:
             wheres.append("h.name = ?")
             wheres.append("url_context_root = ?")
             params.append(url_host_name)
@@ -279,7 +287,7 @@ def query_services(session, service_id: bytes=None, url_context_root=None, url_h
     return core.MrsDbExec(sql, params).exec(session).items
 
 
-def get_service(session, service_id: bytes=None, url_context_root=None, url_host_name=None,
+def get_service(session, service_id: bytes = None, url_context_root=None, url_host_name=None,
                 get_default=False):
     """Gets a specific MRS service
 
@@ -297,8 +305,9 @@ def get_service(session, service_id: bytes=None, url_context_root=None, url_host
         The service as dict or None on error in interactive mode
     """
     result = query_services(session, service_id=service_id, url_context_root=url_context_root,
-                url_host_name=url_host_name, get_default=get_default)
+                            url_host_name=url_host_name, get_default=get_default)
     return result[0] if result else None
+
 
 def get_services(session):
     """Get a list of MRS services
@@ -336,7 +345,7 @@ def get_current_service_id(session):
 
     # Try to find the settings for the connection which the service resides on
     connection_settings = list(filter(lambda item: item["connection"] == core.get_session_uri(session),
-        current_objects))
+                                      current_objects))
 
     if not connection_settings:
         return None
@@ -354,7 +363,7 @@ def set_current_service_id(session, service_id: bytes):
 
     # Try to find the settings for the connection which the service resides on
     connection_settings = list(filter(lambda item: item["connection"] == core.get_session_uri(session),
-        current_objects))
+                                      current_objects))
 
     if connection_settings:
         # Found the settings for this host

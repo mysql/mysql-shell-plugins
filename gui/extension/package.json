@@ -1599,9 +1599,11 @@
         "viewsWelcome": []
     },
     "dependencies": {
+        "@vscode/vsce": "^2.19.0",
         "anser": "2.1.1",
         "antlr4ts": "0.5.0-alpha.4",
         "regedit": "5.1.1",
+        "vsce": "^2.15.0",
         "ws": "8.12.0"
     },
     "devDependencies": {
