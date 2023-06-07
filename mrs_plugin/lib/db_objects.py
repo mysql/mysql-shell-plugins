@@ -100,12 +100,14 @@ def delete_db_object(session, db_object_id):
     db_object = get_db_object(session, db_object_id)
     db_schema = schemas.get_schema(session, db_object["db_schema_id"])
 
-    database.revoke_all_from_db_object(session, db_schema["name"], db_object["name"])
+    database.revoke_all_from_db_object(
+        session, db_schema["name"], db_object["name"])
 
     # remove the db_object
     core.delete(table="db_object",
                 where="id=?"
                 ).exec(session, [db_object_id]).success
+
 
 def delete_db_objects(session, db_object_ids: list):
     # The list of db_objects to be changed
@@ -115,6 +117,7 @@ def delete_db_objects(session, db_object_ids: list):
     # Update all given services
     for db_object_id in db_object_ids:
         delete_db_object(session, db_object_id)
+
 
 def enable_db_object(session, value: bool, db_object_ids: list):
     # The list of db_objects to be changed
@@ -135,7 +138,7 @@ def enable_db_object(session, value: bool, db_object_ids: list):
 
 
 def query_db_objects(session, db_object_id=None, schema_id=None, request_path=None,
-                     db_object_name=None, include_enable_state=None):
+                     db_object_name=None, include_enable_state=None, object_types=None):
 
     # Build SQL based on which input has been provided
     sql = """
@@ -181,6 +184,15 @@ def query_db_objects(session, db_object_id=None, schema_id=None, request_path=No
         if db_object_name is not None:
             wheres.append("o.name = ?")
             params.append(db_object_name)
+        if object_types is not None:
+            if len(object_types) > 1:
+                s = "(" + ("o.object_type = ? OR " * len(object_types))
+                wheres.append(s[0:-4] + ")")
+                for t in object_types:
+                    params.append(t)
+            elif len(object_types) == 1:
+                wheres.append("o.object_type = ?")
+                params.append(object_types[0])
 
     if include_enable_state is not None:
         wheres.append("o.enabled = ?")
@@ -226,7 +238,7 @@ def get_db_object(session, db_object_id: bytes = None, schema_id: bytes = None, 
     return result[0] if result else None
 
 
-def get_db_objects(session, schema_id: bytes, include_enable_state=None):
+def get_db_objects(session, schema_id: bytes, include_enable_state=None, object_types=None):
     """Returns all db_objects for the given schema
 
     Args:
@@ -238,7 +250,9 @@ def get_db_objects(session, schema_id: bytes, include_enable_state=None):
     Returns:
         A list of dicts representing the db_objects of the schema
     """
-    return query_db_objects(session=session, schema_id=schema_id, include_enable_state=include_enable_state)
+    return query_db_objects(
+        session=session, schema_id=schema_id,
+        include_enable_state=include_enable_state, object_types=object_types)
 
 
 def add_db_object(session, schema_id, db_object_name, request_path, db_object_type,
@@ -464,12 +478,12 @@ def update_db_objects(session, db_object_ids, value):
         grant_privileges = map_crud_operations(
             value.get("crud_operations", []))
 
-
         db_object = get_db_object(session, db_object_id)
         schema = schemas.get_schema(session, db_object["db_schema_id"])
 
         # Revoke all grants before granting the necessary ones
-        database.revoke_all_from_db_object(session, schema["name"], db_object["name"])
+        database.revoke_all_from_db_object(
+            session, schema["name"], db_object["name"])
 
         # Grant privilege to the 'mysql_rest_service_data_provider' role
         if grant_privileges:
@@ -483,6 +497,13 @@ def update_db_objects(session, db_object_ids, value):
 
         if objects is not None:
             set_objects(session, db_object_id, objects)
+
+
+def db_schema_object_is_table(session, db_schema_name, db_object_name):
+    return database.db_schema_object_is_table(
+        session=session,
+        db_schema_name=db_schema_name,
+        db_object_name=db_object_name)
 
 
 def get_db_object_parameters(session, db_object_id=None,
@@ -521,7 +542,7 @@ def get_table_columns_with_references(session, db_object_id=None,
         db_object_name = db_object["name"]
         db_object_type = db_object["object_type"]
 
-    if db_object_type not in ["TABLE", "VIEW"]:
+    if db_object_type and db_object_type not in ["TABLE", "VIEW"]:
         raise ValueError(
             "The object_type must be either set to TABLE or VIEW.")
 
@@ -571,6 +592,7 @@ def set_object_fields_with_references(session, db_object_id, obj):
 
                 # make sure to covert the sub Dict with dict()
                 ref_map = obj_ref.get("reference_mapping")
+                ref_map_json = None
                 if ref_map is not None:
                     ref_map = dict(ref_map)
 
@@ -598,6 +620,10 @@ def set_object_fields_with_references(session, db_object_id, obj):
                         ref_map.get("referenced_schema"),
                         ref_map.get("referenced_table"),
                         grant_privileges)
+
+                if not ref_map_json:
+                    raise Exception(
+                        f'reference_mapping not defined for field {field.get("name")}')
 
                 core.insert(table="object_reference", values={
                     "id": core.id_to_binary(obj_ref.get("id"), "objectReference.id"),

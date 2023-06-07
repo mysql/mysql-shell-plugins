@@ -25,6 +25,11 @@
         "tinyint",
         "mediumint",
         "unnested",
-        "notnull"
+        "notnull",
+        "ANTLR",
+        "Dlanguage",
+        "REDUCETO",
+        "typecheck",
+        "preact"
     ]
 }

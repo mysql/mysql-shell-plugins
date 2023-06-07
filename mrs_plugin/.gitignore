@@ -7,3 +7,7 @@ plugin-test-coverage.xml
 plugin-tests.xml
 .vscode/launch.json
 package-lock.json
+
+*.interp
+grammar/.antlr
+grammar/antlr-4.13.0-complete.jar

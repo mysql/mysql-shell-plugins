@@ -32,8 +32,6 @@ from enum import IntEnum
 import threading
 import base64
 
-_metadata_schema_updated = False
-
 
 class ConfigFile:
     def __init__(self) -> None:
@@ -284,10 +282,6 @@ def get_current_session(session=None):
     return session
 
 
-def get_metadata_schema_updated():
-    return _metadata_schema_updated
-
-
 def get_mrs_schema_version(session):
     row = select(table="schema_version", cols=["major", "minor", "patch", "CONCAT(major, '.', minor, '.', patch) AS version"]
                  ).exec(session).first
@@ -309,7 +303,7 @@ def mrs_metadata_schema_exists(session):
     return row["schema_exists"]
 
 
-def update_rds_metadata_schema(session, current_db_version_str):
+def update_mrs_metadata_schema(session, current_db_version_str):
     """Creates or updates the MRS metadata schema
 
     Raises exception on failure
@@ -383,9 +377,9 @@ def update_rds_metadata_schema(session, current_db_version_str):
                       f"to version {general.DB_VERSION_STR}.")
 
 
-def create_rds_metadata_schema(session, drop_existing=False):
+def create_mrs_metadata_schema(session, drop_existing=False):
     """Creates or updates the MRS metadata schema
-#
+
     Raises exception on failure
 
     Args:
@@ -395,10 +389,6 @@ def create_rds_metadata_schema(session, drop_existing=False):
     Returns:
         None
     """
-    interactive = get_interactive_default()
-    if interactive:
-        print("Creating MRS metadata schema...")
-
     latest_version_val = [0, 0, 0]
 
     script_dir = sql_file_path = script_path('db_schema')
@@ -1105,3 +1095,54 @@ def convert_path_to_pascal_case(path):
         return s[0].upper()
 
     return s[0].upper() + s[1:]
+
+
+def convert_snake_to_camel_case(snake_str):
+    snake_str = "".join(x.capitalize() for x in snake_str.lower().split("_"))
+
+    return snake_str[0].lower() + snake_str[1:]
+
+def unquote(name):
+    if name.startswith("`"):
+        return name.strip("`")
+    elif name.startswith("\""):
+        return name.strip("\"")
+
+    return name
+
+
+def format_result(result):
+    if len(result) > 0:
+        columns = list(result[0].keys())
+
+        # Get max_col_lengths
+        max_lengths = {}
+        # Initialize with column name lengths
+        for col in columns:
+            max_lengths[col] = len(col)
+        # Loop over all rows and check if a field length is bigger
+        for row in result:
+            for col in columns:
+                field = str(row.get(col))
+                current_length = max_lengths.get(col, 0)
+                if len(field) > current_length:
+                    max_lengths[col] = len(field)
+
+        h_sep = "+"
+        for col in columns:
+            h_sep += "-" * (max_lengths[col] + 2) + "+"
+
+        formatted_res = h_sep + "\n" + "|"
+        for col in columns:
+            formatted_res += f' {col}{" " * (max_lengths[col] - len(col))} |'
+        formatted_res += "\n" + h_sep + "\n"
+
+        for row in result:
+            formatted_res += "|"
+            for col in columns:
+                f = str(row.get(col))
+                formatted_res += f' {f}{" " * (max_lengths[col] - len(f))} |'
+
+            formatted_res += "\n"
+
+        return formatted_res + h_sep

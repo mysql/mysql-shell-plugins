@@ -1,0 +1,10 @@
+{
+    "name": "mrs-shell-plugin",
+    "version": "1.0.0",
+    "description": "MySQL REST Service plugin for MySQL Shell",
+    "scripts": {
+      "update-mrs-parser": "scripts/generate_mrs_parser.sh"
+    },
+    "publisher": "Oracle"
+  }
+  

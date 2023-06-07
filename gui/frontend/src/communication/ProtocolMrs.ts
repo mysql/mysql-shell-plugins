@@ -182,7 +182,9 @@ export enum ShellAPIMrs {
     /** List all configured routers */
     MrsListRouters = "mrs.list.routers",
     /** Delete an existing router */
-    MrsDeleteRouter = "mrs.delete.router"
+    MrsDeleteRouter = "mrs.delete.router",
+    /** Run the given MRS script */
+    MrsRunScript = "mrs.run.script"
 }
 
 export interface IShellMrsAddServiceKwargs {
@@ -1062,11 +1064,28 @@ export interface IShellMrsAddRoleKwargs {
     moduleSessionId?: string;
 }
 
+export interface IShellMrsRunScriptKwargs {
+    /** The path of the script to run */
+    path?: string;
+    /** The id of the current service */
+    currentServiceId?: string;
+    /** The url_context_root of the current service */
+    currentService?: string;
+    /** The url_context_root of the current service URL */
+    currentServiceHost?: string;
+    /** The id of the current schema */
+    currentSchemaId?: string;
+    /** The full path of the current schema */
+    currentSchema?: string;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
 export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsInfo]: {};
     [ShellAPIMrs.MrsVersion]: {};
     [ShellAPIMrs.MrsLs]: { args: { path?: string; moduleSessionId?: string; }; };
-    [ShellAPIMrs.MrsConfigure]: { args: { moduleSessionId?: string; enableMrs?: boolean; allowRecreationOnMajorUpgrade?: boolean; }; };
+    [ShellAPIMrs.MrsConfigure]: { args: { moduleSessionId?: string; enableMrs?: boolean; options?: string; updateIfAvailable?: boolean; allowRecreationOnMajorUpgrade?: boolean; }; };
     [ShellAPIMrs.MrsStatus]: { args: { moduleSessionId?: string; }; };
     [ShellAPIMrs.MrsAddService]: { kwargs?: IShellMrsAddServiceKwargs; };
     [ShellAPIMrs.MrsGetService]: { kwargs?: IShellMrsGetServiceKwargs; };
@@ -1141,6 +1160,7 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsListRouterIds]: { args: { seenWithin?: number; moduleSessionId?: string; }; };
     [ShellAPIMrs.MrsListRouters]: { args: { activeWhenSeenWithin?: number; moduleSessionId?: string; }; };
     [ShellAPIMrs.MrsDeleteRouter]: { args: { routerId?: number; moduleSessionId?: string; }; };
+    [ShellAPIMrs.MrsRunScript]: { args: { mrsScript?: string; }; kwargs?: IShellMrsRunScriptKwargs; };
 
 }
 

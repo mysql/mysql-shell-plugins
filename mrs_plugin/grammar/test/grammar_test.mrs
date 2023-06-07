@@ -1,0 +1,138 @@
+/* MRS Grammar Test
+Copyright (c) 2023, Oracle and/or its affiliates. */
+
+# cSpell:ignore gtid
+CONFIGURE REST METADATA
+    ENABLED
+    OPTIONS {
+        "gtid": { 
+            "cache": {
+                "enable": true,
+                "refresh_rate": 5, 
+                "refresh_when_increases_by": 500
+            }
+        }
+    }
+    UPDATE IF AVAILABLE;
+
+CREATE OR REPLACE REST SERVICE localhost/myTestService;
+
+CREATE OR REPLACE REST SERVICE localhost/myTestService
+    ENABLED
+    PROTOCOL HTTPS
+    COMMENTS "A simple REST service"
+    AUTHENTICATION
+        PATH "/authentication"
+        REDIRECTION DEFAULT
+        VALIDATION DEFAULT
+        PAGE CONTENT DEFAULT
+    USER MANAGEMENT SCHEMA DEFAULT
+    OPTIONS {
+        "headers": {
+            "Access-Control-Allow-Credentials": "true",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, Origin, X-Auth-Token",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        "http": {
+            "allowedOrigin": "auto"
+        },
+        "logging": {
+            "exceptions": true,
+            "request": {
+                "body": true,
+                "headers": true
+            },
+            "response": {
+                "body": true,
+                "headers": true
+            }
+        },
+        "returnInternalErrorDetails": true
+    };
+
+CREATE REST SCHEMA ON SERVICE localhost/myTestService FROM `sakila`
+    ENABLED
+    AUTHENTICATION NOT REQUIRED
+    ITEMS PER PAGE 25
+    COMMENTS "The sakila schema";
+
+USE REST SERVICE localhost/myTestService;
+
+CREATE OR REPLACE REST SCHEMA /sakila FROM `sakila`;
+
+USE REST SCHEMA /sakila;
+
+CREATE OR REPLACE REST DUALITY VIEW /country
+ON SERVICE localhost/myTestService SCHEMA /sakila
+FROM sakila.country
+    ENABLED
+    AUTHENTICATION NOT REQUIRED
+    ITEMS PER PAGE 25
+    COMMENTS "The sakila.country table"
+    MEDIA TYPE "Test"
+    FORMAT FEED
+    AUTHENTICATION PROCEDURE sakila.auth_proc
+AS MyServiceSakilaCountry @SELECT @INSERT @UPDATE @DELETE {
+    countryId: country_id @SORTABLE,
+    country: country,
+    lastUpdate: last_update,
+    cities: sakila.city {
+        city: city
+    }
+};
+
+CREATE OR REPLACE REST DUALITY VIEW /actor
+FROM `sakila`.`actor` AS MyServiceSakilaActor {
+    actorId: actor_id @SORTABLE,
+    firstName: first_name,
+    lastName: last_name,
+    lastUpdate: last_update,
+    filmActor: sakila.film_actor @REDUCETO(title) {
+        film: sakila.film @UNNEST {
+            title: title
+        }
+    }
+};
+
+CREATE REST DUALITY VIEW /actorInfo
+FROM `sakila`.`actor_info` AS MyServiceSakilaActorInfo {
+    actorId: actor_id @SORTABLE,
+    firstName: first_name,
+    lastName: last_name,
+    filmInfo: film_info
+};
+
+CREATE OR REPLACE REST PROCEDURE /filmInStock
+FROM sakila.film_in_stock AS MyServiceSakilaFilmInStockParams
+PARAMETERS {
+    pFilmId: p_film_id @IN,
+    pStoreId: p_store_id @IN,
+    pFilmCount: p_film_count @OUT
+}
+RESULT MyServiceSakilaFilmInStock {
+    inventoryId: inventory_id @DATATYPE("int")
+};
+
+SHOW REST METADATA STATUS;
+
+SHOW REST SERVICES;
+
+SHOW REST SCHEMAS;
+
+SHOW REST DUALITY VIEWS
+    FROM SERVICE localhost/myTestService SCHEMA /sakila;
+
+SHOW REST PROCEDURES;
+
+DROP REST DUALITY VIEW /country 
+ON SERVICE localhost/myTestService SCHEMA /sakila;
+
+DROP REST DUALITY VIEW /actor;
+
+DROP REST DUALITY VIEW /actorInfo;
+
+DROP REST PROCEDURE /filmInStock;
+
+DROP REST SCHEMA /sakila;
+
+DROP REST SERVICE localhost/myTestService;
