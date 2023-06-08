@@ -132,6 +132,7 @@ export class ExtensionHost {
         });
         this.providers = [];
         this.dbEditorCommandHandler.clear();
+        this.lastActiveProvider = undefined;
 
         this.shellConsoleCommandHandler.closeProviders();
     }
