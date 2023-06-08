@@ -68,7 +68,7 @@ export class ShellSession {
         const zoneHosts = await driver.findElements(By.css(".zoneHost"));
         const zoneHost = zoneHosts[zoneHosts.length - 1];
 
-        const json = await zoneHost.findElements(By.css("#outputHost .jsonView"));
+        const json = await zoneHost.findElements(By.css(".outputHost .jsonView"));
 
         return json.length > 0;
     };

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1,0,0,1,-938,-1024)">
+        <g id="Reference-Options" serif:id="Reference Options">
+        </g>
+        <g id="Options" transform="matrix(1,0,0,1,177,119)">
+            <g id="InOut">
+            </g>
+            <g id="Out">
+            </g>
+            <g id="In" transform="matrix(2,0,0,2,585,977)">
+                <g transform="matrix(-1.13803,0,0,1.18814,107.06,-36.4958)">
+                    <path d="M7.083,8.547L7.083,3.784L7.961,3.784L7.961,8.547L9.207,7.34L9.914,7.793L7.499,10.208L6.792,9.501L6.793,9.5L5.086,7.793L5.793,7.34L7.083,8.547Z" style="fill:white;"/>
+                </g>
+                <g transform="matrix(-0.5,0,0,0.5,573,-548)">
+                    <rect x="952" y="1032" width="10" height="2" style="fill:white;"/>
+                </g>
+                <g transform="matrix(-0.4,0,0,0.5,476.8,-546)">
+                    <rect x="952" y="1032" width="10" height="2" style="fill:white;"/>
+                </g>
+                <g transform="matrix(-0.3,0,0,0.5,380.6,-544)">
+                    <rect x="952" y="1032" width="10" height="2" style="fill:white;"/>
+                </g>
+                <g transform="matrix(-0.2,0,0,0.5,284.4,-542)">
+                    <rect x="952" y="1032" width="10" height="2" style="fill:white;"/>
+                </g>
+            </g>
+            <g transform="matrix(2.31546,0,0,2.31546,800.702,902.735)">
+                <g id="allowSorting">
+                    <path d="M-10.237,0.978C-6.423,0.978 -3.326,4.075 -3.326,7.888C-3.326,11.702 -6.423,14.799 -10.237,14.799C-14.05,14.799 -17.147,11.702 -17.147,7.888C-17.147,4.075 -14.05,0.978 -10.237,0.978ZM-10.237,1.842C-13.574,1.842 -16.283,4.551 -16.283,7.888C-16.283,11.226 -13.574,13.935 -10.237,13.935C-6.899,13.935 -4.19,11.226 -4.19,7.888C-4.19,4.551 -6.899,1.842 -10.237,1.842Z" style="fill:white;"/>
+                </g>
+            </g>
+            <g id="NoCheck">
+            </g>
+            <g id="rowOwnership">
+            </g>
+            <g id="NoUpdate">
+            </g>
+            <g id="NoFilter">
+            </g>
+            <g id="Unnest">
+            </g>
+        </g>
+        <g id="Unnest1" serif:id="Unnest">
+        </g>
+        <g id="CRUD">
+        </g>
+    </g>
+</svg>

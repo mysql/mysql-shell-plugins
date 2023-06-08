@@ -1314,6 +1314,7 @@ export interface IMrsRouterData {
 
 export interface IMrsCurrentServiceMetadata {
     id?: string,
+    hostCtx?: string,
     metadataVersion?: string,
 }
 
@@ -1393,6 +1394,7 @@ export interface IMrsObjectFieldWithReference {
     dbColumn?: IMrsTableColumn,
     enabled: boolean,
     allowFiltering: boolean,
+    allowSorting: boolean,
     noCheck: boolean,
     noUpdate: boolean,
     sdkOptions?: IMrsObjectFieldSdkOptions,

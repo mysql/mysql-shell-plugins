@@ -54,7 +54,7 @@ export class PresentationInterface {
     ]);
 
     // The maximum height for the result area.
-    protected static maxHeight = 600;
+    protected static maxHeight = 800;
     protected static maxAutoHeight = {
         text: 292,
         resultSets: 292,
@@ -843,7 +843,7 @@ export class PresentationInterface {
                     this.minHeight = 36;
                 } else {
                     element = <Container
-                        id="outputHost"
+                        className="outputHost"
                         orientation={Orientation.TopDown}
                         fixedScrollbars={false}
                     >

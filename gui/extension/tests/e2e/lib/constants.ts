@@ -71,4 +71,4 @@ export const mrsDocs = "MRS Docs";
 
 // MISC
 export const openEditorsDBNotebook = "DB Notebook";
-export const dbConnectionsLabel = "DB Connections";
+export const dbConnectionsLabel = "DB Connection Overview";

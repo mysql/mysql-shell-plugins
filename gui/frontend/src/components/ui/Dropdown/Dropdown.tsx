@@ -198,7 +198,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
                     inputContent = <Label className="ellipsis">{tags[0].caption}</Label>;
                 }
             } else if (placeholder) {
-                inputContent = <Label className="placeholder">{placeholder}</Label>;
+                inputContent = <Label className="placeholder" data-tooltip="inherit">{placeholder}</Label>;
             }
 
             inputControl =

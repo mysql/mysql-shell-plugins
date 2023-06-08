@@ -98,10 +98,6 @@ def delete_db_object(session, db_object_ids: list):
 
     # Update all given services
     for db_object_id in db_object_ids:
-        # remove all fields for this db_object
-        core.delete(table="field", where=["db_object_id=?"]).exec(
-            session, [db_object_id])
-
         # remove the db_object
         core.delete(table="db_object",
                     where="id=?"
@@ -618,6 +614,7 @@ def set_object_fields_with_references(session, db_object_id, obj):
                     "db_column": core.convert_dict_to_json_string(field.get("db_column")),
                     "enabled": field.get("enabled"),
                     "allow_filtering": field.get("allow_filtering"),
+                    "allow_sorting": field.get("allow_sorting", 0),
                     "no_check": field.get("no_check"),
                     "sdk_options": core.convert_dict_to_json_string(field.get("sdk_options")),
                     "comments": field.get("comments"),

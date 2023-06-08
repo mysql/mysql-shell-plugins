@@ -170,6 +170,7 @@ export interface IMrsRouterData {
 
 export interface IMrsCurrentServiceMetadata {
     id?: string,
+    hostCtx?: string,
     metadataVersion?: string,
 }
 
@@ -249,6 +250,7 @@ export interface IMrsObjectFieldWithReference {
     dbColumn?: IMrsTableColumn,
     enabled: boolean,
     allowFiltering: boolean,
+    allowSorting: boolean,
     noCheck: boolean,
     noUpdate: boolean,
     sdkOptions?: IMrsObjectFieldSdkOptions,
@@ -282,7 +284,7 @@ export interface IMrsObject {
 
 export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsAddService]: { result: IMrsServiceData; };
-    [ShellAPIMrs.MrsGetService]: {};
+    [ShellAPIMrs.MrsGetService]: { result: IMrsServiceData; };
     [ShellAPIMrs.MrsListServices]: { result: IMrsServiceData[]; };
     [ShellAPIMrs.MrsEnableService]: {};
     [ShellAPIMrs.MrsDisableService]: {};

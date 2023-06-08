@@ -398,27 +398,28 @@ export class MrsHub extends ComponentBase {
     public async showMrsDbObjectDialog(backend: ShellInterfaceSqlEditor,
         request: IMrsDbObjectEditRequest): Promise<boolean> {
 
-        if (request.createObject && request.schemaName === undefined) {
-            void requisitions.execute("showError",
-                ["When creating a new DB Object the schema name must be valid."]);
-
-            return true;
-        }
-
-
         const dbObject = request.dbObject;
 
         const services = await backend.mrs.listServices();
         const schemas = await backend.mrs.listSchemas(dbObject.serviceId === "" ? undefined : dbObject.serviceId);
-        const tableColumnsWithReferences = await backend.mrs.getTableColumnsWithReferences(
-            undefined, dbObject.name,
-            undefined, undefined, dbObject.schemaName,
-            dbObject.objectType);
-        const rowOwnershipFields = tableColumnsWithReferences.filter((f) => {
-            return f.referenceMapping === undefined || f.referenceMapping === null;
-        }).map((f) => {
-            return f.name;
-        });
+        let rowOwnershipFields: string[];
+        if (dbObject.objectType !== "PROCEDURE") {
+            const tableColumnsWithReferences = await backend.mrs.getTableColumnsWithReferences(
+                undefined, dbObject.name,
+                undefined, undefined, dbObject.schemaName,
+                dbObject.objectType);
+            rowOwnershipFields = tableColumnsWithReferences.filter((f) => {
+                return f.referenceMapping === undefined || f.referenceMapping === null;
+            }).map((f) => {
+                return f.name;
+            });
+        } else {
+            const params = await backend.mrs.getDbObjectParameters(
+                dbObject.name, dbObject.schemaName);
+            rowOwnershipFields = params.map((p) => {
+                return p.name;
+            });
+        }
 
         const dialogRequest = {
             id: "mrsDbObjectDialog",
