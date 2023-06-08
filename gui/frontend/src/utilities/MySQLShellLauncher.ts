@@ -326,16 +326,20 @@ export class MySQLShellLauncher {
      */
     public exitProcess(): Promise<void> {
         return new Promise((resolve) => {
-            // istanbul ignore else
-            if (this.shellProcess?.pid) {
-                this.shellProcess.on("close", resolve);
-
-                this.shellProcess.kill();
-            } else {
+            const done = () => {
                 this.shellProcess = undefined;
                 this.launchDetails = { port: 0, singleUserToken: "" };
 
                 resolve();
+            };
+
+            // istanbul ignore else
+            if (this.shellProcess?.pid) {
+                this.shellProcess.on("close", done);
+
+                this.shellProcess.kill();
+            } else {
+                done();
             }
         });
     }
