@@ -84,7 +84,7 @@ export class DBNotebooks {
      */
     public static createDBconnection = async (dbConfig: IDBConnection): Promise<WebElement | undefined> => {
         const ctx = await driver.wait(until.elementLocated(By.css(".connectionBrowser")),
-            explicitWait, "DB Connections page was not loaded");
+            explicitWait, "DB Connection Overview page was not loaded");
 
         await driver.wait(async () => {
             const isDialogVisible = (await driver.findElements(By.css(".valueEditDialog"))).length > 0;

@@ -209,7 +209,6 @@ export type InitialEditor = "default" | "none" | "notebook" | "script";
 export interface IMrsDbObjectEditRequest extends IDictionary {
     dbObject: IMrsDbObjectData;
     createObject: boolean;
-    schemaName?: string;
 }
 
 export interface IMrsSchemaEditRequest extends IDictionary {

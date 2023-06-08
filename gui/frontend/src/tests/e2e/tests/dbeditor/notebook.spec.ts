@@ -1065,7 +1065,7 @@ describe("Notebook", () => {
         }, explicitWait, "Result is not a valid json");
 
         const zoneHosts = await driver.findElements(By.css(".zoneHost"));
-        const outputHost = await zoneHosts[zoneHosts.length - 1].findElement(By.id("outputHost"));
+        const outputHost = await zoneHosts[zoneHosts.length - 1].findElement(By.className("outputHost"));
         const rect = await outputHost.getRect();
         await driver.actions().move({
             x: rect.x,

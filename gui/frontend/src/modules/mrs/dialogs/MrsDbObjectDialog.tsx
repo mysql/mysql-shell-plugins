@@ -207,7 +207,9 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
         // ---------------------------------------------------------------------
         // Add MrsRestObjectFieldEditor
         const customData: IMrsObjectFieldEditorData = {
+            servicePath: selectedService?.urlContextRoot ?? "",
             dbSchemaName: selectedSchema?.name ?? "",
+            dbSchemaPath: selectedSchema?.requestPath ?? "",
             dbObject: this.requestValue,
             defaultMrsObjectName: convertToPascalCase(selectedService?.urlContextRoot ?? "") +
                 convertToPascalCase(selectedSchema?.requestPath ?? "") +
@@ -221,7 +223,8 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
         };
 
         const mrsObjectSection: IDialogSection = {
-            caption: "JSON/Relational Duality",
+            caption: this.requestValue.objectType === "PROCEDURE"
+                ? "Parameters/Result Sets" : "JSON/Relational Duality",
             groupName: "group1",
             expand: true,
             values: {

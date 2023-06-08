@@ -532,7 +532,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                     const editors = await new EditorView().getOpenEditorTitles();
 
                     return editors.includes(constants.dbDefaultEditor);
-                }, constants.explicitWait, "DB Connections was not opened");
+                }, constants.explicitWait, "DB Connection Overview was not opened");
 
                 await Misc.switchToWebView();
                 await driver.wait(Database.isConnectionLoaded(), constants.explicitWait, "Connection was not loaded");

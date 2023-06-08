@@ -109,6 +109,7 @@ export default defineConfig({
             define: {
                 global: "globalThis",
             },
+            target: "es2022",
         },
     },
     build: {

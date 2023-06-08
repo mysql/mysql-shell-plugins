@@ -251,7 +251,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 <Dropdown.Item
                     id="connections"
                     key="connections"
-                    caption="DB Connections"
+                    caption="DB Connection Overview"
                     picture={<Icon src={overviewPageIcon} />}
                 />,
             ];
@@ -662,7 +662,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
     private showConnections = (): Promise<boolean> => {
         return new Promise((resolve) => {
             this.setState({ selectedPage: "connections" }, () => { resolve(true); });
-            requisitions.executeRemote("selectConnectionTab", { connectionId: -1, page: "DB Connections" });
+            requisitions.executeRemote("selectConnectionTab", { connectionId: -1, page: "DB Connection Overview" });
         });
     };
 
@@ -1379,7 +1379,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         this.setState({ selectedPage: id, selectedItem: undefined });
 
         if (id === "connections") {
-            requisitions.executeRemote("selectConnectionTab", { connectionId: -1, page: "DB Connections" });
+            requisitions.executeRemote("selectConnectionTab", { connectionId: -1, page: "DB Connection Overview" });
         } else {
             const { editorTabs } = this.state;
             const tab = editorTabs.find((info) => {

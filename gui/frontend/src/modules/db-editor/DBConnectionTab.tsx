@@ -292,7 +292,7 @@ Execute \\help or \\? for help;`;
         this.notebookRef.current?.focus();
 
         // Update the cachedMrsServiceSdk for the first time
-        //void this.updateMrsServiceSdkCache();
+        void this.updateMrsServiceSdkCache();
     }
 
     public componentWillUnmount(): void {
@@ -1292,22 +1292,42 @@ Execute \\help or \\? for help;`;
         const { backend } = this.state;
 
         if (backend !== undefined) {
+            const sbId = uuid();
+            const updateStatusbar = async (text?: string, timeout?: number) => {
+                // Removes the statusbar item, if the text is undefined.
+                if (appParameters.embedded) {
+                    requisitions.executeRemote("updateStatusbar", [{
+                        id: sbId, text, visible: text !== undefined, hideAfter: timeout,
+                    }]);
+                } else {
+                    await requisitions.execute("updateStatusbar", [{
+                        id: sbId, text, visible: text !== undefined, hideAfter: timeout,
+                    }]);
+                }
+            };
             // Check if there is an current MRS Service set and if so, get the corresponding MRSruntime SDK
             // for that MRS Service
             try {
+                void updateStatusbar("$(loading~spin) Checking MRS status ...");
                 const serviceMetadata = await backend.mrs.getCurrentServiceMetadata();
 
                 // Check if there is a current MRS service set and if the cached
-                if (serviceMetadata.id !== undefined) {
+                if (serviceMetadata.id !== undefined && serviceMetadata.hostCtx !== undefined &&
+                    serviceMetadata.metadataVersion !== undefined) {
                     if (this.cachedMrsServiceSdk.schemaId !== serviceMetadata.id ||
                         this.cachedMrsServiceSdk.schemaMetadataVersion !== serviceMetadata.metadataVersion) {
+                        let firstLoad = false;
                         // Fetch SDK BaseClasses only once
                         if (this.cachedMrsServiceSdk.baseClasses === undefined) {
+                            void updateStatusbar("$(loading~spin) Loading MRS SDK Base Classes ...");
                             this.cachedMrsServiceSdk.baseClasses =
                                 await backend.mrs.getSdkBaseClasses("TypeScript", true);
+                            firstLoad = true;
                         }
 
                         // Fetch new SDK Service Classes and build full code
+                        void updateStatusbar(`$(loading~spin) ${firstLoad ? "Loading" : "Refreshing"} MRS SDK for ` +
+                            `${serviceMetadata.hostCtx}...`);
                         const code = this.cachedMrsServiceSdk.baseClasses + "\n" +
                             await backend.mrs.getSdkServiceClasses(serviceMetadata.id, "TypeScript", true);
 
@@ -1324,10 +1344,17 @@ Execute \\help or \\? for help;`;
                             `file:///node_modules/@types/mrsServiceSdk.d.ts`);
                         this.scriptRef.current?.addOrUpdateExtraLib(code,
                             `file:///node_modules/@types/mrsServiceSdk.d.ts`);
+
+                        void updateStatusbar(`MRS SDK for ${serviceMetadata.hostCtx} has been ` +
+                            `${firstLoad ? "loaded" : "refreshed"}.`, 5000);
+                    } else {
+                        void updateStatusbar();
                     }
                 } else {
                     // If no current MRS service set, clean the cachedMrsServiceSdk
                     this.cachedMrsServiceSdk = {};
+
+                    void updateStatusbar();
                 }
 
                 return true;
@@ -1404,7 +1431,7 @@ Execute \\help or \\? for help;`;
             }
 
             case "typescript": {
-                //await this.updateMrsServiceSdkCache();
+                await this.updateMrsServiceSdkCache();
 
                 let mrsServiceSdkCode = "";
                 let libCodeLineNumbers = 0;

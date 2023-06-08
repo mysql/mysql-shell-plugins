@@ -87,6 +87,9 @@
         "vite": "4.1.1",
         "vite-plugin-monaco-editor": "1.1.0"
     },
+    "overrides": {
+        "@babel/plugin-transform-class-properties": "7.22.3"
+    },
     "browserslist": [
         ">0.2%",
         "not dead",

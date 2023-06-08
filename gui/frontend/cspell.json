@@ -184,7 +184,8 @@
         "unnested",
         "tinyint",
         "smallint",
-        "mediumint"
+        "mediumint",
+        "INOUT"
     ],
     "ignorePaths": [
         ".eslintrc.json",

@@ -277,6 +277,19 @@ export const snakeToCamelCase = (str: string): string => {
 };
 
 /**
+ * Converts a given string from camel case to snake case
+ *
+ * @param str The string to convert.
+ * @returns The converted string.
+ */
+export const camelToSnakeCase = (str: string): string => {
+    return str.replace(
+        /([a-z])([A-Z])/g, (full, match1: string, match2: string) => {
+            return `${match1}_${match2.toLowerCase()}`;
+        });
+};
+
+/**
  * Converts a camel case string to title case, that is the first letter in the string is converted to uppercase.
  *
  * @param s The string to convert.

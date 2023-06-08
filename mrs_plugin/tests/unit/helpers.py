@@ -234,7 +234,6 @@ def reset_mrs_database(session):
     session.run_sql("DELETE FROM mysql_rest_service_metadata.audit_log")
     session.run_sql("DELETE FROM mysql_rest_service_metadata.content_file")
     session.run_sql("DELETE FROM mysql_rest_service_metadata.content_set")
-    session.run_sql("DELETE FROM mysql_rest_service_metadata.field")
     session.run_sql("DELETE FROM mysql_rest_service_metadata.db_object")
     session.run_sql("DELETE FROM mysql_rest_service_metadata.db_schema")
     session.run_sql("DELETE FROM mysql_rest_service_metadata.auth_app")

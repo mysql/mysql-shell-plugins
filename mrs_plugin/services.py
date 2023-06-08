@@ -29,12 +29,13 @@ from .interactive import resolve_service, resolve_options
 from pathlib import Path
 import os
 
+
 def verify_value_keys(**kwargs):
     for key in kwargs["value"].keys():
         if key not in ["url_host_id",  "url_context_root",  "url_protocol", "url_host_name",
-            "enabled",  "comments", "options",
-            "auth_path", "auth_completed_url", "auth_completed_url_validation",
-            "auth_completed_page_content", "auth_apps"] and key != "delete":
+                       "enabled",  "comments", "options",
+                       "auth_path", "auth_completed_url", "auth_completed_url_validation",
+                       "auth_completed_page_content", "auth_apps"] and key != "delete":
             raise Exception(f"Attempting to change an invalid service value.")
 
 
@@ -58,8 +59,9 @@ def resolve_service_ids(**kwargs):
         if not url_context_root:
             # Check if there already is at least one service
             rows = lib.core.select(table="service",
-                cols=["COUNT(*) AS service_count", "MAX(id) AS id"]
-            ).exec(session).items
+                                   cols=["COUNT(*) AS service_count",
+                                         "MAX(id) AS id"]
+                                   ).exec(session).items
             if len(rows) == 0 or rows[0]["service_count"] == 0:
                 Exception("No service available.")
 
@@ -67,11 +69,11 @@ def resolve_service_ids(**kwargs):
             if interactive:
                 if allow_multi_select:
                     caption = ("Please select a service index, type "
-                                "'hostname/root_context' or type '*' "
-                                "to select all: ")
+                               "'hostname/root_context' or type '*' "
+                               "to select all: ")
                 else:
                     caption = ("Please select a service index or type "
-                                "'hostname/root_context'")
+                               "'hostname/root_context'")
 
                 services = lib.services.get_services(session=session)
                 selection = lib.core.prompt_for_list_item(
@@ -127,17 +129,21 @@ def resolve_service_ids(**kwargs):
 
     return kwargs
 
+
 def resolve_url_context_root(required=False, **kwargs):
     url_context_root = kwargs.get("url_context_root")
     if url_context_root is None and lib.core.get_interactive_default():
-        url_context_root = kwargs["url_context_root"] = lib.services.prompt_for_url_context_root()
+        url_context_root = kwargs["url_context_root"] = lib.services.prompt_for_url_context_root(
+        )
 
     if required and url_context_root is None:
         raise Exception("No context path given. Operation cancelled.")
     if url_context_root is not None and not url_context_root.startswith('/'):
-        raise Exception(f"The url_context_root [{url_context_root}] has to start with '/'.")
+        raise Exception(
+            f"The url_context_root [{url_context_root}] has to start with '/'.")
 
     return kwargs
+
 
 def resolve_url_host_name(required=False, **kwargs):
     url_host_name = kwargs.get("url_host_name")
@@ -156,14 +162,16 @@ def resolve_url_host_name(required=False, **kwargs):
 
     return kwargs
 
+
 def resolve_url_protocol(**kwargs):
     if kwargs.get("url_protocol") is None:
         if lib.core.get_interactive_default():
             kwargs["url_protocol"] = lib.services.prompt_for_service_protocol()
         else:
-            kwargs["url_protocol"] = ["HTTP", "HTTPS"]    
+            kwargs["url_protocol"] = ["HTTP", "HTTPS"]
 
     return kwargs
+
 
 def resolve_comments(**kwargs):
     if lib.core.get_interactive_default():
@@ -172,22 +180,24 @@ def resolve_comments(**kwargs):
 
     return kwargs
 
+
 def call_update_service(op_text, **kwargs):
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         kwargs["session"] = session
         kwargs = resolve_service_ids(**kwargs)
 
-
         for service_id in kwargs["service_ids"]:
             service = lib.services.get_service(session, service_id=service_id)
-            url_context_root = kwargs["value"].get("url_context_root", service["url_context_root"])
-            url_host_name = kwargs["value"].get("url_host_name", service["url_host_name"])
+            url_context_root = kwargs["value"].get(
+                "url_context_root", service["url_context_root"])
+            url_host_name = kwargs["value"].get(
+                "url_host_name", service["url_host_name"])
 
             if (url_host_name != service["url_host_name"]) or \
-                (url_context_root != service["url_context_root"]):
-                lib.core.check_request_path(session, url_host_name + url_context_root)
-
+                    (url_context_root != service["url_context_root"]):
+                lib.core.check_request_path(
+                    session, url_host_name + url_context_root)
 
         with lib.core.MrsDbTransaction(session):
             lib.services.update_service(**kwargs)
@@ -198,7 +208,6 @@ def call_update_service(op_text, **kwargs):
                 return f"The services have been {op_text}."
             return True
     return False
-
 
 
 @plugin_function('mrs.add.service', shell=True, cli=True, web=True)
@@ -235,7 +244,8 @@ def add_service(**kwargs):
             auth_apps = []
             for app in kwargs.get("auth_apps", []):
                 app = lib.core.convert_json(app)
-                lib.core.convert_ids_to_binary(["auth_vendor_id", "service_id", "default_role_id"], app)
+                lib.core.convert_ids_to_binary(
+                    ["auth_vendor_id", "service_id", "default_role_id"], app)
                 app["id"] = lib.core.get_sequence_id(session)
                 auth_apps.append(app)
             kwargs["auth_apps"] = auth_apps
@@ -244,8 +254,8 @@ def add_service(**kwargs):
 
         kwargs["session"] = session
         row = lib.core.select(table="service",
-            cols="COUNT(*) as service_count"
-        ).exec(session).first
+                              cols="COUNT(*) as service_count"
+                              ).exec(session).first
         service_count = row.get("service_count", 0) if row else 0
 
         # Get url_context_root
@@ -293,9 +303,9 @@ def add_service(**kwargs):
 
         # Get id of the host
         row = lib.core.select(table="url_host",
-            cols="id",
-            where="name=?"
-        ).exec(session, [url_host_name if url_host_name else '']).first
+                              cols="id",
+                              where="name=?"
+                              ).exec(session, [url_host_name if url_host_name else '']).first
         url_host_id = row["id"] if row else None
 
         with lib.core.MrsDbTransaction(session):
@@ -344,9 +354,9 @@ def get_service(**kwargs):
     """
     lib.core.convert_ids_to_binary(["service_id"], kwargs)
 
-    url_context_root=kwargs.get("url_context_root")
-    url_host_name=kwargs.get("url_host_name")
-    service_id=kwargs.get("service_id")
+    url_context_root = kwargs.get("url_context_root")
+    url_host_name = kwargs.get("url_host_name")
+    service_id = kwargs.get("service_id")
     get_default = kwargs.get("get_default", False)
     auto_select_single = kwargs.get("auto_select_single", False)
 
@@ -361,13 +371,13 @@ def get_service(**kwargs):
 
             # Check if there already is at least one service
             row = lib.core.select(table="service",
-                cols="COUNT(*) as service_count, MIN(id) AS id"
-            ).exec(session).first
+                                  cols="COUNT(*) as service_count, MIN(id) AS id"
+                                  ).exec(session).first
             service_count = row.get("service_count", 0) if row else 0
 
             if service_count == 0:
                 raise ValueError("No services available. Use "
-                                    "mrs.add.`service`() to add a new service.")
+                                 "mrs.add.`service`() to add a new service.")
             if auto_select_single and service_count == 1:
                 service_id = row["id"]
 
@@ -388,7 +398,7 @@ def get_service(**kwargs):
                     return item
 
         service = lib.services.get_service(url_context_root=url_context_root, url_host_name=url_host_name,
-            service_id=service_id, get_default=get_default, session=session)
+                                           service_id=service_id, get_default=get_default, session=session)
 
         if lib.core.get_interactive_result():
             return lib.services.format_service_listing([service], True)
@@ -524,7 +534,7 @@ def set_url_context_root(**kwargs):
     """
     lib.core.convert_ids_to_binary(["service_id"], kwargs)
 
-    kwargs["value"] = { "url_context_root": kwargs["value"]}
+    kwargs["value"] = {"url_context_root": kwargs["value"]}
     if "service_id" not in kwargs:
         kwargs = resolve_url_context_root(required=False, **kwargs)
         kwargs = resolve_url_host_name(required=False, **kwargs)
@@ -552,7 +562,7 @@ def set_protocol(**kwargs):
     """
     lib.core.convert_ids_to_binary(["service_id"], kwargs)
 
-    kwargs["value"] = { "url_protocol": kwargs["value"]}
+    kwargs["value"] = {"url_protocol": kwargs["value"]}
     if "service_id" not in kwargs:
         kwargs = resolve_url_context_root(required=False, **kwargs)
         kwargs = resolve_url_host_name(required=False, **kwargs)
@@ -580,7 +590,7 @@ def set_comments(**kwargs):
     """
     lib.core.convert_ids_to_binary(["service_id"], kwargs)
 
-    kwargs["value"] = { "comments": kwargs["value"]}
+    kwargs["value"] = {"comments": kwargs["value"]}
     if "service_id" not in kwargs:
         kwargs = resolve_url_context_root(required=False, **kwargs)
         kwargs = resolve_url_host_name(required=False, **kwargs)
@@ -608,14 +618,13 @@ def set_options(**kwargs):
     """
     lib.core.convert_ids_to_binary(["service_id"], kwargs)
 
-    kwargs["value"] = { "options": kwargs["value"]}
+    kwargs["value"] = {"options": kwargs["value"]}
     if "service_id" not in kwargs:
         kwargs = resolve_url_context_root(required=False, **kwargs)
         kwargs = resolve_url_host_name(required=False, **kwargs)
         kwargs.pop("options", None)
 
     return call_update_service("updated", **kwargs)
-
 
 
 @plugin_function('mrs.update.service', shell=True, cli=True, web=True)
@@ -651,7 +660,8 @@ def update_service(**kwargs):
         The result message as string
     """
     if kwargs.get("value") is not None:
-        kwargs["value"] = lib.core.convert_json(kwargs["value"]) # create a copy so that the dict won't change for the caller...and convert to dict
+        # create a copy so that the dict won't change for the caller...and convert to dict
+        kwargs["value"] = lib.core.convert_json(kwargs["value"])
 
         for auth_app in kwargs["value"].get("auth_apps", []):
             ids = ["auth_vendor_id", "service_id", "default_role_id"]
@@ -666,9 +676,7 @@ def update_service(**kwargs):
 
             lib.core.convert_ids_to_binary(ids, auth_app)
 
-
     lib.core.convert_ids_to_binary(["service_id"], kwargs)
-
 
     verify_value_keys(**kwargs)
 
@@ -709,7 +717,8 @@ def get_service_request_path_availability(**kwargs):
             raise Exception("The request_path has to start with '/'.")
 
         try:
-            lib.core.check_request_path(session, service["host_ctx"] + request_path)
+            lib.core.check_request_path(
+                session, service["host_ctx"] + request_path)
         except:
             return False
 
@@ -743,6 +752,9 @@ def get_current_service_metadata(**kwargs):
         if not service_id:
             return {}
 
+        service = lib.services.get_service(
+            session=session, service_id=service_id)
+
         # Lookup the last entry in the audit_log table that affects the service and use that as the
         # version int
         res = session.run_sql(
@@ -750,11 +762,12 @@ def get_current_service_metadata(**kwargs):
             SELECT max(id) AS version FROM `mysql_rest_service_metadata`.`audit_log`
             """)
         row = res.fetch_one()
-        if row:
-            return { "id": service_id, "metadata_version": row.get_field("version") }
-        else:
-            return { "id": service_id, "metadata_version": "noChange" }
 
+        return {
+            "id": service_id,
+            "host_ctx": service.get("host_ctx") if service else None,
+            "metadata_version": row.get_field("version") if row and service else None
+        }
 
 
 @plugin_function('mrs.set.currentService', shell=True, cli=True, web=True)
@@ -798,6 +811,7 @@ def set_current_service(**kwargs):
         return "The service has been made the default."
     return True
 
+
 @plugin_function('mrs.get.sdkBaseClasses', shell=True, cli=True, web=True)
 def get_sdk_base_classes(**kwargs):
     """Returns the SDK base classes source for the given language
@@ -817,6 +831,7 @@ def get_sdk_base_classes(**kwargs):
     prepare_for_runtime = kwargs.get("prepare_for_runtime", False)
 
     return lib.sdk.get_base_classes(sdk_language=sdk_language, prepare_for_runtime=prepare_for_runtime)
+
 
 @plugin_function('mrs.get.sdkServiceClasses', shell=True, cli=True, web=True)
 def get_sdk_service_classes(**kwargs):
@@ -846,6 +861,7 @@ def get_sdk_service_classes(**kwargs):
         return lib.sdk.generate_service_sdk(
             service=service, sdk_language=sdk_language, session=session, prepare_for_runtime=prepare_for_runtime)
 
+
 @plugin_function('mrs.dump.sdkServiceFiles', shell=True, cli=True, web=True)
 def dump_sdk_service_files(**kwargs):
     """Dumps the SDK service files for a REST Service
@@ -871,7 +887,8 @@ def dump_sdk_service_files(**kwargs):
 
     if not directory:
         if lib.core.get_interactive_default():
-            directory = lib.core.prompt("Please enter the directory the folder with the SDK files should be placed:")
+            directory = lib.core.prompt(
+                "Please enter the directory the folder with the SDK files should be placed:")
             if not directory:
                 print("Cancelled.")
                 return False
@@ -880,7 +897,8 @@ def dump_sdk_service_files(**kwargs):
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         service = resolve_service(session, service_id, True, True)
-        service_name = lib.core.convert_path_to_camel_case(service.get("url_context_root"))
+        service_name = lib.core.convert_path_to_camel_case(
+            service.get("url_context_root"))
         sdk_folder = f"{service_name}.mrs.sdk"
 
         if not directory.endswith(sdk_folder):
@@ -889,11 +907,13 @@ def dump_sdk_service_files(**kwargs):
         # Ensure the directory path exists
         Path(directory).mkdir(parents=True, exist_ok=True)
 
-        base_classes = get_sdk_base_classes(sdk_language=sdk_language, session=session)
+        base_classes = get_sdk_base_classes(
+            sdk_language=sdk_language, session=session)
         with open(os.path.join(directory, "MrsBaseClasses.ts"), 'w') as f:
             f.write(base_classes)
 
-        service_classes = get_sdk_service_classes(service_id=service_id, sdk_language=sdk_language, session=session)
+        service_classes = get_sdk_service_classes(
+            service_id=service_id, sdk_language=sdk_language, session=session)
         with open(os.path.join(directory, f"{service_name}.ts"), 'w') as f:
             f.write(service_classes)
 

@@ -540,7 +540,7 @@ export class MrsBaseObjectQuery<C, P> {
     }
 
     // where() proposal
-    public where = (filter?: DataFilter<C>): this => {
+    public where = (filter?: DataFilter<P>): this => {
         if (typeof filter === "undefined") {
             return this;
         }

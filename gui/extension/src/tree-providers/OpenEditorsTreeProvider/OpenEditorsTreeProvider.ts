@@ -333,7 +333,7 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
             this.#changeEvent.fire(undefined);
 
             this.#lastSelectedItems.set(provider, itemToSelect);
-            if (itemToSelect.caption !== "DB Connections") {
+            if (itemToSelect.caption !== "DB Connection Overview") {
                 provider.caption = details.connectionCaption;
             }
             this.#selectCallback(itemToSelect);
@@ -383,8 +383,9 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
 
         const connectionOverview: IEditorConnectionOverviewEntry = {
             type: "connectionOverview",
-            caption: "DB Connections",
-            treeItem: new EditorOverviewTreeItem("DB Connections", "Open the DB Connection Browse", connectionCommand),
+            caption: "DB Connection Overview",
+            treeItem: new EditorOverviewTreeItem("DB Connection Overview", "Open the DB Connection Overview",
+                connectionCommand),
             parent: null,
         };
 
@@ -468,7 +469,7 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
             }
         } else {
             this.#lastSelectedItems.set(provider, entry.connectionOverview!);
-            if (editorOrPage === "DB Connections") {
+            if (editorOrPage === "DB Connection Overview") {
                 provider.caption = entry.caption;
             } else {
                 provider.caption = editorOrPage ?? entry.caption;

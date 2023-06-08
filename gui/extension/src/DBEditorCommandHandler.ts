@@ -114,7 +114,7 @@ export class DBEditorCommandHandler {
             void openEditorsTreeView.reveal(item, { select: true, focus: false, expand: 3 });
         };
 
-        // Display the DB Connections overview together with the initial display of the OPEN EDITORS view
+        // Display the DB Connection Overview together with the initial display of the OPEN EDITORS view
         openEditorsTreeView.onDidChangeVisibility((e) => {
             // Get the user setting for msg.startup.showDbConnectionsTab
             const showDbConnectionsTab = workspace.getConfiguration(`msg.startup`)
@@ -124,11 +124,11 @@ export class DBEditorCommandHandler {
                 this.#initialDisplayOfOpenEditorsView = false;
 
                 // If the extension is already connected to the MySQL Shell websocket,
-                // open the DB Connections overview right away
+                // open the DB Connection Overview right away
                 if (this.#isConnected) {
                     void commands.executeCommand("msg.openDBBrowser");
                 } else {
-                    // Otherwise open the DB Connections overview when connected
+                    // Otherwise open the DB Connection Overview when connected
                     this.#displayDbConnectionOverviewWhenConnected = true;
                 }
             }
@@ -543,7 +543,7 @@ export class DBEditorCommandHandler {
                         this.createNewDbObject(item.entry.backend, item, objectType).then((dbObject) => {
                             const provider = this.#host.currentProvider;
                             void provider?.editMrsDbObject(String(item.entry.details.id),
-                                { dbObject, createObject: true, schemaName: item.schema });
+                                { dbObject, createObject: true });
                         }).catch((reason) => {
                             void window.showErrorMessage(`${String(reason)}`);
                         });
@@ -640,6 +640,7 @@ export class DBEditorCommandHandler {
             // Check if the DbObject's schema is already exposed as an MRS schema
             if (schema) {
                 dbObject.dbSchemaId = schema.id;
+                dbObject.schemaName = schema.name;
             } else {
                 const answer = await window.showInformationMessage(
                     `The database schema ${item.schema} has not been added to the `

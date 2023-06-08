@@ -65,8 +65,9 @@
     align-content: stretch;
 }
 
-.msg.resultHost .resultTabview .outputHost {
-    flex: 1 1 auto;
+.msg.resultHost .resultTabview .outputHost,
+.msg.codeEditor .zoneHost .renderTarget .outputHost {
+    flex: 1;
     background: var(--editorZone-background);
 }
 
@@ -357,12 +358,12 @@
 }
 
 .resultHost > .resultTabview .copyButton,
-.zoneHost > .renderTarget > #outputHost .copyButton {
+.zoneHost > .renderTarget > .outputHost .copyButton {
     display: none;
 }
 
 .resultHost > .resultTabview:hover .copyButton,
-.zoneHost > .renderTarget > #outputHost:hover .copyButton {
+.zoneHost > .renderTarget > .outputHost:hover .copyButton {
     display: block;
     position: absolute;
     align-self: flex-end;

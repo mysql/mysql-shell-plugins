@@ -859,38 +859,38 @@ exports[`MrsHub Tests Show MRS DB Object Dialog (snapshot) 1`] = `
                             type="text"
                           />
                         </div>
-                        <div
-                          class="divider"
-                        />
-                        <div
-                          class="msg button imageOnly"
-                          data-tooltip="Show SQL Preview"
-                          role="button"
-                          tabindex="0"
-                        >
-                          <div
-                            class="msg icon"
-                            data-tooltip="inherit"
-                            style="mask-image: url(toolbar-sql_preview-inactive.svg);"
-                          />
-                        </div>
                       </div>
                       <div
                         class="msg container fixedScrollbar settingsRight"
                         style="flex-direction: row-reverse; align-items: center;"
                       >
                         <div
+                          class="msg button imageOnly sqlPreviewBtn"
+                          data-tooltip="Toggle MRS SQL Preview"
+                          role="button"
+                          tabindex="0"
+                        >
+                          <div
+                            class="msg icon codicon codicon-search"
+                            data-tooltip="inherit"
+                          />
+                          <label
+                            class="msg label"
+                            data-tooltip="inherit"
+                          >
+                            SQL Preview
+                          </label>
+                        </div>
+                        <div
+                          class="divider"
+                        />
+                        <div
                           class="msg container fixedScrollbar labelWithInput"
                           style="flex-direction: row; align-items: center;"
                         >
-                          <label
-                            class="msg label"
-                            data-tooltip="expand"
-                          >
-                            SDK:
-                          </label>
                           <div
                             class="msg container fixedScrollbar dropdown"
+                            data-tooltip="Select a SDK language to display the specific interface names and datatypes"
                             id="sdkLanguage"
                             placeholder="SDK Language"
                             style="flex-direction: row; align-items: center;"
@@ -898,12 +898,15 @@ exports[`MrsHub Tests Show MRS DB Object Dialog (snapshot) 1`] = `
                           >
                             <label
                               class="msg label placeholder"
-                              data-tooltip="expand"
+                              data-tooltip="inherit"
                             >
                               SDK Language
                             </label>
                           </div>
                         </div>
+                        <div
+                          class="divider"
+                        />
                       </div>
                     </div>
                     <div
