@@ -45,19 +45,31 @@ export class Misc {
     public static extensionIsReady = (): Condition<boolean> => {
         return new Condition("", async () => {
             await new EditorView().closeAllEditors();
+
+            const reloadAndCheck = async () => {
+                await driver.wait(async () => {
+                    return this.reloadVSCode().then(() => {
+                        return true;
+                    })
+                        .catch(() => {
+                            return false;
+                        });
+                }, constants.explicitWait * 3, "Reload window did not went well");
+                await driver.wait(async () => {
+                    return Misc.findOnMySQLShLog("Certificate is installed");
+                }, constants.explicitWait * 4, "'Certificate is installed' was not found on mysqlsh log file");
+            };
+
+            await reloadAndCheck();
+
             await driver.wait(async () => {
-                return this.reloadVSCode().then(() => {
-                    return true;
-                })
-                    .catch(() => {
-                        return false;
-                    });
-            }, constants.explicitWait * 3, "Reload window did not went well");
-            await driver.wait(async () => {
-                return Misc.findOnMySQLShLog("Certificate is installed");
-            }, constants.explicitWait * 4, "'Certificate is installed' was not found on mysqlsh log file");
-            await driver.wait(async () => {
-                return Misc.findOnMySQLShLog("Registering session...");
+                if (await Misc.findOutputText("Could not establish websocket connection")) {
+                    await reloadAndCheck();
+
+                    return false;
+                } else {
+                    return Misc.findOnMySQLShLog("Registering session...");
+                }
             }, constants.explicitWait * 4, "'Registering session...' was not found on mysqlsh log file");
 
             credentialHelperOk = !(await Misc
@@ -484,25 +496,21 @@ export class Misc {
         return out.includes("ERR") || out.includes("err");
     };
 
+    public static findOutputText = async (textToSearch: string): Promise<boolean> => {
+        let output: OutputView;
+        try {
+            output = new OutputView();
+        } catch (e) {
+            await new BottomBarPanel().openOutputView();
+            output = new OutputView();
+        }
 
-    public static waitForOutputText = async (textToSearch: string,
-        timeout: number): Promise<void> => {
+        return (await output.getText()).includes(textToSearch);
+    };
+
+    public static waitForOutputText = async (textToSearch: string, timeout: number): Promise<void> => {
         await driver.wait(async () => {
-            try {
-                const scrollEl = await driver.findElements(By.css("#workbench.panel.output .editor-scrollable"));
-                if (scrollEl.length > 0) {
-                    await driver.executeScript("arguments[0].scrollBy(0, 500)", scrollEl);
-                }
-                const output = new OutputView();
-                const text = await output.getText();
-
-                return text.includes(textToSearch);
-            } catch (e) {
-                console.error(e);
-
-                return false;
-            }
-
+            return Misc.findOutputText(textToSearch);
         }, timeout, `'${textToSearch}' was not found on Output view`);
     };
 

@@ -63,20 +63,6 @@ try {
     $env:MYSQLSH_GUI_CUSTOM_CONFIG_DIR = Join-Path $env:userprofile "mysqlsh-$env:TEST_SUITE"
     writeMsg "Using config dir: $env:MYSQLSH_GUI_CUSTOM_CONFIG_DIR"
 
-    if ($env:TEST_SUITE -eq "db") {
-        $env:MYSQLSH_GUI_CUSTOM_PORT = 3331
-    } elseif ($env:TEST_SUITE -eq "oci") {
-        $env:MYSQLSH_GUI_CUSTOM_PORT = 3332
-    } elseif ($env:TEST_SUITE -eq "shell") {
-        $env:MYSQLSH_GUI_CUSTOM_PORT = 3333
-    } elseif ($env:TEST_SUITE -eq "rest") {
-        $env:MYSQLSH_GUI_CUSTOM_PORT = 3334
-    } else {
-        Throw "Please define the TEST_SUITE env variable"
-    }
-    
-    writeMsg "Using mysqlsh port: $env:MYSQLSH_GUI_CUSTOM_PORT"
-
     $testResources = Join-Path $env:userprofile "test-resources-$env:TEST_SUITE"
     $extPath = Join-Path $testResources "ext"
     $testFile = "./tests/e2e/output/tests/ui-$env:TEST_SUITE.js"
@@ -127,10 +113,6 @@ try {
         Remove-Item -Path $mysqlrouterConfigOld -Force -Recurse
         writeMsg "DONE"
     }
-
-    # CLEAN FE LOGS
-    $feLogs = Join-Path $env:userprofile "test-resources-$env:TEST_SUITE" "settings" "logs" "*"
-    Remove-Item -Path $feLogs -Force -Recurse
 
     # EXECUTE TESTS
     writeMsg "Executing GUI tests for $env:TEST_SUITE suite..."

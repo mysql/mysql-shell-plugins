@@ -855,36 +855,11 @@ describe("DATABASE CONNECTIONS", () => {
             }
         });
 
-        it("Valid and invalid json", async () => {
-            await Misc.execCmd("\\ts ", undefined);
-            let result = await Misc.execCmd(`print('{"a": "b"}')`, undefined);
-            expect((await (result[1] as WebElement)
-                .findElements(By.css("#outputHost .jsonView"))).length, "Result is not a valid JSON").equals(1);
-
-            let copy: WebElement;
-            await driver.wait(async () => {
-                const json = await (result[1] as WebElement).findElement(By.css("#outputHost .jsonView"));
-                await driver.actions().move({ origin: json }).perform();
-                copy = await (result[1] as WebElement).findElement(By.css(".copyButton"));
-
-                return copy.isDisplayed();
-            }, constants.explicitWait * 2, "Copy button was not displayed");
-
-            await copy.click();
-            const clipRead = clipboard.readSync();
-            expect(clipRead).to.include(`{`);
-            expect(clipRead).to.include(`"a"`);
-            expect(clipRead).to.include(`:`);
-            expect(clipRead).to.include(`"b"`);
-            expect(clipRead).to.include(`}`);
-
-            result = await Misc.execCmd(`print('{ a: b }')`, undefined);
-            expect((await (result[1] as WebElement)
-                .findElements(By.css("#outputHost .jsonView"))).length, "Result shoulb not be a valid JSON").equals(0);
-        });
-
         it("Pie Graph based on DB table", async () => {
-            const result = await Misc.execCmd(`
+
+            let result = await Misc.execCmd("\\ts ");
+            expect(result[0]).to.include("Switched to TypeScript mode");
+            result = await Misc.execCmd(`
                 runSql("SELECT Name, Capital FROM world_x_cst.country limit 10",(result) => {
                     const options: IGraphOptions = {
                         series: [
@@ -925,6 +900,34 @@ describe("DATABASE CONNECTIONS", () => {
             } finally {
                 clean = true;
             }
+        });
+
+        it("Valid and invalid json", async () => {
+            await Misc.execCmd("\\ts ", undefined);
+            let result = await Misc.execCmd(`print('{"a": "b"}')`, undefined);
+            expect((await (result[1] as WebElement)
+                .findElements(By.css("#outputHost .jsonView"))).length, "Result is not a valid JSON").equals(1);
+
+            let copy: WebElement;
+            await driver.wait(async () => {
+                const json = await (result[1] as WebElement).findElement(By.css("#outputHost .jsonView"));
+                await driver.actions().move({ origin: json }).perform();
+                copy = await (result[1] as WebElement).findElement(By.css(".copyButton"));
+
+                return copy.isDisplayed();
+            }, constants.explicitWait * 2, "Copy button was not displayed");
+
+            await copy.click();
+            const clipRead = clipboard.readSync();
+            expect(clipRead).to.include(`{`);
+            expect(clipRead).to.include(`"a"`);
+            expect(clipRead).to.include(`:`);
+            expect(clipRead).to.include(`"b"`);
+            expect(clipRead).to.include(`}`);
+
+            result = await Misc.execCmd(`print('{ a: b }')`, undefined);
+            expect((await (result[1] as WebElement)
+                .findElements(By.css("#outputHost .jsonView"))).length, "Result shoulb not be a valid JSON").equals(0);
         });
 
     });
