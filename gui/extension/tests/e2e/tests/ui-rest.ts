@@ -311,7 +311,6 @@ describe("MySQL REST Service", () => {
 
         before(async function () {
             try {
-                treeMySQLRESTService = await Misc.getTreeElement(treeDBSection, "MySQL REST Service");
                 await treeMySQLRESTService.expand();
                 await Misc.openContexMenuItem(treeMySQLRESTService, "Add REST Service...", true);
                 await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
@@ -321,9 +320,7 @@ describe("MySQL REST Service", () => {
                 }
                 await Database.setRestService(`/${service}`, "", "localhost", ["HTTP"], true, true);
                 await driver.switchTo().defaultContent();
-                treeGlobalConn = await Misc.getTreeElement(treeDBSection, globalConn.caption, true);
                 await (await Misc.getActionButton(treeGlobalConn, "Reload Database Information")).click();
-                treeDBSection = await Misc.getSection(constants.dbTreeSection);
                 treeRandomService = await Misc
                     .getTreeElement(treeDBSection, `/${service} (localhost)`, true);
                 await driver.wait(Misc.isNotLoading(treeDBSection), constants.explicitWait * 2,

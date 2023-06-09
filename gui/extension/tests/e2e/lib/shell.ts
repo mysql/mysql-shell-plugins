@@ -55,27 +55,7 @@ export class Shell {
 
                 return jsonString.includes(value);
             }
-            /*const spans = await resultHost.findElements(By.css("label > span > span"));
-            if (spans.length > 0) {
-                for (const span of spans) {
-                    const spanText = await span.getText();
-                    if (spanText.includes(value)) {
-                        return true;
-                    }
-                }
-            } else {
-                const otherSpans = await resultHost.findElements(By.css("label > span"));
-                for (const span of otherSpans) {
-                    const spanText = await span.getText();
-                    if (spanText.includes(value)) {
-                        return true;
-                    }
-                }
-            }*/
-
-            //return false;
         });
-
     };
 
     public static isValueOnDataSet = (resultHost: WebElement, value: String): Condition<boolean> => {

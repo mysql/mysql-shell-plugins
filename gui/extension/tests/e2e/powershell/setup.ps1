@@ -26,18 +26,15 @@ $basePath = Join-Path $PSScriptRoot ".."
 Set-Location $basePath
 $basePath = Get-Location
 $env:WORKSPACE = Resolve-Path(Join-Path $basePath ".." ".." ".." "..")
+$testSuites = @("db", "oci", "shell", "rest")
 
 try {
     $err = 0
-
     $log = Join-Path $env:WORKSPACE "psSetupExt.log"
 
     function writeMsg($msg, $option){
-
         $msg | Out-File $log -Append
-
         Invoke-Expression "write-host `"$msg`" $option"
-        
     }
 
     if (!$env:VSIX_PATH) {
@@ -52,64 +49,18 @@ try {
 
     $aux_proxy = $env:HTTP_PROXY
     $aux_http_proxy = $env:HTTPS_PROXY
-
     $env:HTTP_PROXY = ""
     $env:HTTPS_PROXY = ""
 
-    function installChromedriver($vscodeVersion) {
-        $job5 = Start-Job -Name "get-chromedriver-db" -ScriptBlock { 
-            npm run e2e-tests-get-chromedriver -- -s $using:testResourcesDb -c $using:vscodeVersion
-        }
-        $job6 = Start-Job -Name "get-chromedriver-oci" -ScriptBlock { 
-            npm run e2e-tests-get-chromedriver -- -s $using:testResourcesOci -c $using:vscodeVersion
-        }
-        $job7 = Start-Job -Name "get-chromedriver-shell" -ScriptBlock { 
-            npm run e2e-tests-get-chromedriver -- -s $using:testResourcesShell -c $using:vscodeVersion
-        }
-        $job8 = Start-Job -Name "get-chromedriver-rest" -ScriptBlock { 
-          npm run e2e-tests-get-chromedriver -- -s $using:testResourcesRest -c $using:vscodeVersion
-        }
-
-        # Wait for it all to complete
-        While ( 
-                ((Get-Job -Name "get-chromedriver-db").state -eq "Running") -or
-                ((Get-Job -Name "get-chromedriver-oci").state -eq "Running") -or
-                ((Get-Job -Name "get-chromedriver-shell").state -eq "Running") -or
-                ((Get-Job -Name "get-chromedriver-rest").state -eq "Running")
-            ){
-            Receive-Job -Job $job5
-            Receive-Job -Job $job6
-            Receive-Job -Job $job7
-            Receive-Job -Job $job8
+    function installChromedriver($location, $vscodeVersion) {
+        Start-Job -Name "get-chromedriver-$testSuite" -ScriptBlock { 
+            npm run e2e-tests-get-chromedriver -- -s $using:location -c $using:vscodeVersion
         }
     }
 
-    function installVsCode($vscodeVersion){
-
-        $job1 = Start-Job -Name "get-vscode-db" -ScriptBlock { 
-            npm run e2e-tests-get-vscode -- -s $using:testResourcesDb -c $using:vscodeVersion
-        }
-        $job2 = Start-Job -Name "get-vscode-oci" -ScriptBlock { 
-            npm run e2e-tests-get-vscode -- -s $using:testResourcesOci -c $using:vscodeVersion
-        }
-        $job3 = Start-Job -Name "get-vscode-shell" -ScriptBlock { 
-            npm run e2e-tests-get-vscode -- -s $using:testResourcesShell -c $using:vscodeVersion
-        }
-        $job4 = Start-Job -Name "get-vscode-rest" -ScriptBlock { 
-            npm run e2e-tests-get-vscode -- -s $using:testResourcesRest -c $using:vscodeVersion
-        }
-        
-        # Wait for it all to complete
-        While ( 
-                ((Get-Job -Name "get-vscode-db").state -eq "Running") -or
-                ((Get-Job -Name "get-vscode-oci").state -eq "Running") -or
-                ((Get-Job -Name "get-vscode-shell").state -eq "Running") -or
-                ((Get-Job -Name "get-vscode-rest").state -eq "Running")
-            ){
-            Receive-Job -Job $job1
-            Receive-Job -Job $job2
-            Receive-Job -Job $job3
-            Receive-Job -Job $job4
+    function installVsCode($location, $vscodeVersion){
+        Start-Job -Name "get-vscode-$testSuite" -ScriptBlock { 
+            npm run e2e-tests-get-vscode -- -s $using:location -c $using:vscodeVersion
         }
     }
 
@@ -134,40 +85,6 @@ try {
         $stderr = $p.StandardError.ReadToEnd()
         $info = $stdout -split "\n"
         return $info[0]
-    }
-
-    function removeExtensions () {
-        $extDb = Join-Path $env:userprofile "test-resources-db" "ext"
-        $extOci = Join-Path $env:userprofile "test-resources-oci" "ext"
-        $extShell = Join-Path $env:userprofile "test-resources-shell" "ext"
-        $extRest = Join-Path $env:userprofile "test-resources-rest" "ext"
-
-        $job1 = Start-Job -Name "rm-ext-db" -ScriptBlock { 
-            Remove-Item -Path $using:extDb -Force -Recurse
-        }
-        $job2 = Start-Job -Name "rm-ext-oci" -ScriptBlock { 
-            Remove-Item -Path $using:extOci -Force -Recurse
-        }
-        $job3 = Start-Job -Name "rm-ext-shell" -ScriptBlock { 
-            Remove-Item -Path $using:extShell -Force -Recurse
-        }
-        $job4 = Start-Job -Name "rm-ext-rest" -ScriptBlock { 
-            Remove-Item -Path $using:extRest -Force -Recurse
-        }
-        
-        # Wait for it all to complete
-        While ( 
-                ((Get-Job -Name "rm-ext-db").state -eq "Running") -or
-                ((Get-Job -Name "rm-ext-oci").state -eq "Running") -or
-                ((Get-Job -Name "rm-ext-shell").state -eq "Running") -or
-                ((Get-Job -Name "rm-ext-rest").state -eq "Running")
-            ){
-            Receive-Job -Job $job1
-            Receive-Job -Job $job2
-            Receive-Job -Job $job3
-            Receive-Job -Job $job4
-        }
-        
     }
 
     if ($isLinux) {
@@ -200,10 +117,16 @@ try {
     writeMsg "USER PROFILE: $env:USERPROFILE"
     writeMsg "BASE PATH: $basePath"
 
-    # REMOVE INSTALLED EXTENSIONS
-    writeMsg "Removing VSCode extensions..." "-NoNewLine"
-    removeExtensions
-    writeMsg "DONE"
+    # REMOVE INSTALLED EXTENSION
+    ForEach ($testSuite in $testSuites) {
+        $testResources = Join-Path $env:userprofile "test-resources-$($testSuite)"
+        $extPath = Join-Path $testResources "ext"
+        if(Test-Path -Path $extPath) {
+            writeMsg "Removing VSCode extension from $testSuite ..." "-NoNewLine"
+            Remove-Item -Path $extPath -Force -Recurse
+            writeMsg "DONE"
+        }
+    }
     
     # REMOVE PACKAGE-LOCK.JSON
     if (Test-Path -Path "$basePath\package-lock.json"){
@@ -222,26 +145,16 @@ try {
         writeMsg "DONE"
     }
 
-    #CHECK TEST RESOURCES (we need 4 test-resources folder (vscode/chromedriver))
-    $testResourcesDb = Join-Path $env:userprofile "test-resources-db"
-    $testResourcesShell = Join-Path $env:userprofile "test-resources-shell"
-    $testResourcesOci = Join-Path $env:userprofile "test-resources-oci"
-    $testResourcesRest = Join-Path $env:userprofile "test-resources-rest"
-
+    #CHECK TEST RESOURCES 
     writeMsg "Checking config folders..." "-NoNewLine"
-    $configs = @()
-    $configs += Join-Path $env:userprofile "mysqlsh-db"
-    $configs += Join-Path $env:userprofile "mysqlsh-oci"
-    $configs += Join-Path $env:userprofile "mysqlsh-shell"
-    $configs += Join-Path $env:userprofile "mysqlsh-rest"
-
     if($isWindows){
         $targetWebCerts = Join-Path $env:APPDATA "MySQL" "mysqlsh-gui" "plugin_data" "gui_plugin" "web_certs"
     } elseif($isLinux){
         $targetWebCerts = Join-Path $env:userprofile ".mysqlsh-gui" "plugin_data" "gui_plugin" "web_certs"
     }
     
-    ForEach ($config in $configs) {
+    ForEach ($testSuite in $testSuites) {
+        $config = Join-Path $env:userprofile "mysqlsh-$testSuite"
         if (!(Test-Path $config)) {
             New-Item -ItemType "directory" -Path $config
             writeMsg "Created $config"
@@ -269,41 +182,53 @@ try {
         $env:HTTPS_PROXY=$env:USE_PROXY
     }
     
-    writeMsg "Checking if VSCode exists..." "-NoNewLine"
+    # CHECK IF VSCODE EXISTS
+    ForEach ($testSuite in $testSuites) {
+        $path = Join-Path $env:userprofile "test-resources-$($testSuite)"
+        writeMsg "Checking if VSCode exists at $path ..." "-NoNewLine"
+        $item = Get-ChildItem -Path $path -Filter "*VSCode*"
+        if ($item.length -gt 0) {
+            writeMsg "it does."
+        } else {
+            writeMsg "not found. Installing it on version $env:VSCODE_VERSION..." "-NoNewLine"
+            installVsCode $path $env:VSCODE_VERSION
+        }
+    }
+    # Wait for it all to complete
+    Get-Job | Wait-Job
+    writeMsg "DONE"
 
-    if (!(Test-Path -Path $testResourcesDb)) {
-        writeMsg "Not found. Start installing test-resources..." "-NoNewLine"
-        installVsCode $env:VSCODE_VERSION
-        writeMsg "DONE"
-    } else {
-        writeMsg "It does! Skipping installation."
-        $version = getVSCodeVersion $testResourcesDb
-        writeMsg "Checking VSCode version..." "-NoNewLine"
-
+    # CHECK VSCODE VERSION
+    writeMsg "Checking VSCode version..." "-NoNewLine"
+    ForEach ($testSuite in $testSuites) {
+        $path = Join-Path $env:userprofile "test-resources-$($testSuite)"
+        $version = getVSCodeVersion $path
         if ($version -ne $env:VSCODE_VERSION) {
-            writeMsg "'$version', requested version is '$env:VSCODE_VERSION'. Updating..." "-NoNewLine"
-            installVsCode $env:VSCODE_VERSION
-            writeMsg "DONE"
-            $version = getVSCodeVersion $testResourcesDb
-            if ($version -eq $env:VSCODE_VERSION) {
-                writeMsg "DONE. VS Code is now on version $version"
-            } else {
-                writeMsg "ERROR. VS Code is still on version $version"
-            }
+            writeMsg "'$version', requested version is '$env:VSCODE_VERSION'. Updating on $path" "-NoNewLine"
+            installVsCode $path $env:VSCODE_VERSION
         } else {
             writeMsg "$version. OK"
         } 
     }
+    # Wait for it all to complete
+    Get-Job | Wait-Job
+    writeMsg "DONE"
 
-    writeMsg "Checking if Chromedriver exists..." "-NoNewLine"
-    $path = Join-Path $testResourcesDb "chromedriver"
-    if (!(Test-Path -Path $path)) {
-        writeMsg "Not found. Start installing Chromedriver..." "-NoNewLine"
-        installChromedriver $env:VSCODE_VERSION
-        writeMsg "DONE"
-    } else {
-        writeMsg "It does! Skipping installation."
+    # CHECK CHROMEDRIVER
+    ForEach ($testSuite in $testSuites) {
+        $path = Join-Path $env:userprofile "test-resources-$($testSuite)"
+        $chromedriver = Join-Path $path "chromedriver*"
+        writeMsg "Checking if Chromedriver exists at $path ..." "-NoNewLine"
+        if (!(Test-Path -Path $chromedriver)) {
+            writeMsg "Not found. Start installing Chromedriver at $path..." "-NoNewLine"
+            installChromedriver $path $env:VSCODE_VERSION
+        } else {
+            writeMsg "It does! Skipping installation."
+        }
     }
+    # Wait for it all to complete
+    Get-Job | Wait-Job
+    writeMsg "DONE"
 
     # DOWNLOAD EXTENSION 
     if (!$env:VSIX_PATH) {
@@ -351,8 +276,7 @@ try {
 
     # COPY OCI .PEM FILES
     $ociPath = Join-Path $env:userprofile ".oci"
-    writeMsg "User profile path is: $ociPath"
-    if ( !(Test-Path -Path $ociPath) ){
+    if (!(Test-Path -Path $ociPath)){
         writeMsg "Creating .oci folder..." "-NoNewLine"
         New-Item -Path $env:userprofile -Name ".oci" -ItemType "directory" -Force
         writeMsg "DONE"
@@ -366,37 +290,32 @@ try {
     }
     
     # INSTALL VSIX
-    $extDBPath = Join-Path $testResourcesDb "ext"
-    $extOCIPath = Join-Path $testResourcesOci "ext"
-    $extShellPath = Join-Path $testResourcesShell "ext"
-    $extRestPath = Join-Path $testResourcesRest "ext"
-
-    writeMsg "Start installing the extension into vscode instances..." "-NoNewLine"
-    $job1 = Start-Job -Name "install-vsix-db" -ScriptBlock { 
-        npm run e2e-tests-install-vsix -- -s $using:testResourcesDb -e $using:extDBPath -f $using:dest
-    }
-    $job2 = Start-Job -Name "install-vsix-shell" -ScriptBlock { 
-        npm run e2e-tests-install-vsix -- -s $using:testResourcesShell -e $using:extShellPath -f $using:dest
-    }
-    $job3 = Start-Job -Name "install-vsix-oci" -ScriptBlock { 
-        npm run e2e-tests-install-vsix -- -s $using:testResourcesOci -e $using:extOCIPath -f $using:dest
-    }
-    $job4 = Start-Job -Name "install-vsix-rest" -ScriptBlock { 
-        npm run e2e-tests-install-vsix -- -s $using:testResourcesRest -e $using:extRestPath -f $using:dest
-    }
-
-    # Wait for it all to complete
-    While ( ((Get-Job -Name "install-vsix-db").state -eq "Running") -or
-            ((Get-Job -Name "install-vsix-shell").state -eq "Running") -or
-            ((Get-Job -Name "install-vsix-oci").state -eq "Running") -or
-            ((Get-Job -Name "install-vsix-rest").state -eq "Running")
-        ){
-        Receive-Job -Job $job1
-        Receive-Job -Job $job2
-        Receive-Job -Job $job3
-        Receive-Job -Job $job4
-    }
+    $extPath = Join-Path $env:userprofile "test-resources-$($testSuites[0])" "ext"
+    writeMsg "Start installing the extension at $extPath..." "-NoNewLine"
+    npm run e2e-tests-install-vsix -- -s $testResources -e $extPath -f $dest
     writeMsg "DONE installing the extension!"
+
+    # CREATE THE SYMLINKS
+    writeMsg "Creating the links..."
+    $extFolderName = Get-ChildItem -Path $extPath -Filter "*oracle*" | select name
+    $extFolderName = $extFolderName.Name
+    writeMsg "Extension folder is $extFolderName"
+
+    $testResources = Join-Path $env:userprofile "test-resources-$($testSuites[0])"
+    for($i=1; $i -le $testSuites.length -1; $i++){
+        $link = Join-Path $env:userprofile "test-resources-$($testSuites[$i])" "ext" $extFolderName
+        $target = Join-Path $testResources "ext" $extFolderName
+        writeMsg "Creating link $link to $target ..." "-NoNewLine"
+        New-Item -ItemType Directory -Path $link
+        if ($isWindows){
+            New-Item -ItemType Junction -Path $link -Target $target
+        } else {
+            New-Item -ItemType SymbolicLink -Path $link -Target $target
+        }
+        writeMsg "DONE"
+    }
+
+    writeMsg "DONE"
     
     # TSC TO TEST FILES
     writeMsg "TSC..." "-NoNewLine"
