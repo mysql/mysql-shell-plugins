@@ -225,7 +225,7 @@ const config: Config = {
     // testRegex: [],
 
     // This option allows the use of a custom results processor
-    testResultsProcessor: "./node_modules/jest-html-reporter",
+    //testResultsProcessor: "./node_modules/jest-html-reporters",
 
     // This option allows use of a custom test runner
     // testRunner: "jest-circus/runner",
@@ -267,6 +267,17 @@ const config: Config = {
 
     // Whether to use watchman for file crawling
     // watchman: true,
+    reporters: [
+        "default",
+        [
+            "jest-html-reporters",
+            {
+                "publicPath": "src/tests/e2e/html-report",
+                "filename": "test-report.html",
+                "expand": true
+            }
+        ]
+    ]
 };
 
 export default config;

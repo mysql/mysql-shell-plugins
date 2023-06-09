@@ -25,6 +25,7 @@ import { By, Key, WebElement, until } from "selenium-webdriver";
 import { DBConnection } from "../../lib/dbConnection";
 import { DBNotebooks, execFullBlockSql } from "../../lib/dbNotebooks";
 import { IDBConnection, Misc, driver, explicitWait } from "../../lib/misc";
+import { addAttach } from "jest-html-reporters/helper";
 
 jest.retryTimes(1);
 
@@ -71,7 +72,10 @@ describe("Database Connections", () => {
     afterEach(async () => {
         if (testFailed) {
             testFailed = false;
-            await Misc.storeScreenShot();
+            await addAttach({
+                attach: await Misc.storeScreenShot(),
+                description: "screenshot",
+            });
         }
 
         if (!await DBConnection.isConnectionOverviewOpened()) {

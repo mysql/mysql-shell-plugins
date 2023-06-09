@@ -25,6 +25,7 @@ import { By, WebElement, until } from "selenium-webdriver";
 import { GuiConsole } from "../../lib/guiConsole";
 import { IDBConnection, Misc, driver } from "../../lib/misc";
 import { ShellSession } from "../../lib/shellSession";
+import { addAttach } from "jest-html-reporters/helper";
 
 describe("MySQL Shell Connections", () => {
 
@@ -74,7 +75,10 @@ describe("MySQL Shell Connections", () => {
     afterEach(async () => {
         if (testFailed) {
             testFailed = false;
-            await Misc.storeScreenShot();
+            await addAttach({
+                attach: await Misc.storeScreenShot(),
+                description: "screenshot",
+            });
         }
 
         const server = await driver.findElement(By.id("server")).getText();

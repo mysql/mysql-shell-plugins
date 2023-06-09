@@ -64,6 +64,7 @@ export class Misc {
 
             await driver.wait(async () => {
                 if (await Misc.findOutputText("Could not establish websocket connection")) {
+                    console.log("Triggering reloadAndCheck...");
                     await reloadAndCheck();
 
                     return false;
@@ -86,7 +87,7 @@ export class Misc {
                 } else {
                     return false;
                 }
-            }, constants.explicitWait * 3, `${constants.dbDefaultEditor} tab should have been opened`);
+            }, constants.explicitWait * 6, `${constants.dbDefaultEditor} tab should have been opened`);
         });
     };
 
@@ -505,7 +506,20 @@ export class Misc {
             output = new OutputView();
         }
 
-        return (await output.getText()).includes(textToSearch);
+        let clipBoardText = "";
+        await driver.wait(async () => {
+            try {
+                clipBoardText = await output.getText();
+
+                return true;
+            } catch (e) {
+                if (String(e).includes("Command failed")) {
+                    return false;
+                }
+            }
+        }, constants.explicitWait * 2, "Could not get output text from clipboard");
+
+        return clipBoardText.includes(textToSearch);
     };
 
     public static waitForOutputText = async (textToSearch: string, timeout: number): Promise<void> => {
