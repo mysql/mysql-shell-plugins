@@ -463,7 +463,7 @@ export class Misc {
      *
      * @param name test name
      */
-    public static async storeScreenShot(name?: string): Promise<void> {
+    public static async storeScreenShot(name?: string): Promise<string> {
         const img = await driver.takeScreenshot();
         let testName = "";
         if (!name) {
@@ -471,7 +471,10 @@ export class Misc {
         } else {
             testName = name;
         }
-        await fs.mkdir("src/tests/e2e/screenshots", { recursive: true });
-        await fs.writeFile(`src/tests/e2e/screenshots/${testName}_screenshot.png`, img, "base64");
+        await fs.mkdir("src/tests/e2e/html-report/screenshots", { recursive: true });
+        await fs.writeFile(`src/tests/e2e/html-report/screenshots/${testName}_screenshot.png`, img, "base64");
+
+        return `screenshots/${testName}_screenshot.png`;
     }
+
 }

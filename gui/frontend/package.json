@@ -13,8 +13,7 @@
         "lint": "eslint \"./src/**/*.ts\" \"./src/**/*.tsx\"",
         "unit-tests": "node --no-compilation-cache --expose-gc --max_old_space_size=4096 node_modules/.bin/jest --logHeapUsage -c=unit-tests.jest.config.ts --watchAll=false",
         "update-snapshots": "node --no-compilation-cache --expose-gc --max_old_space_size=4096 node_modules/.bin/jest -c=unit-tests.jest.config.ts --no-coverage  --watchAll=false -u",
-        "e2e-tests-run": "jest -c e2e.jest.config.ts",
-        "e2e-tests-report": "node src/tests/e2e/postActions.mjs"
+        "e2e-tests-run": "jest -c e2e.jest.config.ts"
     },
     "dependencies": {
         "anser": "2.1.1",
@@ -69,7 +68,7 @@
         "jest": "29.4.2",
         "jest-canvas-mock": "2.4.0",
         "jest-environment-jsdom": "29.4.2",
-        "jest-html-reporter": "3.7.0",
+        "jest-html-reporters": "3.1.4",
         "monaco-typescript": "4.10.0",
         "mysql-promise": "5.0.0",
         "oci-bastion": "2.51.0",

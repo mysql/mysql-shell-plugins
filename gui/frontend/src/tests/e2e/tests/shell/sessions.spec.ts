@@ -25,6 +25,7 @@ import { By, WebElement } from "selenium-webdriver";
 import { GuiConsole } from "../../lib/guiConsole";
 import { IDBConnection, Misc, driver, explicitWait } from "../../lib/misc";
 import { ShellSession } from "../../lib/shellSession";
+import { addAttach } from "jest-html-reporters/helper";
 
 describe("Sessions", () => {
 
@@ -99,7 +100,10 @@ describe("Sessions", () => {
     afterEach(async () => {
         if (testFailed) {
             testFailed = false;
-            await Misc.storeScreenShot();
+            await addAttach({
+                attach: await Misc.storeScreenShot(),
+                description: "screenshot",
+            });
         }
 
         await Misc.cleanPrompt();

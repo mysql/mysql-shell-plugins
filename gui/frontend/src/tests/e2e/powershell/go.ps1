@@ -63,6 +63,7 @@ try {
     writeMsg "REVISION: $env:TARGET_REVID"
     writeMsg "WORKSPACE: $env:WORKSPACE"
     writeMsg "BASE PATH: $basePath"
+    writeMsg "TARGET FOR REPORT: $env:REPORT_TARGET"
 
     writeMsg "Setup nodejs registry..." "-NoNewLine"
     $prc = Start-Process "npm" -ArgumentList "set", "registry", "https://artifacthub-phx.oci.oraclecorp.com/api/npm/npmjs-remote/" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\nodeFE.log" -RedirectStandardError "$env:WORKSPACE\nodeFEErr.log"

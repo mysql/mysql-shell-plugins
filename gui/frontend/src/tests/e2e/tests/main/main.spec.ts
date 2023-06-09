@@ -24,6 +24,7 @@
 import { Misc, driver, explicitWait } from "../../lib/misc";
 import { By, until } from "selenium-webdriver";
 import { ThemeEditor } from "../../lib/themeEditor";
+import { addAttach } from "jest-html-reporters/helper";
 
 describe("Main pages", () => {
     let testFailed = false;
@@ -47,7 +48,10 @@ describe("Main pages", () => {
     afterEach(async () => {
         if (testFailed) {
             testFailed = false;
-            await Misc.storeScreenShot();
+            await addAttach({
+                attach: await Misc.storeScreenShot(),
+                description: "screenshot",
+            });
         }
     });
 

@@ -24,6 +24,7 @@ import { Misc, driver, explicitWait } from "../../lib/misc";
 import { By } from "selenium-webdriver";
 import { GuiConsole } from "../../lib/guiConsole";
 import { ShellSession } from "../../lib/shellSession";
+import { addAttach } from "jest-html-reporters/helper";
 
 describe("GUI Console", () => {
 
@@ -49,7 +50,10 @@ describe("GUI Console", () => {
     afterEach(async () => {
         if (testFailed) {
             testFailed = false;
-            await Misc.storeScreenShot();
+            await addAttach({
+                attach: await Misc.storeScreenShot(),
+                description: "screenshot",
+            });
         }
     });
 

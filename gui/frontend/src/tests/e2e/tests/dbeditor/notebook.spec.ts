@@ -37,6 +37,7 @@ import {
 } from "../../lib/dbNotebooks";
 import { IDBConnection, Misc, driver, explicitWait } from "../../lib/misc";
 import { ShellSession } from "../../lib/shellSession";
+import { addAttach } from "jest-html-reporters/helper";
 
 describe("Notebook", () => {
 
@@ -97,7 +98,10 @@ describe("Notebook", () => {
     afterEach(async () => {
         if (testFailed) {
             testFailed = false;
-            await Misc.storeScreenShot();
+            await addAttach({
+                attach: await Misc.storeScreenShot(),
+                description: "screenshot",
+            });
         }
         await DBConnection.openNewNotebook();
     });
