@@ -169,51 +169,24 @@ export class Misc {
         }
     };
 
-    public static clickSectionToolbarButton = async (
-        section: CustomTreeSection,
-        buttonName: string): Promise<void> => {
 
-        const button = await section?.getAction(buttonName);
+    public static clickSectionToolbarButton = async (section: CustomTreeSection, button: string): Promise<void> => {
 
-        const tryClick = async (): Promise<void> => {
-            try {
-                await button?.click();
-            } catch (e) {
-                if (!(e instanceof error.ElementNotInteractableError)) {
-                    throw e;
-                } else {
-                    const sectionRect = await section.getRect();
-                    await driver.actions().move(
-                        {
-                            x: sectionRect.x + 50,
-                            y: sectionRect.y + 50,
-                        },
-                    ).perform();
-                    await button?.click();
-                }
+        await driver.actions().move({ origin: section }).perform();
+        const sectionActions = await driver
+            .findElement(By.xpath(`//ul[contains(@aria-label, '${await section.getTitle()} actions')]`));
+
+        const actionItems = await sectionActions.findElements(By.css("li"));
+        for (const action of actionItems) {
+            const title = await action.getAttribute("title");
+            if (title === button) {
+                await action.findElement(By.css("a")).click();
+
+                return;
             }
-        };
+        }
 
-        await tryClick();
-
-        await driver.wait(async () => {
-            if (buttonName !== "Collapse All" &&
-                buttonName !== "Configure the OCI Profile list" &&
-                !buttonName.includes("Reload")) {
-                try {
-                    await driver.wait(until.elementsLocated(By.xpath("//div[contains(@id, 'webview-')]")),
-                        3000, "No frames were found");
-
-                    return true;
-                } catch (e) {
-                    await tryClick();
-
-                    return false;
-                }
-            }
-
-            return true;
-        }, constants.explicitWait, `Clicking on '${buttonName}' did not opened the corresponding tab`);
+        throw new Error(`Could not find the ${button} button`);
     };
 
     public static selectMoreActionsItem = async (
