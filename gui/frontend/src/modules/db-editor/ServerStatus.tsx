@@ -59,7 +59,6 @@ interface IServerFeatures {
 }
 
 interface IServerStatus {
-    connectionName?: string;
     host?: string;
     socket?: string;
     port?: string;
@@ -241,9 +240,6 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
                     crossAlignment={ContentAlignment.Center}>
                     <Divider />
                 </GridCell>
-
-                <GridCell key="cell3" className="left">Connection Name:</GridCell>
-                <GridCell key="cell4">{serverStatus.connectionName ?? "none"}</GridCell>
 
                 <GridCell key="cell5" className="left">Host:</GridCell>
                 <GridCell key="cell6">{serverStatus.host ?? "none"}</GridCell>
@@ -524,7 +520,6 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
             if (result && result.rows) {
                 const values = new Map<string, string>(result.rows as Array<[string, string]>);
 
-                serverStatus.connectionName = values.get("connection") ?? "none";
                 serverStatus.host = values.get("hostname") ?? "none";
                 serverStatus.socket = values.get("socket") ?? "none";
                 serverStatus.port = values.get("port") ?? "none";
