@@ -302,53 +302,6 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                   </GridCell>
                   <GridCell
                     className="left"
-                    key="cell3"
-                  >
-                    <Container
-                      className="msg gridCell left"
-                      orientation="row"
-                      style={{}}
-                    >
-                      <div
-                        className="msg container fixedScrollbar gridCell left"
-                        style={
-                          {
-                            "alignItems": undefined,
-                            "flexDirection": "row",
-                            "flexWrap": undefined,
-                            "justifyContent": undefined,
-                          }
-                        }
-                      >
-                        Connection Name:
-                      </div>
-                    </Container>
-                  </GridCell>
-                  <GridCell
-                    key="cell4"
-                  >
-                    <Container
-                      className="msg gridCell"
-                      orientation="row"
-                      style={{}}
-                    >
-                      <div
-                        className="msg container fixedScrollbar gridCell"
-                        style={
-                          {
-                            "alignItems": undefined,
-                            "flexDirection": "row",
-                            "flexWrap": undefined,
-                            "justifyContent": undefined,
-                          }
-                        }
-                      >
-                        none
-                      </div>
-                    </Container>
-                  </GridCell>
-                  <GridCell
-                    className="left"
                     key="cell5"
                   >
                     <Container
@@ -2737,53 +2690,6 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                             }
                           />
                         </Divider>
-                      </div>
-                    </Container>
-                  </GridCell>
-                  <GridCell
-                    className="left"
-                    key="cell3"
-                  >
-                    <Container
-                      className="msg gridCell left"
-                      orientation="row"
-                      style={{}}
-                    >
-                      <div
-                        className="msg container fixedScrollbar gridCell left"
-                        style={
-                          {
-                            "alignItems": undefined,
-                            "flexDirection": "row",
-                            "flexWrap": undefined,
-                            "justifyContent": undefined,
-                          }
-                        }
-                      >
-                        Connection Name:
-                      </div>
-                    </Container>
-                  </GridCell>
-                  <GridCell
-                    key="cell4"
-                  >
-                    <Container
-                      className="msg gridCell"
-                      orientation="row"
-                      style={{}}
-                    >
-                      <div
-                        className="msg container fixedScrollbar gridCell"
-                        style={
-                          {
-                            "alignItems": undefined,
-                            "flexDirection": "row",
-                            "flexWrap": undefined,
-                            "justifyContent": undefined,
-                          }
-                        }
-                      >
-                        none
                       </div>
                     </Container>
                   </GridCell>
