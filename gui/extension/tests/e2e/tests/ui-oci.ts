@@ -28,8 +28,6 @@ import {
     BottomBarPanel,
     TextEditor,
     ModalDialog,
-    TreeItem,
-    CustomTreeSection,
 } from "vscode-extension-tester";
 
 import { before, after, afterEach } from "mocha";
@@ -44,15 +42,6 @@ import * as constants from "../lib/constants";
 
 describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
-    let treeOCISection: CustomTreeSection;
-    let treeOpenEditorsSection: CustomTreeSection;
-    let treeTasksSection: CustomTreeSection;
-
-    let treeE2eTests: TreeItem | undefined;
-    let treeQA: TreeItem | undefined;
-    let treeDbSystem: TreeItem | undefined; treeQA;
-    let treeShellTesting: TreeItem | undefined;
-
     before(async function () {
 
         await Misc.loadDriver();
@@ -61,8 +50,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await driver.wait(Misc.extensionIsReady(), constants.explicitWait * 4, "Extension was not ready");
             await Misc.toggleBottomBar(false);
             await Misc.sectionFocus(constants.ociTreeSection);
-            treeOCISection = await Misc.getSection(constants.ociTreeSection);
-            treeTasksSection = await Misc.getSection(constants.tasksTreeSection);
+            const treeOCISection = await Misc.getSection(constants.ociTreeSection);
             await driver.wait(Misc.isNotLoading(treeOCISection), constants.ociExplicitWait * 2,
                 `${await treeOCISection.getTitle()} is still loading`);
 
@@ -84,7 +72,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await textEditor.save();
             await Misc.clickSectionToolbarButton(treeOCISection, "Reload the OCI Profile list");
 
-            treeE2eTests = await Misc.getTreeElement(treeOCISection, "E2ETESTS (us-ashburn-1)");
+            const treeE2eTests = await Misc.getTreeElement(treeOCISection, "E2ETESTS (us-ashburn-1)");
             await treeE2eTests?.expand();
 
             await driver.wait(Misc.isNotLoading(treeOCISection), 250000,
@@ -97,23 +85,18 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await driver.wait(Misc.isNotLoading(treeOCISection), constants.ociExplicitWait * 2,
                 `${await treeOCISection.getTitle()} is still loading`);
 
-            treeQA = await treeOCISection.findItem("QA", constants.ociMaxLevel) ||
+            const treeQA = await treeOCISection.findItem("QA", constants.ociMaxLevel) ||
                 await treeOCISection.findItem("QA (Default)", constants.ociMaxLevel);
             await treeQA?.expand();
 
             await driver.wait(Misc.isNotLoading(treeOCISection), constants.ociExplicitWait * 2,
                 `${await treeOCISection.getTitle()} is still loading`);
 
-            treeShellTesting = await Misc.getTreeElement(treeOCISection, "MySQLShellTesting");
+            const treeShellTesting = await Misc.getTreeElement(treeOCISection, "MySQLShellTesting");
             await treeShellTesting?.expand();
 
             await driver.wait(Misc.isNotLoading(treeOCISection), constants.ociExplicitWait * 2,
                 `${await treeOCISection.getTitle()} is still loading`);
-
-            treeDbSystem = await Misc.getTreeElement(treeOCISection, "MDSforVSCodeExtension");
-
-            expect(treeDbSystem).to.exist;
-
         } catch (e) {
             await Misc.processFailure(this);
             throw e;
@@ -124,6 +107,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
     after(async function () {
 
         try {
+            const treeOCISection = await Misc.getSection(constants.ociTreeSection);
             await treeOCISection?.collapse();
             await fs.unlink(join(homedir(), ".oci", "config"));
         } catch (e) {
@@ -156,6 +140,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         it("View Config Profile Information", async () => {
 
+            const treeOCISection = await Misc.getSection(constants.ociTreeSection);
+            const treeE2eTests = await Misc.getTreeElement(treeOCISection, "E2ETESTS (us-ashburn-1)");
             await Misc.openContexMenuItem(treeE2eTests, "View Config Profile Information");
             const editors = await new EditorView().getOpenEditorTitles();
             expect(editors).to.include.members(["E2ETESTS Info.json"]);
@@ -168,6 +154,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         it("Set as New Default Config Profile", async () => {
 
+            const treeOCISection = await Misc.getSection(constants.ociTreeSection);
+            const treeE2eTests = await Misc.getTreeElement(treeOCISection, "E2ETESTS (us-ashburn-1)");
             await Misc.openContexMenuItem(treeE2eTests, "Set as New Default Config Profile");
             await driver.wait(Misc.isNotLoading(treeOCISection), constants.ociExplicitWait * 3,
                 `${await treeOCISection.getTitle()} is still loading`);
@@ -181,19 +169,10 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
     describe("Compartment", () => {
 
         let compartmentId = "";
-        let treeDBConnections: TreeItem;
-
-        before(async function () {
-            try {
-                treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
-            } catch (e) {
-                await Misc.processFailure(this);
-                throw e;
-            }
-        });
 
         beforeEach(async function () {
             try {
+                const treeOCISection = await Misc.getSection(constants.ociTreeSection);
                 await driver.wait(Misc.isNotLoading(treeOCISection), constants.ociExplicitWait * 3,
                     `${await treeOCISection.getTitle()} is still loading`);
             } catch (e) {
@@ -234,6 +213,9 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         it("View Compartment Information", async () => {
 
+            const treeOCISection = await Misc.getSection(constants.ociTreeSection);
+            const treeQA = await treeOCISection.findItem("QA", constants.ociMaxLevel) ||
+                await treeOCISection.findItem("QA (Default)", constants.ociMaxLevel);
             await Misc.openContexMenuItem(treeQA, "View Compartment Information");
             await driver.wait(async () => {
                 const editors = await new EditorView().getOpenEditorTitles();
@@ -256,6 +238,9 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         it("Set as Current Compartment", async () => {
 
+            const treeOCISection = await Misc.getSection(constants.ociTreeSection);
+            let treeQA = await treeOCISection.findItem("QA", constants.ociMaxLevel) ||
+                await treeOCISection.findItem("QA (Default)", constants.ociMaxLevel);
             await Misc.openContexMenuItem(treeQA, "Set as Current Compartment");
             await driver.wait(Misc.isNotLoading(treeOCISection), constants.ociExplicitWait * 3,
                 `${await treeOCISection.getTitle()} is still loading`);
@@ -263,8 +248,9 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             treeQA = await treeOCISection.findItem("QA", constants.ociMaxLevel) ||
                 await treeOCISection.findItem("QA (Default)", constants.ociMaxLevel);
             expect(treeQA).to.exist;
+            const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
             await treeOpenEditorsSection.expand();
-            treeDBConnections = await Misc.getTreeElement(treeOpenEditorsSection,
+            const treeDBConnections = await Misc.getTreeElement(treeOpenEditorsSection,
                 constants.dbConnectionsLabel);
             await Misc.openContexMenuItem(treeDBConnections, "Open New MySQL Shell Console", true);
             await driver.wait(Shell.isShellLoaded(), constants.explicitWait * 3, "Shell Console was not loaded");
@@ -280,7 +266,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         beforeEach(async function () {
             try {
                 await Misc.sectionFocus(constants.ociTreeSection);
-                treeDbSystem = await Misc.getTreeElement(treeOCISection, "MDSforVSCodeExtension");
+                const treeOCISection = await Misc.getSection(constants.ociTreeSection);
                 await driver.wait(Misc.isNotLoading(treeOCISection), constants.ociExplicitWait * 3,
                     `${await treeOCISection.getTitle()} is still loading`);
             } catch (e) {
@@ -310,6 +296,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         it("View DB System Information", async () => {
 
+            const treeOCISection = await Misc.getSection(constants.ociTreeSection);
+            const treeDbSystem = await Misc.getTreeElement(treeOCISection, "MDSforVSCodeExtension");
             await Misc.openContexMenuItem(treeDbSystem, "View DB System Information");
             await driver.wait(async () => {
                 const editors = await new EditorView().getOpenEditorTitles();
@@ -325,7 +313,10 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         it("Start a DB System (and cancel)", async () => {
 
+            const treeOCISection = await Misc.getSection(constants.ociTreeSection);
+            const treeDbSystem = await Misc.getTreeElement(treeOCISection, "MDSforVSCodeExtension");
             await Misc.openContexMenuItem(treeDbSystem, "Start the DB System");
+            const treeTasksSection = await Misc.getSection(constants.tasksTreeSection);
             expect(await Misc.getTreeElement(treeTasksSection, "Start DB System (running)")).to.exist;
             await Misc.verifyNotification("Are you sure you want to start the DB System");
             const workbench = new Workbench();
@@ -338,7 +329,10 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         it("Restart a DB System (and cancel)", async () => {
 
+            const treeOCISection = await Misc.getSection(constants.ociTreeSection);
+            const treeDbSystem = await Misc.getTreeElement(treeOCISection, "MDSforVSCodeExtension");
             await Misc.openContexMenuItem(treeDbSystem, "Restart the DB System");
+            const treeTasksSection = await Misc.getSection(constants.tasksTreeSection);
             expect(await Misc.getTreeElement(treeTasksSection, "Restart DB System (running)")).to.exist;
             await Misc.verifyNotification("Are you sure you want to restart the DB System");
             const workbench = new Workbench();
@@ -352,7 +346,10 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         it("Stop a DB System (and cancel)", async () => {
 
+            const treeOCISection = await Misc.getSection(constants.ociTreeSection);
+            const treeDbSystem = await Misc.getTreeElement(treeOCISection, "MDSforVSCodeExtension");
             await Misc.openContexMenuItem(treeDbSystem, "Stop the DB System");
+            const treeTasksSection = await Misc.getSection(constants.tasksTreeSection);
             expect(await Misc.getTreeElement(treeTasksSection, "Stop DB System (running)")).to.exist;
             await Misc.verifyNotification("Are you sure you want to stop the DB System");
             const workbench = new Workbench();
@@ -366,7 +363,10 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         it("Delete a DB System (and cancel)", async () => {
 
+            const treeOCISection = await Misc.getSection(constants.ociTreeSection);
+            const treeDbSystem = await Misc.getTreeElement(treeOCISection, "MDSforVSCodeExtension");
             await Misc.openContexMenuItem(treeDbSystem, "Delete the DB System");
+            const treeTasksSection = await Misc.getSection(constants.tasksTreeSection);
             expect(await Misc.getTreeElement(treeTasksSection, "Delete DB System (running)")).to.exist;
             await Misc.verifyNotification("Are you sure you want to delete");
             const workbench = new Workbench();
@@ -382,7 +382,6 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
     describe("Bastion", () => {
 
-        let treeBastion: TreeItem | undefined;
         let mdsEndPoint = "";
         let dbSystemOCID = "";
         let bastionOCID = "";
@@ -391,10 +390,6 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         before(async function () {
             try {
                 await Misc.sectionFocus(constants.ociTreeSection);
-                treeDbSystem = await Misc.getTreeElement(treeOCISection, "MDSforVSCodeExtension");
-                treeBastion = await Misc.getTreeElement(treeOCISection,
-                    "Bastion4PrivateSubnetStandardVnc");
-                expect(treeBastion).to.exist;
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -404,6 +399,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         beforeEach(async function () {
             try {
                 await Misc.sectionFocus(constants.ociTreeSection);
+                const treeOCISection = await Misc.getSection(constants.ociTreeSection);
                 await driver.wait(Misc.isNotLoading(treeOCISection), constants.ociExplicitWait * 3,
                     `${await treeOCISection.getTitle()} is still loading`);
             } catch (e) {
@@ -418,6 +414,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             }
 
             await driver.switchTo().defaultContent();
+            const treeTasksSection = await Misc.getSection(constants.tasksTreeSection);
             await treeTasksSection?.collapse();
 
             const edView = new EditorView();
@@ -436,6 +433,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         after(async function () {
             try {
                 await Misc.toggleBottomBar(false);
+                const treeTasksSection = await Misc.getSection(constants.tasksTreeSection);
                 await treeTasksSection?.collapse();
             } catch (e) {
                 await Misc.processFailure(this);
@@ -445,6 +443,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         it("Get Bastion Information and set it as current", async () => {
 
+            let treeOCISection = await Misc.getSection(constants.ociTreeSection);
+            const treeBastion = await Misc.getTreeElement(treeOCISection, "Bastion4PrivateSubnetStandardVnc");
             await Misc.openContexMenuItem(treeBastion, "Get Bastion Information");
             await driver.wait(async () => {
                 const editors = await new EditorView().getOpenEditorTitles();
@@ -470,6 +470,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             const bastionId = parsed.id;
 
             await Misc.openContexMenuItem(treeBastion, "Set as Current Bastion");
+            treeOCISection = await Misc.getSection(constants.ociTreeSection);
             await driver.wait(Misc.isNotLoading(treeOCISection), constants.ociExplicitWait * 3,
                 `${await treeOCISection.getTitle()} is still loading`);
 
@@ -477,6 +478,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 return Misc.isDefaultItem(treeBastion, "bastion");
             }, constants.explicitWait, "Bastion is not the deault item");
 
+            const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
             await treeOpenEditorsSection.expand();
             const treeDBConnections = await Misc.getTreeElement(treeOpenEditorsSection,
                 constants.dbConnectionsLabel);
@@ -491,7 +493,10 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         it("Refresh When Bastion Reaches Active State", async () => {
 
+            const treeOCISection = await Misc.getSection(constants.ociTreeSection);
+            const treeBastion = await Misc.getTreeElement(treeOCISection, "Bastion4PrivateSubnetStandardVnc");
             await Misc.openContexMenuItem(treeBastion, "Refresh When Bastion Reaches Active State");
+            const treeTasksSection = await Misc.getSection(constants.tasksTreeSection);
             await treeTasksSection.expand();
             expect(await Misc.getTreeElement(treeTasksSection, "Refresh Bastion (running)")).to.exist;
             const bottomBar = new BottomBarPanel();
@@ -506,8 +511,10 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             const bottomBar = new BottomBarPanel();
             const outputView = await bottomBar.openOutputView();
             await outputView.clearText();
-            treeBastion = await Misc.getTreeElement(treeOCISection, "Bastion4PrivateSubnetStandardVnc");
+            const treeOCISection = await Misc.getSection(constants.ociTreeSection);
+            const treeBastion = await Misc.getTreeElement(treeOCISection, "Bastion4PrivateSubnetStandardVnc");
             await Misc.openContexMenuItem(treeBastion, "Delete Bastion");
+            const treeTasksSection = await Misc.getSection(constants.tasksTreeSection);
             await treeTasksSection.expand();
             expect(await Misc.getTreeElement(treeTasksSection, "Delete Bastion (running)")).to.exist;
             await Misc.waitForOutputText("OCI profile 'E2ETESTS' loaded.", constants.ociTasksExplicitWait);
@@ -526,6 +533,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         it("Create connection with Bastion Service", async function () {
 
+            const treeOCISection = await Misc.getSection(constants.ociTreeSection);
+            const treeDbSystem = await Misc.getTreeElement(treeOCISection, "MDSforVSCodeExtension");
             if (!await Misc.isDBSystemStopped(treeDbSystem)) {
                 await Misc.openContexMenuItem(treeDbSystem, "Create Connection with Bastion Service");
                 await driver.wait(async () => {

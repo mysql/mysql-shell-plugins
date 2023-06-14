@@ -22,11 +22,9 @@
  */
 import {
     By,
-    CustomTreeSection,
     EditorView,
     until,
     WebElement,
-    TreeItem,
 } from "vscode-extension-tester";
 
 import { before, after, afterEach } from "mocha";
@@ -53,9 +51,6 @@ describe("MYSQL SHELL CONSOLES", () => {
         description: "Local connection",
         basic: globalBasicInfo,
     };
-
-    let treeOpenEditorsSection: CustomTreeSection;
-    let treeDBConnections: TreeItem;
 
     const username = String((globalConn.basic as IConnBasicMySQL).username);
     const password = String((globalConn.basic as IConnBasicMySQL).password);
@@ -88,8 +83,8 @@ describe("MYSQL SHELL CONSOLES", () => {
             await driver.wait(Misc.extensionIsReady(), constants.explicitWait * 4, "Extension was not ready");
             await Misc.toggleBottomBar(false);
             await Misc.sectionFocus(constants.openEditorsTreeSection);
-            treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
-            treeDBConnections = await Misc.getTreeElement(treeOpenEditorsSection, constants.dbConnectionsLabel);
+            const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
+            const treeDBConnections = await Misc.getTreeElement(treeOpenEditorsSection, constants.dbConnectionsLabel);
             await Misc.openContexMenuItem(treeDBConnections, "Open New MySQL Shell Console", true);
             await driver.wait(Shell.isShellLoaded(), constants.explicitWait * 3, "Shell Console was not loaded");
         } catch (e) {
@@ -123,7 +118,9 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Open multiple sessions", async () => {
 
             for (let i = 1; i <= 3; i++) {
-                treeDBConnections = await Misc.getTreeElement(treeOpenEditorsSection, constants.dbConnectionsLabel);
+                const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
+                const treeDBConnections = await Misc.getTreeElement(treeOpenEditorsSection,
+                    constants.dbConnectionsLabel);
                 await Misc.openContexMenuItem(treeDBConnections, "Open New MySQL Shell Console", true);
                 await driver.wait(Shell.isShellLoaded(), constants.explicitWait * 3, "Shell Console was not loaded");
                 await driver.switchTo().defaultContent();
@@ -144,7 +141,9 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         before(async function () {
             try {
-                treeDBConnections = await Misc.getTreeElement(treeOpenEditorsSection, constants.dbConnectionsLabel);
+                const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
+                const treeDBConnections = await Misc.getTreeElement(treeOpenEditorsSection,
+                    constants.dbConnectionsLabel);
                 await Misc.openContexMenuItem(treeDBConnections,
                     "Open New MySQL Shell Console", true);
             } catch (e) {
@@ -313,14 +312,14 @@ describe("MYSQL SHELL CONSOLES", () => {
 
     describe("Sessions", () => {
 
-        let editor: WebElement;
-
         before(async function () {
             try {
-                treeDBConnections = await Misc.getTreeElement(treeOpenEditorsSection, constants.dbConnectionsLabel);
+                const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
+                const treeDBConnections = await Misc.getTreeElement(treeOpenEditorsSection,
+                    constants.dbConnectionsLabel);
                 await Misc.openContexMenuItem(treeDBConnections, "Open New MySQL Shell Console", true);
                 await driver.wait(Shell.isShellLoaded(), constants.explicitWait * 3, "Shell Console was not loaded");
-                editor = await driver.wait(until.elementLocated(By.id("shellEditorHost")),
+                const editor = await driver.wait(until.elementLocated(By.id("shellEditorHost")),
                     10000, "Console was not loaded");
                 await driver.executeScript(
                     "arguments[0].click();",
@@ -396,6 +395,8 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         it("Switch session language - javascript python", async () => {
 
+            const editor = await driver.wait(until.elementLocated(By.id("shellEditorHost")),
+                10000, "Console was not loaded");
             let result = await Misc.execCmd("\\py ");
             expect(result[0]).to.equals("Switching to Python mode...");
             expect(await Shell.getTech(editor)).to.equals("python");
