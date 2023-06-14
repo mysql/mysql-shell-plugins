@@ -26,7 +26,7 @@ $basePath = Join-Path $PSScriptRoot ".."
 Set-Location $basePath
 $basePath = Get-Location
 $env:WORKSPACE = Resolve-Path(Join-Path $basePath ".." ".." ".." "..")
-$testSuites = @("db", "oci", "shell", "rest")
+$testSuites = @("db", "notebook", "oci", "shell", "rest")
 
 try {
     $err = 0
@@ -185,6 +185,12 @@ try {
     # CHECK IF VSCODE EXISTS
     ForEach ($testSuite in $testSuites) {
         $path = Join-Path $env:userprofile "test-resources-$($testSuite)"
+        if (!(Test-Path -Path $path)) {
+            writeMsg "Creating folder $path ..." "-NoNewLine"
+            New-Item -ItemType "directory" -Path $path
+            writeMsg "DONE"
+        }
+
         writeMsg "Checking if VSCode exists at $path ..." "-NoNewLine"
         $item = Get-ChildItem -Path $path -Filter "*VSCode*"
         if ($item.length -gt 0) {
@@ -290,6 +296,7 @@ try {
     }
     
     # INSTALL VSIX
+    $testResources = Join-Path $env:userprofile "test-resources-$($testSuites[0])"
     $extPath = Join-Path $env:userprofile "test-resources-$($testSuites[0])" "ext"
     writeMsg "Start installing the extension at $extPath..." "-NoNewLine"
     npm run e2e-tests-install-vsix -- -s $testResources -e $extPath -f $dest

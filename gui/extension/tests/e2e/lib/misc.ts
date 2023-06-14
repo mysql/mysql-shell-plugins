@@ -509,12 +509,13 @@ export class Misc {
         let clipBoardText = "";
         await driver.wait(async () => {
             try {
+                output = new OutputView();
                 clipBoardText = await output.getText();
 
                 return true;
             } catch (e) {
-                if (String(e).includes("Command failed")) {
-                    return false;
+                if (!(String(e).includes("Command failed")) && !(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
                 }
             }
         }, constants.explicitWait * 2, "Could not get output text from clipboard");

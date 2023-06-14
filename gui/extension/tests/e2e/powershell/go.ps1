@@ -108,10 +108,16 @@ try {
             $mysqlrouterConfigOld = Join-Path $env:APPDATA "MySQL" "mysqlrouter_old"
         }
         
-        writeMsg "Removing router config folder..."
-        Remove-Item -Path $mysqlrouterConfig -Force -Recurse
-        Remove-Item -Path $mysqlrouterConfigOld -Force -Recurse
-        writeMsg "DONE"
+        if (Test-Path -Path $mysqlrouterConfig) {
+            writeMsg "Removing router config folder..."
+            Remove-Item -Path $mysqlrouterConfig -Force -Recurse
+            writeMsg "DONE"
+        }
+        if (Test-Path -Path $mysqlrouterConfig) {
+            writeMsg "Removing router old config folder..."
+            Remove-Item -Path $mysqlrouterConfigOld -Force -Recurse
+            writeMsg "DONE"
+        }
     }
 
     # EXECUTE TESTS
