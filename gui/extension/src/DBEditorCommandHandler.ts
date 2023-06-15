@@ -34,7 +34,7 @@ import { OciDbSystemTreeItem } from "./tree-providers/OCITreeProvider";
 import { ScriptTreeItem } from "./tree-providers/ScriptTreeItem";
 
 import { DBConnectionViewProvider } from "./web-views/DBConnectionViewProvider";
-import { EditorLanguage, INewScriptRequest, IRunQueryRequest, IScriptRequest } from "../../frontend/src/supplement";
+import { EditorLanguage, INewEditorRequest, IRunQueryRequest, IScriptRequest } from "../../frontend/src/supplement";
 import { EntityType, IDBEditorScriptState } from "../../frontend/src/modules/db-editor";
 
 import { CodeBlocks } from "./CodeBlocks";
@@ -371,7 +371,7 @@ export class DBEditorCommandHandler {
                                     }
                                     scripts.set(details.scriptId, uri);
 
-                                    void provider.editScriptInNotebook(String(connection.details.id), details);
+                                    void provider.editScript(String(connection.details.id), details);
                                 }
                             });
                         }
@@ -446,7 +446,7 @@ export class DBEditorCommandHandler {
                                         }
                                         scripts.set(details.scriptId, uri);
 
-                                        void provider.editScriptInNotebook(String(item.entry.details.id), details);
+                                        void provider.editScript(String(item.entry.details.id), details);
                                     }
                                 });
                             }
@@ -507,30 +507,30 @@ export class DBEditorCommandHandler {
 
         context.subscriptions.push(commands.registerCommand("msg.newNotebookMysql",
             (entry: IEditorConnectionEntry) => {
-                void this.editorCreateNewScript({ page: String(entry.connectionId), language: "msg" });
+                void this.createNewEditor({ page: String(entry.connectionId), language: "msg" });
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.newNotebookSqlite",
             (entry: IEditorConnectionEntry) => {
-                void this.editorCreateNewScript({ page: String(entry.connectionId), language: "msg" });
+                void this.createNewEditor({ page: String(entry.connectionId), language: "msg" });
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.newScriptJs", (entry: IEditorConnectionEntry) => {
-            void this.editorCreateNewScript({ page: String(entry.connectionId), language: "javascript" });
+            void this.createNewEditor({ page: String(entry.connectionId), language: "javascript" });
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.newScriptMysql",
             (entry: IEditorConnectionEntry) => {
-                void this.editorCreateNewScript({ page: String(entry.connectionId), language: "mysql" });
+                void this.createNewEditor({ page: String(entry.connectionId), language: "mysql" });
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.newScriptSqlite",
             (entry: IEditorConnectionEntry) => {
-                void this.editorCreateNewScript({ page: String(entry.connectionId), language: "sql" });
+                void this.createNewEditor({ page: String(entry.connectionId), language: "sql" });
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.newScriptTs", (entry: IEditorConnectionEntry) => {
-            void this.editorCreateNewScript({ page: String(entry.connectionId), language: "typescript" });
+            void this.createNewEditor({ page: String(entry.connectionId), language: "typescript" });
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.addDbObject",
@@ -766,28 +766,34 @@ export class DBEditorCommandHandler {
         return Promise.resolve(true);
     };
 
-    private editorCreateNewScript = (request: INewScriptRequest): Promise<boolean> => {
+    private createNewEditor = (request: INewEditorRequest): Promise<boolean> => {
         return new Promise((resolve) => {
             void workspace.openTextDocument({ language: request.language, content: request.content })
                 .then((document) => {
                     const provider = this.#host.currentProvider;
                     if (provider) {
                         const name = basename(document.fileName);
-                        const details: IScriptRequest = {
-                            scriptId: uuid(),
-                            name,
-                            content: document.getText(),
-                            language: request.language,
-                        };
+                        if (request.language === "msg") {
+                            // A new notebook.
+                            void provider.createNewEditor(request);
+                        } else {
+                            // A new script.
+                            const details: IScriptRequest = {
+                                scriptId: uuid(),
+                                name,
+                                content: document.getText(),
+                                language: request.language,
+                            };
 
-                        let scripts = this.#openScripts.get(provider);
-                        if (!scripts) {
-                            scripts = new Map();
-                            this.#openScripts.set(provider, scripts);
+                            let scripts = this.#openScripts.get(provider);
+                            if (!scripts) {
+                                scripts = new Map();
+                                this.#openScripts.set(provider, scripts);
+                            }
+                            scripts.set(details.scriptId, document.uri);
+
+                            void provider.editScript(request.page, details);
                         }
-                        scripts.set(details.scriptId, document.uri);
-
-                        void provider.editScriptInNotebook(request.page, details);
                     }
 
                     resolve(true);
@@ -818,10 +824,10 @@ export class DBEditorCommandHandler {
                 return this.editorSaveScript(response);
             }
 
-            case "createNewScript": {
-                const response = request.original.parameter as INewScriptRequest;
+            case "createNewEditor": {
+                const response = request.original.parameter as INewEditorRequest;
 
-                return this.editorCreateNewScript(response);
+                return this.createNewEditor(response);
             }
 
             default:

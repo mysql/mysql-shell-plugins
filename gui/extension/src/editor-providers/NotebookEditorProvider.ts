@@ -349,6 +349,8 @@ export class NotebookEditorProvider implements CustomTextEditorProvider {
      * `saveNotebook()` method or by a save action in the application.
      *
      * @param content The content of the notebook.
+     *
+     * @returns A promise which resolves always.
      */
     private triggerSave = async (content?: string): Promise<boolean> => {
         if (this.#document && content) {
@@ -366,8 +368,10 @@ export class NotebookEditorProvider implements CustomTextEditorProvider {
 
     /**
      * Called from the provider requisitions hub to load a notebook file. The handling here (in contrast to
-     * {@link DBConnectionProvider}) is a bit different, because we don't want to create a new notebook editor, but
+     * DBConnectionProvider) is a bit different, because we don't want to create a new notebook editor, but
      * instead replace the content of the current one.
+     *
+     * @returns A promise which resolves always.
      */
     private triggerLoad = async (): Promise<boolean> => {
         const dialogOptions: OpenDialogOptions = {

@@ -88,8 +88,11 @@ export interface IScriptRequest {
     forceSecondaryEngine?: boolean;
 }
 
-/** Used to request the creation of a new script in the extension. */
-export interface INewScriptRequest {
+/**
+ * Used to request the creation of a new editor. Depending on the language this either creates a script editor or
+ * a notebook.
+ */
+export interface INewEditorRequest {
     /** The id of the page (connection tab) to open the new script in. */
     page: string;
 

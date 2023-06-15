@@ -67,7 +67,7 @@ import { ISqliteConnectionOptions } from "../../communication/Sqlite";
 import { IMySQLConnectionOptions } from "../../communication/MySQL";
 import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB";
 import { DBEditorModuleId } from "../ModuleInfo";
-import { EditorLanguage, IExecutionContext, IScriptRequest } from "../../supplement";
+import { EditorLanguage, IExecutionContext, INewEditorRequest, IScriptRequest } from "../../supplement";
 import { webSession } from "../../supplement/WebSession";
 import { ShellPromptHandler } from "../common/ShellPromptHandler";
 import { parseVersion } from "../../parsing/mysql/mysql-helpers";
@@ -203,6 +203,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         requisitions.register("editorRunCommand", this.runCommand);
         requisitions.register("editorSaved", this.editorSaved);
         requisitions.register("editorClose", this.editorClose);
+        requisitions.register("createNewEditor", this.createNewEditor);
         requisitions.register("profileLoaded", this.profileLoaded);
         requisitions.register("webSessionStarted", this.webSessionStarted);
 
@@ -223,6 +224,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         requisitions.unregister("editorRunCommand", this.runCommand);
         requisitions.unregister("editorSaved", this.editorSaved);
         requisitions.unregister("editorClose", this.editorClose);
+        requisitions.unregister("createNewEditor", this.createNewEditor);
         requisitions.unregister("profileLoaded", this.profileLoaded);
         requisitions.unregister("webSessionStarted", this.webSessionStarted);
 
@@ -470,7 +472,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 savedState={connectionState}
                 showExplorer={showTabs && showExplorer}
                 onHelpCommand={this.handleHelpCommand}
-                onAddEditor={this.handleAddEditor}
+                onAddEditor={this.handleAddNotebook}
                 onRemoveEditor={this.handleRemoveEditor}
                 onSelectItem={this.handleSelectEntry}
                 onEditorRename={this.handleEditorRename}
@@ -1222,13 +1224,13 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         if (page) {
             switch (props.id) {
                 case "addEditor": {
-                    this.handleAddEditor(selectedPage);
+                    this.handleAddNotebook(selectedPage);
 
                     break;
                 }
 
                 case "addSQLScript": {
-                    requisitions.executeRemote("createNewScript", {
+                    requisitions.executeRemote("createNewEditor", {
                         page: String(page.details.id),
                         language: page.details.dbType === DBType.MySQL ? "mysql" : "sql",
                     });
@@ -1237,7 +1239,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 }
 
                 case "addTSScript": {
-                    requisitions.executeRemote("createNewScript", {
+                    requisitions.executeRemote("createNewEditor", {
                         page: String(page.details.id),
                         language: "typescript",
                     });
@@ -1246,7 +1248,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 }
 
                 case "addJSScript": {
-                    requisitions.executeRemote("createNewScript", {
+                    requisitions.executeRemote("createNewEditor", {
                         page: String(page.details.id),
                         language: "javascript",
                     });
@@ -1365,6 +1367,17 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         return Promise.resolve(false);
     };
 
+    private createNewEditor = (details: INewEditorRequest): Promise<boolean> => {
+        const { selectedPage } = this.state;
+
+        // Currently this is only used to create a new notebook.
+        if (details.language === "msg") {
+            this.handleAddNotebook(selectedPage);
+        }
+
+        return Promise.resolve(true);
+    };
+
     private handleSelectTab = (id: string): void => {
         const { selectedPage } = this.state;
 
@@ -1392,7 +1405,14 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         }
     };
 
-    private handleAddEditor = (id: string): string | undefined => {
+    /**
+     * This method creates a notebook and notifies the host about it.
+     *
+     * @param id A unique ID for the notebook.
+     *
+     * @returns A unique id for the new editor, if one was created.
+     */
+    private handleAddNotebook = (id: string): string | undefined => {
         const connectionState = this.connectionState.get(id);
         if (connectionState) {
             const model = this.createEditorModel(connectionState.backend, "", "msg", connectionState.serverVersion,

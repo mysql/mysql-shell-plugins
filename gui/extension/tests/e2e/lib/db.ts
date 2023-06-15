@@ -630,14 +630,19 @@ export class Database {
         }
         if (mrsService) {
             const selectService = await dialog.findElement(By.id("service"));
-            await selectService.click();
-            const mrsServiceArr = mrsService.split("|");
-            for (const item of mrsServiceArr) {
-                try {
-                    await driver.findElement(By.id(item)).click();
-                    break;
-                } catch (e) {
-                    // continue
+            const selectedValue = await selectService.findElement(By.css("label"));
+            const label = await selectedValue.getText();
+            if (!mrsService.includes(label)) {
+                await selectService.click();
+                await driver.wait(until.elementLocated(By.id("servicePopup")),
+                    constants.explicitWait, "Select list was not displayed");
+                const mrsServiceArr = mrsService.split("|");
+                for (const item of mrsServiceArr) {
+                    const item2click = await driver.findElements(By.id(item));
+                    if (item2click.length > 0) {
+                        await item2click[0].click();
+                        break;
+                    }
                 }
             }
         }

@@ -60,19 +60,22 @@ export class Misc {
                 }, constants.explicitWait * 4, "'Certificate is installed' was not found on mysqlsh log file");
             };
 
+            console.log(1);
             await reloadAndCheck();
-
+            console.log(2);
             await driver.wait(async () => {
+                console.log(3);
                 if (await Misc.findOutputText("Could not establish websocket connection")) {
                     console.log("Triggering reloadAndCheck...");
                     await reloadAndCheck();
+                    console.log(4);
 
                     return false;
                 } else {
                     return Misc.findOnMySQLShLog("Registering session...");
                 }
             }, constants.explicitWait * 4, "'Registering session...' was not found on mysqlsh log file");
-
+            console.log(5);
             credentialHelperOk = !(await Misc
                 .findOnMySQLShLog(`Failed to initialize the default helper "windows-credential"`));
             const activityBar = new ActivityBar();
