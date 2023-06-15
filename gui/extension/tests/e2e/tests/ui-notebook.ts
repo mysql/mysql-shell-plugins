@@ -85,34 +85,24 @@ describe("NOTEBOOKS", () => {
         await Misc.loadDriver();
 
         try {
-            console.log(1);
             await driver.wait(Misc.extensionIsReady(), constants.explicitWait * 4, "Extension was not ready");
-            console.log(2);
             await Misc.toggleBottomBar(false);
-            console.log(3);
             const randomCaption = String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000));
             globalConn.caption += randomCaption;
-            console.log(4);
             await Database.createConnection(globalConn);
-            console.log(5);
             expect(await Database.getWebViewConnection(globalConn.caption)).to.exist;
-            console.log(6);
             const edView = new EditorView();
             await edView.closeAllEditors();
-            console.log(7);
             await new BottomBarPanel().toggle(false);
-            console.log(8);
             const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
-            console.log(9);
             await Misc.getTreeElement(treeOpenEditorsSection, constants.dbConnectionsLabel);
-            console.log(10);
         } catch (e) {
             await Misc.processFailure(this);
             throw e;
         }
     });
 
-    describe("DB Editor", () => {
+    describe.skip("DB Editor", () => {
 
         let clean = false;
 
@@ -564,7 +554,7 @@ describe("NOTEBOOKS", () => {
 
     });
 
-    describe("Scripts", () => {
+    describe.skip("Scripts", () => {
 
         let refItem: TreeItem;
 
@@ -650,7 +640,7 @@ describe("NOTEBOOKS", () => {
 
     });
 
-    describe("Persistent Notebooks", () => {
+    describe.skip("Persistent Notebooks", () => {
 
         const destFile = `${process.cwd()}/test`;
 

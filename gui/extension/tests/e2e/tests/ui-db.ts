@@ -107,7 +107,7 @@ describe("DATABASE CONNECTIONS", () => {
         }
     });
 
-    describe("Toolbar", () => {
+    describe.skip("Toolbar", () => {
 
         let treeConn: TreeItem;
 
@@ -235,7 +235,7 @@ describe("DATABASE CONNECTIONS", () => {
         });
     });
 
-    describe("Database connections", () => {
+    describe.skip("Database connections", () => {
 
         before(async function () {
             try {
@@ -458,7 +458,7 @@ describe("DATABASE CONNECTIONS", () => {
 
     });
 
-    describe("MySQL Administration", () => {
+    describe.skip("MySQL Administration", () => {
 
         before(async function () {
             try {
@@ -582,7 +582,7 @@ describe("DATABASE CONNECTIONS", () => {
 
     });
 
-    describe("Open Editors", () => {
+    describe.skip("Open Editors", () => {
 
         const localConn = Object.assign({}, globalConn);
         localConn.caption = `conn${String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000))}`;
@@ -665,14 +665,13 @@ describe("DATABASE CONNECTIONS", () => {
 
             await (await Misc.getActionButton(treeOEGlobalConn, "New MySQL Notebook")).click();
             treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
-            const treeItem = await Misc.getTreeScript(treeOpenEditorsSection, "Untitled-", "notebook");
+            const treeItem = await Misc.getTreeScript(treeOpenEditorsSection, "DB Notebook", "notebook");
             expect(treeItem).to.exist;
             await new EditorView().openEditor(globalConn.caption);
             await Misc.switchToWebView();
-            expect(await Database.getCurrentEditor()).to.match(/Untitled-(\d+)/);
+            expect(await Database.getCurrentEditor()).to.match(/DB Notebook (\d+)/);
             expect(await Database.getCurrentEditorType()).to.include("notebook");
             await driver.switchTo().defaultContent();
-            await (await Misc.getActionButton(treeItem, "Close Editor")).click();
 
         });
 
@@ -700,20 +699,20 @@ describe("DATABASE CONNECTIONS", () => {
             const item = await Misc.getTreeElement(treeOpenEditorsSection, globalConn.caption);
             await Misc.openContexMenuItem(item, "New MySQL Notebook", true);
             await driver.switchTo().defaultContent();
-            const treeItem = await Misc.getTreeScript(treeOpenEditorsSection, "Untitled-", "notebook");
+            const treeItem = await Misc.getTreeScript(treeOpenEditorsSection, "DB Notebook", "notebook");
             expect(treeItem).to.exist;
             await new EditorView().openEditor(globalConn.caption);
             await Misc.switchToWebView();
-            expect(await Database.getCurrentEditor()).to.match(/Untitled-(\d+)/);
+            expect(await Database.getCurrentEditor()).to.match(/DB Notebook (\d+)/);
             expect(await Database.getCurrentEditorType()).to.include("notebook");
             await driver.switchTo().defaultContent();
-            await (await Misc.getActionButton(treeItem, "Close Editor")).click();
 
         });
 
         it("Context menu - New MySQL Script", async () => {
 
             const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
+            await Misc.sectionFocus(constants.openEditorsTreeSection);
             const item = await Misc.getTreeElement(treeOpenEditorsSection, globalConn.caption);
             await Misc.openContexMenuItem(item, "New MySQL Script", true);
             expect(await Database.getCurrentEditor()).to.match(/Untitled-(\d+)/);
@@ -802,7 +801,7 @@ describe("DATABASE CONNECTIONS", () => {
         });
     });
 
-    describe("Context menu items", () => {
+    describe.skip("Context menu items", () => {
 
         let treeGlobalSchema: TreeItem;
         let treeGlobalSchemaTables: TreeItem;

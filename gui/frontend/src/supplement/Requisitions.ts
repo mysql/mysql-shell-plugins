@@ -22,7 +22,7 @@
  */
 
 import {
-    EditorLanguage, IExecutionContext, INewScriptRequest, IRunQueryRequest, IScriptRequest, ISqlPageRequest,
+    EditorLanguage, IExecutionContext, INewEditorRequest, IRunQueryRequest, IScriptRequest, ISqlPageRequest,
 } from ".";
 
 import {
@@ -380,7 +380,9 @@ export interface IRequestTypeMap {
     "connectedToUrl": (url?: URL) => Promise<boolean>;
     "refreshSessions": (sessions: IShellSessionDetails[]) => Promise<boolean>;
     "closeInstance": SimpleCallback;
-    "createNewScript": (request: INewScriptRequest) => Promise<boolean>;
+
+    /** Creates a new editor (script or notebook) with optional content. */
+    "createNewEditor": (request: INewEditorRequest) => Promise<boolean>;
 
     "dbFileDropped": (fileName: string) => Promise<boolean>;
 

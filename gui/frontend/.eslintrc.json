@@ -751,7 +751,6 @@
         "@typescript-eslint/triple-slash-reference": "off",
         "jsdoc/check-alignment": "error",
         "jsdoc/check-indentation": "off",
-        "jsdoc/newline-after-description": "error",
         "jsdoc/require-param-type": "off",
         "jsdoc/require-returns-type": "off",
         "jsdoc/tag-lines": [

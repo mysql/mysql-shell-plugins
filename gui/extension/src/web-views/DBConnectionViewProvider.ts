@@ -33,7 +33,7 @@ import {
 import { IMySQLDbSystem } from "../../../frontend/src/communication";
 import { EntityType, IDBEditorScriptState } from "../../../frontend/src/modules/db-editor";
 import { DBEditorModuleId } from "../../../frontend/src/modules/ModuleInfo";
-import { EditorLanguage, INewScriptRequest, IRunQueryRequest, IScriptRequest } from "../../../frontend/src/supplement";
+import { EditorLanguage, INewEditorRequest, IRunQueryRequest, IScriptRequest } from "../../../frontend/src/supplement";
 import { IShellSessionDetails } from "../../../frontend/src/supplement/ShellInterface";
 import { showMessageWithTimeout } from "../utilities";
 import { WebviewProvider } from "./WebviewProvider";
@@ -114,11 +114,29 @@ export class DBConnectionViewProvider extends WebviewProvider {
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public editScriptInNotebook(page: string, details: IScriptRequest): Promise<boolean> {
+    public editScript(page: string, details: IScriptRequest): Promise<boolean> {
         return this.runCommand("job", [
             { requestType: "showModule", parameter: DBEditorModuleId },
             { requestType: "showPage", parameter: { module: DBEditorModuleId, page, suppressAbout: true } },
             { requestType: "editorEditScript", parameter: details },
+        ], "newConnection");
+    }
+
+    /**
+     * Opens a new script editor in the webview tab and loads the given content into it.
+     *
+     * @param details The content of the script to run and other related information.
+     *
+     * @returns A promise which resolves after the command was executed.
+     */
+    public createNewEditor(details: INewEditorRequest): Promise<boolean> {
+        return this.runCommand("job", [
+            { requestType: "showModule", parameter: DBEditorModuleId },
+            {
+                requestType: "showPage",
+                parameter: { module: DBEditorModuleId, page: details.page, suppressAbout: true },
+            },
+            { requestType: "createNewEditor", parameter: details },
         ], "newConnection");
     }
 
@@ -242,7 +260,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
         void requisitions.execute("proxyRequest", {
             provider: this,
             original: {
-                requestType: "createNewScript",
+                requestType: "createNewEditor",
                 parameter: language,
             },
         });
@@ -273,7 +291,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
             this.requisitions.register("refreshOciTree", this.refreshOciTree);
             this.requisitions.register("codeBlocksUpdate", this.updateCodeBlock);
             this.requisitions.register("editorSaveScript", this.editorSaveScript);
-            this.requisitions.register("createNewScript", this.createNewScript);
+            this.requisitions.register("createNewEditor", this.handleCreateNewEditor);
             this.requisitions.register("newSession", this.createNewSession);
             this.requisitions.register("closeInstance", this.closeInstance);
             this.requisitions.register("editorsChanged", this.editorsChanged);
@@ -313,10 +331,10 @@ export class DBConnectionViewProvider extends WebviewProvider {
         });
     };
 
-    private createNewScript = (details: INewScriptRequest): Promise<boolean> => {
+    private handleCreateNewEditor = (details: INewEditorRequest): Promise<boolean> => {
         return requisitions.execute("proxyRequest", {
             provider: this,
-            original: { requestType: "createNewScript", parameter: details },
+            original: { requestType: "createNewEditor", parameter: details },
         });
     };
 
@@ -352,7 +370,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
      * select a file to save to.
      *
      * This is used for notebook content in a DB editor tab. There's a separate implementation for a standalone
-     * notebook file here {@link NotebookEditorProvider.triggerSave}.
+     * notebook file here NotebookEditorProvider.triggerSave.
      *
      * @param content The content to save.
      *
@@ -391,7 +409,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
      * then sent back to the frontend and used there to add a new notebook.
      *
      * This is used for notebook content in a DB editor tab. There's a separate implementation for a standalone
-     * notebook file here {@link NotebookEditorProvider.triggerLoad}.
+     * notebook file here NotebookEditorProvider.triggerLoad.
      *
      * @returns A promise which resolves to true if the save was successful.
      */
