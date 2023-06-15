@@ -479,7 +479,7 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it.skip("Add Table to REST Service", async () => {
+        it("Add Table to REST Service", async () => {
 
             const treeDBSection = await Misc.getSection(constants.dbTreeSection);
             const treeSakilaEdited = await Misc.getTreeElement(treeDBSection, "/edited (sakila)");

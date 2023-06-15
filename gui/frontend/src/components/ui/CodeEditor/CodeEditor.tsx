@@ -1763,8 +1763,11 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                 }
 
                 const language = CodeEditor.languageMap.get(trimmed);
-                if (!language || language === block.language ||
-                    allowedLanguages.length === 0 || !allowedLanguages.includes(language)) {
+                if (language === block.language) {
+                    return "ignore";
+                }
+
+                if (!language || allowedLanguages.length === 0 || !allowedLanguages.includes(language)) {
                     return "unhandled";
                 }
 

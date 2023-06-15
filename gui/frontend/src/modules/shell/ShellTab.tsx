@@ -407,14 +407,17 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                 } else if (this.isShellShellRowData(result)) {
                     // If we have column info at this point then we got SQL mode results (show the result grid).
                     // Otherwise display the result as JSON text.
-                    if (!result.hasData || columns.length === 0) {
+                    if (columns.length === 0) {
                         const resultText = result.warningCount > 0 ?
                             `finished with warnings (${result.warningCount})` : "OK";
-                        const info = `Query ${resultText}, ${result.affectedRowCount || result.rows.length} ` +
-                            `rows affected (${result.executionTime})`;
+                        let info = `Query ${resultText}, ${result.affectedRowCount || result.rows.length} ` +
+                            `rows affected`;
+                        if (result.executionTime) {
+                            info += ` (${result.executionTime})`;
+                        }
 
                         // If we have data show it as result otherwise only the execution info.
-                        if (result.hasData) {
+                        if (result.rows.length > 0) {
                             const content = JSON.stringify(result.rows, undefined, "\t") + "\n";
 
                             this.addTimedResult(context, {
