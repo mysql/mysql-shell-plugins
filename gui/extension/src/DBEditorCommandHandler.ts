@@ -638,9 +638,9 @@ export class DBEditorCommandHandler {
             });
 
             // Check if the DbObject's schema is already exposed as an MRS schema
+            dbObject.schemaName = item.schema;
             if (schema) {
                 dbObject.dbSchemaId = schema.id;
-                dbObject.schemaName = schema.name;
             } else {
                 const answer = await window.showInformationMessage(
                     `The database schema ${item.schema} has not been added to the `
