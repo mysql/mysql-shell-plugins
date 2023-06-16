@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,12 +21,26 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { Command } from "vscode";
+
+import { IConnectionEntry } from "./ConnectionsTreeProvider";
 import { SchemaTreeItem } from "./SchemaTreeItem";
 
 export class SchemaMySQLTreeItem extends SchemaTreeItem {
     public contextValue = "schemaItemMySQL";
 
-    protected get iconName(): string {
-        return "schemaMySQL.svg";
+    public constructor(
+        public name: string,
+        public schema: string,
+        public entry: IConnectionEntry,
+        isCurrent: boolean,
+        hasChildren: boolean,
+        command?: Command) {
+        super(name, schema, entry, isCurrent ? "schemaMySQLCurrent.svg" : "schemaMySQL.svg", hasChildren, command);
     }
+
+    public async makeCurrent(): Promise<void> {
+        return this.entry.backend?.setCurrentSchema(this.schema);
+    }
+
 }

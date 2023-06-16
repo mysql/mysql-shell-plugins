@@ -35,13 +35,14 @@ export class ConnectionsTreeBaseItem extends TreeItem {
         public name: string,
         public schema: string,
         public entry: IConnectionEntry,
+        iconName: string,
         hasChildren: boolean,
         command?: Command) {
         super(name, hasChildren ? TreeItemCollapsibleState.Collapsed : TreeItemCollapsibleState.None);
 
         this.iconPath = {
-            light: path.join(__dirname, "..", "images", "light", this.iconName),
-            dark: path.join(__dirname, "..", "images", "dark", this.iconName),
+            light: path.join(__dirname, "..", "images", "light", iconName),
+            dark: path.join(__dirname, "..", "images", "dark", iconName),
         };
         this.command = command;
     }
@@ -88,10 +89,6 @@ export class ConnectionsTreeBaseItem extends TreeItem {
     }
 
     public get qualifiedName(): string {
-        return "";
-    }
-
-    protected get iconName(): string {
         return "";
     }
 

@@ -32,7 +32,9 @@ export class MrsSchemaTreeItem extends MrsTreeBaseItem {
         label: string,
         public value: IMrsSchemaData,
         entry: IConnectionEntry) {
-        super(label, entry, true, value.enabled === 1 ? (
-            value.requiresAuth === 1 ? "mrsSchemaLocked.svg" : "mrsSchema.svg") : "mrsSchemaDisabled.svg");
+        const iconName = value.enabled === 1
+            ? (value.requiresAuth === 1 ? "mrsSchemaLocked.svg" : "mrsSchema.svg")
+            : "mrsSchemaDisabled.svg";
+        super(label, entry, iconName, true);
     }
 }

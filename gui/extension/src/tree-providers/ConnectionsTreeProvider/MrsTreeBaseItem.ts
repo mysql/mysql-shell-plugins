@@ -32,23 +32,14 @@ export class MrsTreeBaseItem extends TreeItem {
     public constructor(
         label: string,
         public entry: IConnectionEntry,
-        hasChildren: boolean, iconName?: string) {
+        iconName: string,
+        hasChildren: boolean,
+    ) {
         super(label, hasChildren ? TreeItemCollapsibleState.Collapsed : TreeItemCollapsibleState.None);
 
-        if (iconName) {
-            this.iconPath = {
-                light: path.join(__dirname, "..", "images", "light", iconName),
-                dark: path.join(__dirname, "..", "images", "dark", iconName),
-            };
-        } else {
-            this.iconPath = {
-                light: path.join(__dirname, "..", "images", "light", this.iconName),
-                dark: path.join(__dirname, "..", "images", "dark", this.iconName),
-            };
-        }
-    }
-
-    protected get iconName(): string {
-        return "mrs.svg";
+        this.iconPath = {
+            light: path.join(__dirname, "..", "images", "light", iconName),
+            dark: path.join(__dirname, "..", "images", "dark", iconName),
+        };
     }
 }

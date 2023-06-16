@@ -85,7 +85,7 @@ describe("NOTEBOOKS", () => {
         await Misc.loadDriver();
 
         try {
-            await driver.wait(Misc.extensionIsReady(), constants.explicitWait * 4, "Extension was not ready");
+            await driver.wait(Misc.extensionIsReady(), constants.extensionReadyWait, "Extension was not ready");
             await Misc.toggleBottomBar(false);
             const randomCaption = String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000));
             globalConn.caption += randomCaption;
@@ -102,7 +102,7 @@ describe("NOTEBOOKS", () => {
         }
     });
 
-    describe.skip("DB Editor", () => {
+    describe("DB Editor", () => {
 
         let clean = false;
 
@@ -554,7 +554,7 @@ describe("NOTEBOOKS", () => {
 
     });
 
-    describe.skip("Scripts", () => {
+    describe("Scripts", () => {
 
         let refItem: TreeItem;
 
@@ -640,7 +640,7 @@ describe("NOTEBOOKS", () => {
 
     });
 
-    describe.skip("Persistent Notebooks", () => {
+    describe("Persistent Notebooks", () => {
 
         const destFile = `${process.cwd()}/test`;
 

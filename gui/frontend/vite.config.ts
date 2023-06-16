@@ -128,10 +128,21 @@ export default defineConfig({
                 "node_modules/antlr4ts/**/*.js",
             ],
         },
-        minify: true,
+        minify: process.env.SOURCE_MAPS ? false : "terser",
+        terserOptions: {
+            ecma: 2020,
+            format: {
+                comments: false,
+            },
+            mangle: {
+                keep_classnames: true,
+            },
+            keep_classnames: true,
+        },
         sourcemap: Boolean(process.env.SOURCE_MAPS),
         rollupOptions: {
             plugins: [
+                // @ts-ignore
                 nodePolyfills(),
                 {
                     name: "no-treeshake",

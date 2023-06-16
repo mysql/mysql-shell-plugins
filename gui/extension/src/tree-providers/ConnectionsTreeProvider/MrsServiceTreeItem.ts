@@ -32,9 +32,10 @@ export class MrsServiceTreeItem extends MrsTreeBaseItem {
         label: string,
         public value: IMrsServiceData,
         details: IConnectionEntry) {
-        super(label, details, true,
-            value.isCurrent ?
-                !value.enabled ? "mrsServiceDefaultDisabled.svg" : "mrsServiceDefault.svg" :
-                !value.enabled ? "mrsServiceDisabled.svg" : "mrsService.svg");
+
+        const iconName = value.isCurrent ?
+            !value.enabled ? "mrsServiceDefaultDisabled.svg" : "mrsServiceDefault.svg" :
+            !value.enabled ? "mrsServiceDisabled.svg" : "mrsService.svg";
+        super(label, details, iconName, true);
     }
 }

@@ -43,45 +43,43 @@ export let credentialHelperOk = true;
 export class Misc {
 
     public static extensionIsReady = (): Condition<boolean> => {
-        return new Condition("", async () => {
+        return new Condition("Extension was not ready", async () => {
             await new EditorView().closeAllEditors();
-
-            const reloadAndCheck = async () => {
-                await driver.wait(async () => {
-                    return this.reloadVSCode().then(() => {
-                        return true;
-                    })
-                        .catch(() => {
-                            return false;
-                        });
-                }, constants.explicitWait * 3, "Reload window did not went well");
-                await driver.wait(async () => {
-                    return Misc.findOnMySQLShLog("Certificate is installed");
-                }, constants.explicitWait * 4, "'Certificate is installed' was not found on mysqlsh log file");
-            };
-
-            console.log(1);
-            await reloadAndCheck();
-            console.log(2);
+            await Misc.reloadVSCode();
             await driver.wait(async () => {
-                console.log(3);
-                if (await Misc.findOutputText("Could not establish websocket connection")) {
-                    console.log("Triggering reloadAndCheck...");
-                    await reloadAndCheck();
-                    console.log(4);
+                if (await Misc.findOnMySQLShLog("Certificate is installed")) {
+                    if (await Misc.findOnMySQLShLog("Mode: Single user")) {
+                        if (await Misc.findOnMySQLShLog("Registering session...")) {
+                            return true;
+                        } else if (await Misc.findOutputText("Could not establish websocket connection")) {
+                            await fs.truncate(join(constants.basePath,
+                                `mysqlsh-${String(process.env.TEST_SUITE)}`, "mysqlsh.log"));
 
-                    return false;
-                } else {
-                    return Misc.findOnMySQLShLog("Registering session...");
+                            return Misc.reloadVSCode().then(() => {
+                                return false;
+                            }).catch((e) => {
+                                throw e;
+                            });
+                        } else if (await Misc.findOnMySQLShLog("Error: [MSG]")) {
+                            await fs.truncate(join(constants.basePath,
+                                `mysqlsh-${String(process.env.TEST_SUITE)}`, "mysqlsh.log"));
+
+                            return Misc.reloadVSCode().then(() => {
+                                return false;
+                            }).catch((e) => {
+                                throw e;
+                            });
+                        }
+                    }
                 }
-            }, constants.explicitWait * 4, "'Registering session...' was not found on mysqlsh log file");
-            console.log(5);
+            }, constants.explicitWait * 12, "'Registering session...' was not found on mysqlsh log file");
+
             credentialHelperOk = !(await Misc
                 .findOnMySQLShLog(`Failed to initialize the default helper "windows-credential"`));
             const activityBar = new ActivityBar();
             await (await activityBar.getViewControl(constants.extensionName))?.openView();
 
-            return driver.wait(async () => {
+            await driver.wait(async () => {
                 const editors = await new EditorView().getOpenEditorTitles();
                 if (editors.includes(constants.dbDefaultEditor)) {
                     await new EditorView().closeAllEditors();
@@ -90,7 +88,9 @@ export class Misc {
                 } else {
                     return false;
                 }
-            }, constants.explicitWait * 6, `${constants.dbDefaultEditor} tab should have been opened`);
+            }, constants.explicitWait * 4, `${constants.dbDefaultEditor} tab should have been opened`);
+
+            return true;
         });
     };
 
@@ -517,7 +517,10 @@ export class Misc {
 
                 return true;
             } catch (e) {
-                if (!(String(e).includes("Command failed")) && !(e instanceof error.StaleElementReferenceError)) {
+                if (!(String(e).includes("Command failed")) &&
+                    !(e instanceof error.StaleElementReferenceError) &&
+                    !(e instanceof error.ElementNotInteractableError)
+                ) {
                     throw e;
                 }
             }
@@ -1212,9 +1215,17 @@ export class Misc {
     };
 
     private static reloadVSCode = async (): Promise<void> => {
-        const workbench = new Workbench();
-        await workbench.executeCommand("workbench.action.reloadWindow");
-        await driver.sleep(2000);
+        await driver.wait(async () => {
+            try {
+                const workbench = new Workbench();
+                await workbench.executeCommand("workbench.action.reloadWindow");
+                await driver.sleep(2000);
+
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }, constants.explicitWait * 3, "Could not reload VSCode");
     };
 
     private static getPromptTextLine = async (prompt: String): Promise<String> => {
@@ -1250,8 +1261,10 @@ export class Misc {
 
     private static findOnMySQLShLog = async (textToFind: string): Promise<boolean> => {
         const text = await fs.readFile(Misc.getMysqlshLog());
+        console.log(text.toString());
+        console.log("------");
 
-        return text.includes(textToFind);
+        return text.toString().includes(textToFind);
     };
 
     private static selectContextMenuItem = async (

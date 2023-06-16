@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,17 +21,17 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IMrsUserData } from "../../../../frontend/src/communication/ProtocolMrs";
 import { IConnectionEntry } from "./ConnectionsTreeProvider";
-import { MrsTreeBaseItem } from "./MrsTreeBaseItem";
+import { SchemaTableTreeItem } from "./SchemaTableTreeItem";
 
-export class MrsUserTreeItem extends MrsTreeBaseItem {
-    public contextValue = "mrsUser";
+export class SchemaTableSqliteTreeItem extends SchemaTableTreeItem {
+    public contextValue = "schemaTableItem";
 
     public constructor(
-        label: string,
-        public value: IMrsUserData,
-        entry: IConnectionEntry) {
-        super(label, entry, "ociProfile.svg", false);
+        name: string,
+        public schema: string,
+        entry: IConnectionEntry,
+        hasChildren: boolean) {
+        super(name, schema, entry, "schemaTable.svg", hasChildren);
     }
 }

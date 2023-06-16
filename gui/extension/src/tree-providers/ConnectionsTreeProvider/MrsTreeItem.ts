@@ -21,8 +21,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import path from "path";
 import { Command } from "vscode";
+
 import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem";
 import { IConnectionEntry } from "./ConnectionsTreeProvider";
 
@@ -34,18 +34,9 @@ export class MrsTreeItem extends ConnectionsTreeBaseItem {
         public schema: string,
         public entry: IConnectionEntry,
         hasChildren: boolean,
-        public enabled: boolean,
+        enabled: boolean,
         command?: Command) {
-        super(name, schema, entry, hasChildren, command);
-
-        this.iconPath = {
-            light: path.join(__dirname, "..", "images", "light", this.iconName),
-            dark: path.join(__dirname, "..", "images", "dark", this.iconName),
-        };
-        this.command = command;
+        super(name, schema, entry, enabled ? "mrs.svg" : "mrsDisabled.svg", hasChildren, command);
     }
 
-    protected get iconName(): string {
-        return this.enabled ? "mrs.svg" : "mrsDisabled.svg";
-    }
 }

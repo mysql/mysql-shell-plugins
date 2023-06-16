@@ -33,8 +33,7 @@ export class MrsRouterTreeItem extends MrsTreeBaseItem {
         public value: IMrsRouterData,
         details: IConnectionEntry,
         requiresUpgrade: boolean) {
-        super(label, details, false,
-            MrsRouterTreeItem.getIconName(value, requiresUpgrade));
+        super(label, details, MrsRouterTreeItem.getIconName(value, requiresUpgrade), false);
 
         this.description = value.version;
         this.tooltip = requiresUpgrade

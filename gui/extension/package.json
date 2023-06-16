@@ -493,6 +493,10 @@
                 "title": "Drop Schema..."
             },
             {
+                "command": "msg.makeCurrentSchema",
+                "title": "Set As Current Schema..."
+            },
+            {
                 "command": "msg.createTable",
                 "title": "Create Table..."
             },
@@ -1125,6 +1129,11 @@
                     "command": "msg.mrs.addSchema",
                     "when": "view == msg.connections && viewItem == schemaItemMySQL && !showsModalDialog",
                     "group": "4_msg@1"
+                },
+                {
+                    "command": "msg.makeCurrentSchema",
+                    "when": "view == msg.connections && viewItem =~ /^schemaItem.*/ && !showsModalDialog",
+                    "group": "8_msg@2"
                 },
                 {
                     "command": "msg.dropSchema",

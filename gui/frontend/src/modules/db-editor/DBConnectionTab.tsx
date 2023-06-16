@@ -1857,7 +1857,7 @@ Execute \\help or \\? for help;`;
 
         const data = params as ISchemaTreeEntry;
         switch (actionId) {
-            case "setDefaultMenuItem": {
+            case "setCurrentSchemaMenuItem": {
                 backend?.setCurrentSchema(data.qualifiedName.schema).then(() => {
                     void requisitions.execute("sqlSetCurrentSchema",
                         { id, connectionId, schema: data.qualifiedName.schema });

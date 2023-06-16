@@ -82,6 +82,7 @@
         "rollup-plugin-polyfill-node": "0.12.0",
         "run-my-sql-file": "1.0.0",
         "selenium-webdriver": "4.7.1",
+        "terser": "5.18.0",
         "ts-node": "10.9.1",
         "typescript": "4.9.5",
         "vite": "4.3.9",

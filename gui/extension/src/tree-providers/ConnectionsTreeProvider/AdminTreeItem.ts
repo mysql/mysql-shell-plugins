@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,11 +22,15 @@
  */
 
 import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem";
+import { IConnectionEntry } from "./ConnectionsTreeProvider";
 
 export class AdminTreeItem extends ConnectionsTreeBaseItem {
     public contextValue = "admin";
 
-    protected get iconName(): string {
-        return "adminDashboard.svg";
+    public constructor(
+        public name: string,
+        public entry: IConnectionEntry,
+        hasChildren: boolean) {
+        super(name, "", entry, "adminDashboard.svg", hasChildren);
     }
 }

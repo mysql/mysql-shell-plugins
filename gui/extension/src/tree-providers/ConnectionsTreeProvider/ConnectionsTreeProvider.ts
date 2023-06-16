@@ -67,12 +67,14 @@ import { SchemaTableIndexTreeItem } from "./SchemaTableIndexTreeItem";
 import { SchemaTableMySQLTreeItem } from "./SchemaTableMySQLTreeItem";
 import { SchemaTableTreeItem } from "./SchemaTableTreeItem";
 import { SchemaTableTriggerTreeItem } from "./SchemaTableTriggerTreeItem";
-import { SchemaViewTreeItem } from "./SchemaViewTreeItem";
 import { MrsAuthAppTreeItem } from "./MrsAuthAppTreeItem";
 import { MrsUserTreeItem } from "./MrsUserTreeItem";
 import { MrsRouterTreeItem } from "./MrsRouterTreeItem";
 import { uuid } from "../../../../frontend/src/utilities/helpers";
 import { showMessageWithTimeout } from "../../utilities";
+import { SchemaSqliteTreeItem } from "./SchemaSqliteTreeItem";
+import { SchemaTableSqliteTreeItem } from "./SchemaTableSqliteTreeItem";
+import { SchemaViewSqliteTreeItem } from "./SchemaViewSqliteTreeItem";
 
 export interface IConnectionEntry {
     id: string;
@@ -170,10 +172,10 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
             if (this.useDedicatedSchemaSubtree) {
                 const items = [];
                 if (element.entry.details.dbType === DBType.MySQL) {
-                    items.push(new AdminTreeItem("MySQL Administration", "", element.entry, true));
+                    items.push(new AdminTreeItem("MySQL Administration", element.entry, true));
                 }
 
-                items.push(new SchemaListTreeItem("Schemas", "", element.entry, true));
+                items.push(new SchemaListTreeItem("Schemas", element.entry, true));
 
                 return items;
             }
@@ -202,12 +204,12 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
             };
 
             return [
-                new AdminSectionTreeItem("Server Status", "", element.entry, false, "adminServerStatus.svg",
+                new AdminSectionTreeItem("Server Status", element.entry, "adminServerStatus.svg", false,
                     serverStatusCommand),
-                new AdminSectionTreeItem("Client Connections", "", element.entry, false, "clientConnections.svg",
+                new AdminSectionTreeItem("Client Connections", element.entry, "clientConnections.svg", false,
                     clientConnectionsCommand),
-                new AdminSectionTreeItem("Performance Dashboard", "", element.entry, false,
-                    "adminPerformanceDashboard.svg", performanceDashboardCommand),
+                new AdminSectionTreeItem("Performance Dashboard", element.entry, "adminPerformanceDashboard.svg",
+                    false, performanceDashboardCommand),
             ];
         }
 
@@ -482,10 +484,11 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
             if (backend) {
                 const schemaList: TreeItem[] = [];
                 if (entry.details.dbType === DBType.MySQL) {
-                    schemaList.push(new AdminTreeItem("MySQL Administration", "", entry, true));
+                    schemaList.push(new AdminTreeItem("MySQL Administration", entry, true));
                 }
 
                 const schemas = await backend.getCatalogObjects("Schema");
+                const currentSchema = await backend.getCurrentSchema();
                 for (const schema of schemas) {
                     if (entry.details.dbType === "MySQL") {
                         // If the schema is the MRS metadata schema, add the MRS tree item
@@ -550,20 +553,20 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                                     `Error: ${reason instanceof Error ? reason.message : String(reason)}`);
                             }
                         }
-                        // Only show system schemas if the options is set
-                        let hideSystemSchemas = true;
-                        if (entry.details.hideSystemSchemas !== undefined) {
-                            hideSystemSchemas = entry.details.hideSystemSchemas;
-                        }
+
+                        // Only show system schemas if allowed.
+                        const hideSystemSchemas = entry.details.hideSystemSchemas ?? true;
 
                         if ((schema !== "mysql" &&
                             schema !== "mysql_innodb_cluster_metadata" &&
                             schema !== "mysql_rest_service_metadata")
                             || !hideSystemSchemas) {
-                            schemaList.push(new SchemaMySQLTreeItem(schema, schema, entry, true));
+                            schemaList.push(new SchemaMySQLTreeItem(schema, schema, entry, schema === currentSchema,
+                                true));
                         }
                     } else {
-                        schemaList.push(new SchemaTreeItem(schema, schema, entry, true));
+                        schemaList.push(new SchemaSqliteTreeItem(schema, schema, entry, schema === currentSchema,
+                            true));
                     }
                 }
 
@@ -624,7 +627,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                             if (element.entry.details.dbType === "MySQL") {
                                 items.push(new SchemaTableMySQLTreeItem(objectName, schema, entry, true));
                             } else {
-                                items.push(new SchemaTableTreeItem(objectName, schema, entry, true));
+                                items.push(new SchemaTableSqliteTreeItem(objectName, schema, entry, true));
                             }
 
                             break;
@@ -634,7 +637,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                             if (element.entry.details.dbType === "MySQL") {
                                 items.push(new SchemaViewMySQLTreeItem(objectName, schema, entry, true));
                             } else {
-                                items.push(new SchemaViewTreeItem(objectName, schema, entry, true));
+                                items.push(new SchemaViewSqliteTreeItem(objectName, schema, entry, true));
                             }
 
                             break;

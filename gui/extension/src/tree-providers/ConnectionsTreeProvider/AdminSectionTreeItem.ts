@@ -21,8 +21,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import * as path from "path";
-
 import { Command } from "vscode";
 
 import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem";
@@ -33,16 +31,10 @@ export class AdminSectionTreeItem extends ConnectionsTreeBaseItem {
 
     public constructor(
         public name: string,
-        public schema: string,
         public entry: IConnectionEntry,
-        hasChildren: boolean,
         iconName: string,
+        hasChildren: boolean,
         command?: Command) {
-        super(name, schema, entry, hasChildren, command);
-
-        this.iconPath = {
-            light: path.join(__dirname, "..", "images", "light", iconName),
-            dark: path.join(__dirname, "..", "images", "dark", iconName),
-        };
+        super(name, "", entry, iconName, hasChildren, command);
     }
 }
