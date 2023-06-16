@@ -32,6 +32,6 @@ export class MrsContentFileTreeItem extends MrsTreeBaseItem {
         label: string,
         public value: IMrsContentFileData,
         entry: IConnectionEntry) {
-        super(label, entry, false, value.enabled ? "mrsContentFile.svg" : "mrsContentFileDisabled.svg");
+        super(label, entry, value.enabled ? "mrsContentFile.svg" : "mrsContentFileDisabled.svg", false);
     }
 }

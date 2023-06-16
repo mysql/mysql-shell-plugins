@@ -294,6 +294,12 @@ export class DBEditorCommandHandler {
             }
         }));
 
+        context.subscriptions.push(commands.registerCommand("msg.makeCurrentSchema", (item?: SchemaMySQLTreeItem) => {
+            void item?.makeCurrent().then(() => {
+                void commands.executeCommand("msg.refreshConnections");
+            });
+        }));
+
         context.subscriptions.push(commands.registerCommand("msg.dropSchema", (item?: SchemaMySQLTreeItem) => {
             item?.dropItem();
         }));

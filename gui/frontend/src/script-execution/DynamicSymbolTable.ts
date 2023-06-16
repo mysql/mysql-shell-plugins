@@ -31,7 +31,7 @@ import {
 import { SymbolKind } from "../parsing/parser-common";
 import { ShellInterfaceDb } from "../supplement/ShellInterface/ShellInterfaceDb";
 
-// An enhanced database symbol table, which is able to retrieve their content from a shell DB connection on demand.
+/** An enhanced database symbol table, which is able to retrieve their content from a shell DB connection on demand. */
 export class DynamicSymbolTable extends DBSymbolTable {
 
     public constructor(
@@ -69,9 +69,9 @@ export class DynamicSymbolTable extends DBSymbolTable {
      *
      * @returns The list of new symbols that have been added to this symbol table.
      */
-    public async loadSymbolsOfKind(parent: ScopedSymbol, kind: SymbolKind): Promise<Set<Symbol>> {
+    public async loadSymbolsOfKind(parent: ScopedSymbol, kind: SymbolKind): Promise<void> {
         if (!this.backend) {
-            return new Set();
+            return;
         }
 
         switch (kind) {
@@ -232,8 +232,6 @@ export class DynamicSymbolTable extends DBSymbolTable {
             // (e.g. system functions and keywords).
             default:
         }
-
-        return new Set();
     }
 
     /**
@@ -247,23 +245,8 @@ export class DynamicSymbolTable extends DBSymbolTable {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         t: new (...args: any[]) => T): void {
 
-        const symbolNames: string[] = [];
-        /*if (names.names) {
-            names.names.forEach((item) => {
-                symbolNames.push(item);
-            });
-        } else if (names.columns) {
-            names.columns.columns.forEach((item) => {
-                symbolNames.push(item);
-            });
-        }*/
-        names.forEach((item) => {
-            symbolNames.push(item);
-        });
-
-        const symbols: Set<T> = new Set();
-        symbolNames.forEach((symbolName) => {
-            symbols.add(this.addNewSymbolOfType(t, parent, symbolName));
+        names.forEach((name) => {
+            this.addNewSymbolOfType(t, parent, name);
         });
     }
 }

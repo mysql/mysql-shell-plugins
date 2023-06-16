@@ -364,7 +364,7 @@ export class Explorer extends ComponentBase<IExplorerProperties, IExplorerState>
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleSchemaTreeContextMenuItemClick}
                 >
-                    <MenuItem id="setDefaultMenuItem" caption="Set as Default Schema" />
+                    <MenuItem id="setCurrentSchemaMenuItem" caption="Set as Current Schema" />
                     <MenuItem id="filterMenuItem" caption="Filter to this Schema" disabled />
                     <MenuItem id="inspectorMenuItem" caption="Show Schema Inspector" disabled />
                     <MenuItem caption="-" disabled />

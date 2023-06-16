@@ -33,7 +33,7 @@ export class MrsDbObjectTreeItem extends MrsTreeBaseItem {
         label: string,
         public value: IMrsDbObjectData,
         details: IConnectionEntry) {
-        super(label, details, false, MrsDbObjectTreeItem.getIconName(value));
+        super(label, details, MrsDbObjectTreeItem.getIconName(value), false);
     }
 
     private static getIconName = (value: IMrsDbObjectData): string => {

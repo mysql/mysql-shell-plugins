@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,12 +21,17 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { IConnectionEntry } from "./ConnectionsTreeProvider";
 import { SchemaViewTreeItem } from "./SchemaViewTreeItem";
 
 export class SchemaViewMySQLTreeItem extends SchemaViewTreeItem {
     public contextValue = "schemaViewItemMySQL";
 
-    protected get iconName(): string {
-        return "schemaView.svg";
+    public constructor(
+        public name: string,
+        public schema: string,
+        public entry: IConnectionEntry,
+        hasChildren: boolean) {
+        super(name, schema, entry, "schemaView.svg", hasChildren);
     }
 }

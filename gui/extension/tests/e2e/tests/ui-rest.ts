@@ -77,7 +77,7 @@ describe("MySQL REST Service", () => {
 
         try {
             await Misc.cleanCredentials();
-            await driver.wait(Misc.extensionIsReady(), constants.explicitWait * 4, "Extension was not ready");
+            await driver.wait(Misc.extensionIsReady(), constants.extensionReadyWait, "Extension was not ready");
             await Misc.toggleBottomBar(false);
             await Misc.sectionFocus(constants.dbTreeSection);
             const randomCaption = String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000));
@@ -507,7 +507,7 @@ describe("MySQL REST Service", () => {
 
         it("Add New Authentication App", async () => {
 
-            const treeDBSection = await Misc.getSection(constants.dbTreeSection);
+            let treeDBSection = await Misc.getSection(constants.dbTreeSection);
             const treeRandomService = await Misc.getTreeElement(treeDBSection, `/edited${service} (localhost)`, true);
             await Misc.openContexMenuItem(treeRandomService, "Add New Authentication App", true);
             await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
@@ -529,6 +529,7 @@ describe("MySQL REST Service", () => {
 
             await driver.switchTo().defaultContent();
             //await Misc.verifyNotification("The MRS Authentication App has been added", true);
+            treeDBSection = await Misc.getSection(constants.dbTreeSection);
             const treeGlobalConn = await Misc.getTreeElement(treeDBSection, globalConn.caption, true);
             await (await Misc.getActionButton(treeGlobalConn, "Reload Database Information")).click();
             await treeRandomService.expand();

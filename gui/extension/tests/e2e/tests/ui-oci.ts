@@ -47,7 +47,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         await Misc.loadDriver();
 
         try {
-            await driver.wait(Misc.extensionIsReady(), constants.explicitWait * 4, "Extension was not ready");
+            await driver.wait(Misc.extensionIsReady(), constants.extensionReadyWait, "Extension was not ready");
             await Misc.toggleBottomBar(false);
             await Misc.sectionFocus(constants.ociTreeSection);
             const treeOCISection = await Misc.getSection(constants.ociTreeSection);

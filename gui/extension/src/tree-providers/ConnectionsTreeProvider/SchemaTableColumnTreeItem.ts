@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -32,15 +32,11 @@ export class SchemaTableColumnTreeItem extends ConnectionsTreeBaseItem {
         public schema: string,
         public table: string,
         entry: IConnectionEntry) {
-        super(name, schema, entry, false);
+        super(name, schema, entry, "schemaTableColumn.svg", false);
     }
 
     public get qualifiedName(): string {
         return `\`${this.schema}\`.\`${this.table}\`.\`${this.name}\``;
-    }
-
-    protected get iconName(): string {
-        return "schemaTableColumn.svg";
     }
 
     public get dbType(): string {

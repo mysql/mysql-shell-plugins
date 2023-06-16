@@ -36,15 +36,11 @@ export class SchemaRoutineTreeItem extends ConnectionsTreeBaseItem {
         public entry: IConnectionEntry,
         hasChildren: boolean,
         command?: Command) {
-        super(name, schema, entry, hasChildren, command);
+        super(name, schema, entry, "schemaRoutine.svg", hasChildren, command);
     }
 
     public get qualifiedName(): string {
         return `\`${this.schema}\`.\`${this.name}\``;
-    }
-
-    protected get iconName(): string {
-        return "schemaRoutine.svg";
     }
 
     public get dbType(): string {

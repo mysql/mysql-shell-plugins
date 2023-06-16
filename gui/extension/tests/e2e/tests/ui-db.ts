@@ -89,7 +89,7 @@ describe("DATABASE CONNECTIONS", () => {
         await Misc.loadDriver();
 
         try {
-            await driver.wait(Misc.extensionIsReady(), constants.explicitWait * 4, "Extension was not ready");
+            await driver.wait(Misc.extensionIsReady(), constants.extensionReadyWait, "Extension was not ready");
             await Misc.toggleBottomBar(false);
             const randomCaption = String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000));
             globalConn.caption += randomCaption;
@@ -107,7 +107,7 @@ describe("DATABASE CONNECTIONS", () => {
         }
     });
 
-    describe.skip("Toolbar", () => {
+    describe("Toolbar", () => {
 
         let treeConn: TreeItem;
 
@@ -235,7 +235,7 @@ describe("DATABASE CONNECTIONS", () => {
         });
     });
 
-    describe.skip("Database connections", () => {
+    describe("Database connections", () => {
 
         before(async function () {
             try {
@@ -458,7 +458,7 @@ describe("DATABASE CONNECTIONS", () => {
 
     });
 
-    describe.skip("MySQL Administration", () => {
+    describe("MySQL Administration", () => {
 
         before(async function () {
             try {
@@ -582,7 +582,7 @@ describe("DATABASE CONNECTIONS", () => {
 
     });
 
-    describe.skip("Open Editors", () => {
+    describe("Open Editors", () => {
 
         const localConn = Object.assign({}, globalConn);
         localConn.caption = `conn${String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000))}`;
@@ -801,7 +801,7 @@ describe("DATABASE CONNECTIONS", () => {
         });
     });
 
-    describe.skip("Context menu items", () => {
+    describe("Context menu items", () => {
 
         let treeGlobalSchema: TreeItem;
         let treeGlobalSchemaTables: TreeItem;

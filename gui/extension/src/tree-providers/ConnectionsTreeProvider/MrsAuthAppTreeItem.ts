@@ -32,7 +32,7 @@ export class MrsAuthAppTreeItem extends MrsTreeBaseItem {
         label: string,
         public value: IMrsAuthAppData,
         entry: IConnectionEntry) {
-        super(label, entry, true, value.enabled ? "shield.svg" : "shieldDisabled.svg");
+        super(label, entry, value.enabled ? "shield.svg" : "shieldDisabled.svg", true);
         this.tooltip = value.description ?? label;
     }
 }

@@ -246,8 +246,8 @@ export class DBSymbolTable extends SymbolTable {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public loadSymbolsOfKind(parent: ScopedSymbol, kind: SymbolKind): Promise<Set<Symbol>> {
-        return Promise.resolve(new Set());
+    public loadSymbolsOfKind(parent: ScopedSymbol, kind: SymbolKind): Promise<void> {
+        return Promise.resolve();
     }
 
     /**

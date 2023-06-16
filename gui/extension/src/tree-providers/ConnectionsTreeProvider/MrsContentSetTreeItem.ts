@@ -32,6 +32,6 @@ export class MrsContentSetTreeItem extends MrsTreeBaseItem {
         label: string,
         public value: IMrsContentSetData,
         entry: IConnectionEntry) {
-        super(label, entry, true, value.enabled === 1 ? "mrsContentSet.svg" : "mrsContentSetDisabled.svg");
+        super(label, entry, value.enabled === 1 ? "mrsContentSet.svg" : "mrsContentSetDisabled.svg", true);
     }
 }

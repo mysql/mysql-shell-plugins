@@ -37,6 +37,7 @@ export const tasksTreeSection = "MYSQL SHELL TASKS";
 export const explicitWait = 5000;
 export const ociExplicitWait = explicitWait * 2;
 export const ociTasksExplicitWait = explicitWait * 5;
+export const extensionReadyWait = 120000;
 
 // TREE SEARCH LEVELS
 export const dbMaxLevel = 5;

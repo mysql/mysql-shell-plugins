@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -34,21 +34,24 @@ export class TableGroupTreeItem extends ConnectionsTreeBaseItem {
         public table: string,
         entry: IConnectionEntry,
         type: SchemaItemGroupType) {
-        super(type, schema, entry, true);
+        super(type, schema, entry, TableGroupTreeItem.getIconName(type), true);
     }
 
 
-    protected get iconName(): string {
-        switch (this.label) {
+    private static getIconName(label: string): string {
+        switch (label) {
             case SchemaItemGroupType.Columns: {
                 return "schemaTableColumns.svg";
             }
+
             case SchemaItemGroupType.Indexes: {
                 return "schemaTableIndexes.svg";
             }
+
             case SchemaItemGroupType.ForeignKeys: {
                 return "schemaTableForeignKey.svg";
             }
+
             case SchemaItemGroupType.Triggers: {
                 return "schemaTableTriggers.svg";
             }

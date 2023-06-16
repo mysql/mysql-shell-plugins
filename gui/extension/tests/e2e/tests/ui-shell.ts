@@ -80,7 +80,7 @@ describe("MYSQL SHELL CONSOLES", () => {
         await Misc.loadDriver();
 
         try {
-            await driver.wait(Misc.extensionIsReady(), constants.explicitWait * 4, "Extension was not ready");
+            await driver.wait(Misc.extensionIsReady(), constants.extensionReadyWait, "Extension was not ready");
             await Misc.toggleBottomBar(false);
             await Misc.sectionFocus(constants.openEditorsTreeSection);
             const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
