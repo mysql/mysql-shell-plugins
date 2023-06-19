@@ -68,6 +68,10 @@ import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext"
 import { IMrsLoginResult } from "../mrs/sdk/MrsBaseClasses";
 import { IMrsAuthRequestPayload } from "../mrs/types";
 
+const errorRexExp = new RegExp(`(You have an error in your SQL syntax; check the manual that corresponds to your ` +
+    `MySQL server version for the right syntax to use near '(.*)' at line )(\\d+)`);
+const leadingLineBreaksRegExp = new RegExp(`^\\s*\\n+`);
+
 interface IResultTimer {
     timer: SetIntervalAsyncTimer<unknown[]>;
     results: Array<[IExecutionResult, IResponseDataOptions]>;
@@ -1142,15 +1146,58 @@ Execute \\help or \\? for help;`;
             let code = 0;
             if (reason instanceof ResponseError) {
                 content = reason.info.requestState.msg;
-                code = reason.info.requestState.code ?? 0;
+                if (reason.info.requestState.code) {
+                    code = reason.info.requestState.code;
+                } else {
+                    // No code, but we have a message. Try to find a code in the message.
+                    const match = content.match(/MySQL Error \((\d+)\)/);
+                    if (match) {
+                        code = parseInt(match[1], 10);
+                    }
+                }
             } else {
                 content = reason as string;
 
             }
 
-            if (code === 1201) {
-                type = MessageType.Warning;
-                content = "Cancelled: query was prematurely stopped";
+            switch (code) {
+                case 1201: {
+                    type = MessageType.Warning;
+                    content = "Cancelled: query was prematurely stopped";
+
+                    break;
+                }
+
+                case 1064: { // Syntax error with line number.
+                    // Replace the line number in the error message with the one that corresponds to the offset
+                    // of the current query in the executing block.
+                    const match = content.match(errorRexExp);
+                    if (match) {
+                        // First parse the given error line (they are one-based).
+                        let line = parseInt(match[3], 10);
+
+                        // Then add the offset of the query within the block. The query index is one-based too.
+                        const statement = options.context.statements[options.index - 1];
+                        if (statement) {
+                            line += statement.line;
+
+                            // And we also have to account for leading line breaks, as they are not counted in the
+                            // query.
+                            const leadingLineBreaks = statement.text.match(leadingLineBreaksRegExp);
+                            if (leadingLineBreaks) {
+                                line += leadingLineBreaks[0].length;
+                            }
+                        }
+
+                        content = content.replace(errorRexExp, (_str, group1: string) => {
+                            return `${group1}${line}`;
+                        });
+                    }
+
+                    break;
+                }
+
+                default:
             }
 
             this.addTimedResult(options.context, {

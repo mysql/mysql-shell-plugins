@@ -107,8 +107,7 @@ export default defineConfig({
     optimizeDeps: {
         esbuildOptions: {
             plugins: [
-                // The type definitions for this plugin are incorrect, so we have to suppress errors here.
-                // @ts-ignore
+                // @ts-ignore, because of incorrect type definitions.
                 NodeModulesPolyfillPlugin(),
             ],
             // Node.js global to browser globalThis
@@ -142,7 +141,7 @@ export default defineConfig({
         sourcemap: Boolean(process.env.SOURCE_MAPS),
         rollupOptions: {
             plugins: [
-                // @ts-ignore
+                // @ts-ignore, because of incorrect type definitions.
                 nodePolyfills(),
                 {
                     name: "no-treeshake",
@@ -181,7 +180,7 @@ export default defineConfig({
             },
             // cspell: ignore onwarn
             onwarn: (warning, chain) => {
-                if (warning.message.startsWith("Use of eval")) {
+                if (warning.message.startsWith("Use of eval ")) {
                     // ignore
                 } else {
                     warning.message = "\n" + warning.message;
