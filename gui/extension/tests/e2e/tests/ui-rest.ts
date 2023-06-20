@@ -508,7 +508,7 @@ describe("MySQL REST Service", () => {
         it("Add New Authentication App", async () => {
 
             let treeDBSection = await Misc.getSection(constants.dbTreeSection);
-            const treeRandomService = await Misc.getTreeElement(treeDBSection, `/edited${service} (localhost)`, true);
+            let treeRandomService = await Misc.getTreeElement(treeDBSection, `/edited${service} (localhost)`, true);
             await Misc.openContexMenuItem(treeRandomService, "Add New Authentication App", true);
             await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
                 "DB Connection was not loaded");
@@ -532,6 +532,7 @@ describe("MySQL REST Service", () => {
             treeDBSection = await Misc.getSection(constants.dbTreeSection);
             const treeGlobalConn = await Misc.getTreeElement(treeDBSection, globalConn.caption, true);
             await (await Misc.getActionButton(treeGlobalConn, "Reload Database Information")).click();
+            treeRandomService = await Misc.getTreeElement(treeDBSection, `/edited${service} (localhost)`, true);
             await treeRandomService.expand();
             await Misc.getTreeElement(treeDBSection, "MRS (MRS)");
 

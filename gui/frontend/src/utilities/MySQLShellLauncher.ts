@@ -107,7 +107,7 @@ export class MySQLShellLauncher {
         if (process.env.MYSQLSH_GUI_CUSTOM_CONFIG_DIR !== undefined) {
             // If the environment var MYSQLSH_GUI_CUSTOM_CONFIG_DIR is set, use that directory
             shellUserConfigDir = process.env.MYSQLSH_GUI_CUSTOM_CONFIG_DIR;
-        } else if (shellPath !== "mysqlsh" && !shellPath.endsWith(".exe") && fs.existsSync(shellPath)) {
+        } else if (shellPath !== "mysqlsh" && fs.existsSync(shellPath)) {
             // Check if MySQL Shell is bundled with the extension. Cannot be tested in unit tests.
             // istanbul ignore next
             // If so, create a dedicated shell user config dir for the shell gui

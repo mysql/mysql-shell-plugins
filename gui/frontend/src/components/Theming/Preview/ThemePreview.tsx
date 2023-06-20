@@ -535,7 +535,7 @@ export class ThemePreview extends ComponentBase<{}, IThemePreviewState> {
                         readOnly={true}
                         showAbout={true}
                         standaloneMode={false}
-                        toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                        toolbarItemsTemplate={{ navigation: [], execution: [], editor: [], auxillary: [] }}
                     />
                 </Container>
 

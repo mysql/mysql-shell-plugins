@@ -48,7 +48,7 @@ import { EmbeddedPresentationInterface } from "./execution/EmbeddedPresentationI
 
 interface INotebookProperties extends IComponentProperties {
     standaloneMode: boolean;
-    toolbarItems: IToolbarItems;
+    toolbarItemsTemplate: IToolbarItems;
 
     savedState: ISavedEditorState;
     backend?: ShellInterfaceSqlEditor;
@@ -73,8 +73,8 @@ export class Notebook extends ComponentBase<INotebookProperties> {
     public constructor(props: INotebookProperties) {
         super(props);
 
-        this.addHandledProperties("standaloneMode", "toolbarItems", "savedState", "backend", "dbType", "readOnly",
-            "showAbout", "extraLibs", "onScriptExecution", "onHelpCommand");
+        this.addHandledProperties("standaloneMode", "toolbarItemsTemplate", "savedState", "backend", "dbType",
+            "readOnly", "showAbout", "extraLibs", "onScriptExecution", "onHelpCommand");
     }
 
     public componentDidMount(): void {
@@ -102,8 +102,8 @@ export class Notebook extends ComponentBase<INotebookProperties> {
 
     public render(): ComponentChild {
         const {
-            standaloneMode, toolbarItems, savedState, backend, dbType, readOnly, extraLibs, onScriptExecution,
-            onHelpCommand,
+            standaloneMode, toolbarItemsTemplate, savedState, backend, dbType, readOnly, extraLibs,
+            onScriptExecution, onHelpCommand,
         } = this.props;
 
         const dialect = this.dialectFromDbType(dbType);
@@ -123,6 +123,13 @@ export class Notebook extends ComponentBase<INotebookProperties> {
         // The margin depends on what's the last entry in the navigation toolbar.
         let marginLeft = "0px";
 
+        // Create a copy of the toolbar items from the template to allow for modifications.
+        const toolbarItems: IToolbarItems = {
+            navigation: toolbarItemsTemplate.navigation.slice(),
+            execution: toolbarItemsTemplate.execution,
+            editor: toolbarItemsTemplate.editor,
+            auxillary: toolbarItemsTemplate.auxillary.slice(),
+        };
         if (!standaloneMode) {
             const lastNavItem = toolbarItems.navigation.length > 0
                 ? toolbarItems.navigation[toolbarItems.navigation.length - 1] as VNode<{ id: string; }> : undefined;

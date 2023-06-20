@@ -346,7 +346,7 @@ Execute \\help or \\? for help;`;
                         ref={this.notebookRef}
                         savedState={savedState}
                         backend={backend}
-                        toolbarItems={toolbarItems}
+                        toolbarItemsTemplate={toolbarItems}
                         standaloneMode={standaloneMode}
                         dbType={dbType}
                         extraLibs={extraLibs}
