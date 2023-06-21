@@ -373,6 +373,7 @@ export class PresentationInterface {
                         index: dataOptions.index,
                         resultId: dataOptions.resultId,
                         content: data.executionInfo?.text ?? "",
+                        subIndex: dataOptions.subIndex,
                     }],
                 };
             } else if (this.resultData.type === "text") {
@@ -385,6 +386,7 @@ export class PresentationInterface {
                     index: dataOptions.index,
                     resultId: dataOptions.resultId,
                     content: data.executionInfo?.text ?? "",
+                    subIndex: dataOptions.subIndex,
                 });
             } else {
                 if (!this.resultData.output) {
@@ -396,6 +398,7 @@ export class PresentationInterface {
                     index: dataOptions.index,
                     resultId: dataOptions.resultId,
                     content: data.executionInfo?.text ?? "",
+                    subIndex: dataOptions.subIndex,
                 });
             }
         };
@@ -466,6 +469,7 @@ export class PresentationInterface {
                             sets: [{
                                 type: "resultSet",
                                 index: dataOptions.index,
+                                subIndex: dataOptions.subIndex,
                                 resultId: dataOptions?.resultId,
                                 sql: dataOptions.sql ?? "",
                                 columns: data.columns ?? [],
