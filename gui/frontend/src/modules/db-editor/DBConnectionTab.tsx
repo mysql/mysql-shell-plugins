@@ -1405,9 +1405,13 @@ Execute \\help or \\? for help;`;
                 }
 
                 return true;
-            } catch (_e) {
+            } catch (e) {
                 // Ignore exception when MRS is not configured
+                void updateStatusbar(`MRS SDK Error: ${String(e)}`);
+
                 return false;
+            } finally {
+                void updateStatusbar();
             }
         } else {
             return false;

@@ -418,13 +418,23 @@ export interface IMrsResultList<C> {
     _metadata?: IMrsMetadata,
 }
 
-export interface IMrsProcedureResult<C> {
-    mrsInterface: string,
-    items: C[],
+export interface IMrsProcedureResultColumn {
+    name: string;
+    type: string;
+}
+
+export interface IMrsProcedureResultColumns {
+    columns: IMrsProcedureResultColumn[];
+}
+
+export interface IMrsProcedureResult {
+    type: string;
+    items: IMrsFetchData;
+    metadata: IMrsProcedureResultColumn[];
 }
 
 export interface IMrsProcedureResultList<C> {
-    results: Array<IMrsProcedureResult<C>>,
+    items: C[],
 }
 
 export interface IMrsDeleteResult {
@@ -448,10 +458,14 @@ export type HighOrderFilter<Type> = {
 export type ComparisonOpExpr<Type> = {
     [Operator in keyof ISimpleOperatorProperty]?: Type & ISimpleOperatorProperty[Operator]
 } & {
-    [Operator in "$notnull" | "$null"]?: null
-} & {
-    [Operator in "$between"]?: [Type & BetweenRegular | null, Type & BetweenRegular | null]
-};
+        // eslint-disable-next-line @typescript-eslint/indent
+        [Operator in "$notnull" | "$null"]?: null
+        // eslint-disable-next-line @typescript-eslint/indent
+    } & {
+        // eslint-disable-next-line @typescript-eslint/indent
+        [Operator in "$between"]?: [Type & BetweenRegular | null, Type & BetweenRegular | null]
+        // eslint-disable-next-line @typescript-eslint/indent
+    };
 
 export type BetweenRegular = string | number | Date;
 
@@ -503,6 +517,10 @@ export interface IFindOptions<C, T> extends Partial<IFilterOptions<T>> {
     skip?: number,
     take?: number,
     fetchAll?: IFindAllOptions<C> | boolean,
+}
+
+export interface IFindUniqueOptions<C, T> extends Partial<IFilterOptions<T>> {
+    select?: ResultFields<C> | ColumnNames<C>,
 }
 
 export type ResultFields<T> = {
