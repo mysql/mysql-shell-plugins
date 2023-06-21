@@ -11,7 +11,7 @@ import {
     IMrsResultList, IMrsProcedureResultList, IMrsProcedureResult, MrsBaseObjectUpdate,
     MrsBaseObjectCall, IMrsFetchData,
     MrsBaseObjectCreate, IMrsDeleteResult, MrsBaseObjectDelete,
-    ICreateOptions, IDeleteOptions, IFindOptions, IUpdateOptions,
+    ICreateOptions, IDeleteOptions, IFindOptions, IFindUniqueOptions, IUpdateOptions,
 } from "./MrsBaseClasses";
 // --- MySQL Shell for VS Code Extension Only --- Begin
 /**
@@ -166,6 +166,15 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
         return response;
     };
     // --- crudReadOnlyEnd
+    // --- crudReadUniqueOnlyStart
+    public findUnique = async (args?: IFindUniqueOptions<I${obj_class_name}, I${obj_class_name}UniqueParams>): Promise<I${obj_class_name} | undefined> => {
+        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}UniqueParams>(
+            this.schema, ${obj_class_name}Request.#requestPath, args?.select);
+        const response = await request.where(args?.where).fetchOne();
+
+        return response;
+    };
+    // --- crudReadUniqueOnlyEnd
 
     // --- crudUpdateOnlyStart
     public update = async (args: IUpdateOptions<I${obj_class_name}Params, [${obj_quoted_pk_list}], { batch: false }>): Promise<I${obj_class_name}> => {
