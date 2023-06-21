@@ -74,6 +74,9 @@ export interface ITextResultEntry {
      */
     index?: number;
 
+    /** Optional additional index for queries that return more than one result (e.g. stored routines). */
+    subIndex?: number;
+
     /** An option value to denote the request from which this output was generated. */
     resultId?: string;
 
