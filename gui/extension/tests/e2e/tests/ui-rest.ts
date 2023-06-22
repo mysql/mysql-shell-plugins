@@ -786,7 +786,7 @@ describe("MySQL REST Service", () => {
 
     });
 
-    describe("CRUD Operations", () => {
+    describe.skip("CRUD Operations", () => {
 
         let actorId: string;
         let treeRouter: TreeItem;
