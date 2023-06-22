@@ -184,7 +184,7 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it.skip("Bootstrap Local MySQL Router Instance", async () => {
+        it("Bootstrap Local MySQL Router Instance", async () => {
 
             expect(await Misc.isRouterInstalled(), "Please install MySQL Router manually").to.be.true;
             let treeDBSection = await Misc.getSection(constants.dbTreeSection);
@@ -210,7 +210,7 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it.skip("Bootstrap a running Local MySQL Router Instance", async () => {
+        it("Bootstrap a running Local MySQL Router Instance", async () => {
 
             expect(await Misc.isRouterInstalled(), "Please install MySQL Router manually").to.be.true;
             const treeDBSection = await Misc.getSection(constants.dbTreeSection);
@@ -239,7 +239,7 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it.skip("Start Local MySQL Router Instance", async () => {
+        it("Start Local MySQL Router Instance", async () => {
 
             const treeDBSection = await Misc.getSection(constants.dbTreeSection);
             const treeMySQLRESTService = await Misc.getTreeElement(treeDBSection, "MySQL REST Service");
@@ -266,7 +266,7 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it.skip("Stop Local MySQL Router Instance", async () => {
+        it("Stop Local MySQL Router Instance", async () => {
 
             const treeDBSection = await Misc.getSection(constants.dbTreeSection);
             const treeMySQLRESTService = await Misc.getTreeElement(treeDBSection, "MySQL REST Service");
@@ -786,7 +786,7 @@ describe("MySQL REST Service", () => {
 
     });
 
-    describe.skip("CRUD Operations", () => {
+    describe("CRUD Operations", () => {
 
         let actorId: string;
         let treeRouter: TreeItem;
