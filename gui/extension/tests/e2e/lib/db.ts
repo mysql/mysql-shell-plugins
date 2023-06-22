@@ -927,28 +927,27 @@ export class Database {
             await inObjName.sendKeys(restObjPath);
         }
         if (crud) {
-            const els2click = [];
-            const crudDivs = await dialog.findElements(By.css(".crudIconsDiv img"));
-            for (const crudDiv of crudDivs) {
-                const isActive = (await crudDiv.getAttribute("src")).includes("Active");
-                const name = await crudDiv.getAttribute("data-tooltip");
-                if (crud.includes(name)) {
-                    if (!isActive) {
-                        els2click.push(name);
-                    }
-                } else {
-                    if (isActive) {
-                        els2click.push(name);
+            const clickCrudItem = async (elToClick: string): Promise<void> => {
+                const crudDivs = await dialog.findElements(By.css(".crudDiv div"));
+                for (const crudDiv of crudDivs) {
+                    const isInactive = (await crudDiv.getAttribute("class")).includes("deactivated");
+                    const labelName = await (await crudDiv.findElement(By.css("label"))).getText();
+                    if (elToClick === labelName) {
+                        if (isInactive) {
+                            await crudDiv.click();
+                            break;
+                        }
                     }
                 }
-            }
-            for (const el of els2click) {
-                const crudDivs = await dialog.findElements(By.css(".crudIconsDiv img"));
-                for (const crudDiv of crudDivs) {
-                    const name = await crudDiv.getAttribute("data-tooltip");
-                    if (name === el) {
-                        await crudDiv.click();
-                        break;
+            };
+            for (const itemCrud of crud) {
+                try {
+                    await clickCrudItem(itemCrud);
+                } catch (e) {
+                    if (!(e instanceof error.StaleElementReferenceError)) {
+                        throw e;
+                    } else {
+                        await clickCrudItem(itemCrud);
                     }
                 }
             }
