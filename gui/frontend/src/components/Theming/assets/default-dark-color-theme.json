@@ -962,6 +962,7 @@
         {
             "name": "JSON Value String",
             "scope": [
+                "string.value",
                 "string.value.json"
             ],
             "settings": {
@@ -1076,8 +1077,7 @@
         {
             "scope": "",
             "settings": {
-                "foreground": "#D4D4D4",
-                "background": "#1E1E1E"
+                "foreground": "#D4D4D4"
             }
         },
         {
@@ -1105,18 +1105,6 @@
             }
         },
         {
-            "scope": "comment",
-            "settings": {
-                "foreground": "#608B4E"
-            }
-        },
-        {
-            "scope": "number",
-            "settings": {
-                "foreground": "#B5CEA8"
-            }
-        },
-        {
             "scope": "number.hex",
             "settings": {
                 "foreground": "#5BB498"
@@ -1138,12 +1126,6 @@
             "scope": "type",
             "settings": {
                 "foreground": "#3DC9B0"
-            }
-        },
-        {
-            "scope": "delimiter",
-            "settings": {
-                "foreground": "#DCDCDC"
             }
         },
         {
@@ -1192,12 +1174,6 @@
             "scope": "meta.tag",
             "settings": {
                 "foreground": "#CE9178"
-            }
-        },
-        {
-            "scope": "metatag",
-            "settings": {
-                "foreground": "#DD6A6F"
             }
         },
         {
@@ -1267,18 +1243,6 @@
             }
         },
         {
-            "scope": "string",
-            "settings": {
-                "foreground": "#CE9178"
-            }
-        },
-        {
-            "scope": "string.sql",
-            "settings": {
-                "foreground": "#FF0000"
-            }
-        },
-        {
             "scope": "keyword.flow",
             "settings": {
                 "foreground": "#C586C0"
@@ -1312,12 +1276,6 @@
             "scope": "operator.swift",
             "settings": {
                 "foreground": "#909090"
-            }
-        },
-        {
-            "scope": "predefined.sql",
-            "settings": {
-                "foreground": "#FF00FF"
             }
         }
     ]

@@ -978,8 +978,7 @@
         {
             "scope": "",
             "settings": {
-                "foreground": "#000000",
-                "background": "#fffffe"
+                "foreground": "#000000"
             }
         },
         {
@@ -1013,18 +1012,6 @@
             }
         },
         {
-            "scope": "comment",
-            "settings": {
-                "foreground": "#008000"
-            }
-        },
-        {
-            "scope": "number",
-            "settings": {
-                "foreground": "#098658"
-            }
-        },
-        {
             "scope": "number.hex",
             "settings": {
                 "foreground": "#3030c0"
@@ -1046,12 +1033,6 @@
             "scope": "type",
             "settings": {
                 "foreground": "#008080"
-            }
-        },
-        {
-            "scope": "delimiter",
-            "settings": {
-                "foreground": "#000000"
             }
         },
         {
@@ -1094,12 +1075,6 @@
             "scope": "meta.scss",
             "settings": {
                 "foreground": "#800000"
-            }
-        },
-        {
-            "scope": "metatag",
-            "settings": {
-                "foreground": "#e00000"
             }
         },
         {
@@ -1187,12 +1162,6 @@
             }
         },
         {
-            "scope": "string.sql",
-            "settings": {
-                "foreground": "#FF0000"
-            }
-        },
-        {
             "scope": "string.yaml",
             "settings": {
                 "foreground": "#0451A5"
@@ -1232,12 +1201,6 @@
             "scope": "operator.swift",
             "settings": {
                 "foreground": "#666666"
-            }
-        },
-        {
-            "scope": "predefined.sql",
-            "settings": {
-                "foreground": "#C700C7"
             }
         }
     ]
