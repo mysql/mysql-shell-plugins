@@ -88,7 +88,7 @@ export class DBEditorCommandHandler {
             {
                 treeDataProvider: this.connectionsProvider,
                 showCollapseAll: true,
-                canSelectMany: true,
+                canSelectMany: false,
             });
         context.subscriptions.push(dbConnectionsTreeView);
 
@@ -147,7 +147,14 @@ export class DBEditorCommandHandler {
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.openConnection", (item: ConnectionTreeItem) => {
-            const provider = this.#host.currentProvider;
+            // "Open connection" acts differently, depending on whether the same connection is already open or not.
+            let provider;
+            if (this.#openEditorsTreeDataProvider.isOpen(item)) {
+                provider = this.#host.newProvider;
+            } else {
+                provider = this.#host.currentProvider;
+            }
+
             void provider?.show(String(item.entry.details.id));
         }));
 
@@ -513,30 +520,29 @@ export class DBEditorCommandHandler {
 
         context.subscriptions.push(commands.registerCommand("msg.newNotebookMysql",
             (entry: IEditorConnectionEntry) => {
-                void this.createNewEditor({ page: String(entry.connectionId), language: "msg" });
+                void this.createNewEditor({ entry, language: "msg" });
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.newNotebookSqlite",
             (entry: IEditorConnectionEntry) => {
-                void this.createNewEditor({ page: String(entry.connectionId), language: "msg" });
+                void this.createNewEditor({ entry, language: "msg" });
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.newScriptJs", (entry: IEditorConnectionEntry) => {
-            void this.createNewEditor({ page: String(entry.connectionId), language: "javascript" });
+            void this.createNewEditor({ entry, language: "javascript" });
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.newScriptMysql",
-            (entry: IEditorConnectionEntry) => {
-                void this.createNewEditor({ page: String(entry.connectionId), language: "mysql" });
-            }));
+        context.subscriptions.push(commands.registerCommand("msg.newScriptMysql", (entry: IEditorConnectionEntry) => {
+            void this.createNewEditor({ entry, language: "mysql" });
+        }));
 
         context.subscriptions.push(commands.registerCommand("msg.newScriptSqlite",
             (entry: IEditorConnectionEntry) => {
-                void this.createNewEditor({ page: String(entry.connectionId), language: "sql" });
+                void this.createNewEditor({ entry, language: "sql" });
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.newScriptTs", (entry: IEditorConnectionEntry) => {
-            void this.createNewEditor({ page: String(entry.connectionId), language: "typescript" });
+            void this.createNewEditor({ entry, language: "typescript" });
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.addDbObject",
@@ -585,6 +591,15 @@ export class DBEditorCommandHandler {
     public providerClosed(provider: DBConnectionViewProvider): void {
         this.#openScripts.delete(provider);
         this.#openEditorsTreeDataProvider.clear(provider);
+    }
+
+    /**
+     * Helper to create a unique caption for a new provider.
+     *
+     * @returns The new caption.
+     */
+    public generateNewProviderCaption(): string {
+        return this.#openEditorsTreeDataProvider.createUniqueCaption();
     }
 
     private createNewDbObject = async (backend: ShellInterfaceSqlEditor,
@@ -705,6 +720,74 @@ export class DBEditorCommandHandler {
         return Promise.resolve(false);
     };
 
+    private editorLoadScript = (details: IScriptRequest): Promise<boolean> => {
+        // The user has to select a target file.
+        const filters: { [key: string]: string[]; } = {};
+
+        switch (details.language) {
+            case "mysql": {
+                filters.SQL = ["mysql", "sql"];
+                break;
+            }
+
+            case "sql": {
+                filters.SQL = ["sql"];
+                break;
+            }
+
+            case "typescript": {
+                filters.TypeScript = ["ts"];
+                break;
+            }
+
+            case "javascript": {
+                filters.JavaScript = ["js"];
+                break;
+            }
+
+            default:
+        }
+
+        void window.showOpenDialog({
+            title: "Load Script File",
+            filters,
+            canSelectFiles: true,
+            canSelectFolders: false,
+            canSelectMany: false,
+        }).then((list: Uri[]) => {
+            if (list.length > 0) {
+                void workspace.fs.readFile(list[0]).then((content) => {
+                    const provider = this.#host.currentProvider;
+                    if (provider) {
+                        const scripts = this.#openScripts.get(provider);
+                        if (scripts) {
+                            scripts.set(details.scriptId, list[0]);
+                            const newName = basename(list[0].fsPath);
+
+                            void provider.renameFile({
+                                scriptId: details.scriptId,
+                                name: newName,
+                                language: details.language,
+                                content: details.content,
+                            });
+
+                            void requisitions.execute("editorSaved",
+                                { id: details.scriptId, newName, saved: false });
+                        }
+
+                        details.content = content.toString();
+                        const connectionId = this.#openEditorsTreeDataProvider.currentConnectionId(provider) ?? -1;
+
+                        void provider.loadScript(String(connectionId), details);
+                    }
+                });
+
+            }
+        });
+
+        return Promise.resolve(true);
+    };
+
     private editorSaveScript = (details: IScriptRequest): Promise<boolean> => {
         const provider = this.#host.currentProvider;
         if (provider) {
@@ -772,33 +855,64 @@ export class DBEditorCommandHandler {
         return Promise.resolve(true);
     };
 
-    private createNewEditor = (request: INewEditorRequest): Promise<boolean> => {
+    private createNewEditor = (params: {
+        provider?: IWebviewProvider,
+        language: string,
+        entry?: IEditorConnectionEntry,
+        content?: string;
+    }): Promise<boolean> => {
         return new Promise((resolve) => {
-            void workspace.openTextDocument({ language: request.language, content: request.content })
+            let connectionId = -1;
+            let provider: IWebviewProvider | undefined;
+            if (params.entry?.parent?.provider) {
+                connectionId = params.entry.connectionId;
+                provider = params.entry.parent.provider;
+            } else {
+                provider = this.#host.currentProvider;
+                if (provider) {
+                    connectionId = this.#openEditorsTreeDataProvider.currentConnectionId(provider) ?? -1;
+                }
+            }
+
+            if (connectionId === -1) {
+                void window.showErrorMessage("Please select a connection first.");
+                resolve(false);
+
+                return;
+            }
+
+            void workspace.openTextDocument({ language: params.language, content: params.content })
                 .then((document) => {
-                    const provider = this.#host.currentProvider;
+                    const dbProvider = (params.provider
+                        ? params.provider
+                        : provider) as DBConnectionViewProvider;
                     if (provider) {
                         const name = basename(document.fileName);
-                        if (request.language === "msg") {
+                        if (params.language === "msg") {
                             // A new notebook.
-                            void provider.createNewEditor(request);
+                            void dbProvider.createNewEditor({
+                                page: String(connectionId),
+                                language: params.language,
+                                content: params.content,
+
+                            });
                         } else {
                             // A new script.
-                            const details: IScriptRequest = {
+                            const request: IScriptRequest = {
                                 scriptId: uuid(),
                                 name,
                                 content: document.getText(),
-                                language: request.language,
+                                language: params.language as EditorLanguage,
                             };
 
-                            let scripts = this.#openScripts.get(provider);
+                            let scripts = this.#openScripts.get(dbProvider);
                             if (!scripts) {
                                 scripts = new Map();
-                                this.#openScripts.set(provider, scripts);
+                                this.#openScripts.set(dbProvider, scripts);
                             }
-                            scripts.set(details.scriptId, document.uri);
+                            scripts.set(request.scriptId, document.uri);
 
-                            void provider.editScript(request.page, details);
+                            void dbProvider.editScript(String(connectionId), request);
                         }
                     }
 
@@ -830,10 +944,18 @@ export class DBEditorCommandHandler {
                 return this.editorSaveScript(response);
             }
 
+            case "editorLoadScript": {
+                const response = request.original.parameter as IScriptRequest;
+
+                return this.editorLoadScript(response);
+            }
+
             case "createNewEditor": {
                 const response = request.original.parameter as INewEditorRequest;
 
-                return this.createNewEditor(response);
+                return this.createNewEditor({
+                    provider: request.provider, language: response.language, content: response.content,
+                });
             }
 
             default:

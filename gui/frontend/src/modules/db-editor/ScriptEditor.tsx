@@ -22,6 +22,8 @@
  */
 
 import normalizeIcon from "../../assets/images/toolbar/toolbar-normalize.svg";
+import saveIcon from "../../assets/images/toolbar/toolbar-save.svg";
+import loadIcon from "../../assets/images/toolbar/toolbar-load.svg";
 
 import { ComponentChild, createRef } from "preact";
 import { Position } from "monaco-editor";
@@ -30,7 +32,7 @@ import { IEditorStatusInfo, ISchemaTreeEntry, IToolbarItems } from ".";
 import { StandalonePresentationInterface } from "./execution/StandalonePresentationInterface";
 import { requisitions } from "../../supplement/Requisitions";
 import { CodeEditor } from "../../components/ui/CodeEditor/CodeEditor";
-import { EditorLanguage } from "../../supplement";
+import { EditorLanguage, IScriptRequest } from "../../supplement";
 import { IScriptExecutionOptions } from "../../components/ui/CodeEditor";
 import { IComponentProperties, IComponentState, ComponentBase } from "../../components/ui/Component/ComponentBase";
 import { Orientation, Container, ContentAlignment } from "../../components/ui/Container/Container";
@@ -49,7 +51,7 @@ interface IScriptEditorProperties extends IComponentProperties {
     /** When true some adjustments are made to the UI to represent the editor in a way needed for pure notebooks. */
     standaloneMode: boolean;
 
-    toolbarItems: IToolbarItems;
+    toolbarItemsTemplate: IToolbarItems;
 
     backend?: ShellInterfaceSqlEditor;
     savedState: ISavedEditorState;
@@ -129,7 +131,7 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
     }
 
     public render(): ComponentChild {
-        const { standaloneMode, savedState, toolbarItems, backend, extraLibs, onScriptExecution } = this.props;
+        const { standaloneMode, savedState, toolbarItemsTemplate, backend, extraLibs, onScriptExecution } = this.props;
         const { showResultPane, maximizeResultPane } = this.state;
 
         const className = this.getEffectiveClassNames(["standaloneScriptHost"]);
@@ -148,7 +150,7 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
                     id="dbEditorToolbar"
                     dropShadow={false}
                 >
-                    {toolbarItems.execution}
+                    {toolbarItemsTemplate.execution}
                     <div className="expander" />
                     <Button
                         id="normalizeResultStateButton"
@@ -164,9 +166,9 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
                     id="dbEditorToolbar"
                     dropShadow={false}
                 >
-                    {toolbarItems.navigation}
-                    {toolbarItems.execution}
-                    {toolbarItems.editor}
+                    {toolbarItemsTemplate.navigation}
+                    {toolbarItemsTemplate.execution}
+                    {toolbarItemsTemplate.editor}
                     <div className="expander" />
                     <Button
                         id="normalizeResultStateButton"
@@ -176,10 +178,38 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
                     >
                         <Icon src={normalizeIcon} data-tooltip="inherit" />
                     </Button>
-                    {toolbarItems.auxillary}
+                    {toolbarItemsTemplate.auxillary}
                 </Toolbar >;
             }
         } else {
+            const toolbarItems = {
+                navigation: toolbarItemsTemplate.navigation.slice(),
+                execution: toolbarItemsTemplate.execution,
+                editor: toolbarItemsTemplate.editor,
+                auxillary: toolbarItemsTemplate.auxillary,
+            };
+
+            toolbarItems.navigation.push(<Button
+                id="itemSaveButton"
+                key="itemSaveButton"
+                imageOnly={true}
+                data-tooltip="Save Script To File"
+                style={{ marginLeft: "4px" }}
+                onClick={this.handleEditorSave}
+            >
+                <Icon src={saveIcon} data-tooltip="inherit" />
+            </Button>);
+
+            toolbarItems.navigation.push(<Button
+                id="itemLoadButton"
+                key="itemLoadButton"
+                imageOnly={true}
+                data-tooltip="Load Script From File"
+                onClick={this.handleEditorLoad}
+            >
+                <Icon src={loadIcon} data-tooltip="inherit" />
+            </Button>);
+
             toolbar = <DBEditorToolbar
                 toolbarItems={toolbarItems}
                 language={language}
@@ -442,4 +472,38 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
 
         return activeEditor;
     }
+
+    private handleEditorLoad = (): void => {
+        const { lastId } = this.state;
+
+        const activeEditor = this.getActiveEditorState();
+        const editorState = activeEditor.state;
+        if (editorState) {
+            const model = editorState.model;
+            const details: IScriptRequest = {
+                scriptId: lastId,
+                content: "",
+                language: model.getLanguageId() as EditorLanguage,
+            };
+            requisitions.executeRemote("editorLoadScript", details);
+        }
+    };
+
+    private handleEditorSave = (): void => {
+        const { lastId } = this.state;
+
+        const activeEditor = this.getActiveEditorState();
+        const editorState = activeEditor.state;
+        if (editorState) {
+            const model = editorState.model;
+            const content = model.getValue();
+            const details: IScriptRequest = {
+                scriptId: lastId,
+                content,
+                language: model.getLanguageId() as EditorLanguage,
+            };
+            requisitions.executeRemote("editorSaveScript", details);
+        }
+    };
+
 }

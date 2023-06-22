@@ -249,7 +249,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                       style="flex-direction: column;"
                     >
                       <div
-                        style="display: flex; gap: 2px; flex-direction: row;"
+                        style="display: flex; flex: 1; gap: 2px; flex-direction: row;"
                       >
                         <label
                           class="msg resultText error actionLabel"
@@ -264,7 +264,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                         </label>
                       </div>
                       <div
-                        style="display: flex; gap: 2px; flex-direction: row;"
+                        style="display: flex; flex: 1; gap: 2px; flex-direction: row;"
                       >
                         <label
                           class="msg resultText response actionLabel"
@@ -361,7 +361,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                           style="flex-direction: column;"
                         >
                           <div
-                            style="display: flex; gap: 2px; flex-direction: row;"
+                            style="display: flex; flex: 1; gap: 2px; flex-direction: row;"
                           >
                             <label
                               class="msg resultText error actionLabel"
@@ -376,7 +376,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                             </label>
                           </div>
                           <div
-                            style="display: flex; gap: 2px; flex-direction: row;"
+                            style="display: flex; flex: 1; gap: 2px; flex-direction: row;"
                           >
                             <label
                               class="msg resultText response actionLabel"
@@ -416,6 +416,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                         style={
                           {
                             "display": "flex",
+                            "flex": "1",
                             "flexDirection": "row",
                             "gap": "2px",
                           }
@@ -462,6 +463,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                         style={
                           {
                             "display": "flex",
+                            "flex": "1",
                             "flexDirection": "row",
                             "gap": "2px",
                           }

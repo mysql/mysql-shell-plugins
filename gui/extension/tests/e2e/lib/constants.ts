@@ -55,7 +55,7 @@ export const rollback = "Rollback DB changes";
 export const commit = "Commit DB changes";
 export const autoCommit = "Auto commit DB changes";
 export const saveNotebook = "Save this Notebook";
-export const loadNotebook = "Load a new Notebook from a file";
+export const loadNotebook = "Replace this Notebook With Content from a file";
 
 // TABS
 export const dbDefaultEditor = "MySQL Shell";
@@ -73,3 +73,6 @@ export const mrsDocs = "MRS Docs";
 // MISC
 export const openEditorsDBNotebook = "DB Notebook";
 export const dbConnectionsLabel = "DB Connection Overview";
+
+// CONTEXT MENUS
+export const openNewDBConnection = "Open New Database Connection";

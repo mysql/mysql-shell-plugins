@@ -345,7 +345,7 @@
             },
             {
                 "command": "msg.openConnection",
-                "title": "Connect to Database",
+                "title": "Open New Database Connection",
                 "icon": {
                     "dark": "images/dark/openConnection.svg",
                     "light": "images/light/openConnection.svg"
@@ -494,7 +494,7 @@
             },
             {
                 "command": "msg.makeCurrentSchema",
-                "title": "Set As Current Schema..."
+                "title": "Set As Current Database Schema"
             },
             {
                 "command": "msg.createTable",
@@ -1050,11 +1050,6 @@
                     "group": "1_msg@1"
                 },
                 {
-                    "command": "msg.openConnectionNewTab",
-                    "when": "view == msg.connections && viewItem =~ /^connection.*/",
-                    "group": "1_msg@1"
-                },
-                {
                     "command": "msg.defaultConnection",
                     "when": "view == msg.connections && viewItem == connectionMySQL",
                     "group": "2_msg@1"
@@ -1106,34 +1101,34 @@
                     "group": "7_msg@2"
                 },
                 {
-                    "command": "msg.dumpSchemaToDisk",
-                    "when": "view == msg.connections && viewItem == schemaItemMySQL && !showsModalDialog",
+                    "command": "msg.makeCurrentSchema",
+                    "when": "view == msg.connections && viewItem =~ /^schemaItem.*/ && !showsModalDialog",
                     "group": "1_msg@1"
                 },
                 {
-                    "command": "msg.dumpSchemaToDiskForMds",
+                    "command": "msg.dumpSchemaToDisk",
                     "when": "view == msg.connections && viewItem == schemaItemMySQL && !showsModalDialog",
                     "group": "1_msg@2"
                 },
                 {
+                    "command": "msg.dumpSchemaToDiskForMds",
+                    "when": "view == msg.connections && viewItem == schemaItemMySQL && !showsModalDialog",
+                    "group": "1_msg@3"
+                },
+                {
                     "submenu": "msg.copyToClipboard",
                     "when": "view == msg.connections && viewItem =~ /^schema(Table|View|Routine)?Item.*/",
-                    "group": "2_msg@9"
+                    "group": "3_msg@9"
                 },
                 {
                     "command": "msg.mds.loadToHeatWave",
                     "when": "view == msg.connections && viewItem == schemaItemMySQL && !showsModalDialog",
-                    "group": "3_msg@2"
+                    "group": "4_msg@2"
                 },
                 {
                     "command": "msg.mrs.addSchema",
                     "when": "view == msg.connections && viewItem == schemaItemMySQL && !showsModalDialog",
-                    "group": "4_msg@1"
-                },
-                {
-                    "command": "msg.makeCurrentSchema",
-                    "when": "view == msg.connections && viewItem =~ /^schemaItem.*/ && !showsModalDialog",
-                    "group": "8_msg@2"
+                    "group": "5_msg@1"
                 },
                 {
                     "command": "msg.dropSchema",
@@ -1194,26 +1189,6 @@
                     "command": "msg.closeEditor",
                     "when": "view == msg.openEditors && viewItem == editorItem",
                     "group": "inline"
-                },
-                {
-                    "command": "msg.newNotebookMysql",
-                    "group": "inline@1",
-                    "when": "view == msg.openEditors && viewItem == editorConnectionMySQL"
-                },
-                {
-                    "command": "msg.newNotebookMysql",
-                    "group": "scripts@1",
-                    "when": "view == msg.openEditors && viewItem == editorConnectionMySQL"
-                },
-                {
-                    "command": "msg.newNotebookSqlite",
-                    "group": "inline@1",
-                    "when": "view == msg.openEditors && viewItem == editorConnectionSQLite"
-                },
-                {
-                    "command": "msg.newNotebookSqlite",
-                    "group": "scripts@1",
-                    "when": "view == msg.openEditors && viewItem == editorConnectionSQLite"
                 },
                 {
                     "command": "msg.newScriptMysql",

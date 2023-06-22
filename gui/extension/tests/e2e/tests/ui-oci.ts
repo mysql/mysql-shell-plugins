@@ -692,7 +692,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             const treeDBSection = await Misc.getSection(constants.dbTreeSection);
             const treeLocalConn = await Misc.getTreeElement(treeDBSection, localConn.caption, true);
             await new EditorView().closeAllEditors();
-            await (await Misc.getActionButton(treeLocalConn, "Connect to Database")).click();
+            await (await Misc.getActionButton(treeLocalConn, constants.openNewDBConnection)).click();
             await Misc.switchToWebView();
             await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
                 "DB Connection was not loaded");

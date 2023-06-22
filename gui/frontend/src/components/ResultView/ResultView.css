@@ -214,6 +214,7 @@
     white-space: pre-wrap;
 }
 
+.msg .resultText.actionLabel,
 .zoneHost .resultText {
     background-color: var(--editorZone-background);
     color: var(--resultZone-foreground);
@@ -222,8 +223,10 @@
     user-select: text;
 }
 
+.msg .resultText.actionLabel,
 .zoneHost .resultText.text {
     white-space: pre;
+    flex: 1;
 }
 
 .msg.resultHost .resultText > .label {
@@ -336,6 +339,7 @@
 
 .msg.connectionTabHost .resultHost .actionOutput {
     padding: 4px;
+    flex: 1;
 }
 
 .msg.connectionTabHost .renderTarget .actionOutput .actionLabel.clickable:hover,

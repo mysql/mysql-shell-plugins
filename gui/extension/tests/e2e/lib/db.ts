@@ -1007,38 +1007,6 @@ export class Database {
         return result;
     };
 
-    public static addScript = async (scriptType: string): Promise<void> => {
-        const curEditor = await this.getCurrentEditor();
-        const button = await driver.findElement(By.id("newScriptMenuButton"));
-        await button.click();
-        let locator = "";
-        switch (scriptType) {
-            case "sql": {
-                locator = "addSQLScript";
-                break;
-            }
-            case "ts": {
-                locator = "addTSScript";
-                break;
-            }
-            case "js": {
-                locator = "addJSScript";
-                break;
-            }
-            default: {
-                break;
-            }
-        }
-
-        const script = await driver.wait(until.elementLocated(By.id(locator)), 2000, "Scripts menu was not opened");
-        await script.click();
-        await driver.wait(async () => {
-            const nextEditor = await this.getCurrentEditor();
-
-            return nextEditor !== curEditor;
-        }, 3000, "Current editor did not changed");
-    };
-
     public static execScript = async (cmd: string, timeout?: number): Promise<string> => {
 
         const textArea = await driver?.findElement(By.css("textarea"));

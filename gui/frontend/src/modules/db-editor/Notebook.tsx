@@ -120,9 +120,6 @@ export class Notebook extends ComponentBase<INotebookProperties> {
             activeEditor = savedState.editors[0];
         }
 
-        // The margin depends on what's the last entry in the navigation toolbar.
-        let marginLeft = "0px";
-
         // Create a copy of the toolbar items from the template to allow for modifications.
         const toolbarItems: IToolbarItems = {
             navigation: toolbarItemsTemplate.navigation.slice(),
@@ -130,13 +127,8 @@ export class Notebook extends ComponentBase<INotebookProperties> {
             editor: toolbarItemsTemplate.editor,
             auxillary: toolbarItemsTemplate.auxillary.slice(),
         };
-        if (!standaloneMode) {
-            const lastNavItem = toolbarItems.navigation.length > 0
-                ? toolbarItems.navigation[toolbarItems.navigation.length - 1] as VNode<{ id: string; }> : undefined;
-            if (lastNavItem && ("props" in lastNavItem) && lastNavItem.props.id === "documentSelector") {
-                marginLeft = "16px";
-            }
-        } else {
+
+        if (standaloneMode) {
             toolbarItems.navigation = [];
         }
 
@@ -146,13 +138,13 @@ export class Notebook extends ComponentBase<INotebookProperties> {
                 data-tooltip="Save this Notebook"
                 requestType="editorSaveNotebook"
                 imageOnly={true}
-                style={{ marginLeft }}
+                style={{ marginLeft: "4px" }}
             >
                 <Icon src={saveNotebookIcon} data-tooltip="inherit" />
             </Button>,
             <Button
                 key="editorLoadNotebookButton"
-                data-tooltip="Load a new Notebook from a file"
+                data-tooltip="Replace this Notebook With Content from a file"
                 requestType="editorLoadNotebook"
                 imageOnly={true}
             >

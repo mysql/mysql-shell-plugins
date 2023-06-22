@@ -111,15 +111,6 @@
     padding: 4px 8px;
 }
 
-.msg.connectionBrowser #connectionOverviewToolbar .image,
-.msg.connectionTabHost #dbEditorToolbar .image,
-.msg.connectionTabHost #serverStatusToolbar .image,
-.msg.connectionTabHost #clientConnectionToolbar .image,
-msg.connectionTabHost #dashboardToolbar .image {
-    width: 20px;
-    height: 20px;
-}
-
 .msg.connectionTabHost #dbEditorToolbar #newScriptMenuButton {
     margin-left: 4px;
 }
@@ -198,6 +189,7 @@ msg.connectionTabHost #dashboardToolbar .image {
     border-radius: 0;
 }
 
+.msg.connectionTabHost #itemLoadButton .icon,
 .msg.connectionTabHost #itemSaveButton .icon {
     width: 16px;
     height: 16px;

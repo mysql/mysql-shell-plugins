@@ -123,6 +123,22 @@ export class DBConnectionViewProvider extends WebviewProvider {
     }
 
     /**
+     * Loads the content given in the request into the current script editor.
+     *
+     * @param page The page to open in the webview tab (if not already done).
+     * @param details The content of the script and other related information.
+     *
+     * @returns A promise which resolves after the command was executed.
+     */
+    public loadScript(page: string, details: IScriptRequest): Promise<boolean> {
+        return this.runCommand("job", [
+            { requestType: "showModule", parameter: DBEditorModuleId },
+            { requestType: "showPage", parameter: { module: DBEditorModuleId, page, suppressAbout: true } },
+            { requestType: "editorLoadScript", parameter: details },
+        ], "newConnection");
+    }
+
+    /**
      * Opens a new script editor in the webview tab and loads the given content into it.
      *
      * @param details The content of the script to run and other related information.
@@ -290,6 +306,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
             this.requisitions.register("refreshConnections", this.refreshConnections);
             this.requisitions.register("refreshOciTree", this.refreshOciTree);
             this.requisitions.register("codeBlocksUpdate", this.updateCodeBlock);
+            this.requisitions.register("editorLoadScript", this.editorLoadScript);
             this.requisitions.register("editorSaveScript", this.editorSaveScript);
             this.requisitions.register("createNewEditor", this.handleCreateNewEditor);
             this.requisitions.register("newSession", this.createNewSession);
@@ -321,6 +338,13 @@ export class DBConnectionViewProvider extends WebviewProvider {
         return requisitions.execute("proxyRequest", {
             provider: this,
             original: { requestType: "codeBlocksUpdate", parameter: data },
+        });
+    };
+
+    private editorLoadScript = (details: IScriptRequest): Promise<boolean> => {
+        return requisitions.execute("proxyRequest", {
+            provider: this,
+            original: { requestType: "editorLoadScript", parameter: details },
         });
     };
 
@@ -406,7 +430,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
 
     /**
      * Sent when a notebook shall be loaded. The user has to select a file to load from. The content of the file is
-     * then sent back to the frontend and used there to add a new notebook.
+     * then sent back to the frontend and used there to replace the current notebook.
      *
      * This is used for notebook content in a DB editor tab. There's a separate implementation for a standalone
      * notebook file here NotebookEditorProvider.triggerLoad.

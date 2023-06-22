@@ -28,8 +28,6 @@ import { EntityType } from "../../../../frontend/src/modules/db-editor";
 import { EditorLanguage } from "../../../../frontend/src/supplement";
 
 export class EditorTreeItem extends TreeItem {
-    public contextValue = "editorItem";
-
     static readonly #entityIconMap = new Map<EntityType, string>([
         [EntityType.Notebook, "terminal"],
         [EntityType.Script, "script"],
@@ -38,6 +36,8 @@ export class EditorTreeItem extends TreeItem {
         [EntityType.Connections, "clientConnections"],
         [EntityType.Dashboard, "adminPerformanceDashboard"],
     ]);
+
+    public contextValue = "editorItem";
 
     public constructor(private normalCaption: string, private alternativeCaption: string, language: EditorLanguage,
         editorType: EntityType, command: Command) {

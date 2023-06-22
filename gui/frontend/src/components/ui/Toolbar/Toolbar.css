@@ -81,6 +81,10 @@
     background-color: var(--icon-foreground);
 }
 
+.msg.toolbar .image {
+    flex: 0 0 24px;
+}
+
 .msg.toolbar .button > .icon {
     background-color: initial;
 }

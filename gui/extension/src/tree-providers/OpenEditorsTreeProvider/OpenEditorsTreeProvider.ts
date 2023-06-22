@@ -36,6 +36,7 @@ import { EditorConnectionTreeItem } from "./EditorConnectionTreeItem";
 import { EditorTabTreeItem } from "./EditorTabTreeItem";
 import { EditorTreeItem } from "./EditorTreeItem";
 import { ShellConsoleSessionTreeItem } from "../ShellTreeProvider/ShellConsoleSessionTreeItem";
+import { ConnectionTreeItem } from "../ConnectionsTreeProvider/ConnectionTreeItem";
 
 export interface IOpenEditorBaseEntry {
     type: string;
@@ -145,6 +146,73 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
         this.#changeEvent.fire(undefined);
     }
 
+    /**
+     * Checks if the connection represented by the given tree item is already open in any webview provider.
+     *
+     * @param item The item to check.
+     *
+     * @returns True if the connection is already open, false otherwise.
+     */
+    public isOpen(item: ConnectionTreeItem): boolean {
+        for (const [_, entry] of this.#openProviders.entries()) {
+            if (entry.connections.some((connection) => {
+                return connection.connectionId === item.entry.details.id;
+            })) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @returns the connection ID of the last selected item. If no item is selected, null is returned.
+     *
+     * @param provider The provider to get the connection ID for.
+     */
+    public currentConnectionId(provider: IWebviewProvider): number | null {
+        const item = this.#lastSelectedItems.get(provider);
+        if (item && item.type === "editor") {
+            const parent = (item as IOpenEditorEntry).parent;
+
+            return parent.connectionId;
+        } else if (item && item.type === "connection") {
+            return (item as IEditorConnectionEntry).connectionId;
+        }
+
+        return null;
+    }
+
+    /**
+     * Creates a new caption for a new provider, based on the number of tabs already open.
+     *
+     * @returns The new caption.
+     */
+    public createUniqueCaption = (): string => {
+        if (this.#openProviders.size === 0) {
+            return "MySQL Shell";
+        }
+
+        let index = 2;
+        while (index < 100) {
+            const caption = `MySQL Shell (${index})`;
+            let found = false;
+            this.#openProviders.forEach((entry) => {
+                if (entry.caption === caption) {
+                    found = true;
+                }
+            });
+
+            if (!found) {
+                return caption;
+            }
+
+            ++index;
+        }
+
+        return "";
+    };
+
     public getTreeItem(element: IOpenEditorBaseEntry): TreeItem {
         return element.treeItem;
     }
@@ -175,29 +243,12 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
                 // If there's only one provider active, do not show the provider entry.
                 const provider = [...this.#openProviders.values()][0];
 
-                // If there's only one connection open, do not show the connection entry either.
-                if (provider.connections.length === 1) {
-                    this.updateEditorItemCaptions(provider, true);
-
-                    return [
-                        provider.connectionOverview!,
-                        ...provider.connections[0].editors,
-                        ...sessionProviders.values(),
-                    ];
-                } else {
-                    this.updateEditorItemCaptions(provider, false);
-                }
-
                 return [
                     provider.connectionOverview!,
                     ...provider.connections,
                     ...sessionProviders.values(),
                 ];
             }
-
-            this.#openProviders.forEach((provider) => {
-                this.updateEditorItemCaptions(provider, true);
-            });
 
             return [...this.#openProviders.values(), ...sessionProviders.values()];
         }
