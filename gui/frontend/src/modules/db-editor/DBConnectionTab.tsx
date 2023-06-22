@@ -166,8 +166,14 @@ interface IDBConnectionTabProperties extends IComponentProperties {
     onSelectItem?: (details: ISelectItemDetails) => void;
     onEditorRename?: (id: string, editorId: string, newCaption: string) => void;
 
-    // Sent when the content of a standalone editor changed (typing, pasting, undo/redo etc.).
+    /** Sent when the content of a standalone editor changed (typing, pasting, undo/redo etc.). */
     onEditorChange?: (id: string, editorId: string) => void;
+
+    /** Triggered when new text has to be loaded for a script editor. */
+    onLoadScript?: (id: string, editorId: string, content: string) => void;
+
+    /** Triggered when new text has to be loaded for a script editor. */
+    onSaveScript?: (id: string, editorId: string, content: string) => void;
 
     onAddScript?: (id: string, language: EditorLanguage, dbType: DBType) => void;
 
@@ -271,8 +277,8 @@ Execute \\help or \\? for help;`;
 
         this.addHandledProperties("connectionId", "dbType", "savedState", "workerPool", "toolbarInset", "showExplorer",
             "showAbout", "extraLibs",
-            "onHelpCommand", "onAddEditor", "onRemoveEditor", "onSelectEditor", "onChangeEditor", "onAddScript",
-            "onSaveSchemaTree", "onSaveExplorerState", "onExplorerResize", "onExplorerMenuAction");
+            "onHelpCommand", "onAddEditor", "onLoadEditor", "onRemoveEditor", "onSelectEditor", "onChangeEditor",
+            "onAddScript", "onSaveSchemaTree", "onSaveExplorerState", "onExplorerResize", "onExplorerMenuAction");
 
     }
 
@@ -286,6 +292,7 @@ Execute \\help or \\? for help;`;
         requisitions.register("editorInsertUserScript", this.editorInsertUserScript);
         requisitions.register("showPageSection", this.showPageSection);
         requisitions.register("editorEditScript", this.editorEditScript);
+        requisitions.register("editorLoadScript", this.editorLoadScript);
         requisitions.register("editorRenameScript", this.editorRenameScript);
         requisitions.register("acceptMrsAuthentication", this.acceptMrsAuthentication);
         requisitions.register("cancelMrsAuthentication", this.cancelMrsAuthentication);
@@ -314,6 +321,7 @@ Execute \\help or \\? for help;`;
         requisitions.unregister("editorInsertUserScript", this.editorInsertUserScript);
         requisitions.unregister("showPageSection", this.showPageSection);
         requisitions.unregister("editorEditScript", this.editorEditScript);
+        requisitions.unregister("editorLoadScript", this.editorLoadScript);
         requisitions.unregister("editorRenameScript", this.editorRenameScript);
         requisitions.unregister("acceptMrsAuthentication", this.acceptMrsAuthentication);
         requisitions.unregister("cancelMrsAuthentication", this.cancelMrsAuthentication);
@@ -368,7 +376,7 @@ Execute \\help or \\? for help;`;
                         ref={this.scriptRef}
                         extraLibs={extraLibs}
                         savedState={savedState}
-                        toolbarItems={toolbarItems}
+                        toolbarItemsTemplate={toolbarItems}
                         standaloneMode={standaloneMode}
                         onScriptExecution={this.handleExecution}
                         onEdit={this.handleEdit}
@@ -615,6 +623,14 @@ Execute \\help or \\? for help;`;
         return Promise.resolve(true);
     };
 
+    private editorLoadScript = (details: IScriptRequest): Promise<boolean> => {
+        const { id, onLoadScript: onLoadEditor } = this.props;
+
+        onLoadEditor?.(id ?? "", details.scriptId, details.content);
+
+        return Promise.resolve(true);
+    };
+
     private editorRenameScript = (details: IScriptRequest): Promise<boolean> => {
         const { id, onEditorRename } = this.props;
 
@@ -686,8 +702,8 @@ Execute \\help or \\? for help;`;
     };
 
     /**
-     * Either takes the given content and creates a new notebook with it, or asks the user to select a notebook
-     * file to create the notebook from.
+     * Either takes the given content and replaces the current notebook with it, or asks the user to select a notebook
+     * file to load the content from.
      *
      * @param details The details about the notebook to load.
      * @param details.content The content to load into the notebook. If undefined, the user will be asked to select
@@ -732,47 +748,51 @@ Execute \\help or \\? for help;`;
                 try {
                     this.loadingNotebook = true;
 
-                    const editorId = this.handleAddEditor();
-                    if (editorId) {
-                        // Adding a new notebook will always make it the active editor.
-                        const openState = this.findActiveEditor();
-                        const persistentState: IEditorPersistentState | undefined = openState?.state;
-                        if (persistentState) {
-                            const { id } = this.props;
-                            openState!.caption = content.caption;
-                            persistentState.model.setValue(content.content);
-                            persistentState.options = content.options;
+                    let openState = this.findActiveEditor();
+                    if (!openState) {
+                        const editorId = this.handleAddEditor();
+                        if (editorId) {
+                            // Adding a new notebook will always make it the active editor.
+                            openState = this.findActiveEditor();
+                        }
+                    }
 
-                            // Restore the result data in the application DB.
-                            const transaction = ApplicationDB.db.transaction(StoreType.DbEditor, "readwrite");
-                            const objectStore = transaction.objectStore(StoreType.DbEditor);
-                            for (const context of content.contexts) {
-                                // Create new result IDs for the data, to avoid multiple result views pointing to the
-                                // same data, for example when the same notebook is loaded twice.
-                                const idMap = new Map<string, string>();
-                                const result = context.state.result;
-                                if (result?.type === "resultIds") {
-                                    result.list.forEach((resultId, index, list) => {
-                                        const newId = uuid();
-                                        idMap.set(resultId, newId);
-                                        list[index] = newId;
-                                    });
+                    const persistentState: IEditorPersistentState | undefined = openState?.state;
+                    if (persistentState) {
+                        const { id } = this.props;
+                        openState!.caption = content.caption;
+                        persistentState.model.setValue(content.content);
+                        persistentState.options = content.options;
 
-                                    for (const data of context.data ?? []) {
-                                        data.resultId = idMap.get(data.resultId) ?? "";
+                        // Restore the result data in the application DB.
+                        const transaction = ApplicationDB.db.transaction(StoreType.DbEditor, "readwrite");
+                        const objectStore = transaction.objectStore(StoreType.DbEditor);
+                        for (const context of content.contexts) {
+                            // Create new result IDs for the data, to avoid multiple result views pointing to the
+                            // same data, for example when the same notebook is loaded twice.
+                            const idMap = new Map<string, string>();
+                            const result = context.state.result;
+                            if (result?.type === "resultIds") {
+                                result.list.forEach((resultId, index, list) => {
+                                    const newId = uuid();
+                                    idMap.set(resultId, newId);
+                                    list[index] = newId;
+                                });
 
-                                        // Also replace the tab ID in the result data.
-                                        data.tabId = id!;
-                                        await objectStore.add(data);
-                                    }
+                                for (const data of context.data ?? []) {
+                                    data.resultId = idMap.get(data.resultId) ?? "";
+
+                                    // Also replace the tab ID in the result data.
+                                    data.tabId = id!;
+                                    await objectStore.add(data);
                                 }
                             }
-
-                            setTimeout(() => {
-                                this.notebookRef.current?.restoreNotebook(content);
-                                this.loadingNotebook = false;
-                            }, 10);
                         }
+
+                        setTimeout(() => {
+                            this.notebookRef.current?.restoreNotebook(content);
+                            this.loadingNotebook = false;
+                        }, 10);
                     }
 
                     if (appParameters.embedded) {

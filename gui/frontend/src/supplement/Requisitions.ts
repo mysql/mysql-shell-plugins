@@ -257,6 +257,8 @@ export interface IRequestTypeMap {
     "selectFile": (result: IOpenFileDialogResult) => Promise<boolean>;
     "showOpenDialog": (options: IOpenDialogOptions) => Promise<boolean>;
 
+    "sqlShowDataAtPage": (data: ISqlPageRequest) => Promise<boolean>;
+
     "editorExecuteSelectedOrAll": (options: IEditorExecutionOptions) => Promise<boolean>;
     "editorExecuteCurrent": (options: IEditorExecutionOptions) => Promise<boolean>;
     "editorFind": SimpleCallback;
@@ -270,10 +272,10 @@ export interface IRequestTypeMap {
     "editorRollback": SimpleCallback;
     "editorShowConnections": SimpleCallback;
     "editorInsertUserScript": (data: { language: EditorLanguage; resourceId: number; }) => Promise<boolean>;
-    "sqlShowDataAtPage": (data: ISqlPageRequest) => Promise<boolean>;
     "editorRunQuery": (details: IRunQueryRequest) => Promise<boolean>;
     "editorRunScript": (details: IScriptRequest) => Promise<boolean>;
     "editorEditScript": (details: IScriptRequest) => Promise<boolean>;
+    "editorLoadScript": (details: IScriptRequest) => Promise<boolean>;
     "editorSaveScript": (details: IScriptRequest) => Promise<boolean>;
     "editorSaved": (details: { id: string, newName: string, saved: boolean; }) => Promise<boolean>;
     "editorRenameScript": (details: IScriptRequest) => Promise<boolean>;

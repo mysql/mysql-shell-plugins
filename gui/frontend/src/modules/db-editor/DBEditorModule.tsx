@@ -29,9 +29,7 @@ import connectionIconSQLite from "../../assets/images/connectionSqlite.svg";
 import scriptingIcon from "../../assets/images/scripting.svg";
 import overviewPageIcon from "../../assets/images/overviewPage.svg";
 import closeIcon from "../../assets/images/close2.svg";
-import saveIcon from "../../assets/images/toolbar/toolbar-save.svg";
 
-import newScriptIcon from "../../assets/images/toolbar/toolbar-new-file-selector.svg";
 import newConsoleIcon from "../../assets/images/toolbar/toolbar-new-shell-console.svg";
 import javascriptIcon from "../../assets/images/file-icons/scriptJs.svg";
 import sqliteIcon from "../../assets/images/file-icons/scriptSqlite.svg";
@@ -67,7 +65,7 @@ import { ISqliteConnectionOptions } from "../../communication/Sqlite";
 import { IMySQLConnectionOptions } from "../../communication/MySQL";
 import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB";
 import { DBEditorModuleId } from "../ModuleInfo";
-import { EditorLanguage, IExecutionContext, INewEditorRequest, IScriptRequest } from "../../supplement";
+import { EditorLanguage, IExecutionContext, INewEditorRequest } from "../../supplement";
 import { webSession } from "../../supplement/WebSession";
 import { ShellPromptHandler } from "../common/ShellPromptHandler";
 import { parseVersion } from "../../parsing/mysql/mysql-helpers";
@@ -240,7 +238,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         const { innerRef } = this.props;
         const {
             connections, connectionsLoaded, selectedPage, editorTabs, showExplorer, showTabs, loading,
-            progressMessage, dirtyEditors,
+            progressMessage,
         } = this.state;
 
         let sqlIcon = mysqlIcon;
@@ -258,8 +256,6 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 />,
             ];
 
-            let showSaveButton = false;
-            let needsSave = false;
             let selectedEntry: string | undefined;
             editorTabs.forEach((info: IDBEditorTabInfo) => {
                 const connectionState = this.connectionState.get(info.tabId)!;
@@ -305,10 +301,6 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     ));
 
                     if (selectedPage === info.tabId && entry.id === connectionState.activeEntry) {
-                        if (entry.type === EntityType.Script) {
-                            showSaveButton = true;
-                            needsSave = dirtyEditors.has(entry.id);
-                        }
                         selectedEntry = entry.id;
 
                         if (info.details.dbType === DBType.Sqlite) {
@@ -334,34 +326,15 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 toolbarItems.navigation.push(
                     <Button
                         key="button1"
-                        id="newNewConsoleMenuButton"
+                        id="newConsoleMenuButton"
                         data-tooltip="Open New Shell Console"
-                        style={{ marginLeft: "16px" }}
+                        style={{ marginLeft: "4px" }}
                         onClick={this.addNewConsole}
                     >
                         <Icon key="newIcon" src={newConsoleIcon} data-tooltip="inherit" />
                     </Button>,
                     <Divider key="divider2" id="actionDivider" vertical={true} thickness={1} />,
                 );
-            } else {
-                toolbarItems.navigation.push(
-                    <Button key="button1" id="newScriptMenuButton" onClick={this.addNewScript}>
-                        <Icon key="newIcon" src={newScriptIcon} />
-                    </Button>,
-                );
-            }
-
-            if (showSaveButton) {
-                toolbarItems.auxillary.push(<Button
-                    id="itemSaveButton"
-                    key="itemSaveButton"
-                    imageOnly={true}
-                    disabled={!needsSave}
-                    data-tooltip="Save this Editor"
-                    onClick={this.handleEditorSave}
-                >
-                    <Icon src={saveIcon} data-tooltip="inherit" />
-                </Button>);
             }
 
             toolbarItems.auxillary.push(<Button
@@ -474,6 +447,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 onHelpCommand={this.handleHelpCommand}
                 onAddEditor={this.handleAddNotebook}
                 onRemoveEditor={this.handleRemoveEditor}
+                onLoadScript={this.handleLoadEditor}
                 onSelectItem={this.handleSelectEntry}
                 onEditorRename={this.handleEditorRename}
                 onEditorChange={this.handleEditorChange}
@@ -1263,33 +1237,12 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         return true;
     };
 
-    private handleEditorSave = (): void => {
-        const { selectedPage } = this.state;
-
-        const connectionState = this.connectionState.get(selectedPage);
-        if (connectionState) {
-            const editor = connectionState.editors.find((state) => {
-                return state.id === connectionState.activeEntry;
-            });
-
-            if (editor?.state) {
-                const model = editor.state.model;
-                const content = model.getValue();
-                const details: IScriptRequest = {
-                    scriptId: editor.id,
-                    content,
-                    language: model.getLanguageId() as EditorLanguage,
-                };
-                requisitions.executeRemote("editorSaveScript", details);
-            }
-        }
-    };
-
     private editorSaved = (details: { id: string, newName: string, saved: boolean; }): Promise<boolean> => {
         const { dirtyEditors } = this.state;
 
         if (dirtyEditors.has(details.id)) {
             if (details.saved) {
+                dirtyEditors.delete(details.id);
                 this.setState({ dirtyEditors });
             }
 
@@ -1509,6 +1462,17 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         }
     };
 
+    private handleLoadEditor = (id: string, editorId: string, content: string): void => {
+        const connectionState = this.connectionState.get(id);
+        if (connectionState) {
+            const editor = connectionState.editors.find((candidate: IOpenEditorState) => {
+                return candidate.id === editorId;
+            });
+
+            editor?.state?.model?.setValue(content);
+        }
+    };
+
     private handleEditorSelectorChange = (selectedIds: Set<string>): void => {
         const { selectedPage } = this.state;
 
@@ -1698,15 +1662,6 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     // Represents a DB data entry.
                     void ShellInterface.modules.updateData(editor.dbDataId, undefined, content);
                     wasSaved = true;
-                } else {
-                    // Represents a script file from the extension.
-                    /* XXX: Temporarily disabled - we need a better solution for saving scripts in the extension.
-                    const details: IScriptRequest = {
-                        scriptId: editor.id,
-                        content,
-                        language: model.getLanguageId() as EditorLanguage,
-                    };
-                    requisitions.executeRemote("editorSaveScript", details);*/
                 }
 
                 if (wasSaved) {

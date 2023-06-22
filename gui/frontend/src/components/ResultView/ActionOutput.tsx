@@ -111,7 +111,7 @@ export class ActionOutput extends ComponentBase<IActionOutputProperties> {
             }
 
             rows.push(
-                <div style={{ display: "flex", gap: "2px", flexDirection: "row" }}>
+                <div style={{ display: "flex", flex: "1", gap: "2px", flexDirection: "row" }}>
                     {cells}
                 </div>);
         });

@@ -240,7 +240,7 @@ export class ExtensionHost {
      */
     public get newProvider(): DBConnectionViewProvider | undefined {
         if (this.url) {
-            const caption = this.createTabCaption();
+            const caption = this.dbEditorCommandHandler.generateNewProviderCaption();
             const provider = new DBConnectionViewProvider(this.url, this.providerDisposed, this.providerStateChanged);
             provider.caption = caption;
             this.providers.push(provider);
@@ -610,31 +610,6 @@ export class ExtensionHost {
             this.lastActiveProvider = provider as DBConnectionViewProvider;
             this.lastActiveProvider.reselectLastItem();
         }
-    };
-
-    /**
-     * Creates a new caption for a webview tab, based on the number of tabs already open.
-     *
-     * @returns The new caption.
-     */
-    private createTabCaption = (): string => {
-        if (this.providers.length === 0) {
-            return "MySQL Shell";
-        }
-
-        let index = 1;
-        while (index < 100) {
-            const caption = `MySQL Shell (${index})`;
-            if (!this.providers.find((candidate) => {
-                return candidate.caption === caption;
-            })) {
-                return caption;
-            }
-
-            ++index;
-        }
-
-        return "";
     };
 
     /**

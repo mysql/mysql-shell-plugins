@@ -87,7 +87,7 @@ describe("MySQL REST Service", () => {
             const edView = new EditorView();
             await edView.closeAllEditors();
             const treeGlobalConn = await Misc.getTreeElement(treeDBSection, globalConn.caption, true);
-            await (await Misc.getActionButton(treeGlobalConn, "Connect to Database")).click();
+            await (await Misc.getActionButton(treeGlobalConn, constants.openNewDBConnection)).click();
             await Misc.switchToWebView();
             await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
                 "DB Connection was not loaded");
@@ -199,6 +199,8 @@ describe("MySQL REST Service", () => {
             await driver.wait(async () => {
                 const treeGlobalConn = await Misc.getTreeElement(treeDBSection, globalConn.caption, true);
                 await (await Misc.getActionButton(treeGlobalConn, "Reload Database Information")).click();
+                await driver.wait(Misc.isNotLoading(treeDBSection), constants.ociExplicitWait * 2,
+                    `${await treeDBSection.getTitle()} is still loading`);
                 const children = await treeMySQLRESTService.getChildren();
                 for (const child of children) {
                     if (((await child.getLabel()).includes(hostname()))) {
@@ -228,6 +230,8 @@ describe("MySQL REST Service", () => {
             await driver.wait(async () => {
                 const treeGlobalConn = await Misc.getTreeElement(treeDBSection, globalConn.caption, true);
                 await (await Misc.getActionButton(treeGlobalConn, "Reload Database Information")).click();
+                await driver.wait(Misc.isNotLoading(treeDBSection), constants.ociExplicitWait * 2,
+                    `${await treeDBSection.getTitle()} is still loading`);
                 const children = await treeMySQLRESTService.getChildren();
                 for (const child of children) {
                     if (((await child.getLabel()).includes(hostname()))) {
@@ -562,7 +566,12 @@ describe("MySQL REST Service", () => {
             await driver.switchTo().defaultContent();
             //await Misc.verifyNotification("The MRS User has been added", true);
             treeAuthApp = await Misc.getTreeElement(treeDBSection, "MRS (MRS)");
-            await treeAuthApp.expand();
+            await driver.wait(async () => {
+                await treeAuthApp.expand();
+
+                return (await treeAuthApp.isExpanded()) && (await treeAuthApp.getChildren()).length > 0;
+            }, constants.explicitWait, "MRS (MRS) was not expanded");
+
             treeDBSection = await Misc.getSection(constants.dbTreeSection);
             await Misc.getTreeElement(treeDBSection, "gui", true);
 
@@ -844,13 +853,15 @@ describe("MySQL REST Service", () => {
                 await new EditorView().closeAllEditors();
                 treeRouter = await driver.wait(async () => {
                     await (await Misc.getActionButton(treeGlobalConn, "Reload Database Information")).click();
+                    await driver.wait(Misc.isNotLoading(treeDBSection), constants.ociExplicitWait * 2,
+                        `${await treeDBSection.getTitle()} is still loading`);
                     const children = await treeMySQLRESTService.getChildren();
                     for (const child of children) {
                         if (((await child.getLabel()).includes(hostname()))) {
                             return child;
                         }
                     }
-                }, constants.explicitWait * 2, `${hostname()} tree item was not found`);
+                }, constants.explicitWait * 4, `${hostname()} tree item was not found`);
                 if (!await Misc.isRouterActive(treeRouter)) {
                     await Misc.openContexMenuItem(treeMySQLRESTService, "Start Local MySQL Router Instance");
                     await Misc.waitForTerminalText(

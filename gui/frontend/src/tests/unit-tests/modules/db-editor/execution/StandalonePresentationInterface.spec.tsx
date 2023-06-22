@@ -68,7 +68,7 @@ describe("Standalone presentation interface tests", (): void => {
             <ScriptEditor
                 savedState={savedState}
                 standaloneMode={false}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItemsTemplate={{ navigation: [], execution: [], editor: [], auxillary: [] }}
             />,
         );
 
