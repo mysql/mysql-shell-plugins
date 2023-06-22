@@ -74,7 +74,6 @@ describe("MySQL REST Service", () => {
     before(async function () {
 
         await Misc.loadDriver();
-
         try {
             await Misc.cleanCredentials();
             await driver.wait(Misc.extensionIsReady(), constants.extensionReadyWait, "Extension was not ready");
@@ -786,7 +785,7 @@ describe("MySQL REST Service", () => {
 
     });
 
-    describe.skip("CRUD Operations", () => {
+    describe("CRUD Operations", () => {
 
         let actorId: string;
         let treeRouter: TreeItem;
@@ -838,7 +837,7 @@ describe("MySQL REST Service", () => {
                     await Database.setDBConnectionCredentials(globalConn);
                 }
                 await Database.setRestObject(`${hostName}/${service}`, undefined, undefined,
-                    ["CREATE", "READ", "UPDATE", "DELETE"], undefined, false);
+                    ["C", "R", "U", "D"], undefined, false);
                 await driver.switchTo().defaultContent();
                 const treeGlobalConn = await Misc.getTreeElement(treeDBSection, globalConn.caption, true);
                 await (await Misc.getActionButton(treeGlobalConn, "Reload Database Information")).click();
@@ -851,7 +850,7 @@ describe("MySQL REST Service", () => {
                             return child;
                         }
                     }
-                }, constants.explicitWait, `${hostname()} tree item was not found`);
+                }, constants.explicitWait * 2, `${hostname()} tree item was not found`);
                 if (!await Misc.isRouterActive(treeRouter)) {
                     await Misc.openContexMenuItem(treeMySQLRESTService, "Start Local MySQL Router Instance");
                     await Misc.waitForTerminalText(
@@ -907,43 +906,43 @@ describe("MySQL REST Service", () => {
             response = await fetch(`${protocol}://${hostName}/${service}/${schema}/${table}`);
             const data = await response.json();
             expect(response.ok).to.be.true;
-            expect(data.items[0].first_name).to.equals("PENELOPE");
+            expect(data.items[0].firstName).to.equals("PENELOPE");
         });
 
         it("Insert table row", async () => {
             response = await fetch(`${protocol}://${hostName}/${service}/${schema}/${table}`, {
                 method: "post",
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                body: JSON.stringify({ first_name: "Doctor", last_name: "Testing" }),
+                body: JSON.stringify({ firstName: "Doctor", lastName: "Testing" }),
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 headers: { "Content-Type": "application/json" },
             });
             const data = await response.json();
             expect(response.ok).to.be.true;
-            actorId = data.actor_id;
-            expect(data.actor_id).to.exist;
-            expect(data.first_name).to.equals("Doctor");
-            expect(data.last_name).to.equals("Testing");
-            expect(data.last_update).to.exist;
+            actorId = data.actorId;
+            expect(data.actorId).to.exist;
+            expect(data.firstName).to.equals("Doctor");
+            expect(data.lastName).to.equals("Testing");
+            expect(data.lastUpdate).to.exist;
         });
 
         it("Update table row", async () => {
             response = await fetch(`${protocol}://${hostName}/${service}/${schema}/${table}/${actorId}`, {
                 method: "put",
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                body: JSON.stringify({ first_name: "Mister" }),
+                body: JSON.stringify({ firstName: "Mister", lastName: "Test", lastUpdate: "2023-06-23 13:32:54" }),
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 headers: { "Content-Type": "application/json" },
             });
             const data = await response.json();
             expect(actorId).to.exist;
-            expect(data.first_name).to.equals("Mister");
-            expect(data.last_name).to.equals("Testing");
-            expect(data.last_update).to.exist;
+            expect(data.firstName).to.equals("Mister");
+            expect(data.lastName).to.equals("Test");
+            expect(data.lastUpdate).to.exist;
         });
 
         it("Delete table row", async () => {
-            const query = `"actor_id":${actorId}`;
+            const query = `"actorId":${actorId}`;
             response = await fetch(`${protocol}://${hostName}/${service}/${schema}/${table}?q={${query}}`,
                 { method: "delete" });
 
@@ -953,7 +952,7 @@ describe("MySQL REST Service", () => {
         });
 
         it("Filter object data", async () => {
-            const query = `"first_name":"PENELOPE"`;
+            const query = `"firstName":"PENELOPE"`;
             response = await fetch(`${protocol}://${hostName}/${service}/${schema}/${table}?q={${query}}`);
             const data = await response.json();
             expect(response.ok).to.be.true;

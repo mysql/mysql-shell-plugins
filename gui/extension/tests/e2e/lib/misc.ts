@@ -1261,8 +1261,6 @@ export class Misc {
 
     private static findOnMySQLShLog = async (textToFind: string): Promise<boolean> => {
         const text = await fs.readFile(Misc.getMysqlshLog());
-        console.log(text.toString());
-        console.log("------");
 
         return text.toString().includes(textToFind);
     };
