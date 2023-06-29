@@ -83,9 +83,9 @@ describe("MYSQL SHELL CONSOLES", () => {
             await driver.wait(Misc.extensionIsReady(), constants.extensionReadyWait, "Extension was not ready");
             await Misc.toggleBottomBar(false);
             await Misc.sectionFocus(constants.openEditorsTreeSection);
-            const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
-            const treeDBConnections = await Misc.getTreeElement(treeOpenEditorsSection, constants.dbConnectionsLabel);
-            await Misc.openContexMenuItem(treeDBConnections, "Open New MySQL Shell Console", true);
+            const treeDBConnections = await Misc.getTreeElement(constants.openEditorsTreeSection,
+                constants.dbConnectionsLabel);
+            await Misc.openContexMenuItem(treeDBConnections, constants.openNewShellConsole, true);
             await driver.wait(Shell.isShellLoaded(), constants.explicitWait * 3, "Shell Console was not loaded");
         } catch (e) {
             await Misc.processFailure(this);
@@ -118,13 +118,12 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Open multiple sessions", async () => {
 
             for (let i = 1; i <= 3; i++) {
-                const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
-                const treeDBConnections = await Misc.getTreeElement(treeOpenEditorsSection,
+                const treeDBConnections = await Misc.getTreeElement(constants.openEditorsTreeSection,
                     constants.dbConnectionsLabel);
-                await Misc.openContexMenuItem(treeDBConnections, "Open New MySQL Shell Console", true);
+                await Misc.openContexMenuItem(treeDBConnections, constants.openNewShellConsole, true);
                 await driver.wait(Shell.isShellLoaded(), constants.explicitWait * 3, "Shell Console was not loaded");
                 await driver.switchTo().defaultContent();
-                await Misc.getTreeElement(treeOpenEditorsSection, `Session ${i}`);
+                await Misc.getTreeElement(constants.openEditorsTreeSection, `Session ${i}`);
             }
 
         });
@@ -141,11 +140,10 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         before(async function () {
             try {
-                const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
-                const treeDBConnections = await Misc.getTreeElement(treeOpenEditorsSection,
+                const treeDBConnections = await Misc.getTreeElement(constants.openEditorsTreeSection,
                     constants.dbConnectionsLabel);
                 await Misc.openContexMenuItem(treeDBConnections,
-                    "Open New MySQL Shell Console", true);
+                    constants.openNewShellConsole, true);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -314,10 +312,9 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         before(async function () {
             try {
-                const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
-                const treeDBConnections = await Misc.getTreeElement(treeOpenEditorsSection,
+                const treeDBConnections = await Misc.getTreeElement(constants.openEditorsTreeSection,
                     constants.dbConnectionsLabel);
-                await Misc.openContexMenuItem(treeDBConnections, "Open New MySQL Shell Console", true);
+                await Misc.openContexMenuItem(treeDBConnections, constants.openNewShellConsole, true);
                 await driver.wait(Shell.isShellLoaded(), constants.explicitWait * 3, "Shell Console was not loaded");
                 const editor = await driver.wait(until.elementLocated(By.id("shellEditorHost")),
                     10000, "Console was not loaded");
