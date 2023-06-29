@@ -106,7 +106,7 @@ export class Database {
     ): Promise<void> => {
 
         const dialog = await driver.wait(until.elementLocated(By.css(".visible.valueEditDialog")),
-            constants.explicitWait, "Connection dialog was not displayed");
+            constants.explicitWait * 3, "Connection dialog was not displayed");
 
         if (dbType) {
             const inDBType = await dialog.findElement(By.id("databaseType"));
@@ -339,7 +339,7 @@ export class Database {
     };
 
     public static requiresCredentials = async (): Promise<boolean> => {
-        return (await driver.findElements(By.css(".msg.portal"))).length > 0;
+        return (await driver.findElements(By.css(".passwordDialog"))).length > 0;
     };
 
     public static closeConnection = async (name: string): Promise<void> => {

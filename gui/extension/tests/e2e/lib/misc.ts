@@ -25,16 +25,17 @@ import { ChildProcess, spawn, spawnSync } from "child_process";
 import clipboard from "clipboardy";
 import fs from "fs/promises";
 import addContext from "mochawesome/addContext";
-import { platform } from "os";
+import { platform, hostname } from "os";
 import { join } from "path";
 import {
     BottomBarPanel, By, Condition, CustomTreeSection, EditorView, error, InputBox, ITimeouts,
-    Key, Notification, OutputView, SideBarView, TreeItem, until, VSBrowser,
+    Key, OutputView, SideBarView, TreeItem, until, VSBrowser,
     WebDriver,
-    WebElement, Workbench, ActivityBar,
+    WebElement, Workbench, ActivityBar, Button,
 } from "vscode-extension-tester";
 import { Database, IConnBasicMySQL, IDBConnection } from "./db";
 import * as constants from "../lib/constants";
+import { keyboard, Key as nutKey } from "@nut-tree/nut-js";
 
 export let driver: WebDriver;
 export let browser: VSBrowser;
@@ -44,51 +45,81 @@ export class Misc {
 
     public static extensionIsReady = (): Condition<boolean> => {
         return new Condition("Extension was not ready", async () => {
-            await new EditorView().closeAllEditors();
-            await Misc.reloadVSCode();
-            await driver.wait(async () => {
-                if (await Misc.findOnMySQLShLog("Certificate is installed")) {
-                    if (await Misc.findOnMySQLShLog("Mode: Single user")) {
-                        if (await Misc.findOnMySQLShLog("Registering session...")) {
-                            return true;
-                        } else if (await Misc.findOutputText("Could not establish websocket connection")) {
-                            await fs.truncate(join(constants.basePath,
-                                `mysqlsh-${String(process.env.TEST_SUITE)}`, "mysqlsh.log"));
 
-                            return Misc.reloadVSCode().then(() => {
-                                return false;
-                            }).catch((e) => {
-                                throw e;
-                            });
-                        } else if (await Misc.findOnMySQLShLog("Error: [MSG]")) {
-                            await fs.truncate(join(constants.basePath,
-                                `mysqlsh-${String(process.env.TEST_SUITE)}`, "mysqlsh.log"));
-
-                            return Misc.reloadVSCode().then(() => {
-                                return false;
-                            }).catch((e) => {
-                                throw e;
-                            });
-                        }
-                    }
+            const reloadExt = async (platform: string): Promise<void> => {
+                console.log("reloading");
+                if (platform === "darwin") {
+                    await Misc.restartShell();
+                } else {
+                    await Misc.reloadVSCode();
                 }
-            }, constants.explicitWait * 12, "'Registering session...' was not found on mysqlsh log file");
-
-            credentialHelperOk = !(await Misc
-                .findOnMySQLShLog(`Failed to initialize the default helper "windows-credential"`));
-            const activityBar = new ActivityBar();
-            await (await activityBar.getViewControl(constants.extensionName))?.openView();
+            };
 
             await driver.wait(async () => {
-                const editors = await new EditorView().getOpenEditorTitles();
-                if (editors.includes(constants.dbDefaultEditor)) {
+                if ((await new EditorView().getOpenEditorTitles()).length > 0) {
                     await new EditorView().closeAllEditors();
 
                     return true;
-                } else {
-                    return false;
                 }
-            }, constants.explicitWait * 4, `${constants.dbDefaultEditor} tab should have been opened`);
+            }, constants.explicitWait * 2, "Welcome tab was not displayed");
+
+            const activityBare = new ActivityBar();
+            await (await activityBare.getViewControl(constants.extensionName))?.openView();
+
+            // restart internal shell process
+            await Misc.restartShell();
+
+            await driver.wait(async () => {
+                console.log("start>>>>>>>");
+                let isOciLoaded = false;
+                try {
+                    const ociSection = await Misc.getSection(constants.ociTreeSection);
+                    isOciLoaded = (await ociSection.findItem("E2ETESTS (us-ashburn-1)")) !== undefined;
+                } catch (e) {
+                    if (!(e instanceof error.ElementNotInteractableError)) {
+                        throw e;
+                    }
+                }
+                if (isOciLoaded) {
+                    return true;
+                } else if (await Misc.findOnMySQLShLog("Certificate is installed")) {
+                    console.log("certificate is installed");
+                    if (await Misc.findOnMySQLShLog("Mode: Single user")) {
+                        console.log("found single user");
+                        if (await Misc.findOnMySQLShLog("Error: [MSG]")) {
+                            console.log("error found, restarting...");
+
+                            return fs.truncate(Misc.getMysqlshLog())
+                                .then(async () => {
+                                    await reloadExt(platform()).then(() => {
+                                        return false;
+                                    }).catch((e) => {
+                                        throw e;
+                                    });
+                                });
+                        } else if (await Misc.findOutputText("Could not establish websocket connection")) {
+                            console.log("websocket error");
+
+                            return fs.truncate(Misc.getMysqlshLog())
+                                .then(async () => {
+                                    await reloadExt(platform()).then(() => {
+                                        return false;
+                                    }).catch((e) => {
+                                        throw e;
+                                    });
+                                });
+                        } else if (await Misc.findOnMySQLShLog("Registering session...")) {
+                            console.log("ALL GOOD !");
+
+                            return true;
+                        }
+                    }
+                }
+            }, constants.explicitWait * 12, "Could not verify if extension was ready");
+
+            credentialHelperOk = !(await Misc
+                .findOnMySQLShLog(`Failed to initialize the default helper "windows-credential"`));
+            await new EditorView().closeAllEditors();
 
             return true;
         });
@@ -154,7 +185,7 @@ export class Misc {
 
     public static openContexMenuItem = async (
         treeItem: TreeItem,
-        ctxMenuItem: string,
+        ctxMenuItem: string | string[],
         verifyEditorAndWebView = false): Promise<void> => {
 
         let activeTab: string;
@@ -179,7 +210,8 @@ export class Misc {
                         }
                     }
                 }
-            }, constants.explicitWait * 3, `No new editor was opened after selecting '${ctxMenuItem}' after 15secs`);
+            }, constants.explicitWait * 3,
+                `No new editor was opened after selecting '${ctxMenuItem.toString()}' after 15secs`);
         } else {
             await Misc.selectContextMenuItem(treeItem, ctxMenuItem);
         }
@@ -205,6 +237,50 @@ export class Misc {
         throw new Error(`Could not find the ${button} button`);
     };
 
+    public static restartShell = async (): Promise<void> => {
+        const treeDBSection = await Misc.getSection(constants.dbTreeSection);
+        await driver.wait(Misc.isNotLoading(treeDBSection), constants.explicitWait * 4,
+            `${await treeDBSection.getTitle()} is still loading`);
+        await treeDBSection.click();
+        const moreActions = await treeDBSection.findElement(By.xpath(".//a[contains(@title, 'More Actions...')]"));
+        await moreActions.click();
+
+        if (platform() === "darwin") {
+            await keyboard.type(nutKey.Right);
+            await keyboard.type(nutKey.Enter);
+        } else {
+            const rootHost = await driver.findElement(By.className("shadow-root-host"));
+            const shadowRoot = await rootHost.getShadowRoot();
+            const menu = await shadowRoot.findElement(By.className("monaco-menu-container"));
+            const menuItems = await menu.findElements(By.className("action-label"));
+            for (const item of menuItems) {
+                if ((await item.getText()) === constants.restartInternalShell) {
+                    await item.click();
+                    break;
+                }
+            }
+        }
+
+        await driver.wait(async () => {
+            const workbench = new Workbench();
+            const ntfs = await workbench.getNotifications();
+            if (ntfs.length > 0) {
+                try {
+                    await ntfs[ntfs.length - 1].takeAction("Restart MySQL Shell");
+
+                    return true;
+                } catch (e) {
+                    if (!(e instanceof error.ElementNotInteractableError)) {
+                        throw e;
+                    }
+                }
+            }
+        }, constants.explicitWait, "No notifications found");
+        await driver.wait(async () => {
+            return Misc.findOnMySQLShLog("Info");
+        }, constants.explicitWait * 3, "Shell server did not start");
+    };
+
     public static selectMoreActionsItem = async (
         section: CustomTreeSection,
         item: string): Promise<void> => {
@@ -217,14 +293,30 @@ export class Misc {
             return button?.isDisplayed();
         }, constants.explicitWait, `'More Actions...' button was not visible`);
 
-        const moreActions = await section?.moreActions();
-        const moreActionsItem = await moreActions?.getItem(item);
-        await moreActionsItem?.select();
+        if (platform() === "darwin") {
+            const moreActions = await section.findElement(By.xpath(".//a[contains(@title, 'More Actions...')]"));
+            await moreActions.click();
+            await driver.sleep(500);
+            const taps = constants.contextMenu.get(item);
+            for (let i = 0; i <= taps - 1; i++) {
+                await driver.actions().keyDown(Key.DOWN).keyUp(Key.DOWN).perform();
+            }
+            await driver.actions().keyDown(Key.RIGHT).keyUp(Key.RIGHT).perform();
+        } else {
+            const moreActions = await section?.moreActions();
+            const moreActionsItem = await moreActions?.getItem(item);
+            await moreActionsItem?.select();
+        }
     };
 
     public static cleanCredentials = async (): Promise<void> => {
         const params = ["--js", "-e", "shell.deleteAllCredentials()"];
-        const extDir = join(constants.basePath, `test-resources-${String(process.env.TEST_SUITE)}`, "ext");
+        let extDir = join(constants.basePath, `test-resources-${String(process.env.TEST_SUITE)}`, "ext");
+        try {
+            await fs.access(extDir);
+        } catch (e) {
+            extDir = join(process.cwd(), "test-resources", "ext");
+        }
         const items = await fs.readdir(extDir);
         let extDirName = "";
         for (const item of items) {
@@ -272,7 +364,11 @@ export class Misc {
     };
 
     public static execOnEditor = async (): Promise<void> => {
-        await driver.findElement(By.css("textarea")).sendKeys(Key.chord(Key.CONTROL, Key.ENTER));
+        if (platform() === "darwin") {
+            await driver.findElement(By.css("textarea")).sendKeys(Key.chord(Key.COMMAND, Key.ENTER));
+        } else {
+            await driver.findElement(By.css("textarea")).sendKeys(Key.chord(Key.CONTROL, Key.ENTER));
+        }
     };
 
     public static getNextResultBlockId = async (): Promise<string | undefined> => {
@@ -444,7 +540,13 @@ export class Misc {
                 }
             }
         } else {
-            const dirFiles = await fs.readdir("/usr/bin");
+            let dirFiles = await fs.readdir("/usr/bin");
+            for (const item of dirFiles) {
+                if (item.includes("mysqlrouter")) {
+                    return true;
+                }
+            }
+            dirFiles = await fs.readdir("/usr/local/bin");
             for (const item of dirFiles) {
                 if (item.includes("mysqlrouter")) {
                     return true;
@@ -453,33 +555,30 @@ export class Misc {
         }
     };
 
-    public static verifyNotification = async (text: string, waitToDisappear = false): Promise<void> => {
-        let ntfs: Notification[];
+    public static verifyNotification = async (text: string): Promise<void> => {
 
         await driver.wait(new Condition("", async () => {
-            ntfs = await new Workbench().getNotifications();
-
-            return ntfs.length > 0;
-        }), constants.explicitWait, "Could not find any notification");
-
-        for (const ntf of ntfs) {
-            if ((await ntf.getMessage()).includes(text)) {
-                if (waitToDisappear) {
-                    await driver.wait(until.stalenessOf(ntf),
-                        constants.ociExplicitWait, `'${text}' is still displayed`);
+            const ntfs = await new Workbench().getNotifications();
+            for (const ntf of ntfs) {
+                if ((await ntf.getMessage()).includes(text)) {
+                    return true;
                 }
-
-                return;
             }
-        }
-        throw new Error(`Could not find notification '${text}'`);
+        }), constants.explicitWait, "Could not find any notification");
     };
 
     public static execOnTerminal = async (cmd: string, timeout: number): Promise<void> => {
         timeout = timeout ?? constants.explicitWait;
-        const bootomBar = new BottomBarPanel();
-        const terminal = await bootomBar.openTerminalView();
-        await terminal.executeCommand(cmd, timeout);
+
+        if (platform() === "darwin") {
+            await keyboard.type(cmd);
+            await keyboard.type(nutKey.Enter);
+        } else {
+            const bootomBar = new BottomBarPanel();
+            const terminal = await bootomBar.openTerminalView();
+            await terminal.executeCommand(cmd, timeout);
+        }
+
     };
 
     public static waitForTerminalText = async (textToSearch: string | string[],
@@ -502,12 +601,8 @@ export class Misc {
 
     public static findOutputText = async (textToSearch: string): Promise<boolean> => {
         let output: OutputView;
-        try {
-            output = new OutputView();
-        } catch (e) {
-            await new BottomBarPanel().openOutputView();
-            output = new OutputView();
-        }
+        await new BottomBarPanel().openOutputView();
+        output = new OutputView();
 
         let clipBoardText = "";
         await driver.wait(async () => {
@@ -641,8 +736,11 @@ export class Misc {
 
     public static cleanEditor = async (): Promise<void> => {
         const textArea = await driver.findElement(By.css("textarea"));
-        await textArea
-            .sendKeys(Key.chord(Key.CONTROL, "a", "a"));
+        if (platform() === "darwin") {
+            await textArea.sendKeys(Key.chord(Key.COMMAND, "a", "a"));
+        } else {
+            await textArea.sendKeys(Key.chord(Key.CONTROL, "a", "a"));
+        }
 
         await textArea.sendKeys(Key.BACK_SPACE);
         await driver.wait(async () => {
@@ -957,37 +1055,55 @@ export class Misc {
     };
 
     public static getTreeElement = async (
-        section: CustomTreeSection,
+        section: string,
         itemName: string,
         reloadSection = false,
     ): Promise<TreeItem> => {
         let el: TreeItem;
         let reloadLabel: string;
+
+        const sectionTree = await Misc.getSection(section);
         if (reloadSection) {
-            if (await section.getTitle() === constants.dbTreeSection) {
+            if (section === constants.dbTreeSection) {
                 reloadLabel = "Reload the connection list";
-            } else if (await section.getTitle() === constants.ociTreeSection) {
+            } else if (section === constants.ociTreeSection) {
                 reloadLabel = "Reload the OCI Profile list";
             }
         }
 
         await driver.wait(async () => {
             if (reloadSection) {
-                await Misc.clickSectionToolbarButton(section, reloadLabel);
+                await Misc.clickSectionToolbarButton(sectionTree, reloadLabel);
             }
-            el = await section.findItem(itemName, 5);
+            el = await sectionTree.findItem(itemName, 5);
 
             return el !== undefined;
-        }, constants.explicitWait, `${itemName} on ${await section.getTitle()} was not found`);
+        }, constants.explicitWait, `${itemName} on section was not found`);
 
         return el;
     };
 
+    public static getRouter = async (connectionCaption: string): Promise<TreeItem> => {
+        return driver.wait(async () => {
+            const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, connectionCaption, true);
+            await (await Misc.getActionButton(treeGlobalConn, "Reload Database Information")).click();
+            const treeDBSection = await Misc.getSection(constants.dbTreeSection);
+            await driver.wait(Misc.isNotLoading(treeDBSection), constants.ociExplicitWait * 2,
+                `${await treeDBSection.getTitle()} is still loading`);
+            const treeMySQLRESTService = await Misc.getTreeElement(constants.dbTreeSection, "MySQL REST Service");
+            const children = await treeMySQLRESTService.getChildren();
+            for (const child of children) {
+                if (((await child.getLabel()).includes(hostname()))) {
+                    return child;
+                }
+            }
+        }, constants.explicitWait, `${hostname()} tree item was not found`);
+    };
+
     public static deleteConnection = async (dbName: string): Promise<void> => {
 
-        const treeSection = await Misc.getSection(constants.dbTreeSection);
-        const treeItem = await Misc.getTreeElement(treeSection, dbName);
-        await Misc.selectContextMenuItem(treeItem, "Delete DB Connection");
+        const treeItem = await Misc.getTreeElement(constants.dbTreeSection, dbName);
+        await Misc.selectContextMenuItem(treeItem, constants.deleteDBConnection);
         const editorView = new EditorView();
         await driver.wait(async () => {
             const activeTab = await editorView.getActiveTab();
@@ -1261,36 +1377,71 @@ export class Misc {
 
     private static findOnMySQLShLog = async (textToFind: string): Promise<boolean> => {
         const text = await fs.readFile(Misc.getMysqlshLog());
+        console.log(text.toString());
+        console.log("---");
 
         return text.toString().includes(textToFind);
     };
 
     private static selectContextMenuItem = async (
         treeItem: TreeItem,
-        ctxMenuItem: string,
+        ctxMenuItem: string | string[],
     ): Promise<void> => {
+
+        const selectItemMacOS = async (item: string): Promise<void> => {
+            const taps = constants.contextMenu.get(item);
+            for (let i = 0; i <= taps - 1; i++) {
+                await driver.findElement(By.css(""));
+                await keyboard.type(nutKey.Down);
+            }
+            await keyboard.type(nutKey.Enter);
+        };
 
         if (treeItem) {
             await driver.wait(async () => {
-                try {
-                    const ctxMenuItems = ctxMenuItem.split("->");
-                    const menu = await treeItem.openContextMenu();
-                    const menuItem = await menu.getItem(ctxMenuItems[0].trim());
-                    const anotherMenu = await menuItem.select();
-                    if (ctxMenuItems.length > 1) {
-                        await (await anotherMenu.getItem(ctxMenuItems[1].trim())).select();
+                if (platform() === "darwin") {
+                    await driver.actions()
+                        .move({ origin: treeItem })
+                        .press(Button.RIGHT)
+                        .pause(500)
+                        .perform();
+
+                    if (Array.isArray(ctxMenuItem)) {
+                        for (const item of ctxMenuItem) {
+                            await selectItemMacOS(item);
+                        }
+                    } else {
+                        await selectItemMacOS(ctxMenuItem);
                     }
 
                     return true;
-                } catch (e) {
-                    console.log(e);
+                } else {
+                    try {
+                        let ctxMenuItems: string | string[];
+                        if (Array.isArray(ctxMenuItem)) {
+                            ctxMenuItems = [ctxMenuItem[0], ctxMenuItem[1]];
+                        } else {
+                            ctxMenuItems = [ctxMenuItem];
+                        }
 
-                    return false;
+                        const menu = await treeItem.openContextMenu();
+                        const menuItem = await menu.getItem(ctxMenuItems[0].trim());
+                        const anotherMenu = await menuItem.select();
+                        if (ctxMenuItems.length > 1) {
+                            await (await anotherMenu.getItem(ctxMenuItems[1].trim())).select();
+                        }
+
+                        return true;
+                    } catch (e) {
+                        console.log(e);
+
+                        return false;
+                    }
                 }
             }, constants.explicitWait,
-                `Could not select '${ctxMenuItem}' for Tree Item '${await treeItem.getLabel()}'`);
+                `Could not select '${ctxMenuItem.toString()}' for Tree Item '${await treeItem.getLabel()}'`);
         } else {
-            throw new Error(`TreeItem for context menu '${ctxMenuItem}' is undefined`);
+            throw new Error(`TreeItem for context menu '${ctxMenuItem.toString()}' is undefined`);
         }
     };
 

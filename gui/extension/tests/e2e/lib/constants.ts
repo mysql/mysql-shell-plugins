@@ -74,5 +74,203 @@ export const mrsDocs = "MRS Docs";
 export const openEditorsDBNotebook = "DB Notebook";
 export const dbConnectionsLabel = "DB Connection Overview";
 
-// CONTEXT MENUS
-export const openNewDBConnection = "Open New Database Connection";
+// CONTEXT MENUS ITEMS
+export const restartInternalShell = "Restart the Internal MySQL Shell Process";
+export const connectToExternalShell = "Connect to External MySQL Shell Process";
+export const relaunchWelcomeWizard = "Relaunch Welcome Wizard";
+export const resetExtension = "Reset MySQL Shell for VS Code Extension";
+
+export const openNewConnection = "Open New Database Connection";
+export const connectToDB = "Connect to Database";
+export const connectToDBNewTab = "Connect to Database on New Tab";
+export const setDBConnDefault = "Set this DB Connection as Default for Embedded SQL Execution";
+export const editDBConnection = "Edit DB Connection";
+export const duplicateConnection = "Duplicate this DB Connection";
+export const deleteDBConnection = "Delete DB Connection";
+export const showSystemSchemas = "Show MySQL System Schemas";
+export const loadScriptFromDisk = "Load Script from Disk";
+export const loadDumpFromDisk = "Load Dump from Disk";
+export const openShellConnection = "Open New MySQL Shell Console for this Connection";
+export const browseRESTDocs = "Browse the MySQL REST Service Documentation";
+export const configureREST = "Configure Instance for MySQL REST Service Support";
+export const setCurrentDBSchema = "Set As Current Database Schema";
+export const dumpSchemaToDisk = "Dump Schema to Disk";
+export const dumpSchemaToDiskToServ = "Dump Schema to Disk to MySQL Database Service";
+export const copyToClipboard = "Copy To Clipboard";
+export const copyToClipboardName = "Name";
+export const copyToClipboardStat = "Create Statement";
+export const loadDataToHW = "Load Data to HeatWave Cluster";
+export const addSchemaToREST = "Add Schema to REST Service";
+export const dropSchema = "Drop Schema...";
+export const selectRowsInNotebook = "Select Rows in DB Notebook";
+export const showData = "Show Data";
+export const addDBObjToREST = "Add Database Object to REST Service";
+export const dropTable = "Drop Table...";
+export const dropView = "Drop View...";
+export const addRESTService = "Add REST Service...";
+export const enableRESTService = "Enable MySQL REST Service";
+export const disableRESTService = "Disable MySQL REST Service";
+export const bootstrapRouter = "Bootstrap Local MySQL Router Instance";
+export const startRouter = "Start Local MySQL Router Instance";
+export const stopRouter = "Stop Local MySQL Router Instance";
+export const deleteRouter = "Delete Router...";
+export const killRouters = "Kill Local MySQL Router Instances";
+export const editRESTService = "Edit REST Service...";
+export const setAsCurrentREST = "Set as Current REST Service";
+export const loadRESTSchemaFromJSON = "Load REST Schema from JSON File...";
+export const exportRESTSDK = "Export REST Service SDK Files ...";
+export const addNewAuthApp = "Add New Authentication App";
+export const deleteRESTService = "Delete REST Service...";
+export const mrsServiceDocs = "MRS Service Documentation";
+export const editRESTSchema = "Edit REST Schema...";
+export const dumpRESTSchemaToJSON = "Dump REST Schema To JSON File...";
+export const loadRESTObkFromJSON = "Load REST Object From JSON File...";
+export const deleteRESTSchema = "Delete REST Schema...";
+export const editRESTObj = "Edit REST Object";
+export const copyRESTObjReqPath = "Copy REST Object Request Path";
+export const copyRESTObjReqPathBrowser = "Copy REST Object Request Path in Web Browser";
+export const dumpRESTObjToJSON = "Dump REST Object To JSON File...";
+export const deleteRESTObj = "Delete REST Object";
+export const viewConfigProfileInfo = "View Config Profile Information";
+export const setDefaultConfigProfile = "Set as New Default Config Profile";
+export const viewCompartmentInfo = "View Compartment Information";
+export const setCurrentCompartment = "Set as Current Compartment";
+export const viewDBSystemInfo = "View DB System Information";
+export const createConnWithBastion = "Create Connection with Bastion Service";
+export const startDBSystem = "Start the DB System";
+export const restartDBSytem = "Restart the DB System";
+export const stopDBSytem = "Stop the DB System";
+export const deleteDBSystem = "Delete the DB System";
+export const createRouterEndpoint = "Create MySQL Router Endpoint on new Compute Instance";
+export const openNewShellConsole = "Open New MySQL Shell Console";
+export const newMySQLScript = "New MySQL Script";
+export const newJS = "New JavaScript Script";
+export const newTS = "New TypeScript Script";
+export const newMySQLNotebook = "New MySQL Notebook";
+export const openNotebookWithConn = "Open the Notebook with connection...";
+export const getBastionInfo = "Get Bastion Information";
+export const setAsCurrentBastion = "Set as Current Bastion";
+export const refreshBastion = "Refresh When Bastion Reaches Active State";
+export const deleteBastion = "Delete Bastion";
+export const deleteUser = "Delete User";
+export const editAuthenticationApp = "Edit Authentication App";
+export const deleteAuthenticationApp = "Delete Authentication App";
+export const addRESTUser = "Add User";
+export const editRESTUser = "Edit User";
+export const deleteRESTUser = "Delete User";
+
+// CONTEXT MENUS MAP
+export const contextMenu = new Map([
+    [restartInternalShell, 1],
+    [connectToExternalShell, 2],
+    [relaunchWelcomeWizard, 3],
+    [resetExtension, 4],
+
+    // DB CONNECTION
+    [openNewConnection, 1],
+    [setDBConnDefault, 2],
+    [editDBConnection, 3],
+    [duplicateConnection, 4],
+    [deleteDBConnection, 5],
+    [showSystemSchemas, 6],
+    [loadScriptFromDisk, 7],
+    [loadDumpFromDisk, 8],
+    [openShellConnection, 9],
+    [browseRESTDocs, 10],
+    [configureREST, 11],
+
+    // SCHEMA
+    [setCurrentDBSchema, 1],
+    [dumpSchemaToDisk, 2],
+    [dumpSchemaToDiskToServ, 3],
+    [copyToClipboard, 4],
+    [copyToClipboardName, 0],
+    [copyToClipboardStat, 1],
+    [loadDataToHW, 5],
+    [addSchemaToREST, 6],
+    [dropSchema, 7],
+
+    // TABLE/VIEW ITEMS
+    [selectRowsInNotebook, 1],
+    [showData, 2],
+    [addDBObjToREST, 3],
+    [dropTable, 5],
+    [dropView, 5],
+
+    // MYSQL REST SERVICE
+    [addRESTService, 1],
+    [enableRESTService, 2],
+    [disableRESTService, 3],
+    [bootstrapRouter, 4],
+    [startRouter, 5],
+    [stopRouter, 6],
+    [killRouters, 7],
+    [browseRESTDocs, 8],
+
+    // REST SERVICE ITEM
+    [editRESTService, 1],
+    [setAsCurrentREST, 2],
+    [loadRESTSchemaFromJSON, 3],
+    [exportRESTSDK, 4],
+    [addNewAuthApp, 5],
+    [deleteRESTService, 6],
+    [mrsServiceDocs, 7],
+
+    // REST SCHEMA ITEM
+    [editRESTSchema, 1],
+    [dumpRESTSchemaToJSON, 2],
+    [loadRESTObkFromJSON, 3],
+    [deleteRESTSchema, 4],
+
+    // REST OBJECT ITEM
+    [editRESTObj, 1],
+    [copyRESTObjReqPath, 2],
+    [copyRESTObjReqPathBrowser, 3],
+    [dumpRESTObjToJSON, 4],
+    [deleteRESTObj, 5],
+
+    // REST APP
+    [editAuthenticationApp, 1],
+    [addRESTUser, 2],
+    [deleteAuthenticationApp, 3],
+
+    // REST USER
+    [editRESTUser, 1],
+    [deleteRESTUser, 2],
+
+    // ROUTER
+    [deleteRouter, 1],
+
+    // OCI CONFIG ITEM
+    [viewConfigProfileInfo, 1],
+    [setDefaultConfigProfile, 2],
+
+    // OCI COMPARTMENT
+    [viewCompartmentInfo, 1],
+    [setCurrentCompartment, 2],
+
+    // OCI DB SYSTEM
+    [viewDBSystemInfo, 1],
+    [createConnWithBastion, 2],
+    [startDBSystem, 3],
+    [restartDBSytem, 4],
+    [stopDBSytem, 5],
+    [deleteDBSystem, 6],
+    [createRouterEndpoint, 7],
+
+    // OCI BASTION
+    [getBastionInfo, 1],
+    [setAsCurrentBastion, 2],
+    [refreshBastion, 4],
+    [deleteBastion, 3],
+
+    // OPEN EDITORS
+    [openNewShellConsole, 1],
+    [newMySQLScript, 1],
+    [newJS, 2],
+    [newTS, 3],
+
+    // MISC
+    [openNotebookWithConn, 5],
+]);
+
