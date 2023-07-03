@@ -61,27 +61,20 @@ export default class AcceptShare extends Component<IAcceptShareProps, IAcceptSha
         try {
             // Share the note with the given user
             if (invitationKey !== undefined) {
-                const response = await (await doFetch({
+                await (await doFetch({
                     input: `/mrsNotes/noteAcceptShare`,
                     errorMsg: "Failed to accept the shared note.",
                     method: "PUT",
                     body: {
                         invitationKey,
                     },
-                })).json();
+                }));
 
-                if (response.items?.length > 0) {
-                    // Check if there was an error
-                    if (response.items[0].message !== undefined) {
-                        this.setState({ success: false, error: response.items[0].message });
-                    } else {
-                        // Indicate that the note has been shared
-                        this.setState({ success: true, error: undefined });
-                    }
-                }
+                // Indicate that the note has been shared
+                this.setState({ success: true, error: undefined });
             }
         } catch (e) {
-            showError(e);
+            this.setState({ success: false, error: String(e) });
         }
     };
 
@@ -102,7 +95,7 @@ export default class AcceptShare extends Component<IAcceptShareProps, IAcceptSha
             <InputForm headerIcon="pendingInvitationIcon" headerTitle="Accept Shared Note"
                 headerSubtitle="Please enter the invitation key."
                 successContent={successContent}
-                back={() => { void showPage("notes"); }} submit={ () => { void this.acceptSharedNote(); }}
+                back={() => { void showPage("notes"); }} submit={() => { void this.acceptSharedNote(); }}
                 success={success} error={error}
             >
                 <div className={style.formField}>

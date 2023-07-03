@@ -21,11 +21,15 @@ along with this program; if not, write to the Free Software Foundation, Inc.,
 
 # Introduction to the MySQL REST Service
 
+Welcome to the MySQL REST Service (MRS). It provides a fast and powerful way to serve data to client applications via a HTTPS REST interface.
+
+To start with a hands-on approach, see the [MRS Notes Example](#mrs-notes-examples) and follow the instructions for [Build and Deployment](#build-and-deployment) there.
+
 This section provides an overview of the MySQL REST Service and its features.
 
 ## About the MySQL REST Service
 
-The MySQL REST Service (MRS) offers HTTP REST access to selected MySQL schema objects. It is modelled after and supports a subset of the Oracle REST Data Services (ORDS).
+The MySQL REST Service (MRS) offers HTTPS REST access to selected MySQL schema objects. It is modelled after and supports a subset of the Oracle REST Data Services (ORDS).
 
 For more information, see [ORDS](https://docs.oracle.com/en/database/oracle/oracle-rest-data-services/22.2/orddg/introduction-to-Oracle-REST-Data-Services.html#GUID-A16BCCA2-8081-4062-A635-9F7C36FC394F/)
 

@@ -99,7 +99,7 @@ body {
     font-family: "Oracle Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     background-color: var(--background-color-main);
     color: var(--text-color-primary);
-    font-size: 16px;
+    font-size: 14px;
     font-weight: var(--font-weight);
     width: 100%;
     height: 100%;
@@ -118,8 +118,8 @@ body {
 }
 
 .header h1 {
-    font-size: 38.5px;
-    font-weight: 800;
+    font-size: 28px;
+    font-weight: 700;
     font-style: normal;
     font-stretch: normal;
     line-height: 1.25;
@@ -130,11 +130,11 @@ body {
     padding-bottom: 8px;
     max-width: 1296px;
     margin-top: 0px;
-    margin-bottom: 10px;
+    margin-bottom: 0px;
 }
 
 .header p {
-    font-size: 14px;
+    font-size: 13px;
     color: var(--text-color-title);
 }
 
@@ -196,9 +196,34 @@ td {
     color: var(--text-color-toc-title);
     font-size: 16px;
     font-weight: 700;
-    padding-top: 10px;
+    padding-bottom: 10px;
     margin-bottom: 0px;
     margin-top: 10px;
+}
+
+.section-nav h2 {
+    color: var(--text-color-toc-title);
+    font-size: 14px;
+    font-weight: 500;
+    padding-top: 0px;
+    margin-bottom: 0px;
+    margin-top: 0;
+    display: flex;
+    gap: 4px;
+}
+
+.section-nav h3 {
+    color: var(--text-color-toc-title);
+    font-size: 15px;
+    font-weight: 500;
+    padding-top: 0px;
+    margin-bottom: 0px;
+    margin-top: 0;
+}
+
+.section-nav p {
+    margin-top: 0px;
+    font-size: 13px;
 }
 
 .section-nav li.active>a {
@@ -276,27 +301,27 @@ dd {
 }
 
 h1 {
-    font-size: 33px;
+    font-size: 24px;
     font-weight: 400;
     margin-top: 45px;
 }
 
 h2 {
-    font-size: 26px;
+    font-size: 21px;
     font-weight: 400;
     margin-top: 40px;
 }
 
 h3 {
-    font-size: 21px;
+    font-size: 19px;
     font-weight: 400;
-    margin-top: 35px;
+    margin-top: 25px;
 }
 
 h4 {
-    font-size: 20px;
+    font-size: 17px;
     font-weight: 400;
-    margin-top: 25px;
+    margin-top: 20px;
 }
 
 p {
@@ -344,7 +369,7 @@ em {
 }
 
 strong em {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 600;
     font-style: normal;
     line-height: 2.8;
@@ -430,7 +455,7 @@ hr {
     height: 0;
     margin: 15px 0;
     border: 0;
-    border-top: 1px solid #ddd
+    border-top: 1px solid #aaa
 }
 
 address {
@@ -440,7 +465,7 @@ address {
 blockquote {
     padding-left: 15px;
     border-left: 5px solid #ddd;
-    font-size: 16px;
+    font-size: 13px;
     line-height: 22px;
     font-style: italic
 }
@@ -524,7 +549,7 @@ button {
     flex-direction: row;
     align-items: center;
     padding: 2px 10px;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 300;
     border-radius: 6px;
     border: none;
@@ -540,4 +565,15 @@ button {
 div .sourceCode {
     padding-top: 20px;
     padding-bottom: 20px;
+}
+
+.icon {
+    width: 16px;
+    height: 16px;
+    background-color: var(--text-color-link);
+}
+
+.bookIcon {
+    -webkit-mask-image: url(../images/book.svg);
+    mask-image: url(../images/book.svg);
 }

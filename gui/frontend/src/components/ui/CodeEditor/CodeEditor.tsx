@@ -643,11 +643,22 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
      *
      * @param code The code of the extra lib.
      * @param path A unique id or path to identify the extra lib.
+     *
+     * @returns The new version number of the lib
      */
-    public addOrUpdateExtraLib(code: string, path: string): void {
+    public addOrUpdateExtraLib(code: string, path: string): number {
         if (languages.typescript) {
             this.disposables.push(languages.typescript.typescriptDefaults.addExtraLib(code, path));
+
+            // Return the new version of the extra lib
+            const extraLibs = languages.typescript.typescriptDefaults.getExtraLibs();
+            const lib = extraLibs[path];
+            if (lib) {
+                return lib.version;
+            }
         }
+
+        return 0;
     }
 
     /**

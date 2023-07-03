@@ -120,7 +120,7 @@
 
 .notesListItemGutter {
 	width: 24px;
-	padding-left: 5px;
+	padding-left: 6px;
 }
 
 .notesListItemContent {
@@ -165,7 +165,9 @@
 }
 
 .notesListItemGutter .userIconStyle {
-	width: 14px;
-	height: 14px;
-	padding-top: 14px;
+	min-width: 16px;
+	min-height: 16px;
+	width: 16px;
+	height: 16px;
+	padding-top: 13px;
 }

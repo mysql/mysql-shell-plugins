@@ -124,7 +124,8 @@
         "webrootpath",
         "winx",
         "zstd",
-        "libcurl"
+        "libcurl",
+        "clipboardy"
     ],
     "ignorePaths": [
         "./.eslintrc.json"

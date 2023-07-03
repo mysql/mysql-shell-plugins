@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.-->
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MRS SDK Reference</title>
+    <link rel="shortcut icon" href="images/favicon.png" type="image/x-icon">
+        <link rel="stylesheet" href="style/style.css">
+                <!-- cSpell:ignore pagetitle -->
+    <title>MRS SDK Reference</title>
+    <style type="text/css">
+        code {
+            white-space: pre;
+        }
+    </style>
+        <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const observer = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    const id = entry.target.getAttribute('id');
+                    if (entry.intersectionRatio > 0) {
+                        const e = document.querySelector(`nav li a[href="#` + id + `"]`).parentElement;
+                        e.classList.add('active');
+                        if (e.scrollIntoViewIfNeeded !== undefined) {
+                            e.scrollIntoViewIfNeeded(true);
+                        } else {
+                            e.scrollIntoView(true);
+                        }
+                    } else {
+                        document.querySelector(`nav li a[href="#` + id + `"]`).parentElement.classList.remove('active');
+                    }
+                });
+            });
+            // Track all h that have an `id` applied
+            document.querySelectorAll('.content h1[id],h2[id],h3[id]').forEach((section) => {
+                observer.observe(section);
+            });
+
+            if (typeof acquireVsCodeApi === "function") {
+                document.vscode = acquireVsCodeApi();
+
+                const addVsCodeDecorations = () => {
+                    const addVsActionBtn = (e, command, caption) => {
+                        const d = document.createElement("button");
+
+                        d.innerHTML = '<i class="arrow right"></i><p>' + caption + '</p>';
+                        d.onclick = () => {
+                            document.vscode.postMessage({ command, path: e.innerHTML });
+                        }
+                        e.parentNode.insertBefore(d, e.nextSibling)
+                    }
+
+                    document.querySelectorAll("code").forEach((e) => {
+                        if (e.innerHTML.endsWith(".sql")) {
+                            addVsActionBtn(e, "openSqlFile", "Open in MySQL Shell");
+                        } else if (e.innerHTML.endsWith(".mrs.json")) {
+                            addVsActionBtn(e, "loadMrsDump", "Load MRS Dump");
+                        } else if (e.innerHTML.startsWith("VSCodeProject:") > 0) {
+                            e.innerHTML = e.innerHTML.slice("VSCodeProject:".length);
+                            addVsActionBtn(e, "saveProject", "Save Project");
+                        }
+                    });
+                }
+
+                addVsCodeDecorations();
+            } else {
+                document.querySelectorAll("code").forEach((e) => {
+                    if (e.innerHTML.startsWith("VSCodeProject:") > 0) {
+                        e.innerHTML = e.innerHTML.slice("VSCodeProject:".length);
+                    }
+                });
+            }
+        });
+
+        // Handle the message inside the webview
+        window.addEventListener('message', event => {
+
+            const message = event.data; // The JSON data our extension sent
+
+            switch (message.command) {
+                case 'goToId':
+                    if (message.id) {
+                        window.location = "#" + message.id;
+                    }
+
+                    break;
+            }
+        });
+    </script>
+</head>
+
+<body>
+    <div class="page">
+        <div class="sidebar">
+            <nav class="section-nav">
+                <h1>MRS Documentation</h1>
+                <h2>
+                    <div class="icon bookIcon"></div> <a href="index.html#document-top">MRS Developer's Guide</a>
+                </h2>
+                <h2>
+                    <div class="icon bookIcon"></div> <a href="sdk.html#document-top">MRS SDK Reference</a>
+                </h2>
+                <hr />
+                <h3>MRS SDK Reference</h3>
+                                <ul>
+                                <li><a
+                                href="#introduction-to-the-mrs-sdk"
+                                id="toc-introduction-to-the-mrs-sdk"><span
+                                class="toc-section-number">1</span>
+                                Introduction to the MRS SDK</a>
+                                <ul>
+                                <li><a href="#generation-of-sdk-files"
+                                id="toc-generation-of-sdk-files"><span
+                                class="toc-section-number">1.1</span>
+                                Generation of SDK Files</a></li>
+                                </ul></li>
+                                <li><a
+                                href="#typescript-client-api-reference"
+                                id="toc-typescript-client-api-reference"><span
+                                class="toc-section-number">2</span>
+                                TypeScript Client API Reference</a>
+                                <ul>
+                                <li><a href="#findunique"
+                                id="toc-findunique"><span
+                                class="toc-section-number">2.1</span>
+                                findUnique</a></li>
+                                <li><a href="#finduniqueorthrow"
+                                id="toc-finduniqueorthrow"><span
+                                class="toc-section-number">2.2</span>
+                                findUniqueOrThrow</a></li>
+                                </ul></li>
+                                </ul>
+                            </nav>
+        </div>
+        <div class="content">
+            <div class="header" id="document-top">
+                <p>MySQL REST Service - PREVIEW</p>
+                <h1>MRS SDK Reference</h1>
+            </div>
+            <div class="main">
+                <p>This document explains how to work with the MRS
+                Software Development Kit and discusses the Client
+                API.</p>
+                <p><strong>Chapter Overview</strong></p>
+                <ul>
+                <li><a href="#introduction-to-the-mrs-sdk">Introduction
+                to the MRS SDK</a></li>
+                <li><a
+                href="#typescript-client-api-reference">Typescript
+                Client API Reference</a></li>
+                </ul>
+                <hr />
+                <p>Please also see</p>
+                <ul>
+                <li><strong><a href="index.html">MySQL REST Service -
+                Developer’s Guide</a></strong> - This book explains how
+                to install and configure the MySQL REST Service (MRS) as
+                well as how to access the data through REST calls.</li>
+                </ul>
+                <hr />
+                <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+
+                This program is free software; you can redistribute it and/or modify
+                it under the terms of the GNU General Public License, version 2.0,
+                as published by the Free Software Foundation.
+
+                This program is also distributed with certain software (including
+                but not limited to OpenSSL) that is licensed under separate terms, as
+                designated in a particular file or component or in included license
+                documentation.  The authors of MySQL hereby grant you an additional
+                permission to link the program and your derivative works with the
+                separately licensed software that they have included with MySQL.
+                This program is distributed in the hope that it will be useful,  but
+                WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+                the GNU General Public License, version 2.0, for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program; if not, write to the Free Software Foundation, Inc.,
+                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+                <h1 data-number="1"
+                id="introduction-to-the-mrs-sdk"><span
+                class="header-section-number">1</span> Introduction to
+                the MRS SDK</h1>
+                <p>The MySQL REST Service offers a Software Development
+                Kit (SDK) that simplifies the process of writing client
+                applications and interacting with the REST service.</p>
+                <p>The SDK features a Client API that is specifically
+                generated for each MRS REST Service and therefore offers
+                the best possible support for each REST project.</p>
+                <p>Currently, support for TypeScript is available.
+                Support for other languages is planned.</p>
+                <h2 data-number="1.1" id="generation-of-sdk-files"><span
+                class="header-section-number">1.1</span> Generation of
+                SDK Files</h2>
+                <h3 data-number="1.1.1"
+                id="on-the-fly-generation-of-typescript-sdk"><span
+                class="header-section-number">1.1.1</span> On the Fly
+                Generation of TypeScript SDK</h3>
+                <p>The MySQL Shell for VS Code extension allows
+                interactive execution of TypeScript code inside a DB
+                Notebook. To make working with the MySQL REST Service
+                easier, the TypeScript SDK for the current REST Service
+                is made available directly within the DB Notebooks.</p>
+                <p>Whenever a REST DB Object has being edited the
+                TypeScript SDK is updated to allow instant prototyping
+                of REST queries using the Client API.</p>
+                <p>This allows for adjusting and fine tuning the REST DB
+                Objects until they exactly meet the developer’s
+                requirements and to prototype Client API calls for a
+                development project.</p>
+                <h3 data-number="1.1.2"
+                id="generating-the-sdk-files-for-a-development-project"><span
+                class="header-section-number">1.1.2</span> Generating
+                the SDK files for a Development Project</h3>
+                <p>To generate the SDK files for a development project,
+                right click on the MRS Service and select
+                <code>Export REST Service SDK Files ...</code>. This
+                will allow you to select a destination folder inside
+                your development project the files will be placed
+                in.</p>
+                <p>The following files will be placed in the selected
+                folder.</p>
+                <p><strong>TypeScript</strong></p>
+                <ul>
+                <li><code>MrsBaseClasses.ts</code> - A file that
+                contains the MRS base classes used by the Client
+                API</li>
+                <li><code>&lt;RestServiceName&gt;.ts</code> - The Client
+                API for the specific REST Service using the service’s
+                name.</li>
+                <li><code>config.json</code> - A configuration file used
+                for the SDK generation</li>
+                </ul>
+                <p>To start using the Client API import the
+                <code>&lt;RestServiceName&gt;.ts</code> file in your
+                project.</p>
+                <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+
+                This program is free software; you can redistribute it and/or modify
+                it under the terms of the GNU General Public License, version 2.0,
+                as published by the Free Software Foundation.
+
+                This program is also distributed with certain software (including
+                but not limited to OpenSSL) that is licensed under separate terms, as
+                designated in a particular file or component or in included license
+                documentation.  The authors of MySQL hereby grant you an additional
+                permission to link the program and your derivative works with the
+                separately licensed software that they have included with MySQL.
+                This program is distributed in the hope that it will be useful,  but
+                WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+                the GNU General Public License, version 2.0, for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program; if not, write to the Free Software Foundation, Inc.,
+                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+                <h1 data-number="2"
+                id="typescript-client-api-reference"><span
+                class="header-section-number">2</span> TypeScript Client
+                API Reference</h1>
+                <h2 data-number="2.1" id="findunique"><span
+                class="header-section-number">2.1</span> findUnique</h2>
+                <p><code>findUnique</code> is used to query a single,
+                uniquely identified record by</p>
+                <ul>
+                <li>Primary key column(s)</li>
+                <li>Unique column(s)</li>
+                </ul>
+                <p>If no record was found matching the given
+                <code>where</code> condition, <code>undefined</code> is
+                returned. To have an exception thrown in this case
+                please see <a
+                href="#finduniqueorthrow">findUniqueOrThrow</a>.</p>
+                <h3 data-number="2.1.1" id="options-findunique"><span
+                class="header-section-number">2.1.1</span> Options
+                (findUnique)</h3>
+                <table>
+                <colgroup>
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                </colgroup>
+                <thead>
+                <tr class="header">
+                <th>Name</th>
+                <th>Example</th>
+                <th>Required</th>
+                <th>Description</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="odd">
+                <td>where</td>
+                <td></td>
+                <td>Yes</td>
+                <td>Wraps all unique columns so that individual records
+                can be selected.</td>
+                </tr>
+                <tr class="even">
+                <td>select</td>
+                <td></td>
+                <td>No</td>
+                <td>Specifies which properties to include in the
+                returned object.</td>
+                </tr>
+                </tbody>
+                </table>
+                <h3 data-number="2.1.2"
+                id="return-type-findunique"><span
+                class="header-section-number">2.1.2</span> Return Type
+                (findUnique)</h3>
+                <p>A JSON object representing the found record or
+                <code>undefined</code> when the record was not
+                found.</p>
+                <h3 data-number="2.1.3" id="reference-findunique"><span
+                class="header-section-number">2.1.3</span> Reference
+                (findUnique)</h3>
+                <div class="sourceCode" id="cb1"><pre
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">interface</span> IFindUniqueOptions {</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    select<span class="op">?:</span> ResultFields<span class="op">&lt;</span>C<span class="op">&gt;</span> <span class="op">|</span> ColumnNames<span class="op">&lt;</span>C<span class="op">&gt;,</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    where<span class="op">:</span> DataFilter<span class="op">&lt;</span>T<span class="op">&gt;,</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <h3 data-number="2.1.4" id="example-findunique"><span
+                class="header-section-number">2.1.4</span> Example
+                (findUnique)</h3>
+                <p>Get the note with id 4.</p>
+                <div class="sourceCode" id="cb2"><pre
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> note <span class="op">=</span> <span class="cf">await</span> myService<span class="op">.</span><span class="at">mrsNotes</span><span class="op">.</span><span class="at">note</span><span class="op">.</span><span class="fu">findUnique</span>({ where<span class="op">:</span> { id<span class="op">:</span> <span class="dv">4</span>} })<span class="op">;</span></span></code></pre></div>
+                <h2 data-number="2.2" id="finduniqueorthrow"><span
+                class="header-section-number">2.2</span>
+                findUniqueOrThrow</h2>
+                <p><code>findUniqueOrThrow</code> retrieves a single
+                data record in the same way as <a
+                href="#findunique">findUnique</a>. However, if the query
+                does not find a record, it throws a
+                <code>NotFoundError</code>.</p>
+                <p><code>findUniqueOrThrow</code> differs from
+                <code>findUnique</code> as follows:</p>
+                <ul>
+                <li>Its return type is non-nullable. For example,
+                myService.mrsNotes.note.findUnique() can return a note
+                or undefined, but
+                myService.mrsNotes.note.findUniqueOrThrow() always
+                returns a note.</li>
+                </ul>
+                <p>Copyright (c) 2022, 2023, Oracle and/or its
+                affiliates.</p>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

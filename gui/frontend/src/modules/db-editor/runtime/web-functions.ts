@@ -49,3 +49,15 @@ export const mrsAuthenticate = (serviceUrl: string, authPath: string, authApp?: 
         },
     });
 };
+
+export const mrsEditDbObject = (dbObjectId: string): void => {
+    currentWorker.postMessage({
+        taskId: currentWorker.currentTaskId,
+        data: {
+            api: ScriptingApi.MrsEditDbObject,
+            dbObjectId,
+            contextId: currentWorker.currentContext,
+            final: true,
+        },
+    });
+};

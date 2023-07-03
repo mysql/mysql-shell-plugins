@@ -23,7 +23,11 @@
                     if (entry.intersectionRatio > 0) {
                         const e = document.querySelector(`nav li a[href="#` + id + `"]`).parentElement;
                         e.classList.add('active');
-                        e.scrollIntoViewIfNeeded(true);
+                        if (e.scrollIntoViewIfNeeded !== undefined) {
+                            e.scrollIntoViewIfNeeded(true);
+                        } else {
+                            e.scrollIntoView(true);
+                        }
                     } else {
                         document.querySelector(`nav li a[href="#` + id + `"]`).parentElement.classList.remove('active');
                     }
@@ -35,7 +39,7 @@
             });
 
             if (typeof acquireVsCodeApi === "function") {
-                const vscode = acquireVsCodeApi();
+                document.vscode = acquireVsCodeApi();
 
                 const addVsCodeDecorations = () => {
                     const addVsActionBtn = (e, command, caption) => {
@@ -43,7 +47,7 @@
 
                         d.innerHTML = '<i class="arrow right"></i><p>' + caption + '</p>';
                         d.onclick = () => {
-                            vscode.postMessage({ command, path: e.innerHTML });
+                            document.vscode.postMessage({ command, path: e.innerHTML });
                         }
                         e.parentNode.insertBefore(d, e.nextSibling)
                     }
@@ -53,13 +57,20 @@
                             addVsActionBtn(e, "openSqlFile", "Open in MySQL Shell");
                         } else if (e.innerHTML.endsWith(".mrs.json")) {
                             addVsActionBtn(e, "loadMrsDump", "Load MRS Dump");
-                        } else if (e.innerHTML.indexOf("app_code") > 0) {
+                        } else if (e.innerHTML.startsWith("VSCodeProject:") > 0) {
+                            e.innerHTML = e.innerHTML.slice("VSCodeProject:".length);
                             addVsActionBtn(e, "saveProject", "Save Project");
                         }
                     });
                 }
-                
+
                 addVsCodeDecorations();
+            } else {
+                document.querySelectorAll("code").forEach((e) => {
+                    if (e.innerHTML.startsWith("VSCodeProject:") > 0) {
+                        e.innerHTML = e.innerHTML.slice("VSCodeProject:".length);
+                    }
+                });
             }
         });
 
@@ -84,7 +95,15 @@
     <div class="page">
         <div class="sidebar">
             <nav class="section-nav">
-                <h1>MRS Docs - Table of Contents</h1>
+                <h1>MRS Documentation</h1>
+                <h2>
+                    <div class="icon bookIcon"></div> <a href="index.html#document-top">MRS Developer's Guide</a>
+                </h2>
+                <h2>
+                    <div class="icon bookIcon"></div> <a href="sdk.html#document-top">MRS SDK Reference</a>
+                </h2>
+                <hr />
+                <h3>MRS Developer's Guide</h3>
                                 <ul>
                                 <li><a
                                 href="#introduction-to-the-mysql-rest-service"
@@ -164,6 +183,12 @@
                                 id="toc-adding-a-database-object"><span
                                 class="toc-section-number">5.3</span>
                                 Adding a Database Object</a></li>
+                                <li><a
+                                href="#mysql-rest-object-dialog-reference"
+                                id="toc-mysql-rest-object-dialog-reference"><span
+                                class="toc-section-number">5.4</span>
+                                MySQL REST Object Dialog
+                                Reference</a></li>
                                 </ul></li>
                                 <li><a
                                 href="#working-with-mrs-restful-web-services"
@@ -226,13 +251,14 @@
                             </nav>
         </div>
         <div class="content">
-            <div class="header">
+            <div class="header" id="document-top">
                 <p>MySQL REST Service - PREVIEW</p>
                 <h1>MRS Developer's Guide</h1>
             </div>
             <div class="main">
-                <p>This document explains how to install and configure
-                the MySQL REST Service (MRS).</p>
+                <p>This book explains how to install and configure the
+                MySQL REST Service (MRS) as well as how to access the
+                data through REST calls.</p>
                 <p><strong>Chapter Overview</strong></p>
                 <ul>
                 <li><a
@@ -257,11 +283,15 @@
                 Examples</a></li>
                 </ul></li>
                 </ul>
-                <p>To start with a hands-on approach, see the <a
-                href="#mrs-notes-examples">MRS Notes Example</a> and
-                follow the instructions for <a
-                href="#build-and-deployment">Build and Deployment</a>
-                there.</p>
+                <hr />
+                <p>Please also see</p>
+                <ul>
+                <li><strong><a href="sdk.html">MySQL REST Service - SDK
+                Reference</a></strong> - This document explains how to
+                work with the MRS Software Development Kit and discusses
+                the Client APIs.</li>
+                </ul>
+                <hr />
                 <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
@@ -286,13 +316,21 @@
                 id="introduction-to-the-mysql-rest-service"><span
                 class="header-section-number">1</span> Introduction to
                 the MySQL REST Service</h1>
+                <p>Welcome to the MySQL REST Service (MRS). It provides
+                a fast and powerful way to serve data to client
+                applications via a HTTPS REST interface.</p>
+                <p>To start with a hands-on approach, see the <a
+                href="#mrs-notes-examples">MRS Notes Example</a> and
+                follow the instructions for <a
+                href="#build-and-deployment">Build and Deployment</a>
+                there.</p>
                 <p>This section provides an overview of the MySQL REST
                 Service and its features.</p>
                 <h2 data-number="1.1"
                 id="about-the-mysql-rest-service"><span
                 class="header-section-number">1.1</span> About the MySQL
                 REST Service</h2>
-                <p>The MySQL REST Service (MRS) offers HTTP REST access
+                <p>The MySQL REST Service (MRS) offers HTTPS REST access
                 to selected MySQL schema objects. It is modelled after
                 and supports a subset of the Oracle REST Data Services
                 (ORDS).</p>
@@ -924,12 +962,12 @@ router_id=16</code></pre>
                 example:</p>
                 <div class="sourceCode" id="cb9"><pre
                 class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">MySQL</span> <span class="op">&gt;</span> localhost:33060+ <span class="op">&gt;</span> Py <span class="op">&gt;</span> mrs.add.service<span class="er">(</span><span class="kw">)</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the context path for this service <span class="pp">[</span><span class="ss">/mrs</span><span class="pp">]</span>: /myservice</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the context path for this service [/mrs]: /myservice</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the host name for this service <span class="er">(</span><span class="ex">e.g.</span> None or localhost<span class="kw">)</span> <span class="ex">[None]:</span> </span>
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>   <span class="ex">1</span> HTTP</span>
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>   <span class="ex">2</span> HTTPS</span>
 <span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> select the protocol<span class="er">(</span><span class="ex">s</span><span class="kw">)</span> <span class="ex">the</span> service should support <span class="pp">[</span><span class="ss">HTTP,HTTPS</span><span class="pp">]</span>: 2</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> select the protocol<span class="er">(</span><span class="ex">s</span><span class="kw">)</span> <span class="ex">the</span> service should support [HTTP,HTTPS]: 2</span>
 <span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="ex">Comments:</span> </span>
 <span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>   <span class="ex">1</span> Default Service Options for Development</span>
 <span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>   <span class="ex">2</span> No options</span>
@@ -1263,8 +1301,8 @@ router_id=16</code></pre>
 <span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>   <span class="ex">8</span> mrs_notes</span>
 <span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the name or index of a schema: 4</span>
-<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the request path for this schema <span class="pp">[</span><span class="ss">/sakila</span><span class="pp">]</span>: /sakila</span>
-<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a><span class="ex">Should</span> the schema require authentication <span class="pp">[</span><span class="ss">y/N</span><span class="pp">]</span>: </span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the request path for this schema [/sakila]: /sakila</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a><span class="ex">Should</span> the schema require authentication [y/N]: </span>
 <span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a><span class="ex">How</span> many items should be listed per page [Schema Default]: </span>
 <span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a><span class="ex">Comments:</span> </span>
 <span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a><span class="ex">Options:</span> </span>
@@ -1347,10 +1385,14 @@ router_id=16</code></pre>
                 <ol type="1">
                 <li><p>Right-click on the database object in the
                 DATABASE CONNECTIONS view and select
-                <code>Add Database Object to REST Service</code> to open
-                dialog from which you set all REST schema
-                parameters.</p></li>
-                <li><p>Press <code>OK</code> to add the schema.</p></li>
+                <code>Add Database Object to REST Service</code>. This
+                will open the <a
+                href="#mysql-rest-object-dialog-reference">MySQL REST
+                Object dialog</a>.</p></li>
+                <li><p>Adjust all REST object settings
+                accordingly.</p></li>
+                <li><p>Press <code>OK</code> to add the database schema
+                object.</p></li>
                 </ol>
                 <figure>
                 <img src="sections/../images/vsc-mrs-add-db-object.png"
@@ -1377,7 +1419,7 @@ router_id=16</code></pre>
 <span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>   <span class="ex">2</span> VIEW</span>
 <span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>   <span class="ex">3</span> PROCEDURE</span>
 <span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the name or index of a database object type <span class="pp">[</span><span class="ss">TABLE</span><span class="pp">]</span>: </span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the name or index of a database object type [TABLE]: </span>
 <span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>   <span class="ex">1</span> actor</span>
 <span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>   <span class="ex">2</span> address</span>
 <span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>   <span class="ex">3</span> category</span>
@@ -1396,20 +1438,20 @@ router_id=16</code></pre>
 <span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a>  <span class="ex">16</span> store</span>
 <span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the name or index of an database object: 4</span>
-<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the request path for this object <span class="pp">[</span><span class="ss">/city</span><span class="pp">]</span>: </span>
+<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the request path for this object [/city]: </span>
 <span id="cb15-30"><a href="#cb15-30" aria-hidden="true" tabindex="-1"></a>   <span class="ex">1</span> CREATE</span>
 <span id="cb15-31"><a href="#cb15-31" aria-hidden="true" tabindex="-1"></a>   <span class="ex">2</span> READ</span>
 <span id="cb15-32"><a href="#cb15-32" aria-hidden="true" tabindex="-1"></a>   <span class="ex">3</span> UPDATE</span>
 <span id="cb15-33"><a href="#cb15-33" aria-hidden="true" tabindex="-1"></a>   <span class="ex">4</span> DELETE</span>
 <span id="cb15-34"><a href="#cb15-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-35"><a href="#cb15-35" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> select the CRUD operations that should be supported, <span class="st">&#39;*&#39;</span> for all <span class="pp">[</span><span class="ss">READ</span><span class="pp">]</span>: </span>
+<span id="cb15-35"><a href="#cb15-35" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> select the CRUD operations that should be supported, <span class="st">&#39;*&#39;</span> for all [READ]: </span>
 <span id="cb15-36"><a href="#cb15-36" aria-hidden="true" tabindex="-1"></a>   <span class="ex">1</span> FEED</span>
 <span id="cb15-37"><a href="#cb15-37" aria-hidden="true" tabindex="-1"></a>   <span class="ex">2</span> ITEM</span>
 <span id="cb15-38"><a href="#cb15-38" aria-hidden="true" tabindex="-1"></a>   <span class="ex">3</span> MEDIA</span>
 <span id="cb15-39"><a href="#cb15-39" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-40"><a href="#cb15-40" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> select the CRUD operation format <span class="pp">[</span><span class="ss">FEED</span><span class="pp">]</span>: </span>
-<span id="cb15-41"><a href="#cb15-41" aria-hidden="true" tabindex="-1"></a><span class="ex">Should</span> the db_object require authentication <span class="pp">[</span><span class="ss">y/N</span><span class="pp">]</span>: </span>
-<span id="cb15-42"><a href="#cb15-42" aria-hidden="true" tabindex="-1"></a><span class="ex">Should</span> row ownership be required when querying the object <span class="pp">[</span><span class="ss">y/N</span><span class="pp">]</span>: </span>
+<span id="cb15-40"><a href="#cb15-40" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> select the CRUD operation format [FEED]: </span>
+<span id="cb15-41"><a href="#cb15-41" aria-hidden="true" tabindex="-1"></a><span class="ex">Should</span> the db_object require authentication [y/N]: </span>
+<span id="cb15-42"><a href="#cb15-42" aria-hidden="true" tabindex="-1"></a><span class="ex">Should</span> row ownership be required when querying the object [y/N]: </span>
 <span id="cb15-43"><a href="#cb15-43" aria-hidden="true" tabindex="-1"></a><span class="ex">How</span> many items should be listed per page [Schema Default]: </span>
 <span id="cb15-44"><a href="#cb15-44" aria-hidden="true" tabindex="-1"></a><span class="ex">Comments:</span> </span>
 <span id="cb15-45"><a href="#cb15-45" aria-hidden="true" tabindex="-1"></a></span>
@@ -1419,6 +1461,46 @@ router_id=16</code></pre>
                 function.</p>
                 <div class="sourceCode" id="cb16"><pre
                 class="sourceCode js"><code class="sourceCode javascript"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>\<span class="op">?</span> mrs<span class="op">.</span><span class="at">add</span><span class="op">.</span><span class="at">dbObject</span></span></code></pre></div>
+                <h2 data-number="5.4"
+                id="mysql-rest-object-dialog-reference"><span
+                class="header-section-number">5.4</span> MySQL REST
+                Object Dialog Reference</h2>
+                <p>The MySQL REST Object dialog is used to design the
+                representation of a database schema object on the MySQL
+                REST Service.</p>
+                <p>The following aspects can be set through the
+                dialog.</p>
+                <ul>
+                <li>Basic
+                <ul>
+                <li>The database schema object that should be exposed
+                via MRS</li>
+                <li>The URL path of how to access the REST object</li>
+                </ul></li>
+                <li>Security
+                <ul>
+                <li>Whether the object is publicly available or requires
+                authentication</li>
+                <li>The CRUD operations that are allowed</li>
+                <li>The CRUD operations that are allowed on referenced
+                tables</li>
+                </ul></li>
+                <li>JSON/Relation Duality
+                <ul>
+                <li>Which columns of the database schema object should
+                be exposed and how they should be named</li>
+                <li>Which referenced tables should be included, either
+                nested or unnested or reduced to a single field</li>
+                </ul></li>
+                </ul>
+                <figure>
+                <img
+                src="sections/../images/vsc-mrs-json-relational-editor.png"
+                title="The MySQL REST Object Dialog"
+                alt="The MySQL REST Object Dialog" />
+                <figcaption aria-hidden="true">The MySQL REST Object
+                Dialog</figcaption>
+                </figure>
                 <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
@@ -2388,37 +2470,6 @@ Column context override
                 href="https://en.wikipedia.org/wiki/Progressive_web_app">Progressive
                 Web Apps (PWA)</a> to showcase the features offered by
                 MRS.</p>
-                <p><strong><em>MRS Example Project
-                structure</em></strong></p>
-                <p>Each MRS example project consists of three
-                components.</p>
-                <ol type="1">
-                <li>The MySQL database schema that will hold the
-                application data (<code>db_schema</code>).</li>
-                <li>The MRS schema dump that exposes selected database
-                objects of the applications MySQL database schema
-                (<code>mrs_schema</code>) via REST endpoints.</li>
-                <li>The Progressive Web App’s (PWA) application source
-                code (<code>app_code</code>) that makes REST calls
-                against the REST endpoints to implement the application
-                logic.</li>
-                </ol>
-                <p><strong><em>Build and Deploy a MRS Example
-                Project</em></strong></p>
-                <p>The following steps need to be taken to build and
-                deploy an MRS example on the MySQL REST Service.</p>
-                <ol type="1">
-                <li>Setup and Configure a MySQL REST Service
-                deployment.</li>
-                <li>Deploy the MySQL database schema.</li>
-                <li>Load the MRS schema dump.</li>
-                <li>Build the PWA app from the application’s source
-                code.</li>
-                <li>Upload the build folder to the MySQL REST
-                Service.</li>
-                </ol>
-                <p>After these steps have been performed the MRS Example
-                Project should be accessible from any web browser.</p>
                 <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
@@ -2480,49 +2531,33 @@ Column context override
                 and deploy the MRS Notes example project on the MySQL
                 REST Service.</p>
                 <ol type="1">
-                <li>Setup and Configure a MySQL REST Service
-                deployment.</li>
+                <li>Save the MRS Notes Example project to disk and open
+                it with VS Code
+                <code>VSCodeProject:examples/mrs_notes</code></li>
+                <li><a
+                href="#configuring-mysql-rest-service">Configure</a> the
+                MySQL REST Service.</li>
                 <li>Create a new MRS service
                 (e.g. <code>/myService</code>).</li>
-                <li>Deploy the mrsNotes MySQL database schema
+                <li>Deploy the mrs_notes MySQL database schema
                 <code>examples/mrs_notes/db_schema/mrs_notes.sql</code></li>
                 <li>Load the MRS schema dump into the MRS service
                 <code>examples/mrs_notes/mrs_schema/mrsNotes.mrs.json</code></li>
                 <li>Ensure a bootstrapped MySQL Router instance is
                 running (if not, start it).</li>
-                <li>Please select one of the example apps below and
-                follow the steps to build and deploy the app.</li>
+                <li>Build and deploy the app by following the steps
+                below.</li>
                 </ol>
                 <h4 data-number="7.1.2.1"
-                id="deploying-the-mrsnotesjs-javascript-example"><span
+                id="deploying-the-typescript-example"><span
                 class="header-section-number">7.1.2.1</span> Deploying
-                the MrsNotesJS JavaScript Example</h4>
-                <p>The MrsNotesJS project implements a minimal
-                JavaScript demo app that allows each user to store his
-                own notes.</p>
-                <ol type="1">
-                <li>Save the following project to disk and open it with
-                VS Code
-                <code>examples/mrs_notes/app_code/MrsNotesJS</code></li>
-                <li>Right click on the <code>src</code> folder in the
-                Folders view and select
-                <code>Upload Folder to MySQL REST Service</code> from
-                the popup menu.</li>
-                <li>Set the path the app should be using and click
-                <code>Upload</code> to upload the files.</li>
-                <li>Open a web browser and access the path specified in
-                the previous step to open the app.</li>
-                </ol>
-                <h4 data-number="7.1.2.2"
-                id="deploying-the-mrsnotests-typescript-example"><span
-                class="header-section-number">7.1.2.2</span> Deploying
-                the MrsNotesTS TypeScript Example</h4>
+                the TypeScript Example</h4>
                 <p>The MrsNotesTS project implements a full TypeScript
                 demo app that allows sharing of notes between users.</p>
                 <ol type="1">
-                <li>Save the following project to disk and open it with
-                VS Code
-                <code>examples/mrs_notes/app_code/MrsNotesTS</code></li>
+                <li>If you have not done so in the previous section,
+                save the following project to disk and open it with VS
+                Code <code>VSCodeProject:examples/mrs_notes</code></li>
                 <li>After the project folder has been opened in VS Code,
                 set the focus to the TERMINAL tab and enter
                 <code>npm install</code> to install the required node
@@ -2530,7 +2565,7 @@ Column context override
                 <li>In the NPM Script View, run the
                 <code>package.json/build</code> command that will create
                 a folder called <code>dist</code> that contains all
-                files for deployment.</li>
+                files needed for deployment.</li>
                 <li>Right click on the <code>dist</code> folder in the
                 Folders view and select
                 <code>Upload Folder to MySQL REST Service</code> from
@@ -2542,6 +2577,28 @@ Column context override
                 <li>Open a web browser and access the full path
                 specified in the previous step to open the app,
                 e.g. <code>https://localhost:8443/myService/app/index.html</code></li>
+                </ol>
+                <h4 data-number="7.1.2.2"
+                id="deploying-the-javascript-example"><span
+                class="header-section-number">7.1.2.2</span> Deploying
+                the JavaScript Example</h4>
+                <p>The MrsNotes project also ships with a minimal
+                JavaScript demo app that allows each user to store his
+                own notes.</p>
+                <ol type="1">
+                <li>If you have not done so in the previous section,
+                save the following project to disk and open it with VS
+                Code <code>VSCodeProject:examples/mrs_notes</code></li>
+                <li>Right click on the <code>js_app</code> folder in the
+                Folders view and select
+                <code>Upload Folder to MySQL REST Service</code> from
+                the popup menu.</li>
+                <li>Set the path the app should be using,
+                e.g. <code>/app_js</code> and click <code>Upload</code>
+                to upload the files.</li>
+                <li>Open a web browser and access the path specified in
+                the previous step to open the app,
+                e.g. <code>https://localhost:8443/myService/app_js/index.html</code></li>
                 </ol>
                 <h3 data-number="7.1.3"
                 id="mrs-setup-and-configuration-for-the-mrs-notes-examples"><span
@@ -2593,8 +2650,8 @@ Column context override
                 <p>The <code>user</code> table holds the nickname of the
                 user as well as the email address used for receiving
                 invitation emails for shared notes.</p>
-                <p>The <code>userHasNote</code> is used to managed the
-                sharing of notes with other users.</p>
+                <p>The <code>user_has_note</code> table is used to
+                managed the sharing of notes with other users.</p>
                 <p>As soon as selected notes need to be shareable
                 between users it is necessary to add an abstraction
                 layer. This layer then allows selective access to notes
@@ -2603,15 +2660,15 @@ Column context override
                 <p>In this case the layer consists of one VIEW and four
                 STORED PROCEDUREs.</p>
                 <ul>
-                <li>notesAll … a VIEW of all notes the user is allowed
+                <li>notes_all … a VIEW of all notes the user is allowed
                 to see.</li>
-                <li>noteShare … a STORED PROCEDURE to share a note with
+                <li>note_share … a STORED PROCEDURE to share a note with
                 another user.</li>
-                <li>noteAcceptShare … a STORED PROCEDURE to accept a
+                <li>note_accept_share … a STORED PROCEDURE to accept a
                 shared note.</li>
-                <li>noteUpdate … a STORED PROCEDURE to update a shared
+                <li>note_update … a STORED PROCEDURE to update a shared
                 note</li>
-                <li>noteDelete … a STORED PROCEDURE to delete a shared
+                <li>note_delete … a STORED PROCEDURE to delete a shared
                 note</li>
                 </ul>
                 <p>Copyright (c) 2022, 2023, Oracle and/or its

@@ -90,7 +90,8 @@
         "vite-plugin-monaco-editor": "1.1.0"
     },
     "overrides": {
-        "@babel/plugin-transform-class-properties": "7.22.3"
+        "@babel/plugin-transform-class-properties": "7.22.3",
+        "@jest/expect": "29.5.0"
     },
     "browserslist": [
         ">0.2%",

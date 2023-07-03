@@ -248,6 +248,7 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
 
             # Define the mappings
             mapping = {
+                "obj_id": lib.core.convert_id_to_string(db_obj.get("id")),
                 "obj_name": name,
                 "obj_class_name": class_name,
                 "obj_param_interface": obj_param_interface,
@@ -506,7 +507,7 @@ def generate_interfaces(db_obj, obj, fields, class_name, sdk_language, session):
             f"export interface I{class_name}{params} extends IMrsFetchData {{\n" +
             "".join(param_interface_fields) +
             "}\n\n")
-    else:
+    elif obj.get("kind") == "PARAMETERS":
         params = "Params" if obj.get("kind") != "PARAMETERS" else ""
         obj_interfaces.append(
             f"export interface I{class_name}{params} extends IMrsFetchData {{\n" +

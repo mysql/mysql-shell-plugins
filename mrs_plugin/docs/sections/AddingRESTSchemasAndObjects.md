@@ -116,9 +116,11 @@ It is possible to add MySQL database schema objects (tables, views, and stored p
 
 To add a database schema object to a REST schema:
 
-1. Right-click on the database object in the DATABASE CONNECTIONS view and select `Add Database Object to REST Service` to open dialog from which you set all REST schema parameters.
+1. Right-click on the database object in the DATABASE CONNECTIONS view and select `Add Database Object to REST Service`. This will open the [MySQL REST Object dialog](#mysql-rest-object-dialog-reference).
 
-2. Press `OK` to add the schema.
+2. Adjust all REST object settings accordingly.
+
+3. Press `OK` to add the database schema object.
 
 ![Adding a Database Object](../images/vsc-mrs-add-db-object.png "Adding a Database Object")
 
@@ -182,3 +184,22 @@ Execute the following command to get detailed help information about the `mrs.ad
 ```js
 \? mrs.add.dbObject
 ```
+
+## MySQL REST Object Dialog Reference
+
+The MySQL REST Object dialog is used to design the representation of a database schema object on the MySQL REST Service.
+
+The following aspects can be set through the dialog.
+
+- Basic
+  - The database schema object that should be exposed via MRS
+  - The URL path of how to access the REST object
+- Security
+  - Whether the object is publicly available or requires authentication
+  - The CRUD operations that are allowed
+  - The CRUD operations that are allowed on referenced tables
+- JSON/Relation Duality
+  - Which columns of the database schema object should be exposed and how they should be named
+  - Which referenced tables should be included, either nested or unnested or reduced to a single field
+
+![The MySQL REST Object Dialog](../images/vsc-mrs-json-relational-editor.png "The MySQL REST Object Dialog")

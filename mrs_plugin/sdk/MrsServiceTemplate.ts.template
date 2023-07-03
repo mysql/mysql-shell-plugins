@@ -5,9 +5,14 @@
 /* eslint-disable max-classes-per-file */
 /* eslint-disable padding-line-between-statements */
 /* eslint-disable no-underscore-dangle */
+/* eslint-disable padded-blocks */
+/* eslint-disable no-trailing-spaces */
+/* eslint-disable @typescript-eslint/lines-between-class-members */
+/* eslint-disable @typescript-eslint/promise-function-async */
+/* eslint-disable no-multiple-empty-lines */
 
 import {
-    MrsBaseService, MrsBaseSchema, MrsBaseObjectQuery, IMrsBaseObject,
+    NotFoundError, MrsBaseService, MrsBaseSchema, MrsBaseObjectQuery, IMrsBaseObject,
     IMrsResultList, IMrsProcedureResultList, IMrsProcedureResult, MrsBaseObjectUpdate,
     MrsBaseObjectCall, IMrsFetchData,
     MrsBaseObjectCreate, IMrsDeleteResult, MrsBaseObjectDelete,
@@ -23,6 +28,12 @@ import {
  * @param userName The optional name of the user
  */
 declare function mrsAuthenticate(serviceUrl: string, authPath: string, authApp?: string, userName?: string): void;
+/**
+ * Triggers the interactive MRS authentication process.
+ *
+ * @param dbObjectId The id of the DB Object to edit
+ */
+declare function mrsEditDbObject(dbObjectId: string): void;
 // --- MySQL Shell for VS Code Extension Only --- End
 /* =============================================================================
  * MRS Service ${service_host_ctx}
@@ -148,9 +159,9 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
             this.schema, ${obj_class_name}Request.#requestPath, args?.select)
             .where(args?.where).orderBy(args?.orderBy).limit(args?.take).offset(args?.skip);
         let response;
-        if (args?.fetchAll && typeof args?.fetchAll === "boolean" && args?.fetchAll === true) {
+        if (args?.fetchAll !== undefined && typeof args?.fetchAll === "boolean" && args?.fetchAll) {
             response = await request.fetchAll();
-        } else if (args?.fetchAll && typeof args?.fetchAll !== "boolean") {
+        } else if (args?.fetchAll !== undefined && typeof args?.fetchAll !== "boolean") {
             response = await request.fetchAll(args?.fetchAll?.pageSize, args?.fetchAll?.progress);
         } else {
             response = await request.fetch();
@@ -174,17 +185,26 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
 
         return response;
     };
+    public findUniqueOrThrow = async (args?: IFindUniqueOptions<I${obj_class_name}, I${obj_class_name}UniqueParams>): Promise<I${obj_class_name}> => {
+        const response = await this.findUnique(args);
+
+        if (response === undefined) {
+            throw new NotFoundError(`Record not found.`);
+        }
+
+        return response;
+    };
     // --- crudReadUniqueOnlyEnd
 
     // --- crudUpdateOnlyStart
-    public update = async (args: IUpdateOptions<I${obj_class_name}Params, [${obj_quoted_pk_list}], { batch: false }>): Promise<I${obj_class_name}> => {
+    public update = async (args: IUpdateOptions<I${obj_class_name}, I${obj_class_name}Params, [${obj_quoted_pk_list}], { batch: false }>): Promise<I${obj_class_name}> => {
         const response = await this.rest.put(args.data, [${obj_string_args_where_pk_list}])
             .fetch();
 
         return response;
     };
 
-    public updateMany = async (args: IUpdateOptions<I${obj_class_name}Params, [${obj_quoted_pk_list}], { batch: true }>): Promise<I${obj_class_name}[]> => {
+    public updateMany = async (args: IUpdateOptions<I${obj_class_name}, I${obj_class_name}Params, [${obj_quoted_pk_list}], { batch: true }>): Promise<I${obj_class_name}[]> => {
         const result: I${obj_class_name}[] = [];
 
         for (const { ${obj_pk_list} } of args.where) {
@@ -217,6 +237,12 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
         return response;
     };
     // --- crudDeleteOnlyEnd
+
+// --- MySQL Shell for VS Code Extension Only --- Begin
+    public edit = (): void => {
+        mrsEditDbObject("${obj_id}");
+    }
+// --- MySQL Shell for VS Code Extension Only --- End
 }
 
 ${obj_interfaces}

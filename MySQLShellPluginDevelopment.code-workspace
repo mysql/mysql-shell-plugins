@@ -21,8 +21,8 @@
             "path": "mrs_plugin"
         },
         {
-            "name": "MRS Examples Notes TS",
-            "path": "mrs_plugin/examples/mrs_notes/app_code/MrsNotesTS"
+            "name": "MRS Notes Example",
+            "path": "mrs_plugin/examples/mrs_notes"
         },
         {
             "name": "Shell Plugin Tools",

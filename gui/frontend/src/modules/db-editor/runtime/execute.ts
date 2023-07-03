@@ -59,7 +59,7 @@ export const execute = async (worker: PrivateWorker, code: string): Promise<unkn
     const { print } = await import("./simple-functions");
 
     const { webFetch: fetch } = await import("./web-functions");
-    const { mrsAuthenticate } = await import("./web-functions");
+    const { mrsAuthenticate, mrsEditDbObject } = await import("./web-functions");
 
     // eslint-disable-next-line @typescript-eslint/naming-convention
     const { GraphProxy: Graph } = await import("./GraphProxy");

@@ -60,7 +60,7 @@ export default class Share extends Component<IShareProps, IShareState> {
     }
 
     private readonly shareNote = async (): Promise<void> => {
-        const { doFetch, showError, activeNote } = this.props;
+        const { doFetch, activeNote } = this.props;
         const { email, viewOnly, canShare } = this.state;
 
         try {
@@ -79,21 +79,14 @@ export default class Share extends Component<IShareProps, IShareState> {
                 })).json();
 
                 if (response.items?.length > 0) {
-                    // Check if there was an error
-                    if (response.items[0].message !== undefined && response.items[0].message !== "") {
-                        this.setState({
-                            success: false, invitationKey: undefined, error: response.items[0].message,
-                        });
-                    } else {
-                        // Indicate that the note has been shared
-                        this.setState({
-                            success: true, invitationKey: response.items[0].invitationKey, error: undefined,
-                        });
-                    }
+                    // Indicate that the note has been shared
+                    this.setState({
+                        success: true, invitationKey: response.items[0].invitationKey, error: undefined,
+                    });
                 }
             }
         } catch (e) {
-            showError(e);
+            this.setState({ success: false, invitationKey: undefined, error: String(e) });
         }
     };
 
@@ -118,7 +111,7 @@ export default class Share extends Component<IShareProps, IShareState> {
             <InputForm headerIcon="shareIcon" headerTitle="Share Note"
                 headerSubtitle="Please enter the email of the user you want to share the note with."
                 successContent={successContent} back={() => { void showPage("notes"); }}
-                submit={ () => { void this.shareNote(); }}
+                submit={() => { void this.shareNote(); }}
                 success={success} error={error}
             >
                 <div className={style.formField}>
