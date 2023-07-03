@@ -36,7 +36,7 @@ import {
 } from ".";
 import { ScriptEditor } from "./ScriptEditor";
 import { IScriptExecutionOptions } from "../../components/ui/CodeEditor";
-import { appParameters, requisitions } from "../../supplement/Requisitions";
+import { IMrsDbObjectEditRequest, appParameters, requisitions } from "../../supplement/Requisitions";
 import { IConsoleWorkerResultData, ScriptingApi } from "./console.worker-types";
 import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool";
 import { ScriptingLanguageServices } from "../../script-execution/ScriptingLanguageServices";
@@ -236,7 +236,6 @@ interface IMrsServiceSdkMetadata {
     baseClasses?: string,
     code?: string,
     codeLineCount?: number;
-    typeDefinitions?: string,
     schemaId?: string,
     schemaMetadataVersion?: string,
 }
@@ -1400,21 +1399,18 @@ Execute \\help or \\? for help;`;
                             await backend.mrs.getSdkServiceClasses(serviceMetadata.id, "TypeScript", true);
 
                         // Update this.cachedMrsServiceSdk
-                        this.cachedMrsServiceSdk = {
-                            code,
-                            codeLineCount: (code.match(/\n/gm) || []).length,
-                            typeDefinitions: code,
-                            schemaId: serviceMetadata.id,
-                            schemaMetadataVersion: serviceMetadata.metadataVersion,
-                        };
+                        this.cachedMrsServiceSdk.code = code;
+                        this.cachedMrsServiceSdk.codeLineCount = (code.match(/\n/gm) ?? []).length;
+                        this.cachedMrsServiceSdk.schemaId = serviceMetadata.id;
+                        this.cachedMrsServiceSdk.schemaMetadataVersion = serviceMetadata.metadataVersion;
 
-                        this.notebookRef.current?.addOrUpdateExtraLib(code,
-                            `file:///node_modules/@types/mrsServiceSdk.d.ts`);
+                        const libVersionNotebook = this.notebookRef.current?.addOrUpdateExtraLib(code,
+                            `mrsServiceSdk.d.ts`) ?? 0;
                         this.scriptRef.current?.addOrUpdateExtraLib(code,
-                            `file:///node_modules/@types/mrsServiceSdk.d.ts`);
+                            `mrsServiceSdk.d.ts`);
 
-                        void updateStatusbar(`MRS SDK for ${serviceMetadata.hostCtx} has been ` +
-                            `${firstLoad ? "loaded" : "refreshed"}.`, 5000);
+                        const action = firstLoad ? "loaded" : ("refreshed (v" + String(libVersionNotebook) + ")");
+                        void updateStatusbar(`MRS SDK for ${serviceMetadata.hostCtx} has been ${action}.`, 5000);
                     } else {
                         void updateStatusbar();
                     }
@@ -1431,8 +1427,6 @@ Execute \\help or \\? for help;`;
                 void updateStatusbar(`MRS SDK Error: ${String(e)}`);
 
                 return false;
-            } finally {
-                void updateStatusbar();
             }
         } else {
             return false;
@@ -1860,6 +1854,22 @@ Execute \\help or \\? for help;`;
                         },
                     };
                     void requisitions.execute("requestMrsAuthentication", passwordRequest);
+
+                    break;
+                }
+
+                case ScriptingApi.MrsEditDbObject: {
+                    if (backend && data.dbObjectId && typeof data.dbObjectId === "string") {
+                        const dbObject = await backend.mrs.getDbObject(data.dbObjectId);
+                        if (dbObject !== undefined) {
+                            const editRequest: IMrsDbObjectEditRequest = {
+                                dbObject,
+                                createObject: false,
+                            };
+                            void requisitions.execute("showMrsDbObjectDialog", editRequest);
+                        }
+
+                    }
 
                     break;
                 }

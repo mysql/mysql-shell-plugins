@@ -1,6 +1,6 @@
 {
     "mrsConnectionUri": "mysql://dba@localhost:3306",
-    "serviceId": "0x24235",
+    "servicePath": "/myService",
     "generationDate": "2023-02-17 13:45:12",
     "version": 1,
     "header": [

@@ -43,32 +43,33 @@ To quickly get the MRS Notes Examples working, please feel free to follow this g
 
 The following steps need to be taken to setup, build and deploy the MRS Notes example project on the MySQL REST Service.
 
-1. Setup and Configure a MySQL REST Service deployment.
-2. Create a new MRS service (e.g. `/myService`).
-3. Deploy the mrsNotes MySQL database schema `examples/mrs_notes/db_schema/mrs_notes.sql`
-4. Load the MRS schema dump into the MRS service `examples/mrs_notes/mrs_schema/mrsNotes.mrs.json`
-5. Ensure a bootstrapped MySQL Router instance is running (if not, start it).
-6. Please select one of the example apps below and follow the steps to build and deploy the app.
+1. Save the MRS Notes Example project to disk and open it with VS Code `VSCodeProject:examples/mrs_notes`
+2. [Configure](#configuring-mysql-rest-service) the MySQL REST Service.
+3. Create a new MRS service (e.g. `/myService`).
+4. Deploy the mrs_notes MySQL database schema `examples/mrs_notes/db_schema/mrs_notes.sql`
+5. Load the MRS schema dump into the MRS service `examples/mrs_notes/mrs_schema/mrsNotes.mrs.json`
+6. Ensure a bootstrapped MySQL Router instance is running (if not, start it).
+7. Build and deploy the app by following the steps below.
 
-#### Deploying the MrsNotesJS JavaScript Example
-
-The MrsNotesJS project implements a minimal JavaScript demo app that allows each user to store his own notes.
-
-1. Save the following project to disk and open it with VS Code `examples/mrs_notes/app_code/MrsNotesJS`
-2. Right click on the `src` folder in the Folders view and select `Upload Folder to MySQL REST Service` from the popup menu.
-3. Set the path the app should be using and click `Upload` to upload the files.
-4. Open a web browser and access the path specified in the previous step to open the app.
-
-#### Deploying the MrsNotesTS TypeScript Example
+#### Deploying the TypeScript Example
 
 The MrsNotesTS project implements a full TypeScript demo app that allows sharing of notes between users.
 
-1. Save the following project to disk and open it with VS Code `examples/mrs_notes/app_code/MrsNotesTS`
+1. If you have not done so in the previous section, save the following project to disk and open it with VS Code `VSCodeProject:examples/mrs_notes`
 2. After the project folder has been opened in VS Code, set the focus to the TERMINAL tab and enter `npm install` to install the required node modules
-3. In the NPM Script View, run the `package.json/build` command that will create a folder called `dist` that contains all files for deployment.
+3. In the NPM Script View, run the `package.json/build` command that will create a folder called `dist` that contains all files needed for deployment.
 4. Right click on the `dist` folder in the Folders view and select `Upload Folder to MySQL REST Service` from the popup menu.
 5. In the MRS Static Content Set dialog set the `Request Path` the app should be using, e.g. `/app` and click `Upload` to upload the files to the MRS service.
 6. Open a web browser and access the full path specified in the previous step to open the app, e.g. `https://localhost:8443/myService/app/index.html`
+
+#### Deploying the JavaScript Example
+
+The MrsNotes project also ships with a minimal JavaScript demo app that allows each user to store his own notes.
+
+1. If you have not done so in the previous section, save the following project to disk and open it with VS Code `VSCodeProject:examples/mrs_notes`
+2. Right click on the `js_app` folder in the Folders view and select `Upload Folder to MySQL REST Service` from the popup menu.
+3. Set the path the app should be using, e.g. `/app_js` and click `Upload` to upload the files.
+4. Open a web browser and access the path specified in the previous step to open the app, e.g. `https://localhost:8443/myService/app_js/index.html`
 
 ### MRS Setup and Configuration for the MRS Notes Examples
 
@@ -97,7 +98,7 @@ The most important database table is the `note` table. It stores all notes that 
 
 The `user` table holds the nickname of the user as well as the email address used for receiving invitation emails for shared notes.
 
-The `userHasNote` is used to managed the sharing of notes with other users.
+The `user_has_note` table is used to managed the sharing of notes with other users.
 
 As soon as selected notes need to be shareable between users it is necessary to add an
 abstraction layer. This layer then allows selective access to notes written by other users
@@ -105,8 +106,8 @@ after they accepted the invitation to participate on the shared note.
 
 In this case the layer consists of one VIEW and four STORED PROCEDUREs.
 
-- notesAll … a VIEW of all notes the user is allowed to see.
-- noteShare … a STORED PROCEDURE to share a note with another user.
-- noteAcceptShare … a STORED PROCEDURE to accept a shared note.
-- noteUpdate ... a STORED PROCEDURE to update a shared note
-- noteDelete ... a STORED PROCEDURE to delete a shared note
+- notes_all … a VIEW of all notes the user is allowed to see.
+- note_share … a STORED PROCEDURE to share a note with another user.
+- note_accept_share … a STORED PROCEDURE to accept a shared note.
+- note_update ... a STORED PROCEDURE to update a shared note
+- note_delete ... a STORED PROCEDURE to delete a shared note

@@ -367,3 +367,10 @@ declare class PieGraph {
  * @param userName The name of the user
  */
 declare function mrsAuthenticate(serviceUrl: string, authApp?: string, userName?: string): void;
+
+/**
+ * Triggers the interactive MRS authentication process.
+ *
+ * @param dbObjectId The id of the DB Object to edit
+ */
+declare function mrsEditDbObject(dbObjectId: string): void;

@@ -132,13 +132,18 @@ export class App extends Component<{}, IAppState> {
                 window.alert("Your current session expired. You will be logged in again.");
 
                 void this.startLogin(authApp);
+            }
+
+            let errorInfo;
+            try {
+                errorInfo = await response.json();
+            } catch (e) {
+                throw new Error(`${response.status}. ${errorMsg} (${response.statusText})`);
+            }
+            // If there is a message, throw with that message
+            if (typeof errorInfo.message === "string") {
+                throw new Error(errorInfo.message)
             } else {
-                let errorInfo = null;
-                try {
-                    errorInfo = await response.json();
-                } catch (e) {
-                    // Ignore the exception
-                }
                 throw new Error(`${response.status}. ${errorMsg} (${response.statusText})` +
                     `${(errorInfo !== undefined) ? ("\n\n" + JSON.stringify(errorInfo, null, 4) + "\n") : ""}`);
             }

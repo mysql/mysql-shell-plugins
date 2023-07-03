@@ -61,6 +61,7 @@ import { MrsDbObjectTreeItem } from "./tree-providers/ConnectionsTreeProvider/Mr
 import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
 import { IMrsDbObjectData } from "../../frontend/src/communication/ProtocolMrs";
 import { showMessageWithTimeout } from "./utilities";
+import { snakeToCamelCase } from "../../frontend/src/utilities/string-helpers";
 
 /** A class to handle all DB editor related commands and jobs. */
 export class DBEditorCommandHandler {
@@ -622,7 +623,7 @@ export class DBEditorCommandHandler {
             id: "",
             name: item.name,
             objectType,
-            requestPath: `/${item.name}`,
+            requestPath: `/${snakeToCamelCase(item.name)}`,
             requiresAuth: 1,
             rowUserOwnershipEnforced: 0,
             serviceId: "",
@@ -677,7 +678,7 @@ export class DBEditorCommandHandler {
                     "Yes", "No");
                 if (answer === "Yes") {
                     dbObject.dbSchemaId = await backend.mrs.addSchema(service.id,
-                        item.schema, `/${item.schema}`, false, null, null, undefined);
+                        item.schema, `/${snakeToCamelCase(item.schema)}`, false, null, null, undefined);
 
                     void commands.executeCommand("msg.refreshConnections");
                     showMessageWithTimeout(`The MRS schema ${item.schema} has been added successfully.`, 5000);

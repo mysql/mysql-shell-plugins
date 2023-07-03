@@ -43,6 +43,7 @@ import { IMrsUserDialogData, MrsUserDialog } from "./dialogs/MrsUserDialog";
 import { IMrsServiceDialogData, MrsServiceDialog } from "./dialogs/MrsServiceDialog";
 import { uuid } from "../../utilities/helpers";
 import { DialogHost } from "../../app-logic/DialogHost";
+import { snakeToCamelCase } from "../../utilities/string-helpers";
 
 type DialogConstructor = new (props: {}) => AwaitableValueEditDialog;
 
@@ -330,7 +331,7 @@ export class MrsHub extends ComponentBase {
                 values: {
                     serviceId: schema?.serviceId,
                     name: schema?.name ?? schemaName,
-                    requestPath: schema?.requestPath ?? `/${schemaName ?? ""}`,
+                    requestPath: schema?.requestPath ?? `/${snakeToCamelCase(schemaName ?? "schema")}`,
                     requiresAuth: schema?.requiresAuth === 1,
                     enabled: !schema || schema.enabled === 1,
                     itemsPerPage: schema?.itemsPerPage,
@@ -839,6 +840,8 @@ export class MrsHub extends ComponentBase {
      * @param authApp If the user is not assigned, the authApp must be available, so that we can create
      * @param user If not assigned then a new user must be created otherwise this contains the existing values.
      * a new authApp for this service.
+     *
+     * @returns true if the dialog was closed correctly
      */
     public showMrsUserDialog = async (backend: ShellInterfaceSqlEditor,
         authApp: IMrsAuthAppData, user?: IMrsUserData): Promise<boolean> => {

@@ -287,8 +287,8 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
         );
     }
 
-    public addOrUpdateExtraLib(content: string, filePath: string): void {
-        this.editorRef.current?.addOrUpdateExtraLib(content, filePath);
+    public addOrUpdateExtraLib(content: string, filePath: string): number {
+        return this.editorRef.current?.addOrUpdateExtraLib(content, filePath) ?? 0;
     }
 
     /**

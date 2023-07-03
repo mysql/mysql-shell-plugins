@@ -53,6 +53,7 @@ import { DBEditorModuleId } from "../../frontend/src/modules/ModuleInfo";
 
 export class MRSCommandHandler {
     #docsWebviewPanel?: WebviewPanel;
+    #docsCurrentFile?: string;
     #host: ExtensionHost;
 
     public setup = (host: ExtensionHost): void => {
@@ -94,6 +95,13 @@ export class MRSCommandHandler {
                     term.sendText("taskkill /IM mysqlrouter.exe /F", true);
                 } else {
                     term.sendText("killall -9 mysqlrouter", true);
+                }
+
+                // Make sure to remove the .pid file
+                try {
+                    fs.unlinkSync(path.join(this.getLocalRouterConfigDir(), "mysqlrouter.pid"));
+                } catch (error) {
+                    //
                 }
             }));
 
@@ -261,8 +269,11 @@ export class MRSCommandHandler {
                         if (services.length > 0) {
                             void provider.runCommand("job", [
                                 { requestType: "showModule", parameter: DBEditorModuleId },
-                                { requestType: "showPage", parameter: {
-                                    module: DBEditorModuleId, page: connectionId } },
+                                {
+                                    requestType: "showPage", parameter: {
+                                        module: DBEditorModuleId, page: connectionId,
+                                    },
+                                },
                                 {
                                     requestType: "showMrsSchemaDialog",
                                     parameter: { schemaName: item.schema },
@@ -321,7 +332,7 @@ export class MRSCommandHandler {
                     const backend = item.entry.backend;
 
                     const accepted = await showModalDialog(
-                        `Are you sure you want to delete the DB Object ${item.value.name}?`,
+                        `Are you sure you want to delete the REST DB Object ${item.value.name}?`,
                         "Delete DB Object",
                         "This operation cannot be reverted!");
 
@@ -331,9 +342,9 @@ export class MRSCommandHandler {
 
                             // TODO: refresh only the affected connection.
                             void commands.executeCommand("msg.refreshConnections");
-                            showMessageWithTimeout(`The DB Object ${item.value.name} has been deleted.`);
+                            showMessageWithTimeout(`The REST DB Object ${item.value.name} has been deleted.`);
                         } catch (reason) {
-                            void window.showErrorMessage(`Error deleting the DB Object: ${String(reason)}`);
+                            void window.showErrorMessage(`Error deleting the REST DB Object: ${String(reason)}`);
                         }
                     }
                 }
@@ -486,6 +497,16 @@ export class MRSCommandHandler {
                                 },
                             ], "newConnection");
                         }
+                    }
+                }
+            }));
+
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.rebuildMrsSdk",
+            async (directory?: Uri) => {
+                if (directory) {
+                    const connection = await host.determineConnection(DBType.MySQL);
+                    if (connection) {
+                        void window.showErrorMessage("Not yet implemented.");
                     }
                 }
             }));
@@ -828,9 +849,9 @@ export class MRSCommandHandler {
 
                 let routerConfigDir: string;
                 if (os.platform() === "win32") {
-                    routerConfigDir = path.join(os.homedir(), "AppData", "Roaming", "MySQL", "mysqlrouter");
+                    routerConfigDir = path.join(this.getBaseDir(), "mysqlrouter");
                 } else {
-                    routerConfigDir = path.join(os.homedir(), ".mysqlrouter");
+                    routerConfigDir = path.join(this.getBaseDir(), ".mysqlrouter");
                 }
 
                 if (fs.existsSync(routerConfigDir)) {
@@ -921,16 +942,30 @@ export class MRSCommandHandler {
         }
     };
 
+    private getBaseDir = (): string => {
+        if (os.platform() !== "win32") {
+            return os.homedir();
+        }
+
+        return path.join(os.homedir(), "AppData", "Roaming", "MySQL");
+    };
+
+    private getLocalRouterConfigDir = (): string => {
+        let routerConfigDir: string;
+        if (os.platform() === "win32") {
+            routerConfigDir = path.join(this.getBaseDir(), "mysqlrouter");
+        } else {
+            routerConfigDir = path.join(this.getBaseDir(), ".mysqlrouter");
+        }
+
+        return routerConfigDir;
+    };
+
     private startStopLocalRouter = async (context: ExtensionContext,
         item?: MrsTreeItem, start = true): Promise<void> => {
         if (item) {
             if (findExecutable("mysqlrouter")) {
-                let routerConfigDir: string;
-                if (os.platform() === "win32") {
-                    routerConfigDir = path.join(os.homedir(), "AppData", "Roaming", "MySQL", "mysqlrouter");
-                } else {
-                    routerConfigDir = path.join(os.homedir(), ".mysqlrouter");
-                }
+                const routerConfigDir = this.getLocalRouterConfigDir();
 
                 if (fs.existsSync(routerConfigDir)) {
                     let term = window.terminals.find((t) => { return t.name === "MySQL Router MRS"; });
@@ -944,19 +979,6 @@ export class MRSCommandHandler {
 
                         if (cmd.includes(" ")) {
                             if (os.platform() === "win32") {
-                                if (start) {
-                                    // Fix for broken mysqlrouter_bootstrap file generation for start.ps1
-                                    const buffer = fs.readFileSync(cmd, { encoding: "utf8", flag: "r" });
-                                    const regex = /"\s*-c (.*?)"/gm;
-                                    const matches = Array.from(buffer.matchAll(regex), (m) => {
-                                        return m[1];
-                                    });
-                                    if (matches.length > 0) {
-                                        const newParam = `'-c "${matches[0]}"'`;
-                                        const result = buffer.replace(regex, newParam);
-                                        fs.writeFileSync(cmd, result, { encoding: "utf8" });
-                                    }
-                                }
 
                                 // If there is a space in the path, ensure to add the PowerShell call operator (&)
                                 if (cmd.includes(" ")) {
@@ -1002,23 +1024,26 @@ export class MRSCommandHandler {
         }
     };
 
-    private browseDocs = (id?: string) => {
-        if (!this.#docsWebviewPanel) {
+    private browseDocs = (id?: string, file = "index.html") => {
+        const fileChange = this.#docsCurrentFile !== file;
+
+        if (!this.#docsWebviewPanel || fileChange) {
+            this.#docsCurrentFile = file;
             try {
                 let data;
                 let mrsPluginDir = path.join(this.#host.context.extensionPath, "shell", "lib",
                     "mysqlsh", "plugins", "mrs_plugin");
-                let indexPath = path.join(mrsPluginDir, "docs", "index.html");
+                let indexPath = path.join(mrsPluginDir, "docs", file);
                 if (fs.existsSync(indexPath)) {
                     data = fs.readFileSync(indexPath, "utf8");
                 } else {
                     if (os.platform() === "win32") {
-                        mrsPluginDir = path.join(os.homedir(), "AppData", "Roaming", "MySQL", "mysqlsh",
+                        mrsPluginDir = path.join(this.getBaseDir(), "mysqlsh",
                             "plugins", "mrs_plugin");
                     } else {
-                        mrsPluginDir = path.join(os.homedir(), ".mysqlsh", "plugins", "mrs_plugin");
+                        mrsPluginDir = path.join(this.getBaseDir(), ".mysqlsh", "plugins", "mrs_plugin");
                     }
-                    indexPath = path.join(mrsPluginDir, "docs", "index.html");
+                    indexPath = path.join(mrsPluginDir, "docs", file);
 
                     if (fs.existsSync(indexPath)) {
                         data = fs.readFileSync(indexPath, "utf8");
@@ -1027,66 +1052,86 @@ export class MRSCommandHandler {
                     }
                 }
 
-                this.#docsWebviewPanel = window.createWebviewPanel(
-                    "mrsDocs",
-                    "MRS Docs",
-                    ViewColumn.One,
-                    {
-                        enableScripts: true,
-                        retainContextWhenHidden: true,
-                        localResourceRoots: [
-                            Uri.file(path.join(mrsPluginDir, "docs/style/")),
-                            Uri.file(path.join(mrsPluginDir, "docs/images/")),
-                        ],
-                    });
-                this.#docsWebviewPanel.onDidDispose(() => { this.handleDocsWebviewPanelDispose(); });
+                if (!this.#docsWebviewPanel) {
+                    this.#docsWebviewPanel = window.createWebviewPanel(
+                        "mrsDocs",
+                        "MRS Docs",
+                        ViewColumn.One,
+                        {
+                            enableScripts: true,
+                            retainContextWhenHidden: true,
+                            localResourceRoots: [
+                                Uri.file(path.join(mrsPluginDir, "docs")),
+                                Uri.file(path.join(mrsPluginDir, "docs", "style")),
+                                Uri.file(path.join(mrsPluginDir, "docs", "images")),
+                            ],
+                        });
+                    this.#docsWebviewPanel.onDidDispose(() => { this.handleDocsWebviewPanelDispose(); });
 
-                // Handle messages from the webview
-                this.#docsWebviewPanel.webview.onDidReceiveMessage(
-                    (message) => {
-                        if (os.platform() === "win32") {
-                            message.path = String(message.path).replaceAll("/", "\\");
-                        }
-                        switch (message.command) {
-                            case "openSqlFile": {
-                                if (message.path && typeof message.path === "string") {
-                                    const fullPath = Uri.file(path.join(mrsPluginDir, String(message.path)));
+                    // Handle messages from the webview
+                    this.#docsWebviewPanel.webview.onDidReceiveMessage(
+                        (message) => {
+                            if (message.path && typeof message.path === "string" && os.platform() === "win32") {
+                                message.path = String(message.path).replaceAll("/", "\\");
+                            }
+                            switch (message.command) {
+                                case "openSqlFile": {
+                                    if (message.path && typeof message.path === "string") {
+                                        const fullPath = Uri.file(path.join(mrsPluginDir, String(message.path)));
 
-                                    void commands.executeCommand("msg.editInScriptEditor", fullPath);
+                                        void commands.executeCommand("msg.editInScriptEditor", fullPath);
+                                    }
+
+                                    break;
                                 }
 
-                                break;
-                            }
+                                case "loadMrsDump": {
+                                    if (message.path && typeof message.path === "string") {
+                                        const fullPath = Uri.file(path.join(mrsPluginDir, String(message.path)));
 
-                            case "loadMrsDump": {
-                                if (message.path && typeof message.path === "string") {
-                                    const fullPath = Uri.file(path.join(mrsPluginDir, String(message.path)));
+                                        void commands.executeCommand("msg.mrs.loadSchemaFromJSONFile", fullPath);
+                                    }
 
-                                    void commands.executeCommand("msg.mrs.loadSchemaFromJSONFile", fullPath);
+                                    break;
                                 }
 
-                                break;
-                            }
+                                case "saveProject": {
+                                    if (message.path && typeof message.path === "string") {
+                                        const fullPath = Uri.file(path.join(mrsPluginDir, String(message.path)));
 
-                            case "saveProject": {
-                                if (message.path && typeof message.path === "string") {
-                                    const fullPath = Uri.file(path.join(mrsPluginDir, String(message.path)));
+                                        void commands.executeCommand("msg.mrs.saveExampleProject", fullPath);
+                                    }
 
-                                    void commands.executeCommand("msg.mrs.saveExampleProject", fullPath);
+                                    break;
                                 }
 
-                                break;
+                                case "goto": {
+                                    let file: string | undefined;
+                                    let id: string | undefined;
+
+                                    if (message.path && typeof message.path === "string") {
+                                        file = message.path;
+                                    }
+                                    if (message.id && typeof message.id === "string") {
+                                        id = message.id;
+                                    }
+                                    this.browseDocs(id, file);
+
+                                    break;
+                                }
+
+                                default:
                             }
+                        });
+                }
 
-                            default:
-                        }
-                    });
-
-                const styleUrl = this.#docsWebviewPanel.webview.asWebviewUri(
+                const docUrl = this.#docsWebviewPanel.webview.asWebviewUri(
                     Uri.file(path.join(mrsPluginDir, "docs/")));
 
-                data = data.replace("\"style/", `"${styleUrl.toString()}style/`);
-                data = data.replace(/(src=")(.*)(\/images)/gm, `$1${styleUrl.toString()}$3`);
+                data = data.replace("\"style/", `"${docUrl.toString()}style/`);
+                data = data.replace(/(src=")(.*)(\/images)/gm, `$1${docUrl.toString()}$3`);
+                data = data.replace(/(href=")((?!http).*?\.html)(#.*?)?(")/gm, `$1$2$3$4 onclick="` +
+                    `document.vscode.postMessage({ command: 'goto', path: '$2', id: '$3' });" `);
 
                 this.#docsWebviewPanel.webview.html = data;
             } catch (reason) {
@@ -1098,7 +1143,19 @@ export class MRSCommandHandler {
         }
 
         if (id && this.#docsWebviewPanel) {
-            void this.#docsWebviewPanel.webview.postMessage({ command: "goToId", id });
+            // Remove leading # if there
+            if (id.startsWith("#")) {
+                id = id.slice(1);
+            }
+
+            if (fileChange) {
+                // If there was a file change, wait till the page is loaded
+                setTimeout(() => {
+                    void this.#docsWebviewPanel?.webview.postMessage({ command: "goToId", id });
+                }, 200);
+            } else {
+                void this.#docsWebviewPanel.webview.postMessage({ command: "goToId", id });
+            }
         }
     };
 

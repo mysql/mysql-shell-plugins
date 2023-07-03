@@ -372,7 +372,7 @@ def get_db_object(request_path=None, db_object_name=None, **kwargs):
     Keyword Args:
         db_object_id (str): The id of the db_object
         schema_id (str): The id of the schema
-        schema_name (int): The name of the schema
+        schema_name (str): The name of the schema
         absolute_request_path (str): The absolute request_path to the db_object
         session (object): The database session to use.
 

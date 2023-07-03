@@ -1,8 +1,8 @@
 ---
-title: MySQL REST Service - Developer Guide
+title: MySQL REST Service - Developer's Guide
 ---
 
-This document explains how to install and configure the MySQL REST Service (MRS).
+This book explains how to install and configure the MySQL REST Service (MRS) as well as how to access the data through REST calls.
 
 __Chapter Overview__
 
@@ -15,7 +15,13 @@ __Chapter Overview__
 - [MRS Examples](#mrs-examples)
   - [MRS Notes Examples](#mrs-notes-examples)
 
-To start with a hands-on approach, see the [MRS Notes Example](#mrs-notes-examples) and follow the instructions for [Build and Deployment](#build-and-deployment) there.
+---
+
+Please also see
+
+- __[MySQL REST Service - SDK Reference](sdk.html)__ - This document explains how to work with the MRS Software Development Kit and discusses the Client APIs.
+
+---
 
 !include sections/Introduction.md
 

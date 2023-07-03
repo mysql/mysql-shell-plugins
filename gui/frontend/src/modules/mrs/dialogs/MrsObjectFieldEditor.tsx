@@ -220,14 +220,22 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             });
 
             for (const field of fields) {
-                if (field.parentReferenceId === parentId) {
+                if (field.parentReferenceId === parentId ||
+                    (field.parentReferenceId === null && parentId === undefined)) {
                     const indent = " ".repeat((level ?? 1) * 4);
-                    if (field.objectReference === undefined && (field.enabled || reduceToFieldIds.includes(field.id))) {
+                    if (!field.objectReference && (field.enabled || reduceToFieldIds.includes(field.id))) {
                         s += `${indent}${field.name}: ${String(field.dbColumn?.name)}`;
-                        // cSpell:ignore nocheck
+                        if (field.dbColumn?.in && !field.dbColumn?.out) { s += ` @IN`; }
+                        if (!field.dbColumn?.in && field.dbColumn?.out) { s += ` @OUT`; }
+                        if (field.dbColumn?.in && field.dbColumn?.out) { s += ` @INOUT`; }
+                        // cSpell:ignore nocheck nofiltering rowownership
                         if (field.noCheck) { s += ` @NOCHECK`; }
                         if (field.noUpdate) { s += ` @NOUPDATE`; }
-                        s += "\n";
+                        if (field.allowSorting) { s += ` @SORTABLE`; }
+                        if (!field.allowFiltering) { s += ` @NOFILTERING`; }
+                        if (field.dbColumn?.name === data.dbObject.rowUserOwnershipColumn &&
+                            data.dbObject.rowUserOwnershipEnforced) { s += ` @ROWOWNERSHIP`; }
+                        s += ",\n";
                     } else if (field.objectReference !== undefined && (field.enabled || field.objectReference.unnest)) {
                         const c = walk(fields, field.representsReferenceId, (level ?? 1) + 1);
                         const refTable = field.objectReference.referenceMapping.referencedSchema + "." +
@@ -254,17 +262,17 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             return s;
         };
 
-        const mrsObject = data.mrsObjects.find((obj) => {
-            return obj.id === data.currentMrsObjectId;
-        });
+        let view;
+        // Handle tables and views
+        if (data.dbObject.objectType !== "PROCEDURE") {
+            const mrsObject = data.mrsObjects.find((obj) => {
+                return obj.id === data.currentMrsObjectId;
+            });
 
-        if (mrsObject?.fields) {
-            let view;
-            if (data.dbObject.objectType !== "PROCEDURE") {
+            if (mrsObject) {
                 view = `CREATE OR REPLACE REST DUALITY VIEW ${data.dbObject.requestPath}\n` +
-                    `ON SERVICE ${data.servicePath} SCHEMA ${data.dbSchemaPath} ` +
-                    `FROM ${data.dbSchemaName}.${data.dbObject.name} ` +
-                    `AS\n${mrsObject.name}`;
+                    `ON SERVICE ${data.servicePath} SCHEMA ${data.dbSchemaPath}\n` +
+                    `FROM ${data.dbSchemaName}.${data.dbObject.name} AS ${mrsObject.name}`;
                 for (const op of data.dbObject.crudOperations) {
                     if (op === "CREATE") {
                         view += ` @INSERT`;
@@ -274,17 +282,39 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                         view += ` @DELETE`;
                     }
                 }
-            } else {
-                view = `CREATE OR REPLACE REST PROCEDURE ${data.dbObject.requestPath}\n` +
-                    `ON SERVICE ${data.servicePath} SCHEMA ${data.dbSchemaPath} ` +
-                    `FROM ${data.dbSchemaName}.${data.dbObject.name} ` +
-                    `AS\n${mrsObject.name} PARAMETERS`;
+
+                if (mrsObject.fields) {
+                    view += " {\n" + walk(mrsObject?.fields).slice(0, -2) + "\n};";
+                }
             }
+        } else {
+            // Handle procedures
+            const mrsObject = data.mrsObjects.find((obj) => {
+                return obj.kind === MrsObjectKind.Parameters;
+            });
 
-            view += " {\n" + walk(mrsObject?.fields) + "};";
+            if (mrsObject) {
+                view = `CREATE OR REPLACE REST PROCEDURE ${data.dbObject.requestPath}\n` +
+                    `ON SERVICE ${data.servicePath} SCHEMA ${data.dbSchemaPath}\n` +
+                    `FROM ${data.dbSchemaName}.${data.dbObject.name} AS ${mrsObject.name}\n`;
 
-            return view;
+                if (mrsObject.fields) {
+                    view += "PARAMETERS {\n" + walk(mrsObject?.fields).slice(0, -2) + "\n}";
+                }
+
+                for (const obj of data.mrsObjects) {
+                    if (obj.kind !== MrsObjectKind.Parameters) {
+                        if (obj.fields) {
+                            view += `\nRESULT ${obj.name} {\n` + walk(obj.fields).slice(0, -2) + "\n}";
+                        }
+                    }
+                }
+
+                view += ";";
+            }
         }
+
+        return view;
     };
 
     public render(): ComponentChild {
@@ -732,14 +762,14 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                             }
                             {data.dbObject.objectType !== MrsDbObjectType.Procedure &&
                                 <>
-                                    <Icon className={!cellData.field.allowFiltering
-                                        ? "selected" : "notSelected"} src={noFilterIcon} width={16} height={16}
-                                        onClick={() => { this.handleIconClick(cell, ActionIconName.Filtering); }}
-                                        data-tooltip="Allow filtering operations on this field" />
                                     <Icon className={cellData.field.allowSorting
                                         ? "selected" : "notSelected"} src={allowSortingIcon} width={16} height={16}
                                         onClick={() => { this.handleIconClick(cell, ActionIconName.Sorting); }}
                                         data-tooltip="Allow sorting operations using this field" />
+                                    <Icon className={!cellData.field.allowFiltering
+                                        ? "selected" : "notSelected"} src={noFilterIcon} width={16} height={16}
+                                        onClick={() => { this.handleIconClick(cell, ActionIconName.Filtering); }}
+                                        data-tooltip="Prevent filtering operations on this field" />
                                     <Icon className={cellData.field.noUpdate
                                         ? "selected" : "notSelected"} src={noUpdateIcon} width={16} height={16}
                                         onClick={() => { this.handleIconClick(cell, ActionIconName.Update); }}

@@ -711,7 +711,7 @@ export interface IShellMrsGetDbObjectKwargs {
     /** The id of the schema */
     schemaId?: string;
     /** The name of the schema */
-    schemaName?: number;
+    schemaName?: string;
     /** The absolute request_path to the db_object */
     absoluteRequestPath?: string;
     /** The string id for the module session object, holding the database session to be used on the operation. */
@@ -1460,7 +1460,7 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsDisableContentSet]: {};
     [ShellAPIMrs.MrsDeleteContentSet]: {};
     [ShellAPIMrs.MrsAddDbObject]: { result: string; };
-    [ShellAPIMrs.MrsGetDbObject]: {};
+    [ShellAPIMrs.MrsGetDbObject]: { result: IMrsDbObjectData; };
     [ShellAPIMrs.MrsListDbObjects]: { result: IMrsDbObjectData[]; };
     [ShellAPIMrs.MrsGetDbObjectParameters]: { result: IMrsDbObjectParameterData[]; };
     [ShellAPIMrs.MrsSetDbObjectRequestPath]: {};

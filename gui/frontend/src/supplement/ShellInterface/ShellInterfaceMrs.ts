@@ -834,6 +834,26 @@ export class ShellInterfaceMrs {
         return response.result;
     }
 
+    public async getDbObject(dbObjectId?: string,
+        schemaId?: string, schemaName?: string, absoluteRequestPath?: string): Promise<IMrsDbObjectData> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsGetDbObject,
+            parameters: {
+                args: {
+                },
+                kwargs: {
+                    dbObjectId,
+                    schemaId,
+                    schemaName,
+                    absoluteRequestPath,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
     public async getObjects(dbObjectId?: string): Promise<IMrsObject[]> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsGetObjects,

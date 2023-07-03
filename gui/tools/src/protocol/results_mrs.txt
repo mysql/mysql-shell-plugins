@@ -316,7 +316,7 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsDisableContentSet]: {};
     [ShellAPIMrs.MrsDeleteContentSet]: {};
     [ShellAPIMrs.MrsAddDbObject]: { result: string; };
-    [ShellAPIMrs.MrsGetDbObject]: {};
+    [ShellAPIMrs.MrsGetDbObject]: { result: IMrsDbObjectData; };
     [ShellAPIMrs.MrsListDbObjects]: { result: IMrsDbObjectData[]; };
     [ShellAPIMrs.MrsGetDbObjectParameters]: { result: IMrsDbObjectParameterData[]; };
     [ShellAPIMrs.MrsSetDbObjectRequestPath]: {};

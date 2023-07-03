@@ -7,7 +7,7 @@
         {
             "type": "chrome",
             "request": "launch",
-            "name": "MRS Example - Notes TypeScript",
+            "name": "MRS Notes Example - TypeScript",
             "userDataDir": "${workspaceFolder}/.vscode/chrome",
             "url": "https://localhost:8083",
             "webRoot": "${workspaceFolder}/src",
@@ -15,6 +15,15 @@
             "showAsyncStacks": true,
             "smartStep": true,
             "perScriptSourcemaps": "no"
+        },
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "MRS Notes Example - JavaScript",
+            "userDataDir": "${workspaceRoot}/.vscode/chrome",
+            "sourceMaps": true,
+            "url": "https://localhost:8443/myService/app_js/index.html",
+            "webRoot": "${workspaceFolder}/src_js",
         }
     ]
 }

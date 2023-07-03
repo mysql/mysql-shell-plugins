@@ -23,6 +23,12 @@
 
 /* eslint-disable max-classes-per-file */
 
+export class NotFoundError extends Error {
+    public constructor(public msg: string) {
+        super(msg);
+    }
+}
+
 export interface IMrsFetchData {
     [key: string]: unknown,
 }
@@ -145,13 +151,18 @@ export class MrsBaseSession {
                 void this.startLogin(authApp); */
                 throw new Error(`Not authenticated. Please authenticate first before accessing the ` +
                     `path ${this.serviceUrl ?? ""}${input}.`);
+            }
+
+            let errorInfo;
+            try {
+                errorInfo = await response.json();
+            } catch (e) {
+                throw new Error(`${response.status}. ${errorMsg} (${response.statusText})`);
+            }
+            // If there is a message, throw with that message
+            if (typeof errorInfo.message === "string") {
+                throw new Error(String(errorInfo.message));
             } else {
-                let errorInfo = null;
-                try {
-                    errorInfo = await response.json();
-                } catch (e) {
-                    // Ignore the exception
-                }
                 throw new Error(`${response.status}. ${errorMsg} (${response.statusText})` +
                     `${(errorInfo !== undefined) ? ("\n\n" + JSON.stringify(errorInfo, null, 4) + "\n") : ""}`);
             }
@@ -430,7 +441,7 @@ export interface IMrsProcedureResultColumns {
 export interface IMrsProcedureResult {
     type: string;
     items: IMrsFetchData;
-    metadata: IMrsProcedureResultColumn[];
+    _metadata: IMrsProcedureResultColumn[];
 }
 
 export interface IMrsProcedureResultList<C> {
@@ -535,7 +546,7 @@ export interface IUpdateConfig {
     batch: true
 }
 
-export interface IUpdateOptions<T, Keys extends Array<string & keyof T>, Multi> extends ICreateOptions<T> {
+export interface IUpdateOptions<C, T, Keys extends Array<string & keyof T>, Multi> extends ICreateOptions<C> {
     where: Multi extends IUpdateConfig ? Array<UpdateMatch<T, Keys>> : UpdateMatch<T, Keys>
 }
 

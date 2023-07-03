@@ -269,11 +269,10 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
      * @param note The note to update
      */
     private readonly updateNote = async (note: INote): Promise<void> => {
-        const { doFetch } = this.props;
+        const { doFetch, showError } = this.props;
 
         this.setInfoMessage("Updating note...");
 
-        // ToDo: Check if update was successfully
         await doFetch({
             input: `/mrsNotes/noteUpdate`,
             errorMsg: "Failed to update the note.",
@@ -337,7 +336,7 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
                     }
                 });
             } catch (e) {
-                showError(e as Error);
+                showError(e);
             }
         } else {
             // If no noteId parameter is given, clear the activeNote

@@ -29,9 +29,9 @@ This folder contains the MRS documentation.
 
 The documentation is written in Markdown syntax. It is converted to HTML with the tool [pandoc](https://pandoc.org/).
 
-### Installing pandoc
+### Installing pandoc 2.19.2
 
-    brew install pandoc
+Download and install pandoc 2.19.2 from https://github.com/jgm/pandoc/releases/tag/2.19.2
 
 ### Installing pandoc-include
 

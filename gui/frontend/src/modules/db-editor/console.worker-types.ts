@@ -79,6 +79,9 @@ export enum ScriptingApi {
     /** Triggers a MRS authentication process to get the global MRS JWT. */
     MrsAuthenticate,
 
+    /** Triggers the MRS DB Object editor. */
+    MrsEditDbObject,
+
     /** A special API to denote that everything is done in the console worker and the task can be removed. */
     Done,
 }
