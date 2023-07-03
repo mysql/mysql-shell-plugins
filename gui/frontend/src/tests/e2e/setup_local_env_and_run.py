@@ -788,7 +788,6 @@ if __name__ == "__main__":
         executor.add_task(SetMySQLServerTask(executor.environment, tmp_dirname))
         executor.add_task(StartBeServersTask(executor.environment))
         executor.add_task(NPMScript(executor.environment, "e2e-tests-run"))
-        executor.add_task(NPMScript(executor.environment, "e2e-tests-report"))
 
         if executor.check_prerequisites():
             executor.run_tasks()
