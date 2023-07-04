@@ -742,7 +742,11 @@ export class PresentationInterface {
      * Entry point to update the presentation of the result view (maximized or normal).
      */
     public toggleResultPane = (): void => {
-        this.maximizedResult = !this.maximizedResult;
+        if (this.maximizedResult === undefined) {
+            this.maximizedResult = true;
+        } else {
+            this.maximizedResult = !this.maximizedResult;
+        }
         this.renderResults();
         this.updateRenderTarget(this.currentHeight);
     };

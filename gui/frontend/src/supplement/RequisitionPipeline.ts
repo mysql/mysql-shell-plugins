@@ -100,9 +100,12 @@ export class RequisitionPipeline {
                 this.removeTopRequest();
             });
 
-            this.watchDog = setTimeout(() => {
-                this.cancelCurrentJob();
-            }, RequisitionPipeline.offeringTime * 1000);
+            // Start the watch dog if not yet done.
+            if (!this.watchDog) {
+                this.watchDog = setTimeout(() => {
+                    this.cancelCurrentJob();
+                }, RequisitionPipeline.offeringTime * 1000);
+            }
         }
     };
 
@@ -135,6 +138,9 @@ export class RequisitionPipeline {
         if (this.watchDog) {
             clearTimeout(this.watchDog);
             this.watchDog = undefined;
+        } else {
+            // If this callback is called without a watchdog then the job was already removed.
+            return;
         }
 
         this.announcePromise = undefined;

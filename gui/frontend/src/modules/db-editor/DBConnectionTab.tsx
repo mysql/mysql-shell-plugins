@@ -564,6 +564,7 @@ Execute \\help or \\? for help;`;
     private editorRunScript = async (details: IScriptRequest): Promise<boolean> => {
         if (!this.scriptWaiting) {
             this.scriptWaiting = true;
+
             await this.editorEditScript(details); // Doesn't really wait for the document to be created.
 
             return false;
@@ -574,7 +575,7 @@ Execute \\help or \\? for help;`;
 
             // Returns true when the script content validation was finished and the editor triggered the
             // actual execution.
-            return this.scriptRef.current.executeScript(details.content, details.forceSecondaryEngine);
+            return this.scriptRef.current.executeWithMaximizedResult(details.content, details.forceSecondaryEngine);
         }
 
         return false;
