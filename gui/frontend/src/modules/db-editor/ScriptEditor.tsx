@@ -292,30 +292,7 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
     }
 
     /**
-     * Executes the given SQL statement(s), without waiting for the result.
-     *
-     * @param sql The SQL statement(s) to execute.
-     */
-    public executeQuery(sql: string): void {
-        this.editorRef.current?.appendText(sql);
-        const block = this.editorRef.current?.lastExecutionBlock;
-
-        if (block) {
-            setTimeout(() => {
-                const { onScriptExecution } = this.props;
-                void onScriptExecution?.(block, {}).then((executed) => {
-                    if (executed) {
-                        setTimeout(() => {
-                            this.toggleMaximizeResultPane();
-                        }, 100);
-                    }
-                });
-            }, 100);
-        }
-    }
-
-    /**
-     * A variant of executeQuery that waits for the result and maximizes the result pane.
+     * Executes the given SQL, waits for the result and maximizes the result pane.
      * This is called when maximizing a result view in a notebook or when running a query from the host
      * (if there's one, e.g. VS Code).
      *
@@ -325,37 +302,48 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
      *
      * @returns A promise that resolves to true when the execution is fully triggered.
      */
-    public executeScript(sql: string, forceSecondaryEngine?: boolean): Promise<boolean> {
+    public executeWithMaximizedResult(sql: string, forceSecondaryEngine?: boolean): Promise<boolean> {
         return new Promise((resolve) => {
             if (this.editorRef.current) {
                 // There's only one block in a script editor.
                 const block = this.editorRef.current?.lastExecutionBlock;
                 if (block instanceof SQLExecutionContext) {
                     const continueExecution = (id: string): Promise<boolean> => {
-                        if (this.editorRef.current && id === block.id) {
+                        if (id === block.id) {
                             requisitions.unregister("editorValidationDone", continueExecution);
+                            if (this.editorRef.current) {
+                                const { onScriptExecution } = this.props;
+                                block.showNextResultMaximized();
+                                void onScriptExecution?.(block, { forceSecondaryEngine }).then(() => {
+                                    resolve(true); // For the outer promise.
+                                });
+                            } else {
+                                resolve(true);
+                            }
 
-                            const { onScriptExecution } = this.props;
-                            void onScriptExecution?.(block, { forceSecondaryEngine }).then(() => {
-                                setTimeout(() => {
-                                    this.toggleMaximizeResultPane();
-                                }, 100);
-
-                                resolve(true); // For the outer promise.
-                            });
-
-                            return Promise.resolve(true);
+                            return Promise.resolve(true); // For the validation promise.
                         }
 
                         resolve(false);
 
-                        return Promise.resolve(false);
+                        return Promise.resolve(false); // Ditto.
                     };
 
+                    // Remove any text that might be in the editor.
                     this.editorRef.current.clear();
-                    requisitions.register("editorValidationDone", continueExecution);
-                    this.editorRef.current.appendText(sql);
+
+                    // Add the new text and register a validation callback, to be notified when
+                    // the editor is ready to execute the script. Need to do this in a timeout,
+                    // as clearing the editor also triggers a validation.
+                    setTimeout(() => {
+                        requisitions.register("editorValidationDone", continueExecution);
+                        this.editorRef.current!.appendText(sql);
+                    }, 0);
+                } else {
+                    resolve(false);
                 }
+            } else {
+                resolve(false);
             }
         });
     }

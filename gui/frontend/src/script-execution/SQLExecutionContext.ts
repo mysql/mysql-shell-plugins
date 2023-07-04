@@ -687,12 +687,17 @@ export class SQLExecutionContext extends ExecutionContext {
                         }
 
                         // Start a number of validations in parallel.
-                        for (let i = 0; i < Math.min(10, newStatements.length); ++i) {
+                        // Always trigger at least one validation.
+                        const validationCount = Math.min(10, newStatements.length);
+                        this.validateNextStatement();
+                        for (let i = 1; i < validationCount; ++i) {
                             this.validateNextStatement();
                         }
                     }
                 }
             }, sql);
+        } else {
+            this.validateNextStatement();
         }
     }
 

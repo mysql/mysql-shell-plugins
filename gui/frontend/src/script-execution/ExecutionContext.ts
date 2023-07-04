@@ -46,6 +46,8 @@ export class ExecutionContext implements IExecutionContext {
     private internalId: string;
     private decorationIDs: string[] = [];
 
+    #showNextResultMaximized = false;
+
     public constructor(protected presentation: PresentationInterface, public linkId?: number) {
         this.internalId = `ec${ExecutionContext.nextId++}`;
         presentation.context = this;
@@ -182,6 +184,10 @@ export class ExecutionContext implements IExecutionContext {
         }
 
         return undefined;
+    }
+
+    public showNextResultMaximized(): void {
+        this.#showNextResultMaximized = true;
     }
 
     /**
@@ -333,7 +339,13 @@ export class ExecutionContext implements IExecutionContext {
     public async addResultData(data: IExecutionResult, dataOptions: IResponseDataOptions,
         presentationOptions?: IPresentationOptions): Promise<void> {
         if (!this.disposed) {
-            return this.presentation.addResultData(data, dataOptions, presentationOptions);
+            const options = presentationOptions ?? {};
+            if (this.#showNextResultMaximized) {
+                options.maximized = true;
+                this.#showNextResultMaximized = false;
+            }
+
+            return this.presentation.addResultData(data, dataOptions, options);
         }
     }
 
