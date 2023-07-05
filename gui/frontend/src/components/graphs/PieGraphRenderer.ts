@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -55,8 +55,10 @@ export class PieGraphRenderer {
             return;
         }
 
-        const width = config.transformation?.width ?? 666;//1200;
-        const height = config.transformation?.height ?? 500;//900;
+        const animate = config.animation ? !(config.animation.disabled ?? false) : true;
+
+        const width = config.transformation?.width ?? 666;
+        const height = config.transformation?.height ?? 500;
         const x = config.transformation?.x ?? "50%";
         const y = config.transformation?.y ?? "50%";
 
@@ -181,17 +183,19 @@ export class PieGraphRenderer {
             });
 
         /* istanbul ignore next */
-        slicePaths.transition().duration(500)
-            .attrTween("d", (datum, index, group) => {
-                const element = group[index];
-                const interpolate = d3.interpolate(element.previous, datum);
-                element.previous = interpolate(0);
+        if (animate) {
+            slicePaths.transition().duration(500)
+                .attrTween("d", (datum, index, group) => {
+                    const element = group[index];
+                    const interpolate = d3.interpolate(element.previous, datum);
+                    element.previous = interpolate(0);
 
-                return (t: number): string => {
-                    return sliceArcGenerator(interpolate(t)) ?? "";
-                };
-            })
-            .ease(d3.easeCubicOut);
+                    return (t: number): string => {
+                        return sliceArcGenerator(interpolate(t)) ?? "";
+                    };
+                })
+                .ease(d3.easeCubicOut);
+        }
 
         // Text labels.
         if (config.showValues ?? true) {
@@ -234,31 +238,33 @@ export class PieGraphRenderer {
 
             // Testing note: animations cannot be played with mock DOM.
             /* istanbul ignore next */
-            label.transition().duration(500)
-                .attrTween("transform", (datum, index, group) => {
-                    const element = group[index];
-                    const interpolate = d3.interpolate(element.previous, datum);
-                    element.previous = interpolate(0);
+            if (animate) {
+                label.transition().duration(500)
+                    .attrTween("transform", (datum, index, group) => {
+                        const element = group[index];
+                        const interpolate = d3.interpolate(element.previous, datum);
+                        element.previous = interpolate(0);
 
-                    return (t): string => {
-                        const d2 = interpolate(t);
-                        const pos = textArcGenerator.centroid(d2);
-                        pos[0] = textOffset * (midAngle(d2) < Math.PI ? 1 : -1);
+                        return (t): string => {
+                            const d2 = interpolate(t);
+                            const pos = textArcGenerator.centroid(d2);
+                            pos[0] = textOffset * (midAngle(d2) < Math.PI ? 1 : -1);
 
-                        return `translate(${pos[0]},${pos[1]})`;
-                    };
-                })
-                .styleTween("text-anchor", (datum, index, group) => {
-                    const element = group[index];
-                    const interpolate = d3.interpolate(element.previous, datum);
-                    element.previous = interpolate(0);
+                            return `translate(${pos[0]},${pos[1]})`;
+                        };
+                    })
+                    .styleTween("text-anchor", (datum, index, group) => {
+                        const element = group[index];
+                        const interpolate = d3.interpolate(element.previous, datum);
+                        element.previous = interpolate(0);
 
-                    return (t): string => {
-                        const d2 = interpolate(t);
+                        return (t): string => {
+                            const d2 = interpolate(t);
 
-                        return midAngle(d2) < Math.PI ? "start" : "end";
-                    };
-                });
+                            return midAngle(d2) < Math.PI ? "start" : "end";
+                        };
+                    });
+            }
 
             label.exit().remove();
 
@@ -280,20 +286,22 @@ export class PieGraphRenderer {
                 });
 
             /* istanbul ignore next */
-            polyline.transition().duration(500)
-                .attrTween("points", (datum, index, group) => {
-                    const element = group[index];
-                    const interpolate = d3.interpolate(element.previous, datum);
-                    element.previous = interpolate(0);
+            if (animate) {
+                polyline.transition().duration(500)
+                    .attrTween("points", (datum, index, group) => {
+                        const element = group[index];
+                        const interpolate = d3.interpolate(element.previous, datum);
+                        element.previous = interpolate(0);
 
-                    return (t): string => {
-                        const d2 = interpolate(t);
-                        const pos = textArcGenerator.centroid(d2);
-                        const x = textOffset * 0.95 * (midAngle(d2) < Math.PI ? 1 : -1);
+                        return (t): string => {
+                            const d2 = interpolate(t);
+                            const pos = textArcGenerator.centroid(d2);
+                            const x = textOffset * 0.95 * (midAngle(d2) < Math.PI ? 1 : -1);
 
-                        return [sliceArcGenerator.centroid(d2), pos, [x, pos[1]]].toString();
-                    };
-                });
+                            return [sliceArcGenerator.centroid(d2), pos, [x, pos[1]]].toString();
+                        };
+                    });
+            }
 
             polyline.exit().remove();
         }

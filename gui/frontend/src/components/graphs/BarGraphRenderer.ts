@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -41,6 +41,8 @@ export class BarGraphRenderer {
         if (!config.data) {
             return;
         }
+
+        const animate = config.animation ? !(config.animation.disabled ?? false) : true;
 
         const width = config.transformation?.width ?? 1200;
         const height = config.transformation?.height ?? 900;
@@ -196,9 +198,10 @@ export class BarGraphRenderer {
 
         // Have to do a hard type cast here, because I cannot get the transition (which is totally fine otherwise)
         // to be assignable to the transition functions below.
+        const duration = firstRun ? 0 : (config.animation?.duration ?? 500);
         const commonTransition = root.transition()
             .ease(d3.easeQuad)
-            .duration(firstRun ? 0 : 500) as unknown as d3.Transition<d3.BaseType, DatumDataType, null, undefined>;
+            .duration(duration) as unknown as d3.Transition<d3.BaseType, DatumDataType, null, undefined>;
 
         const bars = root.selectAll("rect")
             .data(dataIndexes)
@@ -210,72 +213,139 @@ export class BarGraphRenderer {
             const yScaleBandTime = d3.scaleTime(yDomain as [Date, Date], yRange);
             const yAxisTime = d3.axisLeft(yScaleBandTime).ticks(height / 40, config.yFormat);
 
-            yAxisHost
-                .transition(commonTransition)
-                .attr("transform", `translate(${marginLeft},0)`)
-                .call(yAxisTime);
+            if (animate) {
+                yAxisHost
+                    .transition(commonTransition)
+                    .attr("transform", `translate(${marginLeft},0)`)
+                    .call(yAxisTime);
+            } else {
+                yAxisHost
+                    .attr("transform", `translate(${marginLeft},0)`)
+                    .call(yAxisTime);
+            }
 
-            bars
-                .transition(commonTransition)
-                .attr("x", (index) => {
-                    // We cannot test an undefined scale result, as we take out empty data above.
-                    // istanbul ignore next
-                    return xScaleBand(xValues[index]) ?? 0;
-                })
-                .attr("width", xScaleBand.bandwidth())
-                .attr("y", (index) => {
-                    return yScaleBandTime(yValues[index] as Date);
-                })
-                .attr("height", (index) => {
-                    // istanbul ignore next
-                    return (yScaleBandTime(0) ?? 0) - (yScaleBandTime(yValues[index] as Date) ?? 0);
-                });
+            if (animate) {
+                bars
+                    .transition(commonTransition)
+                    .attr("x", (index) => {
+                        // We cannot test an undefined scale result, as we take out empty data above.
+                        // istanbul ignore next
+                        return xScaleBand(xValues[index]) ?? 0;
+                    })
+                    .attr("width", xScaleBand.bandwidth())
+                    .attr("y", (index) => {
+                        return yScaleBandTime(yValues[index] as Date);
+                    })
+                    .attr("height", (index) => {
+                        // istanbul ignore next
+                        return (yScaleBandTime(0) ?? 0) - (yScaleBandTime(yValues[index] as Date) ?? 0);
+                    });
+            } else {
+                bars
+                    .attr("x", (index) => {
+                        // We cannot test an undefined scale result, as we take out empty data above.
+                        // istanbul ignore next
+                        return xScaleBand(xValues[index]) ?? 0;
+                    })
+                    .attr("width", xScaleBand.bandwidth())
+                    .attr("y", (index) => {
+                        return yScaleBandTime(yValues[index] as Date);
+                    })
+                    .attr("height", (index) => {
+                        // istanbul ignore next
+                        return (yScaleBandTime(0) ?? 0) - (yScaleBandTime(yValues[index] as Date) ?? 0);
+                    });
+            }
         } else if (yDataType === "number") {
             const yScaleBandLinear = d3.scaleLinear(yDomain as [number, number], yRange);
             const yAxisLinear = d3.axisLeft(yScaleBandLinear).ticks(height / 40, config.yFormat);
 
-            yAxisHost
-                .transition(commonTransition)
-                .attr("transform", `translate(${marginLeft},0)`)
-                .call(yAxisLinear);
+            if (animate) {
+                yAxisHost
+                    .transition(commonTransition)
+                    .attr("transform", `translate(${marginLeft},0)`)
+                    .call(yAxisLinear);
+            } else {
+                yAxisHost
+                    .attr("transform", `translate(${marginLeft},0)`)
+                    .call(yAxisLinear);
+            }
 
-            bars
-                .transition(commonTransition)
-                .attr("x", (index) => {
-                    // istanbul ignore next
-                    return xScaleBand(xValues[index]) ?? 0;
-                })
-                .attr("width", xScaleBand.bandwidth())
-                .attr("y", (index) => {
-                    return yScaleBandLinear(yValues[index] as number);
-                })
-                .attr("height", (index) => {
-                    // istanbul ignore next
-                    return (yScaleBandLinear(0) ?? 0) - (yScaleBandLinear(yValues[index] as number) ?? 0);
-                });
+            if (animate) {
+                bars
+                    .transition(commonTransition)
+                    .attr("x", (index) => {
+                        // istanbul ignore next
+                        return xScaleBand(xValues[index]) ?? 0;
+                    })
+                    .attr("width", xScaleBand.bandwidth())
+                    .attr("y", (index) => {
+                        return yScaleBandLinear(yValues[index] as number);
+                    })
+                    .attr("height", (index) => {
+                        // istanbul ignore next
+                        return (yScaleBandLinear(0) ?? 0) - (yScaleBandLinear(yValues[index] as number) ?? 0);
+                    });
+            } else {
+                bars
+                    .attr("x", (index) => {
+                        // istanbul ignore next
+                        return xScaleBand(xValues[index]) ?? 0;
+                    })
+                    .attr("width", xScaleBand.bandwidth())
+                    .attr("y", (index) => {
+                        return yScaleBandLinear(yValues[index] as number);
+                    })
+                    .attr("height", (index) => {
+                        // istanbul ignore next
+                        return (yScaleBandLinear(0) ?? 0) - (yScaleBandLinear(yValues[index] as number) ?? 0);
+                    });
+            }
         } else {
             const yScaleBandOrdinal = d3.scaleOrdinal(yDomain, yRange);
             const yAxisOrdinal = d3.axisLeft(yScaleBandOrdinal).ticks(height / 40, config.yFormat);
 
-            yAxisHost
-                .transition(commonTransition)
-                .attr("transform", `translate(${marginLeft},0)`)
-                .call(yAxisOrdinal);
+            if (animate) {
+                yAxisHost
+                    .transition(commonTransition)
+                    .attr("transform", `translate(${marginLeft},0)`)
+                    .call(yAxisOrdinal);
+            } else {
+                yAxisHost
+                    .attr("transform", `translate(${marginLeft},0)`)
+                    .call(yAxisOrdinal);
+            }
 
-            bars
-                .transition(commonTransition)
-                .attr("x", (index) => {
-                    // istanbul ignore next
-                    return xScaleBand(xValues[index]) ?? 0;
-                })
-                .attr("width", xScaleBand.bandwidth())
-                .attr("y", (index) => {
-                    return yScaleBandOrdinal(yValues[index]);
-                })
-                .attr("height", (index) => {
-                    // istanbul ignore next
-                    return (yScaleBandOrdinal(0) ?? 0) - (yScaleBandOrdinal(yValues[index]) ?? 0);
-                });
+            if (animate) {
+                bars
+                    .transition(commonTransition)
+                    .attr("x", (index) => {
+                        // istanbul ignore next
+                        return xScaleBand(xValues[index]) ?? 0;
+                    })
+                    .attr("width", xScaleBand.bandwidth())
+                    .attr("y", (index) => {
+                        return yScaleBandOrdinal(yValues[index]);
+                    })
+                    .attr("height", (index) => {
+                        // istanbul ignore next
+                        return (yScaleBandOrdinal(0) ?? 0) - (yScaleBandOrdinal(yValues[index]) ?? 0);
+                    });
+            } else {
+                bars
+                    .attr("x", (index) => {
+                        // istanbul ignore next
+                        return xScaleBand(xValues[index]) ?? 0;
+                    })
+                    .attr("width", xScaleBand.bandwidth())
+                    .attr("y", (index) => {
+                        return yScaleBandOrdinal(yValues[index]);
+                    })
+                    .attr("height", (index) => {
+                        // istanbul ignore next
+                        return (yScaleBandOrdinal(0) ?? 0) - (yScaleBandOrdinal(yValues[index]) ?? 0);
+                    });
+            }
         }
 
         let xAxisHost = root.select<SVGSVGElement>(".xAxis");
@@ -286,10 +356,16 @@ export class BarGraphRenderer {
                 .call(xAxis);
         }
 
-        xAxisHost
-            .transition(commonTransition)
-            .attr("transform", `translate(0,${height - marginBottom})`)
-            .call(xAxis);
+        if (animate) {
+            xAxisHost
+                .transition(commonTransition)
+                .attr("transform", `translate(0,${height - marginBottom})`)
+                .call(xAxis);
+        } else {
+            xAxisHost
+                .attr("transform", `translate(0,${height - marginBottom})`)
+                .call(xAxis);
+        }
 
         yAxisHost
             .call((g) => {
@@ -312,10 +388,16 @@ export class BarGraphRenderer {
                 .attr("text-anchor", "center");
         }
 
-        yLabel
-            .text(config.yLabel ?? "")
-            .transition(commonTransition)
-            .attr("x", -marginLeft);
+        if (animate) {
+            yLabel
+                .text(config.yLabel ?? "")
+                .transition(commonTransition)
+                .attr("x", -marginLeft);
+        } else {
+            yLabel
+                .text(config.yLabel ?? "")
+                .attr("x", -marginLeft);
+        }
     }
 
     private isTabularData(data: IGraphData): data is ITabularGraphData {
