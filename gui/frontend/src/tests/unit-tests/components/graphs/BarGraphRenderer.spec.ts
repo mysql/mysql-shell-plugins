@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -34,6 +34,7 @@ describe("BarGraphRenderer Tests", () => {
         const configuration: IBarGraphConfiguration = {
             id: "graph1",
             type: "bar",
+            animation: { disabled: true },
         };
 
         renderer.render(svg, configuration);
@@ -60,6 +61,7 @@ describe("BarGraphRenderer Tests", () => {
                 { xValue: 2, yValue: 20 },
                 { xValue: 3, yValue: 30 },
             ],
+            animation: { disabled: true },
         };
         renderer.render(svg, configuration);
         await nextProcessTick();
@@ -132,6 +134,7 @@ describe("BarGraphRenderer Tests", () => {
                 ["m", "n"],
                 ["z"],
             ],
+            animation: { disabled: true },
         };
         renderer.render(svg, configuration);
         await nextProcessTick();

@@ -107,7 +107,17 @@ declare interface IBaseGraphEntry {
         height: number;
     };
 
+    /** Tooltip formatting options. */
     tooltip?: ITooltipOptions;
+
+    /** Animation options. */
+    animation?: {
+        /** Whether to animate data changes. */
+        disabled?: boolean;
+
+        /** The duration of animations in milliseconds. */
+        duration?: number;
+    };
 }
 
 declare interface IPieDatum {

@@ -18,14 +18,16 @@ exports[`BarGraphRenderer Tests Base Rendering 2`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="end"
+        transform="translate(0,0)"
       >
         <path
           class="domain"
+          d="M-6,870.5H0.5V100.5H-6"
           stroke="currentColor"
         />
         <g
           class="tick"
-          opacity="0.000001"
+          opacity="1"
           transform="translate(0,870.5)"
         >
           <line
@@ -49,6 +51,7 @@ exports[`BarGraphRenderer Tests Base Rendering 2`] = `
           class="yLabel"
           fill="currentColor"
           text-anchor="center"
+          x="0"
         />
       </g>
       <g
@@ -86,14 +89,16 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="end"
+        transform="translate(0,0)"
       >
         <path
           class="domain"
+          d="M-6,870.5H0.5V100.5H-6"
           stroke="currentColor"
         />
         <g
           class="tick"
-          opacity="0.000001"
+          opacity="1"
           transform="translate(0,870.5)"
         >
           <line
@@ -111,11 +116,13 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            10
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
+          opacity="1"
           transform="translate(0,832)"
         >
           <line
@@ -133,11 +140,13 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            11
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
+          opacity="1"
           transform="translate(0,793.5)"
         >
           <line
@@ -155,11 +164,13 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            12
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
+          opacity="1"
           transform="translate(0,755)"
         >
           <line
@@ -177,11 +188,13 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            13
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
+          opacity="1"
           transform="translate(0,716.5)"
         >
           <line
@@ -199,11 +212,13 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            14
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
+          opacity="1"
           transform="translate(0,678)"
         >
           <line
@@ -221,11 +236,13 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            15
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
+          opacity="1"
           transform="translate(0,639.5)"
         >
           <line
@@ -243,11 +260,13 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            16
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
+          opacity="1"
           transform="translate(0,601)"
         >
           <line
@@ -265,11 +284,13 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            17
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
+          opacity="1"
           transform="translate(0,562.5)"
         >
           <line
@@ -287,11 +308,13 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            18
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
+          opacity="1"
           transform="translate(0,524)"
         >
           <line
@@ -309,11 +332,13 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            19
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
+          opacity="1"
           transform="translate(0,485.5)"
         >
           <line
@@ -331,11 +356,13 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            20
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
+          opacity="1"
           transform="translate(0,446.99999999999994)"
         >
           <line
@@ -353,11 +380,13 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            21
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
+          opacity="1"
           transform="translate(0,408.5)"
         >
           <line
@@ -375,11 +404,13 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            22
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
+          opacity="1"
           transform="translate(0,370)"
         >
           <line
@@ -397,11 +428,13 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            23
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
+          opacity="1"
           transform="translate(0,331.50000000000006)"
         >
           <line
@@ -419,11 +452,13 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            24
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
+          opacity="1"
           transform="translate(0,293)"
         >
           <line
@@ -441,11 +476,13 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            25
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
+          opacity="1"
           transform="translate(0,254.49999999999997)"
         >
           <line
@@ -463,11 +500,13 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            26
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
+          opacity="1"
           transform="translate(0,216.00000000000003)"
         >
           <line
@@ -485,11 +524,13 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            27
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
+          opacity="1"
           transform="translate(0,177.5)"
         >
           <line
@@ -507,11 +548,13 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            28
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
+          opacity="1"
           transform="translate(0,139.00000000000003)"
         >
           <line
@@ -529,11 +572,13 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            29
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
+          opacity="1"
           transform="translate(0,100.5)"
         >
           <line
@@ -551,28 +596,43 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 1`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            30
+          </text>
         </g>
         <text
           class="yLabel"
           fill="currentColor"
           text-anchor="center"
+          x="0"
         />
       </g>
       <rect
         data-tooltip="1
 10"
         fill="#1f77b4"
+        height="385"
+        width="348.38709677419354"
+        x="38.709677419354875"
+        y="870"
       />
       <rect
         data-tooltip="2
 20"
         fill="#ff7f0e"
+        height="770"
+        width="348.38709677419354"
+        x="425.80645161290323"
+        y="485"
       />
       <rect
         data-tooltip="3
 30"
         fill="#2ca02c"
+        height="1155"
+        width="348.38709677419354"
+        x="812.9032258064516"
+        y="100"
       />
       <g
         class="xAxis"
@@ -660,15 +720,17 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="end"
+        transform="translate(444,0)"
       >
         <path
           class="domain"
+          d="M-6,567.5H0.5V111.5H-6"
           stroke="currentColor"
         />
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,1255.5)"
+          opacity="1"
+          transform="translate(0,567.5)"
         >
           <line
             stroke="currentColor"
@@ -685,12 +747,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            0.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,1178.5)"
+          opacity="1"
+          transform="translate(0,549.26)"
         >
           <line
             stroke="currentColor"
@@ -707,12 +771,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            2.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,1101.5)"
+          opacity="1"
+          transform="translate(0,531.02)"
         >
           <line
             stroke="currentColor"
@@ -729,12 +795,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            4.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,1024.5)"
+          opacity="1"
+          transform="translate(0,512.78)"
         >
           <line
             stroke="currentColor"
@@ -751,12 +819,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            6.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,947.5000000000001)"
+          opacity="1"
+          transform="translate(0,494.53999999999996)"
         >
           <line
             stroke="currentColor"
@@ -773,12 +843,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            8.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,870.5)"
+          opacity="1"
+          transform="translate(0,476.3)"
         >
           <line
             stroke="currentColor"
@@ -795,12 +867,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            10.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,832)"
+          opacity="1"
+          transform="translate(0,458.06)"
         >
           <line
             stroke="currentColor"
@@ -817,12 +891,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            12.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,793.5)"
+          opacity="1"
+          transform="translate(0,439.82)"
         >
           <line
             stroke="currentColor"
@@ -839,12 +915,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            14.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,755)"
+          opacity="1"
+          transform="translate(0,421.5799999999999)"
         >
           <line
             stroke="currentColor"
@@ -861,12 +939,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            16.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,716.5)"
+          opacity="1"
+          transform="translate(0,403.34)"
         >
           <line
             stroke="currentColor"
@@ -883,12 +963,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            18.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,678)"
+          opacity="1"
+          transform="translate(0,385.1)"
         >
           <line
             stroke="currentColor"
@@ -905,12 +987,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            20.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,639.5)"
+          opacity="1"
+          transform="translate(0,366.86)"
         >
           <line
             stroke="currentColor"
@@ -927,12 +1011,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            22.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,601)"
+          opacity="1"
+          transform="translate(0,348.62)"
         >
           <line
             stroke="currentColor"
@@ -949,12 +1035,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            24.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,562.5)"
+          opacity="1"
+          transform="translate(0,330.38)"
         >
           <line
             stroke="currentColor"
@@ -971,12 +1059,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            26.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,524)"
+          opacity="1"
+          transform="translate(0,312.14)"
         >
           <line
             stroke="currentColor"
@@ -993,12 +1083,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            28.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,485.5)"
+          opacity="1"
+          transform="translate(0,293.9)"
         >
           <line
             stroke="currentColor"
@@ -1015,239 +1107,22 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,446.99999999999994)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,408.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,370)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,331.50000000000006)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,293)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,254.49999999999997)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,216.00000000000003)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,177.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,139.00000000000003)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,100.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
+          >
+            30.00
+          </text>
         </g>
         <text
           class="yLabel"
           fill="currentColor"
           text-anchor="center"
+          x="-444"
         >
           Values in range
         </text>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,23.499999999999943)"
+          opacity="1"
+          transform="translate(0,275.66)"
         >
           <line
             stroke="currentColor"
@@ -1264,12 +1139,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            32.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,-53.49999999999997)"
+          opacity="1"
+          transform="translate(0,257.41999999999996)"
         >
           <line
             stroke="currentColor"
@@ -1286,12 +1163,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            34.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,-130.50000000000006)"
+          opacity="1"
+          transform="translate(0,239.18)"
         >
           <line
             stroke="currentColor"
@@ -1308,12 +1187,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            36.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,-207.49999999999994)"
+          opacity="1"
+          transform="translate(0,220.94)"
         >
           <line
             stroke="currentColor"
@@ -1330,12 +1211,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            38.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,-284.5)"
+          opacity="1"
+          transform="translate(0,202.7)"
         >
           <line
             stroke="currentColor"
@@ -1352,12 +1235,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            40.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,-361.5000000000001)"
+          opacity="1"
+          transform="translate(0,184.46)"
         >
           <line
             stroke="currentColor"
@@ -1374,12 +1259,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            42.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,-438.5)"
+          opacity="1"
+          transform="translate(0,166.22)"
         >
           <line
             stroke="currentColor"
@@ -1396,12 +1283,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            44.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,-515.5)"
+          opacity="1"
+          transform="translate(0,147.98)"
         >
           <line
             stroke="currentColor"
@@ -1418,12 +1307,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            46.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,-592.4999999999999)"
+          opacity="1"
+          transform="translate(0,129.74)"
         >
           <line
             stroke="currentColor"
@@ -1440,12 +1331,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            48.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,-669.5)"
+          opacity="1"
+          transform="translate(0,111.5)"
         >
           <line
             stroke="currentColor"
@@ -1462,7 +1355,9 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            50.00
+          </text>
         </g>
       </g>
       <g
@@ -1471,67 +1366,16 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="middle"
-        transform="translate(0,870)"
+        transform="translate(0,567)"
       >
         <path
           class="domain"
-          d="M0.5,6V0.5H1200.5V6"
+          d="M444.5,6V0.5H978.5V6"
           stroke="currentColor"
         />
         <g
           class="tick"
           opacity="1"
-          transform="translate(212.90322580645164,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          >
-            1
-          </text>
-        </g>
-        <g
-          class="tick"
-          opacity="1"
-          transform="translate(600,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          >
-            2
-          </text>
-        </g>
-        <g
-          class="tick"
-          opacity="1"
-          transform="translate(987.0967741935483,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          >
-            3
-          </text>
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
           transform="translate(687.2272727272727,0)"
         >
           <line
@@ -1542,11 +1386,13 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
             dy="0.71em"
             fill="currentColor"
             y="9"
-          />
+          >
+            0
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
+          opacity="1"
           transform="translate(735.7727272727273,0)"
         >
           <line
@@ -1557,7 +1403,9 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 2`] = `
             dy="0.71em"
             fill="currentColor"
             y="9"
-          />
+          >
+            5
+          </text>
         </g>
       </g>
     </g>
@@ -1581,15 +1429,17 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="end"
+        transform="translate(444,0)"
       >
         <path
           class="domain"
+          d="M-6,567.5H0.5V111.5H-6"
           stroke="currentColor"
         />
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,1255.5)"
+          opacity="1"
+          transform="translate(0,567.5)"
         >
           <line
             stroke="currentColor"
@@ -1606,12 +1456,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            0.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,1178.5)"
+          opacity="1"
+          transform="translate(0,549.26)"
         >
           <line
             stroke="currentColor"
@@ -1628,12 +1480,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            2.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,1101.5)"
+          opacity="1"
+          transform="translate(0,531.02)"
         >
           <line
             stroke="currentColor"
@@ -1650,12 +1504,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            4.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,1024.5)"
+          opacity="1"
+          transform="translate(0,512.78)"
         >
           <line
             stroke="currentColor"
@@ -1672,12 +1528,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            6.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,947.5000000000001)"
+          opacity="1"
+          transform="translate(0,494.53999999999996)"
         >
           <line
             stroke="currentColor"
@@ -1694,12 +1552,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            8.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,870.5)"
+          opacity="1"
+          transform="translate(0,476.3)"
         >
           <line
             stroke="currentColor"
@@ -1716,12 +1576,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            10.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,832)"
+          opacity="1"
+          transform="translate(0,458.06)"
         >
           <line
             stroke="currentColor"
@@ -1738,12 +1600,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            12.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,793.5)"
+          opacity="1"
+          transform="translate(0,439.82)"
         >
           <line
             stroke="currentColor"
@@ -1760,12 +1624,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            14.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,755)"
+          opacity="1"
+          transform="translate(0,421.5799999999999)"
         >
           <line
             stroke="currentColor"
@@ -1782,12 +1648,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            16.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,716.5)"
+          opacity="1"
+          transform="translate(0,403.34)"
         >
           <line
             stroke="currentColor"
@@ -1804,12 +1672,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            18.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,678)"
+          opacity="1"
+          transform="translate(0,385.1)"
         >
           <line
             stroke="currentColor"
@@ -1826,12 +1696,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            20.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,639.5)"
+          opacity="1"
+          transform="translate(0,366.86)"
         >
           <line
             stroke="currentColor"
@@ -1848,12 +1720,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            22.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,601)"
+          opacity="1"
+          transform="translate(0,348.62)"
         >
           <line
             stroke="currentColor"
@@ -1870,12 +1744,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            24.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,562.5)"
+          opacity="1"
+          transform="translate(0,330.38)"
         >
           <line
             stroke="currentColor"
@@ -1892,12 +1768,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            26.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,524)"
+          opacity="1"
+          transform="translate(0,312.14)"
         >
           <line
             stroke="currentColor"
@@ -1914,12 +1792,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            28.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,485.5)"
+          opacity="1"
+          transform="translate(0,293.9)"
         >
           <line
             stroke="currentColor"
@@ -1936,239 +1816,22 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,446.99999999999994)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,408.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,370)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,331.50000000000006)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,293)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,254.49999999999997)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,216.00000000000003)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,177.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,139.00000000000003)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,100.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
+          >
+            30.00
+          </text>
         </g>
         <text
           class="yLabel"
           fill="currentColor"
           text-anchor="center"
+          x="-444"
         >
           Values in range
         </text>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,23.499999999999943)"
+          opacity="1"
+          transform="translate(0,275.66)"
         >
           <line
             stroke="currentColor"
@@ -2185,12 +1848,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            32.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,-53.49999999999997)"
+          opacity="1"
+          transform="translate(0,257.41999999999996)"
         >
           <line
             stroke="currentColor"
@@ -2207,12 +1872,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            34.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,-130.50000000000006)"
+          opacity="1"
+          transform="translate(0,239.18)"
         >
           <line
             stroke="currentColor"
@@ -2229,12 +1896,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            36.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,-207.49999999999994)"
+          opacity="1"
+          transform="translate(0,220.94)"
         >
           <line
             stroke="currentColor"
@@ -2251,12 +1920,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            38.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,-284.5)"
+          opacity="1"
+          transform="translate(0,202.7)"
         >
           <line
             stroke="currentColor"
@@ -2273,12 +1944,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            40.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,-361.5000000000001)"
+          opacity="1"
+          transform="translate(0,184.46)"
         >
           <line
             stroke="currentColor"
@@ -2295,12 +1968,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            42.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,-438.5)"
+          opacity="1"
+          transform="translate(0,166.22)"
         >
           <line
             stroke="currentColor"
@@ -2317,12 +1992,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            44.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,-515.5)"
+          opacity="1"
+          transform="translate(0,147.98)"
         >
           <line
             stroke="currentColor"
@@ -2339,12 +2016,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            46.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,-592.4999999999999)"
+          opacity="1"
+          transform="translate(0,129.74)"
         >
           <line
             stroke="currentColor"
@@ -2361,12 +2040,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            48.00
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,-669.5)"
+          opacity="1"
+          transform="translate(0,111.5)"
         >
           <line
             stroke="currentColor"
@@ -2383,7 +2064,9 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            50.00
+          </text>
         </g>
       </g>
       <g
@@ -2392,97 +2075,16 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="middle"
-        transform="translate(0,870)"
+        transform="translate(0,567)"
       >
         <path
           class="domain"
-          d="M0.5,6V0.5H1200.5V6"
+          d="M444.5,6V0.5H978.5V6"
           stroke="currentColor"
         />
         <g
           class="tick"
           opacity="1"
-          transform="translate(212.90322580645164,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          >
-            1
-          </text>
-        </g>
-        <g
-          class="tick"
-          opacity="1"
-          transform="translate(600,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          >
-            2
-          </text>
-        </g>
-        <g
-          class="tick"
-          opacity="1"
-          transform="translate(987.0967741935483,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          >
-            3
-          </text>
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(687.2272727272727,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(735.7727272727273,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
           transform="translate(711.5,0)"
         >
           <line
@@ -2493,12 +2095,18 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 3`] = `
             dy="0.71em"
             fill="currentColor"
             y="9"
-          />
+          >
+            Fri, 05/13/2022
+          </text>
         </g>
       </g>
       <rect
         data-tooltip="TITLE"
         fill="#1f77b4"
+        height="383.03999999999996"
+        width="0"
+        x="711"
+        y="183.96"
       />
     </g>
   </svg>
@@ -2521,15 +2129,17 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 4`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="end"
+        transform="translate(444,0)"
       >
         <path
           class="domain"
+          d="M-6,567.5H0.5V111.5H-6"
           stroke="currentColor"
         />
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,1255.5)"
+          opacity="1"
+          transform="translate(0,567.5)"
         >
           <line
             stroke="currentColor"
@@ -2546,12 +2156,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 4`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            0
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,1178.5)"
+          opacity="1"
+          transform="translate(0,111.5)"
         >
           <line
             stroke="currentColor"
@@ -2568,763 +2180,18 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 4`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,1101.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,1024.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,947.5000000000001)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,870.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,832)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,793.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,755)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,716.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,678)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,639.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,601)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,562.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,524)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,485.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,446.99999999999994)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,408.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,370)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,331.50000000000006)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,293)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,254.49999999999997)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,216.00000000000003)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,177.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,139.00000000000003)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,100.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
+          >
+            50
+          </text>
         </g>
         <text
           class="yLabel"
           fill="currentColor"
           text-anchor="center"
+          x="-444"
         >
           Values in range
         </text>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,23.499999999999943)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,-53.49999999999997)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,-130.50000000000006)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,-207.49999999999994)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,-284.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,-361.5000000000001)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,-438.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,-515.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,-592.4999999999999)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,-669.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
       </g>
       <g
         class="xAxis"
@@ -3332,109 +2199,13 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 4`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="middle"
-        transform="translate(0,870)"
+        transform="translate(0,567)"
       >
         <path
           class="domain"
-          d="M0.5,6V0.5H1200.5V6"
+          d="M444.5,6V0.5H978.5V6"
           stroke="currentColor"
         />
-        <g
-          class="tick"
-          opacity="1"
-          transform="translate(212.90322580645164,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          >
-            1
-          </text>
-        </g>
-        <g
-          class="tick"
-          opacity="1"
-          transform="translate(600,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          >
-            2
-          </text>
-        </g>
-        <g
-          class="tick"
-          opacity="1"
-          transform="translate(987.0967741935483,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          >
-            3
-          </text>
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(687.2272727272727,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(735.7727272727273,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(711.5,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          />
-        </g>
       </g>
     </g>
   </svg>
@@ -3457,15 +2228,17 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 5`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="end"
+        transform="translate(444,0)"
       >
         <path
           class="domain"
+          d="M-6,567.5H0.5V111.5H-6"
           stroke="currentColor"
         />
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,1255.5)"
+          opacity="1"
+          transform="translate(0,567.5)"
         >
           <line
             stroke="currentColor"
@@ -3482,12 +2255,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 5`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            0
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,1178.5)"
+          opacity="1"
+          transform="translate(0,111.5)"
         >
           <line
             stroke="currentColor"
@@ -3504,763 +2279,18 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 5`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,1101.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,1024.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,947.5000000000001)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,870.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,832)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,793.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,755)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,716.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,678)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,639.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,601)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,562.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,524)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,485.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,446.99999999999994)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,408.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,370)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,331.50000000000006)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,293)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,254.49999999999997)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,216.00000000000003)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,177.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,139.00000000000003)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,100.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
+          >
+            50
+          </text>
         </g>
         <text
           class="yLabel"
           fill="currentColor"
           text-anchor="center"
+          x="-444"
         >
           Values in range
         </text>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,23.499999999999943)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,-53.49999999999997)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,-130.50000000000006)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,-207.49999999999994)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,-284.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,-361.5000000000001)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,-438.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,-515.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,-592.4999999999999)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,-669.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
       </g>
       <g
         class="xAxis"
@@ -4268,97 +2298,16 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 5`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="middle"
-        transform="translate(0,870)"
+        transform="translate(0,567)"
       >
         <path
           class="domain"
-          d="M0.5,6V0.5H1200.5V6"
+          d="M444.5,6V0.5H978.5V6"
           stroke="currentColor"
         />
         <g
           class="tick"
           opacity="1"
-          transform="translate(212.90322580645164,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          >
-            1
-          </text>
-        </g>
-        <g
-          class="tick"
-          opacity="1"
-          transform="translate(600,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          >
-            2
-          </text>
-        </g>
-        <g
-          class="tick"
-          opacity="1"
-          transform="translate(987.0967741935483,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          >
-            3
-          </text>
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(687.2272727272727,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(735.7727272727273,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
           transform="translate(711.5,0)"
         >
           <line
@@ -4369,26 +2318,17 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 5`] = `
             dy="0.71em"
             fill="currentColor"
             y="9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(711.5,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          />
+          >
+            undefined
+          </text>
         </g>
       </g>
       <rect
         data-tooltip="TITLE"
+        height="0"
+        width="0"
+        x="711"
+        y="567"
       />
     </g>
   </svg>
@@ -4411,15 +2351,17 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 6`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="end"
+        transform="translate(444,0)"
       >
         <path
           class="domain"
+          d="M-6,567.5H0.5V111.5H-6"
           stroke="currentColor"
         />
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,1255.5)"
+          opacity="1"
+          transform="translate(0,567.5)"
         >
           <line
             stroke="currentColor"
@@ -4436,12 +2378,14 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 6`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            0
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,1178.5)"
+          opacity="1"
+          transform="translate(0,111.5)"
         >
           <line
             stroke="currentColor"
@@ -4458,763 +2402,18 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 6`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,1101.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,1024.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,947.5000000000001)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,870.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,832)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,793.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,755)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,716.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,678)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,639.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,601)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,562.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,524)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,485.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,446.99999999999994)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,408.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,370)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,331.50000000000006)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,293)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,254.49999999999997)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,216.00000000000003)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,177.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,139.00000000000003)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,100.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
+          >
+            50
+          </text>
         </g>
         <text
           class="yLabel"
           fill="currentColor"
           text-anchor="center"
+          x="-444"
         >
           Values in range
         </text>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,23.499999999999943)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,-53.49999999999997)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,-130.50000000000006)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,-207.49999999999994)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,-284.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,-361.5000000000001)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,-438.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,-515.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,-592.4999999999999)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,-669.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
       </g>
       <g
         class="xAxis"
@@ -5222,97 +2421,16 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 6`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="middle"
-        transform="translate(0,870)"
+        transform="translate(0,567)"
       >
         <path
           class="domain"
-          d="M0.5,6V0.5H1200.5V6"
+          d="M444.5,6V0.5H978.5V6"
           stroke="currentColor"
         />
         <g
           class="tick"
           opacity="1"
-          transform="translate(212.90322580645164,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          >
-            1
-          </text>
-        </g>
-        <g
-          class="tick"
-          opacity="1"
-          transform="translate(600,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          >
-            2
-          </text>
-        </g>
-        <g
-          class="tick"
-          opacity="1"
-          transform="translate(987.0967741935483,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          >
-            3
-          </text>
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(687.2272727272727,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(735.7727272727273,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
           transform="translate(711.5,0)"
         >
           <line
@@ -5323,27 +2441,18 @@ exports[`BarGraphRenderer Tests With JSON Data and Updates 6`] = `
             dy="0.71em"
             fill="currentColor"
             y="9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(711.5,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          />
+          >
+            undefined
+          </text>
         </g>
       </g>
       <rect
         data-tooltip="
 "
+        height="0"
+        width="0"
+        x="711"
+        y="567"
       />
     </g>
   </svg>
@@ -5366,14 +2475,16 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 1`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="end"
+        transform="translate(0,0)"
       >
         <path
           class="domain"
+          d="M-6,870.5H0.5V100.5H-6"
           stroke="currentColor"
         />
         <g
           class="tick"
-          opacity="0.000001"
+          opacity="1"
           transform="translate(0,870.5)"
         >
           <line
@@ -5391,23 +2502,34 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 1`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            n
+          </text>
         </g>
         <text
           class="yLabel"
           fill="currentColor"
           text-anchor="center"
+          x="0"
         />
       </g>
       <rect
         data-tooltip="m
 n"
         fill="#1f77b4"
+        height="0"
+        width="514.2857142857143"
+        x="57.14285714285711"
+        y="870"
       />
       <rect
         data-tooltip="z
 "
         fill="#ff7f0e"
+        height="770"
+        width="514.2857142857143"
+        x="628.5714285714286"
+        y="100"
       />
       <g
         class="xAxis"
@@ -5478,15 +2600,17 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 2`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="end"
+        transform="translate(444,0)"
       >
         <path
           class="domain"
+          d="M-6,567.5H0.5V111.5H-6"
           stroke="currentColor"
         />
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,870.5)"
+          opacity="1"
+          transform="translate(0,567.5)"
         >
           <line
             stroke="currentColor"
@@ -5503,19 +2627,22 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 2`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            0
+          </text>
         </g>
         <text
           class="yLabel"
           fill="currentColor"
           text-anchor="center"
+          x="-444"
         >
           Values in range
         </text>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,100.5)"
+          opacity="1"
+          transform="translate(0,111.5)"
         >
           <line
             stroke="currentColor"
@@ -5532,7 +2659,9 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 2`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            50
+          </text>
         </g>
       </g>
       <g
@@ -5541,50 +2670,16 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 2`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="middle"
-        transform="translate(0,870)"
+        transform="translate(0,567)"
       >
         <path
           class="domain"
-          d="M0.5,6V0.5H1200.5V6"
+          d="M444.5,6V0.5H978.5V6"
           stroke="currentColor"
         />
         <g
           class="tick"
           opacity="1"
-          transform="translate(314.2857142857143,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          >
-            m
-          </text>
-        </g>
-        <g
-          class="tick"
-          opacity="1"
-          transform="translate(885.7142857142858,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          >
-            z
-          </text>
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
           transform="translate(687.2272727272727,0)"
         >
           <line
@@ -5595,11 +2690,13 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 2`] = `
             dy="0.71em"
             fill="currentColor"
             y="9"
-          />
+          >
+            0
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
+          opacity="1"
           transform="translate(735.7727272727273,0)"
         >
           <line
@@ -5610,7 +2707,9 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 2`] = `
             dy="0.71em"
             fill="currentColor"
             y="9"
-          />
+          >
+            5
+          </text>
         </g>
       </g>
     </g>
@@ -5634,15 +2733,17 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="end"
+        transform="translate(444,0)"
       >
         <path
           class="domain"
+          d="M-6,567.5H0.5V111.5H-6"
           stroke="currentColor"
         />
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,870.5)"
+          opacity="1"
+          transform="translate(0,567.5)"
         >
           <line
             stroke="currentColor"
@@ -5659,19 +2760,22 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            2.2f
+          </text>
         </g>
         <text
           class="yLabel"
           fill="currentColor"
           text-anchor="center"
+          x="-444"
         >
           Values in range
         </text>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
+          opacity="1"
+          transform="translate(0,549.26)"
         >
           <line
             stroke="currentColor"
@@ -5688,11 +2792,565 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            2.2f
+          </text>
         </g>
         <g
           class="tick"
-          opacity="0.000001"
+          opacity="1"
+          transform="translate(0,531.02)"
+        >
+          <line
+            stroke="currentColor"
+            x2="-6"
+          />
+          <line
+            class="gridLine"
+            stroke="currentColor"
+            stroke-opacity="0.25"
+            stroke-width="1"
+            x2="534"
+          />
+          <text
+            dy="0.32em"
+            fill="currentColor"
+            x="-9"
+          >
+            2.2f
+          </text>
+        </g>
+        <g
+          class="tick"
+          opacity="1"
+          transform="translate(0,512.78)"
+        >
+          <line
+            stroke="currentColor"
+            x2="-6"
+          />
+          <line
+            class="gridLine"
+            stroke="currentColor"
+            stroke-opacity="0.25"
+            stroke-width="1"
+            x2="534"
+          />
+          <text
+            dy="0.32em"
+            fill="currentColor"
+            x="-9"
+          >
+            2.2f
+          </text>
+        </g>
+        <g
+          class="tick"
+          opacity="1"
+          transform="translate(0,494.53999999999996)"
+        >
+          <line
+            stroke="currentColor"
+            x2="-6"
+          />
+          <line
+            class="gridLine"
+            stroke="currentColor"
+            stroke-opacity="0.25"
+            stroke-width="1"
+            x2="534"
+          />
+          <text
+            dy="0.32em"
+            fill="currentColor"
+            x="-9"
+          >
+            2.2f
+          </text>
+        </g>
+        <g
+          class="tick"
+          opacity="1"
+          transform="translate(0,476.3)"
+        >
+          <line
+            stroke="currentColor"
+            x2="-6"
+          />
+          <line
+            class="gridLine"
+            stroke="currentColor"
+            stroke-opacity="0.25"
+            stroke-width="1"
+            x2="534"
+          />
+          <text
+            dy="0.32em"
+            fill="currentColor"
+            x="-9"
+          >
+            2.2f
+          </text>
+        </g>
+        <g
+          class="tick"
+          opacity="1"
+          transform="translate(0,458.06)"
+        >
+          <line
+            stroke="currentColor"
+            x2="-6"
+          />
+          <line
+            class="gridLine"
+            stroke="currentColor"
+            stroke-opacity="0.25"
+            stroke-width="1"
+            x2="534"
+          />
+          <text
+            dy="0.32em"
+            fill="currentColor"
+            x="-9"
+          >
+            2.2f
+          </text>
+        </g>
+        <g
+          class="tick"
+          opacity="1"
+          transform="translate(0,439.82)"
+        >
+          <line
+            stroke="currentColor"
+            x2="-6"
+          />
+          <line
+            class="gridLine"
+            stroke="currentColor"
+            stroke-opacity="0.25"
+            stroke-width="1"
+            x2="534"
+          />
+          <text
+            dy="0.32em"
+            fill="currentColor"
+            x="-9"
+          >
+            2.2f
+          </text>
+        </g>
+        <g
+          class="tick"
+          opacity="1"
+          transform="translate(0,421.5799999999999)"
+        >
+          <line
+            stroke="currentColor"
+            x2="-6"
+          />
+          <line
+            class="gridLine"
+            stroke="currentColor"
+            stroke-opacity="0.25"
+            stroke-width="1"
+            x2="534"
+          />
+          <text
+            dy="0.32em"
+            fill="currentColor"
+            x="-9"
+          >
+            2.2f
+          </text>
+        </g>
+        <g
+          class="tick"
+          opacity="1"
+          transform="translate(0,403.34)"
+        >
+          <line
+            stroke="currentColor"
+            x2="-6"
+          />
+          <line
+            class="gridLine"
+            stroke="currentColor"
+            stroke-opacity="0.25"
+            stroke-width="1"
+            x2="534"
+          />
+          <text
+            dy="0.32em"
+            fill="currentColor"
+            x="-9"
+          >
+            2.2f
+          </text>
+        </g>
+        <g
+          class="tick"
+          opacity="1"
+          transform="translate(0,385.1)"
+        >
+          <line
+            stroke="currentColor"
+            x2="-6"
+          />
+          <line
+            class="gridLine"
+            stroke="currentColor"
+            stroke-opacity="0.25"
+            stroke-width="1"
+            x2="534"
+          />
+          <text
+            dy="0.32em"
+            fill="currentColor"
+            x="-9"
+          >
+            2.2f
+          </text>
+        </g>
+        <g
+          class="tick"
+          opacity="1"
+          transform="translate(0,366.86)"
+        >
+          <line
+            stroke="currentColor"
+            x2="-6"
+          />
+          <line
+            class="gridLine"
+            stroke="currentColor"
+            stroke-opacity="0.25"
+            stroke-width="1"
+            x2="534"
+          />
+          <text
+            dy="0.32em"
+            fill="currentColor"
+            x="-9"
+          >
+            2.2f
+          </text>
+        </g>
+        <g
+          class="tick"
+          opacity="1"
+          transform="translate(0,348.62)"
+        >
+          <line
+            stroke="currentColor"
+            x2="-6"
+          />
+          <line
+            class="gridLine"
+            stroke="currentColor"
+            stroke-opacity="0.25"
+            stroke-width="1"
+            x2="534"
+          />
+          <text
+            dy="0.32em"
+            fill="currentColor"
+            x="-9"
+          >
+            2.2f
+          </text>
+        </g>
+        <g
+          class="tick"
+          opacity="1"
+          transform="translate(0,330.38)"
+        >
+          <line
+            stroke="currentColor"
+            x2="-6"
+          />
+          <line
+            class="gridLine"
+            stroke="currentColor"
+            stroke-opacity="0.25"
+            stroke-width="1"
+            x2="534"
+          />
+          <text
+            dy="0.32em"
+            fill="currentColor"
+            x="-9"
+          >
+            2.2f
+          </text>
+        </g>
+        <g
+          class="tick"
+          opacity="1"
+          transform="translate(0,312.14)"
+        >
+          <line
+            stroke="currentColor"
+            x2="-6"
+          />
+          <line
+            class="gridLine"
+            stroke="currentColor"
+            stroke-opacity="0.25"
+            stroke-width="1"
+            x2="534"
+          />
+          <text
+            dy="0.32em"
+            fill="currentColor"
+            x="-9"
+          >
+            2.2f
+          </text>
+        </g>
+        <g
+          class="tick"
+          opacity="1"
+          transform="translate(0,293.9)"
+        >
+          <line
+            stroke="currentColor"
+            x2="-6"
+          />
+          <line
+            class="gridLine"
+            stroke="currentColor"
+            stroke-opacity="0.25"
+            stroke-width="1"
+            x2="534"
+          />
+          <text
+            dy="0.32em"
+            fill="currentColor"
+            x="-9"
+          >
+            2.2f
+          </text>
+        </g>
+        <g
+          class="tick"
+          opacity="1"
+          transform="translate(0,275.66)"
+        >
+          <line
+            stroke="currentColor"
+            x2="-6"
+          />
+          <line
+            class="gridLine"
+            stroke="currentColor"
+            stroke-opacity="0.25"
+            stroke-width="1"
+            x2="534"
+          />
+          <text
+            dy="0.32em"
+            fill="currentColor"
+            x="-9"
+          >
+            2.2f
+          </text>
+        </g>
+        <g
+          class="tick"
+          opacity="1"
+          transform="translate(0,257.41999999999996)"
+        >
+          <line
+            stroke="currentColor"
+            x2="-6"
+          />
+          <line
+            class="gridLine"
+            stroke="currentColor"
+            stroke-opacity="0.25"
+            stroke-width="1"
+            x2="534"
+          />
+          <text
+            dy="0.32em"
+            fill="currentColor"
+            x="-9"
+          >
+            2.2f
+          </text>
+        </g>
+        <g
+          class="tick"
+          opacity="1"
+          transform="translate(0,239.18)"
+        >
+          <line
+            stroke="currentColor"
+            x2="-6"
+          />
+          <line
+            class="gridLine"
+            stroke="currentColor"
+            stroke-opacity="0.25"
+            stroke-width="1"
+            x2="534"
+          />
+          <text
+            dy="0.32em"
+            fill="currentColor"
+            x="-9"
+          >
+            2.2f
+          </text>
+        </g>
+        <g
+          class="tick"
+          opacity="1"
+          transform="translate(0,220.94)"
+        >
+          <line
+            stroke="currentColor"
+            x2="-6"
+          />
+          <line
+            class="gridLine"
+            stroke="currentColor"
+            stroke-opacity="0.25"
+            stroke-width="1"
+            x2="534"
+          />
+          <text
+            dy="0.32em"
+            fill="currentColor"
+            x="-9"
+          >
+            2.2f
+          </text>
+        </g>
+        <g
+          class="tick"
+          opacity="1"
+          transform="translate(0,202.7)"
+        >
+          <line
+            stroke="currentColor"
+            x2="-6"
+          />
+          <line
+            class="gridLine"
+            stroke="currentColor"
+            stroke-opacity="0.25"
+            stroke-width="1"
+            x2="534"
+          />
+          <text
+            dy="0.32em"
+            fill="currentColor"
+            x="-9"
+          >
+            2.2f
+          </text>
+        </g>
+        <g
+          class="tick"
+          opacity="1"
+          transform="translate(0,184.46)"
+        >
+          <line
+            stroke="currentColor"
+            x2="-6"
+          />
+          <line
+            class="gridLine"
+            stroke="currentColor"
+            stroke-opacity="0.25"
+            stroke-width="1"
+            x2="534"
+          />
+          <text
+            dy="0.32em"
+            fill="currentColor"
+            x="-9"
+          >
+            2.2f
+          </text>
+        </g>
+        <g
+          class="tick"
+          opacity="1"
+          transform="translate(0,166.22)"
+        >
+          <line
+            stroke="currentColor"
+            x2="-6"
+          />
+          <line
+            class="gridLine"
+            stroke="currentColor"
+            stroke-opacity="0.25"
+            stroke-width="1"
+            x2="534"
+          />
+          <text
+            dy="0.32em"
+            fill="currentColor"
+            x="-9"
+          >
+            2.2f
+          </text>
+        </g>
+        <g
+          class="tick"
+          opacity="1"
+          transform="translate(0,147.98)"
+        >
+          <line
+            stroke="currentColor"
+            x2="-6"
+          />
+          <line
+            class="gridLine"
+            stroke="currentColor"
+            stroke-opacity="0.25"
+            stroke-width="1"
+            x2="534"
+          />
+          <text
+            dy="0.32em"
+            fill="currentColor"
+            x="-9"
+          >
+            2.2f
+          </text>
+        </g>
+        <g
+          class="tick"
+          opacity="1"
+          transform="translate(0,129.74)"
+        >
+          <line
+            stroke="currentColor"
+            x2="-6"
+          />
+          <line
+            class="gridLine"
+            stroke="currentColor"
+            stroke-opacity="0.25"
+            stroke-width="1"
+            x2="534"
+          />
+          <text
+            dy="0.32em"
+            fill="currentColor"
+            x="-9"
+          >
+            2.2f
+          </text>
+        </g>
+        <g
+          class="tick"
+          opacity="1"
           transform="translate(0,111.5)"
         >
           <line
@@ -5710,513 +3368,9 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,100.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
+          >
+            2.2f
+          </text>
         </g>
       </g>
       <g
@@ -6225,80 +3379,16 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="middle"
-        transform="translate(0,870)"
+        transform="translate(0,567)"
       >
         <path
           class="domain"
-          d="M0.5,6V0.5H1200.5V6"
+          d="M444.5,6V0.5H978.5V6"
           stroke="currentColor"
         />
         <g
           class="tick"
           opacity="1"
-          transform="translate(314.2857142857143,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          >
-            m
-          </text>
-        </g>
-        <g
-          class="tick"
-          opacity="1"
-          transform="translate(885.7142857142858,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          >
-            z
-          </text>
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(687.2272727272727,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(735.7727272727273,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
           transform="translate(711.5,0)"
         >
           <line
@@ -6309,12 +3399,18 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 3`] = `
             dy="0.71em"
             fill="currentColor"
             y="9"
-          />
+          >
+            42
+          </text>
         </g>
       </g>
       <rect
         data-tooltip="TITLE"
         fill="#1f77b4"
+        height="15069888000000"
+        width="0"
+        x="711"
+        y="-15069887999433"
       />
     </g>
   </svg>
@@ -6337,15 +3433,17 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 4`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="end"
+        transform="translate(444,0)"
       >
         <path
           class="domain"
+          d="M-6,567.5H0.5V111.5H-6"
           stroke="currentColor"
         />
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,870.5)"
+          opacity="1"
+          transform="translate(0,567.5)"
         >
           <line
             stroke="currentColor"
@@ -6362,40 +3460,21 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 4`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            0
+          </text>
         </g>
         <text
           class="yLabel"
           fill="currentColor"
           text-anchor="center"
+          x="-444"
         >
           Values in range
         </text>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
+          opacity="1"
           transform="translate(0,111.5)"
         >
           <line
@@ -6413,513 +3492,9 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 4`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,100.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
+          >
+            50
+          </text>
         </g>
       </g>
       <g
@@ -6928,92 +3503,13 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 4`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="middle"
-        transform="translate(0,870)"
+        transform="translate(0,567)"
       >
         <path
           class="domain"
-          d="M0.5,6V0.5H1200.5V6"
+          d="M444.5,6V0.5H978.5V6"
           stroke="currentColor"
         />
-        <g
-          class="tick"
-          opacity="1"
-          transform="translate(314.2857142857143,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          >
-            m
-          </text>
-        </g>
-        <g
-          class="tick"
-          opacity="1"
-          transform="translate(885.7142857142858,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          >
-            z
-          </text>
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(687.2272727272727,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(735.7727272727273,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(711.5,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          />
-        </g>
       </g>
     </g>
   </svg>
@@ -7036,15 +3532,17 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 5`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="end"
+        transform="translate(444,0)"
       >
         <path
           class="domain"
+          d="M-6,567.5H0.5V111.5H-6"
           stroke="currentColor"
         />
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,870.5)"
+          opacity="1"
+          transform="translate(0,567.5)"
         >
           <line
             stroke="currentColor"
@@ -7061,40 +3559,21 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 5`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            0
+          </text>
         </g>
         <text
           class="yLabel"
           fill="currentColor"
           text-anchor="center"
+          x="-444"
         >
           Values in range
         </text>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
+          opacity="1"
           transform="translate(0,111.5)"
         >
           <line
@@ -7112,513 +3591,9 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 5`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,100.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
+          >
+            50
+          </text>
         </g>
       </g>
       <g
@@ -7627,92 +3602,13 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 5`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="middle"
-        transform="translate(0,870)"
+        transform="translate(0,567)"
       >
         <path
           class="domain"
-          d="M0.5,6V0.5H1200.5V6"
+          d="M444.5,6V0.5H978.5V6"
           stroke="currentColor"
         />
-        <g
-          class="tick"
-          opacity="1"
-          transform="translate(314.2857142857143,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          >
-            m
-          </text>
-        </g>
-        <g
-          class="tick"
-          opacity="1"
-          transform="translate(885.7142857142858,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          >
-            z
-          </text>
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(687.2272727272727,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(735.7727272727273,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(711.5,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          />
-        </g>
       </g>
     </g>
   </svg>
@@ -7735,15 +3631,17 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 6`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="end"
+        transform="translate(444,0)"
       >
         <path
           class="domain"
+          d="M-6,567.5H0.5V111.5H-6"
           stroke="currentColor"
         />
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,870.5)"
+          opacity="1"
+          transform="translate(0,567.5)"
         >
           <line
             stroke="currentColor"
@@ -7760,40 +3658,21 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 6`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
+          >
+            0
+          </text>
         </g>
         <text
           class="yLabel"
           fill="currentColor"
           text-anchor="center"
+          x="-444"
         >
           Values in range
         </text>
         <g
           class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
+          opacity="1"
           transform="translate(0,111.5)"
         >
           <line
@@ -7811,513 +3690,9 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 6`] = `
             dy="0.32em"
             fill="currentColor"
             x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,567.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,111.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(0,100.5)"
-        >
-          <line
-            stroke="currentColor"
-            x2="-6"
-          />
-          <line
-            class="gridLine"
-            stroke="currentColor"
-            stroke-opacity="0.25"
-            stroke-width="1"
-            x2="534"
-          />
-          <text
-            dy="0.32em"
-            fill="currentColor"
-            x="-9"
-          />
+          >
+            50
+          </text>
         </g>
       </g>
       <g
@@ -8326,92 +3701,13 @@ exports[`BarGraphRenderer Tests With Tabular Data and Updates 6`] = `
         font-family="sans-serif"
         font-size="10"
         text-anchor="middle"
-        transform="translate(0,870)"
+        transform="translate(0,567)"
       >
         <path
           class="domain"
-          d="M0.5,6V0.5H1200.5V6"
+          d="M444.5,6V0.5H978.5V6"
           stroke="currentColor"
         />
-        <g
-          class="tick"
-          opacity="1"
-          transform="translate(314.2857142857143,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          >
-            m
-          </text>
-        </g>
-        <g
-          class="tick"
-          opacity="1"
-          transform="translate(885.7142857142858,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          >
-            z
-          </text>
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(687.2272727272727,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(735.7727272727273,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          />
-        </g>
-        <g
-          class="tick"
-          opacity="0.000001"
-          transform="translate(711.5,0)"
-        >
-          <line
-            stroke="currentColor"
-            y2="6"
-          />
-          <text
-            dy="0.71em"
-            fill="currentColor"
-            y="9"
-          />
-        </g>
       </g>
     </g>
   </svg>
