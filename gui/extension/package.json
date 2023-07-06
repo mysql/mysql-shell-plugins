@@ -402,7 +402,7 @@
             },
             {
                 "command": "msg.defaultConnection",
-                "title": "Set this DB Connection as Default for Embedded SQL Execution"
+                "title": "Set this DB Connection as Default"
             },
             {
                 "command": "msg.showSystemSchemasOnConnection",
@@ -538,7 +538,11 @@
             },
             {
                 "command": "msg.loadScriptFromDisk",
-                "title": "Load Script from Disk"
+                "title": "Load SQL Script from Disk",
+                "icon": {
+                    "dark": "images/dark/loadScript.svg",
+                    "light": "images/light/loadScript.svg"
+                }
             },
             {
                 "command": "msg.copyNameToClipboard",
@@ -1196,6 +1200,11 @@
                     "when": "view == msg.openEditors && viewItem == editorConnectionMySQL"
                 },
                 {
+                    "command": "msg.loadScriptFromDisk",
+                    "group": "inline@3",
+                    "when": "view == msg.openEditors && viewItem == editorConnectionMySQL"
+                },
+                {
                     "command": "msg.newScriptMysql",
                     "group": "scripts@2",
                     "when": "view == msg.openEditors && viewItem == editorConnectionMySQL"
@@ -1218,6 +1227,11 @@
                 {
                     "command": "msg.newScriptTs",
                     "group": "scripts@4",
+                    "when": "view == msg.openEditors && viewItem =~ /^editorConnection.*/"
+                },
+                {
+                    "command": "msg.loadScriptFromDisk",
+                    "group": "scripts2@1",
                     "when": "view == msg.openEditors && viewItem =~ /^editorConnection.*/"
                 },
                 {
