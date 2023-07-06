@@ -28,7 +28,13 @@ import { DBType } from "../../../../frontend/src/supplement/ShellInterface";
 
 export class EditorConnectionTreeItem extends TreeItem {
 
-    public readonly entry: { details: { caption: string, id: number; }; };
+    public readonly entry: {
+        details: {
+            caption: string,
+            id: number;
+            dbType: DBType;
+        };
+    };
 
     public constructor(caption: string, dbType: DBType, connectionId: number) {
         super(caption, TreeItemCollapsibleState.Expanded);
@@ -37,6 +43,7 @@ export class EditorConnectionTreeItem extends TreeItem {
             details: {
                 caption,
                 id: connectionId,
+                dbType,
             },
         };
 

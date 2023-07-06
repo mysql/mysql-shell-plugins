@@ -39,7 +39,7 @@ import { EntityType, IDBEditorScriptState } from "../../frontend/src/modules/db-
 
 import { CodeBlocks } from "./CodeBlocks";
 import { uuid } from "../../frontend/src/utilities/helpers";
-import { DBType } from "../../frontend/src/supplement/ShellInterface";
+import { DBType, IConnectionDetails } from "../../frontend/src/supplement/ShellInterface";
 import { WebviewProvider } from "./web-views/WebviewProvider";
 import { ExtensionHost } from "./ExtensionHost";
 import { ConnectionMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvider/ConnectionMySQLTreeItem";
@@ -394,8 +394,16 @@ export class DBEditorCommandHandler {
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.loadScriptFromDisk",
-            (item?: ConnectionMySQLTreeItem) => {
+            (item?: ConnectionMySQLTreeItem | IEditorConnectionEntry) => {
+                // TODO: allow selection of a connection if no menu item is given.
                 if (item) {
+                    let details: Partial<IConnectionDetails>;
+                    if (item instanceof ConnectionMySQLTreeItem) {
+                        details = item.entry.details;
+                    } else {
+                        details = item.treeItem.entry.details;
+                    }
+
                     void window.showOpenDialog({
                         title: "Select the script file to load to MySQL Shell",
                         openLabel: "Select Script File",
@@ -435,7 +443,7 @@ export class DBEditorCommandHandler {
                                             }
 
                                             case ".sql": {
-                                                if (item.entry.details.dbType === DBType.Sqlite) {
+                                                if (details.dbType === DBType.Sqlite) {
                                                     language = "sql";
                                                 }
 
@@ -445,7 +453,7 @@ export class DBEditorCommandHandler {
                                             default:
                                         }
 
-                                        const details: IScriptRequest = {
+                                        const request: IScriptRequest = {
                                             scriptId: uuid(),
                                             name,
                                             content,
@@ -457,9 +465,9 @@ export class DBEditorCommandHandler {
                                             scripts = new Map();
                                             this.#openScripts.set(provider, scripts);
                                         }
-                                        scripts.set(details.scriptId, uri);
+                                        scripts.set(request.scriptId, uri);
 
-                                        void provider.editScript(String(item.entry.details.id), details);
+                                        void provider.editScript(String(details.id), request);
                                     }
                                 });
                             }
