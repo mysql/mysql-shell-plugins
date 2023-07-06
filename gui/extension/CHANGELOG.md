@@ -1,14 +1,36 @@
 # MySQL Shell for VS Code Change Log
 
-## Changes in 1.10.2+8.0.32
+## Changes in 1.11.0+8.0.33
 
 ### Additions
 
-- 
+- Updated MySQL Shell to 8.0.33
+- Support for MySQL REST Service Preview 3, an update of MySQL Router from labs.mysql.com to MRS Preview 3 is required to use MRS
+- Optimized extension workflow
+- Saving and loading of DB Notebooks
 
 ### Fixes
 
-- 
+- Bug#35124878 Incorrect documentation for deleting an MRS object
+- Bug#35377927 Delete REST schema after proper confirmation
+- Bug#35381360 Display service listing for "mrs.get.service()"
+- Bug#35337158 Provide feedback if service id does not exist
+- Bug#35321265 Add/Fix support for Table Aliases usage in SQL Auto-Completion
+- Bug#34504322 Shell Console: Results of JS X DevAPI are all NULL
+- Bug#35266189 Create MySQL Notebook action opens a script editor
+- Bug#34623702 SERVER STATUS SHOWS CONNECTION NAME NONE
+- Bug#34200753 VS CODE EXTENSION IS INOPERABLE AFTER CONNECTING/KILLING TO EXTERNAL PROCESS
+- Bug#35154565 DATA FIELDS HAVE PROBLEMS WITH SPECIAL DATA TYPES
+- Bug#34032230 USING AN INVALID TOKEN ON THE URL OUTPUTS A NO-USER-FRIENDLY ERROR MESSAGE
+- Bug#33752913 WINDOW/DIALOG FOOTER COLOR IS NOT WORKING
+- Bug#35317260 Default value for url_protocol when adding REST service
+- Bug#35337695 Fix service "auto_select_single" for raw Shell
+- Bug#35317488 Display listing for current service
+- Bug#35341478 Display error line and column in DB Notebook
+- Bug#35312214 Duplicate entries for services with same path but different host names
+- Bug#35124859 Extraneous arguments accessing an MRS service in the MySQL Shell
+- Bug#35124804 Extraneous arguments deleting an MRS service in the MySQL Shell
+- Bug#35124746 Extraneous arguments creating an MRS service in MySQL Shell
 
 ## Changes in 1.10.1+8.0.32
 
