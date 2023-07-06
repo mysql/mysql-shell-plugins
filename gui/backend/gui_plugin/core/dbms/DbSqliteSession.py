@@ -22,6 +22,8 @@
 import os.path
 import sqlite3
 import time
+import os
+import stat
 
 import gui_plugin.core.Error as Error
 import gui_plugin.core.Logger as logger
@@ -149,8 +151,14 @@ class DbSqliteSession(DbSession):
 
     def _do_open_database(self, notify_success=True):
         try:
+
+            # open the database connection
             self.conn = sqlite3.connect(self._databases[self._current_schema], timeout=5, factory=SqliteConnection,
                                         isolation_level=None, check_same_thread=False)
+
+            # restrict permissions to the database file
+            os.chmod(self._databases[self._current_schema], stat.S_IRUSR | stat.S_IWUSR)
+
             # Cursor to be used for statements from the owner of this instance
             self.cursor = None
 
