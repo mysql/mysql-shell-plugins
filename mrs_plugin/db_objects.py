@@ -74,7 +74,7 @@ def resolve_db_object_ids(db_object_name=None, schema_id=None, request_path=None
 
 @plugin_function('mrs.add.dbObject', shell=True, cli=True, web=True)
 def add_db_object(**kwargs):
-    """Add a db_object to the given MRS service schema
+    """Add a db_object to the given MRS schema
 
     Args:
         **kwargs: Additional options
@@ -695,7 +695,7 @@ def enable_db_object(db_object_name=None, schema_id=None,
 
 @plugin_function('mrs.disable.dbObject', shell=True, cli=True, web=True)
 def disable_db_object(db_object_name=None, schema_id=None, **kwargs):
-    """Disables a db_object of the given service
+    """Disables a db_object of the given schema
 
     Args:
         db_object_name (str): The name of the db_object
@@ -733,7 +733,7 @@ def disable_db_object(db_object_name=None, schema_id=None, **kwargs):
 
 @plugin_function('mrs.delete.dbObject', shell=True, cli=True, web=True)
 def delete_db_object(db_object_name=None, schema_id=None, **kwargs):
-    """Deletes a schema of the given service
+    """Deletes a db_object of the given schema
 
     Args:
         db_object_name (str): The name of the db_object
@@ -974,9 +974,3 @@ def get_object_fields_with_references(object_id=None, **kwargs):
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         return lib.db_objects.get_object_fields_with_references(session, object_id=object_id)
 
-        # kwargs["session"] = session
-        # kwargs = resolve_db_object_ids(**kwargs)
-        # if len(kwargs["db_object_ids"]) == 1:
-        #     id = kwargs["db_object_ids"][0]
-        #     print(f"{id=}")
-        #     return lib.db_objects.get_object_fields_with_references(session, object_id=id)
