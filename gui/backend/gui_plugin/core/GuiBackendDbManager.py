@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -27,6 +27,8 @@ from os import makedirs, getcwd, chdir
 from datetime import date
 from shutil import copyfile
 from os import path, listdir, rename, remove
+import os
+import stat
 import gui_plugin.core.Logger as logger
 from gui_plugin.core.lib.Version import Version
 import contextlib
@@ -116,6 +118,7 @@ class BackendSqliteDbManager(BackendDbManager):
                 'plugin_data', 'gui_plugin')
 
         self.current_dir = getcwd()
+        db_log_file = path.join(self.db_dir, f'mysqlsh_gui_backend_log.sqlite3')
 
         super().__init__(log_rotation=log_rotation,
                          session_uuid=session_uuid,
@@ -125,7 +128,7 @@ class BackendSqliteDbManager(BackendDbManager):
                              "attach": [
                                  {
                                      "database_name": "gui_log",
-                                     "db_file": path.join(self.db_dir, f'mysqlsh_gui_backend_log.sqlite3')
+                                     "db_file": db_log_file
                                  }]
                          })
 
@@ -271,6 +274,7 @@ class BackendSqliteDbManager(BackendDbManager):
         try:
             db_file = self._connection_options["db_file"]
             conn = sqlite3.connect(db_file)
+            os.chmod(db_file, stat.S_IRUSR | stat.S_IWUSR)
             cursor = conn.cursor()
 
             # Do a fresh initialization of the database
@@ -442,6 +446,7 @@ class BackendSqliteDbManager(BackendDbManager):
     def backup_db(self, src, dst):
         source = sqlite3.connect(src)
         dest = sqlite3.connect(dst)
+        os.chmod(dst, stat.S_IRUSR | stat.S_IWUSR)
         source.backup(dest)
         source.close()
         dest.close()
