@@ -1484,6 +1484,8 @@ router_id=16</code></pre>
                 <li>The CRUD operations that are allowed</li>
                 <li>The CRUD operations that are allowed on referenced
                 tables</li>
+                <li>Whether row ownership should be enforced to enable
+                row level security</li>
                 </ul></li>
                 <li>JSON/Relation Duality
                 <ul>
@@ -1501,6 +1503,278 @@ router_id=16</code></pre>
                 <figcaption aria-hidden="true">The MySQL REST Object
                 Dialog</figcaption>
                 </figure>
+                <h3 data-number="5.4.1"
+                id="building-a-jsonrelational-duality-view"><span
+                class="header-section-number">5.4.1</span> Building a
+                JSON/Relational Duality View</h3>
+                <p>A simple 1:1 mapping between the REST DB Object and
+                the corresponding relational table is automatically
+                created when <a
+                href="#adding-a-database-object-with-mysql-shell">adding
+                a database object</a>.</p>
+                <p>No changes need to be applied on the MySQL REST
+                Object Dialog, except unchecking the
+                <code>Requires Auth</code> checkbox if the REST object
+                should be available without login.</p>
+                <blockquote>
+                <p>Note: If the <code>Requires Auth</code> checkbox has
+                been unchecked, the REST object will be publicly
+                available to anybody who can access the REST URL.</p>
+                </blockquote>
+                <h4 data-number="5.4.1.1"
+                id="enabling-crud-operations"><span
+                class="header-section-number">5.4.1.1</span> Enabling
+                CRUD Operations</h4>
+                <p>Since only the READ CRUD operation is enabled by
+                default (see the <code>R</code> being highlighted next
+                to the relational object), only read commands will be
+                allowed on the REST object. To change this, toggle each
+                letter (<code>R</code> - Read, <code>C</code> - Create,
+                <code>U</code> - Update and <code>D</code> - Delete) to
+                enable or disable the corresponding functionality.</p>
+                <table>
+                <thead>
+                <tr class="header">
+                <th>Letter</th>
+                <th>CRUD Operation</th>
+                <th>SQL Operation</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="odd">
+                <td>C</td>
+                <td>CREATE</td>
+                <td>CREATE</td>
+                </tr>
+                <tr class="even">
+                <td>R</td>
+                <td>READ</td>
+                <td>SELECT</td>
+                </tr>
+                <tr class="odd">
+                <td>U</td>
+                <td>UPDATE</td>
+                <td>UPDATE</td>
+                </tr>
+                <tr class="even">
+                <td>D</td>
+                <td>DELETE</td>
+                <td>DELETE</td>
+                </tr>
+                </tbody>
+                </table>
+                <h4 data-number="5.4.1.2"
+                id="interactively-query-the-rest-object"><span
+                class="header-section-number">5.4.1.2</span>
+                Interactively Query the REST Object</h4>
+                <p>After clicking <code>OK</code> to close the MySQL
+                REST Object dialog, the DB Notebook will be visible
+                again.</p>
+                <p>Switch the DB Notebook to TypeScript mode with
+                <code>\ts</code> if it is still in SQL mode. Now it is
+                possible to interactively query the REST object using
+                the <a href="sdk.html">MRS SDK Client API</a>.</p>
+                <div class="sourceCode" id="cb17"><pre
+                class="sourceCode js"><code class="sourceCode javascript"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>\ts</span></code></pre></div>
+                <p>If some of the REST objects require authenticate and
+                a REST Authentication App has been added to the REST
+                service, use the <code>authenticate()</code> function of
+                the REST service Client API object. This will show an
+                login dialog where the credentials of a user account can
+                be specified.</p>
+                <div class="sourceCode" id="cb18"><pre
+                class="sourceCode js"><code class="sourceCode javascript"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="fu">authenticate</span>()<span class="op">;</span></span></code></pre></div>
+                <blockquote>
+                <p>The <code>authenticate()</code> function only works
+                with the built in MRS authentication vendor. Please make
+                sure to set this vendor when adding the REST
+                Authentication App.</p>
+                </blockquote>
+                <p>In the following examples case the
+                <code>sakila.city</code> database table was used, as can
+                be seen in the screenshot above.</p>
+                <div class="sourceCode" id="cb19"><pre
+                class="sourceCode js"><code class="sourceCode javascript"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findFirst</span>()<span class="op">;</span></span></code></pre></div>
+                <div class="sourceCode" id="cb20"><pre
+                class="sourceCode json"><code class="sourceCode json"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>   <span class="dt">&quot;city&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;A Corua (La Corua)&quot;</span><span class="fu">,</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>   <span class="dt">&quot;links&quot;</span><span class="fu">:</span><span class="er"> </span><span class="ot">[</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>      <span class="fu">{</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>         <span class="dt">&quot;rel&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;self&quot;</span><span class="fu">,</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>         <span class="dt">&quot;href&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;/myService/sakila/city/1&quot;</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">}</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>   <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>   <span class="dt">&quot;cityId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>   <span class="dt">&quot;countryId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">87</span><span class="fu">,</span></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>   <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span><span class="fu">,</span></span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>   <span class="dt">&quot;_metadata&quot;</span><span class="fu">:</span><span class="er"> </span><span class="fu">{</span></span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;etag&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;EE93452B41984F3F5BBB0395CCB2CED00F5C748FEEA4A36CCD749CC3F85B7CEA&quot;</span></span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>   <span class="fu">}</span></span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+                <p>The fields can be filtered and a conditional where
+                clause can be added. Please refer to the <a
+                href="sdk.html">MRS SDK Client API</a> documentation for
+                more information.</p>
+                <div class="sourceCode" id="cb21"><pre
+                class="sourceCode js"><code class="sourceCode javascript"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findMany</span>({<span class="dt">select</span><span class="op">:</span> [<span class="st">&quot;city&quot;</span><span class="op">,</span> <span class="st">&quot;cityId&quot;</span>]<span class="op">,</span> <span class="dt">where</span><span class="op">:</span> {<span class="dt">city</span><span class="op">:</span> {<span class="dt">$like</span><span class="op">:</span> <span class="st">&quot;NE%&quot;</span>}}})<span class="op">;</span></span></code></pre></div>
+                <div class="sourceCode" id="cb22"><pre
+                class="sourceCode json"><code class="sourceCode json"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;items&quot;</span><span class="fu">:</span><span class="er"> </span><span class="ot">[</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;city&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;Newcastle&quot;</span><span class="fu">,</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;links&quot;</span><span class="fu">:</span><span class="er"> </span><span class="ot">[</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>                <span class="fu">{</span></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>                    <span class="dt">&quot;rel&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;self&quot;</span><span class="fu">,</span></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>                    <span class="dt">&quot;href&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;/myService/sakila/city/364&quot;</span></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>                <span class="fu">}</span></span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>            <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;cityId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">364</span><span class="fu">,</span></span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;_metadata&quot;</span><span class="fu">:</span><span class="er"> </span><span class="fu">{}</span></span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;city&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;Nezahualcyotl&quot;</span><span class="fu">,</span></span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;links&quot;</span><span class="fu">:</span><span class="er"> </span><span class="ot">[</span></span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>                <span class="fu">{</span></span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>                    <span class="dt">&quot;rel&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;self&quot;</span><span class="fu">,</span></span>
+<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a>                    <span class="dt">&quot;href&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;/myService/sakila/city/365&quot;</span></span>
+<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a>                <span class="fu">}</span></span>
+<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>            <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;cityId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">365</span><span class="fu">,</span></span>
+<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;_metadata&quot;</span><span class="fu">:</span><span class="er"> </span><span class="fu">{</span></span>
+<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a>                <span class="dt">&quot;etag&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;681C34301F6ED6FD1200505C9C2CFB90E3367A267B7AADBD85186D781FEC7C19&quot;</span></span>
+<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a>            <span class="fu">}</span></span>
+<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;limit&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">25</span><span class="fu">,</span></span>
+<span id="cb22-29"><a href="#cb22-29" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;offset&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">0</span><span class="fu">,</span></span>
+<span id="cb22-30"><a href="#cb22-30" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;hasMore&quot;</span><span class="fu">:</span><span class="er"> false</span><span class="fu">,</span></span>
+<span id="cb22-31"><a href="#cb22-31" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;count&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">2</span><span class="fu">,</span></span>
+<span id="cb22-32"><a href="#cb22-32" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;links&quot;</span><span class="fu">:</span><span class="er"> </span><span class="ot">[</span></span>
+<span id="cb22-33"><a href="#cb22-33" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
+<span id="cb22-34"><a href="#cb22-34" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;rel&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;self&quot;</span><span class="fu">,</span></span>
+<span id="cb22-35"><a href="#cb22-35" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;href&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;/myService/sakila/city/&quot;</span></span>
+<span id="cb22-36"><a href="#cb22-36" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb22-37"><a href="#cb22-37" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span></span>
+<span id="cb22-38"><a href="#cb22-38" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+                <p>To quickly edit a REST DB Object that has been
+                interactively queried, the <code>edit()</code> function
+                can be used.</p>
+                <div class="sourceCode" id="cb23"><pre
+                class="sourceCode js"><code class="sourceCode javascript"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">edit</span>()</span></code></pre></div>
+                <h3 data-number="5.4.2"
+                id="creating-a-nested-jsonrelational-duality-view"><span
+                class="header-section-number">5.4.2</span> Creating a
+                Nested JSON/Relational Duality View</h3>
+                <p>By enabling a referenced table, the columns of that
+                table are included as a nested entry in the JSON result.
+                Please note that this works with 1:1 and 1:n
+                relationships.</p>
+                <figure>
+                <img
+                src="sections/../images/vsc-mrs-json-relational-editor-2-referenced-table.png"
+                title="Adding a Referenced Table"
+                alt="Adding a Referenced Table" />
+                <figcaption aria-hidden="true">Adding a Referenced
+                Table</figcaption>
+                </figure>
+                <p>This leads to the following result.</p>
+                <div class="sourceCode" id="cb24"><pre
+                class="sourceCode js"><code class="sourceCode javascript"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findFirst</span>()<span class="op">;</span></span></code></pre></div>
+                <div class="sourceCode" id="cb25"><pre
+                class="sourceCode json"><code class="sourceCode json"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;city&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;A Corua (La Corua)&quot;</span><span class="fu">,</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;links&quot;</span><span class="fu">:</span><span class="er"> </span><span class="ot">[</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;rel&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;self&quot;</span><span class="fu">,</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;href&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;/myService/sakila/city/1&quot;</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;cityId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;country&quot;</span><span class="fu">:</span><span class="er"> </span><span class="fu">{</span></span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;country&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;Spain&quot;</span><span class="fu">,</span></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;countryId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">87</span><span class="fu">,</span></span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;2006-02-15 04:44:00.000000&quot;</span></span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;countryId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">87</span><span class="fu">,</span></span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span><span class="fu">,</span></span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;_metadata&quot;</span><span class="fu">:</span><span class="er"> </span><span class="fu">{</span></span>
+<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;etag&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;FFA2187AD4B98DF48EC40B3E807E0561A71D02C2F4F5A3B953AA6CB6E41CAD16&quot;</span></span>
+<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+                <h3 data-number="5.4.3"
+                id="creating-a-jsonrelational-duality-view-with-an-unnested-referenced-table"><span
+                class="header-section-number">5.4.3</span> Creating a
+                JSON/Relational Duality View with an Unnested Referenced
+                Table</h3>
+                <p>If the columns of the referenced table should be
+                added to the level above, the <code>Unnest</code> option
+                can be enabled.</p>
+                <figure>
+                <img
+                src="sections/../images/vsc-mrs-json-relational-editor-3-referenced-table-unnested.png"
+                title="Unnest a Referenced Table"
+                alt="Unnest a Referenced Table" />
+                <figcaption aria-hidden="true">Unnest a Referenced
+                Table</figcaption>
+                </figure>
+                <p>This leads to the following result.</p>
+                <div class="sourceCode" id="cb26"><pre
+                class="sourceCode js"><code class="sourceCode javascript"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findFirst</span>()<span class="op">;</span></span></code></pre></div>
+                <div class="sourceCode" id="cb27"><pre
+                class="sourceCode json"><code class="sourceCode json"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;city&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;A Corua (La Corua)&quot;</span><span class="fu">,</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;links&quot;</span><span class="fu">:</span><span class="er"> </span><span class="ot">[</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;rel&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;self&quot;</span><span class="fu">,</span></span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;href&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;/myService/sakila/city/1&quot;</span></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;cityId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;country&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;Spain&quot;</span><span class="fu">,</span></span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;countryId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">87</span><span class="fu">,</span></span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span><span class="fu">,</span></span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;_metadata&quot;</span><span class="fu">:</span><span class="er"> </span><span class="fu">{</span></span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;etag&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;48889BABCBBA1491D25DFE0D7A270FA3FDF8A16DA8E44E42C61759DE1F0D6E35&quot;</span></span>
+<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+                <h3 data-number="5.4.4"
+                id="creating-a-jsonrelational-duality-view-with-a-reduced-referenced-table"><span
+                class="header-section-number">5.4.4</span> Creating a
+                JSON/Relational Duality View with a Reduced Referenced
+                Table</h3>
+                <p>Instead of having all columns unnested and disabling
+                all columns that are not wanted, the
+                <code>Reduce to...</code> dropdown can be used to select
+                the column that should be selected for the reduce
+                operation.</p>
+                <figure>
+                <img
+                src="sections/../images/vsc-mrs-json-relational-editor-4-referenced-table-reduced.png"
+                title="A Reduced Referenced Table"
+                alt="A Reduced Referenced Table" />
+                <figcaption aria-hidden="true">A Reduced Referenced
+                Table</figcaption>
+                </figure>
+                <p>This leads to the same result as the query above.</p>
+                <div class="sourceCode" id="cb28"><pre
+                class="sourceCode js"><code class="sourceCode javascript"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findFirst</span>()<span class="op">;</span></span></code></pre></div>
+                <div class="sourceCode" id="cb29"><pre
+                class="sourceCode json"><code class="sourceCode json"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;city&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;A Corua (La Corua)&quot;</span><span class="fu">,</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;links&quot;</span><span class="fu">:</span><span class="er"> </span><span class="ot">[</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;rel&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;self&quot;</span><span class="fu">,</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;href&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;/myService/sakila/city/1&quot;</span></span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;cityId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;country&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;Spain&quot;</span><span class="fu">,</span></span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;countryId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">87</span><span class="fu">,</span></span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span><span class="fu">,</span></span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;_metadata&quot;</span><span class="fu">:</span><span class="er"> </span><span class="fu">{</span></span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;etag&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;48889BABCBBA1491D25DFE0D7A270FA3FDF8A16DA8E44E42C61759DE1F0D6E35&quot;</span></span>
+<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
                 <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify

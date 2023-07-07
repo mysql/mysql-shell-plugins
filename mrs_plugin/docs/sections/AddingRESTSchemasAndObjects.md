@@ -198,8 +198,220 @@ The following aspects can be set through the dialog.
   - Whether the object is publicly available or requires authentication
   - The CRUD operations that are allowed
   - The CRUD operations that are allowed on referenced tables
+  - Whether row ownership should be enforced to enable row level security
 - JSON/Relation Duality
   - Which columns of the database schema object should be exposed and how they should be named
   - Which referenced tables should be included, either nested or unnested or reduced to a single field
 
 ![The MySQL REST Object Dialog](../images/vsc-mrs-json-relational-editor.png "The MySQL REST Object Dialog")
+
+### Building a JSON/Relational Duality View
+
+A simple 1:1 mapping between the REST DB Object and the corresponding relational table is automatically created when [adding a database object](#adding-a-database-object-with-mysql-shell).
+
+No changes need to be applied on the MySQL REST Object Dialog, except unchecking the `Requires Auth` checkbox if the REST object should be available without login.
+
+> Note: If the `Requires Auth` checkbox has been unchecked, the REST object will be publicly available to anybody who can access the REST URL.
+
+#### Enabling CRUD Operations
+
+Since only the READ CRUD operation is enabled by default (see the `R` being highlighted next to the relational object), only read commands will be allowed on the REST object. To change this, toggle each letter (`R` - Read, `C` - Create, `U` - Update and `D` - Delete) to enable or disable the corresponding functionality.
+
+| Letter | CRUD Operation | SQL Operation |
+|---|---|---|
+| C | CREATE | CREATE |
+| R | READ | SELECT |
+| U | UPDATE | UPDATE |
+| D | DELETE | DELETE |
+
+#### Interactively Query the REST Object
+
+After clicking `OK` to close the MySQL REST Object dialog, the DB Notebook will be visible again.
+
+Switch the DB Notebook to TypeScript mode with `\ts` if it is still in SQL mode. Now it is possible to interactively query the REST object using the [MRS SDK Client API](sdk.html).
+
+```js
+\ts
+```
+
+If some of the REST objects require authenticate and a REST Authentication App has been added to the REST service, use the `authenticate()` function of the REST service Client API object. This will show an login dialog where the credentials of a user account can be specified.
+
+```js
+myService.authenticate();
+```
+
+> The `authenticate()` function only works with the built in MRS authentication vendor. Please make sure to set this vendor when adding the REST Authentication App.
+
+In the following examples case the `sakila.city` database table was used, as can be seen in the screenshot above.
+
+```js
+myService.sakila.city.findFirst();
+```
+
+```json
+{
+   "city": "A Corua (La Corua)",
+   "links": [
+      {
+         "rel": "self",
+         "href": "/myService/sakila/city/1"
+      }
+   ],
+   "cityId": 1,
+   "countryId": 87,
+   "lastUpdate": "2006-02-15 04:45:25.000000",
+   "_metadata": {
+      "etag": "EE93452B41984F3F5BBB0395CCB2CED00F5C748FEEA4A36CCD749CC3F85B7CEA"
+   }
+}
+```
+
+The fields can be filtered and a conditional where clause can be added. Please refer to the [MRS SDK Client API](sdk.html) documentation for more information.
+
+```js
+myService.sakila.city.findMany({select: ["city", "cityId"], where: {city: {$like: "NE%"}}});
+```
+
+```json
+{
+    "items": [
+        {
+            "city": "Newcastle",
+            "links": [
+                {
+                    "rel": "self",
+                    "href": "/myService/sakila/city/364"
+                }
+            ],
+            "cityId": 364,
+            "_metadata": {}
+        },
+        {
+            "city": "Nezahualcyotl",
+            "links": [
+                {
+                    "rel": "self",
+                    "href": "/myService/sakila/city/365"
+                }
+            ],
+            "cityId": 365,
+            "_metadata": {
+                "etag": "681C34301F6ED6FD1200505C9C2CFB90E3367A267B7AADBD85186D781FEC7C19"
+            }
+        }
+    ],
+    "limit": 25,
+    "offset": 0,
+    "hasMore": false,
+    "count": 2,
+    "links": [
+        {
+            "rel": "self",
+            "href": "/myService/sakila/city/"
+        }
+    ]
+}
+```
+
+To quickly edit a REST DB Object that has been interactively queried, the `edit()` function can be used.
+
+```js
+myService.sakila.city.edit()
+```
+
+### Creating a Nested JSON/Relational Duality View
+
+By enabling a referenced table, the columns of that table are included as a nested entry in the JSON result. Please note that this works with 1:1 and 1:n relationships.
+
+![Adding a Referenced Table](../images/vsc-mrs-json-relational-editor-2-referenced-table.png "Adding a Referenced Table")
+
+This leads to the following result.
+
+```js
+myService.sakila.city.findFirst();
+```
+
+```json
+{
+    "city": "A Corua (La Corua)",
+    "links": [
+        {
+            "rel": "self",
+            "href": "/myService/sakila/city/1"
+        }
+    ],
+    "cityId": 1,
+    "country": {
+        "country": "Spain",
+        "countryId": 87,
+        "lastUpdate": "2006-02-15 04:44:00.000000"
+    },
+    "countryId": 87,
+    "lastUpdate": "2006-02-15 04:45:25.000000",
+    "_metadata": {
+        "etag": "FFA2187AD4B98DF48EC40B3E807E0561A71D02C2F4F5A3B953AA6CB6E41CAD16"
+    }
+}
+```
+
+### Creating a JSON/Relational Duality View with an Unnested Referenced Table
+
+If the columns of the referenced table should be added to the level above, the `Unnest` option can be enabled.
+
+![Unnest a Referenced Table](../images/vsc-mrs-json-relational-editor-3-referenced-table-unnested.png "Unnest a Referenced Table")
+
+This leads to the following result.
+
+```js
+myService.sakila.city.findFirst();
+```
+
+```json
+{
+    "city": "A Corua (La Corua)",
+    "links": [
+        {
+            "rel": "self",
+            "href": "/myService/sakila/city/1"
+        }
+    ],
+    "cityId": 1,
+    "country": "Spain",
+    "countryId": 87,
+    "lastUpdate": "2006-02-15 04:45:25.000000",
+    "_metadata": {
+        "etag": "48889BABCBBA1491D25DFE0D7A270FA3FDF8A16DA8E44E42C61759DE1F0D6E35"
+    }
+}
+```
+
+### Creating a JSON/Relational Duality View with a Reduced Referenced Table
+
+Instead of having all columns unnested and disabling all columns that are not wanted, the `Reduce to...` dropdown can be used to select the column that should be selected for the reduce operation.
+
+![A Reduced Referenced Table](../images/vsc-mrs-json-relational-editor-4-referenced-table-reduced.png "A Reduced Referenced Table")
+
+This leads to the same result as the query above.
+
+```js
+myService.sakila.city.findFirst();
+```
+
+```json
+{
+    "city": "A Corua (La Corua)",
+    "links": [
+        {
+            "rel": "self",
+            "href": "/myService/sakila/city/1"
+        }
+    ],
+    "cityId": 1,
+    "country": "Spain",
+    "countryId": 87,
+    "lastUpdate": "2006-02-15 04:45:25.000000",
+    "_metadata": {
+        "etag": "48889BABCBBA1491D25DFE0D7A270FA3FDF8A16DA8E44E42C61759DE1F0D6E35"
+    }
+}
+```
