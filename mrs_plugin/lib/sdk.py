@@ -549,7 +549,6 @@ def generate_nested_interfaces(
     for field in fields:
         if (field.get("parent_reference_id") == parent_field.get("represents_reference_id") and
                 field.get("enabled")):
-
             # Handle references
             if field.get("represents_reference_id"):
                 # Check if the field should be reduced to the value of another field
@@ -560,17 +559,18 @@ def generate_nested_interfaces(
                         f'    {field.get("name")}?: {reduced_to_datatype},\n')
                 else:
                     obj_ref = field.get("object_reference")
+                    field_interface_name = lib.core.convert_path_to_pascal_case(field.get("name"))
                     # Add field if the referred table is not unnested
                     if not obj_ref.get("unnest"):
                         datatype = f'I{class_name}{reference_class_name_postfix + field.get("name")}'
+                        # Should use the corresponding nested field type.
                         interface_fields.append(
-                            f'    {field.get("name")}?: {datatype},\n')
+                            f'    {field.get("name")}?: {interface_name + field_interface_name},\n')
 
                     # If not, do recursive call
                     generate_nested_interfaces(
                         obj_interfaces, interface_fields, field,
-                        reference_class_name_postfix=reference_class_name_postfix +
-                        field.get("name"),
+                        reference_class_name_postfix=reference_class_name_postfix + field_interface_name,
                         fields=fields, class_name=class_name, sdk_language=sdk_language)
             else:
                 datatype = get_interface_datatype(field, sdk_language)
