@@ -699,7 +699,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             } else {
                 content = <>
                     {(data.showSdkOptions !== undefined) &&
-                        <Label className="datatype" caption={this.getJsonDatatype(cellData)} />
+                        <Label className="datatype" caption={this.getJsonFieldDatatype(cellData)} />
                     }
                     <Label className="bracket" caption={"{"} />
                 </>;
@@ -739,7 +739,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     {(data.showSdkOptions !== undefined) &&
                         <>
                             <Label className="dot" caption={":"} />
-                            <Label className="datatype" caption={this.getJsonDatatype(cellData)} />
+                            <Label className="datatype" caption={this.getJsonFieldDatatype(cellData)} />
                         </>
                     }
                 </Container>
@@ -968,7 +968,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     <Icon src={iconName} width={16} height={16}
                         data-tooltip={tooltip} />
                     <Label className="columnName" caption={dbColName} />
-                    {(data.showSdkOptions !== undefined) &&
+                    {data.showSdkOptions !== undefined &&
                         <Label className="datatype" caption={cellData.field.dbColumn?.datatype.toUpperCase()} />
                     }
                 </>;
@@ -1076,7 +1076,36 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
         return "Not defined";
     };
 
-    private getJsonDatatype = (cellData: IMrsObjectFieldTreeItem): string => {
+    private getJsonDatatype = (dbDatatype: string): string => {
+
+        if (dbDatatype.startsWith("tinyint(1)") || dbDatatype.startsWith("bit(1)")) {
+            return "boolean";
+        }
+
+        if (dbDatatype.startsWith("tinyint") ||
+            dbDatatype.startsWith("smallint") ||
+            dbDatatype.startsWith("mediumint") ||
+            dbDatatype.startsWith("int") ||
+            dbDatatype.startsWith("bigint") ||
+            dbDatatype.startsWith("decimal") ||
+            dbDatatype.startsWith("numeric") ||
+            dbDatatype.startsWith("float") ||
+            dbDatatype.startsWith("double")) {
+            return "number";
+        }
+
+        if (dbDatatype.startsWith("json")) {
+            return "unknown";
+        }
+
+        if (dbDatatype.startsWith("geometry")) {
+            return "object";
+        }
+
+        return "string";
+    };
+
+    private getJsonFieldDatatype = (cellData: IMrsObjectFieldTreeItem): string => {
         const { values } = this.props;
         const data = values as IMrsObjectFieldEditorData;
         const mrsObject = this.findMrsObjectById(data.currentMrsObjectId);
@@ -1089,25 +1118,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             datatype = cellData.field.sdkOptions?.datatypeName;
         } else if (!cellData.field.objectReference?.referenceMapping ||
             cellData.field.objectReference?.referenceMapping === null) {
-            if (cellData.field.dbColumn) {
-                if (cellData.field.dbColumn.datatype === "tinyint(1)") {
-                    datatype = "boolean";
-                } if (cellData.field.dbColumn.datatype.startsWith("tinyint") ||
-                    cellData.field.dbColumn.datatype.startsWith("smallint") ||
-                    cellData.field.dbColumn.datatype.startsWith("mediumint") ||
-                    cellData.field.dbColumn.datatype.startsWith("int") ||
-                    cellData.field.dbColumn.datatype.startsWith("bigint") ||
-                    cellData.field.dbColumn.datatype.startsWith("decimal") ||
-                    cellData.field.dbColumn.datatype.startsWith("numeric") ||
-                    cellData.field.dbColumn.datatype.startsWith("float") ||
-                    cellData.field.dbColumn.datatype.startsWith("double")) {
-                    datatype = "number";
-                } else {
-                    datatype = "string";
-                }
-            } else {
-                datatype = "string";
-            }
+            datatype = this.getJsonDatatype(cellData.field.dbColumn?.datatype ?? "");
         } else {
             datatype = `I${mrsObject.name}${convertCamelToTitleCase(cellData.field.name)}`;
         }
@@ -1669,25 +1680,37 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
      */
     private editorHost = (cell: CellComponent, onRendered: EmptyCallback, success: ValueBooleanCallback,
         cancel: ValueVoidCallback): HTMLElement | false => {
+        const { values } = this.props;
+        const data = values as IMrsObjectFieldEditorData;
+
         const host = document.createElement("div");
 
         const cellData = cell.getData() as IMrsObjectFieldTreeItem;
-        const colDef = cell.getColumn().getDefinition();
+        const { title, field } = cell.getColumn().getDefinition();
         let val = "";
 
-        host.classList.add("cellEditorHost" + colDef.title);
+        host.classList.add("cellEditorHost" + title);
 
-        if (colDef.field === "json") {
+        if (field === "json") {
             if (cellData.type === MrsObjectFieldTreeEntryType.FieldListOpen && !cell.getRow().getPrevRow()) {
                 val = this.getMrsObjectName(cellData);
+            } else if (data.showSdkOptions === undefined) {
+                val = cellData.field.name;
             } else {
                 val = cellData.field.name;
+                if (cellData.field.sdkOptions && cellData.field.sdkOptions?.datatypeName) {
+                    val += `: ${cellData.field.sdkOptions.datatypeName}`;
+                } else {
+                    val += `: ${this.getJsonFieldDatatype(cellData)}`;
+                }
             }
             this.renderCustomEditor(cell, onRendered, host, val, success, cancel);
 
             return host;
-        } else if (colDef.field === "relational" && cellData.field.dbColumn) {
-            val = cellData.field.dbColumn?.name;
+        }
+
+        if (field === "relational" && cellData.field.dbColumn) {
+            val = `${cellData.field.dbColumn.name}: ${cellData.field.dbColumn.datatype}`;
             this.renderCustomEditor(cell, onRendered, host, val, success, cancel);
 
             return host;
@@ -1731,6 +1754,20 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
 
         onRendered(() => {
             ref.current?.focus();
+            if (ref.current && typeof value === "string") {
+                // If this is a new field, select all text
+                if (value.startsWith("newField") || value.startsWith("new_field")) {
+                    return ref.current.select();
+                }
+
+                const datatypeSep = value.indexOf(":");
+                // If there is a datatype, place cursor before the datatype separator, so the field name can be
+                // edited more easily
+                if (datatypeSep >= 0) {
+                    ref.current.selectionStart = datatypeSep;
+                    ref.current.selectionEnd = datatypeSep;
+                }
+            }
         });
     };
 
@@ -1781,19 +1818,47 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     }
                 }
             } else if (treeItem?.field) {
-                if (data.showSdkOptions === undefined) {
-                    treeItem.field.name = cell.getValue();
+                const editVal = String(cell.getValue());
+                const datatypeSep = editVal.indexOf(":");
+                let datatypeName = "";
 
-                    if (treeItem.field.dbColumn?.name === "new_field") {
-                        treeItem.field.dbColumn.name = camelToSnakeCase(treeItem.field.name);
+                // Check if the user has entered a datatype, if so set the explicit sdkOptions
+                if (datatypeSep >= 0) {
+                    treeItem.field.name = editVal.slice(0, datatypeSep).trim();
+                    datatypeName = editVal.slice(datatypeSep + 1).trim().toLowerCase();
+
+                    // If the user entered a datatype different to the standard conversion of the DB datatype
+                    if (datatypeName.toLowerCase() !== this.getJsonDatatype(treeItem.field.dbColumn?.datatype ?? "")) {
+                        if (!treeItem.field.sdkOptions) {
+                            treeItem.field.sdkOptions = { datatypeName };
+                        } else {
+                            treeItem.field.sdkOptions.datatypeName = datatypeName;
+                        }
                     }
+
                 } else {
-                    if (!treeItem.field.sdkOptions) {
-                        treeItem.field.sdkOptions = {
-                            datatypeName: cell.getValue(),
-                        };
-                    } else {
-                        treeItem.field.sdkOptions.datatypeName = cell.getValue();
+                    treeItem.field.name = editVal;
+                }
+
+                // If this is a new field, initialize the dbColumn and datatype
+                if (treeItem.field.dbColumn?.name === "new_field") {
+                    treeItem.field.dbColumn.name = camelToSnakeCase(treeItem.field.name);
+
+                    switch (datatypeName) {
+                        case "number":
+                            treeItem.field.dbColumn.datatype = "integer";
+                            break;
+                        case "boolean":
+                            treeItem.field.dbColumn.datatype = "tinyint(1)";
+                            break;
+                        case "object":
+                        case "unknown":
+                            treeItem.field.dbColumn.datatype = "json";
+                            break;
+
+                        default:
+                            treeItem.field.dbColumn.datatype = "varchar(255)";
+                            break;
                     }
                 }
             }
@@ -1801,7 +1866,17 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             this.updateStateData(data);
         } else if (colDef.field === "relational") {
             if (treeItem?.field.dbColumn) {
-                treeItem.field.dbColumn.name = cell.getValue();
+                const editVal = String(cell.getValue());
+                const datatypeSep = editVal.indexOf(":");
+
+                // If the user entered a datatype separated by : as well, assign name and datatype to correct attributes
+                // e.g. my_col: INTEGER
+                if (datatypeSep >= 0) {
+                    treeItem.field.dbColumn.name = editVal.slice(0, datatypeSep).trim();
+                    treeItem.field.dbColumn.datatype = editVal.slice(datatypeSep + 1).trim().toLowerCase();
+                } else {
+                    treeItem.field.dbColumn.name = editVal;
+                }
 
                 if (treeItem.field.name === "newField") {
                     treeItem.field.name = snakeToCamelCase(treeItem.field.dbColumn.name);
@@ -2233,9 +2308,11 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             for (const row of rows) {
                 const rowData = row.getData() as IMrsObjectFieldTreeItem;
                 if (rowData.field.id === fieldId) {
-                    const cell = row.getCell("relational");
-
-                    cell.edit(true);
+                    const cells = row.getCells();
+                    if (cells.length > 0) {
+                        // ToDo: Figure out why this does not display the inline editor
+                        cells[1].edit(true);
+                    }
 
                     break;
                 }

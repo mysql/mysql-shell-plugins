@@ -308,7 +308,7 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
 def get_datatype_mapping(db_datatype, sdk_language):
     db_datatype = db_datatype.lower()
     if (sdk_language == "TypeScript"):
-        if (db_datatype == "tinyint(1)"):
+        if (db_datatype.startswith("tinyint(1)") or db_datatype.startswith("bit(1)")):
             datatype = "boolean"
         elif (db_datatype.startswith("tinyint") or
               db_datatype.startswith("smallint") or
@@ -320,8 +320,10 @@ def get_datatype_mapping(db_datatype, sdk_language):
               db_datatype.startswith("float") or
                 db_datatype.startswith("double")):
             datatype = "number"
-        elif (db_datatype == "json"):
-            datatype = "object"
+        elif (db_datatype.startswith("json")):
+            datatype = "unknown"
+        elif (db_datatype.startswith("geometry")):
+            datatype = "IMrsFetchData"
         else:
             datatype = "string"
 
