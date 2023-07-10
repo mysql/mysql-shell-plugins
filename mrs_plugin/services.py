@@ -500,9 +500,10 @@ def delete_service(**kwargs):
     Returns:
         The result message as string
     """
-    lib.core.convert_ids_to_binary(["service_id"], kwargs)
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        lib.core.convert_ids_to_binary(["service_id"], kwargs)
+
         kwargs["session"] = session
         kwargs["allow_multi_select"] = True
         kwargs = resolve_service_ids(**kwargs)
@@ -516,7 +517,7 @@ def delete_service(**kwargs):
             return f"The services have been deleted."
 
         return True
-    return False
+
 
 
 @plugin_function('mrs.set.service.contextPath', shell=True, cli=True, web=True)
