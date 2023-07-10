@@ -2,13 +2,10 @@
 
 ## Changes in 1.11.1+8.0.33
 
-### Additions
-
-- 
-
 ### Fixes
 
-- 
+- Regression determining the shell configuration home path that caused the existing configuration (connections, certificates) to be ignored.
+- BUG#35381777 Fix service metadata display format
 
 ## Changes in 1.11.0+8.0.33
 
