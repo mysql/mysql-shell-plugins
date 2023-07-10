@@ -22,7 +22,7 @@
  */
 
 
-import { ExtensionContext, Uri, commands, window, ViewColumn, workspace } from "vscode";
+import { ExtensionContext, Uri, commands, window, ViewColumn, workspace, ExtensionMode } from "vscode";
 
 import { join } from "path";
 import { platform, release } from "os";
@@ -529,6 +529,7 @@ export const setupInitialWelcomeWebview = (context: ExtensionContext): void => {
                         // Run the shell command to install the cert
                         const config: IShellLaunchConfiguration = {
                             rootPath: context.extensionPath,
+                            inDevelopment: context.extensionMode === ExtensionMode.Development,
                             parameters: [
                                 "--", "gui", "core", "install-shell-web-certificate",
                                 "--replace_existing=true",

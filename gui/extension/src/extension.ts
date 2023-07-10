@@ -23,7 +23,7 @@
 
 import {
     commands, ExtensionContext, OutputChannel, StatusBarAlignment, StatusBarItem, window, workspace, extensions, env,
-    Uri, ExtensionKind,
+    Uri, ExtensionKind, ExtensionMode,
 } from "vscode";
 
 import * as child_process from "child_process";
@@ -153,7 +153,8 @@ export const activate = (context: ExtensionContext): void => {
                 await shellLauncher.exitProcess();
                 webSession.clearSessionData();
 
-                shellLauncher.startShellAndConnect(context.extensionPath, true);
+                shellLauncher.startShellAndConnect(context.extensionPath,
+                    context.extensionMode === ExtensionMode.Development, true);
             }
         });
     }));
@@ -173,7 +174,8 @@ export const activate = (context: ExtensionContext): void => {
 
             const configuration = workspace.getConfiguration(`msg.debugLog`);
             const level = configuration.get<LogLevel>("level", "INFO");
-            shellLauncher.startShellAndConnect(context.extensionPath, true, level, value);
+            shellLauncher.startShellAndConnect(context.extensionPath,
+                context.extensionMode === ExtensionMode.Development, true, level, value);
         });
     }));
 
@@ -189,6 +191,7 @@ export const activate = (context: ExtensionContext): void => {
                 // Delete the web certificate before removing shell user config dir.
                 const config: IShellLaunchConfiguration = {
                     rootPath: context.extensionPath,
+                    inDevelopment: context.extensionMode === ExtensionMode.Development,
                     parameters: [
                         "--", "gui", "core", "remove-shell-web-certificate",
                     ],
@@ -196,7 +199,8 @@ export const activate = (context: ExtensionContext): void => {
                     onStdOutData: (output: string) => {
                         if (output.includes("true")) {
                             // Delete the shell user settings folder, only if it is the dedicated one for the extension.
-                            const shellUserConfigDir = MySQLShellLauncher.getShellUserConfigDir(context.extensionPath);
+                            const shellUserConfigDir = MySQLShellLauncher.getShellUserConfigDir(
+                                context.extensionMode === ExtensionMode.Development);
                             if (shellUserConfigDir
                                 .endsWith(MySQLShellLauncher.extensionShellUserConfigFolderBaseName)) {
                                 rmSync(shellUserConfigDir, { recursive: true, force: true });
@@ -315,11 +319,12 @@ export const activate = (context: ExtensionContext): void => {
             .get<boolean>("enforceHttps", true);
 
         // If the extension is running remotely via ssh-remote make sure to add the ssh tunnel for the web UI
+        const inDevelopment = context.extensionMode === ExtensionMode.Development;
         if (sshRemote) {
-            shellLauncher.startShellAndConnect(context.extensionPath, enforceHttps, level, externalUrl,
+            shellLauncher.startShellAndConnect(context.extensionPath, inDevelopment, enforceHttps, level, externalUrl,
                 forwardPortThroughSshSession);
         } else {
-            shellLauncher.startShellAndConnect(context.extensionPath, enforceHttps, level, externalUrl);
+            shellLauncher.startShellAndConnect(context.extensionPath, inDevelopment, enforceHttps, level, externalUrl);
         }
     }
 };
