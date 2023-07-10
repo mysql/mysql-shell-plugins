@@ -223,3 +223,28 @@ def test_change_service(phone_book):
         with pytest.raises(Exception) as exc_info:
             update_service(**args, service_ids=[1], value=value)
         assert str(exc_info.value) == "Attempting to change an invalid service value."
+
+
+def test_delete_service(phone_book, table_contents):
+    service_args = {
+        "url_context_root": "/service_to_delete",
+        "url_host_name": "localhost",
+        "url_protocol": "HTTP",
+        "is_default": False,
+        "comments": "no comments",
+    }
+
+    result = add_service(**service_args)
+
+    assert result is not None
+    assert isinstance(result, dict)
+
+    with pytest.raises(Exception) as exc_info:
+        delete_service(service_id=1)
+    assert str(exc_info.value) == "Invalid id type for service_id."
+
+    with pytest.raises(Exception) as exc_info:
+        delete_service(service_id="1")
+    assert str(exc_info.value) == "Invalid base64 string for service_id."
+
+    assert delete_service(service_id=result["id"]) == True
