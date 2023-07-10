@@ -497,7 +497,7 @@ export const setupShellForTests = (showOutput: boolean, handleEvents = true,
             requisitions.register("profileLoaded", loaded);
         }
 
-        shellLauncher.startShellAndConnect(".", false, logLevel);
+        shellLauncher.startShellAndConnect(".", false, false, logLevel);
 
         if (!handleEvents) {
             // If events are handled then the promise is resolved when a profile is loaded.

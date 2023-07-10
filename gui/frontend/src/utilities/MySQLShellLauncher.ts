@@ -50,6 +50,8 @@ export interface IShellLaunchConfiguration {
     /** A path where to look for a shell binary. Can be empty or non-existing. */
     rootPath: string;
 
+    inDevelopment: boolean;
+
     /** Parameter to be passed to the new shell process. */
     parameters: string[];
 
@@ -96,37 +98,35 @@ export class MySQLShellLauncher {
      * Returns the MySQL Shell configuration directory that should be used for this shell session. That can either be
      * a special extension path or the standard path in the user's home dir.
      *
-     * @param rootPath The file system path where to look for a shell binary.
+     * @param inDevelopment True if we are running in development mode.
      *
      * @returns The MySQL Shell user config dir as string.
      */
-    public static getShellUserConfigDir = (rootPath: string): string => {
-        const shellPath = MySQLShellLauncher.getShellPath(rootPath).toLocaleLowerCase();
+    public static getShellUserConfigDir = (inDevelopment: boolean): string => {
         let shellUserConfigDir: string;
 
-        if (process.env.MYSQLSH_GUI_CUSTOM_CONFIG_DIR !== undefined) {
-            // If the environment var MYSQLSH_GUI_CUSTOM_CONFIG_DIR is set, use that directory
-            shellUserConfigDir = process.env.MYSQLSH_GUI_CUSTOM_CONFIG_DIR;
-        } else if (!shellPath.startsWith(rootPath) && fs.existsSync(shellPath)) {
-            // Check if MySQL Shell is bundled with the extension. Cannot be tested in unit tests.
-            // If so, create a dedicated shell user config dir for the shell gui.
-            // istanbul ignore next
-            if (os.platform() === "win32") {
-                shellUserConfigDir = path.join(os.homedir(), "AppData", "Roaming", "MySQL",
-                    MySQLShellLauncher.extensionShellUserConfigFolderBaseName);
-            } else {
-                shellUserConfigDir = path.join(os.homedir(),
-                    `.${MySQLShellLauncher.extensionShellUserConfigFolderBaseName}`);
-            }
-        } else {
-            // Is there an explicit path (e.g. from unit tests)?
+        // If the environment var MYSQLSH_GUI_CUSTOM_CONFIG_DIR is set, use that directory.
+        shellUserConfigDir = process.env.MYSQLSH_GUI_CUSTOM_CONFIG_DIR ?? "";
+        if (shellUserConfigDir.length === 0) {
             shellUserConfigDir = appParameters.get("shellUserConfigDir") ?? "";
-            if (shellUserConfigDir.length === 0 || !fs.existsSync(shellUserConfigDir)) {
-                // If not, use the regular shell user config dir in this case
+        }
+
+        if (shellUserConfigDir.length === 0 || !fs.existsSync(shellUserConfigDir)) {
+            // No custom config dir set, use the regular shell user config dir in this case.
+            // istanbul ignore next
+            if (inDevelopment) {
                 if (os.platform() === "win32") {
                     shellUserConfigDir = path.join(os.homedir(), "AppData", "Roaming", "MySQL", "mysqlsh");
                 } else {
                     shellUserConfigDir = path.join(os.homedir(), ".mysqlsh");
+                }
+            } else {
+                if (os.platform() === "win32") {
+                    shellUserConfigDir = path.join(os.homedir(), "AppData", "Roaming", "MySQL",
+                        MySQLShellLauncher.extensionShellUserConfigFolderBaseName);
+                } else {
+                    shellUserConfigDir = path.join(os.homedir(),
+                        `.${MySQLShellLauncher.extensionShellUserConfigFolderBaseName}`);
                 }
             }
         }
@@ -143,11 +143,10 @@ export class MySQLShellLauncher {
      * @returns the created process.
      */
     public static runMysqlShell = (config: IShellLaunchConfiguration): child_process.ChildProcess => {
-
         // Use the MySQL Shell that is available in the given root path - and only if there is no shell, use the one
         // that is installed on the system.
         const shellPath = MySQLShellLauncher.getShellPath(config.rootPath);
-        const shellUserConfigDir = MySQLShellLauncher.getShellUserConfigDir(config.rootPath);
+        const shellUserConfigDir = MySQLShellLauncher.getShellUserConfigDir(config.inDevelopment);
 
         // Print which MySQL Shell is actually used.
         const embedded = shellPath.startsWith(config.rootPath) ? "embedded " : "";
@@ -348,13 +347,14 @@ export class MySQLShellLauncher {
      * Starts the MySQL Shell gui_plugin webserver in single user mode and connects to the websocket.
      *
      * @param rootPath The path of the extension
+     * @param inDevelopment True if we are running in development mode.
      * @param secure If true a secure connection is established (which requires proper SSL certificates).
      * @param logLevel The log level to use initially.
      * @param target If a target URL is specified, the extension connects to that remote shell instead.
      * @param forwardPort A callback function that forwards the connection through the ssh tunnel
      */
-    public startShellAndConnect = (rootPath: string, secure: boolean, logLevel: LogLevel = "INFO",
-        target?: string, forwardPort?: (dynamicUrl: URL) => Promise<URL>): void => {
+    public startShellAndConnect = (rootPath: string, inDevelopment: boolean, secure: boolean,
+        logLevel: LogLevel = "INFO", target?: string, forwardPort?: (dynamicUrl: URL) => Promise<URL>): void => {
 
         // istanbul ignore next
         if (target) {
@@ -401,7 +401,7 @@ export class MySQLShellLauncher {
 
                         const options = {
                             url,
-                            shellConfigDir: MySQLShellLauncher.getShellUserConfigDir(rootPath),
+                            shellConfigDir: MySQLShellLauncher.getShellUserConfigDir(inDevelopment),
                         };
 
                         if (forwardPort) {
@@ -438,6 +438,7 @@ export class MySQLShellLauncher {
 
                 this.shellProcess = MySQLShellLauncher.runMysqlShell({
                     rootPath,
+                    inDevelopment,
                     logLevel,
                     parameters,
                     onStdOutData: onOutput,

@@ -25,7 +25,9 @@ import os from "os";
 import path from "path";
 import fs from "fs";
 
-import { commands, env, ExtensionContext, TerminalExitStatus, Uri, ViewColumn, WebviewPanel, window } from "vscode";
+import {
+    commands, env, ExtensionContext, ExtensionMode, TerminalExitStatus, Uri, ViewColumn, WebviewPanel, window,
+} from "vscode";
 
 import { DBType } from "../../frontend/src/supplement/ShellInterface";
 
@@ -823,7 +825,8 @@ export class MRSCommandHandler {
         item?: MrsTreeItem, waitAndClosedWhenFinished = false): Promise<TerminalExitStatus | undefined> => {
         if (item) {
             if (findExecutable("mysqlrouter_bootstrap").length > 0) {
-                const shellConfDir = MySQLShellLauncher.getShellUserConfigDir(context.extensionPath);
+                const shellConfDir = MySQLShellLauncher.getShellUserConfigDir(
+                    context.extensionMode === ExtensionMode.Development);
                 const certDir = path.join(shellConfDir, "plugin_data", "gui_plugin", "web_certs");
 
                 const mysqlConnOptions = item.entry.details.options as IMySQLConnectionOptions;
