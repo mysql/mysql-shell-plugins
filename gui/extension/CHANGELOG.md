@@ -8,7 +8,7 @@
 
 ### Fixes
 
-- 
+- BUG#35594274 "orderBy" yields unexpected error in MRS SDK "findMany()" 
 
 ## Changes in 1.11.1+8.0.33
 

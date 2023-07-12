@@ -702,7 +702,7 @@ export class MrsBaseObjectQuery<C, P> {
         }
 
         // we should only stringify "whereCondition" when the request is sent
-        this.whereCondition = JSON.stringify({ $orderby: columnOrder, ...JSON.parse(this.whereCondition ?? "") });
+        this.whereCondition = JSON.stringify({ $orderby: columnOrder, ...JSON.parse(this.whereCondition ?? "{}") });
 
         return this;
     };
