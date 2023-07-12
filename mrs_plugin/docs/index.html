@@ -962,12 +962,12 @@ router_id=16</code></pre>
                 example:</p>
                 <div class="sourceCode" id="cb9"><pre
                 class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">MySQL</span> <span class="op">&gt;</span> localhost:33060+ <span class="op">&gt;</span> Py <span class="op">&gt;</span> mrs.add.service<span class="er">(</span><span class="kw">)</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the context path for this service [/mrs]: /myservice</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the context path for this service <span class="pp">[</span><span class="ss">/mrs</span><span class="pp">]</span>: /myservice</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the host name for this service <span class="er">(</span><span class="ex">e.g.</span> None or localhost<span class="kw">)</span> <span class="ex">[None]:</span> </span>
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>   <span class="ex">1</span> HTTP</span>
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>   <span class="ex">2</span> HTTPS</span>
 <span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> select the protocol<span class="er">(</span><span class="ex">s</span><span class="kw">)</span> <span class="ex">the</span> service should support [HTTP,HTTPS]: 2</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> select the protocol<span class="er">(</span><span class="ex">s</span><span class="kw">)</span> <span class="ex">the</span> service should support <span class="pp">[</span><span class="ss">HTTP,HTTPS</span><span class="pp">]</span>: 2</span>
 <span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="ex">Comments:</span> </span>
 <span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>   <span class="ex">1</span> Default Service Options for Development</span>
 <span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>   <span class="ex">2</span> No options</span>
@@ -1301,8 +1301,8 @@ router_id=16</code></pre>
 <span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>   <span class="ex">8</span> mrs_notes</span>
 <span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the name or index of a schema: 4</span>
-<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the request path for this schema [/sakila]: /sakila</span>
-<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a><span class="ex">Should</span> the schema require authentication [y/N]: </span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the request path for this schema <span class="pp">[</span><span class="ss">/sakila</span><span class="pp">]</span>: /sakila</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a><span class="ex">Should</span> the schema require authentication <span class="pp">[</span><span class="ss">y/N</span><span class="pp">]</span>: </span>
 <span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a><span class="ex">How</span> many items should be listed per page [Schema Default]: </span>
 <span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a><span class="ex">Comments:</span> </span>
 <span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a><span class="ex">Options:</span> </span>
@@ -1419,7 +1419,7 @@ router_id=16</code></pre>
 <span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>   <span class="ex">2</span> VIEW</span>
 <span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>   <span class="ex">3</span> PROCEDURE</span>
 <span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the name or index of a database object type [TABLE]: </span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the name or index of a database object type <span class="pp">[</span><span class="ss">TABLE</span><span class="pp">]</span>: </span>
 <span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>   <span class="ex">1</span> actor</span>
 <span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>   <span class="ex">2</span> address</span>
 <span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>   <span class="ex">3</span> category</span>
@@ -1438,20 +1438,20 @@ router_id=16</code></pre>
 <span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a>  <span class="ex">16</span> store</span>
 <span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the name or index of an database object: 4</span>
-<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the request path for this object [/city]: </span>
+<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the request path for this object <span class="pp">[</span><span class="ss">/city</span><span class="pp">]</span>: </span>
 <span id="cb15-30"><a href="#cb15-30" aria-hidden="true" tabindex="-1"></a>   <span class="ex">1</span> CREATE</span>
 <span id="cb15-31"><a href="#cb15-31" aria-hidden="true" tabindex="-1"></a>   <span class="ex">2</span> READ</span>
 <span id="cb15-32"><a href="#cb15-32" aria-hidden="true" tabindex="-1"></a>   <span class="ex">3</span> UPDATE</span>
 <span id="cb15-33"><a href="#cb15-33" aria-hidden="true" tabindex="-1"></a>   <span class="ex">4</span> DELETE</span>
 <span id="cb15-34"><a href="#cb15-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-35"><a href="#cb15-35" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> select the CRUD operations that should be supported, <span class="st">&#39;*&#39;</span> for all [READ]: </span>
+<span id="cb15-35"><a href="#cb15-35" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> select the CRUD operations that should be supported, <span class="st">&#39;*&#39;</span> for all <span class="pp">[</span><span class="ss">READ</span><span class="pp">]</span>: </span>
 <span id="cb15-36"><a href="#cb15-36" aria-hidden="true" tabindex="-1"></a>   <span class="ex">1</span> FEED</span>
 <span id="cb15-37"><a href="#cb15-37" aria-hidden="true" tabindex="-1"></a>   <span class="ex">2</span> ITEM</span>
 <span id="cb15-38"><a href="#cb15-38" aria-hidden="true" tabindex="-1"></a>   <span class="ex">3</span> MEDIA</span>
 <span id="cb15-39"><a href="#cb15-39" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-40"><a href="#cb15-40" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> select the CRUD operation format [FEED]: </span>
-<span id="cb15-41"><a href="#cb15-41" aria-hidden="true" tabindex="-1"></a><span class="ex">Should</span> the db_object require authentication [y/N]: </span>
-<span id="cb15-42"><a href="#cb15-42" aria-hidden="true" tabindex="-1"></a><span class="ex">Should</span> row ownership be required when querying the object [y/N]: </span>
+<span id="cb15-40"><a href="#cb15-40" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> select the CRUD operation format <span class="pp">[</span><span class="ss">FEED</span><span class="pp">]</span>: </span>
+<span id="cb15-41"><a href="#cb15-41" aria-hidden="true" tabindex="-1"></a><span class="ex">Should</span> the db_object require authentication <span class="pp">[</span><span class="ss">y/N</span><span class="pp">]</span>: </span>
+<span id="cb15-42"><a href="#cb15-42" aria-hidden="true" tabindex="-1"></a><span class="ex">Should</span> row ownership be required when querying the object <span class="pp">[</span><span class="ss">y/N</span><span class="pp">]</span>: </span>
 <span id="cb15-43"><a href="#cb15-43" aria-hidden="true" tabindex="-1"></a><span class="ex">How</span> many items should be listed per page [Schema Default]: </span>
 <span id="cb15-44"><a href="#cb15-44" aria-hidden="true" tabindex="-1"></a><span class="ex">Comments:</span> </span>
 <span id="cb15-45"><a href="#cb15-45" aria-hidden="true" tabindex="-1"></a></span>
