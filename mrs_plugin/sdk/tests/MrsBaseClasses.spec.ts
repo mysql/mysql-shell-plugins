@@ -111,4 +111,22 @@ describe("MRS SDK", (): void => {
         expect(fetchTestDouble).toHaveBeenCalledWith("/foo/bar/baz?f=!id,!oneToMany.id,!oneToMany.oneToOne.id",
             expect.anything());
     });
+
+    describe("sets the order of the records in the result set based on a given field", () => {
+        it("using a literal order keyword", async () => {
+            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
+            await query.orderBy({ num: "DESC" }).fetch();
+            
+            expect(fetchTestDouble).toHaveBeenCalledWith('/foo/bar/baz?q={"$orderby":{"num":"DESC"}}',
+                expect.anything());
+        });
+
+        it("using a numeric order identifier", async () => {
+            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
+            await query.orderBy({ num: -1 }).fetch();
+            
+            expect(fetchTestDouble).toHaveBeenCalledWith('/foo/bar/baz?q={"$orderby":{"num":-1}}',
+                expect.anything());
+        });
+    });
 });
