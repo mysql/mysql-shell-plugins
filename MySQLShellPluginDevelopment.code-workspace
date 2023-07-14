@@ -45,12 +45,12 @@
         "liveServer.settings.multiRootWorkspaceName": "MySQL REST Service Plugin",
         "jest.autoRun": "off",
         "jest.disabledWorkspaceFolders": [
-            "MRS Examples Notes TS",
             "MySQL REST Service Plugin",
             "Shell GUI Backend",
             "Shell Plugin Tools",
             "MySQL Database Service Plugin",
-            "VSCode Extension"
+            "VSCode Extension",
+            "MRS Notes Example"
         ],
         "msg.editor.defaultDbConnection": "Localhost 8.0"
     },
