@@ -533,63 +533,100 @@ export interface ICreateOptions<Type> {
     data: Type
 }
 
-// Since findAll() can return all items in the table, it needs an additional optional pagination option to limit the
-// number of of items and an optional callback function to handle progress updates.
-export interface IFindAllOptions<ResultSet> {
-    pageSize?: number,
-    progress?: (items: IMrsResultList<ResultSet>) => Promise<void>
-}
-
+/** Options available to find a record based on a unique identifier or primary key */
 export interface IFindUniqueOptions<Selectable, Filterable> extends Partial<IFilterOptions<Filterable>> {
-    select?: BooleanFieldMapSelect<Selectable> | FieldNameSelect<Selectable>,
+    // findUnique() should always return the same record based on the unique identifier or primary key.
+    // The identifier is still specified using the "where" option.
+    // Thus the only additional option available is to include a set of specific fields of that record in the result
+    // set.
+
+    // "select" determines which fields are included in the result set.
+    // It supports both an object with boolean toggles to select or ignore specific fields or an array of field names
+    // to include. Nested JSON/Relational duality fields can be specified using nested objects or with boolean toggles
+    // or an array with field names containing the full field path using dot "." notation
+
+    /** Fields to include in the result set. */
+    select?: BooleanFieldMapSelect<Selectable> | FieldNameSelect<Selectable>;
 }
 
-// find*() API
-
-// Common options used by find*() methods.
-export interface IFindOptions<Selectable, Filterable> extends IFindUniqueOptions<Selectable, Filterable> {
-    fetchAll?: IFindAllOptions<Selectable> | boolean,
-    orderBy?: ColumnOrder<Filterable>,
-    skip?: number,
-    take?: number,
+/** Options available to find the first record that optionally matches a given filter. */
+export interface IFindFirstOptions<Selectable, Filterable> extends IFindUniqueOptions<Selectable, Filterable> {
+    /* Return the first or last record depending on the specified order clause. */
+    orderBy?: ColumnOrder<Filterable>;
+    /** Skip a given number of records that match the same filter. */
+    skip?: number;
 }
 
-// "select" determines which fields are included in the result set.
-// It supports both an object with boolean toggles to select or ignore specific fields or an array of field names
-// to include. Nested JSON/Relational duality fields can be specified using nested objects or with boolean toggles
-// or an array with field names containing the full field path using dot "." notation
-// { select: { foo: { bar: true, baz: true } }
-// ['foo.bar', 'foo.baz']
-// { select: { foo: { qux: false } } }
+/** Options available to find multiple that optionally match a given filter. */
+export interface IFindManyOptions<Selectable, Filterable> extends IFindFirstOptions<Selectable, Filterable> {
+    /** Return all records from every page. */
+    fetchAll?: IFindAllOptions<Selectable> | boolean;
+    /** Set the maximum number of records in the result set. */
+    take?: number;
+}
+
+/** Options available to customize the result set page size. */
+export interface IFindAllOptions<ResultSet> {
+    // Since findMany() can return all items in the table, it needs an additional optional pagination option to limit
+    // the number of of items and an optional callback function to handle progress updates.
+    /** The maximum number of records per page. */
+    pageSize?: number;
+    /**
+     * Asynchronous function to handle progress updates.
+     * @param items The list of records in the result set.
+     * @returns A Promise that resolves once the result set is complete.
+     */
+    progress?: (items: IMrsResultList<ResultSet>) => Promise<void>;
+}
+
+/**
+ * Object with boolean fields that determine if the field should be included (or not) in the result set.
+ * @example
+ * { select: { foo: { bar: true, baz: true } }
+ * { select: { foo: { qux: false } } }
+ */
 export type BooleanFieldMapSelect<TableMetadata> = {
-    // if the column contains a primitive value the type should be a boolean toggle, otherwise, it contains an
-    // object value and we need to check the corresponding children
+    /**
+     * If the column contains a primitive value the type should be a boolean, otherwise, it contains an object value
+     * and the type is inferred from the corresponding children.
+     */
     [Key in keyof TableMetadata]?: TableMetadata[Key] extends Primitive ? boolean :
-        NestingFieldMap<TableMetadata[Key]>
+        NestingFieldMap<TableMetadata[Key]>;
 };
 
-// When "select" uses the array convention, nested fields are identified by their full path
-// using dot "." notation.
-// { foo: { bar: { baz: string } } } => ['foo.bar.baz']
+/**
+ * List of fields identified by their full path using dot "." notation.
+ * @example
+ * { foo: { bar: { baz: string } } } => ['foo.bar.baz']
+ */
 export type FieldNameSelect<Type> = Array<FieldPath<Type>>;
 
-// In the presence of nested fields, the field path is composed by the names of each parent field in the branch.
-// So, we need a way to carry that information as a list of strings.
+/** Full path of a field. */
 export type FieldPath<Type> = keyof {
-    [ColumnName in keyof Type & string as NestingPath<ColumnName, Type[ColumnName]>]?: unknown
+    /**
+     * In the presence of nested fields, the field path is composed by the names of each parent field in the branch.
+     * The entire path up to the root is carried as a list of field names,
+     */
+    [ColumnName in keyof Type & string as NestingPath<ColumnName, Type[ColumnName]>]?: unknown;
 };
 
-// When we reach a field that contains a primitive value (i.e. not an object), we have a valid stop condition, otherwise
-// we need to continue checking the types whilst composing the paths of newfound nested fields.
+/**
+ * When a field contains a primitive value (i.e. not an object), it is a valid stop condition, otherwise it is a nested
+ * field and the entire path needs to be composed.
+ */
 export type NestingPath<ParentPath extends string, Child> = Child extends Primitive ? ParentPath :
     `${ParentPath}.${NestingFieldName<Child> & string}`;
 
-// When using an array of field names, if the value of the field is an array, we need to iterate over the array in order
-// to compose the full path to each field.
+/**
+ * With an array of field names, if a field contains an array, the path of each sub-field in the array needs to be
+ * composed by iterating over the array.
+ */
 export type NestingFieldName<Type> = Type extends unknown[] ? FieldPath<Type[number]> : FieldPath<Type>;
 
-// When using a boolean field map, if the value of the field is an array, we need to iterate over the array in order
-// to check the nested field map.
+/**
+ * With a boolean field map, if a field contains an array, each boolean sub-field map needs to be checked by
+ * iterating over the array.
+ */
 export type NestingFieldMap<Type> = Type extends unknown[] ? BooleanFieldMapSelect<Type[number]>
     : BooleanFieldMapSelect<Type> | boolean;
 
@@ -702,7 +739,7 @@ export class MrsBaseObjectQuery<C, P> {
         }
 
         // we should only stringify "whereCondition" when the request is sent
-        this.whereCondition = JSON.stringify({ $orderby: columnOrder, ...JSON.parse(this.whereCondition ?? "") });
+        this.whereCondition = JSON.stringify({ $orderby: columnOrder, ...JSON.parse(this.whereCondition ?? "{}") });
 
         return this;
     };
