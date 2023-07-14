@@ -21,8 +21,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-    IFindOptions, MrsBaseObjectQuery, MrsBaseSchema, MrsBaseService,
+    IFindManyOptions, IFindUniqueOptions, MrsBaseObjectQuery, MrsBaseSchema, MrsBaseService,
 } from "../MrsBaseClasses";
 
 // fixtures
@@ -45,36 +46,37 @@ interface ITableMetadata3 {
     str?: string
 }
 
-const fetchTestDouble = jest.fn(() => {
+const fetchTestDouble = vi.fn(() => {
     return Promise.resolve({
         ok: true,
         json: () => {
             return;
         },
     });
-}) as jest.Mock;
+});
 
-describe("MRS SDK", (): void => {
+vi.stubGlobal("fetch", fetchTestDouble);
+
+describe("MRS SDK API", () => {
     // more fixtures
     const service: MrsBaseService = new MrsBaseService("/foo");
     const schema: MrsBaseSchema = { requestPath: "/bar", service };
 
     beforeEach(() => {
-        jest.clearAllMocks();
-        global.fetch = fetchTestDouble;
+        vi.restoreAllMocks();
     });
 
-    it("select fields to include in the result set using the field names", async () => {
-        const options: IFindOptions<ITableMetadata1, unknown> = { select: ["str", "oneToMany.oneToOne.str"] };
+    it("selects fields to include in the result set using the field names", async () => {
+        const options: IFindManyOptions<ITableMetadata1, unknown> = { select: ["str", "oneToMany.oneToOne.str"] };
         const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz", options.select);
         await query.fetch();
 
-        expect(fetchTestDouble).toHaveBeenCalledWith("/foo/bar/baz?f=str,oneToMany.oneToOne.str",
+        expect(fetch).toHaveBeenCalledWith("/foo/bar/baz?f=str,oneToMany.oneToOne.str",
             expect.anything());
     });
 
-    it("select fields to include in the result set using a field mapper", async () => {
-        const options: IFindOptions<ITableMetadata1, unknown> = {
+    it("selects fields to include in the result set using a field mapper", async () => {
+        const options: IFindManyOptions<ITableMetadata1, unknown> = {
             select: {
                 str: true,
                 oneToMany: {
@@ -88,12 +90,12 @@ describe("MRS SDK", (): void => {
         const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz", options.select);
         await query.fetch();
 
-        expect(fetchTestDouble).toHaveBeenCalledWith("/foo/bar/baz?f=str,oneToMany.oneToOne.str",
+        expect(fetch).toHaveBeenCalledWith("/foo/bar/baz?f=str,oneToMany.oneToOne.str",
             expect.anything());
     });
 
-    it("select fields to exclude from the result set using a field mapper", async () => {
-        const options: IFindOptions<ITableMetadata1, unknown> = {
+    it("selects fields to exclude from the result set using a field mapper", async () => {
+        const options: IFindManyOptions<ITableMetadata1, unknown> = {
             select: {
                 id: false,
                 oneToMany: {
@@ -108,25 +110,118 @@ describe("MRS SDK", (): void => {
         const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz", options.select);
         await query.fetch();
 
-        expect(fetchTestDouble).toHaveBeenCalledWith("/foo/bar/baz?f=!id,!oneToMany.id,!oneToMany.oneToOne.id",
+        expect(fetch).toHaveBeenCalledWith("/foo/bar/baz?f=!id,!oneToMany.id,!oneToMany.oneToOne.id",
             expect.anything());
     });
 
-    describe("sets the order of the records in the result set based on a given field", () => {
-        it("using a literal order keyword", async () => {
-            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
-            await query.orderBy({ num: "DESC" }).fetch();
-            
-            expect(fetchTestDouble).toHaveBeenCalledWith('/foo/bar/baz?q={"$orderby":{"num":"DESC"}}',
-                expect.anything());
-        });
+    it("sets the order of the records in the result set based on a given field using a literal order keyword",
+            async () => {
+        const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
+        await query.orderBy({ num: "DESC" }).fetch();
 
-        it("using a numeric order identifier", async () => {
-            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
-            await query.orderBy({ num: -1 }).fetch();
-            
-            expect(fetchTestDouble).toHaveBeenCalledWith('/foo/bar/baz?q={"$orderby":{"num":-1}}',
-                expect.anything());
-        });
+        expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"$orderby":{"num":"DESC"}}',
+            expect.anything());
+    });
+
+    it("sets the order of the records in the result set based on a given field using a numeric order identifier",
+            async () => {
+        const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
+        await query.orderBy({ num: -1 }).fetch();
+
+        expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"$orderby":{"num":-1}}',
+            expect.anything());
+    });
+
+    it("retrieves the first page of records that match a given implicit filter", async () => {
+        const options: IFindManyOptions<unknown, ITableMetadata1> = {
+            where: {
+                id: 1,
+            },
+        };
+
+        const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
+        await query.where(options.where).fetch();
+
+        expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"id":1}', expect.anything());
+    });
+
+    it("retrieves the first page of records that match a given explicit filter", async () => {
+        const options: IFindManyOptions<unknown, ITableMetadata1> = {
+            where: {
+                str: {
+                    $like: "%foo%",
+                },
+            },
+        };
+
+        const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
+        await query.where(options.where).fetch();
+
+        expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"str":{"$like":"%foo%"}}', expect.anything());
+    });
+
+    it("retrieves a limited number of records from the first page", async () => {
+        const options: IFindManyOptions<unknown, ITableMetadata1> = {
+            take: 2,
+        };
+
+        const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
+        await query.limit(options.take).fetch();
+
+        expect(fetch).toHaveBeenCalledWith("/foo/bar/baz?limit=2", expect.anything());
+    });
+
+    it("retrieves a limited number of records from the first page that match a given filter", async () => {
+        const options: IFindManyOptions<unknown, ITableMetadata1> = {
+            take: 2,
+            where: {
+                id: {
+                    $gt: 10,
+                },
+            },
+        };
+
+        const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
+        await query.where(options.where).limit(options.take).fetch();
+
+        expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"id":{"$gt":10}}&limit=2', expect.anything());
+    });
+
+    it("skips a number of records from the first page", async () => {
+        const options: IFindManyOptions<unknown, ITableMetadata1> = {
+            skip: 2,
+        };
+
+        const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
+        await query.offset(options.skip).fetch();
+
+        expect(fetch).toHaveBeenCalledWith("/foo/bar/baz?offset=2", expect.anything());
+    });
+
+    it("skips a number of records that match a given filter", async () => {
+        const options: IFindManyOptions<unknown, ITableMetadata1> = {
+            skip: 2,
+            where: {
+                isActive: true,
+            },
+        };
+
+        const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
+        await query.where(options.where).offset(options.skip).fetch();
+
+        expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"isActive":true}&offset=2', expect.anything());
+    });
+
+    it("retrieves the record that matches the given identifier or primary key", async () => {
+        const options: IFindUniqueOptions<unknown, ITableMetadata1> = {
+            where: {
+                id: 2,
+            },
+        };
+
+        const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
+        await query.where(options.where).fetch();
+
+        expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"id":2}', expect.anything());
     });
 });
