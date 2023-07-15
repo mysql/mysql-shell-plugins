@@ -4,11 +4,13 @@
 
 ### Additions
 
-- 
+- Add missing MRS SDK API reference documentation.
 
 ### Fixes
 
 - BUG#35594274 "orderBy" yields unexpected error in MRS SDK "findMany()" 
+- BUG#35120862 - Database object role privileges not removed when deleting a REST object
+- BUG#35124914 - Unexpected error whilst deleting an MRS service in the MySQL Shell
 
 ## Changes in 1.11.1+8.0.33
 
