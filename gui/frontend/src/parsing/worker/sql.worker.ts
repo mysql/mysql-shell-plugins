@@ -146,6 +146,17 @@ ctx.addEventListener("message", (event: MessageEvent) => {
             break;
         }
 
+        case "tokenize": {
+            const result = services.tokenize(data.sql, data.version, data.sqlMode);
+
+            postResultMessage(taskId, {
+                tokens: result,
+                final: true,
+            });
+
+            break;
+        }
+
         case "cleanup": {
             break;
         }

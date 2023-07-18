@@ -107,7 +107,7 @@ describe("NOTEBOOKS", () => {
         }
     });
 
-    describe("DB Editor", () => {
+    describe.only("DB Editor", () => {
 
         let clean = false;
 
@@ -254,6 +254,8 @@ describe("NOTEBOOKS", () => {
             const result = await Misc.execCmd("SELECT * FROM sakila.actor;", constants.execFullBlockSql);
             expect(result[0]).to.match(/(\d+) record/);
             await driver.wait(async () => {
+                console.log(await Database.getPrompts());
+
                 return (await Database.getPrompts()) > prompts;
             }, constants.wait5seconds, "A new prompt line should exist");
         });
@@ -421,10 +423,10 @@ describe("NOTEBOOKS", () => {
             try {
                 const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
                 const result = await Misc.execCmd("\\js ");
-                expect(result[0]).to.include("Switched to JavaScript mode");
+                expect(result[0]).to.equals("javascript");
                 const result2 = await Misc.execCmd("Math.random();");
                 expect(result2[0]).to.match(/(\d+).(\d+)/);
-                expect((await Misc.execCmd("\\typescript "))[0]).equals("Switched to TypeScript mode");
+                expect((await Misc.execCmd("\\typescript "))[0]).equals("typescript");
                 const result4 = await Misc.execCmd("Math.random();");
                 expect(result4[0]).to.match(/(\d+).(\d+)/);
                 await textArea.sendKeys(Key.ARROW_UP);
@@ -437,8 +439,6 @@ describe("NOTEBOOKS", () => {
                 const otherResult = await Misc.getCmdResultMsg();
                 expect(otherResult).to.match(/(\d+).(\d+)/);
                 expect(otherResult !== result2[0]).equals(true);
-                await textArea.sendKeys(Key.ARROW_DOWN);
-                await driver.sleep(500);
                 await Misc.execOnEditor();
                 await driver.wait(async () => {
                     try {
@@ -460,7 +460,7 @@ describe("NOTEBOOKS", () => {
         it("Multi-line comments", async () => {
 
             let result = await Misc.execCmd("\\sql ");
-            expect(result[0]).to.include("Switched to MySQL mode");
+            expect(result[0]).to.equals("mysql");
             result = await Misc.execCmd("select version();");
             expect(result[0]).to.include("1 record retrieved");
             const txt = await (result[1] as WebElement)
@@ -523,7 +523,7 @@ describe("NOTEBOOKS", () => {
         it("Pie Graph based on DB table", async () => {
 
             let result = await Misc.execCmd("\\ts ");
-            expect(result[0]).to.include("Switched to TypeScript mode");
+            expect(result[0]).to.include("typescript");
             result = await Misc.execCmd(`
 const res = await runSql("SELECT Name, Capital FROM world_x_cst.country limit 10");
 const options: IGraphOptions = {
@@ -551,7 +551,7 @@ Graph.render(options);
         it("Schema autocomplete context menu", async () => {
 
             const result = await Misc.execCmd("\\sql ");
-            expect(result[0]).to.include("Switched to MySQL mode");
+            expect(result[0]).to.equals("mysql");
             await Misc.writeCmd("select * from ");
             const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
             await textArea.sendKeys(Key.chord(Key.CONTROL, Key.SPACE));

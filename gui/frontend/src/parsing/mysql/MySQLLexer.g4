@@ -46,9 +46,6 @@ lexer grammar MySQLLexer;
 
 options {
     superClass = MySQLBaseLexer;
-
-    // Keyword tokens in a predefined order for simpler checks.
-    tokenVocab = predefined;
 }
 
 tokens {

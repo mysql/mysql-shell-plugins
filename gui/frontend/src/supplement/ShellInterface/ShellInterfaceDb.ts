@@ -25,7 +25,7 @@ import { MessageScheduler } from "../../communication/MessageScheduler";
 import { IShellDbConnection, ShellAPIGui } from "../../communication/ProtocolGui";
 import { webSession } from "../WebSession";
 
-type RoutineType = "function" | "procedure";
+export type RoutineType = "function" | "procedure";
 
 /**
  * This interface serves as utility for DB related work (DB object retrieval and so on).

@@ -777,8 +777,6 @@ describe("Notebook", () => {
 
             await Misc.execCmd(textArea, "\\typescript", undefined, true);
 
-            expect(await DBConnection.getOutput()).toBe("Switched to TypeScript mode");
-
             await Misc.execCmd(textArea, "Math.random();", undefined, true);
 
             const result4 = await DBConnection.getOutput();

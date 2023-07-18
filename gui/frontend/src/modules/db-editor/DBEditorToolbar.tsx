@@ -507,7 +507,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
     private updateState(): void {
         const { currentEditor, currentContext } = this.state;
 
-        if (currentEditor?.state) {
+        if (currentEditor?.state?.model?.executionContexts) {
             const context = currentEditor.state.model.executionContexts
                 .contextFromPosition(currentEditor.state.model.executionContexts.cursorPosition) as ExecutionContext;
             if (context) {

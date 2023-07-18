@@ -304,6 +304,21 @@ export enum DiagnosticSeverity {
     Message = 3
 }
 
+/** Lexer type and position of a single token.  */
+export interface ITokenInfo {
+    /** The token type (highlighter scope). */
+    type: string;
+
+    /** The (one-based) token line. */
+    line: number;
+
+    /** The (zero-based) offset in that line. */
+    column: number;
+
+    /** The length of the token text. */
+    length: number;
+}
+
 export interface ISymbolInfo {
     kind: SymbolKind;
     name: string;
@@ -385,7 +400,7 @@ export interface ILanguageWorkerApplySemicolonData {
     sqlMode: string;
 }
 
-/** Task data for an SQL split operation. */
+/** Task data for an SQL validation operation. */
 export interface ILanguageWorkerValidateData {
     api: "validate";
     language: ServiceLanguage;
@@ -395,7 +410,7 @@ export interface ILanguageWorkerValidateData {
     offset: number;
 }
 
-/** Task data for an SQL split operation. */
+/** Task data for quick info requests. */
 export interface ILanguageWorkerInfoData {
     api: "info";
     language: ServiceLanguage;
@@ -429,6 +444,14 @@ interface ILanguageWorkerCleanupData {
     language: ServiceLanguage;
 }
 
+export interface ILanguageWorkerTokenizeData {
+    api: "tokenize";
+    language: ServiceLanguage;
+    sql: string;
+    version: number;
+    sqlMode: string;
+}
+
 export type ILanguageWorkerTaskData =
     ILanguageWorkerSplitData |
     ILanguageWorkerQueryTypeData |
@@ -438,7 +461,8 @@ export type ILanguageWorkerTaskData =
     ILanguageWorkerInfoData |
     ILanguageWorkerSuggestionData |
     ILanguageWorkerParameterData |
-    ILanguageWorkerCleanupData;
+    ILanguageWorkerCleanupData |
+    ILanguageWorkerTokenizeData;
 
 export interface ILanguageWorkerResultData extends IDictionary {
     content?: unknown;
@@ -446,6 +470,7 @@ export interface ILanguageWorkerResultData extends IDictionary {
     query?: string;
     changed?: boolean;
     error?: string;
+    tokens?: ITokenInfo[];
 
     completions?: ICompletionData;
     queryType?: QueryType;

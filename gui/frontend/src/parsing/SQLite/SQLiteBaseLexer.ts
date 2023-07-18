@@ -91,6 +91,26 @@ export abstract class SQLiteBaseLexer extends Lexer {
     }
 
     /**
+     * Determines if the given type is a delimiter.
+     *
+     * @param type The type to check.
+     *
+     * @returns True if the type is a delimiter.
+     */
+    public isDelimiter(type: number): boolean {
+        switch (type) {
+            case SQLiteLexer.SCOL:
+            case SQLiteLexer.DOT:
+            case SQLiteLexer.COMMA: {
+                return true;
+            }
+
+            default:
+                return false;
+        }
+    }
+
+    /**
      * Determines if the given type is an operator.
      *
      * @param type The type to check.
@@ -99,11 +119,8 @@ export abstract class SQLiteBaseLexer extends Lexer {
      */
     public isOperator(type: number): boolean {
         switch (type) {
-            case SQLiteLexer.SCOL:
-            case SQLiteLexer.DOT:
             case SQLiteLexer.OPEN_PAR:
             case SQLiteLexer.CLOSE_PAR:
-            case SQLiteLexer.COMMA:
             case SQLiteLexer.ASSIGN:
             case SQLiteLexer.STAR:
             case SQLiteLexer.PLUS:

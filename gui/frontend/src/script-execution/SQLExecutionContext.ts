@@ -264,7 +264,7 @@ export class SQLExecutionContext extends ExecutionContext {
         const result: IStatement[] = [];
 
         // This selection is from the entire editor. Have to convert the start and end position to the local model.
-        const selection = this.presentation.backend?.getSelection();
+        const selection = this.presentation.backend?.getSelection?.();
         const startOffset = selection ?
             (model.getOffsetAt(selection.getStartPosition()) - this.presentation.codeOffset) : 0;
         const endOffset = selection ?
@@ -417,31 +417,6 @@ export class SQLExecutionContext extends ExecutionContext {
     }
 
     /**
-     * @returns A flag indicating if this context represents an internal (control) command.
-     */
-    public get isInternal(): boolean {
-        // Go through all lines until a non-empty one is found.
-        // Check its text for a command starter.
-        let run = this.presentation.startLine;
-        const model = this.presentation.backend?.getModel();
-        if (model) {
-            while (run <= this.presentation.endLine) {
-                const text = model.getLineContent(run).trim();
-                if (text.length > 0) {
-                    if (text.startsWith("\\")) {
-                        return true;
-                    } else {
-                        return false;
-                    }
-                }
-                ++run;
-            }
-        }
-
-        return false;
-    }
-
-    /**
      * Validates the entire block content by splitting statements (if necessary) and validating each of them.
      * Called when loading the block initially.
      */
@@ -494,11 +469,11 @@ export class SQLExecutionContext extends ExecutionContext {
             endIndex = this.statementDetails.length - 1;
         }
 
-        const editor = this.presentation.backend;
-        if (editor) {
+        const editorModel = this.presentation.backend?.getModel?.();
+        if (editorModel) {
             while (startIndex <= endIndex) {
                 const details = this.statementDetails[startIndex++];
-                editor.deltaDecorations(details.diagnosticDecorationIDs, []);
+                editorModel.deltaDecorations?.(details.diagnosticDecorationIDs, []);
             }
         }
     }
@@ -517,7 +492,7 @@ export class SQLExecutionContext extends ExecutionContext {
         }
 
         const editor = this.presentation.backend;
-        const model = editor?.getModel();
+        const model = editor?.getModel?.();
 
         if (model && this.pendingSplitActions.size > 0) {
             const [next] = this.pendingSplitActions;
@@ -545,7 +520,7 @@ export class SQLExecutionContext extends ExecutionContext {
 
             if (sql.trimStart().startsWith("\\")) {
                 // This is (now) an internal command. Remove any decoration for it.
-                editor?.deltaDecorations(nextDetails.diagnosticDecorationIDs, []);
+                model.deltaDecorations?.(nextDetails.diagnosticDecorationIDs, []);
                 this.updateLineStartMarkers();
 
                 return;
@@ -702,10 +677,10 @@ export class SQLExecutionContext extends ExecutionContext {
         }
 
         const editor = this.presentation.backend;
-        const model = editor?.getModel();
+        const editorModel = editor?.getModel?.();
 
         // Either run validation for the given statement index or pick the next one in our wait list.
-        if (model && (this.pendingValidations.size > 0 || preferred !== undefined)) {
+        if (editorModel && (this.pendingValidations.size > 0 || preferred !== undefined)) {
             let next: number;
             if (preferred !== undefined) {
                 next = preferred;
@@ -720,7 +695,7 @@ export class SQLExecutionContext extends ExecutionContext {
             if (nextDetails) {
                 if (nextDetails.state === StatementFinishState.DelimiterChange) {
                     // The DELIMITER command is not valid SQL.
-                    editor?.deltaDecorations(nextDetails.diagnosticDecorationIDs, []);
+                    editorModel.deltaDecorations?.(nextDetails.diagnosticDecorationIDs, []);
                     this.updateLineStartMarkers();
 
                     // Trigger validation for the next statement.
@@ -733,14 +708,25 @@ export class SQLExecutionContext extends ExecutionContext {
 
                 const start = nextDetails.span.start + this.presentation.codeOffset;
 
-                const rangeStart = model.getPositionAt(start);
+                const rangeStart = editorModel.getPositionAt(start);
                 let end = start + nextDetails.span.length;
                 if (nextDetails.state === StatementFinishState.Complete) {
                     end -= nextDetails.delimiter!.length;
                 }
-                const rangeEnd = model.getPositionAt(end);
+                const rangeEnd = editorModel.getPositionAt(end);
 
-                const sql = model.getValueInRange({
+                // Check if meanwhile the dimensions of the context have changed and no longer include the
+                // statement we want to validate.
+                if (rangeStart.lineNumber < this.startLine || rangeEnd.lineNumber > this.endLine) {
+                    // Trigger validation for the next statement.
+                    setTimeout(() => {
+                        return this.validateNextStatement();
+                    }, 0);
+
+                    return;
+                }
+
+                const sql = editorModel.getValueInRange({
                     startLineNumber: rangeStart.lineNumber,
                     startColumn: rangeStart.column,
                     endLineNumber: rangeEnd.lineNumber,
@@ -757,8 +743,8 @@ export class SQLExecutionContext extends ExecutionContext {
                         this.validationsRunning.delete(next);
 
                         const newDecorations = result.map((entry: IDiagnosticEntry) => {
-                            const startPosition = model.getPositionAt(entry.span.start + start);
-                            const endPosition = model.getPositionAt(entry.span.start + start + entry.span.length);
+                            const startPosition = editorModel.getPositionAt(entry.span.start + start);
+                            const endPosition = editorModel.getPositionAt(entry.span.start + start + entry.span.length);
 
                             return {
                                 range: {
@@ -785,7 +771,8 @@ export class SQLExecutionContext extends ExecutionContext {
                         // the validation ran.
                         if (next < this.statementDetails.length) {
                             nextDetails.diagnosticDecorationIDs =
-                                editor?.deltaDecorations(nextDetails.diagnosticDecorationIDs, newDecorations) ?? [];
+                                editorModel.deltaDecorations?.(nextDetails.diagnosticDecorationIDs, newDecorations)
+                                ?? [];
                         }
                     }
 

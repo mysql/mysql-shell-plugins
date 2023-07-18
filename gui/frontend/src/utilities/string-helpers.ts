@@ -440,3 +440,72 @@ export const formatTextBlock = (text: string, maxLineLength: number): string => 
     return text.match(
         new RegExp(String.raw`\S(?:.{0,${maxLineLength - 2}}\S)?(?= |$)`, "g"))?.join("\n") ?? "";
 };
+
+/**
+ * Splits the given text into individual lines, taking into account comments and quoted strings.
+ * Supported quote chars are single, double and backtick quotes.
+ * Quote chars inside comments are ignored and can be escaped with a backslash in string literals.
+ *
+ * @param text The text to split.
+ *
+ * @returns The individual lines.
+ */
+export const splitTextToLines = (text: string): string[] => {
+    const lines: string[] = [];
+    let head = 0;
+    let run = 0;
+    while (run < text.length) {
+        switch (text[run]) {
+            case "'":
+            case "`":
+            case "\"": {
+                // Skip quoted strings.
+                const delimiter = text[run];
+                while (run < text.length) {
+                    if (text[run] === "\\") {
+                        ++run;
+                    } else if (text[run] === delimiter) {
+                        ++run;
+                        break;
+                    }
+
+                    ++run;
+                }
+
+                break;
+            }
+
+            case "\n": {
+                lines.push(text.slice(head, ++run));
+                head = run;
+                break;
+            }
+
+            case "/": {
+                if (run + 1 < text.length && text[run + 1] === "*") {
+                    // Skip multi-line comments.
+                    run += 2;
+                    while (run < text.length) {
+                        if (text[run++] === "*") {
+                            if (run < text.length && text[run] === "/") {
+                                ++run;
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    ++run;
+                }
+
+                break;
+            }
+
+            default: {
+                ++run;
+                break;
+            }
+        }
+    }
+
+    return lines;
+};

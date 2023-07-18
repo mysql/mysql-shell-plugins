@@ -23,21 +23,14 @@
 
 import { ComponentChild, createRef } from "preact";
 
-import { Monaco, Range } from "../../../components/ui/CodeEditor";
+import { CodeEditorMode, Monaco, Range } from "../../../components/ui/CodeEditor";
 import { PresentationInterface } from "../../../script-execution/PresentationInterface";
 import { ICodeEditorModel } from "../../../components/ui/CodeEditor/CodeEditor";
 import { Divider } from "../../../components/ui/Divider/Divider";
+import { EditorLanguage } from "../../../supplement";
 
 /** Handling of UI related tasks in a code editor for embedded contexts. */
 export class EmbeddedPresentationInterface extends PresentationInterface {
-
-    // A list of property to copy to local models.
-    private static readonly propertyList = [
-        "executionContexts",
-        "symbols",
-        "editorMode",
-        "session",
-    ];
 
     private internalModel?: Monaco.ITextModel;
     private modelNeedsUpdate = true;
@@ -57,36 +50,51 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
     // Listener for content changes in the render target.
     private resizeObserver?: ResizeObserver;
 
+    public constructor(editor: Partial<Monaco.IStandaloneCodeEditor> | undefined, private isScrolling: () => boolean,
+        language: EditorLanguage) {
+        super(editor, language);
+    }
+
     public dispose(): void {
         super.dispose();
 
-        this.backend?.deltaDecorations([this.promptFirstDecorationID], []);
-        this.backend?.deltaDecorations([this.promptOtherDecorationID], []);
+        const editorModel = this.backend?.getModel?.();
+        if (editorModel) {
+            editorModel.deltaDecorations([this.promptFirstDecorationID], []);
+            editorModel.deltaDecorations([this.promptOtherDecorationID], []);
+        }
 
         if (this.internalModel) {
             this.internalModel.dispose();
+            this.internalModel = undefined;
+            this.modelNeedsUpdate = true;
         }
     }
 
     /**
-     * @returns A local model which contains only the text of this block. The caller must dispose of it!
+     * @returns A local model which contains only the text of this block.
      */
     public get model(): Monaco.ITextModel {
         const editorModel = super.model as ICodeEditorModel; // Model for the entire editor content.
 
         if (!this.internalModel || this.internalModel.isDisposed()) {
-            const localModel = Monaco.createModel("", this.language) as ICodeEditorModel;
+            const localModel: ICodeEditorModel = Object.assign(Monaco.createModel("", this.language), {
+                // This local model has no execution blocks.
+                symbols: editorModel.symbols,
+                editorMode: CodeEditorMode.Standard,
+                appEmbedded: false,
+            });
+
+            if ("session" in editorModel) {
+                localModel.session = editorModel.session;
+            }
+
             if (localModel.getEndOfLineSequence() !== Monaco.EndOfLineSequence.LF) {
                 localModel.setEOL(Monaco.EndOfLineSequence.LF);
             } else {
+                // Setting EOL increases the model version, so we need to mirror that if the EOL is already LF.
                 localModel.setValue("");
             }
-
-            EmbeddedPresentationInterface.propertyList.forEach((name) => {
-                if (editorModel[name]) {
-                    localModel[name] = editorModel[name];
-                }
-            });
 
             this.internalModel = localModel;
         }
@@ -100,6 +108,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
                     endLineNumber: this.endLine,
                     endColumn: editorModel.getLineMaxColumn(this.endLine),
                 }, Monaco.EndOfLinePreference.LF);
+
             // Detect if the language is TS/JS and if the code include "await " and if so, add "export {}".
             // This is done to indicate to the language server that this code is to be treated like a module
             // as soon as an async function is being awaited.
@@ -111,16 +120,6 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
         }
 
         return this.internalModel;
-    }
-
-    public get code(): string {
-        return this.model.getValue();
-    }
-
-    public get codeLength(): number {
-        const model = this.model; // Full or block model.
-
-        return model.getValueLength();
     }
 
     public get startLine(): number {
@@ -147,7 +146,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
     }
 
     public get codeOffset(): number {
-        const editorModel = this.backend?.getModel();
+        const editorModel = this.backend?.getModel?.();
         if (editorModel) {
             return editorModel.getOffsetAt({ lineNumber: this.startLineNumber, column: 1 });
         }
@@ -169,7 +168,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
         // If we have a result assigned, update that as well.
         if (this.zoneInfo) {
             this.zoneInfo.zone.afterLineNumber = this.endLineNumber;
-            this.backend?.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
+            this.backend?.changeViewZones?.((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
                 this.zoneInfo && changeAccessor.layoutZone(this.zoneInfo.zoneId);
             });
         }
@@ -180,42 +179,43 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
 
         const lineCount = this.endLine - this.startLine + 1;
 
-        const model = this.backend?.getModel();
-        if (this.backend && model && model.getLineCount() >= this.endLine) {
+        const editorModel = this.backend?.getModel?.();
+        if (this.backend && editorModel && editorModel.getLineCount() >= this.endLine) {
             let sourceIDs = this.promptFirstDecorationID === "" ? [] : [this.promptFirstDecorationID];
-            let ids = this.backend.deltaDecorations(sourceIDs, [{
+            let ids = editorModel.deltaDecorations?.(sourceIDs, [{
                 range: new Range(this.startLine, 1, this.startLine, 2),
                 options: {
                     stickiness: Monaco.TrackedRangeStickiness.GrowsOnlyWhenTypingBefore,
                     isWholeLine: false,
                     linesDecorationsClassName: `editorPromptFirst.${this.language}.${this.loadingState}`,
                 },
-            }]);
+            }]) ?? [];
             this.promptFirstDecorationID = ids[0];
 
             if (lineCount >= 2) {
                 sourceIDs = this.promptOtherDecorationID === "" ? [] : [this.promptOtherDecorationID];
-                ids = this.backend.deltaDecorations(sourceIDs, [{
+                ids = editorModel.deltaDecorations?.(sourceIDs, [{
                     range: new Range(
-                        this.startLine + 1, 1, this.endLine, model.getLineLength(this.endLine)),
+                        this.startLine + 1, 1, this.endLine, editorModel.getLineLength(this.endLine)),
                     options: {
                         stickiness: Monaco.TrackedRangeStickiness.GrowsOnlyWhenTypingBefore,
                         isWholeLine: false,
                         linesDecorationsClassName: "editorPrompt ." + this.language,
                     },
-                }]);
+                }]) ?? [];
 
                 this.promptOtherDecorationID = ids[0];
             } else if (lineCount === 1) {
                 // No other lines in the range, so remove the other-lines decoration.
-                this.backend.deltaDecorations([this.promptOtherDecorationID], []);
+                editorModel.deltaDecorations?.([this.promptOtherDecorationID], []);
                 this.promptOtherDecorationID = "";
             }
         }
+
         // If we have a result assigned, update that as well.
         if (this.zoneInfo && this.zoneInfo.zone.afterLineNumber !== this.endLineNumber) {
             this.zoneInfo.zone.afterLineNumber = this.endLineNumber;
-            this.backend?.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
+            this.backend?.changeViewZones?.((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
                 this.zoneInfo && changeAccessor.layoutZone(this.zoneInfo.zoneId);
             });
         }
@@ -237,7 +237,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
             this.resizeObserver = undefined;
         }
 
-        this.backend?.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
+        this.backend?.changeViewZones?.((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
             if (this.zoneInfo) {
                 changeAccessor.removeZone(this.zoneInfo.zoneId);
                 this.zoneInfo = undefined;
@@ -251,7 +251,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
         super.updateRenderTarget(height);
 
         if (height !== undefined) {
-            this.backend?.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
+            this.backend?.changeViewZones?.((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
                 if (this.zoneInfo && this.renderTarget) {
                     this.zoneInfo.zone.heightInPx = Math.max(height, this.minHeight);
                     changeAccessor.layoutZone(this.zoneInfo.zoneId);
@@ -274,7 +274,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
         const renderTarget = this.zoneInfo!.zone.domNode.firstChild as HTMLDivElement;
 
         renderTarget.addEventListener("wheel", (e) => {
-            if (!this.editor?.isScrolling) {
+            if (!this.isScrolling()) {
                 (e.currentTarget as HTMLElement).scrollLeft += Math.sign(e.deltaX) * 2;
                 (e.currentTarget as HTMLElement).scrollTop += Math.sign(e.deltaY) * 2;
                 e.stopPropagation();
@@ -282,11 +282,10 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
         }, { passive: true });
 
         if (this.zoneInfo?.zoneId === "") {
-            this.backend?.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
+            this.backend?.changeViewZones?.((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
                 this.zoneInfo!.zoneId = changeAccessor.addZone(this.zoneInfo!.zone);
             });
         }
-
 
         if (this.currentHeight) {
             renderTarget.style.height = `${this.currentHeight}px`;
@@ -382,7 +381,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
                     this.renderTarget!.style.height = `${newHeight}px`;
 
                     // Only adjust the zone height here. The manualHeight member is updated on mouse up.
-                    this.backend?.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
+                    this.backend?.changeViewZones?.((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
                         if (this.zoneInfo) {
                             this.zoneInfo.zone.heightInPx = newHeight;
                             changeAccessor.layoutZone(this.zoneInfo.zoneId);

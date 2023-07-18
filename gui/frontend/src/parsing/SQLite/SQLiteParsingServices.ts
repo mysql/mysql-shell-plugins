@@ -25,11 +25,12 @@
 
 import {
     BailErrorStrategy, CharStreams, CommonTokenStream, DefaultErrorStrategy, ParseCancellationException, ParseTree,
-    PredictionMode, TokenStreamRewriter, XPath,
+    PredictionMode, TokenStreamRewriter, XPath, Token,
 } from "antlr4ng";
 
 import {
-    ICompletionData, IParserErrorInfo, IStatementSpan, ISymbolInfo, QueryType, StatementFinishState, tokenFromPosition,
+    ICompletionData, IParserErrorInfo, IStatementSpan, ISymbolInfo, ITokenInfo, QueryType, StatementFinishState,
+    tokenFromPosition,
 } from "../parser-common";
 
 import { SQLiteErrorListener } from "./SQLiteErrorListener";
@@ -39,7 +40,7 @@ import { getCodeCompletionItems } from "./SqliteCodeCompletion";
 
 import { unquote } from "../../utilities/string-helpers";
 import { DBSymbolTable, SystemFunctionSymbol } from "../DBSymbolTable";
-import { determineQueryType } from "./SQLiteRecognizerCommon";
+import { SQLiteVersion, determineQueryType, isKeyword } from "./SQLiteRecognizerCommon";
 
 // This file contains the main interface to all language services for SQLite.
 
@@ -170,6 +171,30 @@ export class SQLiteParsingServices {
         }
 
         return undefined;
+    }
+
+    /**
+     * Creates a list of token info items for the given text.
+     *
+     * @param text The text to handle.
+     *
+     * @returns The information about the symbol at the given offset, if there's one.
+     */
+    public tokenize(text: string): ITokenInfo[] {
+        this.errors = [];
+        this.lexer.inputStream = CharStreams.fromString(text);
+        this.tokenStream.setTokenSource(this.lexer);
+        this.tokenStream.fill();
+
+        return this.tokenStream.getTokens().map((token: Token) => {
+            return {
+                type: this.lexerTypeToScope(token),
+                offset: token.start,
+                line: token.line,
+                column: token.column,
+                length: token.stop - token.start + 1,
+            };
+        });
     }
 
     /**
@@ -634,4 +659,54 @@ export class SQLiteParsingServices {
         return this.tree;
     }
 
+    /**
+     * Converts the lexer token type to a scope name.
+     *
+     * @param token The token to convert.
+     *
+     * @returns The scope name.
+     */
+    private lexerTypeToScope(token: Token): string {
+        if (isKeyword(token.text ?? "", SQLiteVersion.Standard)) {
+            return "keyword";
+        }
+
+        if (this.lexer.isIdentifier(token.type)) {
+            return "identifier";
+        }
+
+        if (this.lexer.isNumber(token.type)) {
+            return "number";
+        }
+
+        if (this.lexer.isOperator(token.type)) {
+            return "operator";
+        }
+
+        if (this.lexer.isDelimiter(token.type)) {
+            return "delimiter";
+        }
+
+        switch (token.type) {
+            case SQLiteLexer.STRING_LITERAL: {
+                return "string";
+            }
+
+            case SQLiteLexer.MULTILINE_COMMENT: {
+                return "comment.block";
+            }
+
+            case SQLiteLexer.SINGLE_LINE_COMMENT: {
+                return "comment.line";
+            }
+
+            case SQLiteLexer.UNEXPECTED_CHAR: {
+                return "invalid";
+            }
+
+            default: {
+                return "";
+            }
+        }
+    }
 }

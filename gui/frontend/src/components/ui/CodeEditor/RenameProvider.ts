@@ -30,7 +30,7 @@ export class RenameProvider implements languages.RenameProvider {
     public provideRenameEdits(model: IProviderEditorModel, position: Position,
         newName: string): ProviderResult<WorkspaceEdit & Rejection> {
         const services = ScriptingLanguageServices.instance;
-        const block = model.executionContexts.contextFromPosition(position);
+        const block = model.executionContexts?.contextFromPosition(position);
 
         if (block) {
             if (block.isInternal) {
@@ -40,10 +40,4 @@ export class RenameProvider implements languages.RenameProvider {
             return services.getRenameLocations(block, position, newName);
         }
     }
-
-    /*public resolveRenameLocation(model: ICodeEditorModel, position: Position,
-        token: CancellationToken): ProviderResult<RenameLocation & Rejection> {
-
-        return undefined;
-    }*/
 }

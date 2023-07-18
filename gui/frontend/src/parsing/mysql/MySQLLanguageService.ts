@@ -30,7 +30,7 @@ import { DBDataType, ParameterFormatType } from "../../app-logic/Types";
 import { convertCamelToTitleCase } from "../../utilities/string-helpers";
 import { RdbmsLanguageService } from "../worker/RdbmsLanguageService";
 
-// The MySQL specialization of the RDBMS language service class.
+/** The MySQL specialization of the RDBMS language service class. */
 export class MySQLLanguageService extends RdbmsLanguageService {
 
     public static globalSymbols = new DBSymbolTable("global", {});

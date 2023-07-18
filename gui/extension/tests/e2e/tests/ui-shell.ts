@@ -369,11 +369,11 @@ describe("MYSQL SHELL CONSOLES", () => {
 
             const editor = await driver.wait(until.elementLocated(locator.shellConsole.editor),
                 10000, "Console was not loaded");
-            let result = await Misc.execCmd("\\py ");
-            expect(result[0]).to.equals("Switching to Python mode...");
+            let result = await Misc.execCmd("\\py ", undefined, undefined, true);
+            expect(result[0]).to.equals("python");
             expect(await Shell.getTech(editor)).to.equals("python");
-            result = await Misc.execCmd("\\js ");
-            expect(result[0]).to.equals("Switching to JavaScript mode...");
+            result = await Misc.execCmd("\\js ", undefined, undefined, true);
+            expect(result[0]).to.equals("javascript");
             expect(await Shell.getTech(editor)).to.equals("javascript");
 
         });

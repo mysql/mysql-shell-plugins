@@ -62,13 +62,7 @@ export class Shell {
 
     public static isValueOnDataSet = (resultHost: WebElement, value: String): Condition<boolean> => {
         return new Condition("Value is not on data set", async () => {
-            const cells = await driver.wait(async () => {
-                const cells = await resultHost.findElements(locator.notebook.codeEditor.editor.result.tableCell);
-                if (cells.length > 0) {
-                    return cells;
-                }
-            }, constants.wait5seconds, "No cells were found");
-
+            const cells = await resultHost.findElements(locator.notebook.codeEditor.editor.result.tableCell);
             for (const cell of cells) {
                 const text = await cell.getText();
                 if (text === value) {

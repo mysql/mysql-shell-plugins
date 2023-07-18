@@ -59,6 +59,24 @@ export const mapCompletionKind: Map<LanguageCompletionKind, languages.Completion
     [LanguageCompletionKind.Plugin, languages.CompletionItemKind.Module],
 ]);
 
+/** Represents position and type of a single syntactic element in a piece of text. */
+export interface ITextToken {
+    /** The line of the token in the text. */
+    line: number;
+
+    /** The column of the token in the text. */
+    column: number;
+
+    /** The length of the token in the text. */
+    length: number;
+
+    /**
+     * The type of the token. This is a TextMate token identifier, which can directly be used to look up
+     * a presentation in a theme.
+     */
+    type: string;
+}
+
 /**
  * An interface comprising text output, a type and a language to form output shown for actions like code execution,
  * query results and informational messages.

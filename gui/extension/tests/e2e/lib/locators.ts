@@ -127,7 +127,10 @@ export const notebook = {
                 },
             },
         },
-        prompt: By.css(".codeEditor .margin-view-overlays > div"),
+        prompt: {
+            exists: By.css(".codeEditor .margin-view-overlays > div"),
+            current: By.className("editorPromptFirst"),
+        },
     },
     toolbar: {
         exists: By.id("dbEditorToolbar"),

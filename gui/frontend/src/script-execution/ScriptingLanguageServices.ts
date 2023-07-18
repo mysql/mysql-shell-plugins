@@ -24,8 +24,7 @@
 import { IPosition } from "monaco-editor";
 import ts, {
     CompletionEntryDetails, CompletionInfo, DefinitionInfo, QuickInfo, ReferenceEntry, RenameLocation,
-    SignatureHelpItems,
-    TextChange,
+    SignatureHelpItems, TextChange,
 } from "typescript";
 
 import {
@@ -40,7 +39,7 @@ import {
     DiagnosticSeverity, IDiagnosticEntry, ILanguageWorkerQueryPreprocessData, ILanguageWorkerApplySemicolonData,
     ILanguageWorkerInfoData, ILanguageWorkerParameterData, ILanguageWorkerQueryTypeData, ILanguageWorkerResultData,
     ILanguageWorkerSplitData, ILanguageWorkerValidateData, IParserErrorInfo, IStatementSpan, QueryType,
-    ServiceLanguage, StatementFinishState,
+    ServiceLanguage, StatementFinishState, ILanguageWorkerTokenizeData,
 } from "../parsing/parser-common";
 
 import { MySQLLanguageService } from "../parsing/mysql/MySQLLanguageService";
@@ -53,6 +52,7 @@ import { LanguageWorkerPool } from "../parsing/worker/LanguageWorkerPool";
 import { IShellEditorModel } from "../modules/shell";
 import { IDictionary } from "../app-logic/Types";
 import { IExecutionContext } from "../supplement";
+import { ITextToken } from ".";
 
 /** Provides language services like code completion, by reaching out to built-in or other sources. */
 export class ScriptingLanguageServices {
@@ -406,6 +406,121 @@ export class ScriptingLanguageServices {
 
             default:
         }
+    };
+
+    /**
+     * Retrieves a list of tokens for the text in the context.
+     *
+     * @param block Provides access to source code specific aspects.
+     *
+     * @returns A promise that resolves to a list of tokens.
+     */
+    public tokenize = (block: IExecutionContext): Promise<ITextToken[][]> => {
+        const context = block as ExecutionContext;
+
+        if (context.isInternal) {
+            // Internal contexts always have only a single command.
+            return Promise.resolve([[{
+                line: 0,
+                column: 0,
+                length: context.code.length,
+                type: "command",
+            }]]);
+        }
+
+        switch (context.language) {
+            case "javascript":
+            case "typescript": {
+                const model = context.model;
+                if (model && !model.isDisposed()) {
+                    const monacoTokens = Monaco.tokenize(model.getValue(), context.language);
+                    const tokens: ITextToken[][] = [];
+
+                    monacoTokens.forEach((lineEntries, lineIndex) => {
+                        const lineTokens: ITextToken[] = lineEntries.map((entry, index, list) => {
+                            let length;
+                            if (index < list.length - 1) {
+                                length = list[index + 1].offset - entry.offset;
+                            } else {
+                                length = model.getLineLength(lineIndex + 1) - entry.offset;
+                            }
+
+                            return {
+                                line: lineIndex,
+                                column: entry.offset,
+                                length,
+                                type: entry.type,
+                            };
+                        });
+
+                        tokens.push(lineTokens);
+                    });
+
+                    return Promise.resolve(tokens);
+                }
+
+                break;
+            }
+
+            case "sql":
+            case "mysql": {
+                const sqlContext = context as SQLExecutionContext;
+                const model = context.model;
+                if (model && !model.isDisposed()) {
+                    return new Promise((resolve) => {
+                        const sql = model.getValue();
+                        const taskData: ILanguageWorkerTokenizeData = {
+                            language: context.language === "sql" ? ServiceLanguage.Sqlite : ServiceLanguage.MySQL,
+                            api: "tokenize",
+                            version: sqlContext.dbVersion,
+                            sql,
+                            sqlMode: sqlContext.sqlMode,
+                        };
+
+                        this.workerPool.runTask(taskData)
+                            .then((taskId: number, data: ILanguageWorkerResultData): void => {
+                                if (data.tokens) {
+                                    const tokens: ITextToken[][] = [];
+
+                                    // Split lines into individual token sub arrays.
+                                    let i = 0;
+                                    let currentLine = -1;
+                                    while (i < data.tokens.length) {
+                                        if (currentLine === -1) {
+                                            currentLine = data.tokens[i].line;
+                                        }
+
+                                        const lineTokens: ITextToken[] = [];
+                                        while (i < data.tokens.length) {
+                                            if (data.tokens[i].line === currentLine) {
+                                                const token = data.tokens[i++];
+                                                lineTokens.push({
+                                                    line: token.line - 1,
+                                                    column: token.column,
+                                                    length: token.length,
+                                                    type: token.type,
+                                                });
+                                            } else {
+                                                currentLine = data.tokens[i].line;
+                                                break;
+                                            }
+                                        }
+
+                                        tokens.push(lineTokens);
+                                    }
+
+                                    resolve(tokens);
+                                }
+                            });
+                    });
+                }
+                break;
+            }
+
+            default:
+        }
+
+        return Promise.resolve([]);
     };
 
     /**

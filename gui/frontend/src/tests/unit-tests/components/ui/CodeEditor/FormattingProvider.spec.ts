@@ -47,7 +47,7 @@ describe("DocumentHighlightProvider tests", () => {
         execContext.toLocal = jest.fn().mockImplementation((_value: IPosition): IPosition => {
             return { lineNumber: 0, column: 0 };
         });
-        mockModel.executionContexts.contextFromPosition = jest.fn().mockReturnValue(
+        mockModel.executionContexts!.contextFromPosition = jest.fn().mockReturnValue(
             execContext,
         );
         result = formattingProvider.provideDocumentFormattingEdits(mockModel, lang);

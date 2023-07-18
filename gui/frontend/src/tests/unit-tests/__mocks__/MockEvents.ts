@@ -38,10 +38,10 @@ export class MockEventTarget implements EventTarget {
 }
 
 export class MockEvent implements Event {
-    public readonly AT_TARGET = 0;
-    public readonly BUBBLING_PHASE: number;
-    public readonly CAPTURING_PHASE: number;
-    public readonly NONE: number;
+    public readonly AT_TARGET = 2;
+    public readonly BUBBLING_PHASE: 3;
+    public readonly CAPTURING_PHASE: 1;
+    public readonly NONE: 0;
 
     public bubbles = false;
     public cancelBubble = false;

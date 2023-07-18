@@ -44,7 +44,14 @@ describe("DBConnectionTab tests", (): void => {
     content += `\nprint("javascript");\n\\sql\n`;
     content += `\nselect "(my)sql" from dual;\n\\py\n`;
     content += `\nprint("python");\n`;
-    const model = Monaco.createModel("", "msg") as ICodeEditorModel;
+
+    const model: ICodeEditorModel = Object.assign(Monaco.createModel("", "msg"), {
+        executionContexts: new ExecutionContexts(undefined, 80024, "", ""),
+        editorMode: CodeEditorMode.Standard,
+        appEmbedded: false,
+    });
+
+
     if (model.getEndOfLineSequence() !== Monaco.EndOfLineSequence.LF) {
         model.setEOL(Monaco.EndOfLineSequence.LF);
     } else {
@@ -52,8 +59,6 @@ describe("DBConnectionTab tests", (): void => {
         model.setValue(content);
     }
 
-    model.executionContexts = new ExecutionContexts(undefined, 80024, "", "");
-    model.editorMode = CodeEditorMode.Standard;
     model.setValue(content);
 
     let launcher: MySQLShellLauncher;

@@ -48,7 +48,7 @@ describe("DefinitionProvider tests", () => {
             return { lineNumber: 0, column: 0 };
         });
         jest.spyOn(execContext, "isInternal", "get").mockReturnValue(true);
-        mockModel.executionContexts.contextFromPosition = jest.fn().mockReturnValue(
+        mockModel.executionContexts!.contextFromPosition = jest.fn().mockReturnValue(
             execContext,
         );
         result = definitionProvider.provideDefinition(mockModel, position);

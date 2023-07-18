@@ -643,7 +643,9 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                             connectionState.editors.forEach((state) => {
                                 if (state.state) {
                                     const contexts = state.state.model.executionContexts;
-                                    contexts.currentSchema = data.schema;
+                                    if (contexts) {
+                                        contexts.currentSchema = data.schema;
+                                    }
                                 }
                             });
                         }
@@ -1948,16 +1950,18 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
     private createEditorModel(backend: ShellInterfaceSqlEditor, text: string, language: string,
         serverVersion: number, sqlMode: string, currentSchema: string): ICodeEditorModel {
 
-        const model = Monaco.createModel(text, language) as ICodeEditorModel;
+        const model: ICodeEditorModel = Object.assign(Monaco.createModel(text, language), {
+            executionContexts: new ExecutionContexts(StoreType.DbEditor, serverVersion, sqlMode, currentSchema),
+            symbols: new DynamicSymbolTable(backend, "db symbols", { allowDuplicateSymbols: true }),
+            editorMode: CodeEditorMode.Standard,
+            appEmbedded: false,
+        });
+
         if (model.getEndOfLineSequence() !== Monaco.EndOfLineSequence.LF) {
             model.setEOL(Monaco.EndOfLineSequence.LF);
         } else {
             model.setValue(text);
         }
-
-        model.executionContexts = new ExecutionContexts(StoreType.DbEditor, serverVersion, sqlMode, currentSchema);
-        model.symbols = new DynamicSymbolTable(backend, "db symbols", { allowDuplicateSymbols: true });
-        model.editorMode = CodeEditorMode.Standard;
 
         return model;
     }

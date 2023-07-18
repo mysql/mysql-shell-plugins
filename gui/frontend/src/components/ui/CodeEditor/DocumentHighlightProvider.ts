@@ -30,7 +30,7 @@ export class DocumentHighlightProvider implements languages.DocumentHighlightPro
         position: Position): ProviderResult<DocumentHighlight[]> {
 
         const services = ScriptingLanguageServices.instance;
-        const block = model.executionContexts.contextFromPosition(position);
+        const block = model.executionContexts?.contextFromPosition(position);
 
         if (block) {
             if (block.isInternal) {

@@ -1211,6 +1211,13 @@
             "settings": {
                 "foreground": "#666666"
             }
+        },
+        {
+            "scope": "command",
+            "settings": {
+                "foreground": "#7f8464",
+                "fontStyle": "bold underline"
+            }
         }
     ]
 }

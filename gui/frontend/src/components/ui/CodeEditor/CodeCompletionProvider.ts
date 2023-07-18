@@ -33,7 +33,7 @@ export class CodeCompletionProvider implements languages.CompletionItemProvider 
     public provideCompletionItems(model: IProviderEditorModel, position: Position): ProviderResult<CompletionList> {
 
         const services = ScriptingLanguageServices.instance;
-        const sourceContext = model.executionContexts.contextFromPosition(position);
+        const sourceContext = model.executionContexts?.contextFromPosition(position);
         if (sourceContext) {
             if (sourceContext.isInternal) {
                 const info = model.getWordUntilPosition(position);
@@ -290,7 +290,7 @@ export class CodeCompletionProvider implements languages.CompletionItemProvider 
                         kind: languages.CompletionItemKind.Keyword,
                         range,
                         insertText: "\\reconnect",
-                        detail: "Reconnects the current MySQL connection",
+                        detail: "Reconnects the current MySQL connection.",
                     },
                 ];
             }

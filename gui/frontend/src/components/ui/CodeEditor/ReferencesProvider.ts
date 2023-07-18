@@ -28,7 +28,7 @@ export class ReferencesProvider implements languages.ReferenceProvider {
     public provideReferences(model: IProviderEditorModel, position: Position): ProviderResult<Location[]> {
 
         const services = ScriptingLanguageServices.instance;
-        const block = model.executionContexts.contextFromPosition(position);
+        const block = model.executionContexts?.contextFromPosition(position);
 
         if (block) {
             if (block.isInternal) {

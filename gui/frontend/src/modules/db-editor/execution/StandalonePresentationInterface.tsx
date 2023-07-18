@@ -23,10 +23,10 @@
 
 import { ComponentChild } from "preact";
 
-import { CodeEditor } from "../../../components/ui/CodeEditor/CodeEditor";
 import { PresentationInterface } from "../../../script-execution/PresentationInterface";
 import { EditorLanguage } from "../../../supplement";
 import { ScriptEditor } from "../ScriptEditor";
+import { Monaco } from "../../../components/ui/CodeEditor";
 
 /** Handling of UI related tasks in a code editor for standalone contexts. */
 export class StandalonePresentationInterface extends PresentationInterface {
@@ -35,7 +35,7 @@ export class StandalonePresentationInterface extends PresentationInterface {
 
     public constructor(
         private host: ScriptEditor,
-        editor: CodeEditor,
+        editor: Partial<Monaco.IStandaloneCodeEditor>,
         language: EditorLanguage,
         private target: preact.RefObject<HTMLDivElement>) {
         super(editor, language);
