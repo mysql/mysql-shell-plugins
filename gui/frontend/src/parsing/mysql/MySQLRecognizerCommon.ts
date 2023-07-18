@@ -57,7 +57,7 @@ export enum SqlMode {
 export const isReservedKeyword = (identifier: string, version: MySQLVersion): boolean => {
     const reserved = reservedMySQLKeywords.get(version);
 
-    return reserved?.has(identifier) ?? false;
+    return reserved?.has(identifier.toUpperCase()) ?? false;
 };
 
 /**
@@ -71,7 +71,7 @@ export const isReservedKeyword = (identifier: string, version: MySQLVersion): bo
 export const isKeyword = (identifier: string, version: MySQLVersion): boolean => {
     const map = mysqlKeywords.get(version);
 
-    return map?.has(identifier) ?? false;
+    return map?.has(identifier.toUpperCase()) ?? false;
 };
 
 /**

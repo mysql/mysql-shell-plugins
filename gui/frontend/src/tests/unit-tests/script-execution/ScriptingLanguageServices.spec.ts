@@ -29,14 +29,18 @@ import { PresentationInterface } from "../../../script-execution/PresentationInt
 import { ScriptingLanguageServices } from "../../../script-execution/ScriptingLanguageServices";
 import { sleep } from "../../../utilities/helpers";
 
-// TODO: using this code leads to a crash because the typescript language support is not loaded in time.
-// Needs investigation what breaks it, as it seems to work fine when doing the editor tests.
 describe("ScriptingLanguageServices Tests", () => {
     const services = ScriptingLanguageServices.instance;
 
+    // TODO: cannot test the services, because workers are mocked.
     xit("Code Completion", async () => {
         await sleep(1000);
-        const jsModel = Monaco.createModel("", "javascript") as ICodeEditorModel;
+        const jsModel: ICodeEditorModel = Object.assign(Monaco.createModel("", "javascript"), {
+            executionContexts: new ExecutionContexts(undefined, 80024, "", ""),
+            editorMode: CodeEditorMode.Standard,
+            appEmbedded: false,
+        });
+
         if (jsModel.getEndOfLineSequence() !== Monaco.EndOfLineSequence.LF) {
             jsModel.setEOL(Monaco.EndOfLineSequence.LF);
         } else {
@@ -44,9 +48,7 @@ describe("ScriptingLanguageServices Tests", () => {
             jsModel.setValue("");
         }
 
-        jsModel.executionContexts = new ExecutionContexts(undefined, 80024, "", "");
-        jsModel.editorMode = CodeEditorMode.Standard;
-        const jsContext = jsModel.executionContexts.addContext(new PresentationInterface(undefined, "javascript"));
+        const jsContext = jsModel.executionContexts!.addContext(new PresentationInterface(undefined, "javascript"));
 
         const result = await services.getCodeCompletionItems(jsContext, { lineNumber: 1, column: 1 });
         expect(result).toBeDefined();

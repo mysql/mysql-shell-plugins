@@ -119,7 +119,9 @@ export class RdbmsLanguageService {
     public async getCodeCompletionItems(context: SQLExecutionContext,
         position: IPosition): Promise<CompletionList | undefined> {
         const model = context.model as ICodeEditorModel;
-        this.localSymbols.addDependencies(model.symbols);
+        if (model.symbols) {
+            this.localSymbols.addDependencies(model.symbols);
+        }
 
         return new Promise((resolve, reject) => {
             const statement = context.getStatementAtPosition(position);
@@ -168,7 +170,9 @@ export class RdbmsLanguageService {
                             suggestions,
                         });
 
-                        this.localSymbols.removeDependency(model.symbols);
+                        if (model.symbols) {
+                            this.localSymbols.removeDependency(model.symbols);
+                        }
                     }).catch((reason) => {
                         reject(reason);
                     });

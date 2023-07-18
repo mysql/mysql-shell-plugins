@@ -28,7 +28,7 @@ export class SignatureHelpProvider implements languages.SignatureHelpProvider {
 
     public provideSignatureHelp(model: IProviderEditorModel, position: Position): ProviderResult<SignatureHelpResult> {
         const services = ScriptingLanguageServices.instance;
-        const block = model.executionContexts.contextFromPosition(position);
+        const block = model.executionContexts?.contextFromPosition(position);
 
         if (block) {
             if (block.isInternal) {

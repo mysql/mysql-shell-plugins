@@ -464,6 +464,7 @@ export class Misc {
         timeout?: number,
         slowWriting?: boolean): Promise<Array<string | WebElement | boolean | undefined>> => {
 
+        await driver.sleep(500);
         cmd = cmd.replace(/(\r\n|\n|\r)/gm, "");
         const count = (cmd.match(/;|select|SELECT/g) || []).length;
         const hasMultipleQueries = count >= 3 && cmd.toLowerCase().startsWith("select");
@@ -1709,7 +1710,21 @@ export class Misc {
         const toReturn: Array<string | WebElement | boolean | undefined> = [];
         let zoneHost: WebElement;
 
-        if (!cmd.includes("disconnect")) {
+        if (cmd.match(/(\\js|\\javascript|\\ts|\\typescript|\\sql|\\py)/) !== null) {
+            await driver.wait(async () => {
+                try {
+                    const prompts = await driver.findElements(locator.notebook.codeEditor.prompt.current);
+                    const promptClasses = (await prompts[prompts.length - 1].getAttribute("class")).split(" ");
+                    toReturn.push(promptClasses[2]);
+
+                    return true;
+                } catch (e) {
+                    if (!(e instanceof error.StaleElementReferenceError)) {
+                        throw e;
+                    }
+                }
+            }, constants.wait5seconds, "Could not get the result for changing notebook language");
+        } else if (!cmd.includes("disconnect")) {
             if (blockId === "0") {
                 const zoneHosts = await driver.wait(until
                     .elementsLocated(locator.notebook.codeEditor.editor.result.exists), timeout,

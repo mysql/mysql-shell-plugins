@@ -23,7 +23,9 @@
 
 import { IPosition } from "monaco-editor";
 
-import { IExecutionContextState, IRange, Monaco, Position } from "../components/ui/CodeEditor";
+import {
+    IExecutionContextState, IRange, Monaco, Position, tokenModifiers, tokenTypes,
+} from "../components/ui/CodeEditor";
 import { isTextSpan } from "../utilities/ts-helpers";
 import { ScriptingLanguageServices } from "./ScriptingLanguageServices";
 import { IDiagnosticEntry, IStatementSpan, TextSpan } from "../parsing/parser-common";
@@ -47,10 +49,15 @@ export class ExecutionContext implements IExecutionContext {
     private decorationIDs: string[] = [];
 
     #showNextResultMaximized = false;
+    #tokenList: Uint32Array | undefined;
 
-    public constructor(protected presentation: PresentationInterface, public linkId?: number) {
+    public constructor(public presentation: PresentationInterface, public linkId?: number) {
         this.internalId = `ec${ExecutionContext.nextId++}`;
         presentation.context = this;
+    }
+
+    public get tokenList(): Uint32Array | undefined {
+        return this.#tokenList;
     }
 
     /**
@@ -78,6 +85,12 @@ export class ExecutionContext implements IExecutionContext {
 
     public get language(): EditorLanguage {
         return this.presentation.language;
+    }
+
+    public set language(value: EditorLanguage) {
+        this.presentation.language = value;
+        this.presentation.removeResult();
+        this.validateAll();
     }
 
     public get isSQLLike(): boolean {
@@ -147,6 +160,7 @@ export class ExecutionContext implements IExecutionContext {
 
     public set startLine(value: number) {
         this.presentation.startLine = value;
+        this.clearDecorations();
     }
 
     public get endLine(): number {
@@ -155,6 +169,7 @@ export class ExecutionContext implements IExecutionContext {
 
     public set endLine(value: number) {
         this.presentation.endLine = value;
+        this.clearDecorations();
     }
 
     /**
@@ -374,6 +389,8 @@ export class ExecutionContext implements IExecutionContext {
     public validateAll(): void {
         if (!this.disposed) {
             const services = ScriptingLanguageServices.instance;
+
+            // No need to send the model content here. The validator will get it from the model.
             void services.validate(this, "", (result: IDiagnosticEntry[]): void => {
                 // Update the decorations in the editor.
                 this.decorationIDs = this.presentation.updateDiagnosticsDecorations(this.decorationIDs, result);
@@ -390,8 +407,75 @@ export class ExecutionContext implements IExecutionContext {
         }
     }
 
+    /**
+     * Triggered from the semantic token provider to let the context update its token list to allow construction
+     * of semantic tokens.
+     */
+    public async updateTokenList(): Promise<void> {
+        const services = ScriptingLanguageServices.instance;
+        const list = await services.tokenize(this);
+
+        /**
+         * Local helper method to convert the token modifiers into a bit set.
+         *
+         * @param modifiers The list of modifiers to convert.
+         *
+         * @returns The bit set representing the given modifiers.
+         */
+        const getModifierSet = (modifiers: string[]): number => {
+            let nModifiers = 0;
+            for (const modifier of modifiers) {
+                const nModifier = tokenModifiers.indexOf(modifier);
+                if (nModifier > -1) {
+                    nModifiers |= (1 << nModifier) >>> 0;
+                } else {
+                    console.log(`Unknown modifier: ${modifier}`);
+                }
+            }
+
+            return nModifiers;
+        };
+
+        // As we have to return relative line and column information, we can also compute relative to zero,
+        let previousLine = 0;
+        let previousColumn = 0;
+
+        const data: number[] = [];
+
+        list.forEach((line) => {
+            line.forEach((token) => {
+                if (token.type.length > 0) {
+                    const parts = token.type.split(".");
+
+                    if (parts.length > 0) {
+                        const tokenTypeIndex = tokenTypes.indexOf(parts[0]);
+                        if (tokenTypeIndex >= 0) {
+                            parts.shift(); // Remove the token type.
+                            const modifierIndexSet = getModifierSet(parts);
+
+                            // 5 numbers per entry (line delta, column delta, length, token type, token modifier).
+                            data.push(
+                                token.line - previousLine,
+                                previousLine === token.line ? token.column - previousColumn : token.column,
+                                token.length,
+                                tokenTypeIndex,
+                                modifierIndexSet,
+                            );
+
+                            previousLine = token.line;
+                            previousColumn = token.column;
+
+                        }
+                    }
+                }
+            });
+        });
+
+        this.#tokenList = new Uint32Array(data);
+    }
+
     protected clearDecorations(): void {
-        // Nothing to do here.
+        this.decorationIDs = this.presentation.updateDiagnosticsDecorations(this.decorationIDs, []);
     }
 
     /**

@@ -389,8 +389,14 @@ export class CommunicationDebugger
     };
 
     private createEditorState(content: string): IEditorPersistentState {
+        const model: ICodeEditorModel = Object.assign(Monaco.createModel(content, "javascript"), {
+            executionContexts: new ExecutionContexts(undefined, 80024, "", ""),
+            editorMode: CodeEditorMode.Standard,
+            appEmbedded: false,
+        });
+
         const state: IEditorPersistentState = {
-            model: Monaco.createModel(content, "javascript") as ICodeEditorModel,
+            model,
             viewState: null,
             options: defaultEditorOptions,
         };
@@ -591,8 +597,8 @@ export class CommunicationDebugger
             }
 
             if (lineDecorationClass.length > 0) {
-                const editor = this.messageOutputRef.current.backend!;
-                /*const decorations =*/ editor.deltaDecorations([], [
+                const editor = this.messageOutputRef.current.backend;
+                /*const decorations =*/ editor.getModel()?.deltaDecorations([], [
                     {
                         range: {
                             startLineNumber: lastLineCount,

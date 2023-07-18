@@ -917,7 +917,7 @@
             "name": "Generic variable",
             "scope": "variable",
             "settings": {
-                "foreground": "#63bf8d"
+                "foreground": "#d7b37c"
             }
         },
         {
@@ -931,7 +931,7 @@
             "name": "Language variable",
             "scope": "variable.language",
             "settings": {
-                "foreground": "#45aa73"
+                "foreground": "#d7b37c"
             }
         },
         {
@@ -1098,7 +1098,7 @@
         {
             "scope": "variable.predefined",
             "settings": {
-                "foreground": "#4864AA"
+                "foreground": "#c8dfbd"
             }
         },
         {
@@ -1279,6 +1279,13 @@
             "scope": "operator.swift",
             "settings": {
                 "foreground": "#909090"
+            }
+        },
+        {
+            "scope": "command",
+            "settings": {
+                "foreground": "#dadfbd",
+                "fontStyle": "bold underline"
             }
         }
     ]

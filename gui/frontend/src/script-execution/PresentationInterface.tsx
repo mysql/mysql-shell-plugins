@@ -24,7 +24,6 @@
 import { ComponentChild, createRef, render } from "preact";
 
 import { ResultTabView } from "../components/ResultView/ResultTabView";
-import { CodeEditor } from "../components/ui/CodeEditor/CodeEditor";
 import {
     IExecutionResult, IGraphResult, IPresentationOptions, IResponseDataOptions, IResultSetRows, IResultSets,
     ITextResult, LoadingState,
@@ -72,7 +71,12 @@ export class PresentationInterface {
     public resultData?: ITextResult | IResultSets | IGraphResult;
     public loadingState = LoadingState.Idle;
 
-    public readonly backend?: Monaco.IStandaloneCodeEditor;
+    /**
+     * Represents the full code editor of which this presentation is a part of.
+     */
+    // Using a partial backend here to allow for testing without a full editor.
+    public readonly backend?: Partial<Monaco.IStandaloneCodeEditor>;
+
     public context?: ExecutionContext;
 
     /**
@@ -111,31 +115,37 @@ export class PresentationInterface {
     // Only set for result set data.
     private resultRef = createRef<ResultTabView>();
 
-    public constructor(protected editor: CodeEditor | undefined, public language: EditorLanguage) {
-        this.backend = editor?.backend;
+    public constructor(editor: Partial<Monaco.IStandaloneCodeEditor> | undefined, public language: EditorLanguage) {
+        this.backend = editor;
         this.prepareRenderTarget();
     }
 
     public dispose(): void {
         this.onRemoveResult = undefined;
-        this.backend?.deltaDecorations(this.marginDecorationIDs, []);
+        const editorModel = this.backend?.getModel?.();
+        if (editorModel) {
+            editorModel.deltaDecorations?.(this.marginDecorationIDs, []);
+        }
+        this.marginDecorationIDs = [];
         this.removeResult();
     }
 
     public get model(): Monaco.ITextModel | null {
         if (this.backend) {
-            return this.backend.getModel();
+            return this.backend.getModel?.() ?? null;
         }
 
         return null;
     }
 
     public get code(): string {
-        return this.backend?.getValue() ?? "";
+        const model = this.model; // Full or block model.
+
+        return model?.getValue() ?? "";
     }
 
     public get codeLength(): number {
-        const model = this.model; // Full or block model.
+        const model = this.model;
 
         return model ? model.getValueLength() : 0;
     }
@@ -634,26 +644,29 @@ export class PresentationInterface {
      * Updates the margin decorations that are responsible to show statement starts and other information.
      */
     public updateMarginDecorations(): void {
-        const newDecorations: Monaco.IModelDeltaDecoration[] = [];
-        for (let i = this.startLine; i <= this.endLine; ++i) {
-            const cssClass = this.getMarginClass(i - this.startLine + 1) + " ." + this.language;
-            newDecorations.push({
-                range: {
-                    startLineNumber: i,
-                    startColumn: 1,
-                    endLineNumber: i,
-                    endColumn: 1,
-                },
-                options: {
-                    stickiness: Monaco.TrackedRangeStickiness.GrowsOnlyWhenTypingBefore,
-                    isWholeLine: false,
-                    linesDecorationsClassName: cssClass,
-                },
+        const editorModel = this.backend?.getModel?.();
+        if (editorModel) {
+            const newDecorations: Monaco.IModelDeltaDecoration[] = [];
+            for (let i = this.startLine; i <= this.endLine; ++i) {
+                const cssClass = this.getMarginClass(i - this.startLine + 1) + " ." + this.language;
+                newDecorations.push({
+                    range: {
+                        startLineNumber: i,
+                        startColumn: 1,
+                        endLineNumber: i,
+                        endColumn: 1,
+                    },
+                    options: {
+                        stickiness: Monaco.TrackedRangeStickiness.GrowsOnlyWhenTypingBefore,
+                        isWholeLine: false,
+                        linesDecorationsClassName: cssClass,
+                    },
 
-            });
+                });
+            }
+
+            this.marginDecorationIDs = editorModel.deltaDecorations?.(this.marginDecorationIDs, newDecorations) ?? [];
         }
-
-        this.marginDecorationIDs = this.backend?.deltaDecorations(this.marginDecorationIDs, newDecorations) ?? [];
     }
 
     /**
@@ -665,13 +678,13 @@ export class PresentationInterface {
      * @returns A set of decoration IDs that can be used for further updates (or removal).
      */
     public updateDiagnosticsDecorations(decorationIDs: string[], diagnostics: IDiagnosticEntry[]): string[] {
-        const model = this.backend?.getModel();
+        const editorModel = this.backend?.getModel?.();
 
-        if (model) {
+        if (editorModel) {
             const newDecorations = diagnostics.map((entry: IDiagnosticEntry) => {
                 // Decorations must be specified in editor coordinates, so we use the editor model here.
-                const startPosition = model.getPositionAt(entry.span.start + this.codeOffset);
-                const endPosition = model.getPositionAt(entry.span.start + this.codeOffset + entry.span.length);
+                const startPosition = editorModel.getPositionAt(entry.span.start + this.codeOffset);
+                const endPosition = editorModel.getPositionAt(entry.span.start + this.codeOffset + entry.span.length);
 
                 return {
                     range: {
@@ -695,7 +708,7 @@ export class PresentationInterface {
 
 
             // Update the decorations in the editor.
-            return this.backend?.deltaDecorations(decorationIDs, newDecorations) ?? [];
+            return editorModel.deltaDecorations?.(decorationIDs, newDecorations) ?? [];
         }
 
         return [];
@@ -708,12 +721,14 @@ export class PresentationInterface {
         // Go through all lines until a non-empty one is found.
         // Check its text for a command starter.
         let run = this.startLine;
-        const model = this.backend?.getModel();
+        const model = this.backend?.getModel?.(); // Need the editor model here.
         if (model) {
-            while (run <= this.endLine) {
+            const endLine = Math.min(this.endLine, model.getLineCount());
+            while (run <= endLine) {
                 const text = model.getLineContent(run).trim();
                 if (text.length > 0) {
-                    if (text.startsWith("\\")) {
+                    if (run === endLine && text.startsWith("\\")) {
+                        // The current line is the last one and starts with a backslash.
                         return true;
                     } else {
                         return false;
@@ -733,8 +748,8 @@ export class PresentationInterface {
     public selectRange(span: TextSpan): void {
         if (this.context && this.backend) {
             const range = this.context.fromLocal(span);
-            this.backend.setSelection(range);
-            this.backend.revealLines(range.startLineNumber, range.endLineNumber);
+            this.backend.setSelection?.(range);
+            this.backend.revealLines?.(range.startLineNumber, range.endLineNumber);
         }
     }
 

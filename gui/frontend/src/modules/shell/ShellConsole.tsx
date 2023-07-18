@@ -163,7 +163,7 @@ export class ShellConsole extends ComponentBase<IShellConsoleProperties> {
     };
 
     private createPresentation = (editor: CodeEditor, language: EditorLanguage): PresentationInterface => {
-        return new EmbeddedPresentationInterface(editor, language);
+        return new EmbeddedPresentationInterface(editor.backend, editor.isScrolling, language);
     };
 
     /**
@@ -176,7 +176,7 @@ export class ShellConsole extends ComponentBase<IShellConsoleProperties> {
     private contextRelativeLineNumbers = (originalLineNumber: number): string => {
         const { editorState } = this.props;
         const contexts = editorState.model.executionContexts;
-        const context = contexts.contextFromPosition({ lineNumber: originalLineNumber, column: 1 });
+        const context = contexts?.contextFromPosition({ lineNumber: originalLineNumber, column: 1 });
         if (context) {
             if (context.endLine - context.startLine > 0) {
                 return (originalLineNumber - context.startLine + 1).toString();

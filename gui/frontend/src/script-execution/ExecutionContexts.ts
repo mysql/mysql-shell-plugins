@@ -46,6 +46,10 @@ export class ExecutionContexts implements IContextProvider {
         private defaultSchema: string) {
     }
 
+    public [Symbol.iterator](): Iterator<ExecutionContext> {
+        return this.content[Symbol.iterator]();
+    }
+
     public get count(): number {
         return this.content.length;
     }
@@ -337,6 +341,38 @@ export class ExecutionContexts implements IContextProvider {
         }
 
         return result;
+    }
+
+    /**
+     * Switches the language of the context at the given index to the new language.
+     * This will actually replace the context with a new one, but the presentation will be kept.
+     *
+     * @param index The index of the context to switch.
+     * @param language The new language to use.
+     */
+    public switchContextLanguage(index: number, language: EditorLanguage): void {
+        if (index < 0 || index >= this.content.length) {
+            return;
+        }
+
+        const context = this.content[index];
+        if (context.language === language) {
+            return;
+        }
+
+        context.dispose();
+
+        const presentation = context.presentation;
+        presentation.language = language;
+        presentation.removeResult();
+
+        const newContext = this.createContext(presentation);
+        this.content[index] = newContext;
+
+        if (!presentation.isSQLLike) {
+            // SQL like contexts validate on constructor anyway.
+            newContext.scheduleFullValidation();
+        }
     }
 
     private createContext(presentation: PresentationInterface, statementSpans?: IStatementSpan[]): ExecutionContext {

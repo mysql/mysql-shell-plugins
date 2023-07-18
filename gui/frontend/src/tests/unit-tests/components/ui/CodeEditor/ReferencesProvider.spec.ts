@@ -43,7 +43,7 @@ describe("ReferenceProvider tests", () => {
         expect(pi).toBeDefined();
 
         const execContext = new ExecutionContext(pi);
-        mockModel.executionContexts.contextFromPosition = jest.fn().mockReturnValue(
+        mockModel.executionContexts!.contextFromPosition = jest.fn().mockReturnValue(
             execContext,
         );
         jest.spyOn(execContext, "isInternal", "get").mockReturnValue(true);

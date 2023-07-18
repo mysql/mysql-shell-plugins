@@ -54,9 +54,24 @@ import { ReferencesProvider } from "./ReferencesProvider";
 import { RenameProvider } from "./RenameProvider";
 import { SignatureHelpProvider } from "./SignatureHelpProvider";
 import { MessageType } from "../../../app-logic/Types";
-import { mysqlKeywords, MySQLVersion } from "../../../parsing/mysql/mysql-keywords";
 import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
 import { ExecutionContext } from "../../../script-execution/ExecutionContext";
+import { MsgSemanticTokensProvider } from "./MsgSemanticTokensProvider";
+import { splitTextToLines } from "../../../utilities/string-helpers";
+
+/** Used when splitting pasted text to find the individual language blocks. */
+interface ITextBlockEntry {
+    language: EditorLanguage;
+
+    /** Relative start line number of the entire block. */
+    startLine: number;
+
+    /** Relative end line number (inclusive). */
+    endLine: number;
+
+    /** If different to the startLine field denotes the start of the first non-language-switch line. */
+    contentStartLine: number;
+}
 
 interface IFontSettings {
     fontFamily?: string;
@@ -67,12 +82,12 @@ interface IFontSettings {
 }
 
 export interface ICodeEditorModel extends IProviderEditorModel {
-    [key: string]: unknown;
-
-    executionContexts: ExecutionContexts;
+    executionContexts?: ExecutionContexts;
 
     /** Contains symbols that can be used in code assistants like code completion. */
-    symbols: SymbolTable;
+    symbols?: SymbolTable;
+
+    session?: unknown;
 }
 
 /** The presentation class type depends on the place where the editor is used. */
@@ -196,7 +211,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
     private static monacoConfigured = false;
 
     private hostRef = createRef<HTMLDivElement>();
-    private editor: Monaco.IStandaloneCodeEditor | undefined;
+    private editor: Monaco.IStandaloneCodeEditor;
 
     // Set when a new execution context is being added. Requires special handling in the change event.
     private addingNewContext = false;
@@ -278,60 +293,35 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
 
         CodeEditor.monacoConfigured = true;
 
-        const completionProvider = new CodeCompletionProvider();
-        const hoverProvider = new HoverProvider();
-        const signatureHelpProvider = new SignatureHelpProvider();
-        const documentHighlightProvider = new DocumentHighlightProvider();
-        const definitionProvider = new DefinitionProvider();
-        const referenceProvider = new ReferencesProvider();
-        const formattingProvider = new FormattingProvider();
-        const renameProvider = new RenameProvider();
-
         languages.onLanguage(msg.id, () => {
             void msg.loader().then((definition: ILanguageDefinition) => {
-                // TODO: no longer needed once we switch away from Monarch.
-                definition.language.start = "sql";
-
-                // Dynamically load the MySQL keywords (modifying the keyword list in the language definition).
-                // This is currently static, but will change with the semantic highlighter implementation.
-                const keywordSet = mysqlKeywords.get(MySQLVersion.MySQL83);
-                const keywords = definition.language.mysqlKeywords as string[];
-                if (keywordSet && keywords) {
-                    for (const entry of keywordSet.values()) {
-                        // Push each keyword twice (lower and upper case), as we have to make the
-                        // main language case sensitive.
-                        keywords.push(entry);
-                        keywords.push(entry.toLowerCase());
-                    }
-                }
-                languages.setMonarchTokensProvider(msg.id, definition.language);
                 languages.setLanguageConfiguration(msg.id, definition.languageConfiguration);
             });
         });
 
-        for (const language of [msg.id, "mysql", "sql", "python"]) {
-            languages.registerCompletionItemProvider(language, completionProvider);
-            languages.registerHoverProvider(language, hoverProvider);
-            languages.registerSignatureHelpProvider(language, signatureHelpProvider);
-            languages.registerDocumentHighlightProvider(language, documentHighlightProvider);
-            languages.registerDefinitionProvider(language, definitionProvider);
-            languages.registerReferenceProvider(language, referenceProvider);
-            languages.registerDocumentFormattingEditProvider(language, formattingProvider);
-            languages.registerRenameProvider(language, renameProvider);
-        }
+        const editorLanguages = ["msg", "javascript", "typescript", "sql", "mysql", "python"];
+        languages.registerDocumentSemanticTokensProvider(editorLanguages, new MsgSemanticTokensProvider());
+        languages.registerCompletionItemProvider(editorLanguages, new CodeCompletionProvider());
+        languages.registerHoverProvider(editorLanguages, new HoverProvider());
+        languages.registerSignatureHelpProvider(editorLanguages, new SignatureHelpProvider());
+        languages.registerDocumentHighlightProvider(editorLanguages, new DocumentHighlightProvider());
+        languages.registerDefinitionProvider(editorLanguages, new DefinitionProvider());
+        languages.registerReferenceProvider(editorLanguages, new ReferencesProvider());
+        languages.registerDocumentFormattingEditProvider(editorLanguages, new FormattingProvider());
+        languages.registerRenameProvider(editorLanguages, new RenameProvider());
 
         // Register our combined language and create dummy text models for JS and TS, to trigger their
         // initialization. Otherwise we will get errors when they are used by the combined language code.
         languages.register(msg);
 
-        Monaco.createModel("", "typescript");
-        Monaco.createModel("", "javascript");
+        Monaco.createModel("", "typescript").dispose();
+        Monaco.createModel("", "javascript").dispose();
 
         if (languages.typescript) { // This field is not set when running under Jest.
             const compilerOptions: languages.typescript.CompilerOptions = {
                 allowNonTsExtensions: true,
                 target: languages.typescript.ScriptTarget.ESNext,
-                lib: ["es2022"],
+                lib: ["esnext"],
                 module: languages.typescript.ModuleKind.ESNext,
                 strictNullChecks: true,
             };
@@ -349,9 +339,15 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         }
     }
 
-    public get isScrolling(): boolean {
+    /**
+     * A method that can be used to determine if the editor is currently scrolling its content because of mouse wheel
+     * events. This is used to correctly scroll embedded content like result panes in editor zones.
+     *
+     * @returns True if the editor is currently scrolling.
+     */
+    public isScrolling = (): boolean => {
         return this.scrolling;
-    }
+    };
 
     public componentDidMount(): void {
         if (!this.hostRef.current) {
@@ -394,7 +390,15 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             combinedLanguage = model.getLanguageId() === "msg";
         } else {
             combinedLanguage = language === "msg";
-            model = Monaco.createModel(initialContent ?? "", language) as ICodeEditorModel;
+            model = Object.assign(Monaco.createModel(initialContent ?? "", language), {
+                executionContexts: new ExecutionContexts(undefined, Settings.get("editor.dbVersion", 80024),
+                    Settings.get("editor.sqlMode", ""), ""),
+                symbols: new SymbolTable("default", { allowDuplicateSymbols: true }),
+                editorMode: CodeEditorMode.Standard,
+                appEmbedded: false,
+            });
+
+
             if (model.getEndOfLineSequence() !== Monaco.EndOfLineSequence.LF) {
                 model.setEOL(Monaco.EndOfLineSequence.LF);
             } else {
@@ -402,59 +406,57 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                 // the end of line sequence.
                 model.setValue(initialContent ?? "");
             }
-            model.executionContexts =
-                new ExecutionContexts(undefined, Settings.get("editor.dbVersion", 80024),
-                    Settings.get("editor.sqlMode", ""), "");
-            model.symbols = new SymbolTable("default", { allowDuplicateSymbols: true });
         }
 
         const options: Monaco.IStandaloneEditorConstructionOptions = {
-            extraEditorClassName: className,
-            rulers: [],
-            cursorSurroundingLines: 2,
-            readOnly: readonly,
-            minimap: effectiveMinimapSettings,
-            find: {
+            "extraEditorClassName": className,
+            "rulers": [],
+            "cursorSurroundingLines": 2,
+            "readOnly": readonly,
+            "minimap": effectiveMinimapSettings,
+            "find": {
                 seedSearchStringFromSelection: "selection",
                 autoFindInSelection: "never",
                 addExtraSpaceOnTop: false,
             },
-            cursorSmoothCaretAnimation: false,
-            fontLigatures: true,
+            "cursorSmoothCaretAnimation": false,
+            "fontLigatures": true,
             wordWrap,
             wordWrapColumn,
-            wrappingIndent: "indent",
-            wrappingStrategy: "advanced",
-            hover: {
+            "wrappingIndent": "indent",
+            "wrappingStrategy": "advanced",
+            "hover": {
                 enabled: true,
             },
-            links: detectLinks,
-            colorDecorators: true,
-            contextmenu: model?.editorMode !== CodeEditorMode.Terminal,
+            "links": detectLinks,
+            "colorDecorators": true,
+            "contextmenu": model?.editorMode !== CodeEditorMode.Terminal,
             suggest,
-            emptySelectionClipboard: false,
-            copyWithSyntaxHighlighting: true,
-            codeLens: !combinedLanguage,
-            folding: !combinedLanguage,
-            foldingStrategy: "auto",
-            glyphMargin: !combinedLanguage,
-            showFoldingControls: "always",
-            lightbulb: { enabled: false },
-            renderWhitespace: showHidden ? "all" : "none",
-            renderControlCharacters: showHidden,
+            "emptySelectionClipboard": false,
+            "copyWithSyntaxHighlighting": true,
+            "codeLens": !combinedLanguage,
+            "folding": !combinedLanguage,
+            "foldingStrategy": "auto",
+            "glyphMargin": !combinedLanguage,
+            "showFoldingControls": "always",
+            "lightbulb": { enabled: false },
+            "renderWhitespace": showHidden ? "all" : "none",
+            "renderControlCharacters": showHidden,
             guides,
             renderLineHighlight,
             useTabStops,
-            fontFamily: font?.fontFamily,
-            fontWeight: font?.fontWeight,
-            fontSize: font?.fontSize,
-            lineHeight: font?.lineHeight,
-            letterSpacing: font?.letterSpacing,
-            showUnused: true,
+            "fontFamily": font?.fontFamily,
+            "fontWeight": font?.fontWeight,
+            "fontSize": font?.fontSize,
+            "lineHeight": font?.lineHeight,
+            "letterSpacing": font?.letterSpacing,
+            "showUnused": true,
             scrollbar,
             lineNumbers,
-            scrollBeyondLastLine: false,
-            lineDecorationsWidth: lineDecorationsWidth ?? (combinedLanguage ? 49 : 20),
+            "scrollBeyondLastLine": false,
+            "lineDecorationsWidth": lineDecorationsWidth ?? (combinedLanguage ? 49 : 20),
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            "semanticHighlighting.enabled": true,
 
             model,
         };
@@ -464,7 +466,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         if (model) {
             if (savedState && savedState.contextStates && savedState.contextStates.length > 0
                 && createResultPresentation) {
-                model.executionContexts.restoreFromStates(this, createResultPresentation, savedState.contextStates);
+                model.executionContexts?.restoreFromStates(this, createResultPresentation, savedState.contextStates);
             } else {
                 if (model.getLanguageId() === "msg" && model.getLineCount() > 1) {
                     this.generateExecutionBlocksFromContent();
@@ -515,8 +517,8 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         requisitions.unregister("settingsChanged", this.handleSettingsChanged);
         requisitions.unregister("editorExecuteSelectedOrAll", this.executeSelectedOrAll);
         requisitions.unregister("editorExecuteCurrent", this.executeCurrent);
-        requisitions.unregister("editorFind", this.find);
-        requisitions.unregister("editorFormat", this.format);
+        requisitions.unregister("editorFind", this.executeFind);
+        requisitions.unregister("editorFormat", this.executeFormat);
         requisitions.unregister("editorSelectStatement", this.handleSelectStatement);
 
         const editor = this.backend;
@@ -524,7 +526,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         // Save the current view state also before the editor is destroyed.
         if (savedState && editor) {
             savedState.viewState = editor.saveViewState();
-            savedState.contextStates = savedState.model.executionContexts.cleanUpAndReturnState();
+            savedState.contextStates = savedState.model.executionContexts?.cleanUpAndReturnState();
             savedState.options = this.options;
         }
 
@@ -545,7 +547,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                 // Save the current state before switching to the new model.
                 prevProps.savedState.viewState = editor.saveViewState();
                 prevProps.savedState.contextStates =
-                    prevProps.savedState.model.executionContexts.cleanUpAndReturnState();
+                    prevProps.savedState.model.executionContexts?.cleanUpAndReturnState();
                 prevProps.savedState.options = this.options;
             }
 
@@ -568,7 +570,8 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
 
                 if (savedState && savedState.contextStates && savedState.contextStates.length > 0
                     && createResultPresentation) {
-                    model.executionContexts.restoreFromStates(this, createResultPresentation, savedState.contextStates);
+                    model.executionContexts?.restoreFromStates(this, createResultPresentation,
+                        savedState.contextStates);
                 } else {
                     if (!savedState) {
                         model.setValue(initialContent ?? "");
@@ -730,7 +733,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             const presentation = createResultPresentation(this, language);
             presentation.startLine = startLine;
             presentation.endLine = startLine;
-            const context = model.executionContexts.addContext(presentation);
+            const context = model.executionContexts?.addContext(presentation);
 
             editor.setPosition({ lineNumber: startLine, column: 1 });
             setTimeout(() => {
@@ -759,7 +762,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         let block;
 
         const model = this.model;
-        if (model) {
+        if (model && model.executionContexts) {
             if (index === -1 || index === model.executionContexts.count - 1) {
                 this.addingNewContext = true;
                 try {
@@ -798,7 +801,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
     public get lastExecutionBlock(): ExecutionContext | undefined {
         const model = this.model;
 
-        return model?.executionContexts.last;
+        return model?.executionContexts?.last;
     }
 
     /**
@@ -807,7 +810,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
     public get currentBlockIndex(): number {
         const editor = this.backend;
         const model = this.model;
-        if (editor && model) {
+        if (editor && model && model.executionContexts) {
             return model.executionContexts.contextIndexFromPosition(editor.getPosition());
         }
 
@@ -817,7 +820,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
     /**
      * @returns The underlying monaco editor interface.
      */
-    public get backend(): Monaco.IStandaloneCodeEditor | undefined {
+    public get backend(): Monaco.IStandaloneCodeEditor {
         return this.editor;
     }
 
@@ -893,16 +896,16 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
      * Additional setup beside the initial configuration.
      */
     private prepareUse(): void {
-        const { language } = this.mergedProps;
-        const editor = this.backend!;
+        const { language, allowedLanguages = [] } = this.mergedProps;
+        const editor = this.backend;
 
         const precondition = "editorTextFocus && !suggestWidgetVisible && !renameInputVisible && !inSnippetMode " +
             "&& !quickFixWidgetVisible";
 
-        const blockBased = language === "msg";
+        const mixedLanguage = language === "msg";
         this.disposables.push(editor.addAction({
             id: "executeCurrentAndAdvance",
-            label: blockBased ? "Execute Block and Advance" : "Execute Script",
+            label: mixedLanguage ? "Execute Block and Advance" : "Execute Script",
             keybindings: [KeyMod.CtrlCmd | KeyCode.Enter],
             contextMenuGroupId: "2_execution",
             contextMenuOrder: 1,
@@ -914,7 +917,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
 
         this.disposables.push(editor.addAction({
             id: "executeCurrent",
-            label: blockBased ? "Execute Block" : "Execute Script and Move Cursor",
+            label: mixedLanguage ? "Execute Block" : "Execute Script and Move Cursor",
             keybindings: [KeyMod.Shift | KeyCode.Enter],
             contextMenuGroupId: "2_execution",
             contextMenuOrder: 2,
@@ -942,15 +945,50 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             run: () => { return this.executeCurrentContext({ atCaret: true, advance: true, asText: true }); },
         }));
 
-        if (blockBased) {
-            this.disposables.push(editor.addAction({
-                id: "sendBlockUpdates",
-                label: "Update SQL in Original Source File",
-                keybindings: [KeyMod.CtrlCmd | KeyMod.Alt | KeyCode.KeyU],
-                contextMenuGroupId: "3_linked",
-                precondition,
-                run: () => { return this.runContextCommand("sendBlockUpdates"); },
-            }));
+        if (mixedLanguage) {
+            if (allowedLanguages.includes("sql")) {
+                this.disposables.push(editor.addAction({
+                    id: "switchToSQL",
+                    label: "Switch Language of Current Block to SQL",
+                    contextMenuGroupId: "3_language",
+                    contextMenuOrder: 1,
+                    precondition,
+                    run: this.switchCurrentLanguage.bind(this, "sql", false),
+                }));
+            }
+
+            if (allowedLanguages.includes("typescript")) {
+                this.disposables.push(editor.addAction({
+                    id: "switchToTypeScript",
+                    label: "Switch Language of Current Block to TypeScript",
+                    contextMenuGroupId: "3_language",
+                    contextMenuOrder: 2,
+                    precondition,
+                    run: this.switchCurrentLanguage.bind(this, "typescript", false),
+                }));
+            }
+
+            if (allowedLanguages.includes("javascript")) {
+                this.disposables.push(editor.addAction({
+                    id: "switchToJavaScript",
+                    label: "Switch Language of Current Block to JavaScript",
+                    contextMenuGroupId: "3_language",
+                    contextMenuOrder: 3,
+                    precondition,
+                    run: this.switchCurrentLanguage.bind(this, "javascript", false),
+                }));
+            }
+
+            if (this.model?.appEmbedded) {
+                this.disposables.push(editor.addAction({
+                    id: "sendBlockUpdates",
+                    label: "Update SQL in Original Source File",
+                    keybindings: [KeyMod.CtrlCmd | KeyMod.Alt | KeyCode.KeyU],
+                    contextMenuGroupId: "4_linked",
+                    precondition,
+                    run: () => { this.runContextCommand("sendBlockUpdates"); },
+                }));
+            }
 
             // Special key handling for our blocks.
             this.disposables.push(editor.addAction({
@@ -998,37 +1036,6 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             precondition,
         }));
 
-        // In embedded mode some key combinations don't work by default. So we add handlers for them here.
-        // Doing that always doesn't harm, as we do not trigger other actions than what they do normally.
-        this.disposables.push(editor.addAction({
-            id: "paste",
-            label: "Paste",
-            keybindings: [KeyMod.CtrlCmd | KeyCode.KeyV],
-            run: () => {
-                editor.trigger("source", "editor.action.clipboardPasteAction", null);
-            },
-        }));
-
-        this.disposables.push(editor.addAction({
-            id: "copy",
-            label: "Copy",
-            keybindings: [KeyMod.CtrlCmd | KeyCode.KeyC],
-            precondition,
-            run: () => {
-                editor.trigger("source", "editor.action.clipboardCopyAction", null);
-            },
-        }));
-
-        this.disposables.push(editor.addAction({
-            id: "cut",
-            label: "Cut",
-            keybindings: [KeyMod.CtrlCmd | KeyCode.KeyX],
-            precondition,
-            run: () => {
-                editor.trigger("source", "editor.action.clipboardCutAction", null);
-            },
-        }));
-
         this.disposables.push(editor.addAction({
             id: "acceptSuggestion",
             label: "Accept Selected Suggestion",
@@ -1043,7 +1050,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         this.disposables.push(editor.onDidChangeCursorPosition((e: Monaco.ICursorPositionChangedEvent) => {
             if (language === "msg") {
                 const model = this.model;
-                if (model) {
+                if (model && model.executionContexts) {
                     model.executionContexts.cursorPosition = e.position;
                 }
             }
@@ -1095,8 +1102,8 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         requisitions.register("settingsChanged", this.handleSettingsChanged);
         requisitions.register("editorExecuteSelectedOrAll", this.executeSelectedOrAll);
         requisitions.register("editorExecuteCurrent", this.executeCurrent);
-        requisitions.register("editorFind", this.find);
-        requisitions.register("editorFormat", this.format);
+        requisitions.register("editorFind", this.executeFind);
+        requisitions.register("editorFormat", this.executeFormat);
         requisitions.register("editorSelectStatement", this.handleSelectStatement);
     }
 
@@ -1116,7 +1123,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                     editor.executeEdits("delete", [op]);
                 } else {
                     // No selection -> single character deletion.
-                    const context = model.executionContexts.contextFromPosition({
+                    const context = model.executionContexts?.contextFromPosition({
                         lineNumber: selection.startLineNumber,
                         column: selection.startColumn,
                     });
@@ -1172,7 +1179,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                     editor.executeEdits("delete", [op]);
                 } else {
                     // No selection -> single character deletion.
-                    const context = model.executionContexts.contextFromPosition({
+                    const context = model.executionContexts?.contextFromPosition({
                         lineNumber: selection.startLineNumber,
                         column: selection.startColumn,
                     });
@@ -1227,7 +1234,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             if (position) {
                 if (!this.keyboardTimer) {
                     // This is the first key stroke. Do only a local select all and start the timer.
-                    const context = model.executionContexts.contextFromPosition(position);
+                    const context = model.executionContexts?.contextFromPosition(position);
                     if (context) {
                         editor.setSelection({
                             startLineNumber: context.startLine,
@@ -1262,13 +1269,13 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             const position = editor.getPosition();
             if (position) {
                 const contexts = model.executionContexts;
-                let context = contexts.contextFromPosition(position);
+                let context = contexts?.contextFromPosition(position);
                 if (context) {
                     if (context.startLine < position.lineNumber) {
                         editor.setPosition({ lineNumber: context.startLine, column: 1 });
                     } else {
                         // Already at the beginning of the block. Jump further the previous block start.
-                        context = contexts.contextFromPosition({ lineNumber: context.startLine - 1, column: 1 });
+                        context = contexts?.contextFromPosition({ lineNumber: context.startLine - 1, column: 1 });
                         if (context) {
                             editor.setPosition({ lineNumber: context.startLine, column: 1 });
                         }
@@ -1285,7 +1292,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             const position = editor.getPosition();
             if (position) {
                 const contexts = model.executionContexts;
-                let context = contexts.contextFromPosition(position);
+                let context = contexts?.contextFromPosition(position);
                 if (context) {
                     if (context.endLine > position.lineNumber) {
                         editor.setPosition({
@@ -1294,7 +1301,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                         });
                     } else {
                         // Already at the beginning of the block. Jump further the previous block start.
-                        context = contexts.contextFromPosition({ lineNumber: context.endLine + 1, column: 1 });
+                        context = contexts?.contextFromPosition({ lineNumber: context.endLine + 1, column: 1 });
                         if (context) {
                             editor.setPosition({
                                 lineNumber: context.endLine,
@@ -1313,7 +1320,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             const model = this.model;
             if (model) {
                 const contexts = model.executionContexts;
-                const context = contexts.contextWithId(details.contextId);
+                const context = contexts?.contextWithId(details.contextId);
                 if (context) {
                     context.selectStatement(details.statementIndex);
                     resolve(true);
@@ -1348,7 +1355,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
 
                 case "mysql":
                 case "sql": {
-                    const context = contexts.first;
+                    const context = contexts?.first;
                     context?.applyEditorChanges(e.changes);
 
                     break;
@@ -1393,7 +1400,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         if (editor && model) {
             const index = this.currentBlockIndex;
             if (index > -1) {
-                const block = model.executionContexts.contextAt(index);
+                const block = model.executionContexts?.contextAt(index);
                 if (block) {
                     // Let our host (if any) know that the results will change.
                     requisitions.executeRemote("editorChanged", undefined);
@@ -1431,7 +1438,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         if (model) {
             const index = this.currentBlockIndex;
             if (index > -1) {
-                const context = model.executionContexts.contextAt(index);
+                const context = model.executionContexts?.contextAt(index);
                 if (context) {
                     void requisitions.execute("editorRunCommand", { command, context });
                 }
@@ -1452,7 +1459,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         }
 
         const model = this.model;
-        if (model) {
+        if (model && model.executionContexts) {
             const contexts = model.executionContexts;
 
             // Go through each change individually and send it to the affected blocks.
@@ -1539,43 +1546,71 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
     }
 
     /**
-     * Checks the block that is in the given range if it contains a language switch. If that is the case
+     * Checks the context that is in the given range if it contains a language switch. If that is the case
      * it is split at these switches.
      *
-     * @param range The range that was changed by an edit action. It should only touch a single block.
+     * @param range The range that was changed by an edit action. It should only touch a single context.
      */
     private scanForLanguageSwitches(range: ITextRange): void {
         const model = this.model;
-        if (model) {
+        if (model && model.executionContexts) {
             const contextsToUpdate = this.contextIndicesFromRange(range);
 
             if (contextsToUpdate.length > 0) {
+                const { createResultPresentation } = this.mergedProps;
+
                 const firstIndex = contextsToUpdate[0];
-                const firstBlock = model.executionContexts.contextAt(firstIndex)!;
-                const blocks = this.splitText(firstBlock);
-                if (blocks.length > 1) {
-                    const { createResultPresentation } = this.mergedProps;
+                const firstContext = model.executionContexts.contextAt(firstIndex)!;
+                const blocks = this.determineTextBlocks(firstContext);
+                const offset = firstContext.startLine;
 
-                    const offset = firstBlock.startLine;
-
-                    // The first block exists already, so remove it from the list.
-                    // But we have to update its end line first.
-                    firstBlock.endLine = blocks[0][2] + offset;
-                    firstBlock.scheduleFullValidation();
-
-                    blocks.shift();
-                    if (createResultPresentation) {
-                        blocks.forEach(
-                            ([language, start, end]: [EditorLanguage, number, number], index: number): void => {
-                                const presentation = createResultPresentation(this, language);
-                                const context = model.executionContexts.insertContext(firstIndex + index + 1,
-                                    presentation);
-                                context.startLine = start + offset;
-                                context.endLine = end + offset;
-                                context.scheduleFullValidation();
-                            });
-                    }
+                const first = blocks.shift();
+                if (!first) {
+                    return;
                 }
+
+                const linesToClear: number[] = []; // Lines with language switches.
+
+                // The first context exists already (which is the one where the user pasted the text in).
+                // Just need to update its language and end line and record the language switch lines.
+                for (let i = 0; i < first.contentStartLine; ++i) {
+                    linesToClear.push(i + offset);
+                }
+
+                firstContext.endLine = first.endLine + offset;
+                model.executionContexts?.switchContextLanguage(firstIndex, first.language);
+
+                // Create new contexts for the remaining blocks.
+                if (createResultPresentation) {
+                    let index = firstIndex + 1;
+                    blocks.forEach((block): void => {
+                        for (let i = block.startLine; i < block.contentStartLine; ++i) {
+                            linesToClear.push(i + offset);
+                        }
+
+                        const presentation = createResultPresentation(this, block.language);
+                        const context = model.executionContexts!.insertContext(index++, presentation);
+                        context.startLine = block.startLine + offset;
+                        context.endLine = block.endLine + offset;
+                        context.scheduleFullValidation();
+                    });
+                }
+
+                // At this point all execution contexts still contain the language switches.
+                // Clear these lines, but don't remove them (as this conflicts with the ongoing edit action).
+                this.backend.executeEdits("removeLanguageSwitches",
+                    linesToClear.map((line): Monaco.IIdentifiedSingleEditOperation => {
+                        return {
+                            range: {
+                                startLineNumber: line,
+                                startColumn: 1,
+                                endLineNumber: line,
+                                endColumn: model.getLineLength(line) + 1,
+                            },
+                            text: null,
+                        };
+                    }),
+                );
             }
         }
     }
@@ -1590,7 +1625,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
      */
     private contextIndicesFromRange(range: ITextRange): number[] {
         const model = this.model;
-        if (model) {
+        if (model && model.executionContexts) {
             return model.executionContexts.contextIndicesFromRange(range);
         }
 
@@ -1606,15 +1641,15 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
 
         const editor = this.backend;
         const model = this.model;
-        if (model && editor && createResultPresentation) {
+        if (model && editor && model.executionContexts && createResultPresentation) {
             model.executionContexts.cleanUpAndReturnState();
 
-            const blocks = this.splitText(model.getValue());
-            blocks.forEach(([language, start, end]: [EditorLanguage, number, number]): void => {
-                const presentation = createResultPresentation(this, language);
-                presentation.startLine = start + 1;
-                presentation.endLine = end + 1;
-                model.executionContexts.addContext(presentation);
+            const blocks = this.determineTextBlocks(model.getValue());
+            blocks.forEach((block): void => {
+                const presentation = createResultPresentation(this, block.language);
+                presentation.startLine = block.startLine + 1;
+                presentation.endLine = block.endLine + 1;
+                model.executionContexts!.addContext(presentation);
             });
         }
     };
@@ -1651,20 +1686,20 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
      *
      * @param startOrText Either the context where the new text starts or new text to add into an empty editor.
      *
-     * @returns A list block entries with language, start and stop line (both zero-based).
+     * @returns A list of ranges with language, start and stop line (both zero-based).
      */
-    private splitText = (startOrText: ExecutionContext | string): Array<[EditorLanguage, number, number]> => {
+    private determineTextBlocks = (startOrText: ExecutionContext | string): ITextBlockEntry[] => {
         const { language, allowedLanguages = [], startLanguage, sqlDialect } = this.mergedProps;
-
-        const result: Array<[EditorLanguage, number, number]> = [];
 
         // Determine a language to start with.
         let currentLanguage: EditorLanguage = "javascript";
-        let text = "";
-        if (typeof startOrText === "string") {
-            text = startOrText;
-            currentLanguage = (language === "msg" ? startLanguage : language) ?? "javascript";
 
+        // Get the individual lines of the text.
+        let lines: string[];
+        if (typeof startOrText === "string") {
+            lines = splitTextToLines(startOrText);
+
+            currentLanguage = (language === "msg" ? startLanguage : language) ?? "javascript";
             if (currentLanguage && allowedLanguages.length > 0) {
                 if (!allowedLanguages.includes(currentLanguage)) {
                     // The current language is not allowed. Pick the first one in the allowed languages list.
@@ -1672,7 +1707,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                 }
             }
         } else {
-            text = startOrText.code;
+            lines = startOrText.model?.getLinesContent() ?? [];
             currentLanguage = startOrText.language;
         }
 
@@ -1680,34 +1715,62 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             currentLanguage = sqlDialect as EditorLanguage;
         }
 
-        let start = 0;
-        let end = 0;
-        text.split("\n").forEach((line: string) => {
+        const result: ITextBlockEntry[] = [];
+        let currentEntry: ITextBlockEntry = {
+            language: currentLanguage,
+            startLine: 0,
+            endLine: lines.length === 0 ? 0 : -1,
+            contentStartLine: 0,
+        };
+
+        let haveContent = false;
+        for (const line of lines) {
             let trimmed = line.trim();
             if (trimmed.length > 0 && trimmed.startsWith("\\")) {
                 trimmed = trimmed.slice(1);
-                const language = CodeEditor.languageMap.get(trimmed);
+                let language = CodeEditor.languageMap.get(trimmed);
                 if (language && allowedLanguages.includes(language)) {
-                    if (end > start) {
-                        // Push the block content before the language switch, if there's any.
-                        result.push([currentLanguage, start, end - 1]);
+                    // A language switch may introduces a new execution block, if the given language is valid
+                    // and there was content in a previous block.
+                    if (language === "sql" && sqlDialect) {
+                        language = sqlDialect as EditorLanguage;
+                    }
+                    currentLanguage = language;
+
+                    // Finish the current block and start a new one, if there was content in the current one.
+                    if (haveContent) {
+                        haveContent = false;
+
+                        const newStart = currentEntry.endLine + 1;
+                        result.push(currentEntry);
+
+                        currentEntry = {
+                            language: currentLanguage,
+                            startLine: newStart,
+                            endLine: newStart,
+                            contentStartLine: newStart,
+                        };
+                    } else {
+                        // Otherwise update the language of the current block and advance its end line.
+                        currentEntry.language = currentLanguage;
+                        ++currentEntry.endLine;
                     }
 
-                    // Push the language switch as own block.
-                    result.push([currentLanguage, end, end]);
-
-                    start = end + 1;
-                    currentLanguage = language;
+                    continue;
                 }
             }
 
-            ++end;
-        });
+            ++currentEntry.endLine;
+            if (!haveContent) {
+                // First time found content. Update the content line number.
+                currentEntry.contentStartLine = currentEntry.endLine;
+            }
 
-        if (end > start) {
-            // Push the remaining content as own text block.
-            result.push([currentLanguage, start, end - 1]);
+            haveContent = true;
         }
+
+        // And finish the last block.
+        result.push(currentEntry);
 
         return result;
     };
@@ -1735,7 +1798,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
     };
 
     /**
-     * Checks if the given code is something that must be internally handled (for instance language switches).
+     * Checks if the given code is something that must be internally handled (for instance about or help commands).
      *
      * @param index The index of the block to execute.
      *
@@ -1745,7 +1808,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         const { allowedLanguages = [] } = this.mergedProps;
 
         const model = this.model;
-        if (model) {
+        if (model && model.executionContexts) {
             const terminalMode = model.editorMode === CodeEditorMode.Terminal;
             const block = model.executionContexts.contextAt(index)!;
             if (block.isInternal) {
@@ -1754,9 +1817,8 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                 // Blocks to switch languages cannot be re-executed, as they change state and all following
                 // blocks consider that state. Hence disallow such a block if this is not the last
                 // one in the editor.
-                if (index < model.executionContexts.count - 1) {
-                    // TODO: mark error
-                    return terminalMode ? "unhandled" : "ignore";
+                if (terminalMode && index < model.executionContexts.count - 1) {
+                    return "unhandled";
                 }
 
                 trimmed = trimmed.slice(1);
@@ -1792,61 +1854,53 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                 switch (language) {
                     case "sql": {
                         const { sqlDialect = "sql" } = this.mergedProps;
-                        if (!terminalMode) {
-                            const uiString = CodeEditor.sqlUiStringMap.get(sqlDialect) || "SQL";
 
-                            void block.addResultData({
-                                type: "text",
-                                executionInfo: { type: MessageType.Info, text: `Switched to ${uiString} mode` },
-                            }, { resultId: "0" });
+                        // In terminal mode we sent the command to the backend and must reflect this in the editor.
+                        if (terminalMode) {
+                            this.prepareNextExecutionBlock(index, sqlDialect as EditorLanguage);
+                        } else {
+                            // In editor mode we switch the language of the current block.
+                            this.switchCurrentLanguage(sqlDialect as EditorLanguage, true);
+
+                            return "handled";
                         }
-                        this.prepareNextExecutionBlock(index, sqlDialect as EditorLanguage);
 
                         break;
                     }
 
                     case "javascript": {
-                        if (!terminalMode) {
-                            void block.addResultData({
-                                type: "text",
-                                executionInfo: { type: MessageType.Info, text: `Switched to JavaScript mode` },
-                            }, { resultId: "0" });
+                        if (terminalMode) {
+                            this.prepareNextExecutionBlock(index, "javascript");
+                        } else {
+                            this.switchCurrentLanguage("javascript", true);
+
+                            return "handled";
                         }
-                        this.prepareNextExecutionBlock(index, "javascript");
 
                         break;
                     }
 
                     case "typescript": {
-                        if (!terminalMode) {
-                            void block.addResultData({
-                                type: "text",
-                                executionInfo: { type: MessageType.Info, text: `Switched to TypeScript mode` },
-                            }, { resultId: "0" });
+                        if (terminalMode) {
+                            this.prepareNextExecutionBlock(index, "typescript");
+                        } else {
+                            this.switchCurrentLanguage("typescript", true);
+
+                            return "handled";
                         }
-                        this.prepareNextExecutionBlock(index, "typescript");
 
                         break;
                     }
 
                     case "python": {
-                        if (!terminalMode) {
-                            void block.addResultData({
-                                type: "text",
-                                executionInfo: { type: MessageType.Info, text: `Switched to Python mode` },
-                            }, { resultId: "0" });
-                        }
+                        // Python is only available in terminal mode.
                         this.prepareNextExecutionBlock(index, "python");
 
                         break;
                     }
 
-                    default: {
-                        return "unhandled";
-                    }
+                    default:
                 }
-
-                return terminalMode ? "unhandled" : "handled";
             }
         }
 
@@ -1892,7 +1946,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         return Promise.resolve(true);
     };
 
-    private find = (): Promise<boolean> => {
+    private executeFind = (): Promise<boolean> => {
         const editor = this.backend;
 
         // Focus the editor first or the action won't find an editor to work on.
@@ -1908,7 +1962,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         }
     };
 
-    private format = (): Promise<boolean> => {
+    private executeFormat = (): Promise<boolean> => {
         const editor = this.backend;
 
         editor?.focus();
@@ -1920,6 +1974,50 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             });
         } else {
             return Promise.resolve(false);
+        }
+    };
+
+    /**
+     * Changes the language of the current block to the given one.
+     *
+     * @param language The new language.
+     * @param clearInput If true, the input of the current block is cleared.
+     */
+    private switchCurrentLanguage = (language: EditorLanguage, clearInput = false): void => {
+        const { sqlDialect } = this.mergedProps;
+
+        const editor = this.backend;
+        const model = this.model;
+
+        if (editor && model) {
+            if (language === "sql" && sqlDialect) {
+                language = sqlDialect as EditorLanguage;
+            }
+
+            model.executionContexts?.switchContextLanguage(this.currentBlockIndex, language);
+            const block = model.executionContexts?.contextAt(this.currentBlockIndex);
+            if (block) {
+                const lineLength = model.getLineLength(block.endLine);
+                const value = clearInput ? "" : model.getValueInRange({
+                    startLineNumber: block.startLine,
+                    startColumn: 1,
+                    endLineNumber: block.endLine,
+                    endColumn: lineLength + 1,
+                });
+
+                model.applyEdits([
+                    {
+                        range: {
+                            startLineNumber: block.startLine,
+                            startColumn: 1,
+                            endLineNumber: block.endLine,
+                            endColumn: lineLength + 1,
+                        },
+                        text: value,
+                        forceMoveMarkers: false,
+                    },
+                ], false);
+            }
         }
     };
 

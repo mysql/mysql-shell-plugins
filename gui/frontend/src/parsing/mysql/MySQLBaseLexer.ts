@@ -126,6 +126,26 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
     }
 
     /**
+     * Determines if the given type is a delimiter.
+     *
+     * @param type The type to check.
+     *
+     * @returns True if the type is an operator.
+     */
+    public isDelimiter(type: number): boolean {
+        switch (type) {
+            case MySQLMRSLexer.DOT_SYMBOL:
+            case MySQLMRSLexer.COMMA_SYMBOL:
+            case MySQLMRSLexer.SEMICOLON_SYMBOL:
+            case MySQLMRSLexer.COLON_SYMBOL:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    /**
      * Determines if the given type is an operator.
      *
      * @param type The type to check.
@@ -1391,6 +1411,7 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
 
         ++this._tokenStartColumn;
         ++this._tokenStartCharIndex;
+        ++this._tokenStartCharPositionInLine;
     }
 
     // eslint-disable-next-line jsdoc/require-returns-check

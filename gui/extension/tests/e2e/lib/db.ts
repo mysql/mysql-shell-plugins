@@ -327,7 +327,7 @@ export class Database {
 
         await driver.wait(async () => {
             try {
-                const prompts = await driver.findElements(locator.notebook.codeEditor.prompt);
+                const prompts = await driver.findElements(locator.notebook.codeEditor.prompt.exists);
                 const sentences = await driver.findElements(locator.notebook.codeEditor.editor.sentence);
                 let index = -1;
 
@@ -448,7 +448,7 @@ export class Database {
     };
 
     public static getPrompts = async (): Promise<number> => {
-        return (await driver.findElements(locator.notebook.codeEditor.prompt)).length;
+        return (await driver.findElements(locator.notebook.codeEditor.prompt.exists)).length;
     };
 
     public static setRestService = async (restService: interfaces.IRestService): Promise<void> => {

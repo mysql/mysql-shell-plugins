@@ -14,6 +14,7 @@
         "jest.autoRun": "off",
         "jest.disabledWorkspaceFolders": [
             "VSCode Extension"
-        ]
+        ],
+        "typescript.tsdk": "VSCode Extension/node_modules/typescript/lib"
     }
 }

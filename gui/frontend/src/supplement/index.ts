@@ -27,13 +27,44 @@ import { DBType } from "./ShellInterface";
 
 // Commonly used data types and functions.
 
+export const editorLanguages = [
+    "text", "typescript", "javascript", "mysql", "sql", "python", "json", "markdown", "msg", "xml", "ini"] as const;
+
 /**
  * These are the supported languages in the code editor.
  * This includes our mixed language (msg), which combines SQL, Python, JS and TS in one editor.
  */
-export type EditorLanguage = (
-    "text" | "typescript" | "javascript" | "mysql" | "sql" | "python" | "json" | "markdown" | "msg" | "xml" | "ini"
-);
+export type EditorLanguage = typeof editorLanguages[number];
+
+/**
+ * Checks if a given value is a supported code editor language.
+ *
+ * @param value The value to check.
+ *
+ * @returns True if the value is a supported code editor language.
+ */
+export const isEditorLanguage = (value: unknown): value is EditorLanguage => {
+    return typeof value === "string" && editorLanguages.includes(value as EditorLanguage);
+};
+
+/**
+ * These are the supported language suffixes in the code editor (usually for syntax highlighting).
+ */
+export const editorLanguageSuffixes = [
+    "txt", "ts", "js", "mysql", "sql", "py", "json", "md", "msg", "xml", "ini"] as const;
+
+export type EditorLanguageSuffix = typeof editorLanguageSuffixes[number];
+
+/**
+ * Checks if a given value is a supported code editor language.
+ *
+ * @param value The value to check.
+ *
+ * @returns True if the value is a supported code editor language.
+ */
+export const isEditorLanguageSuffix = (value: unknown): value is EditorLanguageSuffix => {
+    return typeof value === "string" && editorLanguageSuffixes.includes(value as EditorLanguageSuffix);
+};
 
 export interface ITextRange {
     readonly startLine: number;
@@ -120,14 +151,14 @@ export interface IThenableCallback<T> {
 export type ValueType<T> = T extends string
     ? string
     : T extends number
-        ? number
-        : T extends boolean
-            ? boolean
-            : T extends undefined
-                ? undefined
-                : [T] extends [unknown]
-                    ? T
-                    : object;
+    ? number
+    : T extends boolean
+    ? boolean
+    : T extends undefined
+    ? undefined
+    : [T] extends [unknown]
+    ? T
+    : object;
 
 /**
  * Generates a generic column info record for each raw column returned from a request. The format of the

@@ -24,13 +24,13 @@
 import { SymbolTable } from "antlr4-c3";
 import { ICodeEditorModel } from "../../../components/ui/CodeEditor/CodeEditor";
 import { StoreType } from "../../../app-logic/ApplicationDB";
-import { CodeEditorMode, Monaco, Position, Range, Uri } from "../../../components/ui/CodeEditor";
+import { CodeEditorMode, Monaco, Position, Uri } from "../../../components/ui/CodeEditor";
 import { ExecutionContexts } from "../../../script-execution/ExecutionContexts";
 
 const ec = new ExecutionContexts(StoreType.DbEditor, 1, "", "");
 export const mockModel: ICodeEditorModel = {
     executionContexts: ec,
-    symbols: new SymbolTable("myTable", {}), editorMode: CodeEditorMode.Standard,
+    symbols: new SymbolTable("myTable", {}), editorMode: CodeEditorMode.Standard, appEmbedded: false,
     uri: new Uri(), id: "", getOptions: jest.fn(), getVersionId: jest.fn(), getAlternativeVersionId: jest.fn(),
     setValue: jest.fn(), getValue: jest.fn(), getValueLength: jest.fn(), getValueInRange: jest.fn(),
     getValueLengthInRange: jest.fn(), getCharacterCountInRange: jest.fn(), getLineCount: jest.fn(),
@@ -45,11 +45,11 @@ export const mockModel: ICodeEditorModel = {
     getLinesDecorations: jest.fn(), getDecorationsInRange: jest.fn(), getAllDecorations: jest.fn(),
     getOverviewRulerDecorations: jest.fn(), getInjectedTextDecorations: jest.fn(),
     normalizeIndentation: jest.fn(), updateOptions: jest.fn(), detectIndentation: jest.fn(),
-    ushStackElement: jest.fn(), popStackElement: jest.fn(), pushEditOperations: jest.fn(),
+    pushStackElement: jest.fn(), popStackElement: jest.fn(), pushEditOperations: jest.fn(),
     pushEOL: jest.fn(), applyEdits: jest.fn(), setEOL: jest.fn(), onDidChangeContent: jest.fn(),
     onDidChangeDecorations: jest.fn(), onDidChangeOptions: jest.fn(), onDidChangeLanguage: jest.fn(),
     onDidChangeLanguageConfiguration: jest.fn(), onDidChangeAttached: jest.fn(), onWillDispose: jest.fn(),
-    dispose: jest.fn(), isAttachedToEditor: jest.fn(), pushStackElement: jest.fn(),
+    dispose: jest.fn(), isAttachedToEditor: jest.fn(),
     createSnapshot: jest.fn(),
 };
 export const position: Position = {

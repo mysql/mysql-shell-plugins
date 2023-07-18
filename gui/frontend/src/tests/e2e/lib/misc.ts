@@ -289,7 +289,7 @@ export class Misc {
             timeout = 10000;
         }
 
-        if (cmd !== "\\q" && cmd !== "\\d") {
+        if (cmd.match(/(\\js|\\javascript|\\ts|\\typescript|\\sql|\\q|\\d)/) === null) {
             await driver.wait(async () => {
                 const blocks = await driver.findElements(By.css(".zoneHost"));
                 if (prevBlocks.length > 0) {

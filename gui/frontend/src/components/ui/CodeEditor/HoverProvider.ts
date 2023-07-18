@@ -29,7 +29,7 @@ export class HoverProvider implements languages.HoverProvider {
     public provideHover(model: IProviderEditorModel, position: Position): ProviderResult<Hover> {
 
         const services = ScriptingLanguageServices.instance;
-        const sourceContext = model.executionContexts.contextFromPosition(position);
+        const sourceContext = model.executionContexts?.contextFromPosition(position);
         if (!sourceContext) {
             return null;
         }

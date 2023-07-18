@@ -880,7 +880,7 @@ Execute \\help or \\? for help;`;
 
         if (openState) {
             const persistentState: IEditorPersistentState | undefined = openState.state;
-            if (persistentState) {
+            if (persistentState && persistentState.model.executionContexts) {
                 const content: INotebookFileFormat = {
                     type: "MySQLNotebook",
                     version: currentNotebookVersion,

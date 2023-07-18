@@ -298,7 +298,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
         if (this.editorRef.current) {
             // At this point the result view data must be in the application DB.
             const editorState = this.getActiveEditorState();
-            if (editorState) {
+            if (editorState?.model.executionContexts) {
                 editorState.model.executionContexts.restoreFromStates(this.editorRef.current, this.createPresentation,
                     content.contexts.map((context) => {
                         return context.state;
@@ -319,7 +319,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
         );
         if (activeEditor && activeEditor.state) {
             const contexts = activeEditor.state.model.executionContexts;
-            const context = contexts.contextFromPosition({ lineNumber: position.lineNumber, column: 1 });
+            const context = contexts?.contextFromPosition({ lineNumber: position.lineNumber, column: 1 });
 
             const info: IEditorStatusInfo = {
                 line: (context !== undefined ? position.lineNumber - (context.startLine - 1) : 1),
@@ -377,7 +377,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
     };
 
     private createPresentation = (editor: CodeEditor, language: EditorLanguage): PresentationInterface => {
-        return new EmbeddedPresentationInterface(editor, language);
+        return new EmbeddedPresentationInterface(editor.backend, editor.isScrolling, language);
     };
 
     private initialSetup(): void {
@@ -425,7 +425,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
         const editorState = this.getActiveEditorState();
         if (editorState) {
             const contexts = editorState.model.executionContexts;
-            const context = contexts.contextFromPosition({ lineNumber: originalLineNumber, column: 1 });
+            const context = contexts?.contextFromPosition({ lineNumber: originalLineNumber, column: 1 });
             if (context) {
                 if (context.endLine - context.startLine > 0) {
                     return (originalLineNumber - context.startLine + 1).toString();

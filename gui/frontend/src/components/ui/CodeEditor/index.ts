@@ -75,6 +75,11 @@ export type Rejection = languages.Rejection;
 
 export type TypeScriptWorker = languages.typescript.TypeScriptWorker;
 
+export type TokensProvider = languages.TokensProvider;
+export type DocumentSemanticTokensProvider = languages.DocumentSemanticTokensProvider;
+export type SemanticTokens = languages.SemanticTokens;
+export type SemanticTokensLegend = languages.SemanticTokensLegend;
+
 export type ICodeEditorViewState = editor.ICodeEditorViewState;
 
 export interface ICodeEditorOptions {
@@ -156,14 +161,90 @@ export interface IScriptExecutionOptions {
 export enum CodeEditorMode {
     Standard,
 
-    /** Different set of code completion values. No internal commands. */
+    /** Different set of code completion values. Allows for language switch commands. */
     Terminal
 }
 
 /** A stripped down model interface for the various code editor providers. */
 export interface IProviderEditorModel extends editor.ITextModel {
-    executionContexts: IContextProvider;
+    executionContexts?: IContextProvider;
 
     /** Functionality differs depending on where the code editor is used. */
     editorMode: CodeEditorMode;
+
+    /** A flag, indicating if the editor has to add extra functionality only used in embedded use cases. */
+    appEmbedded: boolean;
 }
+
+/** Base scope names used for syntax highlighting. These are combined with the modifiers below. */
+export const tokenTypes = [
+    "keyword",
+    "identifier",
+    "operator",
+    "delimiter",
+    "markup",
+    "number",
+    "string",
+    "comment",
+    "regexp",
+    "support",
+    "entity",
+    "type",
+    "operator",
+    "namespace",
+    "struct",
+    "class",
+    "interface",
+    "enum",
+    "typeParameter",
+    "function",
+    "member",
+    "macro",
+    "variable",
+    "parameter",
+    "property",
+    "label",
+    "command",
+];
+
+/**
+ * Identifiers attached to a base scope to form a full scope. Any number of modifiers can be used, separated by a dot.
+ *
+ * Important note: each entry is represented by a bit in the final unsigned integer. This means that the maximum number
+ * of entries is 32.
+ */
+export const tokenModifiers = [
+    "other",
+    "bracket",
+    "square",
+    "parenthesis",
+    "float",
+    "hex",
+    "octal",
+    "binary",
+    "regexp",
+    "escape",
+    "invalid",
+    "control",
+    "line",
+    "block",
+    "doc",
+    "quoted",
+    "single",
+    "double",
+    "function",
+    "variable",
+    "user",
+    "system",
+    "entity",
+    "name",
+    "identifier",
+    "language",
+    "predefined",
+    "angle",
+
+    "sql",
+    "js",
+    "ts",
+    "py",
+];

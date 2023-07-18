@@ -93,6 +93,7 @@ export class SystemFunctionSymbol extends BaseSymbol {
 /** An enhanced symbol with additional database symbols. */
 export class DBSymbolTable extends SymbolTable {
 
+    // @ts-expect-error: we use the constructors only for lookup.
     private static symbolToKindMap: Map<typeof BaseSymbol, SymbolKind> = new Map([
         [CatalogSymbol, SymbolKind.Catalog],
         [SchemaSymbol, SymbolKind.Schema],
@@ -103,8 +104,8 @@ export class DBSymbolTable extends SymbolTable {
         [IndexSymbol, SymbolKind.Index],
         [PrimaryKeySymbol, SymbolKind.PrimaryKey],
         [ForeignKeySymbol, SymbolKind.ForeignKey],
-        [StoredProcedureSymbol.constructor as typeof BaseSymbol, SymbolKind.Procedure],
-        [StoredFunctionSymbol.constructor as typeof BaseSymbol, SymbolKind.Function],
+        [StoredProcedureSymbol, SymbolKind.Procedure],
+        [StoredFunctionSymbol, SymbolKind.Function],
         [TriggerSymbol, SymbolKind.Trigger],
         [UdfSymbol, SymbolKind.Udf],
         [EngineSymbol, SymbolKind.Engine],
@@ -112,10 +113,11 @@ export class DBSymbolTable extends SymbolTable {
         [LogfileGroupSymbol, SymbolKind.LogfileGroup],
         [CharsetSymbol, SymbolKind.Charset],
         [CollationSymbol, SymbolKind.Collation],
-        [UserVariableSymbol.constructor as typeof BaseSymbol, SymbolKind.UserVariable],
+        [UserVariableSymbol, SymbolKind.UserVariable],
+        [UserSymbol, SymbolKind.User],
         [PluginSymbol, SymbolKind.Plugin],
-        [SystemVariableSymbol.constructor as typeof BaseSymbol, SymbolKind.SystemVariable],
-        [SystemFunctionSymbol.constructor as typeof BaseSymbol, SymbolKind.SystemFunction],
+        [SystemVariableSymbol, SymbolKind.SystemVariable],
+        [SystemFunctionSymbol, SymbolKind.SystemFunction],
     ]);
 
     // TODO: set the tree actually.

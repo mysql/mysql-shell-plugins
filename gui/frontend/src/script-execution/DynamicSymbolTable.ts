@@ -24,9 +24,10 @@
 import { BaseSymbol, ScopedSymbol, ISymbolTableOptions } from "antlr4-c3";
 
 import {
-    CharsetSymbol, CollationSymbol, ColumnSymbol, DBSymbolTable, EngineSymbol, ForeignKeySymbol, IndexSymbol,
-    LogfileGroupSymbol, PluginSymbol, SchemaSymbol, StoredFunctionSymbol, StoredProcedureSymbol, TableSymbol,
-    TriggerSymbol, UdfSymbol, UserSymbol, UserVariableSymbol, ViewSymbol,
+    CharsetSymbol, CollationSymbol, ColumnSymbol, DBSymbolTable, EngineSymbol, EventSymbol, ForeignKeySymbol,
+    IndexSymbol, LogfileGroupSymbol, PluginSymbol, PrimaryKeySymbol, SchemaSymbol, StoredFunctionSymbol,
+    StoredProcedureSymbol, TableSymbol, TablespaceSymbol, TriggerSymbol, UdfSymbol, UserSymbol, UserVariableSymbol,
+    ViewSymbol,
 } from "../parsing/DBSymbolTable";
 import { SymbolKind } from "../parsing/parser-common";
 import { ShellInterfaceDb } from "../supplement/ShellInterface/ShellInterfaceDb";
@@ -129,7 +130,7 @@ export class DynamicSymbolTable extends DBSymbolTable {
             case SymbolKind.PrimaryKey: {
                 if (parent.parent) {
                     const data = await this.backend.getTableObjects(parent.parent.name, parent.name, "Primary Key");
-                    this.handleResults(data, parent, ForeignKeySymbol);
+                    this.handleResults(data, parent, PrimaryKeySymbol);
                 }
 
                 break;
@@ -179,14 +180,14 @@ export class DynamicSymbolTable extends DBSymbolTable {
 
             case SymbolKind.Tablespace: {
                 const data = await this.backend.getSchemaObjects(parent.name, "Tablespace");
-                this.handleResults(data, parent, UdfSymbol);
+                this.handleResults(data, parent, TablespaceSymbol);
 
                 break;
             }
 
             case SymbolKind.Event: {
                 const data = await this.backend.getSchemaObjects(parent.name, "Event");
-                this.handleResults(data, parent, UdfSymbol);
+                this.handleResults(data, parent, EventSymbol);
 
                 break;
             }

@@ -30,7 +30,7 @@ export class FormattingProvider implements languages.DocumentFormattingEditProvi
     public provideDocumentFormattingEdits(model: IProviderEditorModel,
         options: FormattingOptions): ProviderResult<TextEdit[]> {
         const services = ScriptingLanguageServices.instance;
-        const block = model.executionContexts.contextFromPosition(model.executionContexts.cursorPosition);
+        const block = model.executionContexts?.contextFromPosition(model.executionContexts.cursorPosition);
 
         if (block) {
             const fullRange = block.fullRange;

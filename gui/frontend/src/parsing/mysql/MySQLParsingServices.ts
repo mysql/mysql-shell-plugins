@@ -27,7 +27,7 @@
 
 import {
     BailErrorStrategy, CharStreams, CommonTokenStream, DefaultErrorStrategy, ParseCancellationException,
-    ParseTree, PredictionMode, TokenStreamRewriter, XPath,
+    ParseTree, PredictionMode, TokenStreamRewriter, XPath, Token,
 } from "antlr4ng";
 
 import { MySQLMRSLexer } from "./generated/MySQLMRSLexer";
@@ -38,13 +38,15 @@ import {
 import { MySQLErrorListener } from "./MySQLErrorListener";
 import { MySQLParseUnit } from "./MySQLServiceTypes";
 import {
-    ICompletionData, IParserErrorInfo, IStatementSpan, ISymbolInfo, QueryType, StatementFinishState, TextSpan,
-    tokenFromPosition,
+    ICompletionData, IParserErrorInfo, IStatementSpan, ISymbolInfo, ITokenInfo, QueryType, StatementFinishState,
+    TextSpan, tokenFromPosition,
 } from "../parser-common";
 
 import { SystemVariableSymbol, SystemFunctionSymbol, DBSymbolTable } from "../DBSymbolTable";
 import { getCodeCompletionItems } from "./MySQLCodeCompletion";
 import { unquote } from "../../utilities/string-helpers";
+import { isKeyword, numberToVersion } from "./MySQLRecognizerCommon";
+import { MySQLVersion } from "./mysql-keywords";
 
 export class MySQLParsingServices {
 
@@ -250,9 +252,68 @@ export class MySQLParsingServices {
     }
 
     /**
+     * Creates a list of token info items for the given text.
+     *
+     * @param text The text to handle.
+     * @param serverVersion The version of MySQL to control the parsing process.
+     * @param sqlMode The current SQL mode in the server.
+     *
+     * @returns The information about the symbol at the given offset, if there's one.
+     */
+    public tokenize(text: string, serverVersion: number, sqlMode: string): ITokenInfo[] {
+        this.applyServerDetails(serverVersion, sqlMode);
+        this.errors = [];
+        this.lexer.inputStream = CharStreams.fromString(text);
+        this.tokenStream.setTokenSource(this.lexer);
+        this.tokenStream.fill();
+
+        const result: ITokenInfo[] = [];
+        const tokens = this.tokenStream.getTokens();
+
+        let variablePending = false;
+        const version = numberToVersion(serverVersion);
+        tokens.forEach((token: Token) => {
+            if (token.type !== MySQLMRSLexer.WHITESPACE && token.type !== Token.EOF) {
+                if (token.type === MySQLMRSLexer.BLOCK_COMMENT) {
+                    // Block comments can span multiple lines. Split them up into individual lines.
+                    const lines = token.text.split("\n");
+                    lines.forEach((line: string, lineIndex: number) => {
+                        result.push({
+                            type: "comment.block.sql",
+                            line: token.line + lineIndex,
+                            column: lineIndex === 0 ? token.column : 0,
+                            length: line.length,
+                        });
+                    });
+                } else {
+                    let type = this.lexerTypeToScope(token, version);
+
+                    // System variables appear as two tokens, the first one being the @@ sign.
+                    // Make both of them appear as variable.predefined.
+                    if (type === "variable.predefined") {
+                        variablePending = true;
+                    } else if (variablePending) {
+                        variablePending = false;
+                        type = "variable.predefined";
+                    }
+
+                    result.push({
+                        type: type + ".sql",
+                        line: token.line,
+                        column: token.column,
+                        length: token.stop - token.start + 1,
+                    });
+                }
+            }
+        });
+
+        return result;
+    }
+
+    /**
      * Determines completion items at the given position.
      *
-     * @param text The input to handle.
+     * @param text The text to handle.
      * @param offset The character position in the input to start from.
      * @param line Line position of the invocation.
      * @param column Column position of the invocation.
@@ -297,11 +358,13 @@ export class MySQLParsingServices {
      * @returns A list of statement ranges.
      */
     public determineStatementRanges(sql: string, delimiter: string): IStatementSpan[] {
-
         const result: IStatementSpan[] = [];
+        if (sql.length === 0) {
+            return result;
+        }
 
-        let start = 0;
-        let head = start;
+        let start = 0;    // Start of the current statement.
+        let head = start; // Tracks the current content position in the current token.
         let tail = head;
         const end = head + sql.length;
 
@@ -583,6 +646,14 @@ export class MySQLParsingServices {
             result.push({
                 span: { start, length: end - start },
                 contentStart: haveContent ? head : start - 1, // -1 to indicate no content
+                state: StatementFinishState.NoDelimiter,
+            });
+        } else if (head > start) {
+            // Last statement consists solely of whitespaces and/or comments.
+            // Which also means haveContent is false.
+            result.push({
+                span: { start, length: end - start },
+                contentStart: start - 1,
                 state: StatementFinishState.NoDelimiter,
             });
         }
@@ -902,5 +973,72 @@ export class MySQLParsingServices {
         this.parser.serverVersion = serverVersion;
         this.parser.sqlModes = this.lexer.sqlModes;
 
+    }
+
+    /**
+     * Converts the lexer token type to a scope name.
+     *
+     * @param token The token to convert.
+     * @param serverVersion The version of MySQL to use for checking.
+     *
+     * @returns The scope name.
+     */
+    private lexerTypeToScope(token: Token, serverVersion: MySQLVersion): string {
+        switch (token.type) {
+            case MySQLMRSLexer.AT_TEXT_SUFFIX: {
+                return "variable.language";
+            }
+
+            case MySQLMRSLexer.AT_AT_SIGN_SYMBOL: {
+                return "variable.predefined";
+            }
+
+            case MySQLMRSLexer.SINGLE_QUOTED_TEXT: {
+                return "string.quoted.single";
+            }
+
+            case MySQLMRSLexer.DOUBLE_QUOTED_TEXT: {
+                return "string.quoted.double";
+            }
+
+            case MySQLMRSLexer.BLOCK_COMMENT:
+            case MySQLMRSLexer.INVALID_BLOCK_COMMENT: {
+                return "comment.block";
+            }
+
+            // cspell:ignore DASHDASH
+            case MySQLMRSLexer.POUND_COMMENT:
+            case MySQLMRSLexer.DASHDASH_COMMENT: {
+                return "comment.line";
+            }
+
+            case MySQLMRSLexer.INVALID_INPUT: {
+                return "invalid";
+            }
+
+            default: {
+                if (this.lexer.isNumber(token.type)) {
+                    return "number";
+                }
+
+                if (this.lexer.isOperator(token.type)) {
+                    return "operator";
+                }
+
+                if (this.lexer.isDelimiter(token.type)) {
+                    return "delimiter";
+                }
+
+                if (isKeyword(token.text ?? "", serverVersion)) {
+                    return "keyword";
+                }
+
+                if (this.lexer.isIdentifier(token.type)) {
+                    return "identifier";
+                }
+
+                return "";
+            }
+        }
     }
 }

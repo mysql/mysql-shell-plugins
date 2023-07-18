@@ -53,6 +53,7 @@ import { Button } from "../../components/ui/Button/Button";
 import { ProgressIndicator } from "../../components/ui/ProgressIndicator/ProgressIndicator";
 import { ITabviewPage, Tabview, TabPosition } from "../../components/ui/Tabview/Tabview";
 import { Toolbar } from "../../components/ui/Toolbar/Toolbar";
+import { parseVersion } from "../../parsing/mysql/mysql-helpers";
 
 interface IShellTabInfo {
     details: IShellSessionDetails;
@@ -434,7 +435,8 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
                     }*/
 
                     // TODO: we need server information for code completion.
-                    const serverVersion = Settings.get("editor.dbVersion", 80024);
+                    const versionString = Settings.get("editor.dbVersion", "8.0.24");
+                    const serverVersion = parseVersion(versionString);
                     const serverEdition = "";
                     const sqlMode = Settings.get("editor.sqlMode", "");
 
@@ -587,21 +589,23 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
      */
     private createEditorModel(session: ShellInterfaceShellSession, text: string, language: string,
         serverVersion: number, sqlMode: string, currentSchema: string): IShellEditorModel {
-        const model = Monaco.createModel(text, language) as IShellEditorModel;
+        const model: IShellEditorModel = Object.assign(Monaco.createModel(text, language), {
+            executionContexts: new ExecutionContexts(StoreType.Shell, serverVersion, sqlMode, currentSchema),
+
+            // Create a default symbol table with no DB connection. This will be replaced in ShellTab, depending
+            // on the connection the user opens.
+            symbols: new DynamicSymbolTable(undefined, "db symbols", { allowDuplicateSymbols: true }),
+            editorMode: CodeEditorMode.Terminal,
+            appEmbedded: false,
+            session,
+        });
+
+
         if (model.getEndOfLineSequence() !== Monaco.EndOfLineSequence.LF) {
             model.setEOL(Monaco.EndOfLineSequence.LF);
         } else {
             model.setValue(text);
         }
-
-        model.executionContexts = new ExecutionContexts(StoreType.Shell, serverVersion, sqlMode, currentSchema);
-
-        model.editorMode = CodeEditorMode.Terminal;
-        model.session = session;
-
-        // Create a default symbol table with no DB connection. This will be replaced in ShellTab, depending
-        // on the connection the user opens.
-        model.symbols = new DynamicSymbolTable(undefined, "db symbols", { allowDuplicateSymbols: true });
 
         return model;
     }

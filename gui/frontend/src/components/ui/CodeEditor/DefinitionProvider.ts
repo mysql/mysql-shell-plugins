@@ -30,7 +30,7 @@ export class DefinitionProvider implements languages.DefinitionProvider {
         position: Position): ProviderResult<Definition | LocationLink[]> {
 
         const services = ScriptingLanguageServices.instance;
-        const block = model.executionContexts.contextFromPosition(position);
+        const block = model.executionContexts?.contextFromPosition(position);
 
         if (block) {
             if (block.isInternal) {
