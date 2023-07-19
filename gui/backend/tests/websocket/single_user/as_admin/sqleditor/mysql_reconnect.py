@@ -162,7 +162,7 @@ ws.sendAndValidate({
             {
                 "module_session_id": ws.tokens["module_session_id"],
                 "info": {
-                    "version": ws.matchRegexp("8.0.[0-9][0-9]"),
+                    "version": ws.matchRegexp("\\d+\\.\\d+\\.\\d+"),
                     "edition": ws.ignore,
                     "sql_mode": ws.ignore
                 },

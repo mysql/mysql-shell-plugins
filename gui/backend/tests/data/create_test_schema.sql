@@ -1,4 +1,4 @@
--- Copyright (c) 2021, Oracle and/or its affiliates.
+-- Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 
 CREATE DATABASE IF NOT EXISTS `test_user_story`;
 USE `test_user_story`;
@@ -42,3 +42,6 @@ BEGIN
 RETURN 1;
 END$$
 DELIMITER ;
+
+CREATE USER IF NOT EXISTS `user1`@`localhost` IDENTIFIED BY 'user1password';
+CREATE USER IF NOT EXISTS `user2`@`localhost` IDENTIFIED BY 'user2password';

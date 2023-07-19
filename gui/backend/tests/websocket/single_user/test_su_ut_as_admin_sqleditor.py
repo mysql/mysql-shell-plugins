@@ -169,7 +169,7 @@ def sqlide_session(ws, add_connection):
         {
             "module_session_id": module_session_id,
             "info": {
-                "version": ws.matchRegexp("8.0.[0-9][0-9]"),
+                "version": ws.matchRegexp("\\d+\\.\\d+\\.\\d+"),
                 "edition": ws.ignore,
                 "sql_mode": ws.ignore
             },
