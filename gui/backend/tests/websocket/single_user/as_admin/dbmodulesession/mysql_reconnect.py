@@ -171,7 +171,7 @@ ws.sendAndValidate({
             "result": {
                 "module_session_id": ws.lastModuleSessionId,
                 "info": {
-                    "version": ws.matchRegexp("8.0.[0-9][0-9]"),
+                    "version": ws.matchRegexp("\\d+\\.\\d+\\.\\d+"),
                     "edition": ws.ignore,
                     "sql_mode": ws.ignore
                 },
