@@ -197,6 +197,36 @@ class TableContents(object):
                 return f"\nCurrent:\n  {current[index]}\nExpected:\n  {self._snapshot._data[index]}"
         return ""
 
+def create_test_db(session, schema_name):
+    session.run_sql(f"DROP SCHEMA IF EXISTS `{schema_name}`;")
+    session.run_sql(f"CREATE SCHEMA IF NOT EXISTS `{schema_name}` DEFAULT CHARACTER SET utf8;")
+
+    session.run_sql(f"USE `{schema_name}`;")
+    session.run_sql(f"""CREATE TABLE IF NOT EXISTS `{schema_name}`.`Contacts` (
+                        `id` INT NOT NULL,
+                        `f_name` VARCHAR(45) NULL,
+                        `l_name` VARCHAR(45) NULL,
+                        `number` VARCHAR(20) NULL,
+                        `email` VARCHAR(45) NULL,
+                        PRIMARY KEY (`id`))
+                        ENGINE = InnoDB;""")
+    session.run_sql(f"""CREATE TABLE IF NOT EXISTS `{schema_name}`.`Addresses` (
+                        `id` INT NOT NULL,
+                        `address_line` VARCHAR(256) NULL,
+                        `city` VARCHAR(128) NULL,
+                        PRIMARY KEY (`id`))
+                        ENGINE = InnoDB;""")
+    session.run_sql("""CREATE PROCEDURE `GetAllContacts` ()
+                        BEGIN
+                            SELECT * FROM Contacts;
+                        END""")
+    session.run_sql("""CREATE OR REPLACE VIEW `ContactsWithEmail` AS
+                        SELECT * FROM `Contacts`
+                        WHERE `email` is not NULL;""")
+    session.run_sql("""CREATE OR REPLACE VIEW `ContactBasicInfo` AS
+                        SELECT f_name, l_name, number FROM `Contacts`
+                        WHERE `email` is not NULL;""")
+
 
 def reset_mrs_database(session):
     session.run_sql("DELETE FROM mysql_rest_service_metadata.audit_log")
@@ -216,11 +246,10 @@ def reset_mrs_database(session):
     session.run_sql("DELETE FROM mysql_rest_service_metadata.config")
     session.run_sql("INSERT INTO mysql_rest_service_metadata.config (id, service_enabled, data) VALUES (1, 1, '{}')")
 
-    session.run_sql("REVOKE ALL PRIVILEGES ON *.* FROM 'mysql_rest_service_data_provider'@'%'")
-
-
-    session.run_sql("DELETE FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES WHERE GRANTEE LIKE '%mysql_rest_service_data_provider%'")
-    session.run_sql("DELETE FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES WHERE TABLE_SCHEMA = 'PhoneBook'")
+def reset_privileges(session):
+    session.run_sql("REVOKE ALL PRIVILEGES ON *.* FROM 'mysql_rest_service_data_provider'@'%' IGNORE UNKNOWN USER")
+    session.run_sql("REVOKE ALL PRIVILEGES ON *.* FROM 'mysql_rest_service_admin'@'%' IGNORE UNKNOWN USER")
+    session.run_sql("REVOKE ALL PRIVILEGES ON *.* FROM 'mysql_rest_service_schema_admin'@'%' IGNORE UNKNOWN USER")
 
     entries = lib.core.MrsDbExec(f"""
         SELECT *

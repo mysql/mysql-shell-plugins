@@ -42,9 +42,17 @@ def init_mrs():
 
     if "MRS_TESTS_QUICK" in os.environ:
         helpers.reset_mrs_database(session)
+        helpers.reset_privileges(session)
     else:
+        helpers.reset_privileges(session)
         session.run_sql("DROP DATABASE IF EXISTS mysql_rest_service_metadata;")
-        session.run_sql("REVOKE ALL PRIVILEGES ON *.* FROM 'mysql_rest_service_data_provider'@'%'")
+        session.run_sql("DROP DATABASE IF EXISTS PhoneBook;")
+        session.run_sql("DROP DATABASE IF EXISTS MobilePhoneBook;")
+        session.run_sql("DROP DATABASE IF EXISTS AnalogPhoneBook;")
+
+    helpers.create_test_db(session, "PhoneBook")
+    helpers.create_test_db(session, "MobilePhoneBook")
+    helpers.create_test_db(session, "AnalogPhoneBook")
 
     general.configure(session=session)
 
