@@ -8,6 +8,7 @@ __Chapter Overview__
 
 - [Introduction to the MRS SDK](#introduction-to-the-mrs-sdk)
 - [Typescript Client API Reference](#typescript-client-api-reference)
+- [Querying Data Across Tables](#querying-data-across-tables)
 
 ---
 
@@ -20,5 +21,7 @@ Please also see
 !include sections/SDK.md
 
 !include sections/ClientAPITypeScript.md
+
+!include sections/QueryingDataAcrossTables.md
 
 Copyright (c) 2022, 2023, Oracle and/or its affiliates.
