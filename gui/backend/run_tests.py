@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -147,8 +147,6 @@ class MyPaths:
             os.path.join(self.runtime.plugins.root, 'gui_plugin'))
         self.runtime.plugins.test_plugin = Path(
             os.path.join(self.runtime.plugins.root, 'test_plugin'))
-        self.runtime.plugins.webroot = Path(os.path.join(
-            self.runtime.plugins.root, 'core', 'webroot'))
 
         self.runtime.plugin_data.root = Path(
             os.path.join(self.runtime.root, 'plugin_data'))
@@ -164,8 +162,6 @@ class MyPaths:
         self.source.test_plugin = Path(
             os.path.join(self.source.root, 'gui', 'backend', 'tests', 'data', 'test_plugin'))
 
-        self.source.webroot = Path(os.path.join(
-            self.source.backend, 'gui_plugin', 'core', 'webroot'))
         self.source.pytest_config = Path(os.path.join(
             self.source.backend, "pytest-coverage.ini" if debug_mode is None else self.source.backend / "pytest.ini"))
 
@@ -180,7 +176,6 @@ class MyPaths:
         ), "plugins root dir not found: %s" % (self.runtime.plugins.root)
         assert self.runtime.plugins.gui_plugin.is_dir(
         ), "gui plugin dir not found: %s" % (self.runtime.plugins.gui_plugin)
-        assert self.source.webroot.is_dir(), "webroot dir not found: %s" % (self.source.webroot)
         assert self.source.pytest_config.is_file(
         ), "pytest config not found: %s" % (self.source.pytest_config)
 
@@ -232,14 +227,6 @@ create_symlink(paths.source.test_plugin,
 print(f"Portable at symlink: {args.portable}")
 if args.portable is not None and not paths.source.gui_plugin.is_dir():
     create_symlink(paths.source.code, paths.source.gui_plugin, is_dir=True)
-
-# prepare the frontend code
-if not paths.source.webroot.exists():
-    paths.source.webroot.mkdir()
-    # create an empty html index file
-    with open(os.path.join(paths.source.webroot, 'index.html'), 'w') as f:
-        f.writelines(['<html>', '<head></head>', '<body></body>'])
-
 
 paths.verify()
 
