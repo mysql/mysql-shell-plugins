@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -36,6 +36,7 @@ from tests.tests_timeouts import server_timeout
 import time
 import sys
 import types
+import tempfile
 
 port, nossl = config.Config.get_instance().get_server_params()
 
@@ -228,10 +229,16 @@ def start_server(request, server_token=None):
     webroot_path = "'" + os.path.join(
         parent_dir, 'gui_plugin', 'core', 'webroot') + "'"
 
+    # if the default path does not exist, we create a temporary one
+    if not os.path.exists(webroot_path):
+        webroot_path = tempfile.mkdtemp()
+        with open(os.path.join(webroot_path, 'index.html'), 'w') as f:
+            f.writelines(['<html>', '<head></head>', '<body></body>'])
+
     logger.debug(f"conftest - webroot_path: {webroot_path}")
     server_token_param = 'None' if server_token is None else f"'{server_token}'"
 
-    command_script = f'import gui_plugin.debug_utils; import gui_plugin.start; gui_plugin.start.web_server(port={port}, webrootpath={webroot_path}, single_instance_token={server_token_param})'
+    command_script = f'import gui_plugin.debug_utils; import gui_plugin.start; gui_plugin.start.web_server(port={port}, webrootpath="{webroot_path}", single_instance_token={server_token_param})'
     from pathlib import Path
     command_script = Path(command_script).as_posix()
     logger.debug(f"conftest - command_script: {command_script}")
