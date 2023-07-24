@@ -11,13 +11,40 @@
 /* eslint-disable @typescript-eslint/promise-function-async */
 /* eslint-disable no-multiple-empty-lines */
 
+// --- importLoopStart
 import {
-    NotFoundError, MrsBaseService, MrsBaseSchema, MrsBaseObjectQuery, IMrsBaseObject,
-    IMrsResultList, IMrsProcedureResultList, IMrsProcedureResult, MrsBaseObjectUpdate,
-    MrsBaseObjectCall, IMrsFetchData,
-    MrsBaseObjectCreate, IMrsDeleteResult, MrsBaseObjectDelete,
-    ICreateOptions, IDeleteOptions, IFindOptions, IFindUniqueOptions, IUpdateOptions,
+    IMrsBaseObject,
+    IMrsFetchData,
+    MrsBaseService,
+    MrsBaseSchema,
+    // --- importReadOnlyStart
+    IFindFirstOptions,
+    IFindManyOptions,
+    IFindUniqueOptions,
+    IMrsResultList,
+    MrsBaseObjectQuery,
+    NotFoundError,
+    // --- importReadOnlyEnd
+    // --- importCreateOnlyStart
+    ICreateOptions,
+    MrsBaseObjectCreate,
+    // --- importCreateOnlyEnd
+    // --- importUpdateProcedureOnlyStart
+    IMrsProcedureResult,
+    IMrsProcedureResultList,
+    MrsBaseObjectCall,
+    // --- importUpdateProcedureOnlyEnd
+    // --- importUpdateOnlyStart
+    IUpdateOptions,
+    MrsBaseObjectUpdate,
+    // --- importUpdateOnlyEnd
+    // --- importDeleteOnlyStart
+    IMrsDeleteResult,
+    IDeleteOptions,
+    MrsBaseObjectDelete,
+    // --- importDeleteOnlyEnd
 } from "./MrsBaseClasses";
+// --- importLoopEnd
 // --- MySQL Shell for VS Code Extension Only --- Begin
 /**
  * Triggers the interactive MRS authentication process.
@@ -154,7 +181,7 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
     // --- crudCreateOnlyEnd
 
     // --- crudReadOnlyStart
-    public findMany = async (args?: IFindOptions<I${obj_class_name}, I${obj_class_name}Params>): Promise<IMrsResultList<I${obj_class_name}>> => {
+    public findMany = async (args?: IFindManyOptions<I${obj_class_name}, I${obj_class_name}Params>): Promise<IMrsResultList<I${obj_class_name}>> => {
         const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Params>(
             this.schema, ${obj_class_name}Request.#requestPath, args?.select)
             .where(args?.where).orderBy(args?.orderBy).limit(args?.take).offset(args?.skip);
@@ -169,10 +196,10 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
         return response;
     };
 
-    public findFirst = async (args?: IFindOptions<I${obj_class_name}, I${obj_class_name}Params>): Promise<I${obj_class_name} | undefined> => {
+    public findFirst = async (args?: IFindFirstOptions<I${obj_class_name}, I${obj_class_name}Params>): Promise<I${obj_class_name} | undefined> => {
         const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Params>(
             this.schema, ${obj_class_name}Request.#requestPath, args?.select);
-        const response = await request.where(args?.where).orderBy(args?.orderBy).limit(args?.take).offset(args?.skip).fetchOne();
+        const response = await request.where(args?.where).orderBy(args?.orderBy).limit(1).offset(args?.skip).fetchOne();
 
         return response;
     };

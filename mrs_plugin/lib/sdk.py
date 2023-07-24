@@ -56,35 +56,72 @@ def generate_service_sdk(service, sdk_language, session, prepare_for_runtime=Fal
             f"The SDK language {sdk_language} is not supported yet.")
 
     path = os.path.abspath(__file__)
-    # code = Path(os.path.dirname(path), "..", "sdk", f"MyService.ts").read_text()
     template = Path(os.path.dirname(path), "..", "sdk",
                     f"MrsServiceTemplate{fileExt}").read_text()
 
     # Process Template String
     code = substitute_service_in_template(
         service=service, template=template, sdk_language=sdk_language, session=session)
+    
+    code = substitute_imports_in_template(
+        template=code.get("template"), enabled_crud_ops=code.get("enabled_crud_ops"))
+
+    template = code.get("template")
 
     if (prepare_for_runtime):
         # Remove imports as everything will be in a single file
-        code = re.sub('import.*?;', '', code, flags=re.DOTALL | re.MULTILINE)
+        template = re.sub('import.*?;', '', template, flags=re.DOTALL | re.MULTILINE)
         # Remove exports as everything will be in a single file
-        code = code.replace("export ", "")
+        template = template.replace("export ", "")
         # Remove the part that does not belong in the runtime SDK
-        code = re.sub("\/\/ --- MySQL Shell for VS Code Extension Remove --- Begin.*?" +
+        template = re.sub("\/\/ --- MySQL Shell for VS Code Extension Remove --- Begin.*?" +
                       "\/\/ --- MySQL Shell for VS Code Extension Remove --- End",
-                      "", code, flags=re.DOTALL | re.MULTILINE)
+                      "", template, flags=re.DOTALL | re.MULTILINE)
     else:
         # Remove the part that does not belong in the generated SDK
-        code = re.sub("\/\/ --- MySQL Shell for VS Code Extension Only --- Begin.*?" +
+        template = re.sub("\/\/ --- MySQL Shell for VS Code Extension Only --- Begin.*?" +
                       "\/\/ --- MySQL Shell for VS Code Extension Only --- End",
-                      "", code, flags=re.DOTALL | re.MULTILINE)
+                      "", template, flags=re.DOTALL | re.MULTILINE)
 
-    return code
+    return template
+
+
+def substitute_imports_in_template(template, enabled_crud_ops):
+    import_loops = re.finditer(
+        "^\s*?// --- importLoopStart\n\s*(^[\S\s]*?)^\s*?// --- importLoopEnd\n", template, flags=re.DOTALL | re.MULTILINE)
+    
+    crud_ops = ["Create", "Read", "Update",
+                "Delete", "UpdateProcedure", "ReadUnique"]
+
+    for loop in import_loops:
+        import_template = loop.group(1)
+
+        for crud_op in crud_ops:
+            # Find all // --- import{crud_op}OnlyStart / End blocks
+            crud_op_loops = re.finditer(
+                f"^\s*?// --- import{crud_op}OnlyStart\n\s*(^[\S\s]*?)^\s*?// --- import{crud_op}OnlyEnd\n",
+                import_template, flags=re.DOTALL | re.MULTILINE)
+            
+            for crud_loop in crud_op_loops:
+                # If the CRUD operation is enabled for any DB Object, keep the identified code block
+                if crud_op in enabled_crud_ops:
+                    import_template = import_template.replace(
+                        crud_loop.group(), crud_loop.group(1))
+                else:
+                    # Delete the identified code block otherwise
+                    import_template = import_template.replace(
+                        crud_loop.group(), "")
+                    
+        template = template.replace(loop.group(), import_template)
+        
+    return { "template": template, "enabled_crud_ops": enabled_crud_ops }
 
 
 def substitute_service_in_template(service, template, sdk_language, session):
-    template = substitute_schemas_in_template(
+    code = substitute_schemas_in_template(
         service=service, template=template, sdk_language=sdk_language, session=session)
+    
+    template = code.get("template")
 
     service_host_ctx = service.get("host_ctx")
     # ToDo: Proper detection
@@ -97,9 +134,10 @@ def substitute_service_in_template(service, template, sdk_language, session):
         "service_host_ctx": service_host_ctx,
         "service_auth_path": service.get("auth_path")
     }
-    code = Template(template).substitute(**mapping)
+    
+    template = Template(template).substitute(**mapping)
 
-    return code
+    return { "template": template, "enabled_crud_ops": code.get("enabled_crud_ops") }
 
 
 def substitute_schemas_in_template(service, template, sdk_language, session):
@@ -110,6 +148,8 @@ def substitute_schemas_in_template(service, template, sdk_language, session):
 
     service_class_name = lib.core.convert_path_to_pascal_case(
         service.get("url_context_root"))
+    
+    enabled_crud_ops = None
 
     for loop in schema_loops:
         schema_template = loop.group(1)
@@ -118,9 +158,12 @@ def substitute_schemas_in_template(service, template, sdk_language, session):
         for schema in schemas:
             if "// --- objectLoopStart" in schema_template:
                 # Fill inner Object loops
-                schema_template_with_obj_filled = substitute_objects_in_template(
+                code = substitute_objects_in_template(
                     service=service, schema=schema, template=schema_template, sdk_language=sdk_language, session=session
                 )
+
+                schema_template_with_obj_filled = code.get("template")
+                enabled_crud_ops = code.get("enabled_crud_ops")
             else:
                 schema_template_with_obj_filled = schema_template
 
@@ -140,7 +183,7 @@ def substitute_schemas_in_template(service, template, sdk_language, session):
 
         template = template.replace(loop.group(), filled_temp)
 
-    return template
+    return { "template": template, "enabled_crud_ops": enabled_crud_ops }
 
 
 def get_mrs_object_sdk_language_options(sdk_options, sdk_language):
@@ -169,6 +212,8 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
 
     crud_ops = ["Create", "Read", "Update",
                 "Delete", "UpdateProcedure", "ReadUnique"]
+    
+    enabled_crud_ops = []
 
     for loop in object_loops:
         filled_temp = ""
@@ -290,6 +335,7 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
                 for crud_loop in crud_op_loops:
                     # If the CRUD operation is enabled for this DB Object, keep the identified code block
                     if (crud_op.upper() in db_object_crud_ops):
+                        enabled_crud_ops.append(crud_op)
                         obj_template = obj_template.replace(
                             crud_loop.group(), crud_loop.group(1))
                     else:
@@ -302,7 +348,7 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
 
         template = template.replace(loop.group(), filled_temp)
 
-    return template
+    return { "template": template, "enabled_crud_ops": frozenset(enabled_crud_ops) }
 
 
 def get_datatype_mapping(db_datatype, sdk_language):
