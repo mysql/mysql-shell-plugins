@@ -10,13 +10,27 @@
 /* eslint-disable @typescript-eslint/lines-between-class-members */
 /* eslint-disable @typescript-eslint/promise-function-async */
 /* eslint-disable no-multiple-empty-lines */
-
 import {
-    NotFoundError, MrsBaseService, MrsBaseSchema, MrsBaseObjectQuery, IMrsBaseObject,
-    IMrsResultList, IMrsProcedureResultList, IMrsProcedureResult, MrsBaseObjectUpdate,
-    MrsBaseObjectCall, IMrsFetchData,
-    MrsBaseObjectCreate, IMrsDeleteResult, MrsBaseObjectDelete,
-    ICreateOptions, IDeleteOptions, IFindOptions, IFindUniqueOptions, IUpdateOptions,
+    IMrsBaseObject,
+    IMrsFetchData,
+    MrsBaseService,
+    MrsBaseSchema,
+    IFindFirstOptions,
+    IFindManyOptions,
+    IFindUniqueOptions,
+    IMrsResultList,
+    MrsBaseObjectQuery,
+    NotFoundError,
+    ICreateOptions,
+    MrsBaseObjectCreate,
+    IMrsProcedureResult,
+    IMrsProcedureResultList,
+    MrsBaseObjectCall,
+    IUpdateOptions,
+    MrsBaseObjectUpdate,
+    IMrsDeleteResult,
+    IDeleteOptions,
+    MrsBaseObjectDelete,
 } from "./MrsBaseClasses";
 
 /* =============================================================================
@@ -107,7 +121,7 @@ export class MyServiceMrsNotesNoteRequest extends MyServiceMrsNotesObjectRequest
 
         return result;
     };
-    public findMany = async (args?: IFindOptions<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteParams>): Promise<IMrsResultList<IMyServiceMrsNotesNote>> => {
+    public findMany = async (args?: IFindManyOptions<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteParams>): Promise<IMrsResultList<IMyServiceMrsNotesNote>> => {
         const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteParams>(
             this.schema, MyServiceMrsNotesNoteRequest.#requestPath, args?.select)
             .where(args?.where).orderBy(args?.orderBy).limit(args?.take).offset(args?.skip);
@@ -122,10 +136,10 @@ export class MyServiceMrsNotesNoteRequest extends MyServiceMrsNotesObjectRequest
         return response;
     };
 
-    public findFirst = async (args?: IFindOptions<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteParams>): Promise<IMyServiceMrsNotesNote | undefined> => {
+    public findFirst = async (args?: IFindFirstOptions<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteParams>): Promise<IMyServiceMrsNotesNote | undefined> => {
         const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteParams>(
             this.schema, MyServiceMrsNotesNoteRequest.#requestPath, args?.select);
-        const response = await request.where(args?.where).orderBy(args?.orderBy).limit(args?.take).offset(args?.skip).fetchOne();
+        const response = await request.where(args?.where).orderBy(args?.orderBy).limit(1).offset(args?.skip).fetchOne();
 
         return response;
     };
@@ -185,7 +199,7 @@ export interface IMyServiceMrsNotesNote extends IMrsBaseObject {
     pinned?: boolean,
     userId?: string,
     shared?: boolean,
-    tags?: object,
+    tags?: unknown,
     createDate?: string,
     lockedDown?: boolean,
     content?: string,
@@ -198,7 +212,7 @@ export interface IMyServiceMrsNotesNoteParams extends IMrsFetchData {
     pinned?: boolean,
     userId?: string,
     shared?: boolean,
-    tags?: object,
+    tags?: unknown,
     createDate?: string,
     lockedDown?: boolean,
     content?: string,
@@ -254,7 +268,7 @@ export class MyServiceMrsNotesUserRequest extends MyServiceMrsNotesObjectRequest
 
         return result;
     };
-    public findMany = async (args?: IFindOptions<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserParams>): Promise<IMrsResultList<IMyServiceMrsNotesUser>> => {
+    public findMany = async (args?: IFindManyOptions<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserParams>): Promise<IMrsResultList<IMyServiceMrsNotesUser>> => {
         const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserParams>(
             this.schema, MyServiceMrsNotesUserRequest.#requestPath, args?.select)
             .where(args?.where).orderBy(args?.orderBy).limit(args?.take).offset(args?.skip);
@@ -269,10 +283,10 @@ export class MyServiceMrsNotesUserRequest extends MyServiceMrsNotesObjectRequest
         return response;
     };
 
-    public findFirst = async (args?: IFindOptions<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserParams>): Promise<IMyServiceMrsNotesUser | undefined> => {
+    public findFirst = async (args?: IFindFirstOptions<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserParams>): Promise<IMyServiceMrsNotesUser | undefined> => {
         const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserParams>(
             this.schema, MyServiceMrsNotesUserRequest.#requestPath, args?.select);
-        const response = await request.where(args?.where).orderBy(args?.orderBy).limit(args?.take).offset(args?.skip).fetchOne();
+        const response = await request.where(args?.where).orderBy(args?.orderBy).limit(1).offset(args?.skip).fetchOne();
 
         return response;
     };
@@ -358,7 +372,7 @@ export class MyServiceMrsNotesUserHasNoteRequest extends MyServiceMrsNotesObject
                 this.schema, MyServiceMrsNotesUserHasNoteRequest.#requestPath, args);
         },
     };
-    public findMany = async (args?: IFindOptions<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteParams>): Promise<IMrsResultList<IMyServiceMrsNotesUserHasNote>> => {
+    public findMany = async (args?: IFindManyOptions<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteParams>): Promise<IMrsResultList<IMyServiceMrsNotesUserHasNote>> => {
         const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteParams>(
             this.schema, MyServiceMrsNotesUserHasNoteRequest.#requestPath, args?.select)
             .where(args?.where).orderBy(args?.orderBy).limit(args?.take).offset(args?.skip);
@@ -373,10 +387,10 @@ export class MyServiceMrsNotesUserHasNoteRequest extends MyServiceMrsNotesObject
         return response;
     };
 
-    public findFirst = async (args?: IFindOptions<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteParams>): Promise<IMyServiceMrsNotesUserHasNote | undefined> => {
+    public findFirst = async (args?: IFindFirstOptions<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteParams>): Promise<IMyServiceMrsNotesUserHasNote | undefined> => {
         const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteParams>(
             this.schema, MyServiceMrsNotesUserHasNoteRequest.#requestPath, args?.select);
-        const response = await request.where(args?.where).orderBy(args?.orderBy).limit(args?.take).offset(args?.skip).fetchOne();
+        const response = await request.where(args?.where).orderBy(args?.orderBy).limit(1).offset(args?.skip).fetchOne();
 
         return response;
     };
@@ -440,7 +454,7 @@ export class MyServiceMrsNotesNotesAllRequest extends MyServiceMrsNotesObjectReq
                 this.schema, MyServiceMrsNotesNotesAllRequest.#requestPath, args);
         },
     };
-    public findMany = async (args?: IFindOptions<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllParams>): Promise<IMrsResultList<IMyServiceMrsNotesNotesAll>> => {
+    public findMany = async (args?: IFindManyOptions<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllParams>): Promise<IMrsResultList<IMyServiceMrsNotesNotesAll>> => {
         const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllParams>(
             this.schema, MyServiceMrsNotesNotesAllRequest.#requestPath, args?.select)
             .where(args?.where).orderBy(args?.orderBy).limit(args?.take).offset(args?.skip);
@@ -455,10 +469,10 @@ export class MyServiceMrsNotesNotesAllRequest extends MyServiceMrsNotesObjectReq
         return response;
     };
 
-    public findFirst = async (args?: IFindOptions<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllParams>): Promise<IMyServiceMrsNotesNotesAll | undefined> => {
+    public findFirst = async (args?: IFindFirstOptions<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllParams>): Promise<IMyServiceMrsNotesNotesAll | undefined> => {
         const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllParams>(
             this.schema, MyServiceMrsNotesNotesAllRequest.#requestPath, args?.select);
-        const response = await request.where(args?.where).orderBy(args?.orderBy).limit(args?.take).offset(args?.skip).fetchOne();
+        const response = await request.where(args?.where).orderBy(args?.orderBy).limit(1).offset(args?.skip).fetchOne();
 
         return response;
     };
@@ -477,7 +491,7 @@ export interface IMyServiceMrsNotesNotesAll extends IMrsBaseObject {
     id?: number,
     pinned?: boolean,
     title?: string,
-    tags?: object,
+    tags?: unknown,
     shared?: boolean,
     userId?: string,
 }
@@ -493,7 +507,7 @@ export interface IMyServiceMrsNotesNotesAllParams extends IMrsFetchData {
     id?: number,
     pinned?: boolean,
     title?: string,
-    tags?: object,
+    tags?: unknown,
     shared?: boolean,
     userId?: string,
 }
@@ -515,7 +529,7 @@ export class MyServiceMrsNotesNotesServedRequest extends MyServiceMrsNotesObject
                 this.schema, MyServiceMrsNotesNotesServedRequest.#requestPath, args);
         },
     };
-    public findMany = async (args?: IFindOptions<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedParams>): Promise<IMrsResultList<IMyServiceMrsNotesNotesServed>> => {
+    public findMany = async (args?: IFindManyOptions<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedParams>): Promise<IMrsResultList<IMyServiceMrsNotesNotesServed>> => {
         const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedParams>(
             this.schema, MyServiceMrsNotesNotesServedRequest.#requestPath, args?.select)
             .where(args?.where).orderBy(args?.orderBy).limit(args?.take).offset(args?.skip);
@@ -530,10 +544,10 @@ export class MyServiceMrsNotesNotesServedRequest extends MyServiceMrsNotesObject
         return response;
     };
 
-    public findFirst = async (args?: IFindOptions<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedParams>): Promise<IMyServiceMrsNotesNotesServed | undefined> => {
+    public findFirst = async (args?: IFindFirstOptions<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedParams>): Promise<IMyServiceMrsNotesNotesServed | undefined> => {
         const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedParams>(
             this.schema, MyServiceMrsNotesNotesServedRequest.#requestPath, args?.select);
-        const response = await request.where(args?.where).orderBy(args?.orderBy).limit(args?.take).offset(args?.skip).fetchOne();
+        const response = await request.where(args?.where).orderBy(args?.orderBy).limit(1).offset(args?.skip).fetchOne();
 
         return response;
     };
@@ -687,7 +701,7 @@ export class MyServiceMrsNotesNoteUpdateParamsRequest extends MyServiceMrsNotesO
 }
 
 export interface IMyServiceMrsNotesNoteUpdateParams extends IMrsFetchData {
-    tags?: object,
+    tags?: unknown,
     lockedDown?: boolean,
     noteId?: number,
     title?: string,
