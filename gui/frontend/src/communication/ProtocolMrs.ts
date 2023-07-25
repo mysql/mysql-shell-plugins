@@ -107,7 +107,7 @@ export enum ShellAPIMrs {
     MrsDeleteAuthenticationApp = "mrs.delete.authentication_app",
     /** Updates an existing auth_app */
     MrsUpdateAuthenticationApp = "mrs.update.authentication_app",
-    /** Add a db_object to the given MRS service schema */
+    /** Add a db_object to the given MRS schema */
     MrsAddDbObject = "mrs.add.db_object",
     /** Gets a specific MRS db_object */
     MrsGetDbObject = "mrs.get.db_object",
@@ -121,9 +121,9 @@ export enum ShellAPIMrs {
     MrsSetDbObjectCrudOperations = "mrs.set.dbObject.crud_operations",
     /** Enables a db_object of the given schema */
     MrsEnableDbObject = "mrs.enable.db_object",
-    /** Disables a db_object of the given service */
+    /** Disables a db_object of the given schema */
     MrsDisableDbObject = "mrs.disable.db_object",
-    /** Deletes a schema of the given service */
+    /** Deletes a db_object of the given schema */
     MrsDeleteDbObject = "mrs.delete.db_object",
     /** Update a db_object */
     MrsUpdateDbObject = "mrs.update.db_object",
