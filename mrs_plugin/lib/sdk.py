@@ -367,7 +367,7 @@ def get_datatype_mapping(db_datatype, sdk_language):
                 db_datatype.startswith("double")):
             datatype = "number"
         elif (db_datatype.startswith("json")):
-            datatype = "unknown"
+            datatype = "JsonValue"
         elif (db_datatype.startswith("geometry")):
             datatype = "IMrsFetchData"
         else:

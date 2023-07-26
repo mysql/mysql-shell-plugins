@@ -17,6 +17,7 @@ import {
     IMrsFetchData,
     MrsBaseService,
     MrsBaseSchema,
+    JsonValue,
     // --- importReadOnlyStart
     IFindFirstOptions,
     IFindManyOptions,

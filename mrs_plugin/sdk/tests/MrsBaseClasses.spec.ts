@@ -23,7 +23,7 @@
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-    IFindManyOptions, IFindUniqueOptions, MrsBaseObjectQuery, MrsBaseSchema, MrsBaseService,
+    IFindManyOptions, IFindUniqueOptions, JsonValue, MrsBaseObjectQuery, MrsBaseSchema, MrsBaseService,
 } from "../MrsBaseClasses";
 
 // fixtures
@@ -32,6 +32,7 @@ interface ITableMetadata1 {
     str?: string,
     num?: number,
     isActive?: boolean,
+    json?: JsonValue,
     oneToMany?: ITableMetadata2[]
 }
 
@@ -67,11 +68,14 @@ describe("MRS SDK API", () => {
     });
 
     it("selects fields to include in the result set using the field names", async () => {
-        const options: IFindManyOptions<ITableMetadata1, unknown> = { select: ["str", "oneToMany.oneToOne.str"] };
+        const options: IFindManyOptions<ITableMetadata1, unknown> = {
+            select: ["str", "json", "oneToMany.oneToOne.str"],
+        };
+
         const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz", options.select);
         await query.fetch();
 
-        expect(fetch).toHaveBeenCalledWith("/foo/bar/baz?f=str,oneToMany.oneToOne.str",
+        expect(fetch).toHaveBeenCalledWith("/foo/bar/baz?f=str,json,oneToMany.oneToOne.str",
             expect.anything());
     });
 
@@ -79,6 +83,7 @@ describe("MRS SDK API", () => {
         const options: IFindManyOptions<ITableMetadata1, unknown> = {
             select: {
                 str: true,
+                json: true,
                 oneToMany: {
                     oneToOne: {
                         str: true,
@@ -90,7 +95,7 @@ describe("MRS SDK API", () => {
         const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz", options.select);
         await query.fetch();
 
-        expect(fetch).toHaveBeenCalledWith("/foo/bar/baz?f=str,oneToMany.oneToOne.str",
+        expect(fetch).toHaveBeenCalledWith("/foo/bar/baz?f=str,json,oneToMany.oneToOne.str",
             expect.anything());
     });
 
@@ -98,6 +103,7 @@ describe("MRS SDK API", () => {
         const options: IFindManyOptions<ITableMetadata1, unknown> = {
             select: {
                 id: false,
+                json: false,
                 oneToMany: {
                     id: false,
                     oneToOne: {
@@ -110,7 +116,7 @@ describe("MRS SDK API", () => {
         const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz", options.select);
         await query.fetch();
 
-        expect(fetch).toHaveBeenCalledWith("/foo/bar/baz?f=!id,!oneToMany.id,!oneToMany.oneToOne.id",
+        expect(fetch).toHaveBeenCalledWith("/foo/bar/baz?f=!id,!json,!oneToMany.id,!oneToMany.oneToOne.id",
             expect.anything());
     });
 

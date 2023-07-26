@@ -520,6 +520,28 @@ type Primitive =
     | symbol
     | bigint;
 
+/**
+ * A JSON object contains keys which are strings and values in a specific range of primitives.
+ */
+type JsonObject = { [Key in string]: JsonValue } & { [Key in string]?: JsonValue | undefined };
+
+/**
+ * A JSON array is just a list of valid JSON values.
+ * Since ReadonlyArray is a first-class type in TypeScript, it needs to be accounted for.
+ */
+type JsonArray = JsonValue[] | readonly JsonValue[];
+
+/**
+ * JSON supports a set of primitives that includes strings, numbers, booleans and null.
+ */
+type JsonPrimitive = string | number | boolean | null;
+
+/**
+ * JSON supports a set of values that includes specific primitive types, other JSON object definitions
+ * and arrays of these.
+ */
+export type JsonValue = JsonPrimitive | JsonObject | JsonArray;
+
 // A filter can apply to different kind of operations - find*(), delete*() and update*().
 // Each operation should determine whether it is required or not.
 export interface IFilterOptions<Filterable> {
@@ -590,7 +612,7 @@ export type BooleanFieldMapSelect<TableMetadata> = {
      * If the column contains a primitive value the type should be a boolean, otherwise, it contains an object value
      * and the type is inferred from the corresponding children.
      */
-    [Key in keyof TableMetadata]?: TableMetadata[Key] extends Primitive ? boolean :
+    [Key in keyof TableMetadata]?: TableMetadata[Key] extends (Primitive | JsonValue) ? boolean :
         NestingFieldMap<TableMetadata[Key]>;
 };
 
@@ -614,7 +636,7 @@ export type FieldPath<Type> = keyof {
  * When a field contains a primitive value (i.e. not an object), it is a valid stop condition, otherwise it is a nested
  * field and the entire path needs to be composed.
  */
-export type NestingPath<ParentPath extends string, Child> = Child extends Primitive ? ParentPath :
+export type NestingPath<ParentPath extends string, Child> = Child extends (Primitive | JsonValue) ? ParentPath :
     `${ParentPath}.${NestingFieldName<Child> & string}`;
 
 /**
