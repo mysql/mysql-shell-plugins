@@ -9,6 +9,7 @@
 ### Fixes
 
 - BUG#35635932 Type-safety and auto-completion not available for MRS SDK find*() commands
+- BUG#35645706 Excessively deep and possibly infinite type instantiation in the SDK
 
 ## Changes in 1.11.3+8.0.33
 
