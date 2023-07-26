@@ -931,17 +931,24 @@ export class DBConnection {
     public static getScriptResult = async (timeout = explicitWait): Promise<string> => {
         let toReturn = "";
         await driver.wait(async () => {
-            const resultHost = await driver.findElements(By.css(".resultHost"));
-            if (resultHost.length > 0) {
-                const content = await resultHost[0]
-                    .findElements(By.css(".resultStatus .label,.actionOutput span > span"));
+            try {
+                const resultHost = await driver.findElements(By.css(".resultHost"));
+                if (resultHost.length > 0) {
+                    const content = await resultHost[0]
+                        .findElements(By.css(".resultStatus .label,.actionOutput span > span"));
 
-                if (content.length) {
-                    toReturn = await content[0].getAttribute("innerHTML");
+                    if (content.length) {
+                        toReturn = await content[0].getAttribute("innerHTML");
 
-                    return true;
+                        return true;
+                    }
+                }
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
                 }
             }
+
         }, timeout, `No results were found`);
 
         return toReturn;

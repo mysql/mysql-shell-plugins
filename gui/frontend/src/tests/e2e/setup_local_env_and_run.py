@@ -89,18 +89,6 @@ SAKILA_SQL_PATH = os.path.join(WORKING_DIR, "sql", "sakila.sql")
 WORLD_SQL_PATH = os.path.join(WORKING_DIR, "sql", "world_x_cst.sql")
 USERS_PATH = os.path.join(WORKING_DIR, "sql", "users.sql")
 PROCEDURES_PATH = os.path.join(WORKING_DIR, "sql", "procedures.sql")
-SSL_ROOT_PATH = os.path.join(
-    WORKING_DIR,
-    "..",
-    "..",
-    "..",
-    "..",
-    "frontend",
-    "src",
-    "tests",
-    "e2e",
-    "ssl_certificates",
-)
 
 
 def quote(text: str) -> str:
@@ -297,8 +285,6 @@ class SetEnvironmentVariablesTask:
         self.environment["DBUSERNAME3"] = "dbuser3"
         self.environment["MU_USERNAME"] = "client"
         self.environment["MU_PASSWORD"] = "client"
-        if not "SSL_ROOT_FOLDER" in self.environment:
-            self.environment["SSL_ROOT_FOLDER"] = SSL_ROOT_PATH
 
         self.environment["SQLITE_PATH_FILE"] = os.path.join(
             self.dir_name,
@@ -487,6 +473,10 @@ class SetMySQLServerTask(ShellTask):
     def __init__(self, environment: typing.Dict[str, str], dir_name: str) -> None:
         super().__init__(environment)
         self.dir_name = dir_name
+
+        # We will use the certs deployed with the server
+        self.environment["SSL_ROOT_FOLDER"] = f"{self.dir_name}/{argv.db_port}/sandboxdata"
+
         self.conn_string = (
             f"{argv.db_root_user}:{DB_ROOT_PASSWORD}@localhost:{argv.db_port}"
         )
@@ -540,23 +530,10 @@ class SetMySQLServerTask(ShellTask):
     def deploy_mysql_instance(self) -> None:
         """Deploying new MySQL server instance in temp dir"""
 
-        ssl_ca_path = os.path.join(self.environment["SSL_ROOT_FOLDER"], "ca.pem")
-        ssl_cert_path = os.path.join(
-            self.environment["SSL_ROOT_FOLDER"], "server-cert.pem"
-        )
-        ssl_key_path = os.path.join(
-            self.environment["SSL_ROOT_FOLDER"], "server-key.pem"
-        )
-
         options = {
             "password": DB_ROOT_PASSWORD,
             "sandboxDir": self.dir_name,
             "ignoreSslError": True if platform.system() == "Windows" else False,
-            "mysqldOptions": [
-                f"ssl_ca={ssl_ca_path}",
-                f"ssl_cert={ssl_cert_path}",
-                f"ssl_key={ssl_key_path}",
-            ],
         }
         self.shell_execute(
             command=f"dba.deploy_sandbox_instance({argv.db_port}, {options})"

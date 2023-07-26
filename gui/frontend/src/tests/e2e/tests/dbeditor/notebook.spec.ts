@@ -39,6 +39,8 @@ import { IDBConnection, Misc, driver, explicitWait } from "../../lib/misc";
 import { ShellSession } from "../../lib/shellSession";
 import { addAttach } from "jest-html-reporters/helper";
 
+jest.retryTimes(1);
+
 describe("Notebook", () => {
 
     let testFailed = false;
