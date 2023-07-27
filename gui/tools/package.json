@@ -11,6 +11,6 @@
     },
     "scripts": {
         "update-protocols-file": "mysqlsh --py -f ./update_gui_protocol_definitions.py",
-        "update-version": "./update_version.sh"
+        "update-version": "mysqlsh --py -f ./src/version_handler.py"
     }
 }
