@@ -49,10 +49,13 @@ def init_mrs():
         session.run_sql("DROP DATABASE IF EXISTS PhoneBook;")
         session.run_sql("DROP DATABASE IF EXISTS MobilePhoneBook;")
         session.run_sql("DROP DATABASE IF EXISTS AnalogPhoneBook;")
+        session.run_sql("DROP DATABASE IF EXISTS EmptyPhoneBook;")
+
 
     helpers.create_test_db(session, "PhoneBook")
     helpers.create_test_db(session, "MobilePhoneBook")
     helpers.create_test_db(session, "AnalogPhoneBook")
+    helpers.create_test_db(session, "EmptyPhoneBook")
 
     general.configure(session=session)
 

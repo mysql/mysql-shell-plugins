@@ -26,7 +26,7 @@
 
 from mysqlsh.plugin_manager import plugin_function
 import mrs_plugin.lib as lib
-from .interactive import resolve_schema
+from .interactive import resolve_schema, resolve_service
 
 
 def resolve_db_object_ids(db_object_name=None, schema_id=None, request_path=None, **kwargs):
@@ -158,7 +158,15 @@ def add_db_object(**kwargs):
 
                     schema_id = schema.get("id")
                 except:
+                    # If the service does not exist, it should be handled in the scope 
+                    # of this particular operation.
+                    service = resolve_service(session=session, required=False)
+
+                    if not service:
+                        raise RuntimeError("Operation cancelled. The service was not found.")
+
                     schema_id = lib.schemas.add_schema(schema_name=schema_name,
+                                                       service_id=service["id"],
                                                        request_path=f"/{schema_name}",
                                                        requires_auth=True if requires_auth else False,
                                                        session=session)
