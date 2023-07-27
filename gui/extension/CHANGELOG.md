@@ -9,6 +9,7 @@
 ### Fixes
 
 - Updated TypeScript MRS SDK and fixed compilation issues
+- BUG#35649509 "mrs.add.db_object()" cannot add schema automatically
 
 ## Changes in 1.12.0+8.1.1
 

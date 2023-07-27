@@ -21,6 +21,7 @@
 
 import pytest
 from ... db_objects import *
+from ... lib.services import get_current_service_id, set_current_service_id
 from .helpers import get_db_object_privileges
 
 
@@ -457,3 +458,36 @@ def test_move_db_object(phone_book, mobile_phone_book, table_contents):
     assert db_object["schema_name"] == args["value"]["schema_name"]
     assert db_object["request_path"] == args["value"]["request_path"]
 
+
+def test_add_db_object_auto_add_schema(phone_book, table_contents):
+    db_objects_table = table_contents("db_object")
+
+    service_id = get_current_service_id(phone_book["session"])
+    set_current_service_id(phone_book["session"], "no_service")
+
+    db_object = {
+        "session": phone_book["session"],
+        "db_object_name": "ContactsWithEmail",
+        "db_object_type": "VIEW",
+        "schema_name": "EmptyPhoneBook",
+        "auto_add_schema": True,
+        "request_path": "/view_contacts_with_email_no_service",
+        "crud_operations": ['READ'],
+        "crud_operation_format": "MEDIA",
+        "requires_auth": False,
+        "items_per_page": 10,
+        "row_user_ownership_enforced": False,
+        "comments": "Test table",
+        "options": None
+    }
+
+    with pytest.raises(RuntimeError) as exc_info:
+        add_db_object(**db_object)
+    assert str(exc_info.value) == "Operation cancelled. The service was not found."
+
+    set_current_service_id(phone_book["session"], service_id)
+    db_object["request_path"] = "/view_contacts_with"
+
+    id = add_db_object(**db_object)
+    assert id is not None
+    assert db_objects_table.count == db_objects_table.snapshot.count + 1
