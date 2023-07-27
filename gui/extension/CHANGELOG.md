@@ -1,5 +1,15 @@
 # MySQL Shell for VS Code Change Log
 
+## Changes in 1.11.4+8.0.33
+
+### Additions
+
+- 
+
+### Fixes
+
+- 
+
 ## Changes in 1.11.3+8.0.33
 
 - Added MRS SDK documentation about querying table data with expanded fields
