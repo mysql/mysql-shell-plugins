@@ -123,11 +123,15 @@ try {
         $extPath = Join-Path $testResources "ext"
         if(Test-Path -Path $extPath) {
             writeMsg "Removing VSCode extension from $testSuite ..." "-NoNewLine"
-            Remove-Item -Path $extPath -Force -Recurse
+            if ($isLinux) {
+                mkdir $testResources/empty_dir && rsync -a --delete $testResources/empty_dir $testResources/ext && rm -rf $testResources/empty_dir && rm -rf $testResources/ext
+            } else {
+                Remove-Item -Path $extPath -Force -Recurse
+            }
             writeMsg "DONE"
         }
     }
-    
+
     # REMOVE PACKAGE-LOCK.JSON
     if (Test-Path -Path "$basePath\package-lock.json"){
         writeMsg "Removing package-lock.json..." "-NoNewLine"
@@ -310,10 +314,13 @@ try {
 
     $testResources = Join-Path $env:userprofile "test-resources-$($testSuites[0])"
     for($i=1; $i -le $testSuites.length -1; $i++){
+        $extensionDir = Join-Path $env:userprofile "test-resources-$($testSuites[$i])" "ext"
+        writeMsg "Creating extension directory ($extensionDir) ..." "-NoNewLine"
+        New-Item -ItemType Directory -Path $extensionDir
+        writeMsg "DONE"
         $link = Join-Path $env:userprofile "test-resources-$($testSuites[$i])" "ext" $extFolderName
         $target = Join-Path $testResources "ext" $extFolderName
         writeMsg "Creating link $link to $target ..." "-NoNewLine"
-        New-Item -ItemType Directory -Path $link
         if ($isWindows){
             New-Item -ItemType Junction -Path $link -Target $target
         } else {
