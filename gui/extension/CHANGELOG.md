@@ -2,13 +2,10 @@
 
 ## Changes in 1.11.3+8.0.33
 
-### Additions
-
-- 
-
 ### Fixes
 
-- 
+- Increased MRS metadata schema version to 2.1.0
+- Fixed hardcoded download paths for MRS Router 8.0.33 Preview 3
 
 ## Changes in 1.11.2+8.0.33
 
@@ -18,7 +15,7 @@
 
 ### Fixes
 
-- BUG#35594274 "orderBy" yields unexpected error in MRS SDK "findMany()" 
+- BUG#35594274 "orderBy" yields unexpected error in MRS SDK "findMany()"
 - BUG#35120862 - Database object role privileges not removed when deleting a REST object
 - BUG#35124914 - Unexpected error whilst deleting an MRS service in the MySQL Shell
 
@@ -270,7 +267,6 @@
 ### Fixes
 
 - Fixed multibyte interpretation of UTF-8 data that resulted in invalid data being inserted on the database.
-
 
 ## Changes in 1.3.0+8.0.29
 

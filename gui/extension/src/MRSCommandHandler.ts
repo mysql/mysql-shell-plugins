@@ -910,7 +910,7 @@ export class MRSCommandHandler {
                     + "Do you want to download and install the MySQL Router now?",
                     "Yes", "No");
                 if (answer === "Yes") {
-                    const labsUrl = "https://downloads.mysql.com/snapshots/pb/mysql-router-8.0.32-labs-mrs/";
+                    const labsUrl = "https://downloads.mysql.com/snapshots/pb/mysql-router-8.0.33-labs-mrs-preview-3/";
 
                     switch (os.platform()) {
                         case "darwin": {
@@ -918,12 +918,13 @@ export class MRSCommandHandler {
                                 case "arm":
                                 case "arm64": {
                                     void env.openExternal(Uri.parse(
-                                        `${labsUrl}mysql-router-8.0.32-labs-mrs-macos13-arm64.dmg`));
+                                        `${labsUrl}mysql-router-8.0.33-labs-mrs-3-macos13-arm64.dmg
+                                        `));
                                     break;
                                 }
                                 default: {
                                     void env.openExternal(Uri.parse(
-                                        `${labsUrl}mysql-router-8.0.32-labs-mrs-macos13-x86_64.dmg`));
+                                        `${labsUrl}mysql-router-8.0.33-labs-mrs-3-macos13-x86_64.dmg`));
                                     break;
                                 }
                             }
@@ -931,7 +932,7 @@ export class MRSCommandHandler {
                         }
                         case "win32": {
                             void env.openExternal(Uri.parse(
-                                `${labsUrl}mysql-router-8.0.32-labs-mrs-winx64.msi`));
+                                `${labsUrl}mysql-router-8.0.33-labs-mrs-3-winx64.msi`));
                             break;
                         }
                         default: {
