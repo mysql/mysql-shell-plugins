@@ -2,10 +2,12 @@
 
 ## Changes in 1.11.3+8.0.33
 
+- Added MRS SDK documentation about querying table data with expanded fields
 ### Fixes
 
 - Increased MRS metadata schema version to 2.1.0
 - Fixed hardcoded download paths for MRS Router 8.0.33 Preview 3
+- BUG#35594404 Remove extraneous "findFirst()” options
 
 ## Changes in 1.11.2+8.0.33
 
