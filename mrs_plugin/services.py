@@ -200,7 +200,7 @@ def call_update_service(op_text, **kwargs):
                     session, url_host_name + url_context_root)
 
         with lib.core.MrsDbTransaction(session):
-            lib.services.update_service(**kwargs)
+            lib.services.update_services(**kwargs)
 
             if lib.core.get_interactive_result():
                 if len(kwargs['service_ids']) == 1:
@@ -509,7 +509,7 @@ def delete_service(**kwargs):
         kwargs = resolve_service_ids(**kwargs)
 
         with lib.core.MrsDbTransaction(session):
-            lib.services.delete_service(**kwargs)
+            lib.services.delete_services(session, kwargs["service_ids"])
 
         if lib.core.get_interactive_result():
             if len(kwargs['service_ids']) == 1:
@@ -517,7 +517,6 @@ def delete_service(**kwargs):
             return f"The services have been deleted."
 
         return True
-
 
 
 @plugin_function('mrs.set.service.contextPath', shell=True, cli=True, web=True)

@@ -415,7 +415,7 @@ def test_move_db_object(phone_book, mobile_phone_book, table_contents):
     assert db_object_to_remove
     assert not db_object_to_remove["id"] == db_object["id"]
 
-    lib.db_objects.delete_db_object(session, [db_object_to_remove["id"]])
+    lib.db_objects.delete_db_object(session, db_object_to_remove["id"])
 
     assert not lib.db_objects.get_db_object(session, db_object_to_remove["id"])
 

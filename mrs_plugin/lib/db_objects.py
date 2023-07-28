@@ -91,23 +91,30 @@ def add_where_clause(where, new):
     return f"{where} {'AND' if where else 'WHERE'} {new}"
 
 
-def delete_db_object(session, db_object_ids: list):
+def delete_db_object(session, db_object_id):
+    # The db_object was not set
+    if db_object_id is None:
+        raise ValueError("The specified db_object was not found.")
+
+    # Update all given services
+    db_object = get_db_object(session, db_object_id)
+    db_schema = schemas.get_schema(session, db_object["db_schema_id"])
+
+    database.revoke_all_from_db_object(session, db_schema["name"], db_object["name"])
+
+    # remove the db_object
+    core.delete(table="db_object",
+                where="id=?"
+                ).exec(session, [db_object_id]).success
+
+def delete_db_objects(session, db_object_ids: list):
     # The list of db_objects to be changed
     if not db_object_ids:
         raise ValueError("The specified db_object was not found.")
 
     # Update all given services
     for db_object_id in db_object_ids:
-        db_object = get_db_object(session, db_object_id)
-        db_schema = schemas.get_schema(session, db_object["db_schema_id"])
-
-        database.revoke_all_from_db_object(session, db_schema["name"], db_object["name"])
-
-        # remove the db_object
-        core.delete(table="db_object",
-                    where="id=?"
-                    ).exec(session, [db_object_id]).success
-
+        delete_db_object(session, db_object_id)
 
 def enable_db_object(session, value: bool, db_object_ids: list):
     # The list of db_objects to be changed

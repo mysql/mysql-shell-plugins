@@ -138,31 +138,18 @@ def add_service(session, url_host_name, service):
     return service["id"]
 
 
-def clean_service(service_id, session):
-    # Delete auth_app/auth_user and content_set/content_files related to this service
-    auth_apps = core.select(table="auth_app", where="service_id=?").exec(session, [service_id]).items
-    content_sets = core.select(table="content_set", where="service_id=?").exec(session, [service_id]).items
+def delete_service(session, service_id):
+    res = core.delete(table="service", where=["id=?"]).exec(session, params=[service_id])
 
-    for auth_app in auth_apps:
-        core.delete(table="mrs_user", where="auth_app_id=?").exec(session, [auth_app["id"]])
+    if not res.success:
+        raise Exception(
+            f"The specified service with id {service_id} was not found.")
 
-    for content_set in content_sets:
-        core.delete(table="content_file", where="content_set_id=?").exec(session, [content_set["id"]])
-
-    core.delete(table="content_set", where="service_id=?").exec(session, [service_id])
-    core.delete(table="auth_app", where="service_id=?").exec(session, [service_id])
-
-def delete_service(session, service_ids):
+def delete_services(session, service_ids):
     for service_id in service_ids:
-        clean_service(service_id, session)
+        delete_service(session, service_id)
 
-        res = core.delete(table="service", where=["id=?"]).exec(session, params=[service_id])
-
-        if not res.success:
-            raise Exception(
-                f"The specified service with id {service_id} was not found.")
-
-def update_service(session, service_ids, value):
+def update_services(session, service_ids, value):
     """Makes a given change to a MRS service
 
     Args:
