@@ -146,20 +146,20 @@ export class Misc {
      * @returns Promise resolving when the key combination is pressed
      */
     public static pressEnter = async (): Promise<void> => {
-        if (platform() === "win32") {
-            await driver
-                .actions()
-                .keyDown(Key.CONTROL)
-                .keyDown(Key.ENTER)
-                .keyUp(Key.CONTROL)
-                .keyUp(Key.ENTER)
-                .perform();
-        } else if (platform() === "darwin") {
+        if (platform() === "darwin") {
             await driver
                 .actions()
                 .keyDown(Key.COMMAND)
                 .keyDown(Key.ENTER)
                 .keyUp(Key.COMMAND)
+                .keyUp(Key.ENTER)
+                .perform();
+        } else {
+            await driver
+                .actions()
+                .keyDown(Key.CONTROL)
+                .keyDown(Key.ENTER)
+                .keyUp(Key.CONTROL)
                 .keyUp(Key.ENTER)
                 .perform();
         }
@@ -462,6 +462,7 @@ export class Misc {
      * Takes a screen shot of the current browser window and stores it on disk.
      *
      * @param name test name
+     * @returns file path
      */
     public static async storeScreenShot(name?: string): Promise<string> {
         const img = await driver.takeScreenshot();
