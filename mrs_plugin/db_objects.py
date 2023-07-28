@@ -745,7 +745,7 @@ def delete_db_object(db_object_name=None, schema_id=None, **kwargs):
         session (object): The database session to use.
 
     Returns:
-        The result message as string
+        True if the object was deleted.
     """
     lib.core.convert_ids_to_binary(["db_object_id"], kwargs)
 
@@ -754,15 +754,17 @@ def delete_db_object(db_object_name=None, schema_id=None, **kwargs):
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         kwargs["session"] = session
-        kwargs = resolve_db_object_ids(db_object_name, schema_id, **kwargs)
+        db_object_id = kwargs.get("db_object_id")
 
         with lib.core.MrsDbTransaction(session):
-            lib.db_objects.delete_db_object(**kwargs)
+            if db_object_id is not None:
+                lib.db_objects.delete_db_object(session, db_object_id)
+            else:
+                kwargs = resolve_db_object_ids(db_object_name, schema_id, **kwargs)
+                lib.db_objects.delete_db_objects(**kwargs)
 
         if lib.core.get_interactive_result():
-            if len(kwargs["db_object_ids"]) == 1:
-                return f"The db_object has been deleted."
-            return f"The db_objects have been deleted."
+            return f"The db_object has been deleted."
         return True
     return False
 

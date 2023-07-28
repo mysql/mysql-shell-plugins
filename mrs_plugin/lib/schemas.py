@@ -81,24 +81,25 @@ def prompt_for_items_per_page() -> int:
             print("Required an integer value.")
             continue
 
-def clear_schema(schema_id, session):
-    core.delete(table="db_object", where="db_schema_id=?").exec(session, [schema_id])
+def delete_schema(session, schema_id):
+    if not schema_id:
+        raise ValueError("No schema_id given.")
 
+    result = core.delete(table="db_schema", where=["id=?"]).exec(
+        session, params=[schema_id])
 
-def delete_schema(session, schemas: list):
+    if not result.success:
+        raise Exception(
+            f"The specified schema with id {core.convert_id_to_string(schema_id)} was not found.")
+
+def delete_schemas(session, schemas: list):
     if not schemas:
         raise ValueError("The specified schema was not found.")
 
-    for schema_id, host_ctx in schemas.items():
-        clear_schema(schema_id, session)
+    print(f"--> schemas: {schemas}")
 
-        core.delete(table="db_object", where=["id=?"]).exec(session, params=[schema_id])
-        result = core.delete(table="db_schema", where=["id=?"]).exec(session, params=[schema_id])
-
-        if not result.success:
-            raise Exception(
-                f"The specified schema with id {schema_id} was not "
-                "found.")
+    for schema_id in schemas:
+        delete_schema(session, schema_id)
 
 
 def update_schema(session, schemas: list, value: dict):

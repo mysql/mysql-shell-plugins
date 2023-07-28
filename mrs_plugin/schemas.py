@@ -31,7 +31,7 @@ from .interactive import resolve_service
 def verify_value_keys(**kwargs):
     for key in kwargs["value"].keys():
         if key not in ["name", "request_path", "requires_auth",
-            "enabled", "items_per_page", "comments", "options"] and key != "delete":
+                       "enabled", "items_per_page", "comments", "options"] and key != "delete":
             raise Exception(f"Attempting to change an invalid schema value.")
 
 
@@ -62,36 +62,38 @@ def resolve_schemas(**kwargs):
     service_id = service.get("id")
 
     rows = lib.core.select(table="db_schema",
-        cols=["id"],
-        where="service_id=?"
-    ).exec(session, [service_id]).items
+                           cols=["id"],
+                           where="service_id=?"
+                           ).exec(session, [service_id]).items
 
     if not rows:
         raise ValueError("No schemas available. Use mrs.add.schema() "
-                            "to add a schema.")
+                         "to add a schema.")
 
     if len(rows) == 1:
-        schema = lib.schemas.get_schema(session=session, schema_id=rows[0]["id"])
+        schema = lib.schemas.get_schema(
+            session=session, schema_id=rows[0]["id"])
         kwargs["schemas"][rows[0]["id"]] = schema.get("host_ctx")
         return kwargs
 
     if schema_name is not None:
         # Lookup the schema name
         row = lib.core.select(table="db_schema",
-            cols="id",
-            where=["name=?", "service_id=?"]
-        ).exec(session, [schema_name, service.get("id")]).first
+                              cols="id",
+                              where=["name=?", "service_id=?"]
+                              ).exec(session, [schema_name, service.get("id")]).first
 
-        schema = lib.schemas.get_schema(session=session, schema_id=rows[0]["id"])
+        schema = lib.schemas.get_schema(
+            session=session, schema_id=rows[0]["id"])
         kwargs["schemas"][rows[0]["id"]] = schema.get("host_ctx")
         return kwargs
 
     if request_path is not None:
         # Lookup the request path
         row = lib.core.select(table="db_schema",
-            cols="id",
-            where=["request_path=?", "service_id=?"]
-        ).exec(session, [request_path, service.get("id")]).first
+                              cols="id",
+                              where=["request_path=?", "service_id=?"]
+                              ).exec(session, [request_path, service.get("id")]).first
 
         schema = lib.schemas.get_schema(session=session, schema_id=row["id"])
         kwargs["schemas"][row["id"]] = schema.get("host_ctx")
@@ -111,8 +113,8 @@ def resolve_schemas(**kwargs):
         include_enable_state=None,
         session=session)
     caption = ("Please select a schema index, type "
-                "the request_path or type '*' "
-                "to select all: ")
+               "the request_path or type '*' "
+               "to select all: ")
     selection = lib.core.prompt_for_list_item(
         item_list=schemas,
         prompt_caption=caption,
@@ -126,10 +128,11 @@ def resolve_schemas(**kwargs):
 
     for current_schema in selection:
         schema = lib.schemas.get_schema(request_path=request_path, schema_id=current_schema.get("id"),
-                session=session)
+                                        session=session)
         kwargs["schemas"][current_schema.get("id")] = schema.get("host_ctx")
 
     return kwargs
+
 
 def resolve_requires_auth(**kwargs):
     value = kwargs.get("value")
@@ -141,6 +144,7 @@ def resolve_requires_auth(**kwargs):
 
     return kwargs
 
+
 def resolve_items_per_page(**kwargs):
     value = kwargs.get("value")
     if not lib.core.get_interactive_default():
@@ -151,6 +155,7 @@ def resolve_items_per_page(**kwargs):
 
     return kwargs
 
+
 def resolve_comments(**kwargs):
     value = kwargs.get("value")
     if not lib.core.get_interactive_default():
@@ -160,6 +165,7 @@ def resolve_comments(**kwargs):
         kwargs["value"]["comments"] = lib.core.core.prompt_for_comments()
 
     return kwargs
+
 
 def call_update_schema(**kwargs):
     text_update = kwargs.pop("text_update", "updated")
@@ -173,12 +179,14 @@ def call_update_schema(**kwargs):
         kwargs = resolve_schemas(**kwargs)
 
         # Check for request_path collisions
-        if kwargs.get("value", {}).get("request_path"):
-            for schema_id, host_ctx in kwargs["schemas"].items():
-                schema = lib.schemas.get_schema(session=session, schema_id=schema_id)
-                if schema["request_path"] != kwargs["value"]["request_path"]:
-                    lib.core.check_request_path(session, schema["host_ctx"] + kwargs["value"]["request_path"])
-
+        if text_update != "deleted":
+            if kwargs.get("value", {}).get("request_path"):
+                for schema_id, host_ctx in kwargs["schemas"].items():
+                    schema = lib.schemas.get_schema(
+                        session=session, schema_id=schema_id)
+                    if schema["request_path"] != kwargs["value"]["request_path"]:
+                        lib.core.check_request_path(
+                            session, schema["host_ctx"] + kwargs["value"]["request_path"])
 
         with lib.core.MrsDbTransaction(session):
             lib_func(**kwargs)
@@ -189,6 +197,7 @@ def call_update_schema(**kwargs):
                 return f"The schemas have been {text_update}."
             return True
     return False
+
 
 @plugin_function('mrs.add.schema', shell=True, cli=True, web=True)
 def add_schema(**kwargs):
@@ -227,7 +236,8 @@ def add_schema(**kwargs):
         service = resolve_service(session, kwargs.get("service_id"))
 
         if not service:
-            raise RuntimeError("Operation cancelled. The service was not found.")
+            raise RuntimeError(
+                "Operation cancelled. The service was not found.")
 
         if not schema_name and interactive:
             rows = lib.database.get_schemas(session)
@@ -268,13 +278,14 @@ def add_schema(**kwargs):
         if options is None and interactive:
             options = lib.core.prompt("Options: ").strip()
 
-        lib.core.check_request_path(session, service["host_ctx"] + request_path)
+        lib.core.check_request_path(
+            session, service["host_ctx"] + request_path)
 
         with lib.core.MrsDbTransaction(session):
             id = lib.schemas.add_schema(schema_name=schema_name, service_id=service["id"],
-                request_path=request_path, requires_auth=requires_auth, enabled=enabled,
-                items_per_page=items_per_page, comments=comments, options=options,
-                session=session)
+                                        request_path=request_path, requires_auth=requires_auth, enabled=enabled,
+                                        items_per_page=items_per_page, comments=comments, options=options,
+                                        session=session)
 
             schema = lib.schemas.get_schema(session=session, schema_id=id)
 
@@ -312,13 +323,13 @@ def get_schema(**kwargs):
         service = resolve_service(session, kwargs.get("service_id"))
 
         if not service:
-            raise RuntimeError("Operation cancelled. The service was not found.")
+            raise RuntimeError(
+                "Operation cancelled. The service was not found.")
 
         kwargs["service_id"] = service["id"]
 
         kwargs = resolve_schemas(**kwargs)
         schema_id = list(kwargs["schemas"].keys())[0]
-
 
         schema = lib.schemas.get_schema(session, schema_id=schema_id)
 
@@ -357,8 +368,8 @@ def get_schemas(service_id=None, **kwargs):
             service_id = service["id"]
 
         schemas = lib.schemas.get_schemas(service_id=service_id,
-            include_enable_state=include_enable_state,
-            session=session)
+                                          include_enable_state=include_enable_state,
+                                          session=session)
 
         if lib.core.get_interactive_result():
             return lib.schemas.format_schema_listing(schemas=schemas, print_header=True)
@@ -428,8 +439,13 @@ def delete_schema(**kwargs):
         The result message as string
     """
     lib.core.convert_ids_to_binary(["service_id", "schema_id"], kwargs)
-
-    return call_update_schema(text_update="deleted", lib_function=lib.schemas.delete_schema, **kwargs)
+    schema_id = kwargs.get("schema_id")
+    if schema_id:
+        with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+            return lib.schemas.delete_schema(schema_id=schema_id, session=session)
+            # TODO: the result message is not properly returned in this case
+    else:
+        return call_update_schema(text_update="deleted", lib_function=lib.schemas.delete_schemas, **kwargs)
 
 
 @plugin_function('mrs.set.schema.name', shell=True, cli=True, web=True)
@@ -451,7 +467,7 @@ def set_name(**kwargs):
     """
     lib.core.convert_ids_to_binary(["service_id", "schema_id"], kwargs)
 
-    kwargs["value"] = { "name": kwargs.get("value") }
+    kwargs["value"] = {"name": kwargs.get("value")}
 
     return call_update_schema(**kwargs)
 
@@ -475,7 +491,7 @@ def set_request_path(**kwargs):
     """
     lib.core.convert_ids_to_binary(["service_id", "schema_id"], kwargs)
 
-    kwargs["value"] = { "request_path": kwargs.get("value") }
+    kwargs["value"] = {"request_path": kwargs.get("value")}
 
     return call_update_schema(**kwargs)
 
@@ -499,7 +515,7 @@ def set_require_auth(**kwargs):
     """
     lib.core.convert_ids_to_binary(["service_id", "schema_id"], kwargs)
 
-    kwargs["value"] = { "requires_auth": kwargs.get("value", True) }
+    kwargs["value"] = {"requires_auth": kwargs.get("value", True)}
     kwargs = resolve_requires_auth(**kwargs)
 
     return call_update_schema(**kwargs)
@@ -524,7 +540,7 @@ def set_items_per_page(**kwargs):
     """
     lib.core.convert_ids_to_binary(["service_id", "schema_id"], kwargs)
 
-    kwargs["value"] = { "items_per_page": kwargs.get("value", 25) }
+    kwargs["value"] = {"items_per_page": kwargs.get("value", 25)}
     kwargs = resolve_items_per_page(**kwargs)
 
     return call_update_schema(**kwargs)
@@ -549,7 +565,7 @@ def set_comments(**kwargs):
     """
     lib.core.convert_ids_to_binary(["service_id", "schema_id"], kwargs)
 
-    kwargs["value"] = { "comments": kwargs.get("value") }
+    kwargs["value"] = {"comments": kwargs.get("value")}
 
     kwargs = resolve_comments(**kwargs)
 
@@ -595,7 +611,7 @@ def update_schema(**kwargs):
     verify_value_keys(**kwargs)
 
     kwargs = resolve_requires_auth(**kwargs)
-    kwargs = resolve_items_per_page( **kwargs)
+    kwargs = resolve_items_per_page(**kwargs)
     kwargs = resolve_comments(**kwargs)
 
     return call_update_schema(**kwargs)
