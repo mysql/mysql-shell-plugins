@@ -26,6 +26,7 @@ import pathlib
 import platform
 import sqlite3
 import subprocess
+import sys
 import tempfile
 import typing
 
@@ -83,6 +84,7 @@ DB_ROOT_PASSWORD = "" if argv.db_root_password == "-" else argv.db_root_password
 BE_SERVER_PORT1 = 8000
 BE_SERVER_PORT2 = 8001
 TOKEN = "1234test"
+TEXT_ONLY_OUTPUT = True
 
 WORKING_DIR = os.path.abspath(os.path.dirname(__file__))
 SAKILA_SQL_PATH = os.path.join(WORKING_DIR, "sql", "sakila.sql")
@@ -153,27 +155,27 @@ class Logger:
     def success(cls, msg: str) -> None:
         """Prints success message"""
 
-        print(f"✅ {msg}")
+        print(f"{'[OK]' if TEXT_ONLY_OUTPUT else '✅'} {msg}")
 
     @classmethod
     def error(cls, msg: str) -> None:
         """Prints error message"""
 
-        print(f"❌ {msg}")
+        print(f"{'[ERR]' if TEXT_ONLY_OUTPUT else '❌'} {msg}")
 
     @classmethod
     def warning(cls, msg: str) -> None:
         """Prints warning message"""
 
         if VERBOSE:
-            print(f"🟡 {msg}")
+            print(f"{'[WRN]' if TEXT_ONLY_OUTPUT else '🟡'} {msg}")
 
     @classmethod
     def info(cls, msg: str) -> None:
         """Prints info message"""
 
         if VERBOSE:
-            print(f"ℹ️ {msg}")
+            print(f"{'[INF]' if TEXT_ONLY_OUTPUT else 'ℹ️'} {msg}")
 
 
 class TaskFailException(Exception):
@@ -618,7 +620,9 @@ class NPMScript:
         e2e_tests = subprocess.Popen(args=args, env=self.environment)
 
         e2e_tests.communicate()
-        e2e_tests.wait()
+        return_code = e2e_tests.wait()
+        if return_code != 0:
+            raise TaskFailException(f"Tests failed")
 
     def clean_up(self) -> None:
         """Clean up after task finish"""
@@ -728,11 +732,8 @@ class TaskExecutor:
     def run_tasks(self) -> None:
         """Runs all tasks"""
 
-        try:
-            for task in self.tasks:
-                task.run()
-        except TaskFailException as exc:
-            Logger.error(str(exc))
+        for task in self.tasks:
+            task.run()
 
     def clean_up(self) -> None:
         """Runs clean up for all tasks"""
@@ -745,9 +746,7 @@ class TaskExecutor:
 
 
 if __name__ == "__main__":
-    import sys
-
-    print(f"Args: {sys.argv[1:]}")
+    test_failed = False
     with tempfile.TemporaryDirectory() as tmp_dirname:
         executor = TaskExecutor(tmp_dirname)
 
@@ -767,5 +766,13 @@ if __name__ == "__main__":
         executor.add_task(NPMScript(executor.environment, "e2e-tests-run"))
 
         if executor.check_prerequisites():
-            executor.run_tasks()
+            try:
+                executor.run_tasks()
+            except TaskFailException as exc:
+                Logger.error(exc)
+                test_failed = True
+
             executor.clean_up()
+
+    if test_failed:
+        sys.exit(1)
