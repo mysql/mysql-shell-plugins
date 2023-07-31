@@ -168,6 +168,11 @@
                                 id="toc-querying-data-across-tables"><span
                                 class="toc-section-number">3</span>
                                 Querying Data Across Tables</a></li>
+                                <li><a
+                                href="#checking-for-null-column-values"
+                                id="toc-checking-for-null-column-values"><span
+                                class="toc-section-number">4</span>
+                                Checking for NULL Column Values</a></li>
                                 </ul>
                             </nav>
         </div>
@@ -184,11 +189,13 @@
                 <ul>
                 <li><a href="#introduction-to-the-mrs-sdk">Introduction
                 to the MRS SDK</a></li>
-                <li><a
-                href="#typescript-client-api-reference">Typescript
-                Client API Reference</a></li>
                 <li><a href="#querying-data-across-tables">Querying Data
                 Across Tables</a></li>
+                <li><a href="#checking-for-null-column-values">Checking
+                for NULL Column Values</a></li>
+                <li><a
+                href="#typescript-client-api-reference">TypeScript
+                Client API Reference</a></li>
                 </ul>
                 <hr />
                 <p>Please also see</p>
@@ -1045,25 +1052,24 @@
                 Across Tables</h1>
                 <p>MySQL supports foreign keys, which permit
                 cross-referencing related data across tables, and
-                foreign key constraints, which help keep the related
-                data consistent.</p>
+                foreign key constraints to help keep the related data
+                consistent.</p>
                 <p>A foreign key relationship involves a parent table
                 that holds the initial column values, and a child table
                 with column values that reference the parent column
                 values. A foreign key constraint is defined on the child
-                table. Foreign keys allow to establish one-to-one,
+                table. Foreign keys enable establishing one-to-one,
                 one-to-many or many-to-many relationships between rows
                 in those tables.</p>
                 <p>With the MySQL REST Service, these relationships can
                 be expanded to include related data from different
-                tables embedded in the same result set via the
-                JSON/Relational duality feature available for each MRS
-                Database object. The client can then select which
+                tables embedded in the same result set with the JSON
+                Relational duality feature available for each MRS
+                database object. The client can then select which
                 columns should be expanded using a specific HTTP query
-                syntax that allows to specify and navigate along the
-                nesting path of columns on other tables that are
-                referenced by a root column in the main/parent
-                table.</p>
+                syntax to specify and navigate along the nesting path of
+                columns on other tables that are referenced by a root
+                column in the main (or parent) table.</p>
                 <p>A key feature of the MRS SDK is the ability to query
                 these relations between two database objects and include
                 or exclude specific columns from the query response.</p>
@@ -1078,8 +1084,8 @@
                 <p>By default, all the object fields (expanded or not)
                 and their values are returned in the query response.
                 Specific fields can be excluded from the query response
-                using a plain object format where the properties are the
-                names of the fields to exclude and their value is
+                using a plain object format in which the properties are
+                the names of the fields to exclude and each value is
                 <code>false</code>.</p>
                 <p>With a setup using the <a
                 href="https://dev.mysql.com/doc/sakila/en/">Sakila
@@ -1089,7 +1095,7 @@
                 (one-to-one) is expanded via the JSON/Relational duality
                 feature, the <code>lastUpdate</code> and
                 <code>country.lastUpdate</code> fields can be excluded
-                like the following:</p>
+                as follows:</p>
                 <div class="sourceCode" id="cb19"><pre
                 class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findFirst</span>({ select<span class="op">:</span> { lastUpdate<span class="op">:</span> <span class="kw">false</span><span class="op">,</span> country<span class="op">:</span> { lastUpdate<span class="op">:</span> <span class="kw">false</span> } } })</span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>{</span>
@@ -1166,7 +1172,7 @@
 <span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;country&quot;</span><span class="op">:</span> <span class="st">&quot;Spain&quot;</span><span class="op">,</span></span>
 <span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>  }</span>
 <span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
-                <p>and also for many-to-many relationships:</p>
+                <p>And also for many-to-many relationships:</p>
                 <div class="sourceCode" id="cb22"><pre
                 class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">actor</span><span class="op">.</span><span class="fu">findFirst</span>({ select<span class="op">:</span> [<span class="st">&#39;filmActor.film.title&#39;</span>] })</span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>{</span>
@@ -1191,6 +1197,139 @@
 <span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ...</span></span>
 <span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a>  ]</span>
 <span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <!-- Copyright (c) 2023, Oracle and/or its affiliates.
+
+                This program is free software; you can redistribute it and/or modify
+                it under the terms of the GNU General Public License, version 2.0,
+                as published by the Free Software Foundation.
+
+                This program is also distributed with certain software (including
+                but not limited to OpenSSL) that is licensed under separate terms, as
+                designated in a particular file or component or in included license
+                documentation.  The authors of MySQL hereby grant you an additional
+                permission to link the program and your derivative works with the
+                separately licensed software that they have included with MySQL.
+                This program is distributed in the hope that it will be useful,  but
+                WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+                the GNU General Public License, version 2.0, for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program; if not, write to the Free Software Foundation, Inc.,
+                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+                <h1 data-number="4"
+                id="checking-for-null-column-values"><span
+                class="header-section-number">4</span> Checking for NULL
+                Column Values</h1>
+                <p>MySQL supports <code>NOT NULL</code> constraints
+                which ensure that the value in a given column cannot be
+                NULL. By omission though, a column can hold
+                <code>NULL</code> values. With the MySQL REST Service,
+                records containing columns with NULL values can be
+                included in or excluded from the result set using the
+                <code>$null</code> or <code>$notnull</code>
+                operators.</p>
+                <p>The TypeScript MRS SDK provides a special syntax for
+                filtering records in a result set by a given field when
+                it contains (or not) a <code>NULL</code> value. With a
+                setup using the <a
+                href="https://dev.mysql.com/doc/sakila/en/">Sakila
+                Sample Database</a> where the schema is available under
+                a REST service called <code>myService</code>, filtering
+                records by <code>NULL</code> column values can be done
+                as follows:</p>
+                <div class="sourceCode" id="cb23"><pre
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">address</span><span class="op">.</span><span class="fu">findMany</span>({ select<span class="op">:</span> [<span class="st">&quot;address&quot;</span><span class="op">,</span> <span class="st">&quot;address2&quot;</span>]<span class="op">,</span> where<span class="op">:</span> { address2<span class="op">:</span> <span class="dt">null</span> } })</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;items&quot;</span><span class="op">:</span> [</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>    {</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;links&quot;</span><span class="op">:</span> [</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>        {</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;rel&quot;</span><span class="op">:</span> <span class="st">&quot;self&quot;</span><span class="op">,</span></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;href&quot;</span><span class="op">:</span> <span class="st">&quot;/myService/sakila/address/1&quot;</span></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>      ]<span class="op">,</span></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;address&quot;</span><span class="op">:</span> <span class="st">&quot;47 MySakila Drive&quot;</span><span class="op">,</span></span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;address2&quot;</span><span class="op">:</span> null<span class="op">,</span></span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;_metadata&quot;</span><span class="op">:</span> {</span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;etag&quot;</span><span class="op">:</span> <span class="st">&quot;44EA44E1541A6A0A24135C4CC4F30E52AA2B4256181DE9BC1960C78A35F33B27&quot;</span></span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a>    }<span class="op">,</span></span>
+<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a>    {</span>
+<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;links&quot;</span><span class="op">:</span> [</span>
+<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a>        {</span>
+<span id="cb23-20"><a href="#cb23-20" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;rel&quot;</span><span class="op">:</span> <span class="st">&quot;self&quot;</span><span class="op">,</span></span>
+<span id="cb23-21"><a href="#cb23-21" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;href&quot;</span><span class="op">:</span> <span class="st">&quot;/myService/sakila/address/2&quot;</span></span>
+<span id="cb23-22"><a href="#cb23-22" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb23-23"><a href="#cb23-23" aria-hidden="true" tabindex="-1"></a>      ]<span class="op">,</span></span>
+<span id="cb23-24"><a href="#cb23-24" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;address&quot;</span><span class="op">:</span> <span class="st">&quot;28 MySQL Boulevard&quot;</span><span class="op">,</span></span>
+<span id="cb23-25"><a href="#cb23-25" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;address2&quot;</span><span class="op">:</span> null<span class="op">,</span></span>
+<span id="cb23-26"><a href="#cb23-26" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;_metadata&quot;</span><span class="op">:</span> {</span>
+<span id="cb23-27"><a href="#cb23-27" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;etag&quot;</span><span class="op">:</span> <span class="st">&quot;C5C68338EBF92980E1B8FDAE3FE7E3CE9507C4169C3DEC1BDB4E9AF2D961E00D&quot;</span></span>
+<span id="cb23-28"><a href="#cb23-28" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb23-29"><a href="#cb23-29" aria-hidden="true" tabindex="-1"></a>    }<span class="op">,</span></span>
+<span id="cb23-30"><a href="#cb23-30" aria-hidden="true" tabindex="-1"></a>    {</span>
+<span id="cb23-31"><a href="#cb23-31" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;links&quot;</span><span class="op">:</span> [</span>
+<span id="cb23-32"><a href="#cb23-32" aria-hidden="true" tabindex="-1"></a>        {</span>
+<span id="cb23-33"><a href="#cb23-33" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;rel&quot;</span><span class="op">:</span> <span class="st">&quot;self&quot;</span><span class="op">,</span></span>
+<span id="cb23-34"><a href="#cb23-34" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;href&quot;</span><span class="op">:</span> <span class="st">&quot;/myService/sakila/address/3&quot;</span></span>
+<span id="cb23-35"><a href="#cb23-35" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb23-36"><a href="#cb23-36" aria-hidden="true" tabindex="-1"></a>      ]<span class="op">,</span></span>
+<span id="cb23-37"><a href="#cb23-37" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;address&quot;</span><span class="op">:</span> <span class="st">&quot;23 Workhaven Lane&quot;</span><span class="op">,</span></span>
+<span id="cb23-38"><a href="#cb23-38" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;address2&quot;</span><span class="op">:</span> null<span class="op">,</span></span>
+<span id="cb23-39"><a href="#cb23-39" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;_metadata&quot;</span><span class="op">:</span> {</span>
+<span id="cb23-40"><a href="#cb23-40" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;etag&quot;</span><span class="op">:</span> <span class="st">&quot;7EF99DD02DF9071C8946B6180E74EB11D6B47FDD03A36C9B44B920F2A8D3684B&quot;</span></span>
+<span id="cb23-41"><a href="#cb23-41" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb23-42"><a href="#cb23-42" aria-hidden="true" tabindex="-1"></a>    }<span class="op">,</span></span>
+<span id="cb23-43"><a href="#cb23-43" aria-hidden="true" tabindex="-1"></a>    {</span>
+<span id="cb23-44"><a href="#cb23-44" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;links&quot;</span><span class="op">:</span> [</span>
+<span id="cb23-45"><a href="#cb23-45" aria-hidden="true" tabindex="-1"></a>        {</span>
+<span id="cb23-46"><a href="#cb23-46" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;rel&quot;</span><span class="op">:</span> <span class="st">&quot;self&quot;</span><span class="op">,</span></span>
+<span id="cb23-47"><a href="#cb23-47" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;href&quot;</span><span class="op">:</span> <span class="st">&quot;/myService/sakila/address/4&quot;</span></span>
+<span id="cb23-48"><a href="#cb23-48" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb23-49"><a href="#cb23-49" aria-hidden="true" tabindex="-1"></a>      ]<span class="op">,</span></span>
+<span id="cb23-50"><a href="#cb23-50" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;address&quot;</span><span class="op">:</span> <span class="st">&quot;1411 Lillydale Drive&quot;</span><span class="op">,</span></span>
+<span id="cb23-51"><a href="#cb23-51" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;address2&quot;</span><span class="op">:</span> null<span class="op">,</span></span>
+<span id="cb23-52"><a href="#cb23-52" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;_metadata&quot;</span><span class="op">:</span> {</span>
+<span id="cb23-53"><a href="#cb23-53" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;etag&quot;</span><span class="op">:</span> <span class="st">&quot;5F4F5E570F2AF2BB5E5A7AE41548CE4965F715F7C040A80B42D0DB79BB57336B&quot;</span></span>
+<span id="cb23-54"><a href="#cb23-54" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb23-55"><a href="#cb23-55" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb23-56"><a href="#cb23-56" aria-hidden="true" tabindex="-1"></a>  ]<span class="op">,</span></span>
+<span id="cb23-57"><a href="#cb23-57" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;limit&quot;</span><span class="op">:</span> 25<span class="op">,</span></span>
+<span id="cb23-58"><a href="#cb23-58" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;offset&quot;</span><span class="op">:</span> 0<span class="op">,</span></span>
+<span id="cb23-59"><a href="#cb23-59" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;hasMore&quot;</span><span class="op">:</span> false<span class="op">,</span></span>
+<span id="cb23-60"><a href="#cb23-60" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;count&quot;</span><span class="op">:</span> 4<span class="op">,</span></span>
+<span id="cb23-61"><a href="#cb23-61" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;links&quot;</span><span class="op">:</span> [</span>
+<span id="cb23-62"><a href="#cb23-62" aria-hidden="true" tabindex="-1"></a>    {</span>
+<span id="cb23-63"><a href="#cb23-63" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;rel&quot;</span><span class="op">:</span> <span class="st">&quot;self&quot;</span><span class="op">,</span></span>
+<span id="cb23-64"><a href="#cb23-64" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;href&quot;</span><span class="op">:</span> <span class="st">&quot;/myService/sakila/address/&quot;</span></span>
+<span id="cb23-65"><a href="#cb23-65" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb23-66"><a href="#cb23-66" aria-hidden="true" tabindex="-1"></a>  ]</span>
+<span id="cb23-67"><a href="#cb23-67" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <p>In the same way, filtering records where a given
+                column does not contain <code>NULL</code> can be done as
+                follows:</p>
+                <div class="sourceCode" id="cb24"><pre
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">actor</span><span class="op">.</span><span class="fu">findFirst</span>({ select<span class="op">:</span> [<span class="st">&quot;address&quot;</span><span class="op">,</span> <span class="st">&quot;address2&quot;</span>]<span class="op">,</span> where<span class="op">:</span> { address2<span class="op">:</span> { not<span class="op">:</span> <span class="dt">null</span> } } })</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;links&quot;</span><span class="op">:</span> [</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>    {</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;rel&quot;</span><span class="op">:</span> <span class="st">&quot;self&quot;</span><span class="op">,</span></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;href&quot;</span><span class="op">:</span> <span class="st">&quot;/myService/sakila/address/5&quot;</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>  ]<span class="op">,</span></span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;address&quot;</span><span class="op">:</span> <span class="st">&quot;1913 Hanoi Way&quot;</span><span class="op">,</span></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;address2&quot;</span><span class="op">:</span> <span class="st">&quot;&quot;</span><span class="op">,</span></span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;_metadata&quot;</span><span class="op">:</span> {</span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;etag&quot;</span><span class="op">:</span> <span class="st">&quot;689439C1F6D1F101E9A146F8DE244F01F0CE40AEBFA92AE5CEABA119F9C1573E&quot;</span></span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <p>Attempting to apply such a filter to a field that
+                maps to a column with a <code>NOT NULL</code> constraint
+                should yield a TypeScript compilation error:</p>
+                <div class="sourceCode" id="cb25"><pre
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">actor</span><span class="op">.</span><span class="fu">findFirst</span>({ where<span class="op">:</span> { address<span class="op">:</span> <span class="dt">null</span> } })</span></code></pre></div>
+                <pre><code>Type &#39;null&#39; is not assignable to type &#39;string | DataFilterField&lt;IMyServiceSakilaAddressParams, string | undefined&gt; | ComparisonOpExpr&lt;string | undefined&gt;[] | undefined&#39;.</code></pre>
                 <p>Copyright (c) 2022, 2023, Oracle and/or its
                 affiliates.</p>
             </div>

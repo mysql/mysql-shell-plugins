@@ -13,6 +13,7 @@
 import {
     IMrsBaseObject,
     IMrsFetchData,
+    MaybeNull,
     MrsBaseService,
     MrsBaseSchema,
     JsonValue,
@@ -200,10 +201,10 @@ export interface IMyServiceMrsNotesNote extends IMrsBaseObject {
     pinned?: boolean,
     userId?: string,
     shared?: boolean,
-    tags?: JsonValue,
+    tags?: MaybeNull<JsonValue>,
     createDate?: string,
     lockedDown?: boolean,
-    content?: string,
+    content?: MaybeNull<string>,
 }
 
 export interface IMyServiceMrsNotesNoteParams extends IMrsFetchData {
@@ -213,10 +214,10 @@ export interface IMyServiceMrsNotesNoteParams extends IMrsFetchData {
     pinned?: boolean,
     userId?: string,
     shared?: boolean,
-    tags?: JsonValue,
+    tags?: MaybeNull<JsonValue>,
     createDate?: string,
     lockedDown?: boolean,
-    content?: string,
+    content?: MaybeNull<string>,
 }
 
 export interface IMyServiceMrsNotesNoteUniqueParams {
@@ -342,13 +343,13 @@ export class MyServiceMrsNotesUserRequest extends MyServiceMrsNotesObjectRequest
 
 export interface IMyServiceMrsNotesUser extends IMrsBaseObject {
     id?: string,
-    email?: string,
+    email?: MaybeNull<string>,
     nickname?: string,
 }
 
 export interface IMyServiceMrsNotesUserParams extends IMrsFetchData {
     id?: string,
-    email?: string,
+    email?: MaybeNull<string>,
     nickname?: string,
 }
 
@@ -418,7 +419,7 @@ export class MyServiceMrsNotesUserHasNoteRequest extends MyServiceMrsNotesObject
 export interface IMyServiceMrsNotesUserHasNote extends IMrsBaseObject {
     canShare?: boolean,
     viewOnly?: boolean,
-    invitationKey?: string,
+    invitationKey?: MaybeNull<string>,
     userId?: string,
     invitationAccepted?: boolean,
     noteId?: number,
@@ -427,7 +428,7 @@ export interface IMyServiceMrsNotesUserHasNote extends IMrsBaseObject {
 export interface IMyServiceMrsNotesUserHasNoteParams extends IMrsFetchData {
     canShare?: boolean,
     viewOnly?: boolean,
-    invitationKey?: string,
+    invitationKey?: MaybeNull<string>,
     userId?: string,
     invitationAccepted?: boolean,
     noteId?: number,
@@ -484,15 +485,15 @@ export class MyServiceMrsNotesNotesAllRequest extends MyServiceMrsNotesObjectReq
 export interface IMyServiceMrsNotesNotesAll extends IMrsBaseObject {
     lastUpdate?: string,
     createDate?: string,
-    content?: string,
-    contentBeginning?: string,
+    content?: MaybeNull<string>,
+    contentBeginning?: MaybeNull<string>,
     ownNote?: number,
     viewOnly?: boolean,
     lockedDown?: boolean,
     id?: number,
     pinned?: boolean,
     title?: string,
-    tags?: JsonValue,
+    tags?: MaybeNull<JsonValue>,
     shared?: boolean,
     userId?: string,
 }
@@ -500,15 +501,15 @@ export interface IMyServiceMrsNotesNotesAll extends IMrsBaseObject {
 export interface IMyServiceMrsNotesNotesAllParams extends IMrsFetchData {
     lastUpdate?: string,
     createDate?: string,
-    content?: string,
-    contentBeginning?: string,
+    content?: MaybeNull<string>,
+    contentBeginning?: MaybeNull<string>,
     ownNote?: number,
     viewOnly?: boolean,
     lockedDown?: boolean,
     id?: number,
     pinned?: boolean,
     title?: string,
-    tags?: JsonValue,
+    tags?: MaybeNull<JsonValue>,
     shared?: boolean,
     userId?: string,
 }
@@ -557,11 +558,11 @@ export class MyServiceMrsNotesNotesServedRequest extends MyServiceMrsNotesObject
 }
 
 export interface IMyServiceMrsNotesNotesServed extends IMrsBaseObject {
-    notesServed?: number,
+    notesServed?: MaybeNull<number>,
 }
 
 export interface IMyServiceMrsNotesNotesServedParams extends IMrsFetchData {
-    notesServed?: number,
+    notesServed?: MaybeNull<number>,
 }
 
 
@@ -669,7 +670,7 @@ export interface IMyServiceMrsNotesNoteShareResult {
 }
 
 export interface IMyServiceMrsNotesNoteShare {
-    invitationKey?: string,
+    invitationKey?: MaybeNull<string>,
 }
 
 export type IMyServiceMrsNotesNoteShareMeta = IMyServiceMrsNotesNoteShareResult;

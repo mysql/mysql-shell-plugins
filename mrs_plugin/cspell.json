@@ -24,6 +24,7 @@
         "unnest",
         "tinyint",
         "mediumint",
-        "unnested"
+        "unnested",
+        "notnull"
     ]
 }

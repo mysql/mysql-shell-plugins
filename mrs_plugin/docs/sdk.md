@@ -7,8 +7,9 @@ This document explains how to work with the MRS Software Development Kit and dis
 __Chapter Overview__
 
 - [Introduction to the MRS SDK](#introduction-to-the-mrs-sdk)
-- [Typescript Client API Reference](#typescript-client-api-reference)
 - [Querying Data Across Tables](#querying-data-across-tables)
+- [Checking for NULL Column Values](#checking-for-null-column-values)
+- [TypeScript Client API Reference](#typescript-client-api-reference)
 
 ---
 
@@ -23,5 +24,7 @@ Please also see
 !include sections/ClientAPITypeScript.md
 
 !include sections/QueryingDataAcrossTables.md
+
+!include sections/CheckingForNullColumnValues.md
 
 Copyright (c) 2022, 2023, Oracle and/or its affiliates.
