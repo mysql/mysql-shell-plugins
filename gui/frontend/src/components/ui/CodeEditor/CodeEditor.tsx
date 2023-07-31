@@ -327,19 +327,16 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         Monaco.createModel("", "javascript");
 
         if (languages.typescript) { // This field is not set when running under Jest.
-            languages.typescript.javascriptDefaults.setCompilerOptions({
+            const compilerOptions: languages.typescript.CompilerOptions = {
                 allowNonTsExtensions: true,
                 target: languages.typescript.ScriptTarget.ESNext,
                 lib: ["es2020"],
                 module: languages.typescript.ModuleKind.ESNext,
-            });
+                strictNullChecks: true,
+            };
 
-            languages.typescript.typescriptDefaults.setCompilerOptions({
-                allowNonTsExtensions: true,
-                target: languages.typescript.ScriptTarget.ESNext,
-                lib: ["es2020"],
-                module: languages.typescript.ModuleKind.ESNext,
-            });
+            languages.typescript.javascriptDefaults.setCompilerOptions(compilerOptions);
+            languages.typescript.typescriptDefaults.setCompilerOptions(compilerOptions);
         }
     }
 

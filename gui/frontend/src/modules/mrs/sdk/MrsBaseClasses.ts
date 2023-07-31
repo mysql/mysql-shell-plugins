@@ -470,7 +470,7 @@ export type ComparisonOpExpr<Type> = {
     [Operator in keyof ISimpleOperatorProperty]?: Type & ISimpleOperatorProperty[Operator]
 } & {
         // eslint-disable-next-line @typescript-eslint/indent
-        [Operator in "$notnull" | "$null"]?: null
+        [Operator in "not" | "$notnull" | "$null"]?: null
         // eslint-disable-next-line @typescript-eslint/indent
     } & {
         // eslint-disable-next-line @typescript-eslint/indent
@@ -527,6 +527,7 @@ type JsonObject = { [Key in string]: JsonValue } & { [Key in string]?: JsonValue
 
 /**
  * A JSON array is just a list of valid JSON values.
+ * Since ReadonlyArray is a first-class type in TypeScript, it needs to be accounted for.
  */
 type JsonArray = JsonValue[] | readonly JsonValue[];
 
@@ -540,6 +541,12 @@ type JsonPrimitive = string | number | boolean | null;
  * and arrays of these.
  */
 export type JsonValue = JsonPrimitive | JsonObject | JsonArray;
+
+/**
+ * Columns can be assigned "NOT NULL" constraints, which can be enforced by the client type.
+ * However, columns without that constraint should allow "null" assignments.
+ */
+export type MaybeNull<T> = T | null;
 
 // A filter can apply to different kind of operations - find*(), delete*() and update*().
 // Each operation should determine whether it is required or not.
@@ -701,7 +708,24 @@ export class MrsBaseObjectQuery<C, P> {
             return this;
         }
 
-        this.whereCondition = JSON.stringify(filter);
+        this.whereCondition = JSON.stringify(filter, (key: string, value: { not?: null } & JsonValue) => {
+            // expand $notnull operator (lookup at the child level)
+            // if we are operating at the root of the object, "not" is a field name, in which case, there is nothing
+            // left to do
+            // { where: { not: { foo: null } } } => ?q={"foo":{"$notnull":"null"}}
+            if (key !== "" && typeof value === "object" && value !== null && value.not === null) {
+                return { $notnull: "null" };
+            }
+
+            // expand $null operator
+            // { where: { foo: null } } ?q={"foo":{"$null":"null"}}
+            // { where: { not: null } } => ?q={"not":{"$null":"null"}}
+            if (value === null) {
+                return { $null: "null" };
+            }
+
+            return value;
+        });
 
         return this;
     };

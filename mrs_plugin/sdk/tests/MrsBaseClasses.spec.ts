@@ -230,4 +230,60 @@ describe("MRS SDK API", () => {
 
         expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"id":2}', expect.anything());
     });
+
+    it("retrieves all records where a given field is NULL", async () => {
+        const options: IFindManyOptions<unknown, { maybe: number | null }> = {
+            where: {
+                maybe: null,
+            },
+        };
+
+        const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
+        await query.where(options.where).fetch();
+
+        expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"maybe":{"$null":"null"}}', expect.anything());
+    });
+
+    it("retrieves all records where a given field is not NULL", async () => {
+        const options: IFindManyOptions<unknown, { maybe: number | null }> = {
+            where: {
+                maybe: {
+                    not: null,
+                },
+            },
+        };
+
+        const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
+        await query.where(options.where).fetch();
+
+        expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"maybe":{"$notnull":"null"}}', expect.anything());
+    });
+
+    it(`retrieves all records where a field called "not" is NULL`, async () => {
+        const options: IFindManyOptions<unknown, { not: number | null }> = {
+            where: {
+                not: null,
+            },
+        };
+
+        const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
+        await query.where(options.where).fetch();
+
+        expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"not":{"$null":"null"}}', expect.anything());
+    });
+
+    it(`retrieves all records where a field called "not" is not NULL`, async () => {
+        const options: IFindManyOptions<unknown, { not: number | null }> = {
+            where: {
+                not: {
+                    not: null,
+                },
+            },
+        };
+
+        const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
+        await query.where(options.where).fetch();
+
+        expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"not":{"$notnull":"null"}}', expect.anything());
+    });
 });

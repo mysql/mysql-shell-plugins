@@ -357,11 +357,11 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
     return {"template": template, "enabled_crud_ops": frozenset(enabled_crud_ops)}
 
 
-def get_datatype_mapping(db_datatype, sdk_language):
+def get_datatype_mapping(db_datatype, db_not_null, sdk_language):
     db_datatype = db_datatype.lower()
     if (sdk_language == "TypeScript"):
         if (db_datatype.startswith("tinyint(1)") or db_datatype.startswith("bit(1)")):
-            datatype = "boolean"
+            datatype = "boolean" if db_not_null else "MaybeNull<boolean>"
         elif (db_datatype.startswith("tinyint") or
               db_datatype.startswith("smallint") or
               db_datatype.startswith("mediumint") or
@@ -371,13 +371,13 @@ def get_datatype_mapping(db_datatype, sdk_language):
               db_datatype.startswith("numeric") or
               db_datatype.startswith("float") or
                 db_datatype.startswith("double")):
-            datatype = "number"
+            datatype = "number" if db_not_null else "MaybeNull<number>"
         elif (db_datatype.startswith("json")):
-            datatype = "JsonValue"
+            datatype = "JsonValue" if db_not_null else "MaybeNull<JsonValue>"
         elif (db_datatype.startswith("geometry")):
-            datatype = "IMrsFetchData"
+            datatype = "IMrsFetchData" if db_not_null else "MaybeNull<IMrsFetchData>"
         else:
-            datatype = "string"
+            datatype = "string" if db_not_null else "MaybeNull<string>"
 
         return datatype
     else:
@@ -405,10 +405,11 @@ def get_interface_datatype(field, sdk_language, class_name="", reference_class_n
     db_column_info = field.get("db_column")
     if db_column_info:
         db_datatype = db_column_info.get("datatype")
+        db_not_null = db_column_info.get("not_null")
 
         # Todo: Handle SDK Options
 
-        return get_datatype_mapping(db_datatype, sdk_language)
+        return get_datatype_mapping(db_datatype, db_not_null, sdk_language)
     else:
         return f'I{class_name}{reference_class_name_postfix}{lib.core.convert_path_to_pascal_case(field.get("name"))}'
 

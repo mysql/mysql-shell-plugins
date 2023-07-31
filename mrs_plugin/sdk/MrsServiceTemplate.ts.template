@@ -15,6 +15,7 @@
 import {
     IMrsBaseObject,
     IMrsFetchData,
+    MaybeNull,
     MrsBaseService,
     MrsBaseSchema,
     JsonValue,

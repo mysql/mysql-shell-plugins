@@ -4,7 +4,7 @@
 
 ### Additions
 
--
+- WL#15880 Proper handling of NULL column values in the MRS TypeScript SDK
 
 ### Fixes
 

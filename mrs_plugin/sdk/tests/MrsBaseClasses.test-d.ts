@@ -24,7 +24,7 @@
 import { describe, expectTypeOf, it } from "vitest";
 import type {
     DataFilter, BooleanFieldMapSelect, ColumnOrder, FieldNameSelect, IFindFirstOptions, IFindManyOptions,
-    IFindUniqueOptions, IFindAllOptions, IMrsResultList,
+    IFindUniqueOptions, IFindAllOptions, IMrsResultList, MaybeNull,
 } from "../MrsBaseClasses";
 
 describe("MRS SDK base types", () => {
@@ -168,6 +168,18 @@ describe("MRS SDK base types", () => {
         it("accepts the appropriate option to filter the records in the result set", () => {
             const options: IFindUniqueOptions<unknown, {name:string}> = {};
             expectTypeOf(options.where).toEqualTypeOf<DataFilter<{name:string}>|undefined>();
+        });
+    });
+
+    describe("MaybeNull", () => {
+        it("accepts a value of a given type", () => {
+            const value: MaybeNull<number> = 2;
+            expectTypeOf(value).toBeNumber();
+        });
+
+        it("accepts a null value", () => {
+            const value: MaybeNull<number> = null;
+            expectTypeOf(value).toBeNull();
         });
     });
 });
