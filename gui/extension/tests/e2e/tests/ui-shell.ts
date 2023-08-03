@@ -256,6 +256,9 @@ describe("MYSQL SHELL CONSOLES", () => {
             result = await Misc.execCmd("shell.status()");
             expect(result[0]).to.match(/MySQL Shell version (\d+).(\d+).(\d+)/);
             await driver.wait(() => {
+                console.log(result[0] as string);
+                console.log("----");
+
                 return (result[0] as string).includes(`"CONNECTION":"${hostname} via TCP/IP"`);
             }, constants.explicitWait, `"CONNECTION":"${hostname} via TCP/IP" was not found`);
             await driver.wait(() => {

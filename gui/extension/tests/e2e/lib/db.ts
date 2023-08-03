@@ -111,7 +111,8 @@ export class Database {
         if (dbType) {
             const inDBType = await dialog.findElement(By.id("databaseType"));
             await inDBType.click();
-            const popup = await driver.findElement(By.id("databaseTypePopup"));
+            const popup = await driver.wait(until.elementLocated(By.id("databaseTypePopup")),
+                constants.explicitWait, "Database type popup was not found");
             await popup.findElement(By.id(dbType)).click();
         }
 
@@ -689,6 +690,7 @@ export class Database {
             await inputComments.clear();
             await inputComments.sendKeys(comments);
         }
+
         await dialog.findElement(By.id("ok")).click();
     };
 

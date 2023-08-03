@@ -63,6 +63,32 @@ try {
     $env:MYSQLSH_GUI_CUSTOM_CONFIG_DIR = Join-Path $env:userprofile "mysqlsh-$env:TEST_SUITE"
     writeMsg "Using config dir: $env:MYSQLSH_GUI_CUSTOM_CONFIG_DIR"
 
+    switch ($env:TEST_SUITE) {
+        "db" {
+            $env:MYSQLSH_GUI_CUSTOM_PORT = 33335
+            break
+        }
+        "oci" {
+            $env:MYSQLSH_GUI_CUSTOM_PORT = 33336
+            break
+        }
+        "shell" {
+            $env:MYSQLSH_GUI_CUSTOM_PORT = 33337
+            break
+        }
+        "notebook" {
+            $env:MYSQLSH_GUI_CUSTOM_PORT = 33338
+            break
+        }
+        "rest" {
+            $env:MYSQLSH_GUI_CUSTOM_PORT = 33339
+            break
+        }
+        default {
+            Throw "Unknown test suite: $env:TEST_SUITE"
+        }
+    }
+
     $testResources = Join-Path $env:userprofile "test-resources-$env:TEST_SUITE"
     $extPath = Join-Path $testResources "ext"
     $testFile = "./tests/e2e/output/tests/ui-$env:TEST_SUITE.js"

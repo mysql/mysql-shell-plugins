@@ -873,6 +873,9 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Duplicate this MySQL connection", async () => {
 
+            const treeDBSection = await Misc.getSection(constants.dbTreeSection);
+            await driver.wait(Misc.isNotLoading(treeDBSection), constants.explicitWait * 5,
+                `${await treeDBSection.getTitle()} is still loading`);
             await Misc.openContexMenuItem(treeGlobalConn, constants.duplicateConnection, true);
             const dialog = await driver.wait(until.elementLocated(
                 By.css(".valueEditDialog")), constants.explicitWait, "Connection dialog was not found");
@@ -967,6 +970,9 @@ describe("DATABASE CONNECTIONS", () => {
                 await dialog.pushButton(`Drop ${testSchema}`);
             }
             await Misc.verifyNotification(`The object ${testSchema} has been dropped successfully.`);
+            const treeDBSection = await Misc.getSection(constants.dbTreeSection);
+            await driver.wait(Misc.isNotLoading(treeDBSection), constants.explicitWait * 2,
+                `${await treeDBSection.getTitle()} is still loading`);
             await driver.wait(async () => {
                 let treeDBSection = await Misc.getSection(constants.dbTreeSection);
                 await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
@@ -1056,6 +1062,9 @@ describe("DATABASE CONNECTIONS", () => {
                 }
             }, constants.explicitWait * 2, "Drop Table dialog was not displayed");
             await Misc.verifyNotification(`The object ${testTable} has been dropped successfully.`);
+            const treeDBSection = await Misc.getSection(constants.dbTreeSection);
+            await driver.wait(Misc.isNotLoading(treeDBSection), constants.explicitWait * 2,
+                `${await treeDBSection.getTitle()} is still loading`);
             await driver.wait(async () => {
                 let treeDBSection = await Misc.getSection(constants.dbTreeSection);
                 await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
@@ -1133,6 +1142,9 @@ describe("DATABASE CONNECTIONS", () => {
             }, constants.explicitWait * 2, "Drop View dialog was not displayed");
 
             await Misc.verifyNotification(`The object ${testView} has been dropped successfully.`);
+            const treeDBSection = await Misc.getSection(constants.dbTreeSection);
+            await driver.wait(Misc.isNotLoading(treeDBSection), constants.explicitWait * 2,
+                `${await treeDBSection.getTitle()} is still loading`);
             await driver.wait(async () => {
                 let treeDBSection = await Misc.getSection(constants.dbTreeSection);
                 await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
