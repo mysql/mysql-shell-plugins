@@ -186,7 +186,9 @@ export class Misc {
     public static openContexMenuItem = async (
         treeItem: TreeItem,
         ctxMenuItem: string | string[],
-        verifyEditorAndWebView = false): Promise<void> => {
+        verifyEditorAndWebView = false,
+        verifyNotification = false,
+    ): Promise<void> => {
 
         let activeTab: string;
         if (verifyEditorAndWebView) {
@@ -212,9 +214,19 @@ export class Misc {
                 }
             }, constants.explicitWait * 3,
                 `No new editor was opened after selecting '${ctxMenuItem.toString()}' after 15secs`);
+        } else if (verifyNotification) {
+            await driver.wait(async () => {
+                await Misc.selectContextMenuItem(treeItem, ctxMenuItem);
+                const ntfs = await new Workbench().getNotifications();
+                if (ntfs.length > 0) {
+                    return true;
+                }
+            }, constants.explicitWait * 3,
+                `No notification was shown after selecting ${String(ctxMenuItem)}`);
         } else {
             await Misc.selectContextMenuItem(treeItem, ctxMenuItem);
         }
+
     };
 
 
@@ -238,6 +250,10 @@ export class Misc {
     };
 
     public static restartShell = async (): Promise<void> => {
+        const existsRootHost = async (): Promise<boolean> => {
+            return (await driver.findElements(By.className("shadow-root-host"))).length > 0;
+        };
+
         const treeDBSection = await Misc.getSection(constants.dbTreeSection);
         await driver.wait(Misc.isNotLoading(treeDBSection), constants.explicitWait * 4,
             `${await treeDBSection.getTitle()} is still loading`);
@@ -255,7 +271,17 @@ export class Misc {
             const menuItems = await menu.findElements(By.className("action-label"));
             for (const item of menuItems) {
                 if ((await item.getText()) === constants.restartInternalShell) {
-                    await item.click();
+                    await driver.wait(async () => {
+                        try {
+                            await item.click();
+
+                            return (await existsRootHost()) === false;
+                        } catch (e) {
+                            if (e instanceof error.StaleElementReferenceError) {
+                                return true;
+                            }
+                        }
+                    }, constants.explicitWait, "Could not click on Restart MySQL Shell");
                     break;
                 }
             }
@@ -565,12 +591,13 @@ export class Misc {
                 }
             }
         }), constants.explicitWait, "Could not find any notification");
+
     };
 
     public static execOnTerminal = async (cmd: string, timeout: number): Promise<void> => {
         timeout = timeout ?? constants.explicitWait;
 
-        if (platform() === "darwin") {
+        if (platform() === "darwin" || platform() === "linux") {
             await keyboard.type(cmd);
             await keyboard.type(nutKey.Enter);
         } else {

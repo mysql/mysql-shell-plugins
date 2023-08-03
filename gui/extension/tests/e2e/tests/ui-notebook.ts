@@ -22,7 +22,7 @@
  */
 import {
     ActivityBar, BottomBarPanel, By, Condition, CustomTreeSection, EditorView, InputBox, Key, TreeItem,
-    until, WebElement,
+    until, WebElement, ModalDialog,
 } from "vscode-extension-tester";
 
 import { expect } from "chai";
@@ -699,7 +699,7 @@ describe("NOTEBOOKS", () => {
 
         it("Save Notebook", async () => {
 
-            const result = await Misc.execCmd("SELECT VERSION();");
+            const result = await Misc.execCmd("SELECT VERSION();", undefined, constants.explicitWait * 2);
             expect(result[0]).to.include("1 record retrieved");
             await (await Database.getToolbarButton(constants.saveNotebook)).click();
             await driver.switchTo().defaultContent();
@@ -739,11 +739,14 @@ describe("NOTEBOOKS", () => {
                 return section !== undefined;
             }, constants.explicitWait, "E2E section was not found");
 
+
             const file = await section.findItem("test.mysql-notebook", 3);
             await file.click();
+
             const input = await InputBox.create();
             await (await input.findQuickPick(globalConn.caption)).select();
             await new EditorView().openEditor("test.mysql-notebook");
+
             await Misc.switchToWebView();
             await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
                 "DB Connection was not loaded");
@@ -779,7 +782,16 @@ describe("NOTEBOOKS", () => {
         it("Auto close notebook tab when DB connection is deleted", async () => {
 
             await driver.switchTo().defaultContent();
-            await new EditorView().closeAllEditors();
+            await new EditorView().closeEditor("test.mysql-notebook");
+
+            // The file may be dirty
+            try {
+                const dialog = new ModalDialog();
+                await dialog.pushButton(`Don't Save`);
+            } catch (e) {
+                // continue
+            }
+
             let section: CustomTreeSection;
             await driver.wait(async () => {
                 section = await Misc.getSection("e2e");
