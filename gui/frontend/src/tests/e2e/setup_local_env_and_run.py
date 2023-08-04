@@ -261,6 +261,13 @@ def main() -> None:
 
             executor.clean_up()
 
+
+        mysqlsh_log_file = pathlib.Path(tmp_dirname, "mysqlsh", "mysqlsh.log")
+        if test_failed and mysqlsh_log_file.exists():
+            with open(mysqlsh_log_file, "r", encoding="UTF-8") as log_file:
+                content = log_file.read()
+                Logger.info(f"Content of the mysqlsh.log file:\n{content}")
+
     if test_failed:
         sys.exit(1)
 
