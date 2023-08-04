@@ -2,6 +2,6 @@
 
 import {
     ICompartment, IComputeInstance, IMySQLDbSystemShapeSummary, IMySQLDbSystem, ILoadBalancer, IBastionSummary,
-    IBastionSession,
+    IBastionSession, IComputeShape,
 } from "./Oci";
 import { IShellDictionary } from "./Protocol";

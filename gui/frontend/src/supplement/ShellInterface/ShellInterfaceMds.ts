@@ -23,7 +23,7 @@
 
 import {
     IBastionSession, IBastionSummary, ICompartment, IComputeInstance, ILoadBalancer, IMySQLDbSystem,
-    IMySQLDbSystemShapeSummary,
+    IMySQLDbSystemShapeSummary, IComputeShape,
 } from "../../communication";
 import { MessageScheduler, DataCallback } from "../../communication/MessageScheduler";
 import {
@@ -153,6 +153,16 @@ export class ShellInterfaceMds {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMds.MdsListDbSystemShapes,
             parameters: { kwargs: { configProfile, isSupportedFor, compartmentId } },
+        });
+
+        return response.result;
+    }
+
+    public async listComputeShapes(configProfile: string,
+        compartmentId: string): Promise<IComputeShape[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMds.MdsListComputeShapes,
+            parameters: { kwargs: { configProfile, compartmentId } },
         });
 
         return response.result;

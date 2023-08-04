@@ -35,6 +35,8 @@ export type ICompartment = identityModels.Compartment & {
     isCurrent: boolean;
 };
 
+export type IComputeShape = coreModels.Shape;
+
 export type IBastionSession = bastionModels.Session;
 export type IBastionSummary = bastionModels.BastionSummary & {
     isCurrent: boolean;
