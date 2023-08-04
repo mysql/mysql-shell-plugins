@@ -7,7 +7,7 @@
         "color": "#2789e1",
         "theme": "dark"
     },
-    "version": "1.11.4",
+    "version": "1.12.0",
     "publisher": "Oracle",
     "license": "SEE LICENSE IN LICENSE.txt",
     "repository": {
@@ -162,7 +162,7 @@
                 },
                 "msg.editor.dbVersion": {
                     "type": "string",
-                    "default": "8.0.33",
+                    "default": "8.1.0",
                     "description": "The default version to be used for MySQL language support, if no version is available."
                 },
                 "msg.editor.sqlMode": {
