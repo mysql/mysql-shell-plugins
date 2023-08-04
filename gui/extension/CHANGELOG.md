@@ -4,12 +4,13 @@
 
 ### Additions
 
-- 
+- Updating MySQL Shell to version 8.1.1
 
 ### Fixes
 
 - BUG#35635932 Type-safety and auto-completion not available for MRS SDK find*() commands
 - BUG#35645706 Excessively deep and possibly infinite type instantiation in the SDK
+- BUG#34140238 Using user only permissions for backend database
 
 ## Changes in 1.11.3+8.0.33
 
