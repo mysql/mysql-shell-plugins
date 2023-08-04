@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -53,7 +53,8 @@ def mds_heat_wave_load_data(**kwargs):
     schemas = kwargs.get("schemas")
     mode = kwargs.get("mode", "normal")
     output = kwargs.get("output", "normal")
-    disable_unsupported_columns = kwargs.get("disable_unsupported_columns", True)
+    disable_unsupported_columns = kwargs.get(
+        "disable_unsupported_columns", True)
     optimize_load_parallelism = kwargs.get("optimize_load_parallelism", True)
     enable_memory_check = kwargs.get("enable_memory_check", True)
     sql_mode = kwargs.get("sql_mode", "")
@@ -74,14 +75,15 @@ def mds_heat_wave_load_data(**kwargs):
         set_load_parallelism = (
             "TRUE" if optimize_load_parallelism else "FALSE")
 
-        schemasJson = "JSON_ARRAY(" + ', '.join(f'"{s}"' for s in schemas) + ")"
-        optionsJson = ("JSON_OBJECT(" 
-            f'"mode", "{mode}", '
-            f'"output", "{output}", '
-            f'"sql_mode", {sql_mode}, '
-            f'"policy", "{policy}", '
-            f'"set_load_parallelism", {set_load_parallelism}, '
-            f'"auto_enc", JSON_OBJECT("mode", "{"check" if enable_memory_check else "off"}")')
+        schemasJson = "JSON_ARRAY(" + \
+            ', '.join(f'"{s}"' for s in schemas) + ")"
+        optionsJson = ("JSON_OBJECT("
+                       f'"mode", "{mode}", '
+                       f'"output", "{output}", '
+                       f'"sql_mode", {sql_mode}, '
+                       f'"policy", "{policy}", '
+                       f'"set_load_parallelism", {set_load_parallelism}, '
+                       f'"auto_enc", JSON_OBJECT("mode", "{"check" if enable_memory_check else "off"}")')
         if exclude_list:
             optionsJson += f', "exclude_list", JSON_ARRAY({exclude_list})'
         optionsJson += ")"
@@ -108,7 +110,6 @@ def mds_heat_wave_load_data(**kwargs):
                 print(core.format_result_set(res, rows, addFooter=False))
             else:
                 out_str += out_str + "\n"
-
 
             next_result = res.next_result()
 
@@ -137,6 +138,9 @@ def get_mds_jump_host(**kwargs):
         db_system_id (str): The OCID of the db_system
         private_key_file_path (str): The file path to an SSH private key
         subnet_id (str): The OCID of the subnet to use
+        shape (str): The name of the shape to use
+        cpu_count (int): The number of OCPUs
+        memory_size (int): The amount of memory
         compartment_id (str): The OCID of the compartment
         config (object): An OCI config object or None.
         config_profile (str): The name of an OCI config profile
@@ -154,6 +158,9 @@ def get_mds_jump_host(**kwargs):
     private_key_file_path = kwargs.get(
         "private_key_file_path", "~/.ssh/id_rsa")
     subnet_id = kwargs.get("subnet_id")
+    shape = kwargs.get("shape", "VM.Standard.E4.Flex")
+    cpu_count = kwargs.get("cpu_count", 1)
+    memory_size = kwargs.get("memory_size", 16)
 
     compartment_id = kwargs.get("compartment_id")
     config = kwargs.get("config")
@@ -174,6 +181,7 @@ def get_mds_jump_host(**kwargs):
 
         import oci.mysql
         from pathlib import Path
+        import os.path
         from mds_plugin import compartment, compute, network
         import time
 
@@ -233,13 +241,16 @@ def get_mds_jump_host(**kwargs):
 
         new_jump_host = compute.create_instance(
             instance_name=instance_name,
-            shape="VM.Standard2.1",
+            shape=shape,
+            cpu_count=cpu_count, memory_size=memory_size,
             operating_system="Oracle Linux",
-            operating_system_version="8",
+            operating_system_version="9",
             use_latest_image=True,
             subnet_id=subnet_id,
             public_subnet=True,
-            interactive=interactive,
+            init_script_file_path=os.path.join(
+                os.path.join(Path(__file__).parent.absolute(), "internal"), "init_router_script.sh"),
+            interactive=False,
             return_python_object=True)
         if new_jump_host is None:
             print("Compute instance could not be created.")
@@ -273,6 +284,9 @@ def get_mds_jump_host(**kwargs):
                   f"within 5 minutes. Please check the state manually.")
             return None if interactive else mds_jump_host
 
+        if interactive:
+            print(f"Compute Instance '{instance_name}' became available.")
+
         # Get the public IP of the instance
         public_ip = compute.get_instance_public_ip(
             instance_id=mds_jump_host.id, compartment_id=compartment_id,
@@ -283,10 +297,12 @@ def get_mds_jump_host(**kwargs):
                 "fetched.")
 
         if interactive:
-            print(f"Connecting to {instance_name} instance at {public_ip}...",
+            print("\nPerforming base configuration.\n"
+                  f"Connecting to {instance_name} instance at {public_ip}...",
                   end="")
 
         setup_complete = False
+        connected = False
         cycles = 0
         while not setup_complete and cycles < 10:
             cycles += 1
@@ -295,9 +311,10 @@ def get_mds_jump_host(**kwargs):
                         username="opc", host=public_ip,
                         private_key_file_path=private_key_file_path) as conn:
 
+                    connected = True
                     if interactive:
                         print(f"\nConnected to {instance_name} instance at "
-                              f"{public_ip}.\n")
+                              f"{public_ip}.")
 
                     # Get MySQL Router configuration from remote instance
                     output = ""
@@ -306,7 +323,7 @@ def get_mds_jump_host(**kwargs):
                         # If the config is not available yet, give the instance
                         # time to complete setup
                         if interactive:
-                            print(f"\nWaiting for {instance_name} setup to be "
+                            print(f"Waiting for {instance_name} setup to be "
                                   f"completed.\nThis can take up to 2 minutes.",
                                   end="")
                         try:
@@ -334,7 +351,7 @@ def get_mds_jump_host(**kwargs):
                         setup_complete = True
 
             except Exception as e:
-                if cycles < 10:
+                if cycles < 10 and not connected:
                     time.sleep(5)
                     if interactive:
                         print(".", end="")
@@ -372,6 +389,10 @@ def add_public_endpoint(**kwargs):
         db_system_name (str): The new name of the DB System.
         db_system_id (str): The OCID of the db_system
         private_key_file_path (str): The file path to an SSH private key
+        shape (str): The name of the shape to use
+        cpu_count (int): The number of OCPUs
+        memory_size (int): The amount of memory
+        mysql_user_name (str): The MySQL user name to use for bootstrapping
         compartment_id (str): The OCID of the compartment
         config (object): An OCI config object or None.
         config_profile (str): The name of an OCI config profile
@@ -382,11 +403,22 @@ def add_public_endpoint(**kwargs):
     Returns:
        None
     """
+    # cSpell:ignore OCPU
     instance_name = kwargs.get("instance_name")
     db_system_name = kwargs.get("db_system_name")
     db_system_id = kwargs.get("db_system_id")
     private_key_file_path = kwargs.get(
         "private_key_file_path", "~/.ssh/id_rsa")
+    shape = kwargs.get("shape", "VM.Standard.E4.Flex")
+    cpu_count = kwargs.get("cpu_count", 1)
+    memory_size = kwargs.get("memory_size", 16)
+
+    mysql_user_name = kwargs.get("mysql_user_name", "dba")
+    mysql_user_password = core.prompt(
+        f"Please enter the password for {mysql_user_name}",
+        {"type": "password"})
+
+    jwt_secret = kwargs.get("jwt_secret")
 
     compartment_id = kwargs.get("compartment_id")
     config = kwargs.get("config")
@@ -404,12 +436,13 @@ def add_public_endpoint(**kwargs):
         compartment_id = configuration.get_current_compartment_id(
             compartment_id=compartment_id, config=config)
         db_system_id = configuration.get_current_db_system_id(
-            config=config)
+            db_system_id=db_system_id, config=config)
 
         from mds_plugin import compute
         import configparser
         import io
         import time
+        import hashlib
 
         db_system = mysql_database_service.get_db_system(
             db_system_name=db_system_name, db_system_id=db_system_id,
@@ -419,6 +452,11 @@ def add_public_endpoint(**kwargs):
         if db_system is None:
             raise ValueError("No DB System selected."
                              "Cancelling operation")
+
+        if not jwt_secret:
+            md5 = hashlib.md5()
+            md5.update(db_system.id.encode())
+            jwt_secret = md5.hexdigest()
 
         # Get the first active endpoint
         endpoints = [e for e in db_system.endpoints if e.status == 'ACTIVE']
@@ -433,6 +471,8 @@ def add_public_endpoint(**kwargs):
             instance_name=instance_name,
             private_key_file_path=private_key_file_path,
             db_system_id=db_system_id,
+            shape=shape, memory_size=memory_size,
+            cpu_count=cpu_count,
             compartment_id=db_system.compartment_id, config=config,
             interactive=interactive,
             return_python_object=True)
@@ -450,7 +490,8 @@ def add_public_endpoint(**kwargs):
 
         # Open an SSH connection to the instance
         if interactive:
-            print(f"Connecting to {instance_name} instance at {public_ip}...")
+            print("\nBootstrapping the MySQL Router.\n"
+                  f"Connecting to {instance_name} instance at {public_ip}...")
         try:
             with compute.SshConnection(
                     username="opc", host=public_ip,
@@ -488,131 +529,146 @@ def add_public_endpoint(**kwargs):
                         pass
 
                 if output == "":
-                    raise Exception("Could not fetch MySQL Router "
-                                    "configuration from remote instance.")
-                elif interactive:
-                    print("")
-
-                if interactive:
-                    print("Reading current MySQL Router configuration file...")
-                # Load config to in-memory stream
-                with io.BytesIO() as router_config_stream:
-                    # Get the remote config file
-                    try:
-                        conn.get_remote_file_as_file_object(
-                            "/etc/mysqlrouter/mysqlrouter.conf",
-                            router_config_stream)
-                    except Exception as e:
-                        raise Exception("Could not get router config file. "
-                                        f"{str(e)}")
-
-                    # If there was an error, print it
-                    last_error = conn.get_last_error()
-                    if last_error != "":
-                        raise Exception(f"Could not read router config file. "
-                                        f"{last_error}")
-
-                    # Load CLI config file
-                    router_config = configparser.ConfigParser()
-                    router_config.read_string(
-                        router_config_stream.getvalue().decode("utf-8"))
-                    router_config_stream.close()
-
-                # Ensure that there is a section with the name of
-                # "routing:classic"
-                if "routing:classic" not in router_config.sections():
-                    router_config["routing:classic"] = {}
-
-                cnf = router_config["routing:classic"]
-                cnf["routing_strategy"] = "round-robin"
-                cnf["bind_address"] = "0.0.0.0"
-                cnf["bind_port"] = "6446"
-                cnf["destinations"] = f"{endpoint.ip_address}:{endpoint.port}"
-
-                # Ensure that there is a section with the name of "http_server"
-                if "http_server" not in router_config.sections():
-                    router_config["http_server"] = {}
-
-                cnf = router_config["http_server"]
-                cnf["port"] = "8080"
-                cnf["ssl"] = "0"
-                cnf["ssl_cert"] = ""
-                cnf["ssl_key"] = ""
-                cnf["static_folder"] = "/var/run/mysqlrouter/www/"
-
-                # Ensure that there is a section with the name of "routing:x"
-                if "routing:x" not in router_config.sections():
-                    router_config["routing:x"] = {}
-
-                cnf = router_config["routing:x"]
-                cnf["routing_strategy"] = "round-robin"
-                cnf["bind_address"] = "0.0.0.0"
-                cnf["bind_port"] = "6447"
-                cnf["destinations"] = f"{endpoint.ip_address}:{endpoint.port_x}"
-
-                # cSpell:ignore mrds SQLR
-                # Ensure that there is a section with the name of
-                # "rest_mrds"
-                if "rest_mrds" not in router_config.sections():
-                    router_config["rest_mrds"] = {}
-
-                cnf = router_config["rest_mrds"]
-                cnf["user"] = "mysqlrouter_mrs"
-                cnf["password"] = "MySQLR0cks!"
-                cnf["routing_ro"] = "classic"
-
-                if interactive:
-                    print("Writing updated MySQL Router configuration file...")
-
-                # Write config to in-memory stream
-                with io.BytesIO() as router_config_bytes_stream:
-                    with io.StringIO() as router_config_stream:
-                        router_config.write(router_config_stream)
-
-                        # Seek to the beginning of the text stream
-                        router_config_bytes_stream.write(
-                            router_config_stream.getvalue().encode("utf-8"))
-                        router_config_bytes_stream.seek(0)
-
-                        # Write out new config file to remote instance
-                        try:
-                            conn.put_local_file_object(
-                                router_config_bytes_stream,
-                                "/home/opc/mysqlrouter.conf")
-                        except Exception as e:
-                            raise Exception(
-                                "Could not upload router config file. "
-                                f"{str(e)}")
-
-                # If there was an error, print it
-                last_error = conn.get_last_error()
-                if last_error != "":
                     raise Exception(
-                        "Could not upload router config file. "
-                        f"ERROR: {last_error}")
+                        "Could not fetch MySQL Router configuration from remote instance.")
 
-                # Move config to final place and fix privileges
-                conn.execute("sudo mv ~/mysqlrouter.conf "
-                             "/etc/mysqlrouter/mysqlrouter.conf")
-                conn.execute("sudo chown root:root "
-                             "/etc/mysqlrouter/mysqlrouter.conf")
+                if interactive:
+                    print("Bootstrapping MySQL Router against "
+                          f"{mysql_user_name}@{endpoint.ip_address}:{endpoint.port} "
+                          f"using JWT secret {jwt_secret} ...")
+
+                (success, output) = conn.executeAndSendOnStdin(
+                    f"sudo mysqlrouter_bootstrap {mysql_user_name}@{endpoint.ip_address}:{endpoint.port} "
+                    f"-u mysqlrouter --mrs --mrs-global-secret {jwt_secret} "
+                    "--https-port 8446", mysql_user_password)
+
+                if output:
+                    print(output)
+
+                if not success:
+                    raise Exception("Bootstrap operation failed.")
+
+                # # Load config to in-memory stream
+                # conn.execute("sudo cp /etc/mysqlrouter/mysqlrouter.conf /home/opc/mysqlrouter.conf")
+                # conn.execute("sudo chown opc:opc /home/opc/mysqlrouter.conf")
+                # with io.BytesIO() as router_config_stream:
+                #     # Get the remote config file
+                #     try:
+                #         conn.get_remote_file_as_file_object(
+                #             "/home/opc/mysqlrouter.conf",
+                #             router_config_stream)
+                #     except Exception as e:
+                #         raise Exception("Could not get router config file. "
+                #                         f"{str(e)}")
+
+                #     # If there was an error, print it
+                #     last_error = conn.get_last_error()
+                #     if last_error != "":
+                #         raise Exception(f"Could not read router config file. "
+                #                         f"{last_error}")
+
+                #     # Load CLI config file
+                #     router_config = configparser.ConfigParser()
+                #     router_config.read_string(
+                #         router_config_stream.getvalue().decode("utf-8"))
+                #     router_config_stream.close()
+
+                # # # Ensure that there is a section with the name of
+                # # # "routing:classic"
+                # # if "routing:classic" not in router_config.sections():
+                # #     router_config["routing:classic"] = {}
+
+                # # cnf = router_config["routing:classic"]
+                # # cnf["routing_strategy"] = "round-robin"
+                # # cnf["bind_address"] = "0.0.0.0"
+                # # cnf["bind_port"] = "6446"
+                # # cnf["destinations"] = f"{endpoint.ip_address}:{endpoint.port}"
+
+                # # Ensure that there is a section with the name of "http_server"
+                # if "http_server" not in router_config.sections():
+                #     router_config["http_server"] = {}
+
+                # cnf = router_config["http_server"]
+                # # cnf["port"] = "8446"
+                # # cnf["ssl"] = "0"
+                # # cnf["ssl_cert"] = ""
+                # # cnf["ssl_key"] = ""
+                # cnf["static_folder"] = "/var/run/mysqlrouter/www/"
+
+                # # # Ensure that there is a section with the name of "routing:x"
+                # # if "routing:x" not in router_config.sections():
+                # #     router_config["routing:x"] = {}
+
+                # # cnf = router_config["routing:x"]
+                # # cnf["routing_strategy"] = "round-robin"
+                # # cnf["bind_address"] = "0.0.0.0"
+                # # cnf["bind_port"] = "6447"
+                # # cnf["destinations"] = f"{endpoint.ip_address}:{endpoint.port_x}"
+
+                # # # cSpell:ignore mrds SQLR
+                # # # Ensure that there is a section with the name of
+                # # # "mysql_rest_service"
+                # # if "mysql_rest_service" not in router_config.sections():
+                # #     router_config["mysql_rest_service"] = {}
+
+                # # cnf = router_config["mysql_rest_service"]
+                # # cnf["mysql_user"] = "dba"
+                # # cnf["mysql_password"] = "MySQLR0cks!"
+                # # cnf["mysql_read_only_route"] = "classic"
+                # # cnf["mysql_read_write_route"] = "classic"
+
+                # if interactive:
+                #     print("Writing updated MySQL Router configuration file...")
+
+                # # Write config to in-memory stream
+                # with io.BytesIO() as router_config_bytes_stream:
+                #     with io.StringIO() as router_config_stream:
+                #         router_config.write(router_config_stream)
+
+                #         # Seek to the beginning of the text stream
+                #         router_config_bytes_stream.write(
+                #             router_config_stream.getvalue().encode("utf-8"))
+                #         router_config_bytes_stream.seek(0)
+
+                #         # Write out new config file to remote instance
+                #         try:
+                #             conn.put_local_file_object(
+                #                 router_config_bytes_stream,
+                #                 "/home/opc/mysqlrouter.conf")
+                #         except Exception as e:
+                #             raise Exception(
+                #                 "Could not upload router config file. "
+                #                 f"{str(e)}")
+
+                # # Move config to final place and fix privileges
+                # conn.execute("sudo cp /home/opc/mysqlrouter.conf /etc/mysqlrouter/mysqlrouter.conf")
+                # conn.execute("sudo chown mysqlrouter:mysqlrouter /etc/mysqlrouter/mysqlrouter.conf")
+                # conn.execute("sudo rm /home/opc/mysqlrouter.conf")
+
+                # # If there was an error, print it
+                # last_error = conn.get_last_error()
+                # if last_error != "":
+                #     raise Exception(
+                #         "Could not upload router config file. "
+                #         f"ERROR: {last_error}")
 
                 if interactive:
                     print("Opening Firewall ports...")
 
                 # Open MySQL Router ports on the firewall
                 conn.execute(
-                    "sudo firewall-cmd --permanent --add-port=6446-6447/tcp")
+                    "sudo firewall-cmd --zone=public --permanent --add-port=6446-6449/tcp")
                 conn.execute(
-                    "sudo firewall-cmd --zone=public --permanent "
-                    "--add-port=8080/tcp")
+                    "sudo firewall-cmd --zone=public --permanent --add-port=8446/tcp")
                 conn.execute("sudo firewall-cmd --reload")
+
+                # cSpell:ignore semanage mysqld
+                conn.execute("sudo semanage port -a -t mysqld_port_t -p tcp 8446")
 
                 if interactive:
                     print("Starting MySQL Router...")
 
-                # Start and enable mysqlrouter.service
-                conn.execute("sudo systemctl enable mysqlrouter.service")
+                # Restart mysqlrouter.service
                 conn.execute("sudo systemctl restart mysqlrouter.service")
 
             # Add ingress rules for MySQL ports to security list
@@ -629,19 +685,31 @@ def add_public_endpoint(**kwargs):
             # Check if ports are already in any of the security lists
             compute.add_ingress_port_to_security_lists(
                 security_lists=sec_lists, port=6446,
-                description="Classic MySQL Protocol via Router",
+                description="Classic MySQL Protocol RW via Router",
                 compartment_id=compartment_id, config=config,
                 interactive=interactive,
                 raise_exceptions=raise_exceptions)
             compute.add_ingress_port_to_security_lists(
                 security_lists=sec_lists, port=6447,
-                description="MySQL X Protocol via Router",
+                description="Classic MySQL Protocol RO via Router",
                 compartment_id=compartment_id, config=config,
                 interactive=interactive,
                 raise_exceptions=raise_exceptions)
             compute.add_ingress_port_to_security_lists(
-                security_lists=sec_lists, port=8080,
-                description="HTTP via Router",
+                security_lists=sec_lists, port=6448,
+                description="MySQL X Protocol RW via Router",
+                compartment_id=compartment_id, config=config,
+                interactive=interactive,
+                raise_exceptions=raise_exceptions)
+            compute.add_ingress_port_to_security_lists(
+                security_lists=sec_lists, port=6449,
+                description="MySQL X Protocol RO via Router",
+                compartment_id=compartment_id, config=config,
+                interactive=interactive,
+                raise_exceptions=raise_exceptions)
+            compute.add_ingress_port_to_security_lists(
+                security_lists=sec_lists, port=8446,
+                description="MRS HTTPS via Router",
                 compartment_id=compartment_id, config=config,
                 interactive=interactive,
                 raise_exceptions=raise_exceptions)
@@ -649,16 +717,16 @@ def add_public_endpoint(**kwargs):
             if interactive:
                 print(f"\nNew endpoint successfully created.\n\n"
                       f"    Classic MySQL Protocol: {public_ip}:6446\n"
-                      f"    MySQL X Protocol: {public_ip}:6447\n\n"
-                      f"    MySQL REST Service HTTP: {public_ip}:8080\n\n"
-                      f"Example:\n    mysqlsh mysql://dba@{public_ip}:6446")
+                      f"    MySQL X Protocol: {public_ip}:6448\n\n"
+                      f"    MySQL REST Service HTTPS: https://{public_ip}:8446/\n\n"
+                      f"Example:\n    mysqlsh mysql://{mysql_user_name}@{public_ip}:6446")
 
             if not return_formatted:
                 return {
                     "ip": public_ip,
                     "port": 6446,
                     "port_x": 6447,
-                    "rest_http": 8080
+                    "rest_http": 8446
                 }
         except Exception as e:
             raise Exception(
@@ -850,7 +918,7 @@ def import_from_bucket(**kwargs):
         compartment_id=compartment_id,
         config=config)
     if par is None or progress_par is None:
-        print("Could not create preauthenticated requests. "
+        print("Could not create pre-authenticated requests. "
               "Operation cancelled.")
         return
 
@@ -947,7 +1015,7 @@ def import_from_bucket(**kwargs):
                         if chan.recv_ready():
                             buffer += chan.recv(
                                 read_buffer_size).decode('utf-8')
-                            # Check if a linebreak was in the buffer
+                            # Check if a line break was in the buffer
                             if "\n" in buffer:
                                 end = buffer.rfind("\n")+1
                                 ready = buffer[:end]
@@ -971,7 +1039,7 @@ def import_from_bucket(**kwargs):
                                 break
                             else:
                                 buffer += output
-                                # Check if a linebreak was in the buffer
+                                # Check if a line break was in the buffer
                                 if "\n" in buffer:
                                     end = buffer.rfind("\n")+1
                                     ready = buffer[:end]

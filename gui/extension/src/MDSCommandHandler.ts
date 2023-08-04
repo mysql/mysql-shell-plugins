@@ -108,22 +108,86 @@ export class MDSCommandHandler {
                         title: `Please enter a name for this new MDS Endpoint [${item.name} Endpoint]:`,
                         value: `${item.name} Endpoint`,
                     });
-
-                    if (endpointName) {
-                        const shellArgs: string[] = [
-                            "--",
-                            "mds",
-                            "util",
-                            "create-mds-endpoint",
-                            `--db_system_id=${item.dbSystem.id.toString()}`,
-                            `--config_profile=${item.profile.profile}`,
-                            `--instance_name=${endpointName}`,
-                            "--raise_exceptions=true",
-                        ];
-
-                        await host.addNewShellTask("Create new Router Endpoint", shellArgs);
-                        await commands.executeCommand("msg.mds.refreshOciProfiles");
+                    if (!endpointName) {
+                        return;
                     }
+
+                    // Get Shape
+                    const shapes = await this.shellSession.mds.listComputeShapes(
+                        item.profile.profile, item.dbSystem.compartmentId);
+                    const shapeList = shapes.map((shape, _i, _a) => {
+                        return shape.shape;
+                    });
+                    const defaultShape = "VM.Standard.E4.Flex";
+                    const defaultShapeIndex = shapeList.indexOf(defaultShape);
+                    if (defaultShapeIndex !== -1) {
+                        shapeList.splice(defaultShapeIndex, 1);
+                        shapeList.unshift(defaultShape);
+                    }
+                    const shape = (await window.showQuickPick(shapeList, {
+                        title: "Please select a shape for the compute instance:",
+                        placeHolder: defaultShape,
+                        canPickMany: false,
+                    })) || defaultShape;
+
+                    // CPU Count
+                    const cpuCountValue = await window.showInputBox({
+                        title: `Please enter the number of OCPUs:`,
+                        value: `1`,
+                    });
+                    if (!cpuCountValue) {
+                        return;
+                    }
+                    const cpuCount = parseInt(cpuCountValue, 10);
+                    if (isNaN(cpuCount)) {
+                        // cspell:ignore OCPU
+                        await window.showErrorMessage(`The OCPU count needs to be given as an integer.`);
+
+                        return;
+                    }
+
+                    // Memory
+                    const memorySizeValue = await window.showInputBox({
+                        title: `Please enter the amount of Memory (in GB):`,
+                        value: `16`,
+                    });
+                    if (!memorySizeValue) {
+                        return;
+                    }
+                    const memorySize = parseInt(memorySizeValue, 10);
+                    if (isNaN(memorySize)) {
+                        // cspell:ignore OCPU
+                        await window.showErrorMessage(`The amount of memory needs to be given as an integer.`);
+
+                        return;
+                    }
+
+                    // MySQL User Name
+                    const mysqlUserName = await window.showInputBox({
+                        title: `Please enter the MySQL User Name for bootstrapping:`,
+                        value: `dba`,
+                    });
+                    if (!mysqlUserName) {
+                        return;
+                    }
+
+                    const shellArgs: string[] = [
+                        "--",
+                        "mds",
+                        "util",
+                        "create-mds-endpoint",
+                        `--db_system_id=${item.dbSystem.id.toString()}`,
+                        `--config_profile=${item.profile.profile}`,
+                        `--instance_name=${endpointName}`,
+                        `--shape=${shape}`,
+                        `--cpu_count=${cpuCount}`,
+                        `--memory_size=${memorySize}`,
+                        `--mysql_user_name="${mysqlUserName}"`,
+                        "--raise_exceptions=true",
+                    ];
+
+                    await host.addNewShellTask("Create new Router Endpoint", shellArgs);
+                    await commands.executeCommand("msg.mds.refreshOciProfiles");
                 }
             }));
 

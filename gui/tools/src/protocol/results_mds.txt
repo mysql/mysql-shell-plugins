@@ -21,7 +21,7 @@ export interface IProtocolMdsResults {
     [ShellAPIMds.MdsGetCompartment]: {};
     [ShellAPIMds.MdsListComputeInstances]: { result: IComputeInstance[]; };
     [ShellAPIMds.MdsGetComputeInstance]: {};
-    [ShellAPIMds.MdsListComputeShapes]: {};
+    [ShellAPIMds.MdsListComputeShapes]: { result: IComputeShape[]; };
     [ShellAPIMds.MdsDeleteComputeInstance]: {};
     [ShellAPIMds.MdsUtilHeatWaveLoadData]: {};
     [ShellAPIMds.MdsUtilCreateMdsEndpoint]: {};

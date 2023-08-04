@@ -25,7 +25,7 @@
 
 import {
     ICompartment, IComputeInstance, IMySQLDbSystemShapeSummary, IMySQLDbSystem, ILoadBalancer, IBastionSummary,
-    IBastionSession,
+    IBastionSession, IComputeShape,
 } from "./Oci";
 import { IShellDictionary } from "./Protocol";
 
@@ -340,6 +340,14 @@ export interface IShellMdsUtilCreateMdsEndpointKwargs {
     dbSystemId?: string;
     /** The file path to an SSH private key */
     privateKeyFilePath?: string;
+    /** The name of the shape to use */
+    shape?: string;
+    /** The number of OCPUs */
+    cpuCount?: number;
+    /** The amount of memory */
+    memorySize?: number;
+    /** The MySQL user name to use for bootstrapping */
+    mysqlUserName?: string;
     /** The OCID of the compartment */
     compartmentId?: string;
     /** An OCI config object or None. */
@@ -1035,7 +1043,7 @@ export interface IProtocolMdsResults {
     [ShellAPIMds.MdsGetCompartment]: {};
     [ShellAPIMds.MdsListComputeInstances]: { result: IComputeInstance[]; };
     [ShellAPIMds.MdsGetComputeInstance]: {};
-    [ShellAPIMds.MdsListComputeShapes]: {};
+    [ShellAPIMds.MdsListComputeShapes]: { result: IComputeShape[]; };
     [ShellAPIMds.MdsDeleteComputeInstance]: {};
     [ShellAPIMds.MdsUtilHeatWaveLoadData]: {};
     [ShellAPIMds.MdsUtilCreateMdsEndpoint]: {};

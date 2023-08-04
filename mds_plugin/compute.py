@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -108,7 +108,7 @@ class SshConnection:
             command (str): The command to execute
 
         Returns:
-            The stdout of the command
+            The stdout output of the command
         """
         self.stdin, self.stdout, self.stderr = self.client.exec_command(
             command)
@@ -118,6 +118,56 @@ class SshConnection:
             output += line
 
         return output
+
+    def executeAndSendOnStdin(self, command, stdin_text):
+        import time
+
+        success = False
+        buffer = ""
+
+        # Open channel
+        chan = self.client.get_transport().open_session()
+        try:
+            chan.settimeout(timeout=None)
+            chan.set_combine_stderr(combine=True)
+
+            # Execute shell and call import function
+            chan.exec_command(command)
+
+            # Send password to stdin
+            chan.sendall(f"{stdin_text}\n".encode('utf-8'))
+            chan.shutdown_write()
+
+            # While the command didn't return an exit code yet
+            read_buffer_size = 1024
+            while not chan.exit_status_ready():
+                # Update every 0.1 seconds
+                time.sleep(0.1)
+
+                if chan.recv_ready():
+                    buffer += chan.recv(
+                        read_buffer_size).decode('utf-8')
+
+
+            # Ensure we gobble up all remaining data
+            while True:
+                try:
+                    output = chan.recv(
+                        read_buffer_size).decode('utf-8')
+                    if not output and not chan.recv_ready():
+                        break
+                    else:
+                        buffer += output
+
+                except Exception:
+                    continue
+
+            success = chan.recv_exit_status() == 0
+        finally:
+            chan.close()
+
+        return success, buffer
+
 
     def put_local_file(self, local_file_path, remote_file_path):
         sftp = self.client.open_sftp()
@@ -1508,6 +1558,8 @@ def create_instance(**kwargs):
         instance_name (str): The name used for the new compartment.
         availability_domain (str): The name of the availability_domain to use
         shape (str): The compute shape used for the instance
+        cpu_count (int): The number of OCPUs
+        memory_size (int): The amount of memory
         subnet_id (str): The OCID of the subnet to use
         public_subnet (bool): Whether the subnet should be public or private
         operating_system (str): The name of the operating system,
@@ -1540,6 +1592,8 @@ def create_instance(**kwargs):
     instance_name = kwargs.get("instance_name")
     availability_domain = kwargs.get("availability_domain")
     shape = kwargs.get("shape")
+    cpu_count = kwargs.get("cpu_count", 1)
+    memory_size = kwargs.get("memory_size", 16)
     subnet_id = kwargs.get("subnet_id")
     public_subnet = kwargs.get("public_subnet")
     operating_system = kwargs.get("operating_system")
@@ -1719,16 +1773,6 @@ def create_instance(**kwargs):
             elif init_script:
                 instance_metadata['user_data'] = base64.b64encode(
                     init_script.encode('utf-8')).decode('utf-8')
-            else:
-                # Otherwise use standard init_script
-                if image.operating_system == "Oracle Linux":
-                    instance_metadata['user_data'] = \
-                        oci.util.file_content_as_launch_instance_user_data(
-                            os.path.join(
-                                os.path.join(
-                                    pathlib.Path(__file__).parent.absolute(),
-                                    "internal"),
-                                "init_script.sh"))
 
             # Get a public subnet for the instance
             if not subnet_id and interactive:
@@ -1764,6 +1808,10 @@ def create_instance(**kwargs):
                 compartment_id=compartment_id,
                 availability_domain=availability_domain,
                 shape=shape_name,
+                shape_config=oci.core.models.LaunchInstanceShapeConfigDetails(
+                    ocpus=float(cpu_count),
+                    memory_in_gbs=float(memory_size)
+                ),
                 metadata=instance_metadata,
                 source_details=oci.core.models.InstanceSourceViaImageDetails(
                     image_id=image_id),
