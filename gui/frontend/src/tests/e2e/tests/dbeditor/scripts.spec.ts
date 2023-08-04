@@ -26,6 +26,7 @@ import { DBConnection } from "../../lib/dbConnection";
 import { DBNotebooks, execCaret, execFullScript } from "../../lib/dbNotebooks";
 import { IDBConnection, Misc, driver, explicitWait } from "../../lib/misc";
 import { addAttach } from "jest-html-reporters/helper";
+import { basename } from "path";
 
 describe("Scripts", () => {
 
@@ -33,15 +34,15 @@ describe("Scripts", () => {
 
     const globalConn: IDBConnection = {
         dbType: undefined,
-        caption: `conn${new Date().valueOf()}`,
+        caption: `connScripts`,
         description: "Local connection",
         hostname: String(process.env.DBHOSTNAME),
         protocol: "mysql",
-        username: String(process.env.DBUSERNAME),
+        username: "dbuser3",
         port: String(process.env.DBPORT),
         portX: String(process.env.DBPORTX),
         schema: "sakila",
-        password: String(process.env.DBPASSWORD),
+        password: "dbuser3",
         sslMode: undefined,
         sslCA: undefined,
         sslClientCert: undefined,
@@ -51,15 +52,19 @@ describe("Scripts", () => {
     beforeAll(async () => {
         await Misc.loadDriver();
         try {
-            try {
-                await Misc.loadPage(String(process.env.SHELL_UI_HOSTNAME));
-                await Misc.waitForHomePage();
-            } catch (e) {
-                await driver.navigate().refresh();
-                await Misc.waitForHomePage();
-            }
+            await driver.wait(async () => {
+                try {
+                    const url = Misc.getUrl(basename(__filename));
+                    console.log(`${basename(__filename)} : ${url}`);
+                    await Misc.loadPage(url);
+                    await Misc.waitForHomePage();
+                    await driver.findElement(By.id("gui.sqleditor")).click();
 
-            await driver.findElement(By.id("gui.sqleditor")).click();
+                    return true;
+                } catch (e) {
+                    await driver.navigate().refresh();
+                }
+            }, explicitWait * 3, "Start Page was not loaded correctly");
             const db = await DBNotebooks.createDBconnection(globalConn);
 
             try {
@@ -93,6 +98,7 @@ describe("Scripts", () => {
     });
 
     afterAll(async () => {
+        await Misc.writeFELogs(basename(__filename), driver.manage().logs());
         await driver.quit();
     });
 

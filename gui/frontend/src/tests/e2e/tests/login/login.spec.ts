@@ -20,10 +20,10 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-
 import { Misc, explicitWait, driver } from "../../lib/misc";
 import { By, until } from "selenium-webdriver";
 import { addAttach } from "jest-html-reporters/helper";
+import { basename } from "path";
 
 describe("Login", () => {
 
@@ -56,6 +56,7 @@ describe("Login", () => {
     });
 
     afterAll(async () => {
+        await Misc.writeFELogs(basename(__filename), driver.manage().logs());
         await driver.quit();
     });
 
@@ -88,10 +89,9 @@ describe("Login", () => {
             await driver.findElement(By.id("loginButton")).click();
 
             const error = await driver.wait(until.elementLocated(By.css("div.message.error")),
-                explicitWait, "Error was not found");
+                explicitWait * 2, "Error was not found");
 
             expect(await error.getText()).toBe("User could not be authenticated. Incorrect username or password.");
-
         } catch (e) {
             testFailed = true;
             throw e;

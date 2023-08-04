@@ -431,37 +431,43 @@ export class DBConnection {
      * @returns Promise resolving with the name of the created script
      */
     public static addScript = async (scriptType: string): Promise<string> => {
-        const context = await driver.findElement(By.id("scriptSectionHost"));
-        const items = await context.findElements(By.css("div.tabulator-row"));
-
-        await driver.executeScript(
-            "arguments[0].click()",
-            await context.findElement(By.id("addScript")),
-        );
-
-        const menu = await driver.findElement(By.css("div.visible.noArrow.menu"));
-
-        switch (scriptType) {
-            case "JS":
-                await menu.findElement(By.id("addJSScript")).click();
-                break;
-            case "TS":
-                await menu.findElement(By.id("addTSScript")).click();
-                break;
-            case "SQL":
-                await menu.findElement(By.id("addSQLScript")).click();
-                break;
-            default:
-                break;
-        }
+        let toReturn = "";
 
         await driver.wait(async () => {
-            return (await context.findElements(By.css("div.tabulator-row"))).length > items.length;
-        }, 2000, "No script was created");
+            try {
+                const context = await driver.findElement(By.id("scriptSectionHost"));
+                const items = await context.findElements(By.css("div.tabulator-row"));
+                await driver.executeScript(
+                    "arguments[0].click()",
+                    await context.findElement(By.id("addScript")),
+                );
+                const menu = await driver.findElement(By.css("div.visible.noArrow.menu"));
+                switch (scriptType) {
+                    case "JS":
+                        await menu.findElement(By.id("addJSScript")).click();
+                        break;
+                    case "TS":
+                        await menu.findElement(By.id("addTSScript")).click();
+                        break;
+                    case "SQL":
+                        await menu.findElement(By.id("addSQLScript")).click();
+                        break;
+                    default:
+                        break;
+                }
+                await driver.wait(async () => {
+                    return (await context.findElements(By.css("div.tabulator-row"))).length > items.length;
+                }, 2000, "No script was created");
+                const entries = await context.findElements(By.css(".schemaTreeEntry label"));
+                toReturn = await entries[entries.length - 1].getText();
 
-        const entries = await context.findElements(By.css(".schemaTreeEntry label"));
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }, explicitWait * 2, "No script was created");
 
-        return entries[entries.length - 1].getText();
+        return toReturn;
     };
 
     /**

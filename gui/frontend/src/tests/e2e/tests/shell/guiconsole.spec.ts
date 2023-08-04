@@ -25,6 +25,7 @@ import { By } from "selenium-webdriver";
 import { GuiConsole } from "../../lib/guiConsole";
 import { ShellSession } from "../../lib/shellSession";
 import { addAttach } from "jest-html-reporters/helper";
+import { basename } from "path";
 
 describe("GUI Console", () => {
 
@@ -33,14 +34,20 @@ describe("GUI Console", () => {
     beforeAll(async () => {
         await Misc.loadDriver();
         try {
-            try {
-                await Misc.loadPage(String(process.env.SHELL_UI_HOSTNAME));
-                await Misc.waitForHomePage();
-            } catch (e) {
-                await driver.navigate().refresh();
-                await Misc.waitForHomePage();
-            }
-            await driver.findElement(By.id("gui.shell")).click();
+            await driver.wait(async () => {
+                try {
+                    const url = Misc.getUrl(basename(__filename));
+                    console.log(`${basename(__filename)} : ${url}`);
+                    await Misc.loadPage(url);
+                    await Misc.waitForHomePage();
+                    await driver.findElement(By.id("gui.shell")).click();
+
+                    return true;
+                } catch (e) {
+                    await driver.navigate().refresh();
+                }
+            }, explicitWait * 3, "Start Page was not loaded correctly");
+
         } catch (e) {
             await Misc.storeScreenShot("beforeAll_GuiConsole");
             throw e;
@@ -58,6 +65,7 @@ describe("GUI Console", () => {
     });
 
     afterAll(async () => {
+        await Misc.writeFELogs(basename(__filename), driver.manage().logs());
         await driver.quit();
     });
 

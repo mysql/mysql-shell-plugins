@@ -23,11 +23,10 @@
 
 import { By, Key, WebElement, until } from "selenium-webdriver";
 import { DBConnection } from "../../lib/dbConnection";
-import { DBNotebooks, execFullBlockSql } from "../../lib/dbNotebooks";
-import { IDBConnection, Misc, driver, explicitWait } from "../../lib/misc";
+import { DBNotebooks } from "../../lib/dbNotebooks";
+import { IDBConnection, Misc, driver, explicitWait, shellServers } from "../../lib/misc";
 import { addAttach } from "jest-html-reporters/helper";
-
-jest.retryTimes(1);
+import { basename, join } from "path";
 
 describe("Database Connections", () => {
 
@@ -35,15 +34,15 @@ describe("Database Connections", () => {
 
     const globalConn: IDBConnection = {
         dbType: undefined,
-        caption: `conn${new Date().valueOf()}`,
+        caption: `connDBConnections`,
         description: "Local connection",
         hostname: String(process.env.DBHOSTNAME),
         protocol: "mysql",
-        username: String(process.env.DBUSERNAME),
+        username: "dbuser1",
         port: String(process.env.DBPORT),
         portX: String(process.env.DBPORTX),
         schema: "sakila",
-        password: String(process.env.DBPASSWORD),
+        password: "dbuser1",
         sslMode: undefined,
         sslCA: undefined,
         sslClientCert: undefined,
@@ -53,15 +52,20 @@ describe("Database Connections", () => {
     beforeAll(async () => {
         await Misc.loadDriver();
         try {
-            try {
-                await Misc.loadPage(String(process.env.SHELL_UI_HOSTNAME));
-                await Misc.waitForHomePage();
-            } catch (e) {
-                await driver.navigate().refresh();
-                await Misc.waitForHomePage();
-            }
+            await driver.wait(async () => {
+                try {
+                    const url = Misc.getUrl(basename(__filename));
+                    console.log(`${basename(__filename)} : ${url}`);
+                    await Misc.loadPage(url);
+                    await Misc.waitForHomePage();
+                    await driver.findElement(By.id("gui.sqleditor")).click();
 
-            await driver.findElement(By.id("gui.sqleditor")).click();
+                    return true;
+                } catch (e) {
+                    await driver.navigate().refresh();
+                }
+            }, explicitWait * 3, "Start Page was not loaded correctly");
+
             await DBNotebooks.createDBconnection(globalConn);
         } catch (e) {
             await Misc.storeScreenShot("beforeAll_DBConnections");
@@ -84,6 +88,7 @@ describe("Database Connections", () => {
     });
 
     afterAll(async () => {
+        await Misc.writeFELogs(basename(__filename), driver.manage().logs());
         await driver.quit();
     });
 
@@ -327,7 +332,7 @@ describe("Database Connections", () => {
                         By.xpath("//label[contains(text(), '" + localConn.caption + "')]"))).length === 0;
                 },
                 2000,
-                "DB still exists",
+                `${localConn.caption} DB still exists`,
             );
         } catch (e) {
             testFailed = true;
@@ -375,7 +380,15 @@ describe("Database Connections", () => {
                 .sendKeys("Local Sqlite connection");
 
             const dbPath = await driver.findElement(By.id("dbFilePath"));
-            await dbPath.sendKeys(String(process.env.SQLITE_PATH_FILE));
+            let sqlitePath = join(process.cwd(), "src", "tests", "e2e",
+                `port_800${String(shellServers.get(basename(__filename)))}`,
+                "plugin_data", "gui_plugin", "mysqlsh_gui_backend.sqlite3");
+
+            if (!(await Misc.fileExists(sqlitePath))) {
+                sqlitePath = String(process.env.SQLITE_PATH_FILE);
+            }
+
+            await dbPath.sendKeys(sqlitePath);
             await newConDialog.findElement(By.id("dbName")).sendKeys("SQLite");
             await newConDialog.findElement(By.id("ok")).click();
 
@@ -522,14 +535,8 @@ describe("Database Connections", () => {
 
             await DBConnection.setEditorLanguage("mysql");
 
-            const contentHost = await driver.findElement(By.id("contentHost"));
-            await contentHost
-                .findElement(By.css("textarea"))
-                .sendKeys("SHOW STATUS LIKE 'Ssl_cipher';");
-
-            const execSel = await DBConnection
-                .getToolbarButton(execFullBlockSql);
-            await execSel?.click();
+            await Misc.execCmd(await driver.findElement(By.css("textarea")),
+                "SHOW STATUS LIKE 'Ssl_cipher';", undefined, true, true);
 
             const resultHost = await driver.wait(until.elementLocated(By.css(".resultHost")),
                 explicitWait, "Result host was not found");

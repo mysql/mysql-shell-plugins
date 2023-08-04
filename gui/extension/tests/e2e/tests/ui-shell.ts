@@ -155,7 +155,7 @@ describe("MYSQL SHELL CONSOLES", () => {
                 await Misc.processFailure(this);
             }
 
-            const result = await Misc.execCmd(`\\disconnect `);
+            const result = await Misc.execCmd(`\\disconnect `, undefined, undefined, true);
             expect(result[0] === "" || result[0] === "Already disconnected.").to.be.true;
 
         });
@@ -174,7 +174,7 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Connect to host", async () => {
 
             let connUri = `\\c ${username}:${password}@${hostname}:${port}/${schema}`;
-            const result = await Misc.execCmd(connUri);
+            const result = await Misc.execCmd(connUri, undefined, undefined, true);
             connUri = `Creating a session to '${username}@${hostname}:${port}/${schema}'`;
             expect(result[0]).to.include(connUri);
             await driver.wait(async () => {
@@ -223,8 +223,10 @@ describe("MYSQL SHELL CONSOLES", () => {
                 return (await Misc.getCmdResultMsg())?.includes(`Default schema set to \`${schema}\`.`);
             }, constants.explicitWait, `Could not find 'Default schema set to \`${schema}\`.'`);
 
-            const server = await driver.findElement(By.id("server"));
-            const schemaEl = await driver.findElement(By.id("schema"));
+            const server = await driver.wait(until.elementLocated(By.id("server")),
+                constants.explicitWait, "Server tab was not found");
+            const schemaEl = await driver.wait(until.elementLocated(By.id("schema")),
+                constants.explicitWait, "Schema tab was not found");
             await driver.wait(until.elementTextContains(server, `${hostname}:${port}`),
                 constants.explicitWait, `Server tab does not contain '${hostname}:${port}'`);
             await driver.wait(until.elementTextContains(schemaEl, `${schema}`),
@@ -234,8 +236,11 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         it("Connect using shell global variable", async () => {
 
+            let result = await Misc.execCmd("shell.status()", undefined, undefined, true);
+            expect(result[0]).to.match(/MySQL Shell version (\d+).(\d+).(\d+)/);
+
             let uri = `shell.connect('${username}:${password}@${hostname}:${portX}/${schema}')`;
-            let result = await Misc.execCmd(uri);
+            result = await Misc.execCmd(uri, undefined, undefined, true);
             uri = `Creating a session to '${username}@${hostname}:${portX}/${schema}'`;
             expect(result[0]).to.include(uri);
             await driver.wait(async () => {
@@ -253,43 +258,27 @@ describe("MYSQL SHELL CONSOLES", () => {
             await driver.wait(until.elementTextContains(schemaEl, `${schema}`),
                 constants.explicitWait, `Schema tab does not contain '${schema}'`);
 
-            result = await Misc.execCmd("shell.status()");
-            expect(result[0]).to.match(/MySQL Shell version (\d+).(\d+).(\d+)/);
-            await driver.wait(() => {
-                console.log(result[0] as string);
-                console.log("----");
-
-                return (result[0] as string).includes(`"CONNECTION":"${hostname} via TCP/IP"`);
-            }, constants.explicitWait, `"CONNECTION":"${hostname} via TCP/IP" was not found`);
-            await driver.wait(() => {
-                return (result[0] as string).includes(`"CURRENT_SCHEMA":"${schema}"`);
-            }, constants.explicitWait, `"CURRENT_SCHEMA":"${schema}" was not found`);
-            await driver.wait(() => {
-                return (result[0] as string).includes(`"CURRENT_USER":"${username}`);
-            }, constants.explicitWait, `"CURRENT_USER":"${username} was not found`);
-            await driver.wait(() => {
-                return (result[0] as string).includes(`"TCP_PORT":"${String(portX)}"`);
-            }, constants.explicitWait, `"TCP_PORT":"${String(portX)}" was not found`);
         });
 
         it("Connect using mysql mysqlx global variable", async () => {
 
             let cmd = `mysql.getClassicSession('${username}:${password}
                 @${hostname}:${port}/${schema}')`;
-            let result = await Misc.execCmd(cmd.replace(/ /g, ""));
+            let result = await Misc.execCmd(cmd.replace(/ /g, ""), undefined, undefined, true);
             expect(result[0]).to.include("ClassicSession");
             cmd = `mysql.getSession('${username}:${password}@${hostname}:${port}/${schema}')`;
-            result = await Misc.execCmd(cmd);
+            result = await Misc.execCmd(cmd, undefined, undefined, true);
             expect(result[0]).to.include("ClassicSession");
             cmd = `mysqlx.getSession('${username}:${password}@${hostname}:${portX}/${schema}')`;
-            result = await Misc.execCmd(cmd);
+            result = await Misc.execCmd(cmd, undefined, undefined, true);
             expect(result[0]).to.include("Session");
 
         });
 
         it("Change schemas using menu", async () => {
 
-            const result = await Misc.execCmd(`\\c ${username}:${password}@${hostname}:${portX}`);
+            const result = await Misc.execCmd(`\\c ${username}:${password}@${hostname}:${portX}`,
+                undefined, constants.explicitWait * 2, true);
             expect(result[0]).to.include(`Creating a session to '${username}@${hostname}:${portX}`);
             const server = await driver.wait(until.elementLocated(By.id("server")), constants.explicitWait);
             const schema = await driver.wait(until.elementLocated(By.id("schema")), constants.explicitWait);

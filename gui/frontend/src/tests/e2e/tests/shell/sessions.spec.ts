@@ -26,8 +26,8 @@ import { GuiConsole } from "../../lib/guiConsole";
 import { IDBConnection, Misc, driver, explicitWait } from "../../lib/misc";
 import { ShellSession } from "../../lib/shellSession";
 import { addAttach } from "jest-html-reporters/helper";
+import { basename } from "path";
 jest.retryTimes(1);
-
 describe("Sessions", () => {
 
     let testFailed: boolean;
@@ -40,11 +40,11 @@ describe("Sessions", () => {
         description: "Local connection",
         hostname: String(process.env.DBHOSTNAME),
         protocol: "mysql",
-        username: String(process.env.DBUSERNAMESHELL),
+        username: "dbuser1",
         port: String(process.env.DBPORT),
         portX: String(process.env.DBPORTX),
         schema: "sakila",
-        password: String(process.env.DBPASSWORDSHELL),
+        password: "dbuser1",
         sslMode: undefined,
         sslCA: undefined,
         sslClientCert: undefined,
@@ -54,19 +54,22 @@ describe("Sessions", () => {
     beforeAll(async () => {
         await Misc.loadDriver();
         try {
-            try {
-                await Misc.loadPage(String(process.env.SHELL_UI_HOSTNAME));
-                await Misc.waitForHomePage();
-            } catch (e) {
-                await driver.navigate().refresh();
-                await Misc.waitForHomePage();
-            }
+            await driver.wait(async () => {
+                try {
+                    const url = Misc.getUrl(basename(__filename));
+                    console.log(`${basename(__filename)} : ${url}`);
+                    await Misc.loadPage(url);
+                    await Misc.waitForHomePage();
+                    await driver.findElement(By.id("gui.shell")).click();
 
-            await driver.findElement(By.id("gui.shell")).click();
+                    return true;
+                } catch (e) {
+                    await driver.navigate().refresh();
+                }
+            }, explicitWait * 3, "Start Page was not loaded correctly");
+
             await GuiConsole.openSession();
-
             const editor = await driver.findElement(By.id("shellEditorHost"));
-
             await driver.executeScript(
                 "arguments[0].click();",
                 await editor.findElement(By.css(".current-line")),
@@ -111,6 +114,7 @@ describe("Sessions", () => {
     });
 
     afterAll(async () => {
+        await Misc.writeFELogs(basename(__filename), driver.manage().logs());
         await driver.quit();
     });
 
@@ -161,13 +165,9 @@ describe("Sessions", () => {
     it("Using db global variable", async () => {
         try {
             await Misc.execCmd(textArea, "db.actor.select().limit(1)");
-            await driver.wait(async () => {
-                return ShellSession.isValueOnDataSet("PENELOPE");
-            }, explicitWait, "PENELOPE is not on the dataset");
+            await ShellSession.waitForResult(/1 row in set/);
             await Misc.execCmd(textArea, "db.category.select().limit(1)");
-            await driver.wait(async () => {
-                return ShellSession.isValueOnDataSet("Action");
-            }, explicitWait, "Action is not on the dataset");
+            await ShellSession.waitForResult(/1 row in set/);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -193,7 +193,7 @@ describe("Sessions", () => {
     it("Check query result content", async () => {
         try {
             await Misc.execCmd(textArea, "\\sql");
-            await Misc.execCmd(textArea, "select * from actor limit 1;");
+            await Misc.execCmd(textArea, "select * from actor limit 1;", undefined, undefined, true);
             await driver.wait(async () => {
                 return ShellSession.isValueOnDataSet("PENELOPE");
             }, explicitWait, "PENELOPE is not the the dataset");
@@ -220,7 +220,7 @@ describe("Sessions", () => {
             }, explicitWait, "json content was not found");
             await Misc.execCmd(textArea, `shell.options.resultFormat="table" `);
             await ShellSession.waitForResult("table");
-            await Misc.execCmd(textArea, "db.category.select().limit(1)");
+            await Misc.execCmd(textArea, "db.category.select().limit(1)", undefined, undefined, true);
             expect(await driver.wait(async () => {
                 return ShellSession.isValueOnDataSet("Action");
             }, explicitWait, "'Action is not on the data set'")).toBe(true);
