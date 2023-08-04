@@ -52,6 +52,13 @@ class LogLevel(IntEnum):
     DEBUG3 = 8
     MAX_LEVEL = 8
 
+    @staticmethod
+    def from_string(log_level: str) -> 'LogLevel':
+        try:
+            return LogLevel[log_level]
+        except KeyError:
+            return LogLevel.INFO
+
 
 class BackendLogger:
     __instance = None
@@ -70,8 +77,8 @@ class BackendLogger:
                 "This class is a singleton, use get_instance function to get an instance.")
         else:
             BackendLogger.__instance = self
-            self.set_log_level(
-                LogLevel[os.environ.get('LOG_LEVEL', LogLevel.INFO.name)])
+            log_level = os.environ.get('LOG_LEVEL', LogLevel.INFO.name)
+            self.set_log_level(LogLevel.from_string(log_level))
             self.add_filter({
                 "type": "key",
                 "key": "password",
