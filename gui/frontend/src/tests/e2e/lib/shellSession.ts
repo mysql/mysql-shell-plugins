@@ -33,14 +33,26 @@ export class ShellSession {
      *
      */
     public static getResult = async (): Promise<string> => {
-        const zoneHosts = await driver.findElements(By.css(".zoneHost"));
-        const actions = await zoneHosts[zoneHosts.length - 1].findElements(By.css(".actionLabel"));
         let text = "";
-        for (const action of actions) {
-            const spans = await action.findElements(By.css("span"));
-            for (const span of spans) {
-                text += `${await span.getText()}\r\n`;
+        const zoneHosts = await driver.findElements(By.css(".zoneHost"));
+        if (zoneHosts.length > 0) {
+            const actions = await zoneHosts[zoneHosts.length - 1].findElements(By.css(".actionLabel"));
+            if (actions.length > 0) {
+                for (const action of actions) {
+                    const spans = await action.findElements(By.css("span"));
+                    for (const span of spans) {
+                        text += `${await span.getText()}\r\n`;
+                    }
+                }
+            } else {
+                // Query results
+                const resultStatus = await zoneHosts[zoneHosts.length - 1].findElements(By.css(".resultStatus .info"));
+                if (resultStatus.length > 0) {
+                    text = await resultStatus[0].getText();
+                }
             }
+        } else {
+            throw new Error("Could not find any zone hosts");
         }
 
         return text;
@@ -232,11 +244,11 @@ export class ShellSession {
         if (tab === "server") {
             await driver.wait(async () => {
                 return (await ShellSession.getServerTabStatus()).includes(text);
-            }, explicitWait, `'${text}' was not found on result`);
+            }, explicitWait, `'${text}' was not found on the server tab`);
         } else {
             await driver.wait(async () => {
                 return (await ShellSession.getSchemaTabStatus()).includes(text);
-            }, explicitWait, `'${text}' was not found on result`);
+            }, explicitWait, `'${text}' was not found on the schema tab`);
         }
     };
 

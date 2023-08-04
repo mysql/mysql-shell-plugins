@@ -449,30 +449,37 @@ export class Misc {
         cmd = cmd.replace(/(\r\n|\n|\r)/gm, "");
         const count = (cmd.match(/;|select|SELECT/g) || []).length;
         const hasMultipleQueries = count >= 3 && cmd.toLowerCase().startsWith("select");
-
-        const nextBlockId = await Misc.getNextResultBlockId();
+        let nextBlockId = await Misc.getNextResultBlockId();
+        timeout = timeout ?? 5000;
 
         if (cmd.length > 0) {
             await Misc.writeCmd(cmd, slowWriting);
         }
 
-        if (button) {
-            const btn = await Database.getToolbarButton(button);
-            await btn?.click();
-        } else {
-            await Misc.execOnEditor();
-        }
-
-        timeout = timeout ?? 5000;
-
         if (button === constants.execCaret) {
             const prevBlocks = await driver.findElements(By.css(".zoneHost"));
             const block = await prevBlocks[prevBlocks.length - 1].getAttribute("monaco-view-zone");
-
-            return Misc.getCmdResult(cmd, `${block},${String(nextBlockId)}`, timeout, hasMultipleQueries);
-        } else {
-            return Misc.getCmdResult(cmd, nextBlockId, timeout, hasMultipleQueries);
+            nextBlockId = `${block}, ${String(nextBlockId)}`;
         }
+
+        return driver.wait(async () => {
+            try {
+                if (button) {
+                    const btn = await Database.getToolbarButton(button);
+                    await btn?.click();
+                } else {
+                    await Misc.execOnEditor();
+                }
+                const result = await Misc.getCmdResult(cmd, nextBlockId, timeout, hasMultipleQueries);
+
+                return result;
+            } catch (e) {
+                if (!(String(e.message).includes("Could not get the result block"))) {
+                    throw e;
+                }
+            }
+        }, constants.explicitWait * 2, `Could not get the result block for ${cmd}`);
+
     };
 
     public static execCmdByContextItem = async (
@@ -581,17 +588,41 @@ export class Misc {
         }
     };
 
-    public static verifyNotification = async (text: string): Promise<void> => {
-
+    public static verifyNotification = async (text: string, wait = false): Promise<void> => {
         await driver.wait(new Condition("", async () => {
-            const ntfs = await new Workbench().getNotifications();
-            for (const ntf of ntfs) {
-                if ((await ntf.getMessage()).includes(text)) {
-                    return true;
+            try {
+                const ntfs = await new Workbench().getNotifications();
+                if (ntfs.length > 0) {
+                    for (const ntf of ntfs) {
+                        if ((await ntf.getMessage()).includes(text)) {
+                            return true;
+                        }
+                    }
+                }
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
                 }
             }
         }), constants.explicitWait, "Could not find any notification");
 
+        if (wait) {
+            await driver.wait(async () => {
+                try {
+                    const ntfs = await new Workbench().getNotifications();
+                    if (ntfs.length === 0) {
+                        return true;
+                    }
+                } catch (e) {
+                    if (e instanceof error.StaleElementReferenceError) {
+                        return true;
+                    } else {
+                        throw e;
+                    }
+                }
+
+            }, constants.explicitWait * 2, "The notification did not go away");
+        }
     };
 
     public static execOnTerminal = async (cmd: string, timeout: number): Promise<void> => {
@@ -606,6 +637,12 @@ export class Misc {
             await terminal.executeCommand(cmd, timeout);
         }
 
+    };
+
+    public static clearTerminal = async (): Promise<void> => {
+        const bottomBar = new BottomBarPanel();
+        const dots = await bottomBar.findElement(By.xpath(".//a[contains(@title, 'Views and More Actions...')]"));
+        await dots.click();
     };
 
     public static waitForTerminalText = async (textToSearch: string | string[],
@@ -1089,7 +1126,6 @@ export class Misc {
         let el: TreeItem;
         let reloadLabel: string;
 
-        const sectionTree = await Misc.getSection(section);
         if (reloadSection) {
             if (section === constants.dbTreeSection) {
                 reloadLabel = "Reload the connection list";
@@ -1099,29 +1135,46 @@ export class Misc {
         }
 
         await driver.wait(async () => {
-            if (reloadSection) {
-                await Misc.clickSectionToolbarButton(sectionTree, reloadLabel);
-            }
-            el = await sectionTree.findItem(itemName, 5);
+            try {
+                const sectionTree = await Misc.getSection(section);
+                if (reloadSection) {
+                    await Misc.clickSectionToolbarButton(sectionTree, reloadLabel);
+                }
+                await driver.wait(Misc.isNotLoading(sectionTree), constants.explicitWait * 2,
+                    `${await sectionTree.getTitle()} is still loading`);
+                el = await sectionTree.findItem(itemName, 5);
 
-            return el !== undefined;
-        }, constants.explicitWait, `${itemName} on section was not found`);
+                return el !== undefined;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+
+        }, constants.explicitWait * 3, `${itemName} on section was not found`);
 
         return el;
     };
 
     public static getRouter = async (connectionCaption: string): Promise<TreeItem> => {
         return driver.wait(async () => {
-            const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, connectionCaption, true);
-            await (await Misc.getActionButton(treeGlobalConn, "Reload Database Information")).click();
-            const treeDBSection = await Misc.getSection(constants.dbTreeSection);
-            await driver.wait(Misc.isNotLoading(treeDBSection), constants.ociExplicitWait * 2,
-                `${await treeDBSection.getTitle()} is still loading`);
-            const treeMySQLRESTService = await Misc.getTreeElement(constants.dbTreeSection, "MySQL REST Service");
-            const children = await treeMySQLRESTService.getChildren();
-            for (const child of children) {
-                if (((await child.getLabel()).includes(hostname()))) {
-                    return child;
+            try {
+                const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, connectionCaption, true);
+                await (await Misc.getActionButton(treeGlobalConn, "Reload Database Information")).click();
+                const treeDBSection = await Misc.getSection(constants.dbTreeSection);
+                await driver.wait(Misc.isNotLoading(treeDBSection), constants.ociExplicitWait * 2,
+                    `${await treeDBSection.getTitle()} is still loading`);
+
+                const items = await treeDBSection.getVisibleItems();
+                for (const item of items) {
+                    const label = await item.getLabel();
+                    if (label.includes(hostname())) {
+                        return item;
+                    }
+                }
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
                 }
             }
         }, constants.explicitWait, `${hostname()} tree item was not found`);
@@ -1191,7 +1244,7 @@ export class Misc {
         }
     };
 
-    private static getTerminalOutput = async (): Promise<string> => {
+    public static getTerminalOutput = async (): Promise<string> => {
         let out: string;
         const bootomBar = new BottomBarPanel();
         await bootomBar.openTerminalView();

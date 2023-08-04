@@ -22,7 +22,7 @@
  */
 
 import fs from "fs/promises";
-import { join } from "path";
+import { join, basename } from "path";
 import { By, Condition, Key, error, until } from "selenium-webdriver";
 import { DBConnection } from "../../lib/dbConnection";
 import {
@@ -39,8 +39,6 @@ import { IDBConnection, Misc, driver, explicitWait } from "../../lib/misc";
 import { ShellSession } from "../../lib/shellSession";
 import { addAttach } from "jest-html-reporters/helper";
 
-jest.retryTimes(1);
-
 describe("Notebook", () => {
 
     let testFailed = false;
@@ -48,15 +46,15 @@ describe("Notebook", () => {
 
     const globalConn: IDBConnection = {
         dbType: undefined,
-        caption: `conn${new Date().valueOf()}`,
+        caption: `connNotebooks`,
         description: "Local connection",
         hostname: String(process.env.DBHOSTNAME),
         protocol: "mysql",
-        username: String(process.env.DBUSERNAME),
+        username: "dbuser2",
         port: String(process.env.DBPORT),
         portX: String(process.env.DBPORTX),
         schema: "sakila",
-        password: String(process.env.DBPASSWORD),
+        password: "dbuser2",
         sslMode: undefined,
         sslCA: undefined,
         sslClientCert: undefined,
@@ -66,15 +64,19 @@ describe("Notebook", () => {
     beforeAll(async () => {
         await Misc.loadDriver();
         try {
-            try {
-                await Misc.loadPage(String(process.env.SHELL_UI_HOSTNAME));
-                await Misc.waitForHomePage();
-            } catch (e) {
-                await driver.navigate().refresh();
-                await Misc.waitForHomePage();
-            }
+            await driver.wait(async () => {
+                try {
+                    const url = Misc.getUrl(basename(__filename));
+                    console.log(`${basename(__filename)} : ${url}`);
+                    await Misc.loadPage(url);
+                    await Misc.waitForHomePage();
+                    await driver.findElement(By.id("gui.sqleditor")).click();
 
-            await driver.findElement(By.id("gui.sqleditor")).click();
+                    return true;
+                } catch (e) {
+                    await driver.navigate().refresh();
+                }
+            }, explicitWait * 3, "Start Page was not loaded correctly");
             const db = await DBNotebooks.createDBconnection(globalConn);
             try {
                 await driver.executeScript("arguments[0].click();", db);
@@ -109,6 +111,7 @@ describe("Notebook", () => {
     });
 
     afterAll(async () => {
+        await Misc.writeFELogs(basename(__filename), driver.manage().logs());
         await driver.quit();
     });
 
@@ -556,14 +559,19 @@ describe("Notebook", () => {
             ).toContain("expanded");
 
             await DBConnection.toggleSchemaObject("Tables", "Tables");
-
             const tables = await DBConnection.getSchemaObject("Tables", "Tables");
 
-            expect(
-                await (
-                    await tables!.findElement(By.css("span.treeToggle"))
-                ).getAttribute("class"),
-            ).toContain("expanded");
+            await driver.wait(async () => {
+                try {
+                    const treeToggle = await tables!.findElement(By.css("span.treeToggle"));
+
+                    return ((await treeToggle.getAttribute("class")).includes("expanded"));
+                } catch (e) {
+                    if (!(e instanceof error.NoSuchElementError)) {
+                        throw e;
+                    }
+                }
+            }, explicitWait * 2, "Tables tree was not expaned");
 
             expect(await DBConnection.getSchemaObject("obj", "actor")).toBeDefined();
 
@@ -835,7 +843,7 @@ describe("Notebook", () => {
 
             const textArea = await contentHost.findElement(By.css("textarea"));
 
-            await Misc.execCmd(textArea, "SELECT VERSION();", undefined, true);
+            await Misc.execCmd(textArea, "SELECT VERSION();", undefined, true, true);
 
             const resultHosts = await driver.wait(until.elementsLocated(By.css(".resultHost")),
                 explicitWait * 2, "Result hosts not found");
@@ -896,7 +904,7 @@ describe("Notebook", () => {
                 }
                 `;
 
-            await Misc.execCmd(textArea, cmd.trim(), undefined, true);
+            await Misc.execCmd(textArea, cmd.trim(), undefined, true, false);
 
             const pieChart = await DBConnection.getGraphHost();
 

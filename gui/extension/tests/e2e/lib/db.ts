@@ -1136,7 +1136,13 @@ export class Database {
 
     public static setInputPath = async (path: string): Promise<void> => {
         const input = await InputBox.create();
-        await input.setText(path);
+        await driver.wait(async () => {
+            await input.clear();
+            await input.setText(path);
+
+            return (await input.getText()) === path;
+        }, constants.explicitWait, "Could not set text on input box");
+
         await input.confirm();
     };
 

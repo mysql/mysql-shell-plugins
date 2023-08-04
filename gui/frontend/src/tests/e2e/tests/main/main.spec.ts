@@ -25,6 +25,7 @@ import { Misc, driver, explicitWait } from "../../lib/misc";
 import { By, until } from "selenium-webdriver";
 import { ThemeEditor } from "../../lib/themeEditor";
 import { addAttach } from "jest-html-reporters/helper";
+import { basename } from "path";
 
 describe("Main pages", () => {
     let testFailed = false;
@@ -33,7 +34,9 @@ describe("Main pages", () => {
         await Misc.loadDriver();
         try {
             try {
-                await Misc.loadPage(String(process.env.SHELL_UI_HOSTNAME));
+                const url = Misc.getUrl(basename(__filename));
+                console.log(`${basename(__filename)} : ${url}`);
+                await Misc.loadPage(url);
                 await Misc.waitForHomePage();
             } catch (e) {
                 await driver.navigate().refresh();
@@ -56,6 +59,7 @@ describe("Main pages", () => {
     });
 
     afterAll(async () => {
+        await Misc.writeFELogs(basename(__filename), driver.manage().logs());
         await driver.quit();
     });
 
@@ -447,7 +451,8 @@ describe("Main pages", () => {
 
     it("Invalid token", async () => {
         try {
-            await Misc.loadPage(`${String(process.env.SHELL_UI_HOSTNAME)}xpto`);
+            const url = Misc.getUrl(basename(__filename));
+            await Misc.loadPage(`${String(url)}xpto`);
             const errorPanel = await driver.wait(until.elementLocated(By.css(".visible.errorPanel")),
                 explicitWait, "Error label was not found");
 
@@ -469,8 +474,9 @@ describe("Main pages", () => {
 
     it("No token", async () => {
         try {
-            const groups = String(process.env.SHELL_UI_HOSTNAME).match(/token=(.*)/);
-            await Misc.loadPage(String(process.env.SHELL_UI_HOSTNAME).replace(groups![1], ""));
+            const url = Misc.getUrl(basename(__filename));
+            await Misc.loadPage(String(url).replace(String(process.env.TOKEN), ""));
+
             const errorPanel = await driver.wait(until.elementLocated(By.css(".visible.errorPanel")),
                 explicitWait, "Error label was not found");
 

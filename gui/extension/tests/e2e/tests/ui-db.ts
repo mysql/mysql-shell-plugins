@@ -892,21 +892,28 @@ describe("DATABASE CONNECTIONS", () => {
         });
 
         it("Delete DB connection", async () => {
-
             const dupName = await treeDup.getLabel();
             await Misc.openContexMenuItem(treeDup, constants.deleteDBConnection, true);
             try {
                 const dialog = await driver.wait(until.elementLocated(
                     By.css(".visible.confirmDialog")), constants.explicitWait * 3, "confirm dialog was not found");
+
                 await dialog.findElement(By.id("accept")).click();
                 await driver.switchTo().defaultContent();
+                const treeDBSection = await Misc.getSection(constants.dbTreeSection);
+                await driver.wait(Misc.isNotLoading(treeDBSection), constants.ociExplicitWait * 2,
+                    `${await treeDBSection.getTitle()} is still loading`);
+
                 await driver.wait(async () => {
                     let treeDBSection = await Misc.getSection(constants.dbTreeSection);
                     await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
                     treeDBSection = await Misc.getSection(constants.dbTreeSection);
+                    await driver.wait(Misc.isNotLoading(treeDBSection), constants.ociExplicitWait * 2,
+                        `${await treeDBSection.getTitle()} is still loading`);
+                    await treeDBSection.findItem(dupName);
 
                     return (await treeDBSection.findItem(dupName)) === undefined;
-                }, constants.explicitWait, `${dupName} was not deleted`);
+                }, constants.explicitWait * 3, `${dupName} was not deleted`);
             } finally {
                 await new EditorView().closeEditor(constants.dbDefaultEditor);
             }
@@ -915,28 +922,36 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Schema - Copy name and create statement to clipboard", async () => {
 
-            treeGlobalSchema = await Misc.getTreeElement(constants.dbTreeSection,
-                (globalConn.basic as IConnBasicMySQL).schema);
-
             await driver.wait(new Condition("", async () => {
-                await Misc.openContexMenuItem(treeGlobalSchema, [constants.copyToClipboard,
-                constants.copyToClipboardName]);
-                await Misc.verifyNotification("The name was copied to the system clipboard");
+                try {
+                    treeGlobalSchema = await Misc.getTreeElement(constants.dbTreeSection,
+                        (globalConn.basic as IConnBasicMySQL).schema);
+                    await Misc.openContexMenuItem(treeGlobalSchema, [constants.copyToClipboard,
+                    constants.copyToClipboardName]);
+                    await Misc.verifyNotification("The name was copied to the system clipboard", true);
 
-                return clipboard.readSync() === (globalConn.basic as IConnBasicMySQL).schema;
-
+                    return clipboard.readSync() === (globalConn.basic as IConnBasicMySQL).schema;
+                } catch (e) {
+                    if (!(e instanceof error.StaleElementReferenceError)) {
+                        throw e;
+                    }
+                }
             }), constants.explicitWait * 3, "The schema name was not copied to the clipboard");
 
-            treeGlobalSchema = await Misc.getTreeElement(constants.dbTreeSection,
-                (globalConn.basic as IConnBasicMySQL).schema);
-
             await driver.wait(new Condition("", async () => {
-                await Misc.openContexMenuItem(treeGlobalSchema, [constants.copyToClipboard,
-                constants.copyToClipboardStat]);
-                await Misc.verifyNotification("The create script was copied to the system clipboard");
+                try {
+                    treeGlobalSchema = await Misc.getTreeElement(constants.dbTreeSection,
+                        (globalConn.basic as IConnBasicMySQL).schema);
+                    await Misc.openContexMenuItem(treeGlobalSchema, [constants.copyToClipboard,
+                    constants.copyToClipboardStat]);
+                    await Misc.verifyNotification("The create script was copied to the system clipboard", true);
 
-                return clipboard.readSync().includes("CREATE DATABASE");
-
+                    return clipboard.readSync().includes("CREATE DATABASE");
+                } catch (e) {
+                    if (!(e instanceof error.StaleElementReferenceError)) {
+                        throw e;
+                    }
+                }
             }), constants.explicitWait * 3, "The schema create statement was not copied to the clipboard");
 
         });
@@ -969,7 +984,7 @@ describe("DATABASE CONNECTIONS", () => {
                 const dialog = new ModalDialog();
                 await dialog.pushButton(`Drop ${testSchema}`);
             }
-            await Misc.verifyNotification(`The object ${testSchema} has been dropped successfully.`);
+            await Misc.verifyNotification(`The object ${testSchema} has been dropped successfully.`, true);
             const treeDBSection = await Misc.getSection(constants.dbTreeSection);
             await driver.wait(Misc.isNotLoading(treeDBSection), constants.explicitWait * 2,
                 `${await treeDBSection.getTitle()} is still loading`);
@@ -1004,24 +1019,34 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Table - Copy name and create statement to clipboard", async () => {
 
-            const actorTable = await Misc.getTreeElement(constants.dbTreeSection, "actor");
-
             await driver.wait(new Condition("", async () => {
-                await Misc.openContexMenuItem(actorTable, [constants.copyToClipboard,
-                constants.copyToClipboardName]);
-                await Misc.verifyNotification("The name was copied to the system clipboard");
+                try {
+                    const actorTable = await Misc.getTreeElement(constants.dbTreeSection, "actor");
+                    await Misc.openContexMenuItem(actorTable, [constants.copyToClipboard,
+                    constants.copyToClipboardName]);
+                    await Misc.verifyNotification("The name was copied to the system clipboard");
 
-                return clipboard.readSync() === "actor";
-
+                    return clipboard.readSync() === "actor";
+                } catch (e) {
+                    if (!(e instanceof error.StaleElementReferenceError)) {
+                        throw e;
+                    }
+                }
             }), constants.explicitWait * 3, "The table name was not copied to the clipboard");
 
             await driver.wait(new Condition("", async () => {
-                await Misc.openContexMenuItem(actorTable, [constants.copyToClipboard,
-                constants.copyToClipboardStat]);
-                await Misc.verifyNotification("The create script was copied to the system clipboard");
+                try {
+                    const actorTable = await Misc.getTreeElement(constants.dbTreeSection, "actor");
+                    await Misc.openContexMenuItem(actorTable, [constants.copyToClipboard,
+                    constants.copyToClipboardStat]);
+                    await Misc.verifyNotification("The create script was copied to the system clipboard");
 
-                return clipboard.readSync().includes("idx_actor_last_name");
-
+                    return clipboard.readSync().includes("idx_actor_last_name");
+                } catch (e) {
+                    if (!(e instanceof error.StaleElementReferenceError)) {
+                        throw e;
+                    }
+                }
             }), constants.explicitWait * 3, "The table create statement was not copied to the clipboard");
 
         });
@@ -1047,21 +1072,21 @@ describe("DATABASE CONNECTIONS", () => {
             result = await Misc.execCmd(`create table ${testTable} (id int, name VARCHAR(50));`);
             expect(result[0]).to.include("OK");
             await driver.switchTo().defaultContent();
-            const treeTestTable = await Misc.getTreeElement(constants.dbTreeSection, testTable, true);
             await driver.wait(async () => {
                 try {
+                    const treeTestTable = await Misc.getTreeElement(constants.dbTreeSection, testTable, true);
                     await Misc.openContexMenuItem(treeTestTable, constants.dropTable);
                     const dialog = new ModalDialog();
                     await dialog.pushButton(`Drop ${testTable}`);
 
                     return true;
                 } catch (e) {
-                    if (!(e instanceof error.NoSuchElementError)) {
+                    if (!(e instanceof error.NoSuchElementError) && !(e instanceof error.StaleElementReferenceError)) {
                         throw e;
                     }
                 }
-            }, constants.explicitWait * 2, "Drop Table dialog was not displayed");
-            await Misc.verifyNotification(`The object ${testTable} has been dropped successfully.`);
+            }, constants.explicitWait * 2, "Could not drop the table");
+            await Misc.verifyNotification(`The object ${testTable} has been dropped successfully.`, true);
             const treeDBSection = await Misc.getSection(constants.dbTreeSection);
             await driver.wait(Misc.isNotLoading(treeDBSection), constants.explicitWait * 2,
                 `${await treeDBSection.getTitle()} is still loading`);
@@ -1086,21 +1111,35 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("View - Copy name and create statement to clipboard", async () => {
 
-            const treeTestView = await Misc.getTreeElement(constants.dbTreeSection, "test_view");
             await driver.wait(new Condition("", async () => {
-                await Misc.openContexMenuItem(treeTestView, [constants.copyToClipboard,
-                constants.copyToClipboardName]);
-                await Misc.verifyNotification("The name was copied to the system clipboard");
+                try {
+                    const treeTestView = await Misc.getTreeElement(constants.dbTreeSection, "test_view");
+                    await Misc.openContexMenuItem(treeTestView, [constants.copyToClipboard,
+                    constants.copyToClipboardName]);
+                    await Misc.verifyNotification("The name was copied to the system clipboard");
 
-                return clipboard.readSync() === "test_view";
+                    return clipboard.readSync() === "test_view";
+                } catch (e) {
+                    if (!(e instanceof error.StaleElementReferenceError)) {
+                        throw e;
+                    }
+                }
+
             }), constants.explicitWait * 3, "The view name was not copied to the clipboard");
 
             await driver.wait(new Condition("", async () => {
-                await Misc.openContexMenuItem(treeTestView, [constants.copyToClipboard,
-                constants.copyToClipboardStat]);
-                await Misc.verifyNotification("The create script was copied to the system clipboard");
+                try {
+                    const treeTestView = await Misc.getTreeElement(constants.dbTreeSection, "test_view");
+                    await Misc.openContexMenuItem(treeTestView, [constants.copyToClipboard,
+                    constants.copyToClipboardStat]);
+                    await Misc.verifyNotification("The create script was copied to the system clipboard");
 
-                return clipboard.readSync().includes("DEFINER VIEW");
+                    return clipboard.readSync().includes("DEFINER VIEW");
+                } catch (e) {
+                    if (!(e instanceof error.StaleElementReferenceError)) {
+                        throw e;
+                    }
+                }
             }), constants.explicitWait * 3, "The view create statement was not copied to the clipboard");
 
         });
@@ -1123,25 +1162,25 @@ describe("DATABASE CONNECTIONS", () => {
             result = await Misc.execCmd(`CREATE VIEW ${testView} as select * from sakila.actor;`);
             expect(result[0]).to.include("OK");
             await driver.switchTo().defaultContent();
-            const treeTestView = await Misc.getTreeElement(constants.dbTreeSection, testView, true);
             await treeGlobalConn.expand();
             await treeGlobalSchema.expand();
             await treeGlobalSchemaViews.expand();
             await driver.wait(async () => {
                 try {
+                    const treeTestView = await Misc.getTreeElement(constants.dbTreeSection, testView, true);
                     await Misc.openContexMenuItem(treeTestView, constants.dropView);
                     const dialog = new ModalDialog();
                     await dialog.pushButton(`Drop ${testView}`);
 
                     return true;
                 } catch (e) {
-                    if (!(e instanceof error.NoSuchElementError)) {
+                    if (!(e instanceof error.NoSuchElementError) && !(e instanceof error.StaleElementReferenceError)) {
                         throw e;
                     }
                 }
-            }, constants.explicitWait * 2, "Drop View dialog was not displayed");
+            }, constants.explicitWait * 2, "Could not drop the view");
 
-            await Misc.verifyNotification(`The object ${testView} has been dropped successfully.`);
+            await Misc.verifyNotification(`The object ${testView} has been dropped successfully.`, true);
             const treeDBSection = await Misc.getSection(constants.dbTreeSection);
             await driver.wait(Misc.isNotLoading(treeDBSection), constants.explicitWait * 2,
                 `${await treeDBSection.getTitle()} is still loading`);

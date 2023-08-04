@@ -26,7 +26,7 @@ import { Misc, explicitWait, driver, IDBConnection } from "../../lib/misc";
 import { DBConnection } from "../../lib/dbConnection";
 import { DBNotebooks } from "../../lib/dbNotebooks";
 import { addAttach } from "jest-html-reporters/helper";
-
+import { basename } from "path";
 
 describe("MySQL Administration", () => {
 
@@ -34,7 +34,7 @@ describe("MySQL Administration", () => {
 
     const globalConn: IDBConnection = {
         dbType: undefined,
-        caption: `conn${new Date().valueOf()}`,
+        caption: `connAdmin`,
         description: "Local connection",
         hostname: String(process.env.DBHOSTNAME),
         protocol: "mysql",
@@ -52,15 +52,19 @@ describe("MySQL Administration", () => {
     beforeAll(async () => {
         await Misc.loadDriver();
         try {
-            try {
-                await Misc.loadPage(String(process.env.SHELL_UI_HOSTNAME));
-                await Misc.waitForHomePage();
-            } catch (e) {
-                await driver.navigate().refresh();
-                await Misc.waitForHomePage();
-            }
+            await driver.wait(async () => {
+                try {
+                    const url = Misc.getUrl(basename(__filename));
+                    console.log(`${basename(__filename)} : ${url}`);
+                    await Misc.loadPage(url);
+                    await Misc.waitForHomePage();
+                    await driver.findElement(By.id("gui.sqleditor")).click();
 
-            await driver.findElement(By.id("gui.sqleditor")).click();
+                    return true;
+                } catch (e) {
+                    await driver.navigate().refresh();
+                }
+            }, explicitWait * 3, "Start Page was not loaded correctly");
             const db = await DBNotebooks.createDBconnection(globalConn);
             try {
                 await driver.executeScript("arguments[0].click();", db);
@@ -91,6 +95,7 @@ describe("MySQL Administration", () => {
     });
 
     afterAll(async () => {
+        await Misc.writeFELogs(basename(__filename), driver.manage().logs());
         await driver.quit();
     });
 

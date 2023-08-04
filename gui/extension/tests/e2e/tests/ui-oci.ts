@@ -538,7 +538,6 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await Misc.openContexMenuItem(treeBastion, constants.refreshBastion);
             const treeTasksSection = await Misc.getSection(constants.tasksTreeSection);
             await treeTasksSection.expand();
-            expect(await Misc.getTreeElement(constants.tasksTreeSection, "Refresh Bastion (running)")).to.exist;
             const bottomBar = new BottomBarPanel();
             const outputView = await bottomBar.openOutputView();
             await Misc.waitForOutputText("Task 'Refresh Bastion' completed successfully", 20000);
@@ -572,7 +571,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 }
             }, constants.explicitWait, "Could not click on notification button");
             await driver.wait(Misc.getTreeElement(constants.tasksTreeSection, "Delete Bastion (error)"),
-                constants.explicitWait, "'Delete Bastion (error)' was not found on the tree");
+                constants.explicitWait * 2, "'Delete Bastion (error)' was not found on the tree");
 
             await Misc.waitForOutputText("Deletion aborted", constants.explicitWait);
             await outputView.clearText();

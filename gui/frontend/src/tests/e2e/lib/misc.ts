@@ -23,14 +23,25 @@
 
 import { platform } from "os";
 import fs from "fs/promises";
-
-import { By, until, Key, WebElement, Builder, WebDriver, error } from "selenium-webdriver";
+import { By, until, Key, WebElement, Builder, WebDriver, error, Logs, logging } from "selenium-webdriver";
 import { Options } from "selenium-webdriver/chrome";
 import { DBConnection } from "./dbConnection";
 import { execFullBlockJs, execFullBlockSql } from "./dbNotebooks";
-
+import { join } from "path";
 export let driver: WebDriver;
 export const explicitWait = 5000;
+export const feLog = "fe.log";
+
+export const shellServers = new Map([
+    ["admin.spec.ts", 0],
+    ["db_connections.spec.ts", 1],
+    ["notebook.spec.ts", 1],
+    ["scripts.spec.ts", 1],
+    ["main.spec.ts", 0],
+    ["guiconsole.spec.ts", 0],
+    ["sessions.spec.ts", 2],
+    ["shell_connections.spec.ts", 2],
+]);
 
 /**
  * DB Connection interface
@@ -97,6 +108,62 @@ export class Misc {
 
         driver = await prom();
         await driver.manage().setTimeouts({ implicit: 0 });
+    };
+
+    /**
+     * Checks if a file exists
+     *
+     * @param path to the file
+     * @returns true if exists, false otherwise
+     */
+    public static fileExists = async (path: string): Promise<boolean> => {
+        try {
+            await fs.access(path);
+
+            return true;
+        } catch (e) {
+            return false;
+        }
+    };
+
+    /**
+     * Writes the FE logs to a file
+     *
+     * @param testName Name of the test
+     * @param content Logs content
+     * @returns A promise resolving when the logs are written
+     */
+    public static writeFELogs = async (testName: string, content: Logs): Promise<void> => {
+        if (await Misc.fileExists(join(process.cwd(), feLog))) {
+            await fs.appendFile(feLog, `\n---- ${testName} -----`);
+        } else {
+            await fs.writeFile(feLog, `---- ${testName} -----\n`);
+        }
+        const logs = await content.get(logging.Type.BROWSER);
+        for (const log of logs) {
+            const date = new Date(log.timestamp);
+            let time = `${date.getDate()}-${date.getMonth()}-${date.getFullYear()} `;
+            time += `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+            await fs.appendFile(feLog, `\n${time} [${String(log.level)}] ${log.message}`);
+        }
+    };
+
+    /**
+     * Waits until a page loads
+     *
+     * @param filename filename of the test suite
+     * @returns A promise resolving when the url is set
+     */
+    public static getUrl = (filename: string): string => {
+        let url = process.env.SHELL_UI_HOSTNAME;
+        if (process.env.MAX_WORKERS) {
+            const port = shellServers.get(filename);
+            url += `:800${String(port)}/?token=${String(process.env.TOKEN)}`;
+        } else {
+            url += `:${String(process.env.HOSTNAME_PORT)}/?token=${String(process.env.TOKEN)}`;
+        }
+
+        return String(url);
     };
 
     /**
@@ -172,13 +239,28 @@ export class Misc {
      * @param cmd command to execute
      * @param timeout wait for results
      * @param useBtn use exec button on toolbar
+     * @param slowWriting write the cmd as a human
      * @returns Promise resolving when the command is executed
      */
-    public static execCmd = async (textArea: WebElement,
-        cmd: string, timeout?: number, useBtn?: boolean): Promise<void> => {
+    public static execCmd = async (
+        textArea: WebElement,
+        cmd: string,
+        timeout?: number,
+        useBtn?: boolean,
+        slowWriting = false,
+    ): Promise<void> => {
         cmd = cmd.replace(/(\r\n|\n|\r)/gm, "");
         const prevBlocks = await driver.findElements(By.css(".zoneHost"));
-        await textArea.sendKeys(cmd);
+        if (slowWriting === true) {
+            const items = cmd.split("");
+            for (const item of items) {
+                await textArea.sendKeys(item);
+                await driver.sleep(20);
+            }
+        } else {
+            await textArea.sendKeys(cmd);
+        }
+        await textArea.sendKeys(Key.ESCAPE);
         if (cmd.indexOf("\\") !== -1) {
             const codeMenu = await driver.findElements(By.css("div.contents"));
             if (codeMenu.length > 0) {

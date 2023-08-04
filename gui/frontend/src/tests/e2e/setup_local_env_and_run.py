@@ -29,6 +29,8 @@ import subprocess
 import sys
 import tempfile
 import typing
+import time
+import shutil
 
 arg_parser = argparse.ArgumentParser()
 
@@ -81,9 +83,6 @@ except argparse.ArgumentError as e:
 VERBOSE = True
 
 DB_ROOT_PASSWORD = "" if argv.db_root_password == "-" else argv.db_root_password
-BE_SERVER_PORT1 = 8000
-BE_SERVER_PORT2 = 8001
-TOKEN = "1234test"
 TEXT_ONLY_OUTPUT = True
 
 WORKING_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -91,13 +90,13 @@ SAKILA_SQL_PATH = os.path.join(WORKING_DIR, "sql", "sakila.sql")
 WORLD_SQL_PATH = os.path.join(WORKING_DIR, "sql", "world_x_cst.sql")
 USERS_PATH = os.path.join(WORKING_DIR, "sql", "users.sql")
 PROCEDURES_PATH = os.path.join(WORKING_DIR, "sql", "procedures.sql")
-
+MAX_WORKERS = "3"
+TOKEN = "1234test"
 
 def quote(text: str) -> str:
     """Adding quote to text on Windows"""
 
     return f'"{text}"' if platform.system() == "Windows" else text
-
 
 def get_executables(name: str) -> str:
     """Gets executables specific for platform
@@ -131,7 +130,6 @@ def get_executables(name: str) -> str:
 
     return executables[name]
 
-
 def create_symlink(target: str, link_name: str) -> None:
     """Creates symlink for all platforms
 
@@ -146,7 +144,6 @@ def create_symlink(target: str, link_name: str) -> None:
         p.check_returncode()
     else:
         os.symlink(target, link_name)
-
 
 class Logger:
     """Simple logger to prints log messages"""
@@ -177,10 +174,8 @@ class Logger:
         if VERBOSE:
             print(f"{'[INF]' if TEXT_ONLY_OUTPUT else 'ℹ️'} {msg}")
 
-
 class TaskFailException(Exception):
     """Task failure exception"""
-
 
 class Runnable(typing.Protocol):
     """Interface for tasks"""
@@ -192,7 +187,6 @@ class Runnable(typing.Protocol):
     def clean_up(self) -> None:
         """Clean up after task finish"""
         raise NotImplementedError()
-
 
 class Checkable(typing.Protocol):
     """Interface for prerequisites tasks"""
@@ -208,7 +202,6 @@ class Checkable(typing.Protocol):
         """
 
         raise NotImplementedError()
-
 
 class CheckVersionTask:
     """Checks version of the given executables"""
@@ -260,21 +253,20 @@ class CheckVersionTask:
         self.message_success = f"Found {self.name: <20} [{self.version}]"
         return True
 
-
 class SetEnvironmentVariablesTask:
     """Task for setting environment variables"""
 
-    def __init__(self, environment: typing.Dict[str, str], dir_name: str) -> None:
+    def __init__(self, environment: typing.Dict[str, str], dir_name: str, servers: typing.List) -> None:
         self.environment = environment
         self.dir_name = dir_name
+        self.servers = servers
 
     def run(self) -> None:
         """Runs the task"""
 
-        self.environment[
-            "SHELL_UI_HOSTNAME"
-        ] = f"http://localhost:{BE_SERVER_PORT1}/?token={TOKEN}"
-        self.environment["SHELL_UI_MU_HOSTNAME"] = f"http://localhost:{BE_SERVER_PORT2}"
+        self.environment["TOKEN"] = TOKEN
+        self.environment["MAX_WORKERS"] = MAX_WORKERS
+        self.environment["SHELL_UI_HOSTNAME"] = f"http://localhost"
         self.environment["DBHOSTNAME"] = "localhost"
         self.environment["DBUSERNAME"] = argv.db_root_user
         self.environment["DBPASSWORD"] = DB_ROOT_PASSWORD
@@ -288,6 +280,10 @@ class SetEnvironmentVariablesTask:
         self.environment["MU_USERNAME"] = "client"
         self.environment["MU_PASSWORD"] = "client"
 
+        for x in self.servers:
+            if x.multiuser == True:
+                self.environment["SHELL_UI_MU_HOSTNAME"] = f"http://localhost:{x.port}"
+            
         self.environment["SQLITE_PATH_FILE"] = os.path.join(
             self.dir_name,
             "mysqlsh",
@@ -297,12 +293,10 @@ class SetEnvironmentVariablesTask:
         )
 
         self.environment["HEADLESS"] = argv.headless
-
         Logger.success("Environment variables have been set")
 
     def clean_up(self) -> None:
         """Clean up after task finish"""
-
 
 class ShellTask(abc.ABC):
     """Base class to execute shell commands"""
@@ -369,105 +363,73 @@ class ShellTask(abc.ABC):
     def clean_up(self) -> None:
         """Clean up after task finish"""
 
-
-class SetBeDbTask(ShellTask):
-    """Setup MySQL Shell home directory in temp directory"""
-
-    def __init__(self, environment: typing.Dict[str, str], dir_name: str) -> None:
+class AddUserToBE(ShellTask):
+    def __init__(self, environment: typing.Dict[str, str], dir_name: str, servers: typing.List) -> None:
         super().__init__(environment)
         self.dir_name = dir_name
+        self.environment = environment
+        self.servers = servers
+
+    def run(self) -> None:
+        env1 = self.environment.copy()
+        for x in self.servers:
+            if x.multiuser == True:
+                env1["MYSQLSH_USER_CONFIG_HOME"]=os.path.join(WORKING_DIR, f'port_{x.port}')
+                subprocess.Popen([
+                    self.mysqlsh_executable,
+                    "--py",
+                    "-e",
+                    "gui.users.create_user('client', 'client', 'Administrator')",
+                    ],
+                    env=env1
+                )
+        Logger.success("BE user has been added")
+
+class SetPluginsTask(ShellTask):
+    """Setup MySQL Shell home directory in temp directory"""
+
+    def __init__(self, environment: typing.Dict[str, str], dir_name: str, servers: typing.List) -> None:
+        super().__init__(environment)
+        self.dir_name = dir_name
+        self.servers = servers
+        this_file = os.path.dirname(__file__)
+        repo_root = os.path.join(this_file, "..", "..", "..", "..", "..")
+        repo_root = os.path.realpath(repo_root)
+        self.gui_plugin_path = os.path.join(repo_root, "gui", "backend", "gui_plugin")
+        self.mds_plugin_path = os.path.join(repo_root, "mds_plugin")
+        self.mrs_plugin_path = os.path.join(repo_root, "mrs_plugin")
 
     def run(self) -> None:
         """Runs the task"""
 
-        self.create_backend_database()
-        Logger.success("BE db have been created")
-
         self.set_plugins_path()
         Logger.success("BE plugins have been set")
 
-        self.delete_credentials()
-        Logger.success("Old credentials were deleted")
-
-        self.shell_execute(
-            command="gui.users.create_user('client', 'client', 'Administrator')"
-        )
-        Logger.success("BE user have been added")
+        self.set_custom_config_folders()
+        Logger.success("Plugins config folders have been set")
 
     def set_plugins_path(self) -> None:
         """Sets paths for plugins in MySQL Shell home dir"""
 
         plugins_path = os.path.join(self.dir_name, "mysqlsh", "plugins")
         os.makedirs(plugins_path, exist_ok=True)
+        create_symlink(self.gui_plugin_path, os.path.join(plugins_path, "gui_plugin"))
+        create_symlink(self.mds_plugin_path, os.path.join(plugins_path, "mds_plugin"))
+        create_symlink(self.mrs_plugin_path, os.path.join(plugins_path, "mrs_plugin"))
 
-        gui_plugin_path = os.path.join(
-            WORKING_DIR,
-            "..",
-            "..",
-            "..",
-            "..",
-            "backend",
-            "gui_plugin",
-        )
-        mds_plugin_path = os.path.join(
-            WORKING_DIR, "..", "..", "..", "..", "..", "mds_plugin"
-        )
-        mrs_plugin_path = os.path.join(
-            WORKING_DIR, "..", "..", "..", "..", "..", "mrs_plugin"
-        )
-        create_symlink(gui_plugin_path, os.path.join(plugins_path, "gui_plugin"))
-        create_symlink(mds_plugin_path, os.path.join(plugins_path, "mds_plugin"))
-        create_symlink(mrs_plugin_path, os.path.join(plugins_path, "mrs_plugin"))
+    def set_custom_config_folders(self) -> None:
+        plugins_path = os.path.join(self.dir_name, "mysqlsh", "plugins")
+        os.makedirs(plugins_path, exist_ok=True)
 
-    def create_backend_database(self):
-        """Creates backend database"""
-
-        sqlite_be_db_path = os.path.join(
-            self.dir_name, "mysqlsh", "plugin_data", "gui_plugin"
-        )
-
-        current_dir = os.getcwd()
-        current_create_script = os.path.join(
-            current_dir,
-            "..",
-            "backend",
-            "gui_plugin",
-            "core",
-            "db_schema",
-            "mysqlsh_gui_backend.sqlite.sql",
-        )
-
-        os.makedirs(sqlite_be_db_path, exist_ok=True)
-        os.chdir(sqlite_be_db_path)
-        conn = sqlite3.connect(
-            os.path.join(sqlite_be_db_path, "mysqlsh_gui_backend.sqlite3")
-        )
-        cur = conn.cursor()
-        with open(current_create_script, "r", encoding="UTF-8") as sql_file:
-            sql_create = sql_file.read()
-
-        try:
-            cur.executescript(sql_create)
-        except sqlite3.Error as exc:
-            raise TaskFailException("Can't init BE db") from exc
-        conn.close()
-        os.chdir(current_dir)
-
-    def delete_credentials(self):
-        """Deletes old credentials from lasts tests"""
-
-        credentials_to_delete = [
-            f"root@localhost:{argv.db_port}",
-            f"dbuser1@localhost:{argv.db_port}",
-            f"clientqa@localhost:{argv.db_port}",
-        ]
-
-        for credential in credentials_to_delete:
-            self.shell_execute(
-                command=f"shell.delete_credential('{credential}')",
-                raise_exception=False,
-            )
-
+        for x in self.servers:
+            path = os.path.join(WORKING_DIR, f'port_{x.port}')
+            if (os.path.exists(path)):
+                shutil.rmtree(path)
+            
+            os.makedirs(os.path.join(path,  "plugins"))
+            create_symlink(self.gui_plugin_path, os.path.join(path, "plugins", "gui_plugin"))
+            create_symlink(self.mds_plugin_path, os.path.join(path, "plugins", "mds_plugin"))
+            create_symlink(self.mrs_plugin_path, os.path.join(path, "plugins", "mrs_plugin"))
 
 class SetMySQLServerTask(ShellTask):
     """Deploys MySQL Server and install required schemas and users"""
@@ -555,59 +517,31 @@ class SetMySQLServerTask(ShellTask):
         )
         Logger.success("Successfully deleted MySQL instance")
 
-
 class StartBeServersTask:
     """Runs two BE servers for e2e tests"""
-
-    def __init__(self, environment: typing.Dict[str, str]) -> None:
+    def __init__(self, environment: typing.Dict[str, str], servers: typing.List) -> None:
         self.mysqlsh_executable = get_executables("MySQL Shell")
-        self.environment = environment
-        self.server1 = None
-        self.server2 = None
+        self.servers = servers
 
     def run(self) -> None:
         """Runs the task"""
 
-        self.server1 = subprocess.Popen(
-            [
-                self.mysqlsh_executable,
-                "--py",
-                "-e",
-                f'gui.start.web_server(port={BE_SERVER_PORT1}, single_instance_token="{TOKEN}")',
-            ],
-            env=self.environment,
-        )
-        Logger.success("Server 1 have been started")
-
-        self.server2 = subprocess.Popen(
-            [
-                self.mysqlsh_executable,
-                "--py",
-                "-e",
-                f"gui.start.web_server(port={BE_SERVER_PORT2})",
-            ],
-            env=self.environment,
-        )
-        Logger.success("Server 2 have been started")
-
+        for x in self.servers:
+            x.start()
+        
     def clean_up(self) -> None:
         """Clean up after task finish"""
 
-        if self.server1 is not None:
-            self.server1.kill()
-            Logger.success("Server 1 have been stopped")
-
-        if self.server2 is not None:
-            self.server2.kill()
-            Logger.success("Server 2 have been stopped")
-
+        for x in self.servers:
+            x.stop()
 
 class NPMScript:
     """Runs e2e tests"""
 
-    def __init__(self, environment: typing.Dict[str, str], script_name: str) -> None:
+    def __init__(self, environment: typing.Dict[str, str], script_name: str, params: typing.List) -> None:
         self.environment = environment
         self.script_name = script_name
+        self.params = params
 
     def run(self) -> None:
         """Runs the task"""
@@ -617,8 +551,12 @@ class NPMScript:
             args.append("-t")
             args.append(argv.test_to_run)
 
-        e2e_tests = subprocess.Popen(args=args, env=self.environment)
+        if self.params is not None:
+            args.append("--")
+            for x in self.params:
+                args.append(x)
 
+        e2e_tests = subprocess.Popen(args=args, env=self.environment)
         e2e_tests.communicate()
         return_code = e2e_tests.wait()
         if return_code != 0:
@@ -684,7 +622,6 @@ class SetFrontendTask:
     def clean_up(self) -> None:
         """Clean up after task finish"""
 
-
 class TaskExecutor:
     """Task executor"""
 
@@ -744,10 +681,69 @@ class TaskExecutor:
         except TaskFailException as exc:
             Logger.error(str(exc))
 
+class BEServer:
+    def __init__(self, environment: typing.Dict[str, str], port: int, multiuser = False) -> None:
+        self.mysqlsh_executable = get_executables("MySQL Shell")
+        self.port = port
+        self.multiuser = multiuser
+        self.server = None
+        self.beLogPath = "be.log"
+        self.environment = environment
+
+    def search_str(self, file_path, word):
+            with open(file_path, 'r') as file:
+                content = file.read()
+                if word in content:
+                    return True
+                else:
+                    return False
+
+    def start(self) -> None:
+        beLog = open(self.beLogPath, 'a')
+        env1 = self.environment.copy()
+        env1["MYSQLSH_USER_CONFIG_HOME"]=os.path.join(WORKING_DIR, f'port_{self.port}')
+        timeout = time.time() + 30   # 30 seconds from now
+
+        shell_args = [self.mysqlsh_executable, "--py", "-e"]
+
+        if self.multiuser == True:
+            shell_args.append(f"gui.start.web_server(port={self.port})")
+        else:
+            shell_args.append(f'gui.start.web_server(port={self.port}, single_instance_token="{TOKEN}")')
+
+        self.server = subprocess.Popen(
+            shell_args,
+            stdout=beLog,
+            env=env1,
+        )
+
+        if self.multiuser == True:
+            to_search = "Mode: Multi-user"
+        else:
+            to_search = "Mode: Single user"
+
+        while True:
+            if time.time() > timeout:
+                os.remove(self.beLogPath)
+                Logger.error(f"Shell Server: {self.port} did not start after 30secs")
+                raise Exception("Failed Server start")
+            else:
+                if (self.search_str(self.beLogPath, to_search)):
+                    Logger.success(f"Shell Server {self.port} has been started")
+                    break
+
+        os.remove(self.beLogPath)
+
+    def stop(self) -> None:
+        self.server.kill()
+        Logger.success(f"Shell Server: {self.port} has been stopped")
+
+
 
 if __name__ == "__main__":
     test_failed = False
     with tempfile.TemporaryDirectory() as tmp_dirname:
+
         executor = TaskExecutor(tmp_dirname)
 
         executor.add_prerequisite(CheckVersionTask("MySQL Shell"))
@@ -756,14 +752,20 @@ if __name__ == "__main__":
         executor.add_prerequisite(CheckVersionTask("npm"))
         executor.add_prerequisite(CheckVersionTask("ChromeDriver"))
 
-        executor.add_task(
-            SetEnvironmentVariablesTask(executor.environment, tmp_dirname)
-        )
+        be_servers = [
+            BEServer(executor.environment, 8000), 
+            BEServer(executor.environment, 8001), 
+            BEServer(executor.environment, 8002), 
+            BEServer(executor.environment, 8005, True),
+        ]
+        
+        executor.add_task(SetEnvironmentVariablesTask(executor.environment, tmp_dirname, be_servers))
         executor.add_task(SetFrontendTask(executor.environment))
-        executor.add_task(SetBeDbTask(executor.environment, tmp_dirname))
+        executor.add_task(SetPluginsTask(executor.environment, tmp_dirname, be_servers))
         executor.add_task(SetMySQLServerTask(executor.environment, tmp_dirname))
-        executor.add_task(StartBeServersTask(executor.environment))
-        executor.add_task(NPMScript(executor.environment, "e2e-tests-run"))
+        executor.add_task(StartBeServersTask(executor.environment, be_servers))
+        executor.add_task(AddUserToBE(executor.environment, tmp_dirname, be_servers))
+        executor.add_task(NPMScript(executor.environment, f"e2e-tests-run", [f"--maxWorkers={MAX_WORKERS}"]))
 
         if executor.check_prerequisites():
             try:
