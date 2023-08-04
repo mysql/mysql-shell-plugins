@@ -15,6 +15,7 @@ import {
     IMrsFetchData,
     MrsBaseService,
     MrsBaseSchema,
+    JsonValue,
     IFindFirstOptions,
     IFindManyOptions,
     IFindUniqueOptions,
@@ -44,7 +45,7 @@ export class MyService extends MrsBaseService {
         super("https://localhost:8443/myService", "/authentication");
     }
     public get mrsNotes(): MyServiceMrsNotes { if (this.#mrsNotes === undefined) { this.#mrsNotes = new MyServiceMrsNotes(this, "/mrsNotes"); } return this.#mrsNotes; }
-    
+
 }
 /* -----------------------------------------------------------------------------
  * MRS Schema /mrsNotes
@@ -199,7 +200,7 @@ export interface IMyServiceMrsNotesNote extends IMrsBaseObject {
     pinned?: boolean,
     userId?: string,
     shared?: boolean,
-    tags?: unknown,
+    tags?: JsonValue,
     createDate?: string,
     lockedDown?: boolean,
     content?: string,
@@ -212,7 +213,7 @@ export interface IMyServiceMrsNotesNoteParams extends IMrsFetchData {
     pinned?: boolean,
     userId?: string,
     shared?: boolean,
-    tags?: unknown,
+    tags?: JsonValue,
     createDate?: string,
     lockedDown?: boolean,
     content?: string,
@@ -491,7 +492,7 @@ export interface IMyServiceMrsNotesNotesAll extends IMrsBaseObject {
     id?: number,
     pinned?: boolean,
     title?: string,
-    tags?: unknown,
+    tags?: JsonValue,
     shared?: boolean,
     userId?: string,
 }
@@ -507,7 +508,7 @@ export interface IMyServiceMrsNotesNotesAllParams extends IMrsFetchData {
     id?: number,
     pinned?: boolean,
     title?: string,
-    tags?: unknown,
+    tags?: JsonValue,
     shared?: boolean,
     userId?: string,
 }
@@ -701,7 +702,7 @@ export class MyServiceMrsNotesNoteUpdateParamsRequest extends MyServiceMrsNotesO
 }
 
 export interface IMyServiceMrsNotesNoteUpdateParams extends IMrsFetchData {
-    tags?: unknown,
+    tags?: JsonValue,
     lockedDown?: boolean,
     noteId?: number,
     title?: string,
