@@ -4,11 +4,11 @@
 
 ### Additions
 
-- 
+-
 
 ### Fixes
 
-- 
+- Updated TypeScript MRS SDK and fixed compilation issues
 
 ## Changes in 1.12.0+8.1.1
 
