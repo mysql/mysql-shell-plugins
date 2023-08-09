@@ -341,7 +341,7 @@ export class MrsBaseService {
     public session: MrsBaseSession;
 
     public constructor(
-        protected readonly serviceUrl: string,
+        protected serviceUrl: string,
         protected readonly authPath = "/authentication",
         protected readonly defaultTimeout = 8000) {
         this.session = new MrsBaseSession(serviceUrl, authPath, defaultTimeout);

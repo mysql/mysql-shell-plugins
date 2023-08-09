@@ -233,6 +233,9 @@ export enum MdsDialogType {
 
     /** A dialog to load data to MySQL HeatWave cluster. */
     MdsHeatWaveLoadData,
+
+    /** A dialog with MySQL HeatWave endpoint settings. */
+    MdsEndpoint,
 }
 
 /** A set of values that describe a single modal dialog request. */

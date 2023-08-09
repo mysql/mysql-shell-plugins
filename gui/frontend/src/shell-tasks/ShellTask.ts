@@ -62,28 +62,35 @@ export class ShellTask {
         this.statusCallback = callback;
     }
 
-    public async runTask(shellArgs: string[], dbConnectionId?: number): Promise<void> {
+    public async runTask(shellArgs: string[], dbConnectionId?: number, responses?: string[]): Promise<void> {
         this.setStatus("running");
         this.sendMessage(`[${ShellTask.getCurrentTimeStamp()}] [INFO] Starting Task: ${this.caption}\n\n`);
 
         const requestId = uuid();
         let shellSession: ShellInterfaceShellSession | undefined;
+        let responseIndex = 0;
 
         const handleData = (data: IShellResultType & { moduleSessionId?: string; }, final: boolean) => {
             if (data.moduleSessionId) {
                 shellSession = new ShellInterfaceShellSession(data.moduleSessionId);
             }
 
-            if (this.isShellFeedbackRequest(data)) {
-                void this.promptCallback(data.prompt, data.type === "password").then((value) => {
-                    if (shellSession) {
-                        if (value) {
-                            void shellSession.sendReply(requestId, ShellPromptResponseType.Ok, value);
-                        } else {
-                            void shellSession.sendReply(requestId, ShellPromptResponseType.Cancel, "");
+            if (this.isShellFeedbackRequest(data) && shellSession) {
+                if (responses && responseIndex < responses.length) {
+                    // If a list of responses were given, return them
+                    void shellSession.sendReply(requestId, ShellPromptResponseType.Ok, responses[responseIndex++]);
+                } else {
+                    // Pass the input request to the user
+                    void this.promptCallback(data.prompt, data.type === "password").then((value) => {
+                        if (shellSession) {
+                            if (value) {
+                                void shellSession.sendReply(requestId, ShellPromptResponseType.Ok, value);
+                            } else {
+                                void shellSession.sendReply(requestId, ShellPromptResponseType.Cancel, "");
+                            }
                         }
-                    }
-                });
+                    });
+                }
             } else if (this.isShellSimpleResult(data)) {
                 // Extract the "{percentage}% completed" to indicate the progress
                 if (data.info && this.statusCallback !== undefined) {

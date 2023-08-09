@@ -51,6 +51,12 @@ import {
  * Triggers the interactive MRS authentication process.
  *
  * @param serviceUrl The URL of the MRS service
+ */
+declare function mrsSetServiceUrl(serviceUrl: string): void;
+/**
+ * Triggers the interactive MRS authentication process.
+ *
+ * @param serviceUrl The URL of the MRS service
  * @param authPath The path of the authentication endpoints
  * @param authApp The id of the authApp to authenticate against
  * @param userName The optional name of the user
@@ -64,7 +70,7 @@ declare function mrsAuthenticate(serviceUrl: string, authPath: string, authApp?:
 declare function mrsEditDbObject(dbObjectId: string): void;
 // --- MySQL Shell for VS Code Extension Only --- End
 /* =============================================================================
- * MRS Service ${service_host_ctx}
+ * MRS Service ${service_url}
  */
 
 export class ${service_class_name} extends MrsBaseService {
@@ -73,15 +79,29 @@ export class ${service_class_name} extends MrsBaseService {
     // --- schemaLoopEnd
 
     public constructor() {
-        super("${service_host_ctx}", "${service_auth_path}");
+        super("${service_url}", "${service_auth_path}");
     }
 
     // --- schemaLoopStart
     public get ${schema_name}(): ${schema_class_name} { if (this.#${schema_name} === undefined) { this.#${schema_name} = new ${schema_class_name}(this, "${schema_request_path}"); } return this.#${schema_name}; }
     // --- schemaLoopEnd
     // --- MySQL Shell for VS Code Extension Only --- Begin
+    public static url = (serviceUrl: string): void => {
+        mrsSetServiceUrl(serviceUrl);
+    };
+
+    public get url(): string {
+        return this.serviceUrl;
+    }
+
+    public set url(serviceUrl: string) {
+        this.serviceUrl = serviceUrl;
+        this.session = new MrsBaseSession(this.serviceUrl, this.authPath, this.defaultTimeout);
+        ${service_class_name}.url(serviceUrl);
+    };
+
     public static authenticate = (username?: string, authApp = "MRS"): void => {
-        mrsAuthenticate("${service_host_ctx}", "${service_auth_path}", authApp, username);
+        mrsAuthenticate("${service_url}", "${service_auth_path}", authApp, username);
     };
 
     public authenticate = (username?: string, authApp = "MRS"): void => {

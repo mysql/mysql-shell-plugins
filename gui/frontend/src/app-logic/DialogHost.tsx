@@ -37,6 +37,7 @@ import {
 import { Semaphore } from "../supplement/Semaphore";
 import { MdsHWClusterDialog } from "../modules/mds/dialogs/MdsHWClusterDialog";
 import { MdsHWLoadDataDialog } from "../modules/mds/dialogs/MdsHWLoadDataDialog";
+import { MdsEndpointDialog } from "../modules/mds/dialogs/MdsEndpointDialog";
 
 /**
  * A component to host certain application wide common dialogs in a central place.
@@ -57,6 +58,7 @@ export class DialogHost extends ComponentBase {
 
     #mdsClusterDialogRef = createRef<MdsHWClusterDialog>();
     #mdsLoadDataDialogRef = createRef<MdsHWLoadDataDialog>();
+    #mdsEndpointDialogRef = createRef<MdsEndpointDialog>();
 
     public constructor(props: {}) {
         // Make the DialogHost a singleton and allow access to it via class methods.
@@ -152,6 +154,12 @@ export class DialogHost extends ComponentBase {
             onClose={this.handleDialogClose.bind(this, MdsDialogType.MdsHeatWaveLoadData)}
         />);
 
+        this.#mdsEndpointDialogRef = createRef<MdsEndpointDialog>();
+        dialogs.push(<MdsEndpointDialog
+            ref={this.#mdsEndpointDialogRef}
+            onClose={this.handleDialogClose.bind(this, MdsDialogType.MdsEndpoint)}
+        />);
+
         return (
             <>
                 {dialogs}
@@ -226,6 +234,16 @@ export class DialogHost extends ComponentBase {
                 break;
             }
 
+            case MdsDialogType.MdsEndpoint: {
+                this.#focusedElements.push(document.activeElement);
+
+                if (this.#mdsEndpointDialogRef.current) {
+                    void this.#mdsEndpointDialogRef.current.show(request, request.title ?? "");
+
+                    return Promise.resolve(true);
+                }
+                break;
+            }
 
             default:
         }

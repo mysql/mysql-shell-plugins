@@ -854,6 +854,7 @@ def get_sdk_service_classes(**kwargs):
 
     Keyword Args:
         service_id (str): The id of the service
+        service_url (str): The url of the service
         sdk_language (str): The SDK language to generate
         prepare_for_runtime (bool): Prepare code to be used in Monaco at runtime
         session (object): The database session to use.
@@ -866,12 +867,14 @@ def get_sdk_service_classes(**kwargs):
     service_id = kwargs.get("service_id")
     sdk_language = kwargs.get("sdk_language", "TypeScript")
     prepare_for_runtime = kwargs.get("prepare_for_runtime", False)
+    service_url = kwargs.get("service_url")
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         service = resolve_service(session, service_id, True, True)
 
         return lib.sdk.generate_service_sdk(
-            service=service, sdk_language=sdk_language, session=session, prepare_for_runtime=prepare_for_runtime)
+            service=service, sdk_language=sdk_language, session=session, prepare_for_runtime=prepare_for_runtime,
+            service_url=service_url)
 
 
 @plugin_function('mrs.dump.sdkServiceFiles', shell=True, cli=True, web=True)

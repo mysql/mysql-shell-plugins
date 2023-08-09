@@ -117,6 +117,9 @@ class SshConnection:
         for line in self.stdout:
             output += line
 
+        # Close stdin to work around Paramiko issue
+        self.stdin.close()
+
         return output
 
     def executeAndSendOnStdin(self, command, stdin_text):
@@ -148,7 +151,6 @@ class SshConnection:
                     buffer += chan.recv(
                         read_buffer_size).decode('utf-8')
 
-
             # Ensure we gobble up all remaining data
             while True:
                 try:
@@ -167,7 +169,6 @@ class SshConnection:
             chan.close()
 
         return success, buffer
-
 
     def put_local_file(self, local_file_path, remote_file_path):
         sftp = self.client.open_sftp()
@@ -216,7 +217,12 @@ class SshConnection:
         Returns:
             None
         """
-        self.client.close()
+        try:
+            self.client.close()
+        except Exception as e:
+            # Close stdin to work around Paramiko issue 1617 on github
+            if str(e) != "'NoneType' object has no attribute 'time'":
+                raise
 
 
 def format_instance_listing(items, current=None, vnics=None,
@@ -296,8 +302,8 @@ def format_image_list_item(data, index):
         if len(img.operating_system_version) > 22 \
         else img.operating_system_version
 
-    return(f"{index+1:>3} {os:16} "
-           f"{os_version:22} {img.display_name[-12:]:12}")
+    return (f"{index+1:>3} {os:16} "
+            f"{os_version:22} {img.display_name[-12:]:12}")
 
 
 def format_image_listing(data):
@@ -1823,8 +1829,8 @@ def create_instance(**kwargs):
                 agent_config=oci.core.models.LaunchInstanceAgentConfigDetails(
                     plugins_config=[
                         oci.core.models.InstanceAgentPluginConfigDetails(
-                            desired_state = "ENABLED",
-                            name = "Bastion"
+                            desired_state="ENABLED",
+                            name="Bastion"
                         )
                     ]
                 )

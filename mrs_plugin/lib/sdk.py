@@ -48,7 +48,7 @@ def get_base_classes(sdk_language, prepare_for_runtime=False):
     return code
 
 
-def generate_service_sdk(service, sdk_language, session, prepare_for_runtime=False):
+def generate_service_sdk(service, sdk_language, session, prepare_for_runtime=False, service_url=None):
     if (sdk_language == "TypeScript"):
         fileExt = ".ts.template"
     else:
@@ -61,8 +61,8 @@ def generate_service_sdk(service, sdk_language, session, prepare_for_runtime=Fal
 
     # Process Template String
     code = substitute_service_in_template(
-        service=service, template=template, sdk_language=sdk_language, session=session)
-    
+        service=service, template=template, sdk_language=sdk_language, session=session, service_url=service_url)
+
     code = substitute_imports_in_template(
         template=code.get("template"), enabled_crud_ops=code.get("enabled_crud_ops"))
 
@@ -70,18 +70,19 @@ def generate_service_sdk(service, sdk_language, session, prepare_for_runtime=Fal
 
     if (prepare_for_runtime):
         # Remove imports as everything will be in a single file
-        template = re.sub('import.*?;', '', template, flags=re.DOTALL | re.MULTILINE)
+        template = re.sub('import.*?;', '', template,
+                          flags=re.DOTALL | re.MULTILINE)
         # Remove exports as everything will be in a single file
         template = template.replace("export ", "")
         # Remove the part that does not belong in the runtime SDK
         template = re.sub("\/\/ --- MySQL Shell for VS Code Extension Remove --- Begin.*?" +
-                      "\/\/ --- MySQL Shell for VS Code Extension Remove --- End",
-                      "", template, flags=re.DOTALL | re.MULTILINE)
+                          "\/\/ --- MySQL Shell for VS Code Extension Remove --- End",
+                          "", template, flags=re.DOTALL | re.MULTILINE)
     else:
         # Remove the part that does not belong in the generated SDK
         template = re.sub("\/\/ --- MySQL Shell for VS Code Extension Only --- Begin.*?" +
-                      "\/\/ --- MySQL Shell for VS Code Extension Only --- End",
-                      "", template, flags=re.DOTALL | re.MULTILINE)
+                          "\/\/ --- MySQL Shell for VS Code Extension Only --- End",
+                          "", template, flags=re.DOTALL | re.MULTILINE)
 
     return template
 
@@ -89,7 +90,7 @@ def generate_service_sdk(service, sdk_language, session, prepare_for_runtime=Fal
 def substitute_imports_in_template(template, enabled_crud_ops):
     import_loops = re.finditer(
         "^\s*?// --- importLoopStart\n\s*(^[\S\s]*?)^\s*?// --- importLoopEnd\n", template, flags=re.DOTALL | re.MULTILINE)
-    
+
     crud_ops = ["Create", "Read", "Update",
                 "Delete", "UpdateProcedure", "ReadUnique"]
 
@@ -101,7 +102,7 @@ def substitute_imports_in_template(template, enabled_crud_ops):
             crud_op_loops = re.finditer(
                 f"^\s*?// --- import{crud_op}OnlyStart\n\s*(^[\S\s]*?)^\s*?// --- import{crud_op}OnlyEnd\n",
                 import_template, flags=re.DOTALL | re.MULTILINE)
-            
+
             for crud_loop in crud_op_loops:
                 # If the CRUD operation is enabled for any DB Object, keep the identified code block
                 if crud_op in enabled_crud_ops:
@@ -111,33 +112,38 @@ def substitute_imports_in_template(template, enabled_crud_ops):
                     # Delete the identified code block otherwise
                     import_template = import_template.replace(
                         crud_loop.group(), "")
-                    
+
         template = template.replace(loop.group(), import_template)
-        
-    return { "template": template, "enabled_crud_ops": enabled_crud_ops }
+
+    return {"template": template, "enabled_crud_ops": enabled_crud_ops}
 
 
-def substitute_service_in_template(service, template, sdk_language, session):
+def substitute_service_in_template(service, template, sdk_language, session, service_url):
     code = substitute_schemas_in_template(
         service=service, template=template, sdk_language=sdk_language, session=session)
-    
+
     template = code.get("template")
 
-    service_host_ctx = service.get("host_ctx")
-    # ToDo: Proper detection
-    if "http" not in service_host_ctx:
-        service_host_ctx = "https://localhost:8443" + service_host_ctx
+    # If no explicit service_url is given, use the service's host_ctx and url_context_root
+    if not service_url:
+        host_ctx = service.get("host_ctx")
+        url_context_root = service.get("url_context_root")
+        # If no host_ctx starting with http is given, default to https://localhost:8443
+        if not host_ctx.lower().startswith("http"):
+            service_url = "https://localhost:8443" + url_context_root
+        else:
+            service_url = url_context_root + url_context_root
 
     mapping = {
         "service_name": lib.core.convert_path_to_camel_case(service.get("url_context_root")),
         "service_class_name": lib.core.convert_path_to_pascal_case(service.get("url_context_root")),
-        "service_host_ctx": service_host_ctx,
-        "service_auth_path": service.get("auth_path")
+        "service_url": service_url,
+        "service_auth_path": service.get("auth_path"),
     }
-    
+
     template = Template(template).substitute(**mapping)
 
-    return { "template": template, "enabled_crud_ops": code.get("enabled_crud_ops") }
+    return {"template": template, "enabled_crud_ops": code.get("enabled_crud_ops")}
 
 
 def substitute_schemas_in_template(service, template, sdk_language, session):
@@ -148,7 +154,7 @@ def substitute_schemas_in_template(service, template, sdk_language, session):
 
     service_class_name = lib.core.convert_path_to_pascal_case(
         service.get("url_context_root"))
-    
+
     enabled_crud_ops = None
 
     for loop in schema_loops:
@@ -183,7 +189,7 @@ def substitute_schemas_in_template(service, template, sdk_language, session):
 
         template = template.replace(loop.group(), filled_temp)
 
-    return { "template": template, "enabled_crud_ops": enabled_crud_ops }
+    return {"template": template, "enabled_crud_ops": enabled_crud_ops}
 
 
 def get_mrs_object_sdk_language_options(sdk_options, sdk_language):
@@ -212,7 +218,7 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
 
     crud_ops = ["Create", "Read", "Update",
                 "Delete", "UpdateProcedure", "ReadUnique"]
-    
+
     enabled_crud_ops = []
 
     for loop in object_loops:
@@ -348,7 +354,7 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
 
         template = template.replace(loop.group(), filled_temp)
 
-    return { "template": template, "enabled_crud_ops": frozenset(enabled_crud_ops) }
+    return {"template": template, "enabled_crud_ops": frozenset(enabled_crud_ops)}
 
 
 def get_datatype_mapping(db_datatype, sdk_language):
@@ -527,7 +533,7 @@ def generate_interfaces(db_obj, obj, fields, class_name, sdk_language, session):
                             or obj.get("kind") == "PARAMETERS"):
                         param_interface_fields.append(
                             f'    {field.get("name")}?: {datatype},\n')
-                        
+
                     # Build Unique list
                     if (field_is_unique(field)):
                         obj_unique_list.append(
@@ -607,7 +613,8 @@ def generate_nested_interfaces(
                         f'    {field.get("name")}?: {reduced_to_datatype},\n')
                 else:
                     obj_ref = field.get("object_reference")
-                    field_interface_name = lib.core.convert_path_to_pascal_case(field.get("name"))
+                    field_interface_name = lib.core.convert_path_to_pascal_case(
+                        field.get("name"))
                     # Add field if the referred table is not unnested
                     if not obj_ref.get("unnest"):
                         datatype = f'I{class_name}{reference_class_name_postfix + field.get("name")}'

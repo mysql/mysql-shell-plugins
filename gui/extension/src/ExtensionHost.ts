@@ -138,7 +138,7 @@ export class ExtensionHost {
     }
 
     public async addNewShellTask(caption: string, shellArgs: string[], dbConnectionId?: number,
-        showOutputChannel = true): Promise<void> {
+        showOutputChannel = true, responses?: string[]): Promise<void> {
         const task = new ShellTask(caption, this.taskPromptCallback, this.taskMessageCallback);
         this.shellTasks.push(task);
         this.shellTasksTreeDataProvider.refresh();
@@ -147,7 +147,7 @@ export class ExtensionHost {
             taskOutputChannel.show();
         }
 
-        await task.runTask(shellArgs, dbConnectionId);
+        await task.runTask(shellArgs, dbConnectionId, responses);
         this.shellTasksTreeDataProvider.refresh();
     }
 
@@ -563,7 +563,7 @@ export class ExtensionHost {
                     buttons[i] = buttons[i].charAt(0).toUpperCase() + buttons[i].slice(1);
                 }
 
-                void window.showInformationMessage(text.substring(0, match.index) + "?", ...buttons).then((value) => {
+                void window.showInformationMessage(text.substring(0, match.index), ...buttons).then((value) => {
                     resolve(value);
                 });
             } else {

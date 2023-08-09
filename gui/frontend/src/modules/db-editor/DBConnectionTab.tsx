@@ -233,6 +233,7 @@ interface IQueryExecutionOptions {
 
 /** Metadata for the MRS SDK of the current MRS Service. */
 interface IMrsServiceSdkMetadata {
+    serviceUrl?: string,
     baseClasses?: string,
     code?: string,
     codeLineCount?: number;
@@ -1396,7 +1397,8 @@ Execute \\help or \\? for help;`;
                         void updateStatusbar(`$(loading~spin) ${firstLoad ? "Loading" : "Refreshing"} MRS SDK for ` +
                             `${serviceMetadata.hostCtx}...`);
                         const code = this.cachedMrsServiceSdk.baseClasses + "\n" +
-                            await backend.mrs.getSdkServiceClasses(serviceMetadata.id, "TypeScript", true);
+                            await backend.mrs.getSdkServiceClasses(
+                                serviceMetadata.id, "TypeScript", true, this.cachedMrsServiceSdk.serviceUrl);
 
                         // Update this.cachedMrsServiceSdk
                         this.cachedMrsServiceSdk.code = code;
@@ -1838,6 +1840,16 @@ Execute \\help or \\? for help;`;
                         type: "graphData",
                         options: data.options,
                     }, { resultId: "" });
+
+                    break;
+                }
+
+                case ScriptingApi.MrsSetServiceUrl: {
+                    // Reset the cache to trigger a complete reload
+                    this.cachedMrsServiceSdk = {
+                        serviceUrl: data.serviceUrl,
+                    };
+                    await this.updateMrsServiceSdkCache();
 
                     break;
                 }

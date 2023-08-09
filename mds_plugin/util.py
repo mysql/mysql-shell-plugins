@@ -124,8 +124,8 @@ def mds_heat_wave_load_data(**kwargs):
             print(f"Error: {str(e)}")
 
 
-@plugin_function('mds.util.createJumpHost')
-def get_mds_jump_host(**kwargs):
+@plugin_function('mds.util.createComputeInstanceForEndpoint')
+def create_compute_instance_for_endpoint(**kwargs):
     """Returns a public compute instance
 
     If the instance does not yet exists in the compartment, create it
@@ -139,9 +139,12 @@ def get_mds_jump_host(**kwargs):
         db_system_id (str): The OCID of the db_system
         private_key_file_path (str): The file path to an SSH private key
         subnet_id (str): The OCID of the subnet to use
+        public_ip (bool): If set to false, no public IP will be assigned
         shape (str): The name of the shape to use
         cpu_count (int): The number of OCPUs
         memory_size (int): The amount of memory
+        dns_a_record_notification (bool): Whether to print a message to setup the DNS A record for this instance
+        domain_name (str): The domain name of the compute instance
         compartment_id (str): The OCID of the compartment
         config (object): An OCI config object or None.
         config_profile (str): The name of an OCI config profile
@@ -158,10 +161,13 @@ def get_mds_jump_host(**kwargs):
     db_system_id = kwargs.get("db_system_id")
     private_key_file_path = kwargs.get(
         "private_key_file_path", "~/.ssh/id_rsa")
+    public_ip = kwargs.get("public_ip", True)
     subnet_id = kwargs.get("subnet_id")
     shape = kwargs.get("shape", "VM.Standard.E4.Flex")
     cpu_count = kwargs.get("cpu_count", 1)
     memory_size = kwargs.get("memory_size", 16)
+    dns_a_record_notification = kwargs.get("dns_a_record_notification", False)
+    domain_name = kwargs.get("domain_name")
 
     compartment_id = kwargs.get("compartment_id")
     config = kwargs.get("config")
@@ -203,14 +209,19 @@ def get_mds_jump_host(**kwargs):
                 config=config, interactive=False)
             subnet = network.get_subnet(
                 network_id=mds_subnet.vcn_id,
-                public_subnet=True,
+                public_subnet=public_ip,
                 config=config,
                 interactive=False)
             if subnet:
                 subnet_id = subnet.id
 
         if not subnet_id:
-            raise ValueError('No subnet specified.')
+            if public_ip:
+                raise ValueError(
+                    'The network used by the MDS instance does not have public subnet.'
+                    'Please add a public subnet first')
+            else:
+                raise ValueError('No subnet specified.')
 
         # Try to get the Compute Instance with the given name
         mds_jump_host = compute.get_instance(
@@ -248,7 +259,7 @@ def get_mds_jump_host(**kwargs):
             operating_system_version="9",
             use_latest_image=True,
             subnet_id=subnet_id,
-            public_subnet=True,
+            public_subnet=public_ip,
             init_script_file_path=os.path.join(
                 os.path.join(Path(__file__).parent.absolute(), "internal"), "init_router_script.sh"),
             interactive=False,
@@ -296,6 +307,27 @@ def get_mds_jump_host(**kwargs):
             raise Exception(
                 f"The public IP of the {instance_name} instance could not be "
                 "fetched.")
+
+        if dns_a_record_notification and interactive:
+            print("\nATTENTION: Please create a DNS A record using the following values.\n"
+                  f"Domain: {domain_name}\n"
+                  f"Destination TCP/IP address: {public_ip}")
+
+            answered = False
+            while not answered:
+                try:
+                    result = core.prompt(
+                        f"Please click OK once the DNS A record has been created. [OK/Cancel]: ",
+                        {"defaultValue": "OK"})
+                    answered = True
+                except:
+                    print(
+                        "Please select OK or Cancel on the confirmation notification.")
+                    pass
+
+            if result != "OK":
+                raise Exception(
+                    "Endpoint creation cancelled. Please delete the compute instance that has been created.")
 
         if interactive:
             print("\nPerforming base configuration.\n"
@@ -376,7 +408,7 @@ def get_mds_jump_host(**kwargs):
         print(f"ERROR: {str(e)}")
 
 
-@plugin_function('mds.util.createMdsEndpoint', shell=True, cli=True, web=True)
+@plugin_function('mds.util.createEndpoint', shell=True, cli=True, web=True)
 def add_public_endpoint(**kwargs):
     """Creates a public endpoint using MySQL Router on a compute instance
 
@@ -394,6 +426,12 @@ def add_public_endpoint(**kwargs):
         cpu_count (int): The number of OCPUs
         memory_size (int): The amount of memory
         mysql_user_name (str): The MySQL user name to use for bootstrapping
+        public_ip (bool): If set to true, a public IP will be assigned to the compute instance
+        domain_name (str): The domain name of the compute instance
+        port_forwarding (bool): Whether port forwarding of MySQL ports should be enabled
+        mrs (bool): Whether the MySQL REST Service (MRS) should be enabled
+        ssl_cert (bool): Whether SSL Certificates should be managed
+        jwt_secret (str): The JWT secret for MRS
         compartment_id (str): The OCID of the compartment
         config (object): An OCI config object or None.
         config_profile (str): The name of an OCI config profile
@@ -404,6 +442,7 @@ def add_public_endpoint(**kwargs):
     Returns:
        None
     """
+
     # cSpell:ignore OCPU
     instance_name = kwargs.get("instance_name")
     db_system_name = kwargs.get("db_system_name")
@@ -419,6 +458,12 @@ def add_public_endpoint(**kwargs):
         f"Please enter the password for {mysql_user_name}",
         {"type": "password"})
 
+    public_ip = kwargs.get("public_ip", True)
+    domain_name = kwargs.get("domain_name")
+
+    port_forwarding = kwargs.get("port_forwarding", True)
+    mrs = kwargs.get("mrs", True)
+    ssl_cert = kwargs.get("ssl_cert", False)
     jwt_secret = kwargs.get("jwt_secret")
 
     compartment_id = kwargs.get("compartment_id")
@@ -468,12 +513,14 @@ def add_public_endpoint(**kwargs):
 
         # Get the compute instance (let the user create it
         # if it does not exist yet)
-        jump_host = get_mds_jump_host(
+        jump_host = create_compute_instance_for_endpoint(
             instance_name=instance_name,
             private_key_file_path=private_key_file_path,
             db_system_id=db_system_id,
             shape=shape, memory_size=memory_size,
             cpu_count=cpu_count,
+            dns_a_record_notification=ssl_cert,
+            domain_name=domain_name,
             compartment_id=db_system.compartment_id, config=config,
             interactive=interactive,
             return_python_object=True)
@@ -488,6 +535,25 @@ def add_public_endpoint(**kwargs):
         if not public_ip:
             raise Exception(f"The public IP of the instance {instance_name} "
                             "could not be fetched.")
+
+        sec_lists = compute.get_instance_vcn_security_lists(
+            instance_id=jump_host.id,
+            compartment_id=db_system.compartment_id,
+            config=config, interactive=interactive,
+            raise_exceptions=raise_exceptions,
+            return_python_object=True)
+        if sec_lists is None:
+            raise Exception(
+                "The network security lists could not be fetched.")
+
+        # Allow traffic on port 80 in order to fetch the certs
+        if mrs and public_ip:
+            compute.add_ingress_port_to_security_lists(
+                security_lists=sec_lists, port=80,
+                description="MRS HTTP via Router",
+                compartment_id=compartment_id, config=config,
+                interactive=interactive,
+                raise_exceptions=raise_exceptions)
 
         # Open an SSH connection to the instance
         if interactive:
@@ -540,39 +606,44 @@ def add_public_endpoint(**kwargs):
 
                 (success, output) = conn.executeAndSendOnStdin(
                     f"sudo mysqlrouter_bootstrap {mysql_user_name}@{endpoint.ip_address}:{endpoint.port} "
-                    f"-u mysqlrouter --mrs --mrs-global-secret {jwt_secret} "
-                    "--https-port 8446", mysql_user_password)
-
-                if output:
-                    print(output)
+                    f"-u mysqlrouter "
+                    f"--mrs --mrs-global-secret {jwt_secret} " if mrs else ""
+                    "--https-port 8446 "
+                    "--conf-set-option=http_server.ssl=0 "
+                    "--conf-set-option=http_server.port=8446 ",
+                    mysql_user_password)
 
                 if not success:
+                    if output:
+                        print(output)
                     raise Exception("Bootstrap operation failed.")
 
-                # # Load config to in-memory stream
-                # conn.execute("sudo cp /etc/mysqlrouter/mysqlrouter.conf /home/opc/mysqlrouter.conf")
-                # conn.execute("sudo chown opc:opc /home/opc/mysqlrouter.conf")
-                # with io.BytesIO() as router_config_stream:
-                #     # Get the remote config file
-                #     try:
-                #         conn.get_remote_file_as_file_object(
-                #             "/home/opc/mysqlrouter.conf",
-                #             router_config_stream)
-                #     except Exception as e:
-                #         raise Exception("Could not get router config file. "
-                #                         f"{str(e)}")
+                # Manually fix the MySQL Router config till bootstrap allows to disable SSL
+                # Load config to in-memory stream
+                conn.execute(
+                    "sudo cp /etc/mysqlrouter/mysqlrouter.conf /home/opc/mysqlrouter.conf")
+                conn.execute("sudo chown opc:opc /home/opc/mysqlrouter.conf")
+                with io.BytesIO() as router_config_stream:
+                    # Get the remote config file
+                    try:
+                        conn.get_remote_file_as_file_object(
+                            "/home/opc/mysqlrouter.conf",
+                            router_config_stream)
+                    except Exception as e:
+                        raise Exception("Could not get router config file. "
+                                        f"{str(e)}")
 
-                #     # If there was an error, print it
-                #     last_error = conn.get_last_error()
-                #     if last_error != "":
-                #         raise Exception(f"Could not read router config file. "
-                #                         f"{last_error}")
+                    # If there was an error, print it
+                    last_error = conn.get_last_error()
+                    if last_error != "":
+                        raise Exception(f"Could not read router config file. "
+                                        f"{last_error}")
 
-                #     # Load CLI config file
-                #     router_config = configparser.ConfigParser()
-                #     router_config.read_string(
-                #         router_config_stream.getvalue().decode("utf-8"))
-                #     router_config_stream.close()
+                    # Load CLI config file
+                    router_config = configparser.ConfigParser()
+                    router_config.read_string(
+                        router_config_stream.getvalue().decode("utf-8"))
+                    router_config_stream.close()
 
                 # # # Ensure that there is a section with the name of
                 # # # "routing:classic"
@@ -589,11 +660,11 @@ def add_public_endpoint(**kwargs):
                 # if "http_server" not in router_config.sections():
                 #     router_config["http_server"] = {}
 
-                # cnf = router_config["http_server"]
-                # # cnf["port"] = "8446"
-                # # cnf["ssl"] = "0"
-                # # cnf["ssl_cert"] = ""
-                # # cnf["ssl_key"] = ""
+                cnf = router_config["http_server"]
+                cnf["port"] = "8446"
+                cnf["ssl"] = "0"
+                # cnf["ssl_cert"] = ""
+                # cnf["ssl_key"] = ""
                 # cnf["static_folder"] = "/var/run/mysqlrouter/www/"
 
                 # # # Ensure that there is a section with the name of "routing:x"
@@ -618,33 +689,35 @@ def add_public_endpoint(**kwargs):
                 # # cnf["mysql_read_only_route"] = "classic"
                 # # cnf["mysql_read_write_route"] = "classic"
 
-                # if interactive:
-                #     print("Writing updated MySQL Router configuration file...")
+                if interactive:
+                    print("Writing updated MySQL Router configuration file...")
 
-                # # Write config to in-memory stream
-                # with io.BytesIO() as router_config_bytes_stream:
-                #     with io.StringIO() as router_config_stream:
-                #         router_config.write(router_config_stream)
+                # Write config to in-memory stream
+                with io.BytesIO() as router_config_bytes_stream:
+                    with io.StringIO() as router_config_stream:
+                        router_config.write(router_config_stream)
 
-                #         # Seek to the beginning of the text stream
-                #         router_config_bytes_stream.write(
-                #             router_config_stream.getvalue().encode("utf-8"))
-                #         router_config_bytes_stream.seek(0)
+                        # Seek to the beginning of the text stream
+                        router_config_bytes_stream.write(
+                            router_config_stream.getvalue().encode("utf-8"))
+                        router_config_bytes_stream.seek(0)
 
-                #         # Write out new config file to remote instance
-                #         try:
-                #             conn.put_local_file_object(
-                #                 router_config_bytes_stream,
-                #                 "/home/opc/mysqlrouter.conf")
-                #         except Exception as e:
-                #             raise Exception(
-                #                 "Could not upload router config file. "
-                #                 f"{str(e)}")
+                        # Write out new config file to remote instance
+                        try:
+                            conn.put_local_file_object(
+                                router_config_bytes_stream,
+                                "/home/opc/mysqlrouter.conf")
+                        except Exception as e:
+                            raise Exception(
+                                "Could not upload router config file. "
+                                f"{str(e)}")
 
-                # # Move config to final place and fix privileges
-                # conn.execute("sudo cp /home/opc/mysqlrouter.conf /etc/mysqlrouter/mysqlrouter.conf")
-                # conn.execute("sudo chown mysqlrouter:mysqlrouter /etc/mysqlrouter/mysqlrouter.conf")
-                # conn.execute("sudo rm /home/opc/mysqlrouter.conf")
+                # Move config to final place and fix privileges
+                conn.execute(
+                    "sudo cp /home/opc/mysqlrouter.conf /etc/mysqlrouter/mysqlrouter.conf")
+                conn.execute(
+                    "sudo chown mysqlrouter:mysqlrouter /etc/mysqlrouter/mysqlrouter.conf")
+                conn.execute("sudo rm /home/opc/mysqlrouter.conf")
 
                 # # If there was an error, print it
                 # last_error = conn.get_last_error()
@@ -653,38 +726,177 @@ def add_public_endpoint(**kwargs):
                 #         "Could not upload router config file. "
                 #         f"ERROR: {last_error}")
 
+                # Install the SSL certificate
+                if ssl_cert:
+                    # Restart NGINX
+                    conn.execute("sudo systemctl restart nginx.service")
+
+                    ssl_cert_created = False
+                    while not ssl_cert_created and domain_name != "":
+                        # Check for one minute if the domain name points to the instance's ip address
+                        if interactive:
+                            print(
+                                f"\nCreating the SSL certificate for {domain_name} ...")
+
+                        try:
+                            i = 0
+                            while not ssl_cert_created and i < 5:
+                                # cSpell:ignore certbot certonly webroot
+                                # conn.execute(
+                                #     f"sudo certbot certonly --webroot -w /usr/share/nginx/html -d {domain_name} --agree-tos "
+                                #     "--register-unsafely-without-email --key-type rsa")
+                                output = conn.execute(f"sudo /home/opc/.acme.sh/acme.sh --issue -d {domain_name} "
+                                                      "--webroot /usr/share/nginx/html "
+                                                      "--force --server letsencrypt --home /home/opc/.acme.sh")
+                                last_error = conn.get_last_error()
+                                if last_error != "":
+                                    if i == 0 and interactive:
+                                        print("\nATTENTION: Please create a DNS A record using the following values.\n"
+                                              f"Domain: {domain_name}\n"
+                                              f"Destination TCP/IP address: {public_ip}")
+                                        print(
+                                            f"\nWaiting for DNS A record creation ...", end="")
+                                    time.sleep(10)
+                                    if interactive:
+                                        print(".", end="")
+                                else:
+                                    ssl_cert_created = True
+                                i += 1
+                        except:
+                            pass
+
+                        if not ssl_cert_created:
+                            if interactive:
+                                print(f"Failed to create the SSL certificate for {domain_name}. {output} {last_error}\n"
+                                      "Please correct the domain name or leave empty to cancel.")
+
+                            try:
+                                domain_name = core.prompt(
+                                    f"Domain Name for {public_ip}: ")
+                                if not domain_name:
+                                    if interactive:
+                                        print(
+                                            "Skipping SSL certificate generation.")
+                                    domain_name = ""
+                                    continue
+                            except:
+                                domain_name = ""
+                                continue
+
+                    if ssl_cert_created:
+                        # Install Certificate
+                        conn.execute("sudo mkdir -p /etc/pki/nginx/private")
+                        # cSpell:ignore reloadcmd
+                        output = conn.execute(f"sudo /home/opc/.acme.sh/acme.sh --install-cert -d {domain_name} "
+                                              "--key-file /etc/pki/nginx/private/key.pem "
+                                              "--fullchain-file /etc/pki/nginx/cert.pem "
+                                              '--reloadcmd "sudo systemctl restart nginx.service" '
+                                              "--force --home /home/opc/.acme.sh")
+                        last_error = conn.get_last_error()
+                        if last_error != "":
+                            raise Exception(
+                                f"Failed to install SSL certificate. {output} {last_error}")
+
+                if interactive:
+                    print("Writing web server configuration...")
+
+                # cSpell:ignore letsencrypt fullchain privkey
+                if domain_name != "":
+                    ssl_cert_path = "/etc/pki/nginx/cert.pem"
+                    ssl_cert_key_path = "/etc/pki/nginx/private/key.pem"
+                    # ssl_cert_path = f"/etc/letsencrypt/live/{domain_name}/fullchain.pem"
+                    # ssl_cert_key_path = f"/etc/letsencrypt/live/{domain_name}/privkey.pem"
+                else:
+                    ssl_cert_path = "/var/lib/mysqlrouter/router-cert.pem"
+                    ssl_cert_key_path = "/var/lib/mysqlrouter/router-key.pem"
+
+                nginx_config = f"""server {{
+    listen 443 ssl http2;
+
+    {f"server_name {domain_name};" if domain_name != "" else ""}
+
+    ssl_certificate {ssl_cert_path};
+    ssl_certificate_key {ssl_cert_key_path};
+
+    # Allow large attachments
+    client_max_body_size 128M;
+
+    location / {{
+        proxy_pass http://127.0.0.1:8446;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }}
+}}
+"""
+
+                # Write config to in-memory stream
+                with io.BytesIO() as nginx_config_bytes_stream:
+                    with io.StringIO() as nginx_config_stream:
+                        nginx_config_stream.write(nginx_config)
+
+                        # Seek to the beginning of the text stream
+                        nginx_config_bytes_stream.write(
+                            nginx_config_stream.getvalue().encode("utf-8"))
+                        nginx_config_bytes_stream.seek(0)
+
+                        # Write out new config file to remote instance
+                        try:
+                            conn.put_local_file_object(
+                                nginx_config_bytes_stream,
+                                "/home/opc/mrs.nginx.conf")
+                        except Exception as e:
+                            raise Exception(
+                                "Could not upload router config file. "
+                                f"{str(e)}")
+
+                # Move config to final place and fix privileges
+                conn.execute(
+                    "sudo cp /home/opc/mrs.nginx.conf /etc/nginx/conf.d/mrs.nginx.conf")
+                conn.execute(
+                    "sudo chown root:root /etc/nginx/conf.d/mrs.nginx.conf")
+                conn.execute("sudo rm /home/opc/mrs.nginx.conf")
+
+                # If there was an error, print it
+                last_error = conn.get_last_error()
+                if last_error != "":
+                    raise Exception(
+                        "Could not upload web server config file. "
+                        f"ERROR: {last_error}")
+
                 if interactive:
                     print("Opening Firewall ports...")
 
                 # Open MySQL Router ports on the firewall
-                conn.execute(
-                    "sudo firewall-cmd --zone=public --permanent --add-port=6446-6449/tcp")
-                conn.execute(
-                    "sudo firewall-cmd --zone=public --permanent --add-port=8446/tcp")
+                if port_forwarding:
+                    conn.execute(
+                        "sudo firewall-cmd --zone=public --permanent --add-port=6446-6449/tcp")
+                # If mrs was requested but no public_ip, open the port for a Load Balancer
+                if mrs and not public_ip:
+                    conn.execute(
+                        "sudo firewall-cmd --zone=public --permanent --add-port=8446/tcp")
                 conn.execute("sudo firewall-cmd --reload")
 
+                # If mrs was requested but no public_ip, open the port for a Load Balancer
                 # cSpell:ignore semanage mysqld
-                conn.execute(
-                    "sudo semanage port -a -t mysqld_port_t -p tcp 8446")
+                if mrs and not public_ip:
+                    conn.execute(
+                        "sudo semanage port -a -t mysqld_port_t -p tcp 8446")
 
                 if interactive:
-                    print("Starting MySQL Router...")
+                    print("Restarting MySQL Router...")
 
                 # Restart mysqlrouter.service
                 conn.execute("sudo systemctl restart mysqlrouter.service")
 
-            # Add ingress rules for MySQL ports to security list
-            sec_lists = compute.get_instance_vcn_security_lists(
-                instance_id=jump_host.id,
-                compartment_id=db_system.compartment_id,
-                config=config, interactive=interactive,
-                raise_exceptions=raise_exceptions,
-                return_python_object=True)
-            if sec_lists is None:
-                raise Exception(
-                    "The network security lists could not be fetched.")
+                if interactive:
+                    print("Restarting web server...")
 
-            # Check if ports are already in any of the security lists
+                # Restart NGINX
+                conn.execute("sudo systemctl restart nginx.service")
+
+            # Add ingress rules for MySQL ports to security list
             compute.add_ingress_port_to_security_lists(
                 security_lists=sec_lists, port=6446,
                 description="Classic MySQL Protocol RW via Router",
@@ -709,30 +921,51 @@ def add_public_endpoint(**kwargs):
                 compartment_id=compartment_id, config=config,
                 interactive=interactive,
                 raise_exceptions=raise_exceptions)
-            compute.add_ingress_port_to_security_lists(
-                security_lists=sec_lists, port=8446,
-                description="MRS HTTPS via Router",
-                compartment_id=compartment_id, config=config,
-                interactive=interactive,
-                raise_exceptions=raise_exceptions)
+            if mrs and not public_ip:
+                compute.add_ingress_port_to_security_lists(
+                    security_lists=sec_lists, port=8446,
+                    description="MRS HTTP via Router",
+                    compartment_id=compartment_id, config=config,
+                    interactive=interactive,
+                    raise_exceptions=raise_exceptions)
+            elif mrs:
+                compute.add_ingress_port_to_security_lists(
+                    security_lists=sec_lists, port=443,
+                    description="MRS HTTPS via Router",
+                    compartment_id=compartment_id, config=config,
+                    interactive=interactive,
+                    raise_exceptions=raise_exceptions)
+                compute.add_ingress_port_to_security_lists(
+                    security_lists=sec_lists, port=80,
+                    description="MRS HTTP via Router",
+                    compartment_id=compartment_id, config=config,
+                    interactive=interactive,
+                    raise_exceptions=raise_exceptions)
 
             if interactive:
-                print(f"\nNew endpoint successfully created.\n\n"
-                      f"    Classic MySQL Protocol: {public_ip}:6446\n"
-                      f"    MySQL X Protocol: {public_ip}:6448\n\n"
-                      f"    MySQL REST Service HTTPS: https://{public_ip}:8446/\n\n"
-                      f"Example:\n    mysqlsh mysql://{mysql_user_name}@{public_ip}:6446")
+                endpoint_address = domain_name if domain_name != "" else public_ip
+                print("\nNew endpoint successfully created.\n")
+                if port_forwarding:
+                    print(f"    Classic MySQL Protocol: {endpoint_address}:6446\n"
+                          f"    MySQL X Protocol: {endpoint_address}:6448\n")
+                if mrs:
+                    print(
+                        f"    MySQL REST Service HTTPS: https://{endpoint_address}/\n")
+                if port_forwarding:
+                    print(
+                        f"Example:\n    mysqlsh mysql://{mysql_user_name}@{endpoint_address}:6446")
 
             if not return_formatted:
                 return {
                     "ip": public_ip,
+                    "domainName": domain_name,
                     "port": 6446,
                     "port_x": 6447,
-                    "rest_http": 8446
+                    "rest_http": 443
                 }
         except Exception as e:
             raise Exception(
-                f"Could not connect to compute instance '{instance_name}' "
+                f"Could not configure the compute instance '{instance_name}' "
                 f"at {public_ip}.\n{str(e)}")
     except Exception as e:
         if raise_exceptions:
@@ -932,7 +1165,7 @@ def import_from_bucket(**kwargs):
     try:
         # Get the 'MySQLDBBastionHost' compute instance (let the user create it
         # if it does not exist yet)
-        mds_proxy = get_mds_jump_host(
+        mds_proxy = create_compute_instance_for_endpoint(
             private_key_file_path=private_key_file_path,
             compartment_id=compartment_id, config=config,
             interactive=False)
@@ -1208,7 +1441,7 @@ def import_from_local_dir(local_dump_dir=None, db_system_name=None,
 
         # Make sure there is a 'MySQLDBBastionHost' compute instance (let the user
         # create it if it does not exist yet)
-        mds_proxy = get_mds_jump_host(
+        mds_proxy = create_compute_instance_for_endpoint(
             private_key_file_path=private_key_file_path,
             compartment_id=db_system.compartment_id, config=config,
             interactive=False)
