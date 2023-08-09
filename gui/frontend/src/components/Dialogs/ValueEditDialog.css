@@ -122,6 +122,7 @@
     margin-top: 6px;
     flex: 1 1 auto;
     white-space: initial;
+    font-size: 12px;
 }
 
 .msg.dialog.valueEditDialog .gridCell .cellDescription {

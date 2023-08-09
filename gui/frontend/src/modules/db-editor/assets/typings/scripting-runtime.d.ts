@@ -363,6 +363,13 @@ declare class PieGraph {
  * Triggers the interactive MRS authentication process.
  *
  * @param serviceUrl The URL of the MRS service
+ */
+declare function mrsSetServiceUrl(serviceUrl: string): void;
+
+/**
+ * Triggers the interactive MRS authentication process.
+ *
+ * @param serviceUrl The URL of the MRS service
  * @param authApp The name of the authApp to authenticate against
  * @param userName The name of the user
  */

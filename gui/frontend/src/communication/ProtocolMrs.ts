@@ -392,6 +392,8 @@ export interface IShellMrsGetSdkBaseClassesKwargs {
 export interface IShellMrsGetSdkServiceClassesKwargs {
     /** The id of the service */
     serviceId?: string;
+    /** The url of the service */
+    serviceUrl?: string;
     /** The SDK language to generate */
     sdkLanguage?: string;
     /** Prepare code to be used in Monaco at runtime */

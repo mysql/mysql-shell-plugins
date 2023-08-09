@@ -47,6 +47,11 @@ import { ConnectionsTreeBaseItem } from "./tree-providers/ConnectionsTreeProvide
 import { SchemaMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaMySQLTreeItem";
 import { IMdsProfileData } from "../../frontend/src/communication/ProtocolMds";
 import { ShellInterfaceShellSession } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceShellSession";
+import { ShellInterface } from "../../frontend/src/supplement/ShellInterface/ShellInterface";
+import { webSession } from "../../frontend/src/supplement/WebSession";
+import { requisitions } from "../../frontend/src/supplement/Requisitions";
+import { DBType, IConnectionDetails } from "../../frontend/src/supplement/ShellInterface";
+import { MySQLConnCompression, MySQLConnectionScheme } from "../../frontend/src/communication/MySQL";
 
 export class MDSCommandHandler {
     private dialogManager = new DialogWebviewManager();
@@ -110,90 +115,7 @@ export class MDSCommandHandler {
         host.context.subscriptions.push(commands.registerCommand("msg.mds.createRouterEndpoint",
             async (item?: OciDbSystemTreeItem) => {
                 if (item?.dbSystem.id) {
-                    const endpointName = await window.showInputBox({
-                        title: `Please enter a name for this new MDS Endpoint [${item.name} Endpoint]:`,
-                        value: `${item.name} Endpoint`,
-                    });
-                    if (!endpointName) {
-                        return;
-                    }
-
-                    // Get Shape
-                    const shapes = await this.shellSession.mds.listComputeShapes(
-                        item.profile.profile, item.dbSystem.compartmentId);
-                    const shapeList = shapes.map((shape, _i, _a) => {
-                        return shape.shape;
-                    });
-                    const defaultShape = "VM.Standard.E4.Flex";
-                    const defaultShapeIndex = shapeList.indexOf(defaultShape);
-                    if (defaultShapeIndex !== -1) {
-                        shapeList.splice(defaultShapeIndex, 1);
-                        shapeList.unshift(defaultShape);
-                    }
-                    const shape = (await window.showQuickPick(shapeList, {
-                        title: "Please select a shape for the compute instance:",
-                        placeHolder: defaultShape,
-                        canPickMany: false,
-                    })) || defaultShape;
-
-                    // CPU Count
-                    const cpuCountValue = await window.showInputBox({
-                        title: `Please enter the number of OCPUs:`,
-                        value: `1`,
-                    });
-                    if (!cpuCountValue) {
-                        return;
-                    }
-                    const cpuCount = parseInt(cpuCountValue, 10);
-                    if (isNaN(cpuCount)) {
-                        // cspell:ignore OCPU
-                        await window.showErrorMessage(`The OCPU count needs to be given as an integer.`);
-
-                        return;
-                    }
-
-                    // Memory
-                    const memorySizeValue = await window.showInputBox({
-                        title: `Please enter the amount of Memory (in GB):`,
-                        value: `16`,
-                    });
-                    if (!memorySizeValue) {
-                        return;
-                    }
-                    const memorySize = parseInt(memorySizeValue, 10);
-                    if (isNaN(memorySize)) {
-                        // cspell:ignore OCPU
-                        await window.showErrorMessage(`The amount of memory needs to be given as an integer.`);
-
-                        return;
-                    }
-
-                    // MySQL User Name
-                    const mysqlUserName = await window.showInputBox({
-                        title: `Please enter the MySQL User Name for bootstrapping:`,
-                        value: `dba`,
-                    });
-                    if (!mysqlUserName) {
-                        return;
-                    }
-
-                    const shellArgs: string[] = [
-                        "--",
-                        "mds",
-                        "util",
-                        "create-mds-endpoint",
-                        `--db_system_id=${item.dbSystem.id.toString()}`,
-                        `--config_profile=${item.profile.profile}`,
-                        `--instance_name=${endpointName}`,
-                        `--shape=${shape}`,
-                        `--cpu_count=${cpuCount}`,
-                        `--memory_size=${memorySize}`,
-                        `--mysql_user_name="${mysqlUserName}"`,
-                        "--raise_exceptions=true",
-                    ];
-
-                    await host.addNewShellTask("Create new Router Endpoint", shellArgs);
-                    await commands.executeCommand("msg.mds.refreshOciProfiles");
+                    await this.showMdsEndpointDialog(item.dbSystem, item.compartment, item.profile, host);
                 }
             }));
 
@@ -789,6 +711,149 @@ export class MDSCommandHandler {
 
             await host.addNewShellTask("Load Data to HeatWave Cluster", shellArgs, connectionId);
             await window.showInformationMessage("The data load to the HeatWave cluster operation has finished.");
+        }
+    }
+
+
+    /**
+     * Shows a dialog to create a new or edit an existing MRS service.
+     *
+     * @param dbSystem The dbSystem of the HW Cluster
+     * @param compartment The compartment of the HW Cluster
+     * @param profile The OCI profile
+     * @param host The extension host
+     */
+    private async showMdsEndpointDialog(dbSystem: DbSystem, compartment: ICompartment,
+        profile: IMdsProfileData, host: ExtensionHost): Promise<void> {
+
+        const statusbarItem = window.createStatusBarItem();
+        statusbarItem.text = `$(loading~spin) Fetching List of Compute Shapes...`;
+        statusbarItem.show();
+
+        try {
+            // Get Shape
+            const shapes = await this.shellSession.mds.listComputeShapes(
+                profile.profile, dbSystem.compartmentId);
+            const shapeList = shapes.map((shape, _i, _a) => {
+                return shape.shape;
+            });
+            /*const defaultShape = "VM.Standard.E4.Flex";
+            const defaultShapeIndex = shapeList.indexOf(defaultShape);
+            if (defaultShapeIndex !== -1) {
+                shapeList.splice(defaultShapeIndex, 1);
+                shapeList.unshift(defaultShape);
+            }*/
+
+            statusbarItem.hide();
+
+            const title = "MySQL Endpoint Configuration";
+
+            const request = {
+                id: "mdsEndpointDialog",
+                type: MdsDialogType.MdsEndpoint,
+                title,
+                parameters: { shapes: shapeList },
+                values: {
+                    instanceName: `${dbSystem?.displayName} Endpoint`,
+                    shapeName: "VM.Standard.E4.Flex",
+                    cpuCount: 1,
+                    memorySize: 16,
+                    mysqlUserName: "dba",
+                },
+            };
+
+            const response = await this.dialogManager.showDialog(request, title);
+            if (!response || response.closure !== DialogResponseClosure.Accept) {
+                // Either the request was not sent at all (e.g. there was already one running) or the user cancelled it.
+                return;
+            }
+
+            if (response.data) {
+                const instanceName = response.data.instanceName as string;
+                const shapeName = response.data.shapeName as string;
+                const cpuCount = response.data.cpuCount as number;
+                const memorySize = response.data.memorySize as number;
+
+                const mysqlUserName = response.data.mysqlUserName as string;
+                const mysqlUserPassword = response.data.mysqlUserPassword as string;
+                const createDbConnection = response.data.createDbConnection as boolean;
+
+                const publicIp = response.data.publicIp as boolean;
+                const domainName = response.data.domainName as string;
+                const sslCertificate = response.data.sslCertificate as boolean;
+
+                const portForwarding = response.data.portForwarding as boolean;
+                const mrs = response.data.mrs as boolean;
+
+                const jwtSecret = response.data.jwtSecret as string;
+
+                const shellArgs: string[] = [
+                    "--",
+                    "mds",
+                    "util",
+                    "create-endpoint",
+                    `--db_system_id=${dbSystem.id}`,
+                    `--config_profile=${profile.profile}`,
+                    `--instance_name=${instanceName}`,
+                    `--shape=${shapeName}`,
+                    `--cpu_count=${cpuCount}`,
+                    `--memory_size=${memorySize}`,
+                    `--mysql_user_name="${mysqlUserName}"`,
+                    `--public_ip=${publicIp ? "true" : "false"}`,
+                    `--port_forwarding=${portForwarding ? "true" : "false"}`,
+                    `--mrs=${mrs ? "true" : "false"}`,
+                    `--domain_name=${domainName}`,
+                    `--ssl_cert=${sslCertificate ? "true" : "false"}`,
+                    "--raise_exceptions=true",
+                ];
+
+                if (jwtSecret !== "") {
+                    shellArgs.push(`--jwt_secret="${jwtSecret}"`);
+                }
+
+                // Pass mysqlUserPassword on stdin to the shell task so it is not written to logs
+                await host.addNewShellTask("Create new Router Endpoint",
+                    shellArgs, undefined, true, [mysqlUserPassword]);
+
+                // Refresh OCI Profiles to show new compute instance
+                await commands.executeCommand("msg.mds.refreshOciProfiles");
+
+                if (createDbConnection) {
+                    const details = {
+                        id: 0, // Will be replaced with the ID returned from the BE call.
+                        dbType: DBType.MySQL,
+                        caption: instanceName,
+                        description: "MySQL Router Connection",
+                        useSSH: false,
+                        useMDS: false,
+                        options: {
+                            /* eslint-disable @typescript-eslint/naming-convention */
+                            "scheme": MySQLConnectionScheme.MySQL,
+                            "host": domainName ?? publicIp,
+                            "port": 6446,
+                            "user": mysqlUserName,
+                            "schema": "",
+                            // "useSSL": useSsl ? undefined : "no",
+                            "ssl-mode": undefined,
+                            "compression": MySQLConnCompression.Preferred,
+                        },
+                    };
+
+                    ShellInterface.dbConnections.addDbConnection(
+                        webSession.currentProfileId, details, "").then((connectionId) => {
+                            if (connectionId !== undefined) {
+                                void requisitions.execute("refreshConnections", undefined);
+                            }
+                        }).catch((event) => {
+                            void window.showErrorMessage(
+                                `Error while adding the DB Connection: ${String(event.message)}`);
+                        });
+                }
+            }
+
+        } catch (reason) {
+            statusbarItem.hide();
+            await window.showErrorMessage(`Error while listing Compute Shapes: ${String(reason)}`);
         }
     }
 

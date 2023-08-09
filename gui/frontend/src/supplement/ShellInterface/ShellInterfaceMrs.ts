@@ -760,12 +760,13 @@ export class ShellInterfaceMrs {
     }
 
     public async getSdkServiceClasses(
-        serviceId?: string, sdkLanguage?: string, prepareForRuntime?: boolean): Promise<string> {
+        serviceId?: string, sdkLanguage?: string, prepareForRuntime?: boolean, serviceUrl?: string): Promise<string> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsGetSdkServiceClasses,
             parameters: {
                 kwargs: {
                     serviceId,
+                    serviceUrl,
                     sdkLanguage,
                     prepareForRuntime,
                     moduleSessionId: this.moduleSessionId,

@@ -33,6 +33,18 @@ export const webFetch = (input: RequestInfo | URL, init?: RequestInit): Promise<
     return fetch(input, init);
 };
 
+export const mrsSetServiceUrl = (serviceUrl: string): void => {
+    currentWorker.postMessage({
+        taskId: currentWorker.currentTaskId,
+        data: {
+            api: ScriptingApi.MrsSetServiceUrl,
+            serviceUrl,
+            contextId: currentWorker.currentContext,
+            final: true,
+        },
+    });
+};
+
 export const mrsAuthenticate = (serviceUrl: string, authPath: string, authApp?: string, userName?: string): void => {
     print("Staring MRS authentication ...");
 

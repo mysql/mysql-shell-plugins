@@ -62,7 +62,7 @@ export enum ShellAPIMds {
     /** Loads data to a HeatWave Cluster */
     MdsUtilHeatWaveLoadData = "mds.util.heat_wave_load_data",
     /** Creates a public endpoint using MySQL Router on a compute instance */
-    MdsUtilCreateMdsEndpoint = "mds.util.create_mds_endpoint",
+    MdsUtilCreateEndpoint = "mds.util.create_endpoint",
     /** Gets a DB System Config */
     MdsGetDbSystemConfiguration = "mds.get.db_system_configuration",
     /** Lists Shapes available for MySQL DB Systems */
@@ -331,7 +331,7 @@ export interface IShellMdsUtilHeatWaveLoadDataKwargs {
     raiseExceptions?: boolean;
 }
 
-export interface IShellMdsUtilCreateMdsEndpointKwargs {
+export interface IShellMdsUtilCreateEndpointKwargs {
     /** Name of the compute instance */
     instanceName?: string;
     /** The new name of the DB System. */
@@ -348,6 +348,18 @@ export interface IShellMdsUtilCreateMdsEndpointKwargs {
     memorySize?: number;
     /** The MySQL user name to use for bootstrapping */
     mysqlUserName?: string;
+    /** If set to true, a public IP will be assigned to the compute instance */
+    publicIp?: boolean;
+    /** The domain name of the compute instance */
+    domainName?: string;
+    /** Whether port forwarding of MySQL ports should be enabled */
+    portForwarding?: boolean;
+    /** Whether the MySQL REST Service (MRS) should be enabled */
+    mrs?: boolean;
+    /** Whether SSL Certificates should be managed */
+    sslCert?: boolean;
+    /** The JWT secret for MRS */
+    jwtSecret?: string;
     /** The OCID of the compartment */
     compartmentId?: string;
     /** An OCI config object or None. */
@@ -990,7 +1002,7 @@ export interface IProtocolMdsParameters {
     [ShellAPIMds.MdsListComputeShapes]: { kwargs?: IShellMdsListComputeShapesKwargs; };
     [ShellAPIMds.MdsDeleteComputeInstance]: { kwargs?: IShellMdsDeleteComputeInstanceKwargs; };
     [ShellAPIMds.MdsUtilHeatWaveLoadData]: { kwargs?: IShellMdsUtilHeatWaveLoadDataKwargs; };
-    [ShellAPIMds.MdsUtilCreateMdsEndpoint]: { kwargs?: IShellMdsUtilCreateMdsEndpointKwargs; };
+    [ShellAPIMds.MdsUtilCreateEndpoint]: { kwargs?: IShellMdsUtilCreateEndpointKwargs; };
     [ShellAPIMds.MdsGetDbSystemConfiguration]: { kwargs?: IShellMdsGetDbSystemConfigurationKwargs; };
     [ShellAPIMds.MdsListDbSystemShapes]: { kwargs?: IShellMdsListDbSystemShapesKwargs; };
     [ShellAPIMds.MdsListDbSystems]: { kwargs?: IShellMdsListDbSystemsKwargs; };
@@ -1046,7 +1058,7 @@ export interface IProtocolMdsResults {
     [ShellAPIMds.MdsListComputeShapes]: { result: IComputeShape[]; };
     [ShellAPIMds.MdsDeleteComputeInstance]: {};
     [ShellAPIMds.MdsUtilHeatWaveLoadData]: {};
-    [ShellAPIMds.MdsUtilCreateMdsEndpoint]: {};
+    [ShellAPIMds.MdsUtilCreateEndpoint]: {};
     [ShellAPIMds.MdsGetDbSystemConfiguration]: {};
     [ShellAPIMds.MdsListDbSystemShapes]: { result: IMySQLDbSystemShapeSummary[]; };
     [ShellAPIMds.MdsListDbSystems]: { result: IMySQLDbSystem[]; };

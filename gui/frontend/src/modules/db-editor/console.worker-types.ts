@@ -76,6 +76,9 @@ export enum ScriptingApi {
     /** A graph definition. */
     Graph,
 
+    /** Changes the MRS service URL. */
+    MrsSetServiceUrl,
+
     /** Triggers a MRS authentication process to get the global MRS JWT. */
     MrsAuthenticate,
 

@@ -24,7 +24,7 @@ export interface IProtocolMdsResults {
     [ShellAPIMds.MdsListComputeShapes]: { result: IComputeShape[]; };
     [ShellAPIMds.MdsDeleteComputeInstance]: {};
     [ShellAPIMds.MdsUtilHeatWaveLoadData]: {};
-    [ShellAPIMds.MdsUtilCreateMdsEndpoint]: {};
+    [ShellAPIMds.MdsUtilCreateEndpoint]: {};
     [ShellAPIMds.MdsGetDbSystemConfiguration]: {};
     [ShellAPIMds.MdsListDbSystemShapes]: { result: IMySQLDbSystemShapeSummary[]; };
     [ShellAPIMds.MdsListDbSystems]: { result: IMySQLDbSystem[]; };
