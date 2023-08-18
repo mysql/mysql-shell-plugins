@@ -23,6 +23,7 @@ import pytest
 
 from ... roles import *
 from mrs_plugin import lib
+from . helpers import get_default_role_init, RoleCT
 
 def test_get_roles(phone_book):
     roles = get_roles(None, phone_book["session"])
@@ -43,23 +44,25 @@ def test_get_roles(phone_book):
 
 
 def test_add_role(phone_book):
-    role1 = add_role("Test role 1", description="This is the role 1 description")
-    role2 = add_role("Test role 2", derived_Role_id=role1["id"],
-        specific_to_service_id=phone_book["service_id"], description="This is the role 2 description")
-    role3 = add_role("Test role 3", derived_Role_id=role2["id"],
-        description="This is the role 3 description")
+    session = phone_book["session"]
+    role1_init = get_default_role_init("Test role 1", "This is the role 1 description")
+    role2_init = get_default_role_init("Test role 2", "This is the role 2 description")
+    role3_init = get_default_role_init("Test role 3", "This is the role 3 description")
 
-    local_roles = {
-        "Test role 1": role1["id"],
-        "Test role 2": role2["id"],
-        "Test role 3": role3["id"],
-        **phone_book["roles"],
-    }
+    with RoleCT(session, **role1_init) as role1_id:
+        with RoleCT(session, **role2_init) as role2_id:
+            with RoleCT(session, **role3_init) as role3_id:
+                local_roles = {
+                    "Test role 1": role1_id,
+                    "Test role 2": role2_id,
+                    "Test role 3": role3_id,
+                    **phone_book["roles"],
+                }
 
-    roles = get_roles(phone_book["service_id"], phone_book["session"])
+                roles = get_roles(phone_book["service_id"], phone_book["session"])
 
-    for role in roles:
-        assert role["caption"] in local_roles
-        assert role["id"] == local_roles[role["caption"]]
-        if role["caption"].startswith("Test role "):
-            assert role["description"] == f'This is the role {role["caption"][-1]} description'
+                for role in roles:
+                    assert role["caption"] in local_roles
+                    assert role["id"] == local_roles[role["caption"]]
+                    if role["caption"].startswith("Test role "):
+                        assert role["description"] == f'This is the role {role["caption"][-1]} description'

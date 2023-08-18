@@ -22,10 +22,11 @@
 import pytest
 from ... auth_apps import *
 from ... import lib
+from . helpers import AuthAppCT
 
 InitialAuthAppIds = []
 
-def test_add_auth_vendors(phone_book, table_contents):
+def test_verify_auth_vendors(phone_book, table_contents):
     auth_vendor_table = table_contents("auth_vendor")
 
     assert auth_vendor_table.count == 4
@@ -60,6 +61,7 @@ def test_add_auth_vendors(phone_book, table_contents):
 
 
 def test_add_auth_apps(phone_book, table_contents):
+    session = phone_book["session"]
     auth_apps_table = table_contents("auth_app")
 
     args = {
@@ -70,21 +72,21 @@ def test_add_auth_apps(phone_book, table_contents):
         "limit_to_registered_users": False,
         "registered_users": None,
         "app_id": "some app id",
-        "session": phone_book["session"]
+        "session": session
     }
 
-    result = add_auth_app(app_name="Test Auth App", service_id=phone_book["service_id"], **args)
-    assert result is not None
-    InitialAuthAppIds.append(result["auth_app_id"])
+    result1 = add_auth_app(app_name="Test Auth App", service_id=phone_book["service_id"], **args)
+    assert result1 is not None
+    InitialAuthAppIds.append(result1["auth_app_id"])
     assert auth_apps_table.count == auth_apps_table.snapshot.count + 1
-    assert auth_apps_table.get("id", result["auth_app_id"]) == {
+    assert auth_apps_table.get("id", result1["auth_app_id"]) == {
         'access_token': args["access_token"],
         'app_id': args["app_id"],
         'auth_vendor_id': lib.core.id_to_binary(args['auth_vendor_id'], ""),
         'default_role_id': lib.auth_apps.DEFAULT_ROLE_ID,
         'description': args["description"],
         'enabled': 1,
-        'id': result["auth_app_id"],
+        'id': result1["auth_app_id"],
         'limit_to_registered_users': int(args["limit_to_registered_users"]),
         'name': 'Test Auth App',
         'service_id': phone_book["service_id"],
@@ -103,18 +105,18 @@ def test_add_auth_apps(phone_book, table_contents):
         "session": phone_book["session"]
     }
 
-    result = add_auth_app(app_name="Test Auth App 2", service_id=phone_book["service_id"], **args)
-    assert result is not None
-    InitialAuthAppIds.append(result["auth_app_id"])
+    result2 = add_auth_app(app_name="Test Auth App 2", service_id=phone_book["service_id"], **args)
+    assert result2 is not None
+    InitialAuthAppIds.append(result2["auth_app_id"])
     assert auth_apps_table.count == auth_apps_table.snapshot.count + 2
-    assert auth_apps_table.get("id", result["auth_app_id"]) == {
+    assert auth_apps_table.get("id", result2["auth_app_id"]) == {
         'access_token': args["access_token"],
         'app_id': args["app_id"],
         'auth_vendor_id': lib.core.id_to_binary(args['auth_vendor_id'], ""),
         'default_role_id': lib.auth_apps.DEFAULT_ROLE_ID,
         'description': args["description"],
         'enabled': 1,
-        'id': result["auth_app_id"],
+        'id': result2["auth_app_id"],
         'limit_to_registered_users': int(args["limit_to_registered_users"]),
         'name': 'Test Auth App 2',
         'service_id': phone_book["service_id"],
@@ -122,77 +124,129 @@ def test_add_auth_apps(phone_book, table_contents):
         'url_direct_auth': None
     }
 
+    assert auth_apps_table.count == 3
+
+    delete_auth_app(session=phone_book["session"], app_id=result1["auth_app_id"])
+
+    assert auth_apps_table.count == 2
+
+    delete_auth_app(session=phone_book["session"], app_id=result2["auth_app_id"])
+
+    assert auth_apps_table.count == 1
+
 
 def test_get_auth_apps(phone_book):
+    session = phone_book["session"]
     args = {
         "include_enable_state": False,
-        "session": phone_book["session"],
+        "session": session,
     }
     apps = get_auth_apps(**args)
     assert apps == []
 
+
+    args1 = {
+        "name": "Test Auth App",
+        "service_id": phone_book["service_id"],
+        "auth_vendor_id": lib.core.id_to_binary("0x31000000000000000000000000000000", "auth_vendor_id"),
+        "description": "Authentication via MySQL accounts",
+        "url": "/test_auth",
+        "access_token": "test_token",
+        "limit_to_registered_users": False,
+        "registered_users": None,
+        "app_id": "some app id",
+        "session": session
+    }
+
+    args2 = {
+        "name": "Test Auth App 2",
+        "service_id": phone_book["service_id"],
+        "auth_vendor_id": lib.core.id_to_binary("0x31000000000000000000000000000000", "auth_vendor_id"),
+        "description": "Authentication via MySQL accounts 2",
+        "url": "/test_auth2",
+        "access_token": "test_token",
+        "limit_to_registered_users": False,
+        "registered_users": None,
+        "app_id": "some app id",
+        "session": session
+    }
+
+
+    with AuthAppCT(**args1) as auth_app_id1:
+        with AuthAppCT(**args2) as auth_app_id2:
+
+            args = {
+                "include_enable_state": True,
+                "session": session,
+            }
+            apps = get_auth_apps(**args)
+
+            assert apps is not None
+            assert len(apps) == 3
+
+            assert apps[1]["name"] == "Test Auth App"
+            assert apps[1]["id"] == auth_app_id1
+            assert apps[2]["name"] == "Test Auth App 2"
+            assert apps[2]["id"] == auth_app_id2
+
+
     args = {
         "include_enable_state": True,
-        "session": phone_book["session"],
+        "session": session,
     }
     apps = get_auth_apps(**args)
 
     assert apps is not None
-    assert len(apps) == 3
-
-    assert apps[1]["name"] == "Test Auth App"
-    assert apps[1]["id"] == InitialAuthAppIds[0]
-    assert apps[2]["name"] == "Test Auth App 2"
-    assert apps[2]["id"] == InitialAuthAppIds[1]
+    assert len(apps) == 1
 
 
 def test_update_auth_apps(phone_book, table_contents):
-    auth_apps_table = table_contents("auth_app")
-    value = {
-        "name": "Test Auth App New",
-        "description": "This is a new description",
-        "url": "/test_app_new",
-        "url_direct_auth": "new url direct auth",
-        "access_token": "new access token",
-        "app_id": "new app id",
-        "enabled": False,
-        "limit_to_registered_users": False,
-        "default_role_id": None
-    }
+    session = phone_book["session"]
     args = {
-        "app_id": InitialAuthAppIds[0],
-        "session": phone_book["session"],
-        "value": value
+        "name": "Test Auth App",
+        "service_id": phone_book["service_id"],
+        "auth_vendor_id": lib.core.id_to_binary("0x31000000000000000000000000000000", "auth_vendor_id"),
+        "description": "Authentication via MySQL accounts",
+        "url": "/test_auth",
+        "access_token": "test_token",
+        "limit_to_registered_users": False,
+        "registered_users": None,
+        "app_id": "some app id",
     }
-    update_auth_app(**args)
+    with AuthAppCT(session, **args) as auth_app_id:
+        auth_apps_table = table_contents("auth_app")
+        value = {
+            "name": "Test Auth App New",
+            "description": "This is a new description",
+            "url": "/test_app_new",
+            "url_direct_auth": "new url direct auth",
+            "access_token": "new access token",
+            "app_id": "some app id",
+            "enabled": False,
+            "limit_to_registered_users": False,
+            "default_role_id": None
+        }
+        args = {
+            "app_id": auth_app_id,
+            "session": session,
+            "value": value
+        }
+        update_auth_app(**args)
 
-    assert auth_apps_table.count == auth_apps_table.snapshot.count
+        assert auth_apps_table.count == auth_apps_table.snapshot.count
 
-    assert auth_apps_table.get("id", args["app_id"]) == {
-        'access_token': value["access_token"],
-        'app_id': value["app_id"],
-        'auth_vendor_id': lib.core.id_to_binary("0x31000000000000000000000000000000", ""),
-        'default_role_id': value["default_role_id"],
-        'description': value["description"],
-        'enabled': int(value["enabled"]),
-        'id': args["app_id"],
-        'limit_to_registered_users': int(value["limit_to_registered_users"]),
-        'name': value["name"],
-        'service_id': phone_book["service_id"],
-        'url': value["url"],
-        'url_direct_auth': value["url_direct_auth"]
-    }
+        assert auth_apps_table.get("id", args["app_id"]) == {
+            'access_token': value["access_token"],
+            'app_id': value["app_id"],
+            'auth_vendor_id': lib.core.id_to_binary("0x31000000000000000000000000000000", ""),
+            'default_role_id': value["default_role_id"],
+            'description': value["description"],
+            'enabled': int(value["enabled"]),
+            'id': args["app_id"],
+            'limit_to_registered_users': int(value["limit_to_registered_users"]),
+            'name': value["name"],
+            'service_id': phone_book["service_id"],
+            'url': value["url"],
+            'url_direct_auth': value["url_direct_auth"]
+        }
 
-
-def test_delete_auth_apps(phone_book, table_contents):
-    auth_apps_table = table_contents("auth_app")
-
-    assert auth_apps_table.count == 3
-
-    delete_auth_app(session=phone_book["session"], app_id=InitialAuthAppIds[0])
-
-    assert auth_apps_table.count == 2
-
-    delete_auth_app(session=phone_book["session"], app_id=InitialAuthAppIds[1])
-
-    assert auth_apps_table.count == 1

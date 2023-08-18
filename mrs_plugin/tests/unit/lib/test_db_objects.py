@@ -21,84 +21,49 @@
 
 import pytest
 from mrs_plugin import lib
-from ..helpers import get_db_object_privileges
+from ..helpers import get_db_object_privileges, DbObjectCT, TableContents, get_default_db_object_init
 
 @pytest.mark.usefixtures("phone_book")
 def test_add_db_object(phone_book, table_contents):
-    db_object = {
-        "db_object_name": "Addresses",
-        "db_object_type": "TABLE",
-        "schema_id": phone_book["schema_id"],
-        "request_path": "table_addresses",
-        "requires_auth": False,
-        "items_per_page": 10,
-        "row_user_ownership_enforced": False,
-        "row_user_ownership_column": "",
-        "session": phone_book["session"],
-        "crud_operations": None,
-        "crud_operation_format": None,
-        "comments": None,
-        "media_type": None,
-        "enabled": True,
-        "auto_detect_media_type": True,
-        "auth_stored_procedure": '0',
-        "options": None,
-        "fields": None
-    }
+    db_object_table = table_contents("db_object")
+    session = phone_book["session"]
+    schema_id = phone_book["schema_id"]
+    db_object_init = get_default_db_object_init(schema_id)
 
-    # db_object_table = table_contents("db_object")
-    # with pytest.raises(Exception) as exc_info:
-    #     lib.db_objects.add_db_object(**db_object)
-    # assert str(exc_info.value) == "The request_path has to start with '/'."
+    with DbObjectCT(session, **db_object_init) as db_object_id:
+        assert db_object_table.get("id", db_object_id) == {
+            'auth_stored_procedure': '0',
+            'auto_detect_media_type': 1,
+            'comments': 'Object that will be removed',
+            'crud_operations': ['CREATE', 'READ', 'UPDATE'],
+            'db_schema_id': schema_id,
+            'details': None,
+            'enabled': 1,
+            'format': 'FEED',
+            'id': db_object_id,
+            'items_per_page': 10,
+            'media_type': 'media type',
+            'name': 'ContactBasicInfo',
+            'object_type': 'VIEW',
+            'options': {
+                'aaa': 'val aaa',
+                'bbb': 'val bbb'
+            },
+            'request_path': '/view_contact_basic_info',
+            'requires_auth': 0,
+            'row_user_ownership_column': '',
+            'row_user_ownership_enforced': 0,
+        }
 
-    # assert db_object_table.same_as_snapshot
-
-    # db_object["request_path"] = "/table_addresses"
-    # with pytest.raises(ValueError) as exc_info:
-    #     lib.db_objects.add_db_object(**db_object)
-    # assert str(exc_info.value) == "No CRUD operations specified.Operation cancelled."
-
-    # assert db_object_table.same_as_snapshot
-
-    # db_object["crud_operations"] = ['CREATE', 'READ', 'UPDATE', 'DELETE']
-    # with pytest.raises(ValueError) as exc_info:
-    #     lib.db_objects.add_db_object(**db_object)
-    # assert str(exc_info.value) == "No CRUD operation format specified.Operation cancelled."
-
-    # assert db_object_table.same_as_snapshot
-
-    # db_object["crud_operation_format"] = "FEED"
-    # db_object["crud_operations"] = 1
-    # with pytest.raises(TypeError) as exc_info:
-    #     lib.db_objects.add_db_object(**db_object)
-    # assert str(exc_info.value) == "The crud_operations parameter need to be specified as list. Operation cancelled."
-
-    # assert db_object_table.same_as_snapshot
-
-    # db_object["crud_operations"] = ['CRETE']
-    # with pytest.raises(ValueError) as exc_info:
-    #     lib.db_objects.add_db_object(**db_object)
-    # assert str(exc_info.value) == "The given CRUD operation CRETE does not exist."
-
-    # assert db_object_table.same_as_snapshot
-
-    # db_object["db_object_type"] = "TBLE"
-    # with pytest.raises(ValueError) as exc_info:
-    #     lib.db_objects.add_db_object(**db_object)
-    # assert str(exc_info.value) == "Invalid db_object_type. Only valid types are TABLE, VIEW and PROCEDURE."
-
-    # assert db_object_table.same_as_snapshot
-
+    assert db_object_table.same_as_snapshot
 
 def test_get_db_object(phone_book, mobile_phone_book):
 
     with lib.core.MrsDbSession(session=phone_book["session"]) as session:
 
         db_object = lib.db_objects.get_db_object(session=session, schema_id=phone_book["schema_id"])
+        assert db_object is None
 
-        # with pytest.raises(Exception) as exc_info:
-        #     lib.db_objects.get_db_object(session=session, schema_id=phone_book["schema_id"], request_path="/test_abc", db_object_name="db1")
-        # assert str(exc_info.value) == "The given database object was not found."
         db_object = lib.db_objects.get_db_object(session=session, schema_id=phone_book["schema_id"],
             request_path="/test_abc", db_object_name="db1")
         assert db_object is None
@@ -110,204 +75,205 @@ def test_get_db_object(phone_book, mobile_phone_book):
         assert db_object['object_type'] == 'TABLE'
 
         # This might take one of these values depending on if the db_object tests already ran
-        assert db_object['request_path'] == '/db_table' or db_object['request_path'] == '/movedObject'
-        assert db_object['db_schema_id'] == phone_book["schema_id"] or db_object['db_schema_id'] == mobile_phone_book["schema_id"]
+        assert db_object['request_path'] == '/test_table'
+        assert db_object['db_schema_id'] == phone_book["schema_id"]
 
 
 def test_set_crud_operations(phone_book, mobile_phone_book, table_contents):
 
     with lib.core.MrsDbSession(session=phone_book["session"]) as session:
-        db_object_table = table_contents("db_object")
+        db_object_table: TableContents = table_contents("db_object")
 
-        lib.db_objects.set_crud_operations(session=session,
-            db_object_id=phone_book["db_object_id"], crud_operations=['CREATE', 'READ', 'UPDATE'],
-            crud_operation_format="FEED")
+        db_object = get_default_db_object_init(phone_book["schema_id"])
 
-        result = lib.db_objects.get_db_object(session, db_object_id=phone_book["db_object_id"])
-        assert result == {
-            'id': phone_book["db_object_id"],
-            'changed_at': result["changed_at"],
-            'db_schema_id': phone_book["schema_id"],
-            'name': 'Contacts',
-            'request_path': '/db_table',
-            'enabled': 1,
-            'object_type': 'TABLE',
-            'crud_operation_format': 'FEED',
-            'crud_operations': ['CREATE', 'READ', 'UPDATE'],
-            'host_ctx': 'localhost/test',
-            'qualified_name': 'PhoneBook.Contacts',
-            'items_per_page': None,
-            'media_type': None,
-            'auto_detect_media_type': 1,
-            'requires_auth': 0,
-            'auth_stored_procedure': '0',
-            'row_user_ownership_enforced': 0,
-            'row_user_ownership_column': '',
-            'comments': 'Test table',
-            'options': None,
-            'schema_name': 'PhoneBook',
-            'schema_request_path': '/PhoneBook',
-            'service_id': phone_book["service_id"],
-        } or result == {
-            'id': phone_book["db_object_id"],
-            'changed_at': result["changed_at"],
-            'db_schema_id': mobile_phone_book["schema_id"],
-            'name': 'Contacts',
-            'request_path': '/movedObject',
-            'enabled': 1,
-            'object_type': 'TABLE',
-            'crud_operation_format': 'FEED',
-            'crud_operations': ['CREATE', 'READ', 'UPDATE'],
-            'host_ctx': 'localhost/test',
-            'qualified_name': 'MobilePhoneBook.Contacts',
-            'items_per_page': None,
-            'media_type': None,
-            'auto_detect_media_type': 1,
-            'requires_auth': 0,
-            'auth_stored_procedure': '0',
-            'row_user_ownership_enforced': 0,
-            'row_user_ownership_column': '',
-            'comments': 'Test table',
-            'options': None,
-            'schema_name': 'MobilePhoneBook',
-            'schema_request_path': '/MobilePhoneBook',
-            'service_id': phone_book["service_id"],
-        }
+        with DbObjectCT(session, **db_object) as db_object_id:
+            assert db_object_table.count == db_object_table.snapshot.count + 1
+            db_object_table.take_snapshot()
 
-        schema = lib.schemas.get_schema(session, result["db_schema_id"])
-        lib.db_objects.set_crud_operations(session=session,
-            db_object_id=result["id"], crud_operations=['CREATE', 'READ', 'UPDATE'],
-            crud_operation_format="FEED")
-        lib.database.grant_db_object(session, schema["name"], result["name"], lib.database.crud_mapping(['CREATE', 'READ', 'UPDATE']))
+            assert db_object_table.same_as_snapshot
 
-        grants = get_db_object_privileges(session,
-            result['schema_name'], result['name'])
-        assert sorted(grants) == sorted(lib.db_objects.map_crud_operations(result["crud_operations"]))
+            result = lib.db_objects.get_db_object(session, db_object_id=db_object_id)
+            assert result == {
+                'auth_stored_procedure': '0',
+                'auto_detect_media_type': int(db_object["auto_detect_media_type"]),
+                'crud_operations': ["CREATE", "READ", "UPDATE"],
+                'comments': db_object["comments"],
+                'crud_operation_format': 'FEED',
+                'enabled': int(db_object["enabled"]),
+                'items_per_page': 10,
+                'media_type': 'media type',
+                'options': db_object["options"],
+                'request_path': db_object["request_path"],
+                'requires_auth': 0,
+                'row_user_ownership_column': '',
+                'row_user_ownership_enforced': 0,
+                'changed_at': result["changed_at"],
+                'db_schema_id': phone_book["schema_id"],
+                'host_ctx': 'localhost/test',
+                'id': result["id"],
+                'name': db_object["db_object_name"],
+                'object_type': 'VIEW',
+                'qualified_name': 'PhoneBook.ContactBasicInfo',
+                'schema_name': 'PhoneBook',
+                'schema_request_path': '/PhoneBook',
+                'service_id': phone_book["service_id"]
+            }
 
-        db_object_table_data = db_object_table.get("id", phone_book["db_object_id"])
-        assert db_object_table_data["crud_operations"] == ["CREATE","READ","UPDATE"]
+            grants = get_db_object_privileges(session,
+                result['schema_name'], result['name'])
+            
+            assert sorted(grants) == sorted(lib.db_objects.map_crud_operations(result["crud_operations"]))
+            db_object_table_data = db_object_table.get("id", db_object_id)
+            assert db_object_table_data["crud_operations"] == ["CREATE", "READ", "UPDATE"]
+            assert db_object_table.same_as_snapshot
+            
+            new_crud_ops = ["CREATE", "READ", "UPDATE", "DELETE"]
+            lib.database.revoke_all_from_db_object(session, result["schema_name"], result["name"], result["object_type"])
+            lib.database.grant_db_object(session, result["schema_name"], result["name"], 
+                                         lib.database.crud_mapping(new_crud_ops))
+            lib.db_objects.set_crud_operations(session=session,
+                db_object_id=db_object_id, crud_operations=new_crud_ops,
+                crud_operation_format="FEED")
 
-        assert not db_object_table.same_as_snapshot
+            assert not db_object_table.same_as_snapshot
 
-        lib.db_objects.set_crud_operations(session=session,
-            db_object_id=result["id"], crud_operations=['CREATE', 'READ', 'UPDATE', 'DELETE'],
-            crud_operation_format="FEED")
-        lib.database.grant_db_object(session, schema["name"], result["name"], lib.database.crud_mapping(['CREATE', 'READ', 'UPDATE', 'DELETE']))
+            result = lib.db_objects.get_db_object(session, db_object_id=db_object_id)
+            assert result == {
+                'auth_stored_procedure': '0',
+                'auto_detect_media_type': int(db_object["auto_detect_media_type"]),
+                'crud_operations': new_crud_ops,
+                'comments': db_object["comments"],
+                'crud_operation_format': 'FEED',
+                'enabled': int(db_object["enabled"]),
+                'items_per_page': 10,
+                'media_type': 'media type',
+                'options': db_object["options"],
+                'request_path': db_object["request_path"],
+                'requires_auth': 0,
+                'row_user_ownership_column': '',
+                'row_user_ownership_enforced': 0,
+                'changed_at': result["changed_at"],
+                'db_schema_id': phone_book["schema_id"],
+                'host_ctx': 'localhost/test',
+                'id': result["id"],
+                'name': db_object["db_object_name"],
+                'object_type': 'VIEW',
+                'qualified_name': 'PhoneBook.ContactBasicInfo',
+                'schema_name': 'PhoneBook',
+                'schema_request_path': '/PhoneBook',
+                'service_id': phone_book["service_id"]
+            }
 
-        result = lib.db_objects.get_db_object(session, db_object_id=phone_book["db_object_id"])
+            db_object_table_data = db_object_table.get("id", db_object_id)
+            assert result["crud_operations"] == new_crud_ops
+            grants = get_db_object_privileges(session,
+                result['schema_name'], result['name'])
+            assert sorted(grants) == sorted(lib.db_objects.map_crud_operations(new_crud_ops))
 
-        assert result == {
-            'id': phone_book["db_object_id"],
-            'changed_at': result["changed_at"],
-            'db_schema_id': phone_book["schema_id"],
-            'name': 'Contacts',
-            'request_path': '/db_table',
-            'enabled': 1,
-            'object_type': 'TABLE',
-            'crud_operation_format': 'FEED',
-            'crud_operations': ['CREATE', 'READ', 'UPDATE', 'DELETE'],
-            'host_ctx': 'localhost/test',
-            'qualified_name': 'PhoneBook.Contacts',
-            'items_per_page': None,
-            'media_type': None,
-            'auto_detect_media_type': 1,
-            'requires_auth': 0,
-            'auth_stored_procedure': '0',
-            'row_user_ownership_enforced': 0,
-            'row_user_ownership_column': '',
-            'comments': 'Test table',
-            'options': None,
-            'schema_name': 'PhoneBook',
-            'schema_request_path': '/PhoneBook',
-            'service_id': phone_book["service_id"],
+            new_crud_ops = ["CREATE", "READ", "UPDATE"]
+            lib.database.revoke_all_from_db_object(session, result["schema_name"], result["name"], result["object_type"])
+            lib.database.grant_db_object(session, result["schema_name"], result["name"], 
+                                         lib.database.crud_mapping(new_crud_ops))
+            lib.db_objects.set_crud_operations(session=session,
+                db_object_id=result["id"], crud_operations=new_crud_ops,
+                crud_operation_format="FEED")
 
-        } or result == {
-            'id': phone_book["db_object_id"],
-            'changed_at': result["changed_at"],
-            'db_schema_id': mobile_phone_book["schema_id"],
-            'name': 'Contacts',
-            'request_path': '/movedObject',
-            'enabled': 1,
-            'object_type': 'TABLE',
-            'crud_operation_format': 'FEED',
-            'crud_operations': ['CREATE', 'READ', 'UPDATE', 'DELETE'],
-            'host_ctx': 'localhost/test',
-            'qualified_name': 'MobilePhoneBook.Contacts',
-            'items_per_page': None,
-            'media_type': None,
-            'auto_detect_media_type': 1,
-            'requires_auth': 0,
-            'auth_stored_procedure': '0',
-            'row_user_ownership_enforced': 0,
-            'row_user_ownership_column': '',
-            'comments': 'Test table',
-            'options': None,
-            'schema_name': 'MobilePhoneBook',
-            'schema_request_path': '/MobilePhoneBook',
-            'service_id': phone_book["service_id"],
-        }
-        db_object_table_data = db_object_table.get("id", phone_book["db_object_id"])
-        assert db_object_table_data["crud_operations"] == ["CREATE","READ","UPDATE","DELETE"]
+            result = lib.db_objects.get_db_object(session, db_object_id=db_object_id)
+            assert result == {
+                'auth_stored_procedure': '0',
+                'auto_detect_media_type': int(db_object["auto_detect_media_type"]),
+                'crud_operations': new_crud_ops,
+                'comments': db_object["comments"],
+                'crud_operation_format': 'FEED',
+                'enabled': int(db_object["enabled"]),
+                'items_per_page': 10,
+                'media_type': 'media type',
+                'options': db_object["options"],
+                'request_path': db_object["request_path"],
+                'requires_auth': 0,
+                'row_user_ownership_column': '',
+                'row_user_ownership_enforced': 0,
+                'changed_at': result["changed_at"],
+                'db_schema_id': phone_book["schema_id"],
+                'host_ctx': 'localhost/test',
+                'id': result["id"],
+                'name': db_object["db_object_name"],
+                'object_type': 'VIEW',
+                'qualified_name': 'PhoneBook.ContactBasicInfo',
+                'schema_name': 'PhoneBook',
+                'schema_request_path': '/PhoneBook',
+                'service_id': phone_book["service_id"]
+            }
 
-        grants = get_db_object_privileges(session,
-            result['schema_name'], result['name'])
-        assert sorted(grants) == sorted(lib.db_objects.map_crud_operations(result["crud_operations"]))
+            db_object_table_data = db_object_table.get("id", db_object_id)
+            assert db_object_table_data["crud_operations"] == new_crud_ops
+
+            grants = get_db_object_privileges(session,
+                result['schema_name'], result['name'])
+            assert sorted(grants) == sorted(lib.db_objects.map_crud_operations(result["crud_operations"]))
 
 
 def test_db_object_update(phone_book, table_contents):
+    session = phone_book["session"]
 
     with lib.core.MrsDbSession(session=phone_book["session"]) as session:
-        db_object_table = table_contents("db_object")
-        db_object = lib.db_objects.get_db_object(session=session, db_object_id=phone_book["db_object_id"])
-        assert db_object is not None
+        db_object_table: TableContents = table_contents("db_object")
+        db_object_init = get_default_db_object_init(phone_book["schema_id"])
 
-        value = {
-            'auth_stored_procedure': '0',
-            'auto_detect_media_type': 1,
-            'comments': 'Test table',
-            'crud_operation_format': 'ITEM',
-            'crud_operations': ['CREATE', 'READ'],
-            'db_schema_id': phone_book["schema_id"],
-            'enabled': 1,
-            'items_per_page': 15,
-            'media_type': None,
-            'name': 'ContactsWithEmail',
-            'object_type': 'TABLE',
-            'options': None,
-            'request_path': '/view_contects_wit_email2',
-            'requires_auth': 0,
-            'row_user_ownership_column': '',
-            'row_user_ownership_enforced': 0,
-        }
+        with DbObjectCT(session, **db_object_init) as db_object_id:
+            db_object_table.count == db_object_table.snapshot.count + 1
+            db_object_table.take_snapshot()
+
+            db_object = lib.db_objects.get_db_object(session, db_object_id)
+            assert db_object is not None
+
+            value = {
+                'auth_stored_procedure': '0',
+                'auto_detect_media_type': 1,
+                'comments': 'Test table',
+                'crud_operation_format': 'ITEM',
+                'crud_operations': ['CREATE', 'READ'],
+                'db_schema_id': phone_book["schema_id"],
+                'enabled': 1,
+                'items_per_page': 15,
+                'media_type': None,
+                'name': 'ContactsWithEmail',
+                'object_type': 'TABLE',
+                'options': None,
+                'request_path': '/view_contects_wit_email2',
+                'requires_auth': 0,
+                'row_user_ownership_column': '',
+                'row_user_ownership_enforced': 0,
+            }
 
 
-        lib.db_objects.update_db_objects(session=session, db_object_ids=[phone_book["db_object_id"]], value=value)
-        assert not db_object_table.same_as_snapshot
+            lib.db_objects.update_db_objects(session=session, db_object_ids=[db_object_id], value=value)
+            assert not db_object_table.same_as_snapshot
 
-        lib.db_objects.update_db_objects(session=session, db_object_ids=[phone_book["db_object_id"]], value={
-            'auth_stored_procedure': db_object["auth_stored_procedure"],
-            'auto_detect_media_type': db_object["auto_detect_media_type"],
-            'comments': db_object["comments"],
-            'crud_operation_format': db_object["crud_operation_format"],
-            'crud_operations': db_object["crud_operations"],
-            'db_schema_id': db_object["db_schema_id"],
-            'enabled': db_object["enabled"],
-            'items_per_page': db_object["items_per_page"],
-            'media_type': db_object["media_type"],
-            'name': db_object["name"],
-            'object_type': db_object["object_type"],
-            'options': db_object["options"],
-            'request_path': db_object["request_path"],
-            'requires_auth': db_object["requires_auth"],
-            'row_user_ownership_column': db_object["row_user_ownership_column"],
-            'row_user_ownership_enforced': db_object["row_user_ownership_enforced"],
-        })
-        assert db_object_table.same_as_snapshot
+            lib.db_objects.update_db_objects(session=session, db_object_ids=[db_object_id], value={
+                'auth_stored_procedure': db_object["auth_stored_procedure"],
+                'auto_detect_media_type': db_object["auto_detect_media_type"],
+                'comments': db_object["comments"],
+                'crud_operation_format': db_object["crud_operation_format"],
+                'crud_operations': db_object["crud_operations"],
+                'db_schema_id': db_object["db_schema_id"],
+                'enabled': db_object["enabled"],
+                'items_per_page': db_object["items_per_page"],
+                'media_type': db_object["media_type"],
+                'name': db_object["name"],
+                'object_type': db_object["object_type"],
+                'options': db_object["options"],
+                'request_path': db_object["request_path"],
+                'requires_auth': db_object["requires_auth"],
+                'row_user_ownership_column': db_object["row_user_ownership_column"],
+                'row_user_ownership_enforced': db_object["row_user_ownership_enforced"],
+            })
+            assert db_object_table.same_as_snapshot
 
-        result = lib.db_objects.get_db_object(session, db_object_id=phone_book["db_object_id"])
+            result = lib.db_objects.get_db_object(session, db_object_id=db_object_id)
 
-        grants = get_db_object_privileges(session,
-            result['schema_name'], result['name'])
-        assert sorted(grants) == sorted(lib.db_objects.map_crud_operations(result["crud_operations"]))
+            grants = get_db_object_privileges(session,
+                result['schema_name'], result['name'])
+            assert sorted(grants) == sorted(lib.db_objects.map_crud_operations(result["crud_operations"]))
 
 
