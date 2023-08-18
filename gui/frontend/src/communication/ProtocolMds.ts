@@ -977,8 +977,8 @@ export interface IShellMdsDeleteBastionSessionKwargs {
 export interface IProtocolMdsParameters {
     [ShellAPIMds.MdsGetRegions]: {};
     [ShellAPIMds.MdsListConfigProfiles]: { kwargs?: IShellMdsListConfigProfilesKwargs; };
-    [ShellAPIMds.MdsSetDefaultConfigProfile]: { args: { profileName?: string; configFileLocation?: string; cliRcFileLocation?: string; }; };
-    [ShellAPIMds.MdsGetDefaultConfigProfile]: { args: { cliRcFileLocation?: string; }; };
+    [ShellAPIMds.MdsSetDefaultConfigProfile]: { args: { profileName?: string; configFilePath?: string; cliRcFilePath?: string; }; };
+    [ShellAPIMds.MdsGetDefaultConfigProfile]: { args: { cliRcFilePath?: string; }; };
     [ShellAPIMds.MdsSetCurrentCompartment]: { kwargs?: IShellMdsSetCurrentCompartmentKwargs; };
     [ShellAPIMds.MdsGetCurrentCompartmentId]: { kwargs?: IShellMdsGetCurrentCompartmentIdKwargs; };
     [ShellAPIMds.MdsSetCurrentBastion]: { kwargs?: IShellMdsSetCurrentBastionKwargs; };

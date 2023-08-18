@@ -66,7 +66,13 @@ export class MDSCommandHandler {
         }));
 
         host.context.subscriptions.push(commands.registerCommand("msg.mds.configureOciProfiles", () => {
-            const configFile: Uri = Uri.file(`${homedir()}/.oci/config`);
+            let ociConfigFilePath = `${homedir()}/.oci/config`;
+
+            // If the MYSQLSH_OCI_CONFIG_FILE env_var is set, use its value instead
+            if (process.env.MYSQLSH_OCI_CONFIG_FILE !== undefined) {
+                ociConfigFilePath = process.env.MYSQLSH_OCI_CONFIG_FILE;
+            }
+            const configFile: Uri = Uri.file(ociConfigFilePath);
 
             // If the ~/.oci/config file does not exist yet, create it and open it
             if (!existsSync(configFile.fsPath)) {

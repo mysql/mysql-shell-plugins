@@ -35,6 +35,7 @@
 
 from mysqlsh.plugin_manager import plugin_function
 from mds_plugin import core
+from os import getenv
 
 OCI_REGION_LIST = [
     {"name": "Australia East (Sydney)", "id": "ap-sydney-1", "location": "Sydney, Australia",
@@ -86,6 +87,15 @@ OCI_REGION_LIST = [
 ]
 
 
+def get_default_config_file_path():
+    import oci.config
+
+    config_file_path = getenv("MYSQLSH_OCI_CONFIG_FILE")
+    if config_file_path is None:
+        config_file_path = oci.config.DEFAULT_LOCATION
+    return config_file_path
+
+
 @plugin_function('mds.get.regions', shell=True, cli=True, web=True)
 def get_regions():
     """Returns the list of available OCI regions
@@ -96,8 +106,8 @@ def get_regions():
     return OCI_REGION_LIST
 
 
-def get_config(profile_name=None, config_file_path="~/.oci/config",
-               cli_rc_file_path="~/.oci/oci_cli_rc", interactive=True,
+def get_config(profile_name=None, config_file_path=None,
+               cli_rc_file_path=None, interactive=True,
                raise_exceptions=False):
     """Loads an oci config
 
@@ -125,6 +135,12 @@ def get_config(profile_name=None, config_file_path="~/.oci/config",
         profile_name = default_profile_name \
             if default_profile_name else "DEFAULT"
 
+    # If no config_file_path is given, first check the MYSQLSH_OCI_CONFIG_FILE env_var and only then fall back to
+    # default
+    if config_file_path is None:
+        config_file_path = get_default_config_file_path()
+
+    # cSpell:ignore instanceprincipal
     # If the profile_name matches instanceprincipal, use an Instance Principals
     # instead of an actual config
     set_global_config = False
@@ -328,7 +344,10 @@ def list_config_profiles(**kwargs):
     Returns:
         None
     """
-    config_file_path = kwargs.get("config_file_path", "~/.oci/config")
+    # If no config_file_path is given, first check the MYSQLSH_OCI_CONFIG_FILE env_var and only then fall back to
+    # default
+    config_file_path = kwargs.get(
+        "config_file_path", get_default_config_file_path())
 
     interactive = kwargs.get("interactive", core.get_interactive_default())
     raise_exceptions = kwargs.get("raise_exceptions", not interactive)
@@ -409,7 +428,12 @@ def create_config(**kwargs):
     from mds_plugin import user
 
     profile_name = kwargs.get("profile_name")
-    config_file_path = kwargs.get("config_file_path", "~/.oci/config")
+
+    # If no config_file_path is given, first check the MYSQLSH_OCI_CONFIG_FILE env_var and only then fall back to
+    # default
+    config_file_path = kwargs.get(
+        "config_file_path", get_default_config_file_path())
+
     tenancy = kwargs.get("tenancy")
     region = kwargs.get("region")
     user_id = kwargs.get("user_id")
@@ -738,7 +762,7 @@ def get_current_config(config=None, config_profile=None, interactive=None):
     return config
 
 
-def load_profile_as_current(profile_name=None, config_file_path="~/.oci/config",
+def load_profile_as_current(profile_name=None, config_file_path=None,
                             print_current_objects=True, interactive=True):
     """Loads an oci config
 
@@ -818,7 +842,7 @@ def load_profile_as_current(profile_name=None, config_file_path="~/.oci/config",
 
 @plugin_function('mds.list.currentObjects')
 def list_current_objects(config=None, profile_name=None,
-                         cli_rc_file_path="~/.oci/oci_cli_rc"):
+                         cli_rc_file_path=None):
     """Lists the current objects
 
     Args:
@@ -967,12 +991,13 @@ def list_current_objects(config=None, profile_name=None,
                 f'ERROR: {e.message}.\n(Code: {e.code}; Status: {e.status})')
 
 
-@plugin_function('mds.set.currentConfigProfile')
-def set_current_profile(profile_name=None, config_file_path="~/.oci/config",
+@plugin_function('mds.set.currentConfigProfile', shell=True, cli=False, web=False)
+def set_current_profile(profile_name=None, config_file_path=None,
                         interactive=True):
     """Sets the current OCI config Profile
 
-    If the config_file_path is omitted, ~/.oci/config is used.
+    If the config_file_path is omitted, the MYSQLSH_OCI_CONFIG_FILE env_var is used when set, 
+    otherwise  ~/.oci/config is used.
 
     Args:
         profile_name (str): The name of the OCI profile or InstancePrincipal
@@ -984,20 +1009,25 @@ def set_current_profile(profile_name=None, config_file_path="~/.oci/config",
         None
     """
 
-    if not profile_name and interactive:
+    if not profile_name:
         import configparser
         import os.path
+
+        # If no config_file_path is given, first check the MYSQLSH_OCI_CONFIG_FILE env_var and only then fall back to
+        # default
+        if config_file_path is None:
+            config_file_path = get_default_config_file_path()
 
         # Convert Unix path to Windows
         config_file_path = os.path.abspath(
             os.path.expanduser(config_file_path))
 
         # Read config
-        configs = configparser.ConfigParser()
-        configs.read(config_file_path)
+        config = configparser.ConfigParser()
+        config.read(config_file_path)
 
         profile_name = core.prompt_for_list_item(
-            item_list=configs.sections(),
+            item_list=config.sections(),
             prompt_caption="Please select a config profile to activate it: ",
             print_list=True)
         if not profile_name:
@@ -1009,14 +1039,14 @@ def set_current_profile(profile_name=None, config_file_path="~/.oci/config",
 
 @plugin_function('mds.set.defaultConfigProfile', cli=True, web=True)
 def set_default_profile(profile_name=None,
-                        config_file_location="~/.oci/config",
-                        cli_rc_file_location="~/.oci/oci_cli_rc"):
+                        config_file_path=None,
+                        cli_rc_file_path=None):
     """Sets the default profile
 
     Args:
         profile_name (str): The name of the profile currently in use
-        config_file_location (str): The location of the OCI config file
-        cli_rc_file_location (str): The location of the OCI CLI config file
+        config_file_path (str): The location of the OCI config file
+        cli_rc_file_path (str): The location of the OCI CLI config file
     Returns:
        None
     """
@@ -1025,19 +1055,30 @@ def set_default_profile(profile_name=None,
     import pathlib
     from mds_plugin import general
 
-    # Convert Unix path to Windows
-    config_file_location = os.path.abspath(
-        os.path.expanduser(config_file_location))
+    # If no config_file_path is given, first check the MYSQLSH_OCI_CONFIG_FILE env_var and only then fall back to
+    # default
+    if config_file_path is None:
+        config_file_path = get_default_config_file_path()
 
-    if not os.path.exists(config_file_location):
+    # If no cli_rc_file_path is given, first check the MYSQLSH_OCI_RC_FILE env_var and only then fall back to default
+    if cli_rc_file_path is None:
+        cli_rc_file_path = getenv("MYSQLSH_OCI_RC_FILE")
+        if cli_rc_file_path is None:
+            cli_rc_file_path = "~/.oci/oci_cli_rc"
+
+    # Convert Unix path to Windows
+    config_file_path = os.path.abspath(
+        os.path.expanduser(config_file_path))
+
+    if not os.path.exists(config_file_path):
         # TODO Start the wizard to create a new OCI profile
-        print(f"No OCI config file found at {config_file_location}")
+        print(f"No OCI config file found at {config_file_path}")
         return
 
     # Read config
     configs = configparser.ConfigParser()
-    if os.path.exists(config_file_location):
-        configs.read(config_file_location)
+    if os.path.exists(config_file_path):
+        configs.read(config_file_path)
 
     # If no profile was given, let the user select one
     if profile_name is None or profile_name == "":
@@ -1052,14 +1093,14 @@ def set_default_profile(profile_name=None,
             return
 
     # Convert Unix path to Windows
-    cli_rc_file_location = os.path.abspath(
-        os.path.expanduser(cli_rc_file_location))
+    cli_rc_file_path = os.path.abspath(
+        os.path.expanduser(cli_rc_file_path))
 
     cli_config = configparser.ConfigParser()
 
     # Load CLI config file
-    if os.path.exists(cli_rc_file_location):
-        cli_config.read(cli_rc_file_location)
+    if os.path.exists(cli_rc_file_path):
+        cli_config.read(cli_rc_file_path)
 
     # Ensure that there is a section with the name of profile_name
     if "DEFAULT" not in cli_config.sections():
@@ -1069,23 +1110,23 @@ def set_default_profile(profile_name=None,
     cli_config["DEFAULT"]["profile"] = profile_name
 
     # Ensure path exists
-    pathlib.Path(os.path.dirname(cli_rc_file_location)).mkdir(
+    pathlib.Path(os.path.dirname(cli_rc_file_path)).mkdir(
         parents=True, exist_ok=True)
 
     # Write the change to disk
-    with open(cli_rc_file_location, 'w') as configfile:
-        cli_config.write(configfile)
+    with open(cli_rc_file_path, 'w') as config_file:
+        cli_config.write(config_file)
 
     # Print out that the current compartment was changed
     print(f"Default profile changed to '{profile_name}'.\n")
 
 
 @plugin_function('mds.get.defaultConfigProfile', shell=True, cli=True, web=True)
-def get_default_profile(cli_rc_file_location="~/.oci/oci_cli_rc"):
+def get_default_profile(cli_rc_file_path=None):
     """Gets the default profile if stored in the CLI config file
 
     Args:
-        cli_rc_file_location (str): The location of the OCI CLI config file
+        cli_rc_file_path (str): The location of the OCI CLI config file
 
     Returns:
         None
@@ -1093,13 +1134,23 @@ def get_default_profile(cli_rc_file_location="~/.oci/oci_cli_rc"):
     import configparser
     import os.path
 
+    # If the MYSQLSH_OCI_PROFILE env_var has been set, use this as default
+    if getenv("MYSQLSH_OCI_PROFILE"):
+        return getenv("MYSQLSH_OCI_PROFILE")
+
+    # If no cli_rc_file_path is given, first check the MYSQLSH_OCI_RC_FILE env_var and only then fall back to default
+    if cli_rc_file_path is None:
+        cli_rc_file_path = getenv("MYSQLSH_OCI_RC_FILE")
+        if cli_rc_file_path is None:
+            cli_rc_file_path = "~/.oci/oci_cli_rc"
+
     # Convert Unix path to Windows
-    cli_rc_file_location = os.path.abspath(
-        os.path.expanduser(cli_rc_file_location))
+    cli_rc_file_path = os.path.abspath(
+        os.path.expanduser(cli_rc_file_path))
 
     config = configparser.ConfigParser()
-    if os.path.exists(cli_rc_file_location):
-        config.read(cli_rc_file_location)
+    if os.path.exists(cli_rc_file_path):
+        config.read(cli_rc_file_path)
 
     if "DEFAULT" in config and "profile" in config["DEFAULT"]:
         return config["DEFAULT"]["profile"]
@@ -1131,7 +1182,7 @@ def get_current_profile(profile_name=None):
 
 def get_current_value(
         value_name, passthrough_value=None, config=None,
-        profile_name=None, cli_rc_file_path="~/.oci/oci_cli_rc"):
+        profile_name=None, cli_rc_file_path=None):
     """Gets the current value
 
     Either from the global config or the OCI CLI config file
@@ -1166,6 +1217,12 @@ def get_current_value(
     if config and value_name in config:
         return config[value_name]
 
+    # If no cli_rc_file_path is given, first check the MYSQLSH_OCI_RC_FILE env_var and only then fall back to default
+    if cli_rc_file_path is None:
+        cli_rc_file_path = getenv("MYSQLSH_OCI_RC_FILE")
+        if cli_rc_file_path is None:
+            cli_rc_file_path = "~/.oci/oci_cli_rc"
+
     # Convert Unix path to Windows
     cli_rc_file_path = os.path.abspath(os.path.expanduser(cli_rc_file_path))
 
@@ -1184,7 +1241,7 @@ def get_current_value(
 
 
 def set_current_value(value_name, value, profile_name=None,
-                      cli_rc_file_path="~/.oci/oci_cli_rc"):
+                      cli_rc_file_path=None):
     """Sets the current value for a given value_name
 
     It is set in the global config and stored in the OCI CLI rc file
@@ -1205,6 +1262,11 @@ def set_current_value(value_name, value, profile_name=None,
     # Get the current profile_name
     profile_name = get_current_profile(profile_name=profile_name)
 
+    # If no cli_rc_file_path is given, first check the MYSQLSH_OCI_RC_FILE env_var and only then fall back to default
+    if cli_rc_file_path is None:
+        cli_rc_file_path = getenv("MYSQLSH_OCI_RC_FILE")
+        if cli_rc_file_path is None:
+            cli_rc_file_path = "~/.oci/oci_cli_rc"
     # Convert Unix path to Windows
     cli_rc_file_path = os.path.abspath(os.path.expanduser(cli_rc_file_path))
 
@@ -1259,7 +1321,7 @@ def set_current_compartment(**kwargs):
     config = kwargs.get('config')
     config_profile = kwargs.get('config_profile')
     profile_name = kwargs.get('profile_name')
-    cli_rc_file_path = kwargs.get('cli_rc_file_path', "~/.oci/oci_cli_rc")
+    cli_rc_file_path = kwargs.get('cli_rc_file_path')
 
     interactive = kwargs.get("interactive", core.get_interactive_default())
     raise_exceptions = kwargs.get("raise_exceptions", not interactive)
@@ -1332,7 +1394,7 @@ def get_current_compartment_id(**kwargs):
     compartment_id = kwargs.get('compartment_id')
     config = kwargs.get('config')
     profile_name = kwargs.get('profile_name')
-    cli_rc_file_path = kwargs.get('cli_rc_file_path', "~/.oci/oci_cli_rc")
+    cli_rc_file_path = kwargs.get('cli_rc_file_path')
 
     return get_current_value(
         value_name="compartment-id", passthrough_value=compartment_id,
@@ -1364,7 +1426,7 @@ def set_current_instance(**kwargs):
     compartment_id = kwargs.get('compartment_id')
     config = kwargs.get('config')
     profile_name = kwargs.get('profile_name')
-    cli_rc_file_path = kwargs.get('cli_rc_file_path', "~/.oci/oci_cli_rc")
+    cli_rc_file_path = kwargs.get('cli_rc_file_path')
     raise_exceptions = kwargs.get('raise_exceptions', False)
     interactive = kwargs.get('interactive', True)
 
@@ -1407,7 +1469,7 @@ def set_current_instance(**kwargs):
 
 @plugin_function('mds.get.currentComputeInstanceId')
 def get_current_instance_id(instance_id=None, config=None, profile_name=None,
-                            cli_rc_file_path="~/.oci/oci_cli_rc"):
+                            cli_rc_file_path=None):
     """Gets the current instance_id
 
     Args:
@@ -1450,7 +1512,7 @@ def set_current_db_system(**kwargs):
     compartment_id = kwargs.get('compartment_id')
     config = kwargs.get('config')
     profile_name = kwargs.get('profile_name')
-    cli_rc_file_path = kwargs.get('cli_rc_file_path', "~/.oci/oci_cli_rc")
+    cli_rc_file_path = kwargs.get('cli_rc_file_path')
     raise_exceptions = kwargs.get('raise_exceptions', False)
     interactive = kwargs.get('interactive', True)
 
@@ -1492,7 +1554,7 @@ def set_current_db_system(**kwargs):
 
 @plugin_function('mds.get.currentMysqlDbSystemId')
 def get_current_db_system_id(db_system_id=None, config=None, profile_name=None,
-                             cli_rc_file_path="~/.oci/oci_cli_rc"):
+                             cli_rc_file_path=None):
     """Gets the current db_system_id
 
     Args:
@@ -1537,7 +1599,7 @@ def set_current_bastion(**kwargs):
     config = kwargs.get('config')
     config_profile = kwargs.get('config_profile')
     profile_name = kwargs.get('profile_name')
-    cli_rc_file_path = kwargs.get('cli_rc_file_path', "~/.oci/oci_cli_rc")
+    cli_rc_file_path = kwargs.get('cli_rc_file_path')
     raise_exceptions = kwargs.get('raise_exceptions', False)
     interactive = kwargs.get("interactive", core.get_interactive_default())
 
@@ -1582,7 +1644,7 @@ def set_current_bastion(**kwargs):
 
 @plugin_function('mds.get.currentBastionId')
 def get_current_bastion_id(bastion_id=None, config=None, profile_name=None,
-                           cli_rc_file_path="~/.oci/oci_cli_rc"):
+                           cli_rc_file_path=None):
     """Gets the current bastion_id
 
     Args:
@@ -1624,7 +1686,7 @@ def set_current_bucket(**kwargs):
     compartment_id = kwargs.get('compartment_id')
     config = kwargs.get('config')
     profile_name = kwargs.get('profile_name')
-    cli_rc_file_path = kwargs.get('cli_rc_file_path', "~/.oci/oci_cli_rc")
+    cli_rc_file_path = kwargs.get('cli_rc_file_path')
     raise_exceptions = kwargs.get('raise_exceptions', False)
     interactive = kwargs.get('interactive', True)
 
@@ -1663,7 +1725,7 @@ def set_current_bucket(**kwargs):
 
 @plugin_function('mds.get.currentBucket')
 def get_current_bucket_name(bucket_name=None, config=None, profile_name=None,
-                            cli_rc_file_path="~/.oci/oci_cli_rc"):
+                            cli_rc_file_path=None):
     """Gets the current bucket
 
     Args:
@@ -1704,7 +1766,7 @@ def set_current_network(**kwargs):
     compartment_id = kwargs.get('compartment_id')
     config = kwargs.get('config')
     profile_name = kwargs.get('profile_name')
-    cli_rc_file_path = kwargs.get('cli_rc_file_path', "~/.oci/oci_cli_rc")
+    cli_rc_file_path = kwargs.get('cli_rc_file_path')
     raise_exceptions = kwargs.get('raise_exceptions', False)
     interactive = kwargs.get('interactive', True)
 
@@ -1744,7 +1806,7 @@ def set_current_network(**kwargs):
 
 @plugin_function('mds.get.currentNetworkId')
 def get_current_network_id(network_id=None, config=None, profile_name=None,
-                           cli_rc_file_path="~/.oci/oci_cli_rc"):
+                           cli_rc_file_path=None):
     """Gets the current network id
 
     Args:
@@ -1782,7 +1844,7 @@ def set_current_endpoint(endpoint='', **kwargs):
 
     config = kwargs.get('config')
     profile_name = kwargs.get('profile_name')
-    cli_rc_file_path = kwargs.get('cli_rc_file_path', "~/.oci/oci_cli_rc")
+    cli_rc_file_path = kwargs.get('cli_rc_file_path')
     raise_exceptions = kwargs.get('raise_exceptions', False)
     interactive = kwargs.get('interactive', True)
 
@@ -1809,7 +1871,7 @@ def set_current_endpoint(endpoint='', **kwargs):
 
 @plugin_function('mds.get.currentEndpoint')
 def get_current_endpoint(endpoint=None, config=None, profile_name=None,
-                         cli_rc_file_path="~/.oci/oci_cli_rc"):
+                         cli_rc_file_path=None):
     """Gets the current endpoint
 
     Args:

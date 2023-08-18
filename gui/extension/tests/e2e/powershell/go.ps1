@@ -39,7 +39,7 @@ try {
         Invoke-Expression "write-host `"$msg`" $option"
         
     }
-    
+
     if (Test-Path -Path $log){
         Remove-Item -Path $log -Recurse -Force	
     }
@@ -133,7 +133,7 @@ try {
             $mysqlrouterConfig = Join-Path $env:APPDATA "MySQL" "mysqlrouter"
             $mysqlrouterConfigOld = Join-Path $env:APPDATA "MySQL" "mysqlrouter_old"
         }
-        
+
         if (Test-Path -Path $mysqlrouterConfig) {
             writeMsg "Removing router config folder..."
             Remove-Item -Path $mysqlrouterConfig -Force -Recurse
@@ -146,6 +146,12 @@ try {
         }
     }
 
+    if ($env:TEST_SUITE -eq "oci"){
+        # DEFINE OCI ENV VARS
+        $env:MYSQLSH_OCI_CONFIG_FILE = Join-Path $workspace "oci" "config"
+        $env:MYSQLSH_OCI_RC_FILE = Join-Path $workspace "oci" "e2e_cli_rc"
+    }
+
     # EXECUTE TESTS
     writeMsg "Executing GUI tests for $env:TEST_SUITE suite..."
     $prcExecTests = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests", "--", "-s $testResources", "-e $extPath", "-f", "-o vscode_settings.json", "./output/tests/ui-$env:TEST_SUITE.js" -Wait -PassThru -RedirectStandardOutput "$workspace\resultsExt-$env:TEST_SUITE.log" -RedirectStandardError "$workspace\resultsExtErr-$env:TEST_SUITE.log"
@@ -156,12 +162,12 @@ try {
     }
 
     exit $prcExecTests.ExitCode
-    
+
 }
 catch {
     writeMsg $_
-	writeMsg $_.ScriptStackTrace
-	$err = 1
+    writeMsg $_.ScriptStackTrace
+    $err = 1
 }
 finally {
     if ($err -eq 1){

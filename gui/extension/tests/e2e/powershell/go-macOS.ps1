@@ -66,5 +66,11 @@ if ($env:TEST_SUITE -eq "rest"){
     }
 }
 
+if ($env:TEST_SUITE -eq "oci"){
+    # DEFINE OCI ENV VARS
+    $env:MYSQLSH_OCI_CONFIG_FILE = Join-Path $env:WORKSPACE "oci" "config"
+    $env:MYSQLSH_OCI_RC_FILE = Join-Path $env:WORKSPACE "oci" "e2e_cli_rc"
+}
+
 # EXECUTE TESTS
 npm run e2e-tests -- -s "test-resources" -e "test-resources/ext" -f -o "vscode_settings.json" "./output/tests/ui-$env:TEST_SUITE.js"

@@ -22,6 +22,7 @@ import os
 import threading
 import time
 import os.path
+from os import getenv
 import hashlib
 from enum import Enum
 import gui_plugin.core.Logger as logger
@@ -215,7 +216,7 @@ class BastionSession():
 
         return db_sys
 
-    def get_config(self, profile_name, config_file_path="~/.oci/config"):
+    def get_config(self, profile_name, config_file_path=None):
         """Loads an oci config
 
         This function will list all sub-compartments of the compartment with the
@@ -243,6 +244,13 @@ class BastionSession():
                 "tenancy": signer.tenancy_id,
                 "region": signer.initialize_and_return_region()}
         else:
+            # If no config_file_path is given, first check the MYSQLSH_OCI_CONFIG_FILE env_var and only then fall back
+            # to default
+            if config_file_path is None:
+                config_file_path = getenv("MYSQLSH_OCI_CONFIG_FILE")
+                if config_file_path is None:
+                    config_file_path = "~/.oci/config"
+
             # Load config from file
             try:
                 config = oci.config.from_file(

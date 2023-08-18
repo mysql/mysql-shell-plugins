@@ -42,7 +42,7 @@ try {
             Throw "Please define 'PB2_LINK' env variable"
         }
     }
-    
+
     if (!$env:VSCODE_VERSION){
         Throw "Please define 'VSCODE_VERSION' env variable"
     }
@@ -138,7 +138,7 @@ try {
         Remove-Item -Path "$basePath\package-lock.json" -Force
         writeMsg "DONE"
     }
-    
+
     #INSTALLING NODE MODULES
     writeMsg "Installing node modules..."
     $prc = Start-Process "npm" -ArgumentList "install" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\nodeExt.log" -RedirectStandardError "$env:WORKSPACE\nodeExtErr.log"
@@ -156,7 +156,7 @@ try {
     } elseif($isLinux){
         $targetWebCerts = Join-Path $env:userprofile ".mysqlsh-gui" "plugin_data" "gui_plugin" "web_certs"
     }
-    
+
     ForEach ($testSuite in $testSuites) {
         $config = Join-Path $env:userprofile "mysqlsh-$testSuite"
         if (!(Test-Path $config)) {
@@ -185,7 +185,7 @@ try {
         $env:HTTP_PROXY=$env:USE_PROXY
         $env:HTTPS_PROXY=$env:USE_PROXY
     }
-    
+
     # CHECK IF VSCODE EXISTS
     ForEach ($testSuite in $testSuites) {
         $path = Join-Path $env:userprofile "test-resources-$($testSuite)"
@@ -284,21 +284,22 @@ try {
         $dest = $env:VSIX_PATH
     }
 
-    # COPY OCI .PEM FILES
-    $ociPath = Join-Path $env:userprofile ".oci"
+    # CREATE .OCI Directory
+    $ociPath = Join-Path $env:WORKSPACE "oci"
     if (!(Test-Path -Path $ociPath)){
-        writeMsg "Creating .oci folder..." "-NoNewLine"
-        New-Item -Path $env:userprofile -Name ".oci" -ItemType "directory" -Force
+        writeMsg "Creating $ociPath folder..." "-NoNewLine"
+        New-Item -Path $env:WORKSPACE -Name "oci" -ItemType "directory" -Force
         writeMsg "DONE"
     }
 
+    # COPY OCI FILES   
     $itemsPath = Join-Path $basePath "oci_files"
     Get-ChildItem -Path $itemsPath | % {
-        writeMsg "Copying $_ file to .oci folder..." "-NoNewLine"
+        writeMsg "Copying $_ file to $ociPath folder..." "-NoNewLine"
         Copy-Item -Path $_ $ociPath -Force
         writeMsg "DONE"
     }
-    
+
     # INSTALL VSIX
     $testResources = Join-Path $env:userprofile "test-resources-$($testSuites[0])"
     $extPath = Join-Path $env:userprofile "test-resources-$($testSuites[0])" "ext"
@@ -330,7 +331,7 @@ try {
     }
 
     writeMsg "DONE"
-    
+
     # TSC TO TEST FILES
     writeMsg "TSC..." "-NoNewLine"
     Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-tsc" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\env.log" -RedirectStandardError "$env:WORKSPACE\envErr.log"
@@ -339,8 +340,8 @@ try {
 }
 catch {
     writeMsg $_
-	writeMsg $_.ScriptStackTrace
-	$err = 1
+    writeMsg $_.ScriptStackTrace
+    $err = 1
 }
 finally {
     if ( $err -eq 1){
