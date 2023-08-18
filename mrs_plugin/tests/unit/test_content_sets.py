@@ -58,8 +58,8 @@ def test_add_content_set(phone_book, table_contents):
         assert result == "The content set has been deleted."
         assert table_content_set.same_as_snapshot
 
-
     assert table_content_set.same_as_snapshot
+
 
 def test_get_content_sets(phone_book, table_contents):
     table_content_set = table_contents("content_set")
@@ -117,6 +117,7 @@ def test_get_content_set(phone_book):
         del args["content_set_id"]
         sets = get_content_set(request_path="/test_content_set", **args)
         assert sets == content_set_1
+
 
 def test_enable_disable(phone_book, table_contents):
     content_set_table = table_contents("content_set")

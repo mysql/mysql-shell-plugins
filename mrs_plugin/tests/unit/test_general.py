@@ -23,7 +23,7 @@ import pytest
 from ... general import *
 import mrs_plugin.lib as lib
 import mysqlsh
-
+import mrs_plugin.tests.unit.helpers as helpers
 
 def test_info():
     info_output = info()
@@ -46,17 +46,18 @@ def test_configure(phone_book):
     session_backup = mysqlsh.globals.session
     mysqlsh.globals.shell.set_session(None)
 
-    mysqlsh.globals.shell.connect("root:@localhost:3306")
+    helpers.create_shell_session()
     mysqlsh.globals.session.close()
+    
     with pytest.raises(Exception, match="MySQL session not specified. Please either pass a session object when calling the function or open a database connection in the MySQL Shell first.") as exp:
         config_output = configure()
-
     mysqlsh.globals.shell.set_session(None)
+    
     with pytest.raises(Exception, match="MySQL session not specified. Please either pass a session object when calling the function or open a database connection in the MySQL Shell first.") as exp:
         config_output = configure()
-
+    
     mysqlsh.globals.shell.set_session(session_backup)
-
+    
     config_output = configure()
     assert config_output == {
         'mrs_enabled': 1,

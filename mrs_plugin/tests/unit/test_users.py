@@ -23,6 +23,7 @@ import pytest
 
 from ... users import *
 from ... import lib
+from . helpers import UserCT, get_default_user_init
 
 import hashlib
 import hmac
@@ -92,235 +93,234 @@ def test_add_users(phone_book, table_contents):
     test_auth_string = '$' + '$'.join(parts)
     assert test_auth_string == user_auth_string
 
+    delete_user(session=phone_book["session"], user_id=user["id"])
+
+    assert users_table.same_as_snapshot
+
 
 def test_get_users(phone_book, table_contents):
+    session = phone_book["session"]
+    auth_app_id = phone_book["auth_app_id"]
     users_table = table_contents("mrs_user")
 
     users = get_users(session=phone_book["session"], auth_app_id=phone_book["auth_app_id"])
     assert users is not None
-    assert len(users) == 2 # 1 added user + 1 inserted auth the auth_app
+    assert len(users) == 1 # 1 inserted auth the auth_app
 
     for user in users:
         assert user["auth_string"] == lib.users.STORED_PASSWORD_STRING
 
-    users = get_users(session=phone_book["session"], service_id=phone_book["service_id"])
-    assert users is not None
-    assert len(users) == 2 # 1 added user + 1 inserted auth the auth_app
+    user_init = get_default_user_init(auth_app_id)
+    with UserCT(session, **user_init) as user_id:
+        users = get_users(session=phone_book["session"], service_id=phone_book["service_id"])
+        assert users is not None
+        assert len(users) == 2 # 1 added user + 1 inserted auth the auth_app
 
-    for user in users:
-        assert user["auth_string"] == lib.users.STORED_PASSWORD_STRING
+        for user in users:
+            assert user["auth_string"] == lib.users.STORED_PASSWORD_STRING
 
 
 def test_edit_users(phone_book, table_contents):
+    session = phone_book["session"]
+    auth_app_id = phone_book["auth_app_id"]
     users_table = table_contents("mrs_user")
 
-    users = get_users(session=phone_book["session"], auth_app_id=phone_book["auth_app_id"])
-    assert users is not None
-    assert len(users) == 2  # 1 added user + 1 inserted auth the auth_app
+    user_init = get_default_user_init(auth_app_id)
 
-    user_update = {
-        "user_id": users[1]["id"],
-        "value": {
-            "email": "user2@anotherhost.com"
-        },
-        "session": phone_book["session"]
-    }
+    with UserCT(session, **user_init) as user_id:
+        user = get_user(session=session, user_id=user_id)
+        assert isinstance(user, dict)
 
-    update_user(**user_update)
-
-    user = get_user(session=phone_book["session"], user_id=users[1]["id"])
-
-    assert user is not None
-    assert user["email"] == user_update["value"]["email"]
-
-    user_update = {
-        "user_id": users[1]["id"],
-        "value": {
-            "auth_string": lib.users.STORED_PASSWORD_STRING
-        },
-        "session": phone_book["session"]
-    }
-
-    update_user(**user_update)
-
-    users_table.items[1]["auth_string"] == user["auth_string"]
-
-    user_update = {
-        "user_id": users[1]["id"],
-        "value": {
-            "auth_string": "somotherpassword"
-        },
-        "session": phone_book["session"]
-    }
-
-    with pytest.raises(RuntimeError) as exp:
-        update_user(**user_update)
-    assert str(exp.value) == "The auth_app_id is required to set the auth_string."
-
-    users_table.items[1]["auth_string"] == user["auth_string"]
-
-    user_update = {
-        "user_id": users[1]["id"],
-        "value": {
-            "auth_app_id": lib.core.convert_id_to_string(users[1]["auth_app_id"])
-        },
-        "session": phone_book["session"]
-    }
-
-    new_values = {
-            "name": "new user1 name",
-            "email": "newuser1@host.com",
-            "vendor_user_id": "new vendor user1 id",
-            "login_permitted": False,
-            "mapped_user_id": "new mapped user1",
-            "app_options": { "name": "new app options name for user1" },
-    }
-
-    users_table.take_snapshot()
-
-    original_record = users_table.snapshot[1]
-
-    for key, value in new_values.items():
         user_update = {
-            "user_id": users[1]["id"],
+            "user_id": user_id,
+            "value": {
+                "email": "user2@anotherhost.com"
+            },
+            "session": session
+        }
+
+        update_user(**user_update)
+
+        user = get_user(session=phone_book["session"], user_id=user_id)
+
+        assert user is not None
+        assert user["email"] == user_update["value"]["email"]
+
+        user_update = {
+            "user_id": user_id,
+            "value": {
+                "auth_string": lib.users.STORED_PASSWORD_STRING
+            },
+            "session": session
+        }
+
+        update_user(**user_update)
+
+        users_table.items[1]["auth_string"] == user["auth_string"]
+
+        user_update = {
+            "user_id": user_id,
+            "value": {
+                "auth_string": "somotherpassword"
+            },
+            "session": session
+        }
+
+        with pytest.raises(RuntimeError) as exp:
+            update_user(**user_update)
+        assert str(exp.value) == "The auth_app_id is required to set the auth_string."
+
+        users_table.items[1]["auth_string"] == user["auth_string"]
+
+        user_update = {
+            "user_id": user_id,
+            "value": {
+                "auth_app_id": lib.core.convert_id_to_string(user["auth_app_id"])
+            },
+            "session": session
+        }
+
+        new_values = {
+                "name": "new user1 name",
+                "email": "newuser1@host.com",
+                "vendor_user_id": "new vendor user1 id",
+                "login_permitted": False,
+                "mapped_user_id": "new mapped user1",
+                "app_options": { "name": "new app options name for user1" },
+        }
+
+        users_table.take_snapshot()
+
+        original_record = users_table.snapshot[1]
+
+        for key, value in new_values.items():
+            user_update = {
+                "user_id": user_id,
+                "value": {
+                },
+                "session": session
+            }
+            user_update["value"][key] = value
+            original_record[key] = value
+
+            update_user(**user_update)
+
+            assert users_table.items[1] == original_record
+
+
+        user_update = {
+            "user_id": user_id,
             "value": {
             },
-            "session": phone_book["session"]
+            "user_roles": None,
+            "session": session
         }
-        user_update["value"][key] = value
-        original_record[key] = value
+
+        # Update setting user_roles to None
+        roles = get_user_roles(user_id)
+        update_user(**user_update)
+        roles2 = get_user_roles(user_id)
+
+        assert roles == roles2
+
+        # Update setting user_roles to an empty list
+        user_update["user_roles"] = []
+        update_user(**user_update)
+        roles3 = get_user_roles(user_id)
+
+        assert roles3 == []
+
+        # Update setting user_roles to the previous roles
+        for role in roles:
+            user_update["user_roles"].append({
+                "user_id": lib.core.convert_id_to_string(role["user_id"]),
+                "role_id": lib.core.convert_id_to_string(role["role_id"]),
+                "comments": role["comments"],
+            })
 
         update_user(**user_update)
+        roles4 = get_user_roles(user_id)
 
-        assert users_table.items[1] == original_record
+        for role in roles:
+            assert role["role_id"] in [r["role_id"] for r in roles4]
 
+        user_update = {
+            "user_id": user_id,
+            "value": {
+                "name": "User 1"
+            },
+            "session": session
+        }
+        with pytest.raises(Exception) as exp:
+            update_user(**user_update)
+        assert str(exp.value) == "MySQL Error (1644): ClassicSession.run_sql: This name has already been used."
 
-    user_update = {
-        "user_id": users[1]["id"],
-        "value": {
-        },
-        "user_roles": None,
-        "session": phone_book["session"]
-    }
-
-    # Update setting user_roles to None
-    roles = get_user_roles(users[1]["id"])
-    update_user(**user_update)
-    roles2 = get_user_roles(users[1]["id"])
-
-    assert roles == roles2
-
-    # Update setting user_roles to an empty list
-    user_update["user_roles"] = []
-    update_user(**user_update)
-    roles3 = get_user_roles(users[1]["id"])
-
-    assert roles3 == []
-
-    # Update setting user_roles to the previous roles
-    for role in roles:
-        user_update["user_roles"].append({
-            "user_id": lib.core.convert_id_to_string(role["user_id"]),
-            "role_id": lib.core.convert_id_to_string(role["role_id"]),
-            "comments": role["comments"],
-        })
-
-    update_user(**user_update)
-    roles4 = get_user_roles(users[1]["id"])
-
-    for role in roles:
-        assert role["role_id"] in [r["role_id"] for r in roles4]
-
-    user_update = {
-        "user_id": users[1]["id"],
-        "value": {
-            "name": "User 1"
-        },
-        "session": phone_book["session"]
-    }
-    with pytest.raises(Exception) as exp:
-        update_user(**user_update)
-    assert str(exp.value) == "MySQL Error (1644): ClassicSession.run_sql: This name has already been used."
-
-    user_update = {
-        "user_id": users[1]["id"],
-        "value": {
-            "email": "user1@host.com"
-        },
-        "session": phone_book["session"]
-    }
-    with pytest.raises(Exception) as exp:
-        update_user(**user_update)
-    assert str(exp.value) == "MySQL Error (1644): ClassicSession.run_sql: This email has already been used."
+        user_update = {
+            "user_id": user_id,
+            "value": {
+                "email": "user1@host.com"
+            },
+            "session": session
+        }
+        with pytest.raises(Exception) as exp:
+            update_user(**user_update)
+        assert str(exp.value) == "MySQL Error (1644): ClassicSession.run_sql: This email has already been used."
 
 
 
 def test_user_roles(phone_book, table_contents):
-    users = get_users(session=phone_book["session"], auth_app_id=phone_book["auth_app_id"])
-    user = get_user(session=phone_book["session"], user_id=users[1]["id"])
+    session = phone_book["session"]
+    auth_app_id = phone_book["auth_app_id"]
+    user_init = get_default_user_init(auth_app_id)
 
-    roles = get_user_roles(user["id"])
+    with UserCT(session, **user_init) as user_id:
+        roles = get_user_roles(user_id)
 
-    assert roles == [
-        {
-            "user_id": user["id"],
-            "role_id": lib.roles.FULL_ACCESS_ROLE_ID,
-            "comments": "Default role.",
-        }
-    ]
+        assert roles == []
 
-    add_user_role(user["id"], phone_book["roles"]["Process Admin"], "Added as process admin", phone_book["session"])
+        add_user_role(user_id, phone_book["roles"]["Full Access"], "Default role.", phone_book["session"])
+        roles = get_user_roles(user_id)
 
-    roles = get_user_roles(user["id"])
+        assert roles == [
+            {
+                "user_id": user_id,
+                "role_id": lib.roles.FULL_ACCESS_ROLE_ID,
+                "comments": "Default role.",
+            }
+        ]
 
-    assert roles == [
-        {
-            "user_id": user["id"],
-            "role_id": phone_book["roles"]["Process Admin"],
-            "comments": "Added as process admin",
-        },
-        {
-            "user_id": user["id"],
-            "role_id": lib.roles.FULL_ACCESS_ROLE_ID,
-            "comments": "Default role.",
-        },
-    ]
+        add_user_role(user_id, phone_book["roles"]["Process Admin"], "Added as process admin", phone_book["session"])
 
-    delete_user_roles(user["id"])
+        roles = get_user_roles(user_id)
 
-    roles = get_user_roles(user["id"])
+        assert roles == [
+            {
+                "user_id": user_id,
+                "role_id": phone_book["roles"]["Process Admin"],
+                "comments": "Added as process admin",
+            },
+            {
+                "user_id": user_id,
+                "role_id": lib.roles.FULL_ACCESS_ROLE_ID,
+                "comments": "Default role.",
+            },
+        ]
 
-    assert roles == []
+        delete_user_roles(user_id)
 
-    add_user_role(user["id"], phone_book["roles"]["Full Access"], "Default role.", phone_book["session"])
+        roles = get_user_roles(user_id)
 
-    roles = get_user_roles(user["id"])
+        assert roles == []
 
-    assert roles == [
-        {
-            "user_id": user["id"],
-            "role_id": lib.roles.FULL_ACCESS_ROLE_ID,
-            "comments": "Default role.",
-        }
-    ]
+        add_user_role(user_id, phone_book["roles"]["Full Access"], "Default role.", phone_book["session"])
 
+        roles = get_user_roles(user_id)
 
-def test_delete_users(phone_book, table_contents):
-    users_table = table_contents("mrs_user")
-    users_has_role_table = table_contents("mrs_user_has_role")
+        assert roles == [
+            {
+                "user_id": user_id,
+                "role_id": lib.roles.FULL_ACCESS_ROLE_ID,
+                "comments": "Default role.",
+            }
+        ]
 
-    assert users_table.count == 2
-
-    users = get_users(session=phone_book["session"], auth_app_id=phone_book["auth_app_id"])
-    assert users is not None
-    assert len(users) == 2  # 1 added user + 1 inserted auth the auth_app
-
-    delete_user(session=phone_book["session"], user_id=users[1]["id"])
-
-    assert users_table.count == 1
-    assert users_has_role_table.filter("user_id", users[1]["id"]) == []
-
-    users = get_users(session=phone_book["session"], auth_app_id=phone_book["auth_app_id"])
-    assert users is not None
-    assert len(users) == 1  # 1 added user + 1 inserted auth the auth_app
-    assert users[0]["name"] == "User 1"

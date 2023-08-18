@@ -22,9 +22,59 @@
 import pytest
 import os
 
+import mysqlsh
 from mrs_plugin import lib
-from mrs_plugin.schemas import add_schema, delete_schema
-from mrs_plugin.services import add_service, delete_service
+from ... schemas import add_schema, delete_schema
+from ... services import add_service, delete_service, get_service
+from ... db_objects import add_db_object, delete_db_object
+
+def get_default_db_object_init(schema_id, name=None, request_path=None):
+    return {
+        "schema_id": schema_id,
+        "db_object_name": name or "ContactBasicInfo",
+        "db_object_type": "VIEW",
+        "request_path": request_path or "/view_contact_basic_info",
+        "crud_operations": ['CREATE', 'READ', 'UPDATE'],
+        "crud_operation_format": "FEED",
+        "requires_auth": False,
+        "items_per_page": 10,
+        "row_user_ownership_enforced": False,
+        "row_user_ownership_column": "",
+        "comments": "Object that will be removed",
+        "enabled": True,
+        "media_type": "media type",
+        "auto_detect_media_type": True,
+        "auth_stored_procedure": False,
+        "options": {
+            "aaa": "val aaa",
+            "bbb": "val bbb"
+        },
+        "objects": [],
+    }
+
+def get_default_user_init(auth_app_id,
+    name="Temp User", email="tempuser@domain.com",
+    auth_string="SomeAuthString"):
+    return {
+        "auth_app_id": auth_app_id,
+        "name": name,
+        "email": email,
+        "vendor_user_id": None,
+        "login_permitted": True,
+        "mapped_user_id": None,
+        "app_options": {},
+        "auth_string": auth_string,
+    }
+
+def get_default_role_init(caption=None, description=None, derived_from=None, specific_service_id=None):
+    return {
+        "caption": caption or "Test role",
+        "description": description or "Test role description",
+        "derived_from_role_id": derived_from,
+        "specific_to_service_id": specific_service_id,
+    }
+
+
 class SchemaCT(object):
     def __init__(self, service_id, schema_name, request_path, **kwargs):
         self._schema_id = add_schema(service_id=service_id, schema_name=schema_name, request_path=request_path,
@@ -94,6 +144,55 @@ class AuthAppCT():
     def __exit__(self, type, value, traceback):
         lib.auth_apps.delete_auth_app(self._session, self._auth_app_id)
 
+class DbObjectCT():
+    def __init__(self, session, **kwargs) -> None:
+        self._session = session
+        self._db_object_id, grants = lib.db_objects.add_db_object(session, **kwargs)
+        lib.core.MrsDbExec(grants).exec(session)
+
+    def __enter__(self):
+        return self._db_object_id
+
+    def __exit__(self, type, value, traceback):
+        lib.db_objects.delete_db_object(self._session, db_object_id=self._db_object_id)
+
+
+class ContentSetCT():
+    def __init__(self, session, **kwargs) -> None:
+        self._session = session
+        self._content_set_id = lib.content_sets.add_content_set(session, **kwargs)
+
+    def __enter__(self):
+        return self._content_set_id
+
+    def __exit__(self, type, value, traceback):
+        lib.content_sets.delete_content_set(self._session, [self._content_set_id])
+
+
+class UserCT():
+    def __init__(self, session, **kwargs) -> None:
+        self._session = session
+        self._user_id = lib.users.add_user(session, **kwargs)
+
+    def __enter__(self):
+        return self._user_id
+
+    def __exit__(self, type, value, traceback):
+        lib.users.delete_user_by_id(self._session, self._user_id)
+
+
+class RoleCT():
+    def __init__(self, session, **kwargs) -> None:
+        self._session = session
+        self._role_id = lib.roles.add_role(session, **kwargs)
+
+    def __enter__(self):
+        return self._role_id
+
+    def __exit__(self, type, value, traceback):
+        lib.roles.delete_role(self._session, self._role_id)
+
+
 
 class TableContents(object):
     class TableSnapshot(object):
@@ -131,11 +230,14 @@ class TableContents(object):
         def exists(self, column_name, value):
             return self.get(column_name, value) is not None
 
-    def __init__(self, session, table_name):
+    def __init__(self, session, table_name, take_snapshot=True):
         self._session = session
         self._table_name = table_name
         self._snapshot = None
         self._diff = set()
+
+        if take_snapshot:
+            self.take_snapshot()
 
     @property
     def items(self):
@@ -236,8 +338,20 @@ def reset_mrs_database(session):
     session.run_sql("DELETE FROM mysql_rest_service_metadata.auth_app")
     session.run_sql("DELETE FROM mysql_rest_service_metadata.mrs_user_has_role")
     session.run_sql("DELETE FROM mysql_rest_service_metadata.mrs_user")
-    session.run_sql("DELETE FROM mysql_rest_service_metadata.mrs_role WHERE id <> ?",
-        [lib.roles.FULL_ACCESS_ROLE_ID])
+
+    roles = lib.core.MrsDbExec("SELECT * FROM mysql_rest_service_metadata.mrs_role WHERE id <> ?",
+        [lib.roles.FULL_ACCESS_ROLE_ID]).exec(session).items
+
+    roles: list = [role["id"] for role in roles]
+
+    while roles:
+        for role in roles:
+            try:
+                session.run_sql("DELETE FROM mysql_rest_service_metadata.mrs_role WHERE id = ?", [role])
+                roles.remove(role)
+            except Exception as e:
+                pass
+
     session.run_sql("DELETE FROM mysql_rest_service_metadata.service")
     session.run_sql("DELETE FROM mysql_rest_service_metadata.url_host_alias")
     session.run_sql("DELETE FROM mysql_rest_service_metadata.url_host")
@@ -256,7 +370,6 @@ def reset_privileges(session):
         WHERE GRANTEE LIKE '%mysql_rest_service_data_provider%'
         """).exec(session).items
 
-    #print(f"---> {entries}")
     assert len(entries) == 0
 
 
@@ -483,4 +596,31 @@ def get_db_object_privileges(session, schema_name, db_object_name):
             AND TABLE_NAME = '{db_object_name}'
         """).exec(session).items
 
-    return [g["PRIVILEGE_TYPE"] for g in grants]
+    grants2 = lib.core.MrsDbExec(f"""
+        SELECT PROC_PRIV
+        FROM mysql.procs_priv
+        WHERE DB = '{schema_name}'
+            AND ROUTINE_NAME = '{db_object_name}'
+        """).exec(session).items
+
+    if grants2:
+        grants2 = [g.upper() for g in grants2[0]["PROC_PRIV"]]
+
+    grants = [g["PRIVILEGE_TYPE"] for g in grants]
+    grants = grants + [g.upper() for g in grants2]
+
+    return grants
+
+def get_connection_data():
+    return {
+        "user": os.environ.get("MYSQL_USER", "root"),
+        "host": os.environ.get("MYSQL_HOST", "localhost"),
+        "port": os.environ.get("MYSQL_PORT", "3388"),
+        "password": os.environ.get("MYSQL_PASSWORD", "")
+    }
+
+def create_shell_session() -> mysqlsh.globals.session:
+    connection_data = get_connection_data()
+    shell = mysqlsh.globals.shell
+
+    return shell.connect(f"{connection_data['user']}:{connection_data['password']}@{connection_data['host']}:{connection_data['port']}")

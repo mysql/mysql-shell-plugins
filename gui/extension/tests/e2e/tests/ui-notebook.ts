@@ -380,7 +380,8 @@ describe("NOTEBOOKS", () => {
                 await Misc.writeCmd(`import from xpto xpto xpto`);
                 const findBtn = await Database.getToolbarButton("Find");
                 await findBtn.click();
-                const finder = await driver.findElement(locator.findWidget.exists);
+                const finder = await driver.wait(until.elementLocated(locator.findWidget.exists),
+                    constants.wait5seconds, "Find widget was not displayed");
                 expect(await finder.getAttribute("aria-hidden")).equals("false");
                 await finder.findElement(locator.notebook.codeEditor.textArea).sendKeys("xpto");
                 await Database.findInSelection(false);

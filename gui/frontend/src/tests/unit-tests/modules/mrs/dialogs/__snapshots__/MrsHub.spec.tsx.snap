@@ -892,8 +892,19 @@ exports[`MrsHub Tests Show MRS DB Object Dialog (snapshot) 1`] = `
                         style="flex-direction: row-reverse; align-items: center;"
                       >
                         <div
+                          class="msg button imageOnly sqlCopyBtn"
+                          data-tooltip="Copy SQL to Clipboard"
+                          role="button"
+                          tabindex="0"
+                        >
+                          <div
+                            class="msg icon codicon codicon-copy"
+                            data-tooltip="inherit"
+                          />
+                        </div>
+                        <div
                           class="msg button imageOnly sqlPreviewBtn"
-                          data-tooltip="Toggle MRS DDL Preview"
+                          data-tooltip="Toggle MRS SQL Preview"
                           role="button"
                           tabindex="0"
                         >
@@ -905,7 +916,7 @@ exports[`MrsHub Tests Show MRS DB Object Dialog (snapshot) 1`] = `
                             class="msg label"
                             data-tooltip="inherit"
                           >
-                            DDL Preview
+                            SQL Preview
                           </label>
                         </div>
                         <div
