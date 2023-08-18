@@ -37,23 +37,18 @@ import { expect } from "chai";
 import { driver, Misc } from "../lib/misc";
 import { Database, IConnMDS, IDBConnection, IConnBasicMySQL } from "../lib/db";
 import { Shell } from "../lib/shell";
-import { homedir } from "os";
-import { join } from "path";
 import * as constants from "../lib/constants";
 
-const config = join(homedir(), ".oci", "config");
-const newConfig = join(homedir(), ".oci", "config_backup");
+if (!process.env.MYSQLSH_OCI_CONFIG_FILE) {
+    throw new Error("Please define the environment variable MYSQLSH_OCI_CONFIG_FILE");
+}
+if (!process.env.MYSQLSH_OCI_RC_FILE) {
+    throw new Error("Please define the environment variable MYSQLSH_OCI_RC_FILE");
+}
 
 describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
     before(async function () {
-
-        try {
-            await fs.access(config);
-            await fs.rename(config, newConfig);
-        } catch (e) {
-            // continue, file does not exist
-        }
 
         await Misc.loadDriver();
 
@@ -65,8 +60,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await driver.wait(Misc.isNotLoading(treeOCISection), constants.ociExplicitWait * 2,
                 `${await treeOCISection.getTitle()} is still loading`);
 
-            const path = join(homedir(), ".oci", "config");
-            await fs.writeFile(path, "");
+            await fs.writeFile(process.env.MYSQLSH_OCI_CONFIG_FILE, "");
 
             await Misc.clickSectionToolbarButton(treeOCISection,
                 "Configure the OCI Profile list");
@@ -78,7 +72,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             let config = `[E2ETESTS]\nuser=ocid1.user.oc1..aaaaaaaan67cojwa52khe44xtpqsygzxlk4te6gqs7nkmy`;
             config += `abcju2w5wlxcpq\nfingerprint=15:cd:e2:11:ed:0b:97:c4:e4:41:c5:44:18:66:72:80\n`;
             config += `tenancy=ocid1.tenancy.oc1..aaaaaaaaasur3qcs245czbgrlyshd7u5joblbvmxddigtubzqcfo`;
-            config += `5mmi2z3a\nregion=us-ashburn-1\nkey_file= ${String(constants.basePath)}/.oci/id_rsa_e2e.pem`;
+            config += "5mmi2z3a\nregion=us-ashburn-1\nkey_file=";
+            config += `${process.env.MYSQLSH_OCI_CONFIG_FILE.replace("config", "")}id_rsa_e2e.pem`;
             console.log(config);
             await editor.sendKeys(config);
             await textEditor.save();
@@ -109,25 +104,6 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             await driver.wait(Misc.isNotLoading(treeOCISection), constants.ociExplicitWait * 20,
                 `${await treeOCISection.getTitle()} is still loading`);
-        } catch (e) {
-            await Misc.processFailure(this);
-            throw e;
-        }
-
-    });
-
-    after(async function () {
-
-        try {
-            const treeOCISection = await Misc.getSection(constants.ociTreeSection);
-            await treeOCISection?.collapse();
-            await fs.unlink(join(homedir(), ".oci", "config"));
-            try {
-                await fs.rename(newConfig, config);
-            } catch (e) {
-                // continue, config_backup may not exist
-            }
-
         } catch (e) {
             await Misc.processFailure(this);
             throw e;
@@ -261,10 +237,16 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await Misc.openContexMenuItem(treeQA, constants.setCurrentCompartment);
             await driver.wait(Misc.isNotLoading(treeOCISection), constants.ociExplicitWait * 3,
                 `${await treeOCISection.getTitle()} is still loading`);
+            treeQA = await treeOCISection.findItem("QA (Default)", constants.ociMaxLevel);
             expect(await Misc.isDefaultItem(treeQA, "compartment")).to.be.true;
-            treeQA = await treeOCISection.findItem("QA", constants.ociMaxLevel) ||
-                await treeOCISection.findItem("QA (Default)", constants.ociMaxLevel);
-            expect(treeQA).to.exist;
+            await treeQA.expand();
+            await driver.wait(Misc.isNotLoading(treeOCISection), constants.ociExplicitWait * 20,
+                `${await treeOCISection.getTitle()} is still loading`);
+            const treeShellTesting = await Misc.getTreeElement(constants.ociTreeSection, "MySQLShellTesting");
+            await treeShellTesting.expand();
+            await driver.wait(Misc.isNotLoading(treeOCISection), constants.ociExplicitWait * 20,
+                `${await treeOCISection.getTitle()} is still loading`);
+
             const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
             await treeOpenEditorsSection.expand();
             const treeDBConnections = await Misc.getTreeElement(constants.openEditorsTreeSection,
@@ -538,6 +520,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await Misc.openContexMenuItem(treeBastion, constants.refreshBastion);
             const treeTasksSection = await Misc.getSection(constants.tasksTreeSection);
             await treeTasksSection.expand();
+            expect(await Misc.getTreeElement(constants.tasksTreeSection, "Refresh Bastion (running)")).to.exist;
             const bottomBar = new BottomBarPanel();
             const outputView = await bottomBar.openOutputView();
             await Misc.waitForOutputText("Task 'Refresh Bastion' completed successfully", 20000);
@@ -571,7 +554,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 }
             }, constants.explicitWait, "Could not click on notification button");
             await driver.wait(Misc.getTreeElement(constants.tasksTreeSection, "Delete Bastion (error)"),
-                constants.explicitWait * 2, "'Delete Bastion (error)' was not found on the tree");
+                constants.explicitWait, "'Delete Bastion (error)' was not found on the tree");
 
             await Misc.waitForOutputText("Deletion aborted", constants.explicitWait);
             await outputView.clearText();

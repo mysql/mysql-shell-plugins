@@ -839,29 +839,30 @@ describe("Notebook", () => {
     it("Multi-line comments", async () => {
         try {
 
-            const contentHost = await driver.findElement(By.id("contentHost"));
+            await DBConnection.clickAdminItem("Server Status");
+            await driver.wait(async () => {
+                return (await DBConnection.getCurrentEditor()) === "Server Status";
+            }, explicitWait, "Current Editor is not Server Status");
 
-            const textArea = await contentHost.findElement(By.css("textarea"));
-
-            await Misc.execCmd(textArea, "SELECT VERSION();", undefined, true, true);
-
-            const resultHosts = await driver.wait(until.elementsLocated(By.css(".resultHost")),
-                explicitWait * 2, "Result hosts not found");
-
-            const txt = await driver.wait(until.elementLocated(async () => {
-                return resultHosts[resultHosts.length - 1].findElements(By.css(".tabulator-cell"));
-            }), explicitWait * 2, "Table cell was not found");
-
-            const server = (await txt.getAttribute("innerHTML")).match(/(\d+).(\d+).(\d+)/g)![0];
+            const tableItems = await driver.findElements(By.css("#statusBoxHost .gridCell"));
+            let server = "";
+            for (let i = 0; i <= tableItems.length - 1; i++) {
+                if ((await tableItems[i].getText()) === "Version:") {
+                    server = (await tableItems[i + 1].getText()).match(/(\d+).(\d+).(\d+)/g)![0];
+                    break;
+                }
+            }
 
             const digits = server.split(".");
-
             let serverVer = digits[0];
-
             digits[1].length === 1 ? serverVer += "0" + digits[1] : serverVer += digits[1];
-
             digits[2].length === 1 ? serverVer += "0" + digits[2] : serverVer += digits[2];
 
+            await DBConnection.openNewNotebook();
+
+            const contentHost = await driver.wait(until.elementLocated(By.id("contentHost")),
+                explicitWait, "Content host not found");
+            const textArea = await contentHost.findElement(By.css("textarea"));
             await Misc.execCmd(textArea, `/*!${serverVer} select * from actor limit 1;*/`, undefined, true);
 
             expect(await DBConnection.getResultStatus(true)).toMatch(

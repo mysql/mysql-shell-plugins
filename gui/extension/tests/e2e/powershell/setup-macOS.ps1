@@ -39,7 +39,7 @@ ForEach ($testSuite in $testSuites) {
     if (!(Test-Path $config)) {
         New-Item -ItemType "directory" -Path $config
         write-host "Created $config"
-        $mysqlsh = Join-Path $config "mysqlsh.log"  
+        $mysqlsh = Join-Path $config "mysqlsh.log"
         New-Item -ItemType "file" -Path $mysqlsh
         write-host "Created $mysqlsh"
         $guiPlugin = Join-Path $config "plugin_data" "gui_plugin"
@@ -54,6 +54,22 @@ ForEach ($testSuite in $testSuites) {
 write-host "DONE"
 npm run e2e-tests-get-vscode -- -s "test-resources" -c $vscodeVersion
 npm run e2e-tests-get-chromedriver -- -s "test-resources" -c $vscodeVersion
+
+# CREATE .OCI Directory
+$ociPath = Join-Path $env:WORKSPACE "oci"
+if (!(Test-Path -Path $ociPath)){
+    writeMsg "Creating $ociPath folder..." "-NoNewLine"
+    New-Item -Path $env:WORKSPACE -Name "oci" -ItemType "directory" -Force
+    writeMsg "DONE"
+}
+
+# COPY OCI FILES   
+$itemsPath = Join-Path $basePath "oci_files"
+Get-ChildItem -Path $itemsPath | % {
+    writeMsg "Copying $_ file to $ociPath folder..." "-NoNewLine"
+    Copy-Item -Path $_ $ociPath -Force
+    writeMsg "DONE"
+}
 
 # TSC
 npm run e2e-tests-tsc

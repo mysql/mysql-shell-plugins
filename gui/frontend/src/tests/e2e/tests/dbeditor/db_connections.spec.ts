@@ -535,8 +535,10 @@ describe("Database Connections", () => {
 
             await DBConnection.setEditorLanguage("mysql");
 
-            await Misc.execCmd(await driver.findElement(By.css("textarea")),
-                "SHOW STATUS LIKE 'Ssl_cipher';", undefined, true, true);
+            let query = `select * from performance_schema.session_status where variable_name in `;
+            query += `("ssl_cipher") and variable_value = "TLS_AES_256_GCM_SHA384"`;
+
+            await Misc.execCmd(await driver.findElement(By.css("textarea")), query, undefined, true, true);
 
             const resultHost = await driver.wait(until.elementLocated(By.css(".resultHost")),
                 explicitWait, "Result host was not found");
@@ -546,9 +548,6 @@ describe("Database Connections", () => {
             }), explicitWait, "Label not found");
 
             expect(await result.getText()).toContain("1 record retrieved");
-
-            expect(await resultHost.findElement(By.xpath("//div[contains(text(), 'TLS_AES_256')]")))
-                .toBeDefined();
 
         } catch (e) {
             testFailed = true;

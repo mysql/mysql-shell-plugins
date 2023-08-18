@@ -23,6 +23,7 @@
 
 from mysqlsh.plugin_manager import plugin_function
 from mds_plugin import core, configuration, mysql_database_service
+from os import getenv
 
 # cSpell:ignore SQLDB, Popen, bufsize, dryrun
 
@@ -663,7 +664,8 @@ def add_public_endpoint(**kwargs):
                 conn.execute("sudo firewall-cmd --reload")
 
                 # cSpell:ignore semanage mysqld
-                conn.execute("sudo semanage port -a -t mysqld_port_t -p tcp 8446")
+                conn.execute(
+                    "sudo semanage port -a -t mysqld_port_t -p tcp 8446")
 
                 if interactive:
                     print("Starting MySQL Router...")
@@ -1285,6 +1287,7 @@ def dump_to_bucket(**kwargs):
             user account
         compartment_id (str): The OCID of the compartment
         config (object): An OCI config object or None.
+        config_file_path (str): The path to the config file.
         interactive (bool): Enables interactive input.
         return_true_on_success (bool): Whether to return true on success
 
@@ -1298,7 +1301,12 @@ def dump_to_bucket(**kwargs):
     object_name_prefix = kwargs.get("object_name_prefix")
     connection_uri = kwargs.get("connection_uri")
     connection_password = kwargs.get("connection_password")
-    config_file_location = kwargs.get("config_file_location", "~/.oci/config")
+    # If no config_file_path is given, first check the MYSQLSH_OCI_CONFIG_FILE env_var and only then fall back to
+    # default
+    config_file_path = kwargs.get(
+        "config_file_path", getenv("MYSQLSH_OCI_CONFIG_FILE"))
+    if config_file_path is None:
+        config_file_path = "~/.oci/config"
     compartment_id = kwargs.get("compartment_id")
     config = kwargs.get("config")
     interactive = kwargs.get("interactive", True)
@@ -1381,8 +1389,8 @@ def dump_to_bucket(**kwargs):
         os_namespace = object_store.get_object_store_namespace(config)
 
         # Convert Unix path to Windows
-        config_file_location = os.path.abspath(
-            os.path.expanduser(config_file_location))
+        config_file_path = os.path.abspath(
+            os.path.expanduser(config_file_path))
 
         # Get the current profile
         profile_name = configuration.get_current_profile()
@@ -1411,7 +1419,7 @@ def dump_to_bucket(**kwargs):
            f'{object_name_prefix}',
            f'--osBucketName={bucket.name}',
            f'--osNamespace={os_namespace}',
-           f'--ociConfigFile={config_file_location}',
+           f'--ociConfigFile={config_file_path}',
            f'--ociProfile={profile_name}',
            '--showProgress=true',
            '--consistent=true',
@@ -1429,7 +1437,7 @@ def dump_to_bucket(**kwargs):
            '{'
            f'osBucketName: \'{bucket.name}\', '
            f'osNamespace: \'{os_namespace}\', '
-           f'ociConfigFile: \'{config_file_location}\', '
+           f'ociConfigFile: \'{config_file_path}\', '
            f'ociProfile: \'{profile_name}\', '
            'showProgress: true, '
            'consistent: true, '
