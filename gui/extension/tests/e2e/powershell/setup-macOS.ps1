@@ -58,17 +58,17 @@ npm run e2e-tests-get-chromedriver -- -s "test-resources" -c $vscodeVersion
 # CREATE .OCI Directory
 $ociPath = Join-Path $env:WORKSPACE "oci"
 if (!(Test-Path -Path $ociPath)){
-    writeMsg "Creating $ociPath folder..." "-NoNewLine"
+    write-host "Creating $ociPath folder..." "-NoNewLine"
     New-Item -Path $env:WORKSPACE -Name "oci" -ItemType "directory" -Force
-    writeMsg "DONE"
+    write-host "DONE"
 }
 
 # COPY OCI FILES   
 $itemsPath = Join-Path $basePath "oci_files"
 Get-ChildItem -Path $itemsPath | % {
-    writeMsg "Copying $_ file to $ociPath folder..." "-NoNewLine"
+    write-host "Copying $_ file to $ociPath folder..." "-NoNewLine"
     Copy-Item -Path $_ $ociPath -Force
-    writeMsg "DONE"
+    write-host "DONE"
 }
 
 # TSC

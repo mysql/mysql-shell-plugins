@@ -85,7 +85,7 @@ describe("MYSQL SHELL CONSOLES", () => {
             await Misc.sectionFocus(constants.openEditorsTreeSection);
             const treeDBConnections = await Misc.getTreeElement(constants.openEditorsTreeSection,
                 constants.dbConnectionsLabel);
-            await Misc.openContexMenuItem(treeDBConnections, constants.openNewShellConsole, true);
+            await Misc.openContexMenuItem(treeDBConnections, constants.openNewShellConsole, undefined, true);
             await driver.wait(Shell.isShellLoaded(), constants.explicitWait * 3, "Shell Console was not loaded");
         } catch (e) {
             await Misc.processFailure(this);
@@ -120,7 +120,8 @@ describe("MYSQL SHELL CONSOLES", () => {
             for (let i = 1; i <= 3; i++) {
                 const treeDBConnections = await Misc.getTreeElement(constants.openEditorsTreeSection,
                     constants.dbConnectionsLabel);
-                await Misc.openContexMenuItem(treeDBConnections, constants.openNewShellConsole, true);
+                await Misc.openContexMenuItem(treeDBConnections, constants.openNewShellConsole,
+                    undefined, true);
                 await driver.wait(Shell.isShellLoaded(), constants.explicitWait * 3, "Shell Console was not loaded");
                 await driver.switchTo().defaultContent();
                 await Misc.getTreeElement(constants.openEditorsTreeSection, `Session ${i}`);
@@ -143,7 +144,7 @@ describe("MYSQL SHELL CONSOLES", () => {
                 const treeDBConnections = await Misc.getTreeElement(constants.openEditorsTreeSection,
                     constants.dbConnectionsLabel);
                 await Misc.openContexMenuItem(treeDBConnections,
-                    constants.openNewShellConsole, true);
+                    constants.openNewShellConsole, undefined, true);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -306,7 +307,8 @@ describe("MYSQL SHELL CONSOLES", () => {
             try {
                 const treeDBConnections = await Misc.getTreeElement(constants.openEditorsTreeSection,
                     constants.dbConnectionsLabel);
-                await Misc.openContexMenuItem(treeDBConnections, constants.openNewShellConsole, true);
+                await Misc.openContexMenuItem(treeDBConnections, constants.openNewShellConsole,
+                    undefined, true);
                 await driver.wait(Shell.isShellLoaded(), constants.explicitWait * 3, "Shell Console was not loaded");
                 const editor = await driver.wait(until.elementLocated(By.id("shellEditorHost")),
                     10000, "Console was not loaded");

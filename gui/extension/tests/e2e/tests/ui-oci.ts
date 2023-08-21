@@ -251,7 +251,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await treeOpenEditorsSection.expand();
             const treeDBConnections = await Misc.getTreeElement(constants.openEditorsTreeSection,
                 constants.dbConnectionsLabel);
-            await Misc.openContexMenuItem(treeDBConnections, constants.openNewShellConsole, true);
+            await Misc.openContexMenuItem(treeDBConnections, constants.openNewShellConsole, undefined, true);
             await driver.wait(Shell.isShellLoaded(), constants.explicitWait * 3, "Shell Console was not loaded");
             const result = await Misc.execCmd("mds.get.currentCompartmentId()", undefined, 60000);
             expect(result[0]).to.equal(compartmentId);
@@ -642,7 +642,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                     try {
                         const workbench = new Workbench();
                         const ntfs = await workbench.getNotifications();
-                        await ntfs[ntfs.length - 1].takeAction("NO");
+                        await ntfs[ntfs.length - 1].takeAction("Yes");
 
                         return true;
                     } catch (e) {

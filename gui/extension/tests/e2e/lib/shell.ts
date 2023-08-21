@@ -81,9 +81,8 @@ export class Shell {
     public static changeSchemaOnTab = async (schema: string): Promise<void> => {
         const tabSchema = await driver.findElement(By.id("schema"));
         await tabSchema.click();
-        const menu = await driver.wait(until.elementLocated(By.css(".shellPromptSchemaMenu")),
+        const menu = await driver.wait(until.elementLocated(By.css(".visible.shellPromptSchemaMenu")),
             3000, "Schema list was not displayed");
-
         const items = await menu.findElements(By.css("div.menuItem"));
         for (const item of items) {
             const label = await item.findElement(By.css("label"));

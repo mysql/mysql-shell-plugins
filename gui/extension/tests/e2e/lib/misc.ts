@@ -186,6 +186,7 @@ export class Misc {
     public static openContexMenuItem = async (
         treeItem: TreeItem,
         ctxMenuItem: string | string[],
+        map?: Map<string, number>,
         verifyEditorAndWebView = false,
         verifyNotification = false,
     ): Promise<void> => {
@@ -195,7 +196,7 @@ export class Misc {
             await driver.wait(async () => {
                 try {
                     const prevOpenedTabs = await new EditorView().getOpenEditorTitles();
-                    await Misc.selectContextMenuItem(treeItem, ctxMenuItem);
+                    await Misc.selectContextMenuItem(treeItem, ctxMenuItem, map);
                     const currentOpenedTabs = await new EditorView().getOpenEditorTitles();
                     if (currentOpenedTabs.length > prevOpenedTabs.length || currentOpenedTabs.length > 0) {
                         activeTab = await (await new EditorView().getActiveTab()).getTitle();
@@ -216,7 +217,7 @@ export class Misc {
                 `No new editor was opened after selecting '${ctxMenuItem.toString()}' after 15secs`);
         } else if (verifyNotification) {
             await driver.wait(async () => {
-                await Misc.selectContextMenuItem(treeItem, ctxMenuItem);
+                await Misc.selectContextMenuItem(treeItem, ctxMenuItem, map);
                 const ntfs = await new Workbench().getNotifications();
                 if (ntfs.length > 0) {
                     return true;
@@ -224,7 +225,7 @@ export class Misc {
             }, constants.explicitWait * 3,
                 `No notification was shown after selecting ${String(ctxMenuItem)}`);
         } else {
-            await Misc.selectContextMenuItem(treeItem, ctxMenuItem);
+            await Misc.selectContextMenuItem(treeItem, ctxMenuItem, map);
         }
 
     };
@@ -309,7 +310,8 @@ export class Misc {
 
     public static selectMoreActionsItem = async (
         section: CustomTreeSection,
-        item: string): Promise<void> => {
+        item: string,
+    ): Promise<void> => {
 
         const button = await section?.getAction("More Actions...");
 
@@ -323,7 +325,7 @@ export class Misc {
             const moreActions = await section.findElement(By.xpath(".//a[contains(@title, 'More Actions...')]"));
             await moreActions.click();
             await driver.sleep(500);
-            const taps = constants.contextMenu.get(item);
+            const taps = Misc.getValueFromMap(item);
             for (let i = 0; i <= taps - 1; i++) {
                 await driver.actions().keyDown(Key.DOWN).keyUp(Key.DOWN).perform();
             }
@@ -1150,8 +1152,7 @@ export class Misc {
                     throw e;
                 }
             }
-
-        }, constants.explicitWait * 3, `${itemName} on section was not found`);
+        }, constants.explicitWait * 3, `${itemName} on section ${section} was not found`);
 
         return el;
     };
@@ -1178,6 +1179,18 @@ export class Misc {
                 }
             }
         }, constants.explicitWait, `${hostname()} tree item was not found`);
+    };
+
+    public static setInputPath = async (path: string): Promise<void> => {
+        const input = await InputBox.create();
+        await driver.wait(async () => {
+            await input.clear();
+            await input.setText(path);
+
+            return (await input.getText()) === path;
+        }, constants.explicitWait, "Could not set text on input box");
+
+        await input.confirm();
     };
 
     public static deleteConnection = async (dbName: string): Promise<void> => {
@@ -1463,15 +1476,33 @@ export class Misc {
         return text.toString().includes(textToFind);
     };
 
+    private static getValueFromMap = (item: string, map?: Map<string, number>): number => {
+        if (map) {
+            return map.get(item);
+        } else {
+            const objects = Object.entries(constants);
+            for (const object of objects) {
+                for (const obj of object) {
+                    if (obj instanceof Map) {
+                        if (obj.has(item)) {
+                            return obj.get(item);
+                        }
+                    }
+                }
+            }
+            throw new Error(`Could not find ${item} on any map`);
+        }
+    };
+
     private static selectContextMenuItem = async (
         treeItem: TreeItem,
         ctxMenuItem: string | string[],
+        itemMap?: Map<string, number>,
     ): Promise<void> => {
 
-        const selectItemMacOS = async (item: string): Promise<void> => {
-            const taps = constants.contextMenu.get(item);
+        const selectItemMacOS = async (item: string, map?: Map<string, number>): Promise<void> => {
+            const taps = Misc.getValueFromMap(item, map);
             for (let i = 0; i <= taps - 1; i++) {
-                await driver.findElement(By.css(""));
                 await keyboard.type(nutKey.Down);
             }
             await keyboard.type(nutKey.Enter);
@@ -1485,13 +1516,12 @@ export class Misc {
                         .press(Button.RIGHT)
                         .pause(500)
                         .perform();
-
                     if (Array.isArray(ctxMenuItem)) {
                         for (const item of ctxMenuItem) {
-                            await selectItemMacOS(item);
+                            await selectItemMacOS(item, itemMap);
                         }
                     } else {
-                        await selectItemMacOS(ctxMenuItem);
+                        await selectItemMacOS(ctxMenuItem, itemMap);
                     }
 
                     return true;
