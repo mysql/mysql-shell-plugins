@@ -176,7 +176,12 @@ try {
                 New-Item -ItemType SymbolicLink -Path $link -Target $targetWebCerts
             }
             writeMsg "DONE"
-        }
+        } else {
+            $guiPlugin = Join-Path $config "plugin_data" "gui_plugin" "mysqlsh_*"
+            writeMsg "Cleaning config folder for $testSuite" "-NoNewLine"
+            Remove-Item -Path $guiPlugin -Force
+            writeMsg "DONE"
+        } 
     } 
     writeMsg "DONE"
 

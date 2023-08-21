@@ -28,7 +28,6 @@ import {
     Key,
     error,
     Condition,
-    InputBox,
 } from "vscode-extension-tester";
 import { expect } from "chai";
 import { basename } from "path";
@@ -192,8 +191,8 @@ export class Database {
                 if (mds.profile) {
                     const inProfile = await dialog.findElement(By.id("profileName"));
                     await inProfile.click();
-                    const popup = await driver.findElement(By.id("profileNamePopup"));
-                    await popup.findElement(By.id(mds.profile)).click();
+                    await driver.findElement(By.id("profileNamePopup"));
+                    await driver.wait(until.elementLocated(By.id(mds.profile)), constants.explicitWait).click();
                 }
                 if (mds.dbSystemOCID) {
                     const inDBSystem = await dialog.findElement(By.id("mysqlDbSystemId"));
@@ -1134,18 +1133,6 @@ export class Database {
         }
     };
 
-    public static setInputPath = async (path: string): Promise<void> => {
-        const input = await InputBox.create();
-        await driver.wait(async () => {
-            await input.clear();
-            await input.setText(path);
-
-            return (await input.getText()) === path;
-        }, constants.explicitWait, "Could not set text on input box");
-
-        await input.confirm();
-    };
-
     public static verifyNotebook = async (sql: string, resultStatus: string): Promise<void> => {
 
         const commands = [];
@@ -1190,5 +1177,63 @@ export class Database {
             throw new Error(`Could not find the SQL result ${resultStatus} on the notebook`);
         }
 
+    };
+
+    public static setDataToHw = async (
+        schemas?: string[],
+        opMode?: string,
+        output?: string,
+        disableCols?: boolean,
+        optimize?: boolean,
+        enableMemory?: boolean,
+        sqlMode?: string,
+        exludeList?: string,
+    ): Promise<void> => {
+
+        const dialog = await driver.wait(until.elementLocated(By.css("#mdsHWLoadDataDialog .valueEditDialog")),
+            constants.explicitWait, "MDS dialog was not found");
+        if (schemas) {
+            const schemaInput = await dialog.findElement(By.id("schemas"));
+            await schemaInput.click();
+            const popup = await driver.wait(until.elementLocated(By.css("#schemasPopup .popup.visible")));
+            for (const schema of schemas) {
+                await popup.findElement(By.id(schema)).click();
+            }
+            await driver.actions().sendKeys(Key.ESCAPE).perform();
+        }
+        if (opMode) {
+            const modeInput = await dialog.findElement(By.id("mode"));
+            await modeInput.click();
+            const popup = await driver.wait(until.elementLocated(By.css("#modePopup .popup.visible")));
+            await popup.findElement(By.id(opMode)).click();
+        }
+        if (output) {
+            const outputInput = await dialog.findElement(By.id("output"));
+            await outputInput.click();
+            const popup = await driver.wait(until.elementLocated(By.css("#outputPopup .popup.visible")));
+            await popup.findElement(By.id(output)).click();
+        }
+        if (disableCols) {
+            const disableColsInput = await dialog.findElement(By.id("disableUnsupportedColumns"));
+            await disableColsInput.click();
+        }
+        if (optimize) {
+            const optimizeInput = await dialog.findElement(By.id("optimizeLoadParallelism"));
+            await optimizeInput.click();
+        }
+        if (enableMemory) {
+            const enableInput = await dialog.findElement(By.id("enableMemoryCheck"));
+            await enableInput.click();
+        }
+        if (sqlMode) {
+            const sqlModeInput = await dialog.findElement(By.id("sqlMode"));
+            await sqlModeInput.sendKeys(sqlMode);
+        }
+        if (exludeList) {
+            const exludeListInput = await dialog.findElement(By.id("excludeList"));
+            await exludeListInput.sendKeys(exludeList);
+        }
+
+        await dialog.findElement(By.id("ok")).click();
     };
 }

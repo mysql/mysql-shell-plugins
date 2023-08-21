@@ -83,19 +83,19 @@ export const resetExtension = "Reset MySQL Shell for VS Code Extension";
 export const openNewConnection = "Open New Database Connection";
 export const connectToDB = "Connect to Database";
 export const connectToDBNewTab = "Connect to Database on New Tab";
-export const setDBConnDefault = "Set this DB Connection as Default for Embedded SQL Execution";
+export const setDBConnDefault = "Set this DB Connection as Default";
 export const editDBConnection = "Edit DB Connection";
 export const duplicateConnection = "Duplicate this DB Connection";
 export const deleteDBConnection = "Delete DB Connection";
 export const showSystemSchemas = "Show MySQL System Schemas";
-export const loadScriptFromDisk = "Load Script from Disk";
+export const loadScriptFromDisk = "Load SQL Script from Disk";
 export const loadDumpFromDisk = "Load Dump from Disk";
 export const openShellConnection = "Open New MySQL Shell Console for this Connection";
 export const browseRESTDocs = "Browse the MySQL REST Service Documentation";
 export const configureREST = "Configure Instance for MySQL REST Service Support";
 export const setCurrentDBSchema = "Set As Current Database Schema";
 export const dumpSchemaToDisk = "Dump Schema to Disk";
-export const dumpSchemaToDiskToServ = "Dump Schema to Disk to MySQL Database Service";
+export const dumpSchemaToDiskToServ = "Dump Schema to Disk for MySQL Database Service";
 export const copyToClipboard = "Copy To Clipboard";
 export const copyToClipboardName = "Name";
 export const copyToClipboardStat = "Create Statement";
@@ -159,14 +159,14 @@ export const addRESTUser = "Add User";
 export const editRESTUser = "Edit User";
 export const deleteRESTUser = "Delete User";
 
-// CONTEXT MENUS MAP
-export const contextMenu = new Map([
+export const dbMainCtxMenu = new Map([
     [restartInternalShell, 1],
     [connectToExternalShell, 2],
     [relaunchWelcomeWizard, 3],
     [resetExtension, 4],
+]);
 
-    // DB CONNECTION
+export const dbConnectionCtxMenu = new Map([
     [openNewConnection, 1],
     [setDBConnDefault, 2],
     [editDBConnection, 3],
@@ -178,8 +178,9 @@ export const contextMenu = new Map([
     [openShellConnection, 9],
     [browseRESTDocs, 10],
     [configureREST, 11],
+]);
 
-    // SCHEMA
+export const schemaCtxMenu = new Map([
     [setCurrentDBSchema, 1],
     [dumpSchemaToDisk, 2],
     [dumpSchemaToDiskToServ, 3],
@@ -189,15 +190,20 @@ export const contextMenu = new Map([
     [loadDataToHW, 5],
     [addSchemaToREST, 6],
     [dropSchema, 7],
+]);
 
-    // TABLE/VIEW ITEMS
+export const dbObjectCtxMenu = new Map([
     [selectRowsInNotebook, 1],
     [showData, 2],
-    [addDBObjToREST, 3],
+    [copyToClipboard, 3],
+    [copyToClipboardName, 0],
+    [copyToClipboardStat, 1],
+    [addDBObjToREST, 4],
     [dropTable, 5],
     [dropView, 5],
+]);
 
-    // MYSQL REST SERVICE
+export const restMainCtxMenu = new Map([
     [addRESTService, 1],
     [enableRESTService, 2],
     [disableRESTService, 3],
@@ -206,8 +212,9 @@ export const contextMenu = new Map([
     [stopRouter, 6],
     [killRouters, 7],
     [browseRESTDocs, 8],
+]);
 
-    // REST SERVICE ITEM
+export const restServiceCtxMenu = new Map([
     [editRESTService, 1],
     [setAsCurrentREST, 2],
     [loadRESTSchemaFromJSON, 3],
@@ -215,41 +222,49 @@ export const contextMenu = new Map([
     [addNewAuthApp, 5],
     [deleteRESTService, 6],
     [mrsServiceDocs, 7],
+]);
 
-    // REST SCHEMA ITEM
+export const restSchemaCtxMenu = new Map([
     [editRESTSchema, 1],
     [dumpRESTSchemaToJSON, 2],
     [loadRESTObkFromJSON, 3],
     [deleteRESTSchema, 4],
+]);
 
-    // REST OBJECT ITEM
+export const restObjCtxMenu = new Map([
     [editRESTObj, 1],
     [copyRESTObjReqPath, 2],
     [copyRESTObjReqPathBrowser, 3],
     [dumpRESTObjToJSON, 4],
     [deleteRESTObj, 5],
+]);
 
-    // REST APP
+export const restAppCtxMenu = new Map([
     [editAuthenticationApp, 1],
     [addRESTUser, 2],
     [deleteAuthenticationApp, 3],
+]);
 
-    // REST USER
+export const restUserCtxMenu = new Map([
     [editRESTUser, 1],
     [deleteRESTUser, 2],
+]);
 
-    // ROUTER
+export const routerCtxMenu = new Map([
     [deleteRouter, 1],
+]);
 
-    // OCI CONFIG ITEM
+export const ociConfigCtxMenu = new Map([
     [viewConfigProfileInfo, 1],
     [setDefaultConfigProfile, 2],
+]);
 
-    // OCI COMPARTMENT
+export const ociCompCtxMenu = new Map([
     [viewCompartmentInfo, 1],
     [setCurrentCompartment, 2],
+]);
 
-    // OCI DB SYSTEM
+export const ociDBSCtxMenu = new Map([
     [viewDBSystemInfo, 1],
     [createConnWithBastion, 2],
     [startDBSystem, 3],
@@ -257,20 +272,22 @@ export const contextMenu = new Map([
     [stopDBSytem, 5],
     [deleteDBSystem, 6],
     [createRouterEndpoint, 7],
+]);
 
-    // OCI BASTION
+export const ociBastionCtxMenu = new Map([
     [getBastionInfo, 1],
     [setAsCurrentBastion, 2],
     [refreshBastion, 4],
     [deleteBastion, 3],
+]);
 
-    // OPEN EDITORS
+export const openEditCtxMenu = new Map([
     [openNewShellConsole, 1],
     [newMySQLScript, 1],
     [newJS, 2],
     [newTS, 3],
-
-    // MISC
-    [openNotebookWithConn, 5],
 ]);
 
+export const miscCtxMenu = new Map([
+    [openNotebookWithConn, 5],
+]);

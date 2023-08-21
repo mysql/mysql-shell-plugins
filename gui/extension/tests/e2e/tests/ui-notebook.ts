@@ -157,14 +157,19 @@ describe("NOTEBOOKS", () => {
                 await area.sendKeys(Key.ENTER);
                 await Misc.writeCmd("select * from sakila.city;");
 
+                const getLines = async (): Promise<WebElement[]> => {
+                    const lines = await driver.findElements(By.css("#contentHost .editorHost .view-line"));
+                    lines.shift();
+
+                    return lines;
+                };
+
                 await driver.actions().keyDown(Key.ALT).perform();
 
-                const lines = await driver.findElements(By.css("#contentHost .editorHost .view-line"));
-                lines.shift();
-                let spans = await lines[0].findElements(By.css("span"));
+                let spans = await (await getLines())[0].findElements(By.css("span"));
                 await spans[spans.length - 1].click();
 
-                spans = await lines[1].findElements(By.css("span"));
+                spans = await (await getLines())[1].findElements(By.css("span"));
                 await spans[spans.length - 1].click();
                 await driver.actions().keyUp(Key.ALT).perform();
 
@@ -703,7 +708,7 @@ describe("NOTEBOOKS", () => {
             expect(result[0]).to.include("1 record retrieved");
             await (await Database.getToolbarButton(constants.saveNotebook)).click();
             await driver.switchTo().defaultContent();
-            await Database.setInputPath(destFile);
+            await Misc.setInputPath(destFile);
             await driver.wait(new Condition("", async () => {
                 try {
                     await fs.access(`${destFile}.mysql-notebook`);
@@ -721,7 +726,7 @@ describe("NOTEBOOKS", () => {
             await Misc.cleanEditor();
             await (await Database.getToolbarButton(constants.loadNotebook)).click();
             await driver.switchTo().defaultContent();
-            await Database.setInputPath(`${destFile}.mysql-notebook`);
+            await Misc.setInputPath(`${destFile}.mysql-notebook`);
             await Misc.switchToWebView();
             await Database.verifyNotebook("SELECT VERSION();", "1 record retrieved");
 
