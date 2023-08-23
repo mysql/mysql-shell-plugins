@@ -766,6 +766,7 @@ if __name__ == "__main__":
         executor.add_task(StartBeServersTask(executor.environment, be_servers))
         executor.add_task(AddUserToBE(executor.environment, tmp_dirname, be_servers))
         executor.add_task(NPMScript(executor.environment, f"e2e-tests-run", [f"--maxWorkers={MAX_WORKERS}"]))
+        executor.add_task(NPMScript(executor.environment, f"e2e-tests-report", []))
 
         if executor.check_prerequisites():
             try:
@@ -774,6 +775,10 @@ if __name__ == "__main__":
                 Logger.error(exc)
                 test_failed = True
 
+            executor.clean_up()
+            executor = TaskExecutor(tmp_dirname)
+            executor.add_task(NPMScript(executor.environment, f"e2e-tests-report", []))
+            executor.run_tasks()
             executor.clean_up()
 
     if test_failed:

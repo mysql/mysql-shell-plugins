@@ -270,11 +270,14 @@ const config: Config = {
     reporters: [
         "default",
         [
-            "jest-html-reporters",
+            "jest-html-reporter",
             {
-                "publicPath": "src/tests/e2e/html-report",
-                "filename": "test-report.html",
-                "expand": true
+                "pageTitle": "MySQL Shell FE GUI Tests Report",
+                "includeFailureMsg": true,
+                "styleOverridePath": "style.css",
+                "outputPath": "src/tests/e2e/test-report.html",
+                "append": false,
+                "useCssFile": true,
             }
         ]
     ]

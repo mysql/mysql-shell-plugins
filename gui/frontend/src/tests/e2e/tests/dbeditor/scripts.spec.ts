@@ -25,7 +25,6 @@ import { By, until } from "selenium-webdriver";
 import { DBConnection } from "../../lib/dbConnection";
 import { DBNotebooks, execCaret, execFullScript } from "../../lib/dbNotebooks";
 import { IDBConnection, Misc, driver, explicitWait } from "../../lib/misc";
-import { addAttach } from "jest-html-reporters/helper";
 import { basename } from "path";
 
 describe("Scripts", () => {
@@ -90,10 +89,7 @@ describe("Scripts", () => {
     afterEach(async () => {
         if (testFailed) {
             testFailed = false;
-            await addAttach({
-                attach: await Misc.storeScreenShot(),
-                description: "screenshot",
-            });
+            await Misc.storeScreenShot();
         }
     });
 
@@ -105,7 +101,6 @@ describe("Scripts", () => {
 
     it("Add_run JS script", async () => {
         try {
-
             await DBConnection.expandCollapseMenus("scripts", true, 0);
 
             const script = await DBConnection.addScript("JS");

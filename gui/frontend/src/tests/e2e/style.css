@@ -12,7 +12,7 @@ body {
   font-size: 0.85rem;
 }
 
-#jesthtml-content {
+.jesthtml-content {
   margin: 0 auto;
   max-width: 70rem;
 }
@@ -45,27 +45,28 @@ header {
   font-size: 1rem;
 }
 
-#summary > div {
+#summary>div {
   margin-right: 2rem;
   background: #eee;
   padding: 1rem;
   min-width: 15rem;
 }
 
-#summary > div:last-child {
+#summary>div:last-child {
   margin-right: 0;
 }
+
 @media only screen and (max-width: 720px) {
   #summary {
     flex-direction: column;
   }
 
-  #summary > div {
+  #summary>div {
     margin-right: 0;
     margin-top: 2rem;
   }
 
-  #summary > div:first-child {
+  #summary>div:first-child {
     margin-top: 0;
   }
 }
@@ -174,6 +175,25 @@ header {
   margin-bottom: 2rem;
 }
 
+.suite-container>input[type="checkbox"] {
+  position: absolute;
+  left: -100vw;
+}
+
+.suite-container label {
+  display: block;
+}
+
+.suite-container .suite-tests {
+  overflow-y: hidden;
+  height: 0;
+}
+
+.suite-container>input[type="checkbox"]:checked~.suite-tests {
+  height: auto;
+  overflow: visible;
+}
+
 .suite-info {
   padding: 1rem;
   background-color: #eee;
@@ -181,6 +201,11 @@ header {
   display: flex;
   align-items: center;
   margin-bottom: 0.25rem;
+}
+
+.suite-info:hover {
+  background-color: #ddd;
+  cursor: pointer;
 }
 
 .suite-info .suite-path {
@@ -199,6 +224,17 @@ header {
 .suite-info .suite-time.warn {
   background-color: #d8000c;
   color: #fff;
+}
+
+.suite-info:before {
+  content: "\2303";
+  display: inline-block;
+  margin-right: 0.5rem;
+  transform: rotate(0deg);
+}
+
+.suite-container>input[type="checkbox"]:checked~label .suite-info:before {
+  transform: rotate(180deg);
 }
 
 /* CONSOLE LOGS */
@@ -268,5 +304,5 @@ header {
 }
 
 img {
-    width: 100%;
+  width: 75%;
 }

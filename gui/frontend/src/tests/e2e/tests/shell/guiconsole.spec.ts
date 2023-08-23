@@ -24,7 +24,6 @@ import { Misc, driver, explicitWait } from "../../lib/misc";
 import { By } from "selenium-webdriver";
 import { GuiConsole } from "../../lib/guiConsole";
 import { ShellSession } from "../../lib/shellSession";
-import { addAttach } from "jest-html-reporters/helper";
 import { basename } from "path";
 
 describe("GUI Console", () => {
@@ -57,10 +56,7 @@ describe("GUI Console", () => {
     afterEach(async () => {
         if (testFailed) {
             testFailed = false;
-            await addAttach({
-                attach: await Misc.storeScreenShot(),
-                description: "screenshot",
-            });
+            await Misc.storeScreenShot();
         }
     });
 
@@ -71,7 +67,6 @@ describe("GUI Console", () => {
 
     it("Open multiple sessions", async () => {
         try {
-
             await GuiConsole.openSession();
             await driver.findElement(By.id("sessions")).click();
 

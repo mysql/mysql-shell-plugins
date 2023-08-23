@@ -691,6 +691,9 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             );
 
             await driver.switchTo().defaultContent();
+            const treeDbSection = await Misc.getSection(constants.dbTreeSection);
+            await driver.wait(Misc.isNotLoading(treeDbSection), constants.ociExplicitWait * 2,
+                `${await treeDbSection.getTitle()} is still loading`);
             await Misc.getTreeElement(constants.dbTreeSection, mdsConn.caption, true);
 
         });
