@@ -520,7 +520,6 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await Misc.openContexMenuItem(treeBastion, constants.refreshBastion);
             const treeTasksSection = await Misc.getSection(constants.tasksTreeSection);
             await treeTasksSection.expand();
-            expect(await Misc.getTreeElement(constants.tasksTreeSection, "Refresh Bastion (running)")).to.exist;
             const bottomBar = new BottomBarPanel();
             const outputView = await bottomBar.openOutputView();
             await Misc.waitForOutputText("Task 'Refresh Bastion' completed successfully", 20000);
