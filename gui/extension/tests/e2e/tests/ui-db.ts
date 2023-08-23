@@ -917,6 +917,8 @@ describe("DATABASE CONNECTIONS", () => {
             await okBtn.click();
             await driver.switchTo().defaultContent();
             await new EditorView().closeEditor(constants.dbDefaultEditor);
+            await driver.wait(Misc.isNotLoading(treeDBSection), constants.explicitWait * 5,
+                `${await treeDBSection.getTitle()} is still loading`);
             treeDup = await Misc.getTreeElement(constants.dbTreeSection, dup, true);
         });
 
@@ -1032,7 +1034,7 @@ describe("DATABASE CONNECTIONS", () => {
             await Misc.openContexMenuItem(treeGlobalConn, constants.loadDumpFromDisk);
             await Misc.setInputPath(dumpFolder);
             await Misc.setInputPassword(treeGlobalConn, (globalConn.basic as IConnBasicMySQL).password);
-            await Misc.waitForOutputText(`Task 'Loading Dump dump from Disk' completed successfully`,
+            await Misc.waitForOutputText(/Task 'Loading Dump .* from Disk' completed successfully/,
                 constants.explicitWait * 2);
             try {
                 await Misc.sectionFocus(constants.tasksTreeSection);

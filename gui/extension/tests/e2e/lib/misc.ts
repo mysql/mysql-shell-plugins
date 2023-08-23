@@ -665,7 +665,7 @@ export class Misc {
         return out.includes("ERR") || out.includes("err");
     };
 
-    public static findOutputText = async (textToSearch: string): Promise<boolean> => {
+    public static findOutputText = async (textToSearch: string | RegExp): Promise<boolean> => {
         let output: OutputView;
         await new BottomBarPanel().openOutputView();
         output = new OutputView();
@@ -687,13 +687,17 @@ export class Misc {
             }
         }, constants.explicitWait * 2, "Could not get output text from clipboard");
 
-        return clipBoardText.includes(textToSearch);
+        if (textToSearch instanceof RegExp) {
+            return (clipBoardText.match(textToSearch)) !== null;
+        } else {
+            return clipBoardText.includes(textToSearch);
+        }
     };
 
-    public static waitForOutputText = async (textToSearch: string, timeout: number): Promise<void> => {
+    public static waitForOutputText = async (textToSearch: string | RegExp, timeout: number): Promise<void> => {
         await driver.wait(async () => {
             return Misc.findOutputText(textToSearch);
-        }, timeout, `'${textToSearch}' was not found on Output view`);
+        }, timeout, `'${textToSearch.toString()}' was not found on Output view`);
     };
 
     public static isNotLoading = (section: CustomTreeSection): Condition<boolean> => {

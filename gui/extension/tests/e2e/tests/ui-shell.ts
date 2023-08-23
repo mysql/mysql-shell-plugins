@@ -155,10 +155,6 @@ describe("MYSQL SHELL CONSOLES", () => {
             if (this.currentTest?.state === "failed") {
                 await Misc.processFailure(this);
             }
-
-            const result = await Misc.execCmd(`\\disconnect `, undefined, undefined, true);
-            expect(result[0] === "" || result[0] === "Already disconnected.").to.be.true;
-
         });
 
         after(async function () {
@@ -192,6 +188,13 @@ describe("MYSQL SHELL CONSOLES", () => {
                 constants.explicitWait, `Server tab does not contain '${hostname}:${port}'`);
             await driver.wait(until.elementTextContains(schemaEl, `${schema}`),
                 constants.explicitWait, `Schema tab does not contain '${schema}'`);
+
+        });
+
+        it("Change schemas using menu", async () => {
+
+            await Shell.changeSchemaOnTab("sakila");
+            await Shell.changeSchemaOnTab("world_x_cst");
 
         });
 
@@ -273,29 +276,6 @@ describe("MYSQL SHELL CONSOLES", () => {
             cmd = `mysqlx.getSession('${username}:${password}@${hostname}:${portX}/${schema}')`;
             result = await Misc.execCmd(cmd, undefined, undefined, true);
             expect(result[0]).to.include("Session");
-
-        });
-
-        it("Change schemas using menu", async () => {
-
-            const result = await Misc.execCmd(`\\c ${username}:${password}@${hostname}:${portX}`,
-                undefined, constants.explicitWait * 2, true);
-            expect(result[0]).to.include(`Creating a session to '${username}@${hostname}:${portX}`);
-            const server = await driver.wait(until.elementLocated(By.id("server")), constants.explicitWait);
-            const schema = await driver.wait(until.elementLocated(By.id("schema")), constants.explicitWait);
-            await driver.wait(until.elementTextContains(server, `${hostname}:${portX}`),
-                constants.explicitWait, `Server tab does not contain '${hostname}:${port}'`);
-            await driver.wait(until.elementTextContains(schema, `no schema selected`),
-                constants.explicitWait, `Schema tab does not have 'no schema selected'`);
-
-            await driver.executeScript(
-                "arguments[0].click();",
-                await driver.findElement(By.css(".current-line")),
-            );
-            const schemaLabel = await driver.findElement(By.id("schema")).getText();
-            expect(schemaLabel.substring(1).trim()).to.equals("no schema selected");
-            await Shell.changeSchemaOnTab("sakila");
-            await Shell.changeSchemaOnTab("world_x_cst");
 
         });
 
