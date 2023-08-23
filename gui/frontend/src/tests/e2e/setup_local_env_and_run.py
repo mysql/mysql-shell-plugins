@@ -24,7 +24,6 @@ import argparse
 import os
 import pathlib
 import platform
-import sqlite3
 import subprocess
 import sys
 import tempfile
@@ -266,7 +265,7 @@ class SetEnvironmentVariablesTask:
 
         self.environment["TOKEN"] = TOKEN
         self.environment["MAX_WORKERS"] = MAX_WORKERS
-        self.environment["SHELL_UI_HOSTNAME"] = f"http://localhost"
+        self.environment["SHELL_UI_HOSTNAME"] = "http://localhost"
         self.environment["DBHOSTNAME"] = "localhost"
         self.environment["DBUSERNAME"] = argv.db_root_user
         self.environment["DBPASSWORD"] = DB_ROOT_PASSWORD
@@ -280,10 +279,10 @@ class SetEnvironmentVariablesTask:
         self.environment["MU_USERNAME"] = "client"
         self.environment["MU_PASSWORD"] = "client"
 
-        for x in self.servers:
-            if x.multiuser == True:
-                self.environment["SHELL_UI_MU_HOSTNAME"] = f"http://localhost:{x.port}"
-            
+        for server in self.servers:
+            if server.multi_user is True:
+                self.environment["SHELL_UI_MU_HOSTNAME"] = f"http://localhost:{server.port}"
+
         self.environment["SQLITE_PATH_FILE"] = os.path.join(
             self.dir_name,
             "mysqlsh",
@@ -371,17 +370,18 @@ class AddUserToBE(ShellTask):
         self.servers = servers
 
     def run(self) -> None:
-        env1 = self.environment.copy()
-        for x in self.servers:
-            if x.multiuser == True:
-                env1["MYSQLSH_USER_CONFIG_HOME"]=os.path.join(WORKING_DIR, f'port_{x.port}')
+        environment = self.environment.copy()
+        for server in self.servers:
+            if server.multi_user is True:
+                environment["MYSQLSH_USER_CONFIG_HOME"] = os.path.join(
+                    WORKING_DIR, f'port_{server.port}')
                 subprocess.Popen([
                     self.mysqlsh_executable,
                     "--py",
                     "-e",
                     "gui.users.create_user('client', 'client', 'Administrator')",
                     ],
-                    env=env1
+                    env=environment
                 )
         Logger.success("BE user has been added")
 
@@ -421,11 +421,11 @@ class SetPluginsTask(ShellTask):
         plugins_path = os.path.join(self.dir_name, "mysqlsh", "plugins")
         os.makedirs(plugins_path, exist_ok=True)
 
-        for x in self.servers:
-            path = os.path.join(WORKING_DIR, f'port_{x.port}')
+        for server in self.servers:
+            path = os.path.join(WORKING_DIR, f'port_{server.port}')
             if (os.path.exists(path)):
                 shutil.rmtree(path)
-            
+
             os.makedirs(os.path.join(path,  "plugins"))
             create_symlink(self.gui_plugin_path, os.path.join(path, "plugins", "gui_plugin"))
             create_symlink(self.mds_plugin_path, os.path.join(path, "plugins", "mds_plugin"))
@@ -519,21 +519,21 @@ class SetMySQLServerTask(ShellTask):
 
 class StartBeServersTask:
     """Runs two BE servers for e2e tests"""
-    def __init__(self, environment: typing.Dict[str, str], servers: typing.List) -> None:
+    def __init__(self, servers: typing.List) -> None:
         self.mysqlsh_executable = get_executables("MySQL Shell")
         self.servers = servers
 
     def run(self) -> None:
         """Runs the task"""
 
-        for x in self.servers:
-            x.start()
-        
+        for server in self.servers:
+            server.start()
+
     def clean_up(self) -> None:
         """Clean up after task finish"""
 
-        for x in self.servers:
-            x.stop()
+        for server in self.servers:
+            server.stop()
 
 class NPMScript:
     """Runs e2e tests"""
@@ -560,7 +560,7 @@ class NPMScript:
         e2e_tests.communicate()
         return_code = e2e_tests.wait()
         if return_code != 0:
-            raise TaskFailException(f"Tests failed")
+            raise TaskFailException("Tests failed")
 
     def clean_up(self) -> None:
         """Clean up after task finish"""
@@ -682,57 +682,58 @@ class TaskExecutor:
             Logger.error(str(exc))
 
 class BEServer:
-    def __init__(self, environment: typing.Dict[str, str], port: int, multiuser = False) -> None:
+    def __init__(self, environment: typing.Dict[str, str], port: int, multi_user = False) -> None:
         self.mysqlsh_executable = get_executables("MySQL Shell")
         self.port = port
-        self.multiuser = multiuser
+        self.multi_user = multi_user
         self.server = None
-        self.beLogPath = "be.log"
+        self.be_log_path = "be.log"
         self.environment = environment
 
     def search_str(self, file_path, word):
-            with open(file_path, 'r') as file:
+            with open(file_path, 'r', encoding="UTF-8") as file:
                 content = file.read()
-                if word in content:
-                    return True
-                else:
-                    return False
+                return word in content
 
     def start(self) -> None:
-        beLog = open(self.beLogPath, 'a')
-        env1 = self.environment.copy()
-        env1["MYSQLSH_USER_CONFIG_HOME"]=os.path.join(WORKING_DIR, f'port_{self.port}')
-        timeout = time.time() + 30   # 30 seconds from now
+        is_timeout = False
+        with open(self.be_log_path, 'a', encoding="UTF-8") as be_log:
+            environment = self.environment.copy()
+            environment["MYSQLSH_USER_CONFIG_HOME"] = os.path.join(
+                WORKING_DIR, f'port_{self.port}')
+            timeout = time.time() + 30   # 30 seconds from now
 
-        shell_args = [self.mysqlsh_executable, "--py", "-e"]
+            shell_args = [self.mysqlsh_executable, "--py", "-e"]
 
-        if self.multiuser == True:
-            shell_args.append(f"gui.start.web_server(port={self.port})")
-        else:
-            shell_args.append(f'gui.start.web_server(port={self.port}, single_instance_token="{TOKEN}")')
-
-        self.server = subprocess.Popen(
-            shell_args,
-            stdout=beLog,
-            env=env1,
-        )
-
-        if self.multiuser == True:
-            to_search = "Mode: Multi-user"
-        else:
-            to_search = "Mode: Single user"
-
-        while True:
-            if time.time() > timeout:
-                os.remove(self.beLogPath)
-                Logger.error(f"Shell Server: {self.port} did not start after 30secs")
-                raise Exception("Failed Server start")
+            if self.multi_user is True:
+                shell_args.append(f"gui.start.web_server(port={self.port})")
             else:
-                if (self.search_str(self.beLogPath, to_search)):
+                shell_args.append(f'gui.start.web_server(port={self.port}, single_instance_token="{TOKEN}")')
+
+            self.server = subprocess.Popen(
+                shell_args,
+                stdout=be_log,
+                env=environment,
+            )
+
+            if self.multi_user is True:
+                to_search = "Mode: Multi-user"
+            else:
+                to_search = "Mode: Single user"
+
+            while True:
+                if time.time() > timeout:
+                    is_timeout = True
+                    break
+
+                if (self.search_str(self.be_log_path, to_search)):
                     Logger.success(f"Shell Server {self.port} has been started")
                     break
 
-        os.remove(self.beLogPath)
+        os.remove(self.be_log_path)
+        if is_timeout:
+            raise TaskFailException(
+                f"Shell Server: {self.port} did not start after 30secs")
 
     def stop(self) -> None:
         self.server.kill()
@@ -753,32 +754,28 @@ if __name__ == "__main__":
         executor.add_prerequisite(CheckVersionTask("ChromeDriver"))
 
         be_servers = [
-            BEServer(executor.environment, 8000), 
-            BEServer(executor.environment, 8001), 
-            BEServer(executor.environment, 8002), 
+            BEServer(executor.environment, 8000),
+            BEServer(executor.environment, 8001),
+            BEServer(executor.environment, 8002),
             BEServer(executor.environment, 8005, True),
         ]
-        
+
         executor.add_task(SetEnvironmentVariablesTask(executor.environment, tmp_dirname, be_servers))
         executor.add_task(SetFrontendTask(executor.environment))
         executor.add_task(SetPluginsTask(executor.environment, tmp_dirname, be_servers))
         executor.add_task(SetMySQLServerTask(executor.environment, tmp_dirname))
-        executor.add_task(StartBeServersTask(executor.environment, be_servers))
+        executor.add_task(StartBeServersTask(be_servers))
         executor.add_task(AddUserToBE(executor.environment, tmp_dirname, be_servers))
-        executor.add_task(NPMScript(executor.environment, f"e2e-tests-run", [f"--maxWorkers={MAX_WORKERS}"]))
-        executor.add_task(NPMScript(executor.environment, f"e2e-tests-report", []))
+        executor.add_task(NPMScript(executor.environment, "e2e-tests-run", [f"--maxWorkers={MAX_WORKERS}"]))
+        executor.add_task(NPMScript(executor.environment, "e2e-tests-report", []))
 
         if executor.check_prerequisites():
             try:
                 executor.run_tasks()
-            except TaskFailException as exc:
-                Logger.error(exc)
+            except TaskFailException as exception:
+                Logger.error(exception)
                 test_failed = True
 
-            executor.clean_up()
-            executor = TaskExecutor(tmp_dirname)
-            executor.add_task(NPMScript(executor.environment, f"e2e-tests-report", []))
-            executor.run_tasks()
             executor.clean_up()
 
     if test_failed:
