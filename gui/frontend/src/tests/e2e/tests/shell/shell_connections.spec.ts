@@ -25,7 +25,6 @@ import { By, WebElement, until } from "selenium-webdriver";
 import { GuiConsole } from "../../lib/guiConsole";
 import { IDBConnection, Misc, driver, explicitWait } from "../../lib/misc";
 import { ShellSession } from "../../lib/shellSession";
-import { addAttach } from "jest-html-reporters/helper";
 import { basename } from "path";
 jest.retryTimes(1);
 describe("MySQL Shell Connections", () => {
@@ -81,10 +80,7 @@ describe("MySQL Shell Connections", () => {
     afterEach(async () => {
         if (testFailed) {
             testFailed = false;
-            await addAttach({
-                attach: await Misc.storeScreenShot(),
-                description: "screenshot",
-            });
+            await Misc.storeScreenShot();
         }
     });
 
@@ -95,7 +91,6 @@ describe("MySQL Shell Connections", () => {
 
     it("Change schemas using menu", async () => {
         try {
-
             await driver.executeScript(
                 "arguments[0].click();",
                 await editor.findElement(By.css(".current-line")),

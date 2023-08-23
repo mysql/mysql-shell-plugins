@@ -25,7 +25,6 @@ import { By, WebElement } from "selenium-webdriver";
 import { GuiConsole } from "../../lib/guiConsole";
 import { IDBConnection, Misc, driver, explicitWait } from "../../lib/misc";
 import { ShellSession } from "../../lib/shellSession";
-import { addAttach } from "jest-html-reporters/helper";
 import { basename } from "path";
 jest.retryTimes(1);
 describe("Sessions", () => {
@@ -104,10 +103,7 @@ describe("Sessions", () => {
     afterEach(async () => {
         if (testFailed) {
             testFailed = false;
-            await addAttach({
-                attach: await Misc.storeScreenShot(),
-                description: "screenshot",
-            });
+            await Misc.storeScreenShot();
         }
 
         await Misc.cleanPrompt();
@@ -120,7 +116,6 @@ describe("Sessions", () => {
 
     it("Verify collections - json format", async () => {
         try {
-
             await ShellSession.changeSchemaOnTab("world_x_cst");
             await ShellSession.waitForConnectionTabValue("schema", "world_x_cst");
             await Misc.execCmd(textArea, "db.countryinfo.find()");

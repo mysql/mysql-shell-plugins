@@ -554,8 +554,8 @@ export class Misc {
         } else {
             testName = name;
         }
-        await fs.mkdir("src/tests/e2e/html-report/screenshots", { recursive: true });
-        await fs.writeFile(`src/tests/e2e/html-report/screenshots/${testName}_screenshot.png`, img, "base64");
+        await fs.mkdir("src/tests/e2e/screenshots", { recursive: true });
+        await fs.writeFile(`src/tests/e2e/screenshots/${testName}_screenshot.png`, img, "base64");
 
         return `screenshots/${testName}_screenshot.png`;
     }

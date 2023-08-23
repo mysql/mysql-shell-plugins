@@ -37,7 +37,6 @@ import {
 } from "../../lib/dbNotebooks";
 import { IDBConnection, Misc, driver, explicitWait } from "../../lib/misc";
 import { ShellSession } from "../../lib/shellSession";
-import { addAttach } from "jest-html-reporters/helper";
 
 describe("Notebook", () => {
 
@@ -102,10 +101,7 @@ describe("Notebook", () => {
     afterEach(async () => {
         if (testFailed) {
             testFailed = false;
-            await addAttach({
-                attach: await Misc.storeScreenShot(),
-                description: "screenshot",
-            });
+            await Misc.storeScreenShot();
         }
         await DBConnection.openNewNotebook();
     });
@@ -121,7 +117,6 @@ describe("Notebook", () => {
 
     it("Multi-cursor", async () => {
         try {
-
             await DBConnection.writeSQL("hello 1", true);
             await driver.actions().sendKeys(Key.ENTER).perform();
             await DBConnection.writeSQL("hello 2");

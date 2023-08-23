@@ -22,7 +22,6 @@
  */
 import { Misc, explicitWait, driver } from "../../lib/misc";
 import { By, until } from "selenium-webdriver";
-import { addAttach } from "jest-html-reporters/helper";
 import { basename } from "path";
 
 describe("Login", () => {
@@ -48,10 +47,7 @@ describe("Login", () => {
     afterEach(async () => {
         if (testFailed) {
             testFailed = false;
-            await addAttach({
-                attach: await Misc.storeScreenShot(),
-                description: "screenshot",
-            });
+            await Misc.storeScreenShot();
         }
     });
 

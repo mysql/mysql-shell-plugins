@@ -25,7 +25,6 @@ import { By, until } from "selenium-webdriver";
 import { Misc, explicitWait, driver, IDBConnection } from "../../lib/misc";
 import { DBConnection } from "../../lib/dbConnection";
 import { DBNotebooks } from "../../lib/dbNotebooks";
-import { addAttach } from "jest-html-reporters/helper";
 import { basename } from "path";
 
 describe("MySQL Administration", () => {
@@ -87,10 +86,7 @@ describe("MySQL Administration", () => {
     afterEach(async () => {
         if (testFailed) {
             testFailed = false;
-            await addAttach({
-                attach: await Misc.storeScreenShot(),
-                description: "screenshot",
-            });
+            await Misc.storeScreenShot();
         }
     });
 

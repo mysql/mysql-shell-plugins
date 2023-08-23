@@ -25,7 +25,6 @@ import { By, Key, WebElement, until } from "selenium-webdriver";
 import { DBConnection } from "../../lib/dbConnection";
 import { DBNotebooks } from "../../lib/dbNotebooks";
 import { IDBConnection, Misc, driver, explicitWait, shellServers } from "../../lib/misc";
-import { addAttach } from "jest-html-reporters/helper";
 import { basename, join } from "path";
 
 describe("Database Connections", () => {
@@ -76,10 +75,7 @@ describe("Database Connections", () => {
     afterEach(async () => {
         if (testFailed) {
             testFailed = false;
-            await addAttach({
-                attach: await Misc.storeScreenShot(),
-                description: "screenshot",
-            });
+            await Misc.storeScreenShot();
         }
 
         if (!await DBConnection.isConnectionOverviewOpened()) {
@@ -94,7 +90,6 @@ describe("Database Connections", () => {
 
     it("Duplicate a database connection", async () => {
         try {
-
             const host = await DBNotebooks.getConnection(globalConn.caption);
 
             await DBNotebooks.clickConnectionItem(host!, "duplicate");
