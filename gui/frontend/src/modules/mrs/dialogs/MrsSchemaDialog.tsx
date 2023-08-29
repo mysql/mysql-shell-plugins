@@ -29,7 +29,7 @@ import {
 } from "../../../components/Dialogs/ValueEditDialog";
 
 export interface IMrsSchemaDialogData extends IDictionary {
-    name: string;
+    dbSchemaName: string;
     serviceId: string;
     requestPath: string;
     requiresAuth: boolean;
@@ -64,9 +64,10 @@ export class MrsSchemaDialog extends AwaitableValueEditDialog {
 
         if (closing) {
             const mainSection = values.sections.get("mainSection");
-            if (mainSection) {
-                if (!mainSection.values.name.value) {
-                    result.messages.name = "The schema name must not be empty.";
+            const settingsSection = values.sections.get("settingsSection");
+            if (mainSection && settingsSection) {
+                if (!settingsSection.values.dbSchemaName.value) {
+                    result.messages.dbSchemaName = "The database schema name must not be empty.";
                 }
                 if (!mainSection.values.requestPath.value) {
                     result.messages.requestPath = "The request path must not be empty.";
@@ -105,13 +106,6 @@ export class MrsSchemaDialog extends AwaitableValueEditDialog {
                     horizontalSpan: 3,
                     description: "The path of the REST Service this REST Schema belongs to",
                 },
-                comments: {
-                    type: "text",
-                    caption: "Comments",
-                    value: request.values?.comments as string,
-                    horizontalSpan: 5,
-                    description: "Comments to describe this REST Schema.",
-                },
                 requestPath: {
                     type: "text",
                     caption: "REST Schema Path",
@@ -120,23 +114,10 @@ export class MrsSchemaDialog extends AwaitableValueEditDialog {
                     options: [CommonDialogValueOption.AutoFocus],
                     description: "The request path to access the schema, has to start with /",
                 },
-                name: {
-                    type: "text",
-                    caption: "Schema Name",
-                    value: request.values?.name as string,
-                    horizontalSpan: 3,
-                    description: "The name of the corresponding database schema.",
-                },
-                itemsPerPage: {
-                    type: "text",
-                    caption: "Items per Page",
-                    horizontalSpan: 2,
-                    value: request.values?.itemsPerPage as string,
-                },
                 flagsTitle: {
                     type: "description",
-                    caption: "Flags",
-                    horizontalSpan: 3,
+                    caption: "REST Schema Flags",
+                    horizontalSpan: 2,
                     options: [
                         CommonDialogValueOption.Grouped,
                         CommonDialogValueOption.NewGroup,
@@ -145,23 +126,58 @@ export class MrsSchemaDialog extends AwaitableValueEditDialog {
                 enabled: {
                     type: "boolean",
                     caption: "Enabled",
-                    horizontalSpan: 3,
+                    horizontalSpan: 2,
                     value: (request.values?.enabled ?? true) as boolean,
                     options: [CommonDialogValueOption.Grouped],
                 },
                 requiresAuth: {
                     type: "boolean",
-                    caption: "Requires Authentication",
-                    horizontalSpan: 3,
+                    caption: "Requires Auth",
+                    horizontalSpan: 2,
                     value: (request.values?.requiresAuth ?? true) as boolean,
                     options: [CommonDialogValueOption.Grouped],
                 },
+            },
+        };
+
+        const settingsSection: IDialogSection = {
+            caption: "Settings",
+            groupName: "group1",
+            values: {
+                dbSchemaName: {
+                    type: "text",
+                    caption: "Database Schema Name",
+                    value: request.values?.dbSchemaName as string,
+                    horizontalSpan: 5,
+                    description: "The name of the corresponding database schema.",
+                },
+                itemsPerPage: {
+                    type: "text",
+                    caption: "Items per Page",
+                    horizontalSpan: 3,
+                    value: request.values?.itemsPerPage as string,
+                },
+                comments: {
+                    type: "text",
+                    caption: "Comments",
+                    value: request.values?.comments as string,
+                    horizontalSpan: 8,
+                    description: "Comments to describe this REST Schema.",
+                },
+            },
+        };
+
+        const optionsSection: IDialogSection = {
+            caption: "Options",
+            groupName: "group1",
+            values: {
                 options: {
                     type: "text",
                     caption: "Options",
                     value: request.values?.options as string,
-                    horizontalSpan: 5,
+                    horizontalSpan: 8,
                     multiLine: true,
+                    multiLineCount: 8,
                     description: "Additional options in JSON format",
                 },
             },
@@ -171,24 +187,28 @@ export class MrsSchemaDialog extends AwaitableValueEditDialog {
             id: "mainSection",
             sections: new Map<string, IDialogSection>([
                 ["mainSection", mainSection],
+                ["settingsSection", settingsSection],
+                ["optionsSection", optionsSection],
             ]),
         };
     }
 
     private processResults = (dialogValues: IDialogValues, services: IMrsServiceData[]): IDictionary => {
         const mainSection = dialogValues.sections.get("mainSection");
-        if (mainSection) {
+        const settingsSection = dialogValues.sections.get("settingsSection");
+        const optionsSection = dialogValues.sections.get("optionsSection");
+        if (mainSection && settingsSection && optionsSection) {
             const values: IMrsSchemaDialogData = {
-                name: mainSection.values.name.value as string,
+                dbSchemaName: settingsSection.values.dbSchemaName.value as string,
                 serviceId: services.find((service) => {
                     return mainSection.values.service.value === service.hostCtx;
                 })?.id ?? "",
                 requestPath: mainSection.values.requestPath.value as string,
                 requiresAuth: mainSection.values.requiresAuth.value as boolean,
                 enabled: mainSection.values.enabled.value as boolean,
-                itemsPerPage: mainSection.values.itemsPerPage.value as number,
-                comments: mainSection.values.comments.value as string,
-                options: mainSection.values.options.value as string,
+                itemsPerPage: settingsSection.values.itemsPerPage.value as number,
+                comments: settingsSection.values.comments.value as string,
+                options: optionsSection.values.options.value as string,
             };
 
             return values;

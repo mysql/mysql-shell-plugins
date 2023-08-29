@@ -28,35 +28,34 @@ import {
 } from "vscode-extension-tester";
 import { expect } from "chai";
 import { driver, Misc } from "../lib/misc";
-import { IDBConnection, Database, IConnBasicMySQL } from "../lib/db";
+import { Database } from "../lib/db";
 import { Shell } from "../lib/shell";
 import * as constants from "../lib/constants";
-import { Conditions } from "../lib/conditions";
+import { Until } from "../lib/until";
+import * as interfaces from "../lib/interfaces";
 
 describe("MYSQL SHELL CONSOLES", () => {
 
-    const globalBasicInfo: IConnBasicMySQL = {
-        hostname: String(process.env.DBHOSTNAME),
-        username: String(process.env.DBUSERNAME),
-        port: Number(process.env.DBPORT),
-        portX: Number(process.env.DBPORTX),
-        schema: "sakila",
-        password: String(process.env.DBPASSWORD),
-    };
-
-    const globalConn: IDBConnection = {
+    const globalConn: interfaces.IDBConnection = {
         dbType: "MySQL",
         caption: "conn",
         description: "Local connection",
-        basic: globalBasicInfo,
+        basic: {
+            hostname: String(process.env.DBHOSTNAME),
+            username: String(process.env.DBUSERNAME),
+            port: Number(process.env.DBPORT),
+            portX: Number(process.env.DBPORTX),
+            schema: "sakila",
+            password: String(process.env.DBPASSWORD),
+        },
     };
 
-    const username = String((globalConn.basic as IConnBasicMySQL).username);
-    const password = String((globalConn.basic as IConnBasicMySQL).password);
-    const hostname = String((globalConn.basic as IConnBasicMySQL).hostname);
-    const port = String((globalConn.basic as IConnBasicMySQL).port);
-    const portX = String((globalConn.basic as IConnBasicMySQL).portX);
-    const schema = String((globalConn.basic as IConnBasicMySQL).schema);
+    const username = String((globalConn.basic as interfaces.IConnBasicMySQL).username);
+    const password = String((globalConn.basic as interfaces.IConnBasicMySQL).password);
+    const hostname = String((globalConn.basic as interfaces.IConnBasicMySQL).hostname);
+    const port = String((globalConn.basic as interfaces.IConnBasicMySQL).port);
+    const portX = String((globalConn.basic as interfaces.IConnBasicMySQL).portX);
+    const schema = String((globalConn.basic as interfaces.IConnBasicMySQL).schema);
 
     before(async function () {
 
@@ -79,7 +78,7 @@ describe("MYSQL SHELL CONSOLES", () => {
         await Misc.loadDriver();
 
         try {
-            await driver.wait(Conditions.extensionIsReady(), constants.extensionReadyWait, "Extension was not ready");
+            await driver.wait(Until.extensionIsReady(), constants.extensionReadyWait, "Extension was not ready");
             await Misc.toggleBottomBar(false);
             await Misc.sectionFocus(constants.openEditorsTreeSection);
             const treeDBConnections = await Misc.getTreeElement(constants.openEditorsTreeSection,
@@ -135,9 +134,9 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         const shellConn = Object.assign({}, globalConn);
         shellConn.caption = "shellConn";
-        (shellConn.basic as IConnBasicMySQL).username = String(process.env.DBSHELLUSERNAME);
-        (shellConn.basic as IConnBasicMySQL).password = String(process.env.DBSHELLPASSWORD);
-        const shellUsername = String((shellConn.basic as IConnBasicMySQL).username);
+        (shellConn.basic as interfaces.IConnBasicMySQL).username = String(process.env.DBSHELLUSERNAME);
+        (shellConn.basic as interfaces.IConnBasicMySQL).password = String(process.env.DBSHELLPASSWORD);
+        const shellUsername = String((shellConn.basic as interfaces.IConnBasicMySQL).username);
 
         before(async function () {
             try {

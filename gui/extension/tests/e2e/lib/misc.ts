@@ -33,10 +33,11 @@ import {
     WebDriver, ModalDialog,
     WebElement, Workbench, Button, Notification,
 } from "vscode-extension-tester";
-import { Database, IConnBasicMySQL, IDBConnection } from "./db";
+import { Database } from "./db";
 import * as constants from "./constants";
 import { keyboard, Key as nutKey } from "@nut-tree/nut-js";
-import { Conditions, credentialHelperOk } from "./conditions";
+import { Until, credentialHelperOk } from "./until";
+import * as interfaces from "./interfaces";
 export let driver: WebDriver;
 export let browser: VSBrowser;
 
@@ -237,7 +238,7 @@ export class Misc {
         };
 
         const treeDBSection = await Misc.getSection(constants.dbTreeSection);
-        await driver.wait(Conditions.isNotLoading(constants.dbTreeSection), constants.explicitWait * 4,
+        await driver.wait(Until.isNotLoading(constants.dbTreeSection), constants.explicitWait * 4,
             `${await treeDBSection.getTitle()} is still loading`);
         await treeDBSection.click();
         const moreActions = await treeDBSection.findElement(By.xpath(".//a[contains(@title, 'More Actions...')]"));
@@ -559,9 +560,18 @@ export class Misc {
 
     public static getNotification = async (text: string, dismiss = true): Promise<Notification> => {
 
+        const foundNotifications = [];
         await driver.wait(async () => {
-            return (await new Workbench().getNotifications()).length > 0;
+            const notifications = await new Workbench().getNotifications();
+            for (const notif of notifications) {
+                foundNotifications.push(await notif.getMessage());
+            }
+
+            return foundNotifications.length > 0;
         }, constants.explicitWait, "Could not find any notification");
+
+        let possibleError = `Could not find notification '${text}'. `;
+        possibleError += `But these found: ${foundNotifications.toString()}`;
 
         let notif: Notification;
         await driver.wait(async () => {
@@ -571,13 +581,13 @@ export class Misc {
                     if ((await ntf.getMessage()).includes(text)) {
                         notif = ntf;
                         if (dismiss) {
-                            await Misc.dissmissNotificationByEscape();
+                            await Misc.dismissNotifications();
                         }
 
                         return true;
                     }
                 }
-                throw new Error(`Could not find notification '${text}', but these were found: ${ntfs.toString()}`);
+                throw new Error(possibleError);
             } catch (e) {
                 if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
@@ -606,13 +616,29 @@ export class Misc {
         }, constants.explicitWait, `Could not click on notification button '${button}'`);
     };
 
-    public static closeNotifications = async (): Promise<void> => {
+    public static dismissNotifications = async (): Promise<void> => {
         const ntfs = await new Workbench().getNotifications();
         for (const ntf of ntfs) {
-            try {
-                await ntf.dismiss();
-            } catch (e) {
-                // continue
+            if (await ntf.hasProgress()) {
+                await keyboard.type(nutKey.Escape);
+            } else {
+                await driver.wait(async () => {
+                    try {
+                        await ntf.dismiss();
+                    } catch (e) {
+                        if (e instanceof error.StaleElementReferenceError) {
+                            return true;
+                        } else {
+                            if (e instanceof error.ElementNotInteractableError) {
+                                return false;
+                            } else {
+                                throw e;
+                            }
+                        }
+                    }
+
+                    return (await new Workbench().getNotifications()).length === 0;
+                }, constants.explicitWait, "There are still notifications displayed");
             }
         }
     };
@@ -730,7 +756,7 @@ export class Misc {
     };
 
 
-    public static setConfirmDialog = async (dbConfig: IDBConnection, value: string,
+    public static setConfirmDialog = async (dbConfig: interfaces.IDBConnection, value: string,
         timeoutDialog = 500): Promise<void> => {
 
         await driver.wait(until.elementsLocated(By.css(".confirmDialog")),
@@ -740,9 +766,9 @@ export class Misc {
 
         expect(await confirmDialog.findElement(By.css(".title label")).getText()).to.equals("Confirm");
 
-        const username = String((dbConfig.basic as IConnBasicMySQL).username);
-        const hostname = String((dbConfig.basic as IConnBasicMySQL).hostname);
-        const port = String((dbConfig.basic as IConnBasicMySQL).port);
+        const username = String((dbConfig.basic as interfaces.IConnBasicMySQL).username);
+        const hostname = String((dbConfig.basic as interfaces.IConnBasicMySQL).hostname);
+        const port = String((dbConfig.basic as interfaces.IConnBasicMySQL).port);
 
         const uri = `Save password for '${username}@${hostname}:${port}'?`;
 
@@ -1120,7 +1146,7 @@ export class Misc {
                         await Misc.clickSectionToolbarButton(sectionTree, reloadLabel);
                     }
                 }
-                await driver.wait(Conditions.isNotLoading(section), constants.explicitWait * 2,
+                await driver.wait(Until.isNotLoading(section), constants.explicitWait * 2,
                     `${await sectionTree.getTitle()} is still loading`);
                 el = await sectionTree.findItem(itemName, 5);
 
@@ -1146,7 +1172,7 @@ export class Misc {
             }
             await Misc.clickSectionToolbarButton(sectionTree, reloadLabel);
         }
-        await driver.wait(Conditions.isNotLoading(section), constants.explicitWait * 2,
+        await driver.wait(Until.isNotLoading(section), constants.explicitWait * 2,
             `${await sectionTree.getTitle()} is still loading`);
 
         return (await sectionTree.findItem(itemName, 5)) !== undefined;
@@ -1158,7 +1184,7 @@ export class Misc {
                 const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, connectionCaption, true);
                 await (await Misc.getActionButton(treeGlobalConn, "Reload Database Information")).click();
                 const treeDBSection = await Misc.getSection(constants.dbTreeSection);
-                await driver.wait(Conditions.isNotLoading(constants.dbTreeSection), constants.ociExplicitWait * 2,
+                await driver.wait(Until.isNotLoading(constants.dbTreeSection), constants.ociExplicitWait * 2,
                     `${await treeDBSection.getTitle()} is still loading`);
 
                 const items = await treeDBSection.getVisibleItems();
@@ -1365,12 +1391,6 @@ export class Misc {
                         }
 
                         const menu = await treeItem.openContextMenu();
-                        const cenas = await menu.getItems();
-                        for (const cena of cenas) {
-                            console.log(await cena.getLabel());
-                        }
-                        console.log("----");
-                        console.log(`Selecting '${ctxMenuItems[0].trim()}'`);
                         const menuItem = await menu.getItem(ctxMenuItems[0].trim());
                         const anotherMenu = await menuItem.select();
                         if (ctxMenuItems.length > 1) {
@@ -1401,15 +1421,6 @@ export class Misc {
                 return false;
             });
         }
-    };
-
-    public static dissmissNotificationByEscape = async (): Promise<void> => {
-        await driver.wait(async () => {
-            await keyboard.type(nutKey.Escape);
-
-            return (await new Workbench().getNotifications()).length === 0;
-        }, constants.explicitWait, "There are still notifications displayed");
-
     };
 
     private static existsNewTab = async (prevTabs: number): Promise<boolean> => {

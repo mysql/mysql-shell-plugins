@@ -20,6 +20,7 @@ __Chapter Overview__
 Please also see
 
 - __[MySQL REST Service - SDK Reference](sdk.html)__ - This document explains how to work with the MRS Software Development Kit and discusses the Client APIs.
+- __[MySQL REST Service - DDL Extension Reference](ddl.html)__ - This document discusses the MySQL REST Service (MRS) DDL SQL Extension..
 
 ---
 

@@ -32,11 +32,10 @@ import clipboard from "clipboardy";
 
 import { driver, Misc, browser } from "../lib/misc";
 import { Shell } from "../lib/shell";
-import {
-    Database, IConnBasicMySQL, IConnBasicSqlite, IConnSSL, IDBConnection,
-} from "../lib/db";
+import { Database } from "../lib/db";
 import * as constants from "../lib/constants";
-import { Conditions } from "../lib/conditions";
+import { Until } from "../lib/until";
+import * as interfaces from "../lib/interfaces";
 
 describe("DATABASE CONNECTIONS", () => {
 
@@ -65,20 +64,18 @@ describe("DATABASE CONNECTIONS", () => {
         throw new Error("Please define the environment variable SSL_ROOT_FOLDER");
     }
 
-    const globalBasicInfo: IConnBasicMySQL = {
-        hostname: String(process.env.DBHOSTNAME),
-        username: String(process.env.DBUSERNAME),
-        port: Number(process.env.DBPORT),
-        portX: Number(process.env.DBPORTX),
-        schema: "sakila",
-        password: String(process.env.DBPASSWORD),
-    };
-
-    const globalConn: IDBConnection = {
+    const globalConn: interfaces.IDBConnection = {
         dbType: "MySQL",
         caption: "conn",
         description: "Local connection",
-        basic: globalBasicInfo,
+        basic: {
+            hostname: String(process.env.DBHOSTNAME),
+            username: String(process.env.DBUSERNAME),
+            port: Number(process.env.DBPORT),
+            portX: Number(process.env.DBPORTX),
+            schema: "sakila",
+            password: String(process.env.DBPASSWORD),
+        },
     };
 
     before(async function () {
@@ -86,7 +83,7 @@ describe("DATABASE CONNECTIONS", () => {
         await Misc.loadDriver();
 
         try {
-            await driver.wait(Conditions.extensionIsReady(), constants.extensionReadyWait, "Extension was not ready");
+            await driver.wait(Until.extensionIsReady(), constants.extensionReadyWait, "Extension was not ready");
             await Misc.toggleBottomBar(false);
             const randomCaption = String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000));
             globalConn.caption += randomCaption;
@@ -164,9 +161,9 @@ describe("DATABASE CONNECTIONS", () => {
             treeConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
             const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption, true);
             await treeConn.expand();
-            await Misc.setInputPassword(treeGlobalConn, (globalConn.basic as IConnBasicMySQL).password);
+            await Misc.setInputPassword(treeGlobalConn, (globalConn.basic as interfaces.IConnBasicMySQL).password);
             const treeGlobalSchema = await Misc.getTreeElement(constants.dbTreeSection,
-                (globalConn.basic as IConnBasicMySQL).schema);
+                (globalConn.basic as interfaces.IConnBasicMySQL).schema);
             await treeGlobalSchema.expand();
             const treeGlobalSchemaTables = await Misc.getTreeElement(constants.dbTreeSection, "Tables");
             await treeGlobalSchemaTables.expand();
@@ -235,7 +232,7 @@ describe("DATABASE CONNECTIONS", () => {
             }
         });
 
-        let sslConn: IDBConnection;
+        let sslConn: interfaces.IDBConnection;
 
         beforeEach(async function () {
             try {
@@ -339,14 +336,12 @@ describe("DATABASE CONNECTIONS", () => {
                 process.env.USERPROFILE = process.env.HOME;
             }
 
-            const localSqliteBasicInfo: IConnBasicSqlite = {
+            sqliteConn.basic = {
                 dbPath: join(constants.basePath,
                     `mysqlsh-${String(process.env.TEST_SUITE)}`,
                     "plugin_data", "gui_plugin", "mysqlsh_gui_backend.sqlite3"),
                 dbName: "SQLite",
             };
-
-            sqliteConn.basic = localSqliteBasicInfo;
 
             await Database.setConnection(
                 sqliteConn.dbType,
@@ -410,14 +405,12 @@ describe("DATABASE CONNECTIONS", () => {
             sslConn = Object.assign({}, globalConn);
             sslConn.caption = `SSL Connection${String(Math.floor(Math.random() * 100))}`;
 
-            const localSSLInfo: IConnSSL = {
+            sslConn.ssl = {
                 mode: "Require and Verify CA",
                 caPath: `${String(process.env.SSL_ROOT_FOLDER)}/ca-cert.pem`,
                 clientCertPath: `${String(process.env.SSL_ROOT_FOLDER)}/client-cert.pem`,
                 clientKeyPath: `${String(process.env.SSL_ROOT_FOLDER)}/client-key.pem`,
             };
-
-            sslConn.ssl = localSSLInfo;
 
             await Database.setConnection(
                 sslConn.dbType,
@@ -455,7 +448,8 @@ describe("DATABASE CONNECTIONS", () => {
                 const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption, true);
                 await treeGlobalConn.expand();
                 try {
-                    await Misc.setInputPassword(treeGlobalConn, (globalConn.basic as IConnBasicMySQL).password);
+                    await Misc.setInputPassword(treeGlobalConn,
+                        (globalConn.basic as interfaces.IConnBasicMySQL).password);
                 } catch (e) {
                     // continue
                 }
@@ -731,7 +725,8 @@ describe("DATABASE CONNECTIONS", () => {
                 const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption, true);
                 await treeGlobalConn.expand();
                 try {
-                    await Misc.setInputPassword(treeGlobalConn, (globalConn.basic as IConnBasicMySQL).password);
+                    await Misc.setInputPassword(treeGlobalConn,
+                        (globalConn.basic as interfaces.IConnBasicMySQL).password);
                 } catch (e) {
                     // continue
                 }
@@ -787,6 +782,7 @@ describe("DATABASE CONNECTIONS", () => {
             await browser.openResources(join(process.cwd(), "..", "..", "..", "mysql-shell.code-workspace"));
             const activityBare = new ActivityBar();
             await (await activityBare.getViewControl(constants.extensionName))?.openView();
+            await Misc.dismissNotifications();
             await driver.wait(async () => {
                 try {
                     const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption, true);
@@ -799,9 +795,7 @@ describe("DATABASE CONNECTIONS", () => {
                     }
                 }
             }, constants.explicitWait, `${globalConn.caption} tree item was not interactable`);
-
             await Misc.getNotification(`"${globalConn.caption}" has been set as default DB Connection`);
-            await Misc.closeNotifications();
 
         });
 
@@ -873,7 +867,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Duplicate this MySQL connection", async () => {
 
-            await driver.wait(Conditions.isNotLoading(constants.dbTreeSection), constants.explicitWait * 5,
+            await driver.wait(Until.isNotLoading(constants.dbTreeSection), constants.explicitWait * 5,
                 `${constants.dbTreeSection} is still loading`);
             await Misc.openContextMenuItem(treeGlobalConn, constants.duplicateConnection,
                 constants.checkNewTabAndWebView);
@@ -888,7 +882,7 @@ describe("DATABASE CONNECTIONS", () => {
             await okBtn.click();
             await driver.switchTo().defaultContent();
             await new EditorView().closeEditor(constants.dbDefaultEditor);
-            await driver.wait(Conditions.isNotLoading(constants.dbTreeSection), constants.explicitWait * 5,
+            await driver.wait(Until.isNotLoading(constants.dbTreeSection), constants.explicitWait * 5,
                 `${constants.dbTreeSection} is still loading`);
             treeDup = await Misc.getTreeElement(constants.dbTreeSection, dup, true);
         });
@@ -902,14 +896,14 @@ describe("DATABASE CONNECTIONS", () => {
 
                 await dialog.findElement(By.id("accept")).click();
                 await driver.switchTo().defaultContent();
-                await driver.wait(Conditions.isNotLoading(constants.dbTreeSection), constants.ociExplicitWait * 2,
+                await driver.wait(Until.isNotLoading(constants.dbTreeSection), constants.ociExplicitWait * 2,
                     `${constants.dbTreeSection} is still loading`);
 
                 await driver.wait(async () => {
                     let treeDBSection = await Misc.getSection(constants.dbTreeSection);
                     await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
                     treeDBSection = await Misc.getSection(constants.dbTreeSection);
-                    await driver.wait(Conditions.isNotLoading(constants.dbTreeSection), constants.ociExplicitWait * 2,
+                    await driver.wait(Until.isNotLoading(constants.dbTreeSection), constants.ociExplicitWait * 2,
                         `${constants.dbTreeSection} is still loading`);
                     await treeDBSection.findItem(dupName);
 
@@ -953,7 +947,7 @@ describe("DATABASE CONNECTIONS", () => {
         it("Dump Schema to Disk", async () => {
             treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption, true);
             await treeGlobalConn.expand();
-            await Misc.setInputPassword(treeGlobalConn, (globalConn.basic as IConnBasicMySQL).password);
+            await Misc.setInputPassword(treeGlobalConn, (globalConn.basic as interfaces.IConnBasicMySQL).password);
             await (await Misc.getActionButton(treeGlobalConn, constants.openNewConnection)).click();
             await new EditorView().openEditor(constants.dbDefaultEditor);
             await Misc.switchToWebView();
@@ -970,13 +964,13 @@ describe("DATABASE CONNECTIONS", () => {
             await driver.switchTo().defaultContent();
             const treeTestSchema = await Misc.getTreeElement(constants.dbTreeSection, testSchema, true);
             treeGlobalSchema = await Misc.getTreeElement(constants.dbTreeSection,
-                (globalConn.basic as IConnBasicMySQL).schema);
+                (globalConn.basic as interfaces.IConnBasicMySQL).schema);
 
             await fs.rm(dumpFolder, { force: true, recursive: true });
             await fs.mkdir(dumpFolder);
             await Misc.openContextMenuItem(treeTestSchema, constants.dumpSchemaToDisk, constants.checkInput);
             await Misc.setInputPath(dumpFolder);
-            await Misc.setInputPassword(treeGlobalConn, (globalConn.basic as IConnBasicMySQL).password);
+            await Misc.setInputPassword(treeGlobalConn, (globalConn.basic as interfaces.IConnBasicMySQL).password);
             await Misc.waitForOutputText(`Task 'Dump Schema ${testSchema} to Disk' completed successfully`,
                 constants.explicitWait * 2);
             const files = await fs.readdir(dumpFolder);
@@ -997,7 +991,7 @@ describe("DATABASE CONNECTIONS", () => {
             await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
             await Misc.openContextMenuItem(treeGlobalConn, constants.loadDumpFromDisk, constants.checkInput);
             await Misc.setInputPath(dumpFolder);
-            await Misc.setInputPassword(treeGlobalConn, (globalConn.basic as IConnBasicMySQL).password);
+            await Misc.setInputPassword(treeGlobalConn, (globalConn.basic as interfaces.IConnBasicMySQL).password);
             await Misc.waitForOutputText(/Task 'Loading Dump .* from Disk' completed successfully/,
                 constants.explicitWait * 2);
             await Misc.sectionFocus(constants.tasksTreeSection);
@@ -1031,13 +1025,13 @@ describe("DATABASE CONNECTIONS", () => {
             await driver.switchTo().defaultContent();
             const treeTestSchema = await Misc.getTreeElement(constants.dbTreeSection, testSchema, true);
             treeGlobalSchema = await Misc.getTreeElement(constants.dbTreeSection,
-                (globalConn.basic as IConnBasicMySQL).schema);
+                (globalConn.basic as interfaces.IConnBasicMySQL).schema);
 
             await fs.rm(dumpFolder, { force: true, recursive: true });
             await fs.mkdir(dumpFolder);
             await Misc.openContextMenuItem(treeTestSchema, constants.dumpSchemaToDiskToServ, constants.checkInput);
             await Misc.setInputPath(dumpFolder);
-            await Misc.setInputPassword(treeGlobalConn, (globalConn.basic as IConnBasicMySQL).password);
+            await Misc.setInputPassword(treeGlobalConn, (globalConn.basic as interfaces.IConnBasicMySQL).password);
             await Misc.waitForOutputText(`Task 'Dump Schema ${testSchema} to Disk' completed successfully`,
                 constants.explicitWait * 2);
             const files = await fs.readdir(dumpFolder);
@@ -1050,15 +1044,15 @@ describe("DATABASE CONNECTIONS", () => {
         it("Load Data to HeatWave Cluster", async () => {
             await Misc.sectionFocus(constants.dbTreeSection);
             const sakilaItem = await Misc.getTreeElement(constants.dbTreeSection,
-                (globalConn.basic as IConnBasicMySQL).schema);
+                (globalConn.basic as interfaces.IConnBasicMySQL).schema);
             await Misc.openContextMenuItem(sakilaItem, constants.loadDataToHW, constants.checkNewTabAndWebView);
             await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
                 "DB Connection was not loaded");
             await Database.setDataToHw();
-            await Misc.setInputPassword(treeGlobalConn, (globalConn.basic as IConnBasicMySQL).password);
+            await Misc.setInputPassword(treeGlobalConn, (globalConn.basic as interfaces.IConnBasicMySQL).password);
             await driver.switchTo().defaultContent();
             await Misc.getNotification("The data load to the HeatWave cluster operation has finished");
-            await Misc.closeNotifications();
+
         });
 
         it("Schema - Copy name and create statement to clipboard", async () => {
@@ -1066,12 +1060,12 @@ describe("DATABASE CONNECTIONS", () => {
             await driver.wait(new Condition("", async () => {
                 try {
                     treeGlobalSchema = await Misc.getTreeElement(constants.dbTreeSection,
-                        (globalConn.basic as IConnBasicMySQL).schema);
+                        (globalConn.basic as interfaces.IConnBasicMySQL).schema);
                     await Misc.openContextMenuItem(treeGlobalSchema, [constants.copyToClipboard,
                     constants.copyToClipboardName], constants.checkNotif, constants.schemaCtxMenu);
                     await Misc.getNotification("The name was copied to the system clipboard");
 
-                    return clipboard.readSync() === (globalConn.basic as IConnBasicMySQL).schema;
+                    return clipboard.readSync() === (globalConn.basic as interfaces.IConnBasicMySQL).schema;
                 } catch (e) {
                     if (!(e instanceof error.StaleElementReferenceError)) {
                         throw e;
@@ -1082,7 +1076,7 @@ describe("DATABASE CONNECTIONS", () => {
             await driver.wait(new Condition("", async () => {
                 try {
                     treeGlobalSchema = await Misc.getTreeElement(constants.dbTreeSection,
-                        (globalConn.basic as IConnBasicMySQL).schema);
+                        (globalConn.basic as interfaces.IConnBasicMySQL).schema);
                     await Misc.openContextMenuItem(treeGlobalSchema, [constants.copyToClipboard,
                     constants.copyToClipboardStat], constants.checkNotif, constants.schemaCtxMenu);
                     await Misc.getNotification("The create script was copied to the system clipboard");
@@ -1116,7 +1110,7 @@ describe("DATABASE CONNECTIONS", () => {
             await driver.switchTo().defaultContent();
             const treeTestSchema = await Misc.getTreeElement(constants.dbTreeSection, testSchema, true);
             treeGlobalSchema = await Misc.getTreeElement(constants.dbTreeSection,
-                (globalConn.basic as IConnBasicMySQL).schema);
+                (globalConn.basic as interfaces.IConnBasicMySQL).schema);
 
             await Misc.openContextMenuItem(treeTestSchema, constants.dropSchema, undefined);
             const ntfs = await new Workbench().getNotifications();
@@ -1133,7 +1127,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Table - Select Rows in DB Notebook", async () => {
             treeGlobalSchema = await Misc.getTreeElement(constants.dbTreeSection,
-                (globalConn.basic as IConnBasicMySQL).schema);
+                (globalConn.basic as interfaces.IConnBasicMySQL).schema);
             await treeGlobalSchema.expand();
             treeGlobalSchemaTables = await Misc.getTreeElement(constants.dbTreeSection, "Tables");
             await treeGlobalSchemaTables.expand();

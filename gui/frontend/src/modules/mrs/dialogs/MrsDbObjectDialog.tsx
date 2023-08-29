@@ -176,7 +176,7 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
                 },
                 flags: {
                     type: "description",
-                    caption: "Flags",
+                    caption: "MRS Object Flags",
                     horizontalSpan: 2,
                     options: [
                         CommonDialogValueOption.Grouped,
@@ -239,8 +239,8 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
             },
         };
 
-        const optionsSection: IDialogSection = {
-            caption: "Options",
+        const settingsSection: IDialogSection = {
+            caption: "Settings",
             groupName: "group1",
             values: {
                 crudOperationFormat: {
@@ -262,6 +262,43 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
                     value: request.values?.comments as string,
                     horizontalSpan: 4,
                 },
+                mediaType: {
+                    type: "text",
+                    caption: "Media Type",
+                    horizontalSpan: 4,
+                    value: request.values?.mediaType as string,
+                    description: "The HTML MIME Type of the result",
+                },
+                autoDetectMediaType: {
+                    type: "boolean",
+                    caption: "Automatically Detect Media Type",
+                    horizontalSpan: 4,
+                    value: (request.values?.autoDetectMediaType ?? false) as boolean,
+                },
+
+            },
+        };
+
+        const optionsSection: IDialogSection = {
+            caption: "Options",
+            groupName: "group1",
+            values: {
+                options: {
+                    type: "text",
+                    caption: "Options",
+                    value: request.values?.options as string,
+                    horizontalSpan: 8,
+                    multiLine: true,
+                    multiLineCount: 8,
+                    description: "Additional options in JSON format",
+                },
+            },
+        };
+
+        const authorizationSection: IDialogSection = {
+            caption: "Authorization",
+            groupName: "group1",
+            values: {
                 rowUserOwnershipEnforced: {
                     type: "boolean",
                     caption: "Row Ownership",
@@ -279,32 +316,11 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
                     optional: true,
                     description: "Field that holds the user ID that should be managed by MRS",
                 },
-                mediaType: {
-                    type: "text",
-                    caption: "Media Type",
-                    horizontalSpan: 4,
-                    value: request.values?.mediaType as string,
-                    description: "The HTML MIME Type of the result",
-                },
-                autoDetectMediaType: {
-                    type: "boolean",
-                    caption: "Automatically Detect Media Type",
-                    horizontalSpan: 4,
-                    value: (request.values?.autoDetectMediaType ?? false) as boolean,
-                },
                 authStoredProcedure: {
                     type: "text",
-                    caption: "Custom Stored Procedure used for Authentication",
+                    caption: "Custom Stored Procedure used for Authorization",
                     horizontalSpan: 8,
                     value: request.values?.authStoredProcedure as string,
-                },
-                options: {
-                    type: "text",
-                    caption: "Options",
-                    value: request.values?.options as string,
-                    horizontalSpan: 8,
-                    multiLine: true,
-                    description: "Additional options in JSON format",
                 },
             },
         };
@@ -314,6 +330,8 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
             sections: new Map<string, IDialogSection>([
                 ["mainSection", mainSection],
                 ["mrsObject", mrsObjectSection],
+                ["settingsSection", settingsSection],
+                ["authorizationSection", authorizationSection],
                 ["optionsSection", optionsSection],
             ]),
         };
@@ -321,9 +339,11 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
 
     private processResults = (schemas: IMrsSchemaData[], dialogValues: IDialogValues): IDictionary => {
         const mainSection = dialogValues.sections.get("mainSection");
+        const settingsSection = dialogValues.sections.get("settingsSection");
         const optionsSection = dialogValues.sections.get("optionsSection");
         const mrsObjectSection = dialogValues.sections.get("mrsObject");
-        if (mainSection && optionsSection && mrsObjectSection) {
+        const authorizationSection = dialogValues.sections.get("authorizationSection");
+        if (mainSection && optionsSection && mrsObjectSection && authorizationSection && settingsSection) {
             const values: IDictionary = {};
             values.objectType = this.objectType;
 
@@ -337,17 +357,17 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
             values.requiresAuth = mainSection.values.requiresAuth.value as boolean;
             values.enabled = mainSection.values.enabled.value as boolean;
 
-            // basicSection
-            values.itemsPerPage = optionsSection.values.itemsPerPage.value as number;
-            values.comments = optionsSection.values.comments.value as string;
-            values.crudOperationFormat = optionsSection.values.crudOperationFormat.value as string;
-            values.rowUserOwnershipColumn = optionsSection.values.rowUserOwnershipColumn.value as string;
-            values.rowUserOwnershipEnforced = optionsSection.values.rowUserOwnershipEnforced.value as boolean;
+            // settingsSection
+            values.itemsPerPage = settingsSection.values.itemsPerPage.value as number;
+            values.comments = settingsSection.values.comments.value as string;
+            values.crudOperationFormat = settingsSection.values.crudOperationFormat.value as string;
+            values.mediaType = settingsSection.values.mediaType.value as string;
+            values.autoDetectMediaType = settingsSection.values.autoDetectMediaType.value as boolean;
 
-            // advancedSection
-            values.mediaType = optionsSection.values.mediaType.value as string;
-            values.autoDetectMediaType = optionsSection.values.autoDetectMediaType.value as boolean;
-            values.authStoredProcedure = optionsSection.values.authStoredProcedure.value as string;
+            // authorizationSection
+            values.rowUserOwnershipColumn = authorizationSection.values.rowUserOwnershipColumn.value as string;
+            values.rowUserOwnershipEnforced = authorizationSection.values.rowUserOwnershipEnforced.value as boolean;
+            values.authStoredProcedure = authorizationSection.values.authStoredProcedure.value as string;
 
             // optionsSection
             values.options = optionsSection.values.options.value as string;
@@ -375,10 +395,12 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
     };
 
     private handleDbObjectChange = (): void => {
-        const basicSection = this.dialogValues?.sections.get("optionsSection");
-        if (basicSection) {
-            basicSection.values.rowUserOwnershipColumn.value = this.requestValue.rowUserOwnershipColumn;
-            basicSection.values.rowUserOwnershipEnforced.value = this.requestValue.rowUserOwnershipEnforced ?? true;
+        const authorizationSection = this.dialogValues?.sections.get("authorizationSection");
+        if (authorizationSection) {
+            authorizationSection.values.rowUserOwnershipColumn.value =
+                this.requestValue.rowUserOwnershipColumn;
+            authorizationSection.values.rowUserOwnershipEnforced.value =
+                this.requestValue.rowUserOwnershipEnforced ?? true;
         }
     };
 }

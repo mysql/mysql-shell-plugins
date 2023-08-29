@@ -178,7 +178,7 @@ def update_services(session, service_ids, value):
 
         if service is None:
             raise Exception(
-                "The specified service with id 1000 was not found.")
+                f"The specified service with id {core.convert_id_to_string(service_id)} was not found.")
 
         if "url_host_name" in value:
             host = core.select(table="url_host",

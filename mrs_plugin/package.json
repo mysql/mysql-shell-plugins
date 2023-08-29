@@ -3,7 +3,8 @@
     "version": "1.0.0",
     "description": "MySQL REST Service plugin for MySQL Shell",
     "scripts": {
-      "update-mrs-parser": "scripts/generate_mrs_parser.sh"
+      "update-mrs-parser": "scripts/generate_mrs_parser.sh",
+      "update-html-docs": "scripts/generate_html_docs.sh"
     },
     "publisher": "Oracle"
   }

@@ -3,7 +3,7 @@
     "tasks": [
         {
             "label": "build documentation",
-            "command": "./docs/scripts/generate_html_docs.sh",
+            "command": "scripts/generate_html_docs.sh",
             "problemMatcher": [],
             "group": {
                 "kind": "build",

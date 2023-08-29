@@ -404,8 +404,8 @@ export class ShellInterfaceMrs {
                 kwargs: {
                     moduleSessionId: this.moduleSessionId,
                     schemaId,
-                    schemaName,
                     value: {
+                        schemaName,
                         requestPath,
                         requiresAuth,
                         enabled,

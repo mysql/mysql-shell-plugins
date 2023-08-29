@@ -330,7 +330,7 @@ export class MrsHub extends ComponentBase {
                 parameters: { services },
                 values: {
                     serviceId: schema?.serviceId,
-                    name: schema?.name ?? schemaName,
+                    dbSchemaName: schema?.name ?? schemaName,
                     requestPath: schema?.requestPath ?? `/${snakeToCamelCase(schemaName ?? "schema")}`,
                     requiresAuth: schema?.requiresAuth === 1,
                     enabled: !schema || schema.enabled === 1,
@@ -348,7 +348,7 @@ export class MrsHub extends ComponentBase {
 
             const data = result as IMrsSchemaDialogData;
             const serviceId = data.serviceId;
-            const name = data.name;
+            const dbSchemaName = data.dbSchemaName;
             const requestPath = data.requestPath;
             const requiresAuth = data.requiresAuth;
             const itemsPerPage = data.itemsPerPage ? data.itemsPerPage : null;
@@ -359,7 +359,7 @@ export class MrsHub extends ComponentBase {
             if (!schema) {
                 try {
                     await backend.mrs.addSchema(
-                        serviceId, name, requestPath, requiresAuth, options,
+                        serviceId, dbSchemaName, requestPath, requiresAuth, options,
                         itemsPerPage, comments);
 
                     void requisitions.executeRemote("refreshConnections", undefined);
@@ -370,8 +370,8 @@ export class MrsHub extends ComponentBase {
                 }
             } else {
                 try {
-                    await backend.mrs.updateSchema(schema.id, name, requestPath, requiresAuth, enabled, itemsPerPage,
-                        comments, options);
+                    await backend.mrs.updateSchema(schema.id, dbSchemaName, requestPath, requiresAuth, enabled,
+                        itemsPerPage, comments, options);
 
                     void requisitions.executeRemote("refreshConnections", undefined);
                     void requisitions.execute("showInfo", ["The MRS schema has been updated successfully."]);

@@ -1,0 +1,63 @@
+{
+    "type": "mrsObject",
+    "version": {
+        "major": 2,
+        "minor": 1,
+        "patch": 1
+    },
+    "object": {
+        "id": "0x11ee48d9fb23f380ba7f94a0661c596c",
+        "db_schema_id": "0x11ee48d9ed64c6b6ba7f94a0661c596c",
+        "name": "test",
+        "request_path": "/test",
+        "enabled": 1,
+        "object_type": "TABLE",
+        "crud_operations": [
+            "READ"
+        ],
+        "format": "FEED",
+        "items_per_page": null,
+        "media_type": null,
+        "auto_detect_media_type": 0,
+        "requires_auth": 1,
+        "auth_stored_procedure": "",
+        "row_user_ownership_enforced": 0,
+        "row_user_ownership_column": null,
+        "options": null,
+        "details": null,
+        "comments": "",
+        "objects": [
+            {
+                "id": "0x6916c57c2bd041e3d66b3710aa23504a",
+                "db_object_id": "0x11ee48d9fb23f380ba7f94a0661c596c",
+                "name": "Service1SakilaTest",
+                "kind": "RESULT",
+                "position": 0,
+                "fields": [
+                    {
+                        "position": 1,
+                        "id": "0x71f7a6078f5647178213a3dd391c0dc1",
+                        "object_id": "0x6916c57c2bd041e3d66b3710aa23504a",
+                        "name": "id",
+                        "db_column": {
+                            "name": "id",
+                            "srid": null,
+                            "comment": "",
+                            "datatype": "int",
+                            "not_null": false,
+                            "is_unique": false,
+                            "is_primary": false,
+                            "is_generated": false,
+                            "id_generation": null
+                        },
+                        "enabled": true,
+                        "allow_filtering": true,
+                        "allow_sorting": false,
+                        "no_check": false,
+                        "no_update": false
+                    }
+                ]
+            }
+        ]
+    }
+}

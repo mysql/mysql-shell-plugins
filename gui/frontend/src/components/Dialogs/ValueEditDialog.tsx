@@ -141,6 +141,7 @@ export interface IStringInputDialogValue extends IBaseDialogValue {
 
     /** The value is a multi line string and needs a larger input control. */
     multiLine?: boolean;
+    multiLineCount?: number;
 
     /** The value is security sensitive and must be obfuscated (e.g. passwords or PINs). */
     obfuscated?: boolean;
@@ -1286,6 +1287,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                                     placeholder={entry.value.placeholder}
                                     disabled={options?.includes(CommonDialogValueOption.Disabled)}
                                     multiLine={entry.value.multiLine}
+                                    multiLineCount={entry.value.multiLineCount}
                                     password={entry.value.obfuscated}
                                     autoFocus={options?.includes(CommonDialogValueOption.AutoFocus)}
                                 />
