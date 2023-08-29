@@ -413,7 +413,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                         crossAlignment={ContentAlignment.Center}
                     >
                         <Label>DB Object:</Label>
-                        <Input value={data.dbObject.name} onChange={this.dbObjectNameChanged} />
+                        <Input id="dbObject" value={data.dbObject.name} onChange={this.dbObjectNameChanged} />
                     </Container>
                     {data.dbObject.objectType === MrsDbObjectType.Procedure &&
                         <Container
@@ -730,6 +730,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     crossAlignment={ContentAlignment.Center}
                 >
                     <Checkbox
+                        id={cellData.field.id}
                         className={cellData.children ? "withChildren" : "withoutChildren"}
                         checkState={
                             unnested ? CheckState.Indeterminate

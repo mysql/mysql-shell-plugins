@@ -19,7 +19,6 @@ CREATE OR REPLACE REST SERVICE localhost/myTestService;
 
 CREATE OR REPLACE REST SERVICE localhost/myTestService
     ENABLED
-    PROTOCOL HTTPS
     COMMENTS "A simple REST service"
     AUTHENTICATION
         PATH "/authentication"

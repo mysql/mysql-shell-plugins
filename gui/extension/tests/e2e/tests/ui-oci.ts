@@ -31,10 +31,11 @@ import {
     ModalDialog,
 } from "vscode-extension-tester";
 import { driver, Misc } from "../lib/misc";
-import { Database, IConnMDS, IDBConnection, IConnBasicMySQL } from "../lib/db";
+import { Database } from "../lib/db";
 import { Shell } from "../lib/shell";
 import * as constants from "../lib/constants";
-import { Conditions } from "../lib/conditions";
+import { Until } from "../lib/until";
+import * as interfaces from "../lib/interfaces";
 
 if (!process.env.MYSQLSH_OCI_CONFIG_FILE) {
     throw new Error("Please define the environment variable MYSQLSH_OCI_CONFIG_FILE");
@@ -50,10 +51,10 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         await Misc.loadDriver();
 
         try {
-            await driver.wait(Conditions.extensionIsReady(), constants.extensionReadyWait, "Extension was not ready");
+            await driver.wait(Until.extensionIsReady(), constants.extensionReadyWait, "Extension was not ready");
             await Misc.toggleBottomBar(false);
             await Misc.sectionFocus(constants.ociTreeSection);
-            await driver.wait(Conditions.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 2,
+            await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 2,
                 `${constants.ociTreeSection} is still loading`);
 
             await fs.writeFile(process.env.MYSQLSH_OCI_CONFIG_FILE, "");
@@ -79,27 +80,27 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             const treeE2eTests = await Misc.getTreeElement(constants.ociTreeSection, "E2ETESTS (us-ashburn-1)");
             await treeE2eTests?.expand();
 
-            await driver.wait(Conditions.isNotLoading(constants.ociTreeSection), 250000,
+            await driver.wait(Until.isNotLoading(constants.ociTreeSection), 250000,
                 `${constants.ociTreeSection} is still loading`);
 
             const treeRoot = await treeOCISection.findItem("/ (Root Compartment)", constants.ociMaxLevel) ||
                 await treeOCISection.findItem("/ (Root Compartment) (Default)", constants.ociMaxLevel);
             await treeRoot.expand();
 
-            await driver.wait(Conditions.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 20,
+            await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 20,
                 `${constants.ociTreeSection} is still loading`);
 
             const treeQA = await treeOCISection.findItem("QA", constants.ociMaxLevel) ||
                 await treeOCISection.findItem("QA (Default)", constants.ociMaxLevel);
             await treeQA?.expand();
 
-            await driver.wait(Conditions.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 20,
+            await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 20,
                 `${constants.ociTreeSection} is still loading`);
 
             const treeShellTesting = await Misc.getTreeElement(constants.ociTreeSection, "MySQLShellTesting");
             await treeShellTesting?.expand();
 
-            await driver.wait(Conditions.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 20,
+            await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 20,
                 `${constants.ociTreeSection} is still loading`);
         } catch (e) {
             await Misc.processFailure(this);
@@ -146,7 +147,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             const treeE2eTests = await Misc.getTreeElement(constants.ociTreeSection, "E2ETESTS (us-ashburn-1)");
             await Misc.openContextMenuItem(treeE2eTests, constants.setDefaultConfigProfile, undefined);
-            await driver.wait(Conditions.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 3,
+            await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 3,
                 `${constants.ociTreeSection} is still loading`);
             await driver.wait(async () => {
                 return Misc.isDefaultItem(treeE2eTests, "profile");
@@ -161,7 +162,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         beforeEach(async function () {
             try {
-                await driver.wait(Conditions.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 3,
+                await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 3,
                     `${constants.ociTreeSection} is still loading`);
             } catch (e) {
                 await Misc.processFailure(this);
@@ -230,16 +231,16 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             let treeQA = await treeOCISection.findItem("QA", constants.ociMaxLevel) ||
                 await treeOCISection.findItem("QA (Default)", constants.ociMaxLevel);
             await Misc.openContextMenuItem(treeQA, constants.setCurrentCompartment, undefined);
-            await driver.wait(Conditions.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 3,
+            await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 3,
                 `${constants.ociTreeSection} is still loading`);
             treeQA = await treeOCISection.findItem("QA (Default)", constants.ociMaxLevel);
             expect(await Misc.isDefaultItem(treeQA, "compartment")).to.be.true;
             await treeQA.expand();
-            await driver.wait(Conditions.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 20,
+            await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 20,
                 `${constants.ociTreeSection} is still loading`);
             const treeShellTesting = await Misc.getTreeElement(constants.ociTreeSection, "MySQLShellTesting");
             await treeShellTesting.expand();
-            await driver.wait(Conditions.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 20,
+            await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 20,
                 `${constants.ociTreeSection} is still loading`);
 
             const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
@@ -261,7 +262,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         beforeEach(async function () {
             try {
                 await Misc.sectionFocus(constants.ociTreeSection);
-                await driver.wait(Conditions.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 3,
+                await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 3,
                     `${constants.ociTreeSection} is still loading`);
             } catch (e) {
                 await Misc.processFailure(this);
@@ -399,7 +400,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         beforeEach(async function () {
             try {
                 await Misc.sectionFocus(constants.ociTreeSection);
-                await driver.wait(Conditions.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 3,
+                await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 3,
                     `${constants.ociTreeSection} is still loading`);
             } catch (e) {
                 await Misc.processFailure(this);
@@ -457,7 +458,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             const bastionId = parsed.id;
 
             await Misc.openContextMenuItem(treeBastion, constants.setAsCurrentBastion, undefined);
-            await driver.wait(Conditions.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 3,
+            await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 3,
                 `${constants.ociTreeSection} is still loading`);
 
             await driver.wait(async () => {
@@ -595,13 +596,13 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 this.skip();
             }
 
-            const localMDSInfo: IConnMDS = {
+            const localMDSInfo: interfaces.IConnMDS = {
                 profile: "E2ETESTS",
                 // eslint-disable-next-line max-len
                 dbSystemOCID: "ocid1.mysqldbsystem.oc1.iad.aaaaaaaamggf5754p2fjtqhkguxpu6zgzzjyknx2irdh2exhdhkjy6y4s7va",
             };
 
-            const mdsConn: IDBConnection = {
+            const mdsConn: interfaces.IDBConnection = {
                 dbType: "MySQL",
                 caption: "MDSEdited",
                 mds: localMDSInfo,
@@ -632,28 +633,24 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 this.skip();
             }
 
-            const localBasicInfo: IConnBasicMySQL = {
-                hostname: mdsEndPoint,
-                username: "dba",
-                password: "MySQLR0cks!",
-                port: 3306,
-                ociBastion: true,
-            };
-
-            const localMDSInfo: IConnMDS = {
-                profile: "E2ETESTS",
-                sshPrivKey: "id_rsa_mysql_shell",
-                sshPubKey: "id_rsa_mysql_shell.pub",
-                dbSystemOCID: String(dbSystemOCID),
-                bastionOCID: String(bastionOCID),
-            };
-
-            const localConn: IDBConnection = {
+            const localConn: interfaces.IDBConnection = {
                 dbType: "MySQL",
                 caption: "LocalMDSConnection",
                 description: "Local connection",
-                basic: localBasicInfo,
-                mds: localMDSInfo,
+                basic: {
+                    hostname: mdsEndPoint,
+                    username: "dba",
+                    password: "MySQLR0cks!",
+                    port: 3306,
+                    ociBastion: true,
+                },
+                mds: {
+                    profile: "E2ETESTS",
+                    sshPrivKey: "id_rsa_mysql_shell",
+                    sshPubKey: "id_rsa_mysql_shell.pub",
+                    dbSystemOCID: String(dbSystemOCID),
+                    bastionOCID: String(bastionOCID),
+                },
             };
 
             await Misc.sectionFocus(constants.dbTreeSection);

@@ -112,6 +112,9 @@ SELECT f.* FROM (
     ) AS f
 ORDER BY f.position;
 
+ALTER TABLE `mysql_rest_service_metadata`.`service`
+    CHANGE COLUMN `url_protocol` `url_protocol` SET('HTTP', 'HTTPS') NOT NULL DEFAULT 'HTTP,HTTPS';
+
 ALTER SQL SECURITY INVOKER VIEW `schema_version` (major, minor, patch) AS SELECT 2, 1, 1;
 
 ALTER SQL SECURITY INVOKER VIEW `mrs_user_schema_version` (major, minor, patch) AS SELECT 2, 1, 1;

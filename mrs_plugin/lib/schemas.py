@@ -96,8 +96,6 @@ def delete_schemas(session, schemas: list):
     if not schemas:
         raise ValueError("The specified schema was not found.")
 
-    print(f"--> schemas: {schemas}")
-
     for schema_id in schemas:
         delete_schema(session, schema_id)
 
@@ -110,12 +108,11 @@ def update_schema(session, schemas: list, value: dict):
 
     # Update all given services
     for schema_id, host_ctx in schemas.items():
-
         schema = get_schema(session=session, schema_id=schema_id)
 
         if not schema:
             raise Exception(
-                f"The specified schema with id {schema_id} was not "
+                f"The specified schema with id {core.convert_id_to_string(schema_id)} was not "
                 "found.")
 
         core.update(table="db_schema",

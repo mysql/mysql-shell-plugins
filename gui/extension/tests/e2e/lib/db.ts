@@ -31,67 +31,11 @@ import {
 } from "vscode-extension-tester";
 import { expect } from "chai";
 import { basename } from "path";
-
 import { driver, Misc } from "./misc";
-import { credentialHelperOk } from "./conditions";
+import { credentialHelperOk } from "./until";
 import * as constants from "./constants";
+import * as interfaces from "./interfaces";
 
-export interface IConnBasicMySQL {
-    hostname?: string;
-    protocol?: string;
-    port?: number;
-    portX?: number;
-    username?: string;
-    password?: string;
-    schema?: string;
-    sshTunnel?: boolean;
-    ociBastion?: boolean;
-}
-
-export interface IConnBasicSqlite {
-    dbPath?: string;
-    dbName?: string;
-    advanced?: IConnAdvancedSqlite;
-}
-
-export interface IConnAdvancedSqlite {
-    params?: string;
-}
-
-export interface IConnSSL {
-    mode?: string;
-    ciphers?: string;
-    caPath?: string;
-    clientCertPath?: string;
-    clientKeyPath?: string;
-}
-
-export interface IConnAdvanced {
-    mode?: string;
-    timeout?: number;
-    compression?: string;
-    compLevel?: string;
-    compAlgorithms?: string;
-    disableHW?: boolean;
-}
-
-export interface IConnMDS {
-    profile?: string;
-    sshPrivKey?: string;
-    sshPubKey?: string;
-    dbSystemOCID?: string;
-    bastionOCID?: string;
-}
-
-export interface IDBConnection {
-    dbType?: string;
-    caption?: string;
-    description?: string;
-    basic?: IConnBasicMySQL | IConnBasicSqlite;
-    ssl?: IConnSSL;
-    advanced?: IConnAdvanced;
-    mds?: IConnMDS;
-}
 
 export class Database {
 
@@ -99,10 +43,10 @@ export class Database {
         dbType: string | undefined,
         caption: string | undefined,
         description: string | undefined,
-        basic: IConnBasicMySQL | IConnBasicSqlite | undefined,
-        ssl?: IConnSSL,
-        advanced?: IConnAdvanced,
-        mds?: IConnMDS,
+        basic: interfaces.IConnBasicMySQL | interfaces.IConnBasicSqlite | undefined,
+        ssl?: interfaces.IConnSSL,
+        advanced?: interfaces.IConnAdvanced,
+        mds?: interfaces.IConnMDS,
     ): Promise<void> => {
 
         const dialog = await driver.wait(until.elementLocated(By.css(".visible.valueEditDialog")),
@@ -132,30 +76,30 @@ export class Database {
 
             if (basic) {
                 await dialog.findElement(By.id("page0")).click();
-                if ((basic as IConnBasicMySQL).hostname) {
+                if ((basic as interfaces.IConnBasicMySQL).hostname) {
                     const inHostname = await dialog.findElement(By.id("hostName"));
                     await inHostname.clear();
-                    await inHostname.sendKeys((basic as IConnBasicMySQL).hostname);
+                    await inHostname.sendKeys((basic as interfaces.IConnBasicMySQL).hostname);
                 }
-                if ((basic as IConnBasicMySQL).username) {
+                if ((basic as interfaces.IConnBasicMySQL).username) {
                     const inUserName = await dialog.findElement(By.id("userName"));
                     await inUserName.clear();
-                    await inUserName.sendKeys((basic as IConnBasicMySQL).username);
+                    await inUserName.sendKeys((basic as interfaces.IConnBasicMySQL).username);
                 }
-                if ((basic as IConnBasicMySQL).schema) {
+                if ((basic as interfaces.IConnBasicMySQL).schema) {
                     const inSchema = await dialog.findElement(By.id("defaultSchema"));
                     await inSchema.clear();
-                    await inSchema.sendKeys((basic as IConnBasicMySQL).schema);
+                    await inSchema.sendKeys((basic as interfaces.IConnBasicMySQL).schema);
                 }
-                if ((basic as IConnBasicMySQL).ociBastion !== undefined) {
+                if ((basic as interfaces.IConnBasicMySQL).ociBastion !== undefined) {
                     const inBastion = await dialog.findElement(By.id("useMDS"));
                     const classes = await inBastion.getAttribute("class");
                     if (classes.includes("unchecked")) {
-                        if ((basic as IConnBasicMySQL).ociBastion) {
+                        if ((basic as interfaces.IConnBasicMySQL).ociBastion) {
                             await inBastion.click();
                         }
                     } else {
-                        if (!(basic as IConnBasicMySQL).ociBastion) {
+                        if (!(basic as interfaces.IConnBasicMySQL).ociBastion) {
                             await inBastion.click();
                         }
                     }
@@ -223,24 +167,24 @@ export class Database {
 
             if (basic) {
                 await dialog.findElement(By.id("page0")).click();
-                if ((basic as IConnBasicSqlite).dbPath) {
+                if ((basic as interfaces.IConnBasicSqlite).dbPath) {
                     const inPath = await dialog.findElement(By.id("dbFilePath"));
                     await inPath.clear();
-                    await inPath.sendKeys((basic as IConnBasicSqlite).dbPath);
+                    await inPath.sendKeys((basic as interfaces.IConnBasicSqlite).dbPath);
                 }
-                if ((basic as IConnBasicSqlite).dbName) {
+                if ((basic as interfaces.IConnBasicSqlite).dbName) {
                     const indbName = await dialog.findElement(By.id("dbName"));
                     await indbName.clear();
-                    await indbName.sendKeys((basic as IConnBasicSqlite).dbName);
+                    await indbName.sendKeys((basic as interfaces.IConnBasicSqlite).dbName);
                 }
             }
 
             if (advanced) {
                 await dialog.findElement(By.id("page1")).click();
-                if ((basic as IConnBasicSqlite).dbPath) {
+                if ((basic as interfaces.IConnBasicSqlite).dbPath) {
                     const inParams = await dialog.findElement(By.id("otherParameters"));
                     await inParams.clear();
-                    await inParams.sendKeys((basic as IConnBasicSqlite).advanced.params);
+                    await inParams.sendKeys((basic as interfaces.IConnBasicSqlite).advanced.params);
                 }
             }
         } else {
@@ -250,7 +194,7 @@ export class Database {
         await dialog.findElement(By.id("ok")).click();
     };
 
-    public static createConnection = async (dbConfig: IDBConnection): Promise<void> => {
+    public static createConnection = async (dbConfig: interfaces.IDBConnection): Promise<void> => {
 
         await driver.switchTo().defaultContent();
         await Misc.clickSectionToolbarButton(await Misc.getSection(constants.dbTreeSection),
@@ -298,7 +242,7 @@ export class Database {
         return db;
     };
 
-    public static setPassword = async (dbConfig: IDBConnection): Promise<void> => {
+    public static setPassword = async (dbConfig: interfaces.IDBConnection): Promise<void> => {
         const dialog = await driver.wait(until.elementLocated(
             By.css(".passwordDialog")), constants.explicitWait, "No password dialog was found");
         const title = await dialog.findElement(By.css(".title .label"));
@@ -315,16 +259,16 @@ export class Database {
             }
         }
 
-        let uri = `${String((dbConfig.basic as IConnBasicMySQL).username)}`;
-        uri += `@${String((dbConfig.basic as IConnBasicMySQL).hostname)}:`;
-        uri += (dbConfig.basic as IConnBasicMySQL).port;
+        let uri = `${String((dbConfig.basic as interfaces.IConnBasicMySQL).username)}`;
+        uri += `@${String((dbConfig.basic as interfaces.IConnBasicMySQL).hostname)}:`;
+        uri += (dbConfig.basic as interfaces.IConnBasicMySQL).port;
 
         expect(service).to.equals(uri);
-        expect(username).to.equals((dbConfig.basic as IConnBasicMySQL).username);
+        expect(username).to.equals((dbConfig.basic as interfaces.IConnBasicMySQL).username);
 
         expect(await title.getText()).to.equals("Open MySQL Connection");
 
-        await dialog.findElement(By.css("input")).sendKeys((dbConfig.basic as IConnBasicMySQL).password);
+        await dialog.findElement(By.css("input")).sendKeys((dbConfig.basic as interfaces.IConnBasicMySQL).password);
         await dialog.findElement(By.id("ok")).click();
     };
 
@@ -534,59 +478,19 @@ export class Database {
         return String(text).length === 0;
     };
 
-    public static setRestService = async (
-        serviceName: string,
-        comments: string,
-        hostname: string,
-        protocols: string[],
-        mrsDefault: boolean,
-        mrsEnabled: boolean): Promise<void> => {
-
+    public static setRestService = async (restService: interfaces.IRestService): Promise<void> => {
         const dialog = await driver.wait(until.elementLocated(By.id("mrsServiceDialog")),
             constants.explicitWait, "MRS Service dialog was not displayed");
 
+        // Main settings
         const inputServPath = await dialog.findElement(By.id("servicePath"));
         await inputServPath.clear();
-        await inputServPath.sendKeys(serviceName);
-
-        const inputComments = await dialog.findElement(By.id("comments"));
-        await inputComments.clear();
-        await inputComments.sendKeys(comments);
-
-        const inputHost = await dialog.findElement(By.id("hostName"));
-        await inputHost.clear();
-        await inputHost.sendKeys(hostname);
-
-        const protocolsSelect = await driver.findElement(By.id("protocols"));
-        await protocolsSelect.click();
-
-        await driver.wait(until.elementLocated(By.id("protocolsPopup")), constants.ociExplicitWait,
-            "Protocols Drop down list was not opened");
-
-        const availableProtocols = await driver.findElements(By.css("#protocolsPopup div.dropdownItem"));
-        for (const prt of availableProtocols) {
-            const item = await prt.getAttribute("id");
-            if (protocols.includes(item)) {
-                const isUnchecked = (await (await prt.findElement(By.css("label"))).getAttribute("class"))
-                    .includes("unchecked");
-                if (isUnchecked) {
-                    await prt.click();
-                }
-            } else {
-                const isUnchecked = (await (await prt.findElement(By.css("label"))).getAttribute("class"))
-                    .includes("unchecked");
-                if (!isUnchecked) {
-                    await prt.click();
-                }
-            }
-        }
-
-        await driver.actions().sendKeys(Key.ESCAPE).perform();
+        await inputServPath.sendKeys(restService.servicePath);
 
         const inputMrsDef = await dialog.findElement(By.id("makeDefault"));
         const inputMrsDefClasses = await inputMrsDef.getAttribute("class");
         let classes = inputMrsDefClasses.split(" ");
-        if (mrsDefault === true) {
+        if (restService.default === true) {
             if (classes.includes("unchecked")) {
                 await inputMrsDef.findElement(By.css(".checkMark")).click();
             }
@@ -599,13 +503,136 @@ export class Database {
         const inputMrsEnabled = await dialog.findElement(By.id("enabled"));
         const inputMrsEnabledClasses = await inputMrsEnabled.getAttribute("class");
         classes = inputMrsEnabledClasses.split(" ");
-        if (mrsEnabled === true) {
+        if (restService.enabled === true) {
             if (classes.includes("unchecked")) {
                 await inputMrsEnabled.findElement(By.css(".checkMark")).click();
             }
         } else {
             if (classes.includes("checked")) {
                 await inputMrsEnabled.findElement(By.css(".checkMark")).click();
+            }
+        }
+
+        // Settings
+        if (restService.settings) {
+            if (restService.settings.comments) {
+                const inputComments = await dialog.findElement(By.id("comments"));
+                await inputComments.clear();
+                await inputComments.sendKeys(restService.settings.comments);
+            }
+            if (restService.settings.hostNameFilter) {
+                const inputHost = await dialog.findElement(By.id("hostName"));
+                await inputHost.clear();
+                await inputHost.sendKeys(restService.settings.hostNameFilter);
+            }
+        }
+
+        // Options
+        if (restService.options) {
+            await dialog.findElement(By.id("page1")).click();
+            const options = await dialog.findElement(By.id("options"));
+            await options.clear();
+            await options.sendKeys(restService.options);
+        }
+        if (restService.authentication) {
+            await dialog.findElement(By.id("page2")).click();
+            if (restService.authentication.authenticationPath) {
+                const inputAuthPath = await dialog.findElement(By.id("authPath"));
+                await inputAuthPath.clear();
+                await inputAuthPath.sendKeys(restService.authentication.authenticationPath);
+            }
+            if (restService.authentication.redirectionUrl) {
+                const authCompletedUrlInput = await dialog.findElement(By.id("authCompletedUrl"));
+                await authCompletedUrlInput.clear();
+                await authCompletedUrlInput.sendKeys(restService.authentication.redirectionUrl);
+            }
+            if (restService.authentication.redirectionUrlValid) {
+                const authCompletedUrlValidationInput = await dialog.findElement(By.id("authCompletedUrlValidation"));
+                await authCompletedUrlValidationInput.clear();
+                await authCompletedUrlValidationInput.sendKeys(restService.authentication.redirectionUrlValid);
+            }
+            if (restService.authentication.authCompletedChangeCont) {
+                const authCompletedPageContentInput = await dialog.findElement(By.id("authCompletedPageContent"));
+                await authCompletedPageContentInput.clear();
+                await authCompletedPageContentInput.sendKeys(restService.authentication.authCompletedChangeCont);
+            }
+        }
+        if (restService.authenticationApps) {
+            await dialog.findElement(By.id("page3")).click();
+            if (restService.authenticationApps.vendor) {
+                await driver.wait(async () => {
+                    try {
+                        await dialog.findElement(By.id("authApps.authVendorName")).click();
+                    } catch (e) {
+                        if (!(e instanceof error.ElementClickInterceptedError)) {
+                            throw e;
+                        }
+                    }
+
+                    return (await driver.findElements(By.id("authApps.authVendorNamePopup")))
+                        .length > 0;
+                }, constants.explicitWait, "Vendor drop down list was not displayed");
+
+                const popup = await driver.findElement(By.id("authApps.authVendorNamePopup"));
+                await popup.findElement(By.id(restService.authenticationApps.vendor)).click();
+            }
+            if (restService.authenticationApps.name) {
+                const input = await dialog.findElement(By.id("authApps.name"));
+                await input.clear();
+                await input.sendKeys(restService.authenticationApps.name);
+            }
+            if (restService.authenticationApps.description) {
+                const descriptionInput = await dialog.findElement(By.id("authApps.description"));
+                await descriptionInput.clear();
+                await descriptionInput.sendKeys(restService.authenticationApps.description);
+            }
+            if (restService.authenticationApps.enabled !== undefined) {
+                const inputAuthAppEnabled = await dialog.findElement(By.id("authApps.enabled"));
+                const inputAuthAppEnabledClasses = await inputAuthAppEnabled.getAttribute("class");
+                classes = inputAuthAppEnabledClasses.split(" ");
+                if (restService.authenticationApps.enabled === true) {
+                    if (classes.includes("unchecked")) {
+                        await inputAuthAppEnabled.findElement(By.css(".checkMark")).click();
+                    }
+                } else {
+                    if (classes.includes("checked")) {
+                        await inputAuthAppEnabled.findElement(By.css(".checkMark")).click();
+                    }
+                }
+            }
+            if (restService.authenticationApps.limitToRegisteredUsers !== undefined) {
+                const inputAuthAppLimit = await dialog.findElement(By.id("authApps.limitToRegisteredUsers"));
+                const inputAuthAppLimitClasses = await inputAuthAppLimit.getAttribute("class");
+                classes = inputAuthAppLimitClasses.split(" ");
+                if (restService.authenticationApps.limitToRegisteredUsers === true) {
+                    if (classes.includes("unchecked")) {
+                        await inputAuthAppLimit.findElement(By.css(".checkMark")).click();
+                    }
+                } else {
+                    if (classes.includes("checked")) {
+                        await inputAuthAppLimit.findElement(By.css(".checkMark")).click();
+                    }
+                }
+            }
+            if (restService.authenticationApps.appId) {
+                const appIdInput = await dialog.findElement(By.id("authApps.appId"));
+                await appIdInput.clear();
+                await appIdInput.sendKeys(restService.authenticationApps.appId);
+            }
+            if (restService.authenticationApps.accessToken) {
+                const accessTokenInput = await dialog.findElement(By.id("authApps.accessToken"));
+                await accessTokenInput.clear();
+                await accessTokenInput.sendKeys(restService.authenticationApps.accessToken);
+            }
+            if (restService.authenticationApps.customUrl) {
+                const urlInput = await dialog.findElement(By.id("authApps.url"));
+                await urlInput.clear();
+                await urlInput.sendKeys(restService.authenticationApps.customUrl);
+            }
+            if (restService.authenticationApps.customUrlForAccessToken) {
+                const urlDirectAuthInput = await dialog.findElement(By.id("authApps.urlDirectAuth"));
+                await urlDirectAuthInput.clear();
+                await urlDirectAuthInput.sendKeys(restService.authenticationApps.customUrlForAccessToken);
             }
         }
 
@@ -616,65 +643,137 @@ export class Database {
         }, constants.explicitWait * 2, "The MRS Service dialog was not closed");
     };
 
-    public static setRestSchema = async (
-        mrsService?: string,
-        schemaName?: string,
-        requestPath?: string,
-        itemsPerPage?: number,
-        authentication?: boolean,
-        enabled?: boolean,
-        comments?: string): Promise<void> => {
+    public static getRestService = async (): Promise<interfaces.IRestService> => {
+        const dialog = await driver.wait(until.elementLocated(By.id("mrsServiceDialog")),
+            constants.explicitWait, "MRS Service dialog was not displayed");
+
+        // Main settings
+        const restService: interfaces.IRestService = {
+            servicePath: await dialog.findElement(By.id("servicePath")).getAttribute("value"),
+        };
+
+        const inputMrsDef = await dialog.findElement(By.id("makeDefault"));
+        const inputMrsDefClasses = await inputMrsDef.getAttribute("class");
+        let classes = inputMrsDefClasses.split(" ");
+        if (classes.includes("unchecked")) {
+            restService.default = false;
+        } else if (classes.includes("checked")) {
+            restService.default = true;
+        } else {
+            throw new Error("Unknown value for Default checkbox on Main settings section");
+        }
+
+        const inputMrsEnabled = await dialog.findElement(By.id("enabled"));
+        const inputMrsEnabledClasses = await inputMrsEnabled.getAttribute("class");
+        classes = inputMrsEnabledClasses.split(" ");
+        if (classes.includes("unchecked")) {
+            restService.enabled = false;
+        } else if (classes.includes("checked")) {
+            restService.enabled = true;
+        } else {
+            throw new Error("Unknown value for Enabled checkbox on Main settings section");
+        }
+
+        // Settings
+        const restServiceSettings: interfaces.IRestServiceSettings = {};
+        restServiceSettings.comments = await dialog.findElement(By.id("comments")).getAttribute("value");
+        restServiceSettings.hostNameFilter = await dialog.findElement(By.id("hostName")).getAttribute("value");
+        restService.settings = restServiceSettings;
+
+        // Options
+        await dialog.findElement(By.id("page1")).click();
+        restService.options = (await dialog.findElement(By.id("options"))
+            .getAttribute("value")).replace(/\r?\n|\r|\s+/gm, "").trim();
+
+        // Authentication
+        await dialog.findElement(By.id("page2")).click();
+        const authentication: interfaces.IRestServiceAuthentication = {};
+        authentication.authenticationPath = await dialog.findElement(By.id("authPath")).getAttribute("value");
+        authentication.redirectionUrl = await dialog.findElement(By.id("authCompletedUrl")).getAttribute("value");
+        authentication.redirectionUrlValid = await dialog.findElement(By.id("authCompletedUrlValidation"))
+            .getAttribute("value");
+        authentication.authCompletedChangeCont = await dialog.findElement(By.id("authCompletedPageContent"))
+            .getAttribute("value");
+        restService.authentication = authentication;
+
+        // Authentication apps
+        await dialog.findElement(By.id("page3")).click();
+        const authenticationApps: interfaces.IRestServiceAuthApps = {};
+        authenticationApps.vendor = await dialog.findElement(By.id("authApps.authVendorName"))
+            .findElement(By.css("label")).getText();
+        authenticationApps.name = await dialog.findElement(By.id("authApps.name")).getAttribute("value");
+        authenticationApps.description = await dialog.findElement(By.id("authApps.description")).getAttribute("value");
+        const inputAuthAppEnabled = await dialog.findElement(By.id("authApps.enabled"));
+        const inputAuthAppEnabledClasses = await inputAuthAppEnabled.getAttribute("class");
+        classes = inputAuthAppEnabledClasses.split(" ");
+        if (classes.includes("unchecked")) {
+            authenticationApps.enabled = false;
+        } else if (classes.includes("checked")) {
+            authenticationApps.enabled = true;
+        } else {
+            throw new Error("Unknown value for Enabled checkbox on Authentication Apps section");
+        }
+
+        const inputAuthAppLimit = await dialog.findElement(By.id("authApps.limitToRegisteredUsers"));
+        const inputAuthAppLimitClasses = await inputAuthAppLimit.getAttribute("class");
+        classes = inputAuthAppLimitClasses.split(" ");
+        if (classes.includes("unchecked")) {
+            authenticationApps.limitToRegisteredUsers = false;
+        } else if (classes.includes("checked")) {
+            authenticationApps.limitToRegisteredUsers = true;
+        } else {
+            throw new Error("Unknown value for Limit to Registered Users checkbox on Authentication Apps section");
+        }
+
+        authenticationApps.appId = await dialog.findElement(By.id("authApps.appId")).getAttribute("value");
+        authenticationApps.accessToken = await dialog.findElement(By.id("authApps.accessToken")).getAttribute("value");
+        authenticationApps.customUrl = await dialog.findElement(By.id("authApps.url")).getAttribute("value");
+        authenticationApps.customUrlForAccessToken = await dialog.findElement(By.id("authApps.urlDirectAuth"))
+            .getAttribute("value");
+        restService.authenticationApps = authenticationApps;
+
+        await driver.wait(async () => {
+            await dialog.findElement(By.id("cancel")).click();
+
+            return (await Misc.existsWebViewDialog()) === false;
+        }, constants.explicitWait * 2, "The MRS Service dialog was not closed");
+
+        return restService;
+    };
+
+    public static setRestSchema = async (restSchema: interfaces.IRestSchema): Promise<void> => {
 
         const dialog = await driver.wait(until.elementLocated(By.id("mrsSchemaDialog")),
             constants.explicitWait, "MRS Schema dialog was not displayed");
 
-        if (schemaName) {
-            const inputSchemaName = await dialog.findElement(By.id("name"));
-            await inputSchemaName.clear();
-            await inputSchemaName.sendKeys(schemaName);
-        }
-        if (mrsService) {
-            const selectService = await dialog.findElement(By.id("service"));
-            const selectedValue = await selectService.findElement(By.css("label"));
-            const label = await selectedValue.getText();
-            if (!mrsService.includes(label)) {
-                await selectService.click();
-                await driver.wait(until.elementLocated(By.id("servicePopup")),
-                    constants.explicitWait, "Select list was not displayed");
-                const mrsServiceArr = mrsService.split("|");
-                for (const item of mrsServiceArr) {
-                    const item2click = await driver.findElements(By.id(item));
-                    if (item2click.length > 0) {
-                        await item2click[0].click();
-                        break;
+        if (restSchema.restServicePath) {
+            await driver.wait(async () => {
+                try {
+                    await dialog.findElement(By.id("service")).click();
+                } catch (e) {
+                    if (!(e instanceof error.ElementClickInterceptedError)) {
+                        throw e;
                     }
                 }
-            }
+
+                return (await driver.findElements(By.id("servicePopup")))
+                    .length > 0;
+            }, constants.explicitWait, "Service drop down list was not displayed");
+            const popup = await driver.findElement(By.id("servicePopup"));
+            await popup.findElement(By.id(restSchema.restServicePath)).click();
         }
-        if (requestPath) {
-            const inputRequestPath = await dialog.findElement(By.id("requestPath"));
-            await inputRequestPath.clear();
-            await inputRequestPath.sendKeys(requestPath);
+
+        if (restSchema.restSchemaPath) {
+            const inputSchemaName = await dialog.findElement(By.id("requestPath"));
+            await inputSchemaName.clear();
+            await inputSchemaName.sendKeys(restSchema.restSchemaPath);
         }
-        if (authentication !== undefined) {
-            const inputRequiresAuth = await dialog.findElement(By.id("requiresAuth"));
-            const inputRequiresAuthClasses = await inputRequiresAuth.getAttribute("class");
-            const classes = inputRequiresAuthClasses.split(" ");
-            if (authentication === true) {
-                if (classes.includes("unchecked")) {
-                    await inputRequiresAuth.findElement(By.css(".checkMark")).click();
-                }
-            } else {
-                if (!classes.includes("unchecked")) {
-                    await inputRequiresAuth.findElement(By.css(".checkMark")).click();
-                }
-            }
-        }
-        if (enabled !== undefined) {
+
+        if (restSchema.enabled !== undefined) {
             const inputEnabled = await dialog.findElement(By.id("enabled"));
             const inputEnabledClasses = await inputEnabled.getAttribute("class");
             const classes = inputEnabledClasses.split(" ");
-            if (enabled === true) {
+            if (restSchema.enabled === true) {
                 if (classes.includes("unchecked")) {
                     await inputEnabled.findElement(By.css(".checkMark")).click();
                 }
@@ -684,15 +783,52 @@ export class Database {
                 }
             }
         }
-        if (itemsPerPage) {
-            const inputItemsPerPage = await dialog.findElement(By.id("itemsPerPage"));
-            await inputItemsPerPage.clear();
-            await inputItemsPerPage.sendKeys(itemsPerPage);
+
+        if (restSchema.requiresAuth !== undefined) {
+            const inputRequiresAuth = await dialog.findElement(By.id("requiresAuth"));
+            const inputRequiresAuthClasses = await inputRequiresAuth.getAttribute("class");
+            const classes = inputRequiresAuthClasses.split(" ");
+            if (restSchema.requiresAuth === true) {
+                if (classes.includes("unchecked")) {
+                    await inputRequiresAuth.findElement(By.css(".checkMark")).click();
+                }
+            } else {
+                if (!classes.includes("unchecked")) {
+                    await inputRequiresAuth.findElement(By.css(".checkMark")).click();
+                }
+            }
         }
-        if (comments) {
-            const inputComments = await dialog.findElement(By.id("comments"));
-            await inputComments.clear();
-            await inputComments.sendKeys(comments);
+
+        // Settings
+        if (restSchema.settings) {
+            if (restSchema.settings.schemaName) {
+                const inputSchemaName = await dialog.findElement(By.id("dbSchemaName"));
+                await inputSchemaName.clear();
+                await inputSchemaName.sendKeys(restSchema.settings.schemaName);
+            }
+            if (restSchema.settings.itemsPerPage) {
+                const inputItemsPerPage = await dialog.findElement(By.id("itemsPerPage"));
+                await inputItemsPerPage.clear();
+                await inputItemsPerPage.sendKeys(restSchema.settings.itemsPerPage);
+            }
+            if (restSchema.settings.itemsPerPage) {
+                const inputItemsPerPage = await dialog.findElement(By.id("itemsPerPage"));
+                await inputItemsPerPage.clear();
+                await inputItemsPerPage.sendKeys(restSchema.settings.itemsPerPage);
+            }
+            if (restSchema.settings.comments) {
+                const inputComents = await dialog.findElement(By.id("comments"));
+                await inputComents.clear();
+                await inputComents.sendKeys(restSchema.settings.comments);
+            }
+        }
+
+        // Options
+        await dialog.findElement(By.id("page1")).click();
+        if (restSchema.options) {
+            const inputOptions = await dialog.findElement(By.id("options"));
+            await inputOptions.clear();
+            await inputOptions.sendKeys(restSchema.options);
         }
 
         await driver.wait(async () => {
@@ -701,6 +837,59 @@ export class Database {
             return (await Misc.existsWebViewDialog()) === false;
         }, constants.explicitWait * 2, "The REST Schema Dialog was not closed");
 
+    };
+
+    public static getRestSchema = async (): Promise<interfaces.IRestSchema> => {
+        const dialog = await driver.wait(until.elementLocated(By.id("mrsSchemaDialog")),
+            constants.explicitWait, "MRS Schema dialog was not displayed");
+
+        // Main settings
+        const restShema: interfaces.IRestSchema = {
+            restServicePath: await dialog.findElement(By.css("#service label")).getText(),
+            restSchemaPath: await dialog.findElement(By.id("requestPath")).getAttribute("value"),
+        };
+
+        const inputEnabled = await dialog.findElement(By.id("enabled"));
+        const inputEnabledClasses = await inputEnabled.getAttribute("class");
+        let classes = inputEnabledClasses.split(" ");
+        if (classes.includes("unchecked")) {
+            restShema.enabled = false;
+        } else if (classes.includes("checked")) {
+            restShema.enabled = true;
+        } else {
+            throw new Error("Unknown value for Enabled checkbox on Main settings section");
+        }
+
+        const inputRequiresAuth = await dialog.findElement(By.id("requiresAuth"));
+        const inputRequiresAuthClasses = await inputRequiresAuth.getAttribute("class");
+        classes = inputRequiresAuthClasses.split(" ");
+        if (classes.includes("unchecked")) {
+            restShema.requiresAuth = false;
+        } else if (classes.includes("checked")) {
+            restShema.requiresAuth = true;
+        } else {
+            throw new Error("Unknown value for Requires Auth checkbox on Main settings section");
+        }
+
+        // Settings
+        const restSchemaSettings: interfaces.IRestSchemaSettings = {};
+        restSchemaSettings.schemaName = await dialog.findElement(By.id("dbSchemaName")).getAttribute("value");
+        restSchemaSettings.itemsPerPage = await dialog.findElement(By.id("itemsPerPage")).getAttribute("value");
+        restSchemaSettings.comments = await dialog.findElement(By.id("comments")).getAttribute("value");
+        restShema.settings = restSchemaSettings;
+
+        // Options
+        await dialog.findElement(By.id("page1")).click();
+        restShema.options = (await dialog.findElement(By.id("options")).getAttribute("value"))
+            .replace(/\r?\n|\r|\s+/gm, "").trim();
+
+        await driver.wait(async () => {
+            await dialog.findElement(By.id("cancel")).click();
+
+            return (await Misc.existsWebViewDialog()) === false;
+        }, constants.explicitWait * 2, "The MRS Service dialog was not closed");
+
+        return restShema;
     };
 
     public static getCurrentEditorType = async (): Promise<string> => {
@@ -741,7 +930,6 @@ export class Database {
 
             await popup.findElement(By.id(vendor)).click();
         }
-
 
         if (name) {
             const nameInput = await dialog.findElement(By.id("name"));
@@ -915,86 +1103,83 @@ export class Database {
 
     };
 
-    public static setRestObject = async (
-        service?: string,
-        restObjPath?: string,
-        dbObjName?: string,
-        crud?: string[],
-        enabled?: boolean,
-        requiresAuth?: boolean,
-    ): Promise<void> => {
-
+    public static setRestObject = async (restObject: interfaces.IRestObject): Promise<void> => {
         const dialog = await driver.wait(until.elementLocated(By.id("mrsDbObjectDialog")),
             constants.explicitWait * 2, "Edit REST Object dialog was not displayed");
 
-        if (service) {
+        if (restObject.restServicePath) {
             const inService = await dialog.findElement(By.id("service"));
             await inService.click();
             const popup = await driver.wait(until.elementLocated(By.id("servicePopup")),
                 constants.explicitWait, "#servicePopup not found");
-            await popup.findElement(By.id(service)).click();
+            await popup.findElement(By.id(restObject.restServicePath)).click();
         }
-        if (restObjPath) {
+        if (restObject.restSchemaPath) {
+            const inSchema = await dialog.findElement(By.id("schema"));
+            await inSchema.click();
+            const popup = await driver.wait(until.elementLocated(By.id("schemaPopup")),
+                constants.explicitWait, "Schema drop down list was not found");
+            await popup.findElement(By.id(restObject.restSchemaPath)).click();
+        }
+        if (restObject.restObjectPath) {
             const inObjPath = await dialog.findElement(By.id("requestPath"));
             await inObjPath.clear();
-            await inObjPath.sendKeys(restObjPath);
+            await inObjPath.sendKeys(restObject.restObjectPath);
         }
-        if (dbObjName) {
-            const inObjName = await dialog.findElement(By.id("name"));
-            await inObjName.clear();
-            await inObjName.sendKeys(restObjPath);
+        if (restObject.enabled !== undefined) {
+            const inputEnabled = await dialog.findElement(By.id("enabled"));
+            const inputEnabledClasses = await inputEnabled.getAttribute("class");
+            const classes = inputEnabledClasses.split(" ");
+            if (restObject.enabled === true) {
+                if (classes.includes("unchecked")) {
+                    await inputEnabled.findElement(By.css(".checkMark")).click();
+                }
+            } else {
+                if (!classes.includes("unchecked")) {
+                    await inputEnabled.findElement(By.css(".checkMark")).click();
+                }
+            }
         }
-        if (crud) {
-            const clickCrudItem = async (elToClick: string): Promise<void> => {
-                const crudDivs = await dialog.findElements(By.css(".crudDiv div"));
-                for (const crudDiv of crudDivs) {
-                    const isInactive = (await crudDiv.getAttribute("class")).includes("deactivated");
-                    const labelName = await (await crudDiv.findElement(By.css("label"))).getText();
-                    if (elToClick === labelName) {
-                        if (isInactive) {
-                            await crudDiv.click();
-                            break;
+        if (restObject.requiresAuth !== undefined) {
+            const inputRequiresAuth = await dialog.findElement(By.id("requiresAuth"));
+            const inputRequiresAuthClasses = await inputRequiresAuth.getAttribute("class");
+            const classes = inputRequiresAuthClasses.split(" ");
+            if (restObject.requiresAuth === true) {
+                if (classes.includes("unchecked")) {
+                    await inputRequiresAuth.findElement(By.css(".checkMark")).click();
+                }
+            } else {
+                if (!classes.includes("unchecked")) {
+                    await inputRequiresAuth.findElement(By.css(".checkMark")).click();
+                }
+            }
+        }
+
+        if (restObject.jsonRelDuality) {
+            if (restObject.jsonRelDuality.crud) {
+                const clickCrudItem = async (elToClick: string): Promise<void> => {
+                    const crudDivs = await dialog.findElements(By.css(".crudDiv div"));
+                    for (const crudDiv of crudDivs) {
+                        const isInactive = (await crudDiv.getAttribute("class")).includes("deactivated");
+                        const labelName = await (await crudDiv.findElement(By.css("label"))).getText();
+                        if (elToClick === labelName) {
+                            if (isInactive) {
+                                await crudDiv.click();
+                                break;
+                            }
                         }
                     }
-                }
-            };
-            for (const itemCrud of crud) {
-                try {
-                    await clickCrudItem(itemCrud);
-                } catch (e) {
-                    if (!(e instanceof error.StaleElementReferenceError)) {
-                        throw e;
-                    } else {
+                };
+                for (const itemCrud of restObject.jsonRelDuality.crud) {
+                    try {
                         await clickCrudItem(itemCrud);
+                    } catch (e) {
+                        if (!(e instanceof error.StaleElementReferenceError)) {
+                            throw e;
+                        } else {
+                            await clickCrudItem(itemCrud);
+                        }
                     }
-                }
-            }
-        }
-        if (enabled !== undefined) {
-            const inEnabled = await dialog.findElement(By.id("enabled"));
-            if (enabled === true) {
-                const isUnchecked = (await inEnabled.getAttribute("class")).includes("unchecked");
-                if (isUnchecked) {
-                    await inEnabled.click();
-                }
-            } else {
-                const isUnchecked = (await inEnabled.getAttribute("class")).includes("unchecked");
-                if (!isUnchecked) {
-                    await inEnabled.click();
-                }
-            }
-        }
-        if (requiresAuth !== undefined) {
-            const inAuth = await dialog.findElement(By.id("requiresAuth"));
-            if (requiresAuth === true) {
-                const isUnchecked = (await inAuth.getAttribute("class")).includes("unchecked");
-                if (isUnchecked) {
-                    await inAuth.click();
-                }
-            } else {
-                const isUnchecked = (await inAuth.getAttribute("class")).includes("unchecked");
-                if (!isUnchecked) {
-                    await inAuth.click();
                 }
             }
         }
@@ -1147,7 +1332,8 @@ export class Database {
         throw new Error(`Coult not find ${editorName} with type ${editorType}`);
     };
 
-    public static setDBConnectionCredentials = async (data: IDBConnection, timeout?: number): Promise<void> => {
+    public static setDBConnectionCredentials = async (data: interfaces.IDBConnection,
+        timeout?: number): Promise<void> => {
         await Database.setPassword(data);
         if (credentialHelperOk) {
             await Misc.setConfirmDialog(data, "no", timeout);

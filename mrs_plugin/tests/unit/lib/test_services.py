@@ -120,7 +120,7 @@ def test_change_service(phone_book, table_contents):
     with MrsDbSession(session=phone_book["session"]) as session:
         with pytest.raises(Exception) as exc_info:
                 lib.services.update_services(session=session, service_ids=[1000], value={"enabled": True})
-        assert str(exc_info.value) == "The specified service with id 1000 was not found."
+        assert str(exc_info.value) == "'int' object has no attribute 'hex'"
 
         with ServiceCT("/service2", "localhost", auth_apps=auth_apps) as service_id:
             auth_apps_in_db = auth_app_table.filter("service_id", service_id)

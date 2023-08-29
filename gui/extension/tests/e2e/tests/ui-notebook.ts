@@ -27,12 +27,10 @@ import {
     until, WebElement, ModalDialog,
 } from "vscode-extension-tester";
 import { browser, driver, Misc } from "../lib/misc";
-import {
-    Database, IConnBasicMySQL, IDBConnection,
-} from "../lib/db";
-
+import { Database } from "../lib/db";
 import * as constants from "../lib/constants";
-import { Conditions } from "../lib/conditions";
+import { Until } from "../lib/until";
+import * as interfaces from "../lib/interfaces";
 
 describe("NOTEBOOKS", () => {
 
@@ -61,20 +59,18 @@ describe("NOTEBOOKS", () => {
         throw new Error("Please define the environment variable SSL_ROOT_FOLDER");
     }
 
-    const globalBasicInfo: IConnBasicMySQL = {
-        hostname: String(process.env.DBHOSTNAME),
-        username: String(process.env.DBUSERNAME),
-        port: Number(process.env.DBPORT),
-        portX: Number(process.env.DBPORTX),
-        schema: "sakila",
-        password: String(process.env.DBPASSWORD),
-    };
-
-    const globalConn: IDBConnection = {
+    const globalConn: interfaces.IDBConnection = {
         dbType: "MySQL",
         caption: "conn",
         description: "Local connection",
-        basic: globalBasicInfo,
+        basic: {
+            hostname: String(process.env.DBHOSTNAME),
+            username: String(process.env.DBUSERNAME),
+            port: Number(process.env.DBPORT),
+            portX: Number(process.env.DBPORTX),
+            schema: "sakila",
+            password: String(process.env.DBPASSWORD),
+        },
     };
 
     before(async function () {
@@ -82,7 +78,7 @@ describe("NOTEBOOKS", () => {
         await Misc.loadDriver();
 
         try {
-            await driver.wait(Conditions.extensionIsReady(), constants.extensionReadyWait, "Extension was not ready");
+            await driver.wait(Until.extensionIsReady(), constants.extensionReadyWait, "Extension was not ready");
             await Misc.toggleBottomBar(false);
             const randomCaption = String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000));
             globalConn.caption += randomCaption;
@@ -306,7 +302,7 @@ describe("NOTEBOOKS", () => {
             const result = await Misc.execCmd("SELECT SCHEMA();");
             expect(result[0]).to.include("1 record retrieved");
             expect(await ((result[1] as WebElement).findElement(By.css(".tabulator-cell"))).getText())
-                .to.equals((globalConn.basic as IConnBasicMySQL).schema);
+                .to.equals((globalConn.basic as interfaces.IConnBasicMySQL).schema);
         });
 
         it("Connection toolbar buttons - Autocommit DB Changes", async () => {
@@ -729,6 +725,7 @@ describe("NOTEBOOKS", () => {
             await driver.switchTo().defaultContent();
             await new EditorView().closeAllEditors();
             await browser.openResources(process.cwd());
+            await Misc.dismissNotifications();
             let section: CustomTreeSection;
             await driver.wait(async () => {
                 section = await Misc.getSection("e2e");

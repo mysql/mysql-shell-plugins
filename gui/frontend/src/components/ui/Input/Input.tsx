@@ -39,6 +39,7 @@ export interface IInputProperties extends IComponentProperties {
     value?: string;
     textAlignment?: TextAlignment;
     multiLine?: boolean;
+    multiLineCount?: number;
     autoComplete?: boolean;
     spellCheck?: boolean;
 
@@ -68,7 +69,8 @@ export class Input extends ComponentBase<IInputProperties> {
 
         // Note: "placeholder", "autocomplete" and "spellCheck" are directly handled in HTML. "autoFocus" is
         // intentionally written in camel case to indicate this is *not* the HTML autofocus attribute.
-        this.addHandledProperties("password", "autoFocus", "value", "textAlignment", "multiLine", "innerRef");
+        this.addHandledProperties("password", "autoFocus", "value", "textAlignment", "multiLine", "multiLineCount",
+            "innerRef");
     }
 
     public componentDidMount(): void {
@@ -83,7 +85,7 @@ export class Input extends ComponentBase<IInputProperties> {
     }
 
     public render(): ComponentChild {
-        const { password, textAlignment, value, multiLine, spellCheck } = this.mergedProps;
+        const { password, textAlignment, value, multiLine, multiLineCount, spellCheck } = this.mergedProps;
 
         const className = this.getEffectiveClassNames(["input"]);
 
@@ -97,6 +99,7 @@ export class Input extends ComponentBase<IInputProperties> {
                     type={password ? "password" : "text"}
                     value={value}
                     spellCheck={spellCheck}
+                    rows={multiLineCount}
                     style={{ textAlign: textAlignment }}
                     {...this.unhandledProperties}
                 />

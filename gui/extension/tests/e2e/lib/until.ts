@@ -28,11 +28,11 @@ import {
     ActivityBar,
     By,
 } from "vscode-extension-tester";
-import * as constants from "../lib/constants";
-import { Misc, driver } from "../lib/misc";
+import * as constants from "./constants";
+import { Misc, driver } from "./misc";
 
 export let credentialHelperOk = true;
-export class Conditions {
+export class Until {
 
     public static extensionIsReady = (): Condition<boolean> => {
         return new Condition("Extension was not ready", async () => {
@@ -111,6 +111,7 @@ export class Conditions {
             credentialHelperOk = !(await Misc
                 .findOnMySQLShLog(`Failed to initialize the default helper "windows-credential"`));
             await new EditorView().closeAllEditors();
+            await Misc.dismissNotifications();
 
             return true;
         });

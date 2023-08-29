@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2023, Oracle and/or its affiliates.
- *
+ * 
  * This program is free software; you can redistribute it and/or modify it under the terms of the
  * GNU General Public License, version 2.0, as published by the Free Software Foundation.
  * 
@@ -65,9 +65,9 @@ itemsPerPageNumber: INT_NUMBER;
 serviceSchemaSelector:
 	ON_SYMBOL (SERVICE_SYMBOL serviceRequestPath)? SCHEMA_SYMBOL schemaRequestPath;
 
-/* CONFIGURE statements ======================================================== */
+/* CONFIGURE statements ===================================================== */
 
-/* - CONFIGURE REST METADATA ---------------------------------------------------- */
+/* - CONFIGURE REST METADATA ------------------------------------------------ */
 
 configureRestMetadataStatement:
 	CONFIGURE_SYMBOL REST_SYMBOL METADATA_SYMBOL restMetadataOptions?;
@@ -90,9 +90,9 @@ createRestServiceStatement:
 
 restServiceOptions: (
 		enabledDisabled
-		| restProtocol
+/*		| restProtocol -- not enabled yet */
 		| restAuthentication
-		| userManagementSchema
+/*		| userManagementSchema -- not enabled yet */
 		| jsonOptions
 		| comments
 	)+;
@@ -471,12 +471,8 @@ graphGlPair:
 		| AT_NOFILTERING_SYMBOL
 		| AT_ROWOWNERSHIP_SYMBOL
 		| AT_UNNEST_SYMBOL
-		| (
-			AT_REDUCETO_SYMBOL OPEN_PAR_SYMBOL graphGlReduceToValue CLOSE_PAR_SYMBOL
-		)
-		| (
-			AT_DATATYPE_SYMBOL OPEN_PAR_SYMBOL graphGlDatatypeValue CLOSE_PAR_SYMBOL
-		)
+		| AT_REDUCETO_SYMBOL OPEN_PAR_SYMBOL graphGlReduceToValue CLOSE_PAR_SYMBOL
+		| AT_DATATYPE_SYMBOL OPEN_PAR_SYMBOL graphGlDatatypeValue CLOSE_PAR_SYMBOL
 		| graphGlCrudOptions
 	)? graphGlObj?;
 
