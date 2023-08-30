@@ -117,14 +117,14 @@ export const deleteRouter = "Delete Router...";
 export const killRouters = "Kill Local MySQL Router Instances";
 export const editRESTService = "Edit REST Service...";
 export const setAsCurrentREST = "Set as Current REST Service";
-export const loadRESTSchemaFromJSON = "Load REST Schema from JSON File...";
+export const loadRESTSchemaFromJSON = "Load REST Schema From JSON File...";
 export const exportRESTSDK = "Export REST Service SDK Files ...";
 export const addNewAuthApp = "Add New Authentication App";
 export const deleteRESTService = "Delete REST Service...";
 export const mrsServiceDocs = "MRS Service Documentation";
 export const editRESTSchema = "Edit REST Schema...";
 export const dumpRESTSchemaToJSON = "Dump REST Schema To JSON File...";
-export const loadRESTObkFromJSON = "Load REST Object From JSON File...";
+export const loadRESTObjFromJSON = "Load REST Object From JSON File...";
 export const deleteRESTSchema = "Delete REST Schema...";
 export const editRESTObj = "Edit REST Object";
 export const copyRESTObjReqPath = "Copy REST Object Request Path";
@@ -158,6 +158,15 @@ export const deleteAuthenticationApp = "Delete Authentication App";
 export const addRESTUser = "Add User";
 export const editRESTUser = "Edit User";
 export const deleteRESTUser = "Delete User";
+
+export const checkNewTabAndWebView = "Check New Tab and WebView";
+export const checkNewTab = "Check New Tab";
+export const checkNotif = "Check Notification";
+export const checkInput = "Check Input";
+export const checkWebViewDialog = "Check Dialog inside a webview";
+export const checkDialog = "Check Dialog";
+export const checkWebView = "Check WebView";
+export const checkTerminal = "Check terminal";
 
 export const dbMainCtxMenu = new Map([
     [restartInternalShell, 1],
@@ -227,7 +236,7 @@ export const restServiceCtxMenu = new Map([
 export const restSchemaCtxMenu = new Map([
     [editRESTSchema, 1],
     [dumpRESTSchemaToJSON, 2],
-    [loadRESTObkFromJSON, 3],
+    [loadRESTObjFromJSON, 3],
     [deleteRESTSchema, 4],
 ]);
 

@@ -22,7 +22,7 @@
  */
 import { WebElement, By, until, Condition } from "vscode-extension-tester";
 import { driver } from "./misc";
-import * as constants from "../lib/constants";
+import * as constants from "./constants";
 
 export class Shell {
 
