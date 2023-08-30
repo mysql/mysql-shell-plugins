@@ -20,22 +20,19 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
+import fs from "fs/promises";
+import { expect } from "chai";
 import {
     ActivityBar, BottomBarPanel, By, Condition, CustomTreeSection, EditorView, InputBox, Key, TreeItem,
     until, WebElement, ModalDialog,
 } from "vscode-extension-tester";
-
-import { expect } from "chai";
-import fs from "fs/promises";
-import { after, afterEach, before } from "mocha";
-
 import { browser, driver, Misc } from "../lib/misc";
-
 import {
     Database, IConnBasicMySQL, IDBConnection,
 } from "../lib/db";
 
 import * as constants from "../lib/constants";
+import { Conditions } from "../lib/conditions";
 
 describe("NOTEBOOKS", () => {
 
@@ -85,7 +82,7 @@ describe("NOTEBOOKS", () => {
         await Misc.loadDriver();
 
         try {
-            await driver.wait(Misc.extensionIsReady(), constants.extensionReadyWait, "Extension was not ready");
+            await driver.wait(Conditions.extensionIsReady(), constants.extensionReadyWait, "Extension was not ready");
             await Misc.toggleBottomBar(false);
             const randomCaption = String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000));
             globalConn.caption += randomCaption;
@@ -94,7 +91,8 @@ describe("NOTEBOOKS", () => {
             const edView = new EditorView();
             await edView.closeAllEditors();
             await new BottomBarPanel().toggle(false);
-            await Misc.getTreeElement(constants.openEditorsTreeSection, constants.dbConnectionsLabel);
+            expect(await Misc.existsTreeElement(constants.openEditorsTreeSection,
+                constants.dbConnectionsLabel)).to.be.true;
         } catch (e) {
             await Misc.processFailure(this);
             throw e;
@@ -603,9 +601,7 @@ describe("NOTEBOOKS", () => {
         it("Add SQL Script", async () => {
 
             const treeGlobalConn = await Misc.getTreeElement(constants.openEditorsTreeSection, globalConn.caption);
-            await Misc.openContexMenuItem(treeGlobalConn, constants.newMySQLScript);
-            expect(await (await new EditorView().getActiveTab()).getTitle()).equals(globalConn.caption);
-            await Misc.switchToWebView();
+            await Misc.openContextMenuItem(treeGlobalConn, constants.newMySQLScript, constants.checkNewTabAndWebView);
             await driver.wait(async () => {
                 return (await Database.getCurrentEditor()).match(/Untitled-(\d+)/);
             }, constants.explicitWait, "Current editor is not Untitled-(*)");
@@ -620,9 +616,7 @@ describe("NOTEBOOKS", () => {
 
         it("Add Typescript", async () => {
             const treeGlobalConn = await Misc.getTreeElement(constants.openEditorsTreeSection, globalConn.caption);
-            await Misc.openContexMenuItem(treeGlobalConn, constants.newTS);
-            expect(await (await new EditorView().getActiveTab()).getTitle()).equals(globalConn.caption);
-            await Misc.switchToWebView();
+            await Misc.openContextMenuItem(treeGlobalConn, constants.newTS, constants.checkNewTabAndWebView);
             await driver.wait(async () => {
                 return (await Database.getCurrentEditor()).match(/Untitled-(\d+)/);
             }, constants.explicitWait, "Current editor is not Untitled-(*)");
@@ -638,9 +632,7 @@ describe("NOTEBOOKS", () => {
         it("Add Javascript", async () => {
 
             const treeGlobalConn = await Misc.getTreeElement(constants.openEditorsTreeSection, globalConn.caption);
-            await Misc.openContexMenuItem(treeGlobalConn, constants.newJS);
-            expect(await (await new EditorView().getActiveTab()).getTitle()).equals(globalConn.caption);
-            await Misc.switchToWebView();
+            await Misc.openContextMenuItem(treeGlobalConn, constants.newJS, constants.checkNewTabAndWebView);
             await driver.wait(async () => {
                 return (await Database.getCurrentEditor()).match(/Untitled-(\d+)/);
             }, constants.explicitWait, "Current editor is not Untitled-(*)");
@@ -772,7 +764,7 @@ describe("NOTEBOOKS", () => {
                 return section !== undefined;
             }, constants.explicitWait, "E2E section was not found");
             const file = await section.findItem("test.mysql-notebook", 3);
-            await Misc.openContexMenuItem(file, constants.openNotebookWithConn);
+            await Misc.openContextMenuItem(file, constants.openNotebookWithConn, constants.checkInput);
             const input = await InputBox.create();
             await (await input.findQuickPick(globalConn.caption)).select();
             await new EditorView().openEditor("test.mysql-notebook");
@@ -838,17 +830,15 @@ describe("NOTEBOOKS", () => {
             const file = await section.findItem("test.mysql-notebook", 3);
             await file.click();
             await new EditorView().openEditor("test.mysql-notebook");
-            await Misc.verifyNotification("Please create a MySQL Database Connection first.");
-            await Misc.dismissNotifications();
+            await Misc.getNotification("Please create a MySQL Database Connection first.");
             await Misc.switchToWebView();
             expect(await driver.findElement(By.css("h2")).getText()).to.equals("No connection selected");
 
             await driver.switchTo().defaultContent();
             await new EditorView().closeAllEditors();
 
-            await Misc.openContexMenuItem(file, constants.openNotebookWithConn);
-            await Misc.verifyNotification("Please create a MySQL Database Connection first.");
-            await Misc.dismissNotifications();
+            await Misc.openContextMenuItem(file, constants.openNotebookWithConn, constants.checkNotif);
+            await Misc.getNotification("Please create a MySQL Database Connection first.");
         });
 
     });

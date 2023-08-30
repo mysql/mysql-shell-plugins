@@ -32,8 +32,9 @@ import {
 import { expect } from "chai";
 import { basename } from "path";
 
-import { driver, Misc, credentialHelperOk } from "./misc";
-import * as constants from "../lib/constants";
+import { driver, Misc } from "./misc";
+import { credentialHelperOk } from "./conditions";
+import * as constants from "./constants";
 
 export interface IConnBasicMySQL {
     hostname?: string;
@@ -608,7 +609,11 @@ export class Database {
             }
         }
 
-        await dialog.findElement(By.id("ok")).click();
+        await driver.wait(async () => {
+            await dialog.findElement(By.id("ok")).click();
+
+            return (await Misc.existsWebViewDialog()) === false;
+        }, constants.explicitWait * 2, "The MRS Service dialog was not closed");
     };
 
     public static setRestSchema = async (
@@ -690,7 +695,12 @@ export class Database {
             await inputComments.sendKeys(comments);
         }
 
-        await dialog.findElement(By.id("ok")).click();
+        await driver.wait(async () => {
+            await dialog.findElement(By.id("ok")).click();
+
+            return (await Misc.existsWebViewDialog()) === false;
+        }, constants.explicitWait * 2, "The REST Schema Dialog was not closed");
+
     };
 
     public static getCurrentEditorType = async (): Promise<string> => {
@@ -706,10 +716,9 @@ export class Database {
 
             return span.getAttribute("style");
         }
-
     };
 
-    public static setAuthenticationApp = async (
+    public static setRestAuthenticationApp = async (
         vendor?: string,
         name?: string,
         description?: string,
@@ -805,11 +814,15 @@ export class Database {
             await dialog.click();
         }
 
-        await dialog.findElement(By.id("ok")).click();
+        await driver.wait(async () => {
+            await dialog.findElement(By.id("ok")).click();
+
+            return (await Misc.existsWebViewDialog()) === false;
+        }, constants.explicitWait * 2, "The Authentication App Dialog was not closed");
 
     };
 
-    public static setUser = async (
+    public static setRestUser = async (
         name: string,
         password: string,
         authApp?: string,
@@ -894,7 +907,11 @@ export class Database {
             await mappedUserIdInput.sendKeys(mappedUserId);
         }
 
-        await dialog.findElement(By.id("ok")).click();
+        await driver.wait(async () => {
+            await dialog.findElement(By.id("ok")).click();
+
+            return (await Misc.existsWebViewDialog()) === false;
+        }, constants.explicitWait * 2, "The MRS User dialog was not closed");
 
     };
 
@@ -982,7 +999,11 @@ export class Database {
             }
         }
 
-        await dialog.findElement(By.id("ok")).click();
+        await driver.wait(async () => {
+            await dialog.findElement(By.id("ok")).click();
+
+            return (await Misc.existsWebViewDialog()) === false;
+        }, constants.explicitWait * 2, "The MRS Object dialog was not closed");
     };
 
     public static getCurrentEditor = async (): Promise<string> => {

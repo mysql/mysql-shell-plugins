@@ -55,7 +55,7 @@ write-host "DONE"
 npm run e2e-tests-get-vscode -- -s "test-resources" -c $vscodeVersion
 npm run e2e-tests-get-chromedriver -- -s "test-resources" -c $vscodeVersion
 
-# CREATE .OCI Directory
+# CREATE OCI Directory
 $ociPath = Join-Path $env:WORKSPACE "oci"
 if (!(Test-Path -Path $ociPath)){
     write-host "Creating $ociPath folder..." "-NoNewLine"
