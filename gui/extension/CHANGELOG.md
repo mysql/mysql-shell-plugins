@@ -5,6 +5,7 @@
 ### Additions
 
 - WL#15880 Proper handling of NULL column values in the MRS TypeScript SDK
+- WL#15912 Add MRS SDK types for spatial columns
 
 ### Fixes
 

@@ -9,6 +9,7 @@ __Chapter Overview__
 - [Introduction to the MRS SDK](#introduction-to-the-mrs-sdk)
 - [Querying Data Across Tables](#querying-data-across-tables)
 - [Checking for NULL Column Values](#checking-for-null-column-values)
+- [Working with Spatial Data Types](#working-with-spatial-data-types)
 - [TypeScript Client API Reference](#typescript-client-api-reference)
 
 ---
@@ -21,12 +22,14 @@ Please also see
 
 ---
 
-!include sections/SDK.md
+!include sections/sdk/Introduction.md
 
-!include sections/ClientAPITypeScript.md
+!include sections/sdk/QueryingDataAcrossTables.md
 
-!include sections/QueryingDataAcrossTables.md
+!include sections/sdk/CheckingForNullColumnValues.md
 
-!include sections/CheckingForNullColumnValues.md
+!include sections/sdk/WorkingWithSpatialDataTypes.md
+
+!include sections/sdk/ClientAPITypeScript.md
 
 Copyright (c) 2022, 2023, Oracle and/or its affiliates.
