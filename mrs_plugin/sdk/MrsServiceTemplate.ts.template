@@ -13,13 +13,20 @@
 
 // --- importLoopStart
 import {
+    Geometry,
+    GeometryCollection,
     IMrsBaseObject,
     IMrsFetchData,
+    JsonValue,
+    LineString,
     MaybeNull,
     MrsBaseService,
     MrsBaseSchema,
-    JsonObject,
-    JsonValue,
+    MultiLineString,
+    MultiPoint,
+    MultiPolygon,
+    Point,
+    Polygon,
     // --- importReadOnlyStart
     IFindFirstOptions,
     IFindManyOptions,

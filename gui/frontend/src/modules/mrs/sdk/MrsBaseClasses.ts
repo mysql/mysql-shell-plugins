@@ -548,6 +548,88 @@ export type JsonValue = JsonPrimitive | JsonObject | JsonArray;
  */
 export type MaybeNull<T> = T | null;
 
+/**
+ * A GEOMETRY column can store geometry values of any single-value spatial type.
+ */
+export type Geometry = Point | LineString | Polygon;
+
+/**
+ * A GEOMETRYCOLLECTION column can store a collection of objects of the same spatial type.
+ */
+export type GeometryCollection = MultiPoint | MultiLineString | MultiPolygon;
+
+/**
+ * In Well-Known Text (WKT) format the type name can be UPPERCASE or PascalCase. In this case, the PascalCase version is
+ * determined by the non-generic type.
+ */
+type WellKnownText<T extends string> = T | Uppercase<T>;
+
+/**
+ * A position represents a coordinate in the grid.
+ */
+type Position = [number, number];
+
+/**
+ * A Point consists of a single position in the grid.
+ */
+export type Point = WellKnownText<`Point(${number} ${number})`> | {
+    type: "Point";
+    coordinates: Position;
+};
+
+/**
+ * A MultiPoint consists of a list of positions in the grid.
+ */
+export type MultiPoint = WellKnownText<`MultiPoint(${string})`> | {
+    type: "MultiPoint";
+    coordinates: Position[];
+};
+
+/**
+ * A LineString consists of two or more positions in the grid.
+ */
+export type LineString = WellKnownText<`LineString(${string})`> | {
+    type: "LineString";
+    coordinates: [Position, Position, ...Position[]];
+};
+
+/**
+ * A MultiLineString consists of a list where each element consists of two or more positions in the grid.
+ */
+export type MultiLineString = WellKnownText<`MultiLineString(${string})`> | {
+    type: "MultiLineString";
+    coordinates: Array<[Position, Position, ...Position[]]>;
+};
+
+/**
+ * A linear ring is a closed LineString with four or more positions. The first and last positions are equivalent, and
+ * they MUST contain identical values; their representation SHOULD also be identical. A linear ring is the boundary of
+ * a surface or the boundary of a hole in a surface. A linear ring MUST follow the right-hand rule with respect to the
+ * area it bounds, i.e., exterior rings are counterclockwise, and holes are clockwise.
+ * Apart from the minimum number of positions, the remaining constraints are not feasible to enforce via a TypeScript
+ * type definition.
+ */
+type LinearRing = [Position, Position, Position, Position, ...Position[]];
+
+/**
+ * A Polygon consists of a list of linear rings. For Polygons with more than one of these rings, the first MUST be the
+ * exterior ring, and any others MUST be interior rings. The exterior ring bounds the surface, and the interior rings
+ * (if present) bound holes within the surface. This constraint is not feasible to enforce via a TypeScript type
+ * definition.
+ */
+export type Polygon = WellKnownText<`Polygon(${string})`> | {
+    type: "Polygon";
+    coordinates: LinearRing[];
+};
+
+/**
+ * A MultiPolygon consists of a list where each element is itself a list of linear rings.
+ */
+export type MultiPolygon = WellKnownText<`MultiPolygon(${string})`> | {
+    type: "MultiPolygon";
+    coordinates: LinearRing[][];
+};
+
 // A filter can apply to different kind of operations - find*(), delete*() and update*().
 // Each operation should determine whether it is required or not.
 export interface IFilterOptions<Filterable> {

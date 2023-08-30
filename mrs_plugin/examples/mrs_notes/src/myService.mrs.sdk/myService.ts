@@ -16,6 +16,7 @@ import {
     MaybeNull,
     MrsBaseService,
     MrsBaseSchema,
+    JsonObject,
     JsonValue,
     IFindFirstOptions,
     IFindManyOptions,

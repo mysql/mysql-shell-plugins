@@ -24,7 +24,11 @@
 import { describe, expectTypeOf, it } from "vitest";
 import type {
     DataFilter, BooleanFieldMapSelect, ColumnOrder, FieldNameSelect, IFindFirstOptions, IFindManyOptions,
-    IFindUniqueOptions, IFindAllOptions, IMrsResultList, MaybeNull,
+    IFindUniqueOptions, IFindAllOptions, IMrsResultList, MaybeNull, Point, MultiPoint, LineString, MultiLineString,
+    Polygon,
+    MultiPolygon,
+    Geometry,
+    GeometryCollection,
 } from "../MrsBaseClasses";
 
 describe("MRS SDK base types", () => {
@@ -180,6 +184,282 @@ describe("MRS SDK base types", () => {
         it("accepts a null value", () => {
             const value: MaybeNull<number> = null;
             expectTypeOf(value).toBeNull();
+        });
+    });
+
+    describe("Point", () => {
+        it("accepts a Well-Known Text string value", () => {
+            const point: Point = "Point(15 20)";
+            expectTypeOf(point).toBeString();
+        });
+
+        it("accepts a GeoJSON object value", () => {
+            const point: Point = { type: "Point", coordinates: [15, 20] };
+            expectTypeOf(point).toBeObject();
+            expectTypeOf(point).toHaveProperty("type");
+            expectTypeOf(point).toHaveProperty("coordinates");
+            expectTypeOf(point.type).toBeString();
+            expectTypeOf(point.coordinates).toBeArray();
+            point.coordinates.forEach((coordinate) => {
+                expectTypeOf(coordinate).toBeNumber();
+            });
+        });
+    });
+
+    describe("MultiPoint", () => {
+        it("accepts a Well-Known Text string value", () => {
+            const multiPoint: MultiPoint = "MultiPoint(0 0, 20 20, 60 60)";
+            expectTypeOf(multiPoint).toBeString();
+        });
+
+        it("accepts a GeoJSON object value", () => {
+            const multiPoint: MultiPoint = { type: "MultiPoint", coordinates: [[0, 0], [20, 20], [60, 60]] };
+            expectTypeOf(multiPoint).toBeObject();
+            expectTypeOf(multiPoint).toHaveProperty("type");
+            expectTypeOf(multiPoint).toHaveProperty("coordinates");
+            expectTypeOf(multiPoint.type).toBeString();
+            expectTypeOf(multiPoint.coordinates).toBeArray();
+            multiPoint.coordinates.forEach((point) => {
+                expectTypeOf(point).toBeArray();
+                point.forEach((coordinate) => {
+                    expectTypeOf(coordinate).toBeNumber();
+                });
+            });
+        });
+    });
+
+    describe("LineString", () => {
+        it("accepts a Well-Known Text string value", () => {
+            let lineString: LineString = "LINESTRING(0 0, 10 10, 20 25, 50 60)";
+            expectTypeOf(lineString).toBeString();
+
+            lineString = "LineString(0 0, 10 10, 20 25, 50 60)";
+            expectTypeOf(lineString).toBeString();
+
+            // @ts-expect-error
+            lineString = "linestring(0 0, 10 10, 20 25, 50 60)";
+        });
+
+        it("accepts a GeoJSON object value", () => {
+            const lineString: LineString = { type: "LineString", coordinates: [[0, 0], [10, 10], [20, 25], [50, 60]] };
+            expectTypeOf(lineString).toBeObject();
+            expectTypeOf(lineString).toHaveProperty("type");
+            expectTypeOf(lineString).toHaveProperty("coordinates");
+            expectTypeOf(lineString.type).toBeString();
+            expectTypeOf(lineString.coordinates).toBeArray();
+            lineString.coordinates.forEach((point) => {
+                expectTypeOf(point).toBeArray();
+                point.forEach((coordinate) => {
+                    expectTypeOf(coordinate).toBeNumber();
+                });
+            });
+        });
+    });
+
+    describe("MultiLineString", () => {
+        it("accepts a Well-Known Text string value", () => {
+            let lineString: MultiLineString = "MULTILINESTRING((10 10, 20 20), (15 15, 30 15))";
+            expectTypeOf(lineString).toBeString();
+
+            lineString = "MultiLineString((10 10, 20 20), (15 15, 30 15))";
+            expectTypeOf(lineString).toBeString();
+
+            // @ts-expect-error
+            lineString = "multilinestring((10 10, 20 20), (15 15, 30 15))";
+        });
+
+        it("accepts a GeoJSON object value", () => {
+            const lineString: MultiLineString = {
+                type: "MultiLineString",
+                coordinates: [[[10, 10], [20, 20]], [[15, 15], [30, 15]]],
+            };
+
+            expectTypeOf(lineString).toBeObject();
+            expectTypeOf(lineString).toHaveProperty("type");
+            expectTypeOf(lineString).toHaveProperty("coordinates");
+            expectTypeOf(lineString.type).toBeString();
+            expectTypeOf(lineString.coordinates).toBeArray();
+            lineString.coordinates.forEach((linestring) => {
+                expectTypeOf(linestring).toBeArray();
+                linestring.forEach((point) => {
+                    expectTypeOf(point).toBeArray();
+                    point.forEach((coordinate) => {
+                        expectTypeOf(coordinate).toBeNumber();
+                    });
+                });
+            });
+        });
+    });
+
+    describe("Polygon", () => {
+        it("accepts a Well-Known Text string value", () => {
+            let polygon: Polygon = "POLYGON((0 0, 10 0, 10 10, 0 10, 0 0), (5 5, 7 5, 7 7, 5 7, 5 5))";
+            expectTypeOf(polygon).toBeString();
+
+            polygon = "Polygon((0 0, 10 0, 10 10, 0 10, 0 0), (5 5, 7 5, 7 7, 5 7, 5 5))";
+            expectTypeOf(polygon).toBeString();
+
+            // @ts-expect-error
+            polygon = "polygon((0 0, 10 0, 10 10, 0 10, 0 0), (5 5, 7 5, 7 7, 5 7, 5 5))";
+        });
+
+        it("accepts a GeoJSON object value", () => {
+            const polygon: Polygon = {
+                type: "Polygon",
+                coordinates: [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]], [[5, 5], [7, 5], [7, 7], [5, 7], [5, 5]]],
+            };
+
+            expectTypeOf(polygon).toBeObject();
+            expectTypeOf(polygon).toHaveProperty("type");
+            expectTypeOf(polygon).toHaveProperty("coordinates");
+            expectTypeOf(polygon.type).toBeString();
+            expectTypeOf(polygon.coordinates).toBeArray();
+            polygon.coordinates.forEach((linearRing) => {
+                expectTypeOf(linearRing).toBeArray();
+                linearRing.forEach((point) => {
+                    expectTypeOf(point).toBeArray();
+                    point.forEach((coordinate) => {
+                        expectTypeOf(coordinate).toBeNumber();
+                    });
+                });
+            });
+        });
+    });
+
+    describe("MultiPolygon", () => {
+        it("accepts a Well-Known Text string value", () => {
+            let multiPolygon: MultiPolygon =
+                "MULTIPOLYGON(((0 0, 10 0, 10 10, 0 10, 0 0)),((5 5, 7 5, 7 7, 5 7, 5 5)))";
+            expectTypeOf(multiPolygon).toBeString();
+
+            multiPolygon = "MultiPolygon(((0 0, 10 0, 10 10, 0 10, 0 0)),((5 5, 7 5, 7 7, 5 7, 5 5)))";
+            expectTypeOf(multiPolygon).toBeString();
+
+            // @ts-expect-error
+            multiPolygon = "multipolygon(((0 0, 10 0, 10 10, 0 10, 0 0)),((5 5, 7 5, 7 7, 5 7, 5 5)))";
+            // @ts-expect-error
+            multiPolygon = "Multipolygon(((0 0, 10 0, 10 10, 0 10, 0 0)),((5 5, 7 5, 7 7, 5 7, 5 5)))";
+        });
+
+        it("accepts a GeoJSON object value", () => {
+            const multiPolygon: MultiPolygon = {
+                type: "MultiPolygon",
+                coordinates: [[[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]],
+                    [[[5, 5], [7, 5], [7, 7], [5, 7], [5, 5]]]],
+            };
+
+            expectTypeOf(multiPolygon).toBeObject();
+            expectTypeOf(multiPolygon).toHaveProperty("type");
+            expectTypeOf(multiPolygon).toHaveProperty("coordinates");
+            expectTypeOf(multiPolygon.type).toBeString();
+            expectTypeOf(multiPolygon.coordinates).toBeArray();
+            multiPolygon.coordinates.forEach((polygon) => {
+                expectTypeOf(polygon).toBeArray();
+                polygon.forEach((linearRing) => {
+                    expectTypeOf(linearRing).toBeArray();
+                    linearRing.forEach((point) => {
+                        expectTypeOf(point).toBeArray();
+                        point.forEach((coordinate) => {
+                            expectTypeOf(coordinate).toBeNumber();
+                        });
+                    });
+                });
+            });
+        });
+    });
+
+    describe("Geometry", () => {
+        it("accepts a Well-Known Text string representing an object of a single-value spatial datatype", () => {
+            let geometry: Geometry = "Point(15 20)";
+            expectTypeOf(geometry).toEqualTypeOf<Point>;
+
+            geometry = "LineString(0 0, 10 10, 20 25, 50 60)";
+            expectTypeOf(geometry).toEqualTypeOf<LineString>;
+
+            geometry = "Polygon((0 0, 10 0, 10 10, 0 10, 0 0), (5 5, 7 5, 7 7, 5 7, 5 5))";
+            expectTypeOf(geometry).toEqualTypeOf<Polygon>;
+
+            // @ts-expect-error
+            geometry = "MultiPoint(0 0, 20 20, 60 60)";
+            // @ts-expect-error
+            geometry = "MultiLineString((10 10, 20 20), (15 15, 30 15))";
+            // @ts-expect-error
+            geometry = "MultiPolygon(((0 0, 10 0, 10 10, 0 10, 0 0)),((5 5, 7 5, 7 7, 5 7, 5 5)))";
+        });
+
+        it("accepts a GeoJSON object representing an object of a single-value spatial datatype", () => {
+            let geometry: Geometry = { type: "Point", coordinates: [15, 20] };
+            expectTypeOf(geometry).toEqualTypeOf<Point>;
+
+            geometry = { type: "LineString", coordinates: [[0, 0], [10, 10], [20, 25], [50, 60]] };
+            expectTypeOf(geometry).toEqualTypeOf<LineString>;
+
+            geometry = {
+                type: "Polygon",
+                coordinates: [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]], [[5, 5], [7, 5], [7, 7], [5, 7], [5, 5]]],
+            };
+            expectTypeOf(geometry).toEqualTypeOf<Polygon>;
+
+            // @ts-expect-error
+            geometry = { type: "MultiPoint", coordinates: [[0, 0], [20, 20], [60, 60]] };
+            // @ts-expect-error
+            geometry = { type: "MultiLineString", coordinates: [[[10, 10], [20, 20]], [[15, 15], [30, 15]]] };
+            geometry = {
+                // @ts-expect-error
+                type: "MultiPolygon",
+                // @ts-expect-error
+                coordinates: [[[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]],
+                // @ts-expect-error
+                    [[[5, 5], [7, 5], [7, 7], [5, 7], [5, 5]]]],
+            };
+        });
+    });
+
+    describe("GeometryCollection", () => {
+        it("accepts a Well-Known Text string representing a collection of objects of a spatial datatype", () => {
+            let geometryCollection: GeometryCollection = "MultiPoint(0 0, 20 20, 60 60)";
+            expectTypeOf(geometryCollection).toEqualTypeOf<MultiPoint>;
+
+            geometryCollection = "MultiLineString((10 10, 20 20), (15 15, 30 15))";
+            expectTypeOf(geometryCollection).toEqualTypeOf<MultiLineString>;
+
+            geometryCollection = "MultiPolygon(((0 0, 10 0, 10 10, 0 10, 0 0)),((5 5, 7 5, 7 7, 5 7, 5 5)))";
+            expectTypeOf(geometryCollection).toEqualTypeOf<MultiPolygon>;
+
+            // @ts-expect-error
+            geometryCollection = "Point(15 20)";
+            // @ts-expect-error
+            geometryCollection = "LineString(0 0, 10 10, 20 25, 50 60)";
+            // @ts-expect-error
+            geometryCollection = "Polygon((0 0, 10 0, 10 10, 0 10, 0 0), (5 5, 7 5, 7 7, 5 7, 5 5))";
+        });
+
+        it("accepts a GeoJSON object representing a collection of objects of a spatial datatype", () => {
+            let geometryCollection: GeometryCollection = {
+                type: "MultiPoint",
+                coordinates: [[0, 0], [20, 20], [60, 60]],
+            };
+            expectTypeOf(geometryCollection).toEqualTypeOf<MultiPoint>;
+
+            geometryCollection = { type: "MultiLineString", coordinates: [[[10, 10], [20, 20]], [[15, 15], [30, 15]]] };
+            expectTypeOf(geometryCollection).toEqualTypeOf<MultiLineString>;
+
+            geometryCollection = {
+                type: "MultiPolygon",
+                coordinates: [[[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]],
+                    [[[5, 5], [7, 5], [7, 7], [5, 7], [5, 5]]]],
+            };
+            expectTypeOf(geometryCollection).toEqualTypeOf<MultiPolygon>;
+
+            // @ts-expect-error
+            geometryCollection = { type: "Point", coordinates: [15, 20] };
+            // @ts-expect-error
+            geometryCollection = { type: "LineString", coordinates: [[0, 0], [10, 10], [20, 25], [50, 60]] };
+            geometryCollection = {
+                // @ts-expect-error
+                type: "Polygon",
+                coordinates: [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]], [[5, 5], [7, 5], [7, 7], [5, 7], [5, 5]]],
+            };
         });
     });
 });
