@@ -176,16 +176,93 @@ def test_get_datatype_mapping():
     type = get_datatype_mapping(**args)
     assert type == "MaybeNull<JsonValue>"
 
-    args["db_datatype"] = "geometry"
+    args["db_datatype"] = "GEOMETRY"
     args["db_not_null"] = True
 
     type = get_datatype_mapping(**args)
-    assert type == "IMrsFetchData"
+    assert type == "JsonObject"
 
     args["db_not_null"] = False
 
     type = get_datatype_mapping(**args)
-    assert type == "MaybeNull<IMrsFetchData>"
+    assert type == "MaybeNull<JsonObject>"
+
+    args["db_datatype"] = "GEOMETRYCOLLECTION"
+    args["db_not_null"] = True
+
+    type = get_datatype_mapping(**args)
+    assert type == "JsonObject"
+
+    args["db_not_null"] = False
+
+    type = get_datatype_mapping(**args)
+    assert type == "MaybeNull<JsonObject>"
+
+    args["db_datatype"] = "POINT"
+    args["db_not_null"] = True
+
+    type = get_datatype_mapping(**args)
+    assert type == "JsonObject"
+
+    args["db_not_null"] = False
+
+    type = get_datatype_mapping(**args)
+    assert type == "MaybeNull<JsonObject>"
+
+    args["db_datatype"] = "MULTIPOINT"
+    args["db_not_null"] = True
+
+    type = get_datatype_mapping(**args)
+    assert type == "JsonObject"
+
+    args["db_not_null"] = False
+
+    type = get_datatype_mapping(**args)
+    assert type == "MaybeNull<JsonObject>"
+
+    args["db_datatype"] = "LINESTRING"
+    args["db_not_null"] = True
+
+    type = get_datatype_mapping(**args)
+    assert type == "JsonObject"
+
+    args["db_not_null"] = False
+
+    type = get_datatype_mapping(**args)
+    assert type == "MaybeNull<JsonObject>"
+
+    args["db_datatype"] = "MULTILINESTRING"
+    args["db_not_null"] = True
+
+    type = get_datatype_mapping(**args)
+    assert type == "JsonObject"
+
+    args["db_not_null"] = False
+
+    type = get_datatype_mapping(**args)
+    assert type == "MaybeNull<JsonObject>"
+
+    args["db_datatype"] = "POLYGON"
+    args["db_not_null"] = True
+
+    type = get_datatype_mapping(**args)
+    assert type == "JsonObject"
+
+    args["db_not_null"] = False
+
+    type = get_datatype_mapping(**args)
+    assert type == "MaybeNull<JsonObject>"
+
+    args["db_datatype"] = "MULTIPOLYGON"
+    args["db_not_null"] = True
+
+    type = get_datatype_mapping(**args)
+    assert type == "JsonObject"
+
+    args["db_not_null"] = False
+
+    type = get_datatype_mapping(**args)
+    assert type == "MaybeNull<JsonObject>"
 
     args["db_datatype"] = "varchar"
     args["db_not_null"] = True

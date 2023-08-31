@@ -523,7 +523,7 @@ type Primitive =
 /**
  * A JSON object contains keys which are strings and values in a specific range of primitives.
  */
-type JsonObject = { [Key in string]: JsonValue } & { [Key in string]?: JsonValue | undefined };
+export type JsonObject = { [Key in string]: JsonValue } & { [Key in string]?: JsonValue | undefined };
 
 /**
  * A JSON array is just a list of valid JSON values.
