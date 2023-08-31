@@ -374,8 +374,17 @@ def get_datatype_mapping(db_datatype, db_not_null, sdk_language):
             datatype = "number" if db_not_null else "MaybeNull<number>"
         elif (db_datatype.startswith("json")):
             datatype = "JsonValue" if db_not_null else "MaybeNull<JsonValue>"
-        elif (db_datatype.startswith("geometry")):
-            datatype = "IMrsFetchData" if db_not_null else "MaybeNull<IMrsFetchData>"
+        elif (db_datatype.startswith("geometry") or
+              db_datatype.startswith("geometrycollection") or
+              db_datatype.startswith("point") or
+              db_datatype.startswith("multipoint") or
+              db_datatype.startswith("linestring") or
+              db_datatype.startswith("multilinestring") or
+              db_datatype.startswith("polygon") or
+              db_datatype.startswith("multipolygon")):
+            # The router only understands spatial columns specified in GeoJSON, which means that, for now, they can be
+            # mapped to a generic JSON object.
+            datatype = "JsonObject" if db_not_null else "MaybeNull<JsonObject>"
         else:
             datatype = "string" if db_not_null else "MaybeNull<string>"
 

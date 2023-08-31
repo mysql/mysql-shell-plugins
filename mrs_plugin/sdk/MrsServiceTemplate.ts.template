@@ -18,6 +18,7 @@ import {
     MaybeNull,
     MrsBaseService,
     MrsBaseSchema,
+    JsonObject,
     JsonValue,
     // --- importReadOnlyStart
     IFindFirstOptions,
