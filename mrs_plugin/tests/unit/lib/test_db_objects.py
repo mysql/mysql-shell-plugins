@@ -119,33 +119,6 @@ def test_set_crud_operations(phone_book, mobile_phone_book, table_contents):
     with lib.core.MrsDbSession(session=phone_book["session"]) as session:
         db_object_table = table_contents("db_object")
 
-        with pytest.raises(ValueError) as exc_info:
-            lib.db_objects.set_crud_operations(session=session, db_object_id=phone_book["db_object_id"], crud_operations=None,
-                crud_operation_format="FEED")
-        assert str(exc_info.value) == "No CRUD operations specified.Operation cancelled."
-
-        assert db_object_table.same_as_snapshot
-
-        with pytest.raises(ValueError) as exc_info:
-            lib.db_objects.set_crud_operations(session=session, db_object_id=phone_book["db_object_id"], crud_operations=['CREATE', 'READ', 'UPDATE', 'DELETE'],
-                crud_operation_format=None)
-        assert str(exc_info.value) == "No CRUD operation format specified.Operation cancelled."
-
-        assert db_object_table.same_as_snapshot
-
-        with pytest.raises(ValueError) as exc_info:
-            lib.db_objects.set_crud_operations(session=session, db_object_id=phone_book["db_object_id"], crud_operations=('CREATE', 'READ', 'UPDATE', 'DELETE'),
-                crud_operation_format="FEED")
-        assert str(exc_info.value) == "The crud_operations need to be specified as list. Operation cancelled."
-
-        assert db_object_table.same_as_snapshot
-
-        with pytest.raises(ValueError) as exc_info:
-            lib.db_objects.set_crud_operations(session=session, db_object_id=phone_book["db_object_id"], crud_operations=['CRAETE'], crud_operation_format="FEED")
-        assert str(exc_info.value) == "The given CRUD operation CRAETE does not exist."
-
-        assert db_object_table.same_as_snapshot
-
         lib.db_objects.set_crud_operations(session=session,
             db_object_id=phone_book["db_object_id"], crud_operations=['CREATE', 'READ', 'UPDATE'],
             crud_operation_format="FEED")
@@ -201,6 +174,12 @@ def test_set_crud_operations(phone_book, mobile_phone_book, table_contents):
             'service_id': phone_book["service_id"],
         }
 
+        schema = lib.schemas.get_schema(session, result["db_schema_id"])
+        lib.db_objects.set_crud_operations(session=session,
+            db_object_id=result["id"], crud_operations=['CREATE', 'READ', 'UPDATE'],
+            crud_operation_format="FEED")
+        lib.database.grant_db_object(session, schema["name"], result["name"], lib.database.crud_mapping(['CREATE', 'READ', 'UPDATE']))
+
         grants = get_db_object_privileges(session,
             result['schema_name'], result['name'])
         assert sorted(grants) == sorted(lib.db_objects.map_crud_operations(result["crud_operations"]))
@@ -211,8 +190,9 @@ def test_set_crud_operations(phone_book, mobile_phone_book, table_contents):
         assert not db_object_table.same_as_snapshot
 
         lib.db_objects.set_crud_operations(session=session,
-            db_object_id=phone_book["db_object_id"], crud_operations=['CREATE', 'READ', 'UPDATE', 'DELETE'],
+            db_object_id=result["id"], crud_operations=['CREATE', 'READ', 'UPDATE', 'DELETE'],
             crud_operation_format="FEED")
+        lib.database.grant_db_object(session, schema["name"], result["name"], lib.database.crud_mapping(['CREATE', 'READ', 'UPDATE', 'DELETE']))
 
         result = lib.db_objects.get_db_object(session, db_object_id=phone_book["db_object_id"])
 

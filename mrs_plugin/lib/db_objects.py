@@ -101,7 +101,7 @@ def delete_db_object(session, db_object_id):
     db_schema = schemas.get_schema(session, db_object["db_schema_id"])
 
     database.revoke_all_from_db_object(
-        session, db_schema["name"], db_object["name"])
+        session, db_schema["name"], db_object["name"], db_object["object_type"])
 
     # remove the db_object
     core.delete(table="db_object",
@@ -292,9 +292,6 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
     if not comments:
         comments = ""
 
-    if objects is None:
-        objects = []
-
     schema = schemas.get_schema(session=session,
                                 schema_id=schema_id, auto_select_single=True)
 
@@ -328,33 +325,23 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
 
     set_objects(session, db_object_id, objects)
 
-    # TODO(miguel?): Issuing these grants in the middle of adding a DB object may
-    # lead to an inconsistent state. The identified case for this is when loading
-    # a DUMP. The entire load dump operation is done using a transaction with the
-    # purpose to keep consistency and ensure nothing is updated in case of error.
-    # For that, add_db_object might be called once or more (depending on the dump
-    # being loaded) and the operation will continue doing more data changes,
-    # however, this GRANT operation performs an implicit commit, meaning the transaction
-    # state is finished as soon as these grants are issued, if the operation fails
-    # after an object has been added, we end up with a partial load, so an inconsistent
-    # state.
-    # To fix this, the GRANT statements should be executed AFTER the primary transaction
-    # has finished. So this should be moved to a secondary function in this file and
-    # that secondary function should be called from the plugin's FE operation calling
-    # add_db_object once the data modification transaction is complete.
     if db_object_type == "PROCEDURE":
-        database.grant_procedure(session, schema["name"], db_object_name)
+        grant_privileges = ["EXECUTE"]
     else:
         grant_privileges = map_crud_operations(crud_operations)
 
-        # Grant privilege to the 'mysql_rest_service_data_provider' role
-        if not grant_privileges:
-            raise ValueError("No valid CRUD Operation specified")
+    if not grant_privileges:
+        raise ValueError("No valid CRUD Operation specified")
 
-        database.grant_db_object(
-            session, schema["name"], db_object_name, grant_privileges)
+    return db_object_id, database.get_grant_statement(schema["name"],
+                                                    db_object_name, grant_privileges)
 
-    return db_object_id
+
+def get_crud_operations(session, db_object_id: bytes):
+    result = core.select("db_object",
+                        cols="crud_operations, format",
+                        where=["id = ?"]).exec(session, [db_object_id]).first
+    return result["crud_operations"], result["format"]
 
 
 def set_crud_operations(session, db_object_id: bytes, crud_operations=None,
@@ -370,81 +357,11 @@ def set_crud_operations(session, db_object_id: bytes, crud_operations=None,
     Returns:
         None
     """
-    # Get the object with the given id or let the user select it
-    db_object = get_db_object(session, db_object_id=db_object_id)
+    core.update(table="db_object", sets={
+        "crud_operations": crud_operations,
+        "format": crud_operation_format
+    }, where="id=?").exec(session, [db_object_id])
 
-    if db_object is None:
-        raise Exception("The db_object was not found.")
-
-    schema = schemas.get_schema(session,
-                                schema_id=db_object.get("db_schema_id"), auto_select_single=True)
-
-    if not schema:
-        raise Exception('Schema not found.')
-
-    if not crud_operations:
-        raise ValueError("No CRUD operations specified."
-                         "Operation cancelled.")
-
-    if not isinstance(crud_operations, list):
-        raise ValueError("The crud_operations need to be specified as "
-                         "list. Operation cancelled.")
-
-    for index in range(0, len(crud_operations)):
-        crud_operation = crud_operations[index]
-        crud_operation_mapping = {
-            '1': 'CREATE',
-            '2': 'READ',
-            '3': 'UPDATE',
-            '4': 'DELETE'
-        }
-
-        if crud_operation in crud_operation_mapping.keys():
-            crud_operation = crud_operation_mapping[crud_operation]
-
-        if crud_operation not in ['CREATE', 'READ', 'UPDATE', 'DELETE']:
-            raise ValueError(f"The given CRUD operation {crud_operation} "
-                             "does not exist.")
-
-    if not crud_operation_format:
-        raise ValueError("No CRUD operation format specified."
-                         "Operation cancelled.")
-
-    if crud_operation_format not in ['FEED', 'ITEM', 'MEDIA']:
-        raise Exception(f'Invalid CRUD operation format.')
-
-    crud_to_grant_mapping = {
-        'CREATE': 'INSERT',
-        'READ': 'SELECT',
-        'UPDATE': 'UPDATE',
-        'DELETE': 'DELETE'
-    }
-
-    grant_privileges = []
-    for crud_operation in crud_operations:
-        grant_privileges.append(crud_to_grant_mapping[crud_operation])
-
-    if not grant_privileges:
-        raise ValueError("No valid CRUD Operation specified")
-
-    with core.MrsDbTransaction(session):
-        sql = (f"REVOKE IF EXISTS ALL ON  "
-               f"{schema.get('name')}.{db_object.get('name')} "
-               "FROM 'mysql_rest_service_data_provider'")
-        session.run_sql(sql)
-
-        core.update(table="db_object", sets={
-            "crud_operations": crud_operations,
-            "format": crud_operation_format
-        }, where="id=?").exec(session, [db_object_id])
-
-        db_object = get_db_object(session, db_object_id=db_object_id)
-
-        sql = (f"GRANT {','.join(grant_privileges)} ON "
-               f"{schema.get('name')}.{db_object.get('name')} "
-               "TO 'mysql_rest_service_data_provider'")
-
-        session.run_sql(sql)
 
 
 def get_available_db_object_row_ownership_fields(session, schema_name, db_object_name, db_object_type):
@@ -483,7 +400,7 @@ def update_db_objects(session, db_object_ids, value):
 
         # Revoke all grants before granting the necessary ones
         database.revoke_all_from_db_object(
-            session, schema["name"], db_object["name"])
+            session, schema["name"], db_object["name"], db_object["object_type"])
 
         # Grant privilege to the 'mysql_rest_service_data_provider' role
         if grant_privileges:
@@ -557,108 +474,109 @@ def get_object_fields_with_references(session, object_id, binary_formatter=None)
     return database.get_object_fields_with_references(session, object_id, binary_formatter=binary_formatter)
 
 
-def set_objects(session, db_object_id, objs):
-    with core.MrsDbTransaction(session):
-        sql = "DELETE FROM mysql_rest_service_metadata.object WHERE db_object_id = ?"
-        core.MrsDbExec(sql).exec(session, [core.id_to_binary(
-            db_object_id, "db_object_id")]).items
+def set_objects(session, db_object_id, objects):
+    if objects is None:
+        objects = []
 
-        for obj in objs:
-            set_object_fields_with_references(session, db_object_id, obj)
+    sql = "DELETE FROM mysql_rest_service_metadata.object WHERE db_object_id = ?"
+    core.MrsDbExec(sql).exec(session, [core.id_to_binary(
+        db_object_id, "db_object_id")]).items
+
+    for obj in objects:
+        set_object_fields_with_references(session, db_object_id, obj)
 
 
 def set_object_fields_with_references(session, db_object_id, obj):
-    with core.MrsDbTransaction(session):
-        core.insert(table="object", values={
-            "id": core.id_to_binary(obj.get("id"), "object.id"),
-            "db_object_id": core.id_to_binary(db_object_id, "db_object_id"),
-            "name": obj.get("name"),
-            "kind": obj.get("kind", "RESULT"),
-            "position": obj.get("position"),
-            "sdk_options": core.convert_dict_to_json_string(obj.get("sdk_options")),
-            "comments": obj.get("comments"),
-        }).exec(session)
+    core.insert(table="object", values={
+        "id": core.id_to_binary(obj.get("id"), "object.id"),
+        "db_object_id": core.id_to_binary(db_object_id, "db_object_id"),
+        "name": obj.get("name"),
+        "kind": obj.get("kind", "RESULT"),
+        "position": obj.get("position"),
+        "sdk_options": core.convert_dict_to_json_string(obj.get("sdk_options")),
+        "comments": obj.get("comments"),
+    }).exec(session)
 
-        fields = obj.get("fields", [])
+    fields = obj.get("fields", [])
 
-        # Insert object_references first
-        inserted_object_references_ids = []
-        for field in fields:
-            obj_ref = field.get("object_reference")
+    # Insert object_references first
+    inserted_object_references_ids = []
+    for field in fields:
+        obj_ref = field.get("object_reference")
 
-            if (obj_ref is not None and
-                    (not (obj_ref.get("id") in inserted_object_references_ids))):
-                inserted_object_references_ids.append(obj_ref.get("id"))
+        if (obj_ref is not None and
+                (not (obj_ref.get("id") in inserted_object_references_ids))):
+            inserted_object_references_ids.append(obj_ref.get("id"))
 
-                # make sure to covert the sub Dict with dict()
-                ref_map = obj_ref.get("reference_mapping")
-                ref_map_json = None
-                if ref_map is not None:
-                    ref_map = dict(ref_map)
+            # make sure to covert the sub Dict with dict()
+            ref_map = obj_ref.get("reference_mapping")
+            ref_map_json = None
+            if ref_map is not None:
+                ref_map = dict(ref_map)
 
-                    # Convert column_mapping, which is a list of dict
-                    converted_col_mapping = []
-                    for cm in ref_map["column_mapping"]:
-                        cm_dict = dict(cm)
-                        # Check if column_mapping already follows new format
-                        if "base" in cm_dict and "ref" in cm_dict:
-                            converted_col_mapping.append(cm_dict)
-                        else:
-                            # If not, convert to new format that uses "base" and "ref" keys
-                            for key in cm_dict.keys():
-                                converted_col_mapping.append(
-                                    {"base": key, "ref": cm_dict.get(key)})
+                # Convert column_mapping, which is a list of dict
+                converted_col_mapping = []
+                for cm in ref_map["column_mapping"]:
+                    cm_dict = dict(cm)
+                    # Check if column_mapping already follows new format
+                    if "base" in cm_dict and "ref" in cm_dict:
+                        converted_col_mapping.append(cm_dict)
+                    else:
+                        # If not, convert to new format that uses "base" and "ref" keys
+                        for key in cm_dict.keys():
+                            converted_col_mapping.append(
+                                {"base": key, "ref": cm_dict.get(key)})
 
-                    ref_map["column_mapping"] = converted_col_mapping
-                    ref_map_json = json.dumps(ref_map)
+                ref_map["column_mapping"] = converted_col_mapping
+                ref_map_json = json.dumps(ref_map)
 
-                    # Execute GRANTs
-                    grant_privileges = map_crud_operations(
-                        obj_ref.get("crud_operations").split(","))
-                    database.grant_db_object(
-                        session,
-                        ref_map.get("referenced_schema"),
-                        ref_map.get("referenced_table"),
-                        grant_privileges)
+                # Execute GRANTs
+                grant_privileges = map_crud_operations(
+                    obj_ref.get("crud_operations").split(","))
+                database.grant_db_object(
+                    session,
+                    ref_map.get("referenced_schema"),
+                    ref_map.get("referenced_table"),
+                    grant_privileges)
 
-                if not ref_map_json:
-                    raise Exception(
-                        f'reference_mapping not defined for field {field.get("name")}')
+            if not ref_map_json:
+                raise Exception(
+                    f'reference_mapping not defined for field {field.get("name")}')
 
-                core.insert(table="object_reference", values={
-                    "id": core.id_to_binary(obj_ref.get("id"), "objectReference.id"),
-                    "reduce_to_value_of_field_id": core.id_to_binary(
-                        obj_ref.get("reduce_to_value_of_field_id"),
-                        "objectReference.reduce_to_value_of_field_id", True),
-                    "reference_mapping": ref_map_json,
-                    "unnest": obj_ref.get("unnest"),
-                    "crud_operations": obj_ref.get("crud_operations"),
-                    "sdk_options": core.convert_dict_to_json_string(obj_ref.get("sdk_options")),
-                    "comments": obj_ref.get("comments"),
-                }).exec(session)
+            core.insert(table="object_reference", values={
+                "id": core.id_to_binary(obj_ref.get("id"), "objectReference.id"),
+                "reduce_to_value_of_field_id": core.id_to_binary(
+                    obj_ref.get("reduce_to_value_of_field_id"),
+                    "objectReference.reduce_to_value_of_field_id", True),
+                "reference_mapping": ref_map_json,
+                "unnest": obj_ref.get("unnest"),
+                "crud_operations": obj_ref.get("crud_operations"),
+                "sdk_options": core.convert_dict_to_json_string(obj_ref.get("sdk_options")),
+                "comments": obj_ref.get("comments"),
+            }).exec(session)
 
-        # Then insert object_fields
-        inserted_field_ids = []
-        for field in fields:
-            obj_ref = field.get("object_reference")
+    # Then insert object_fields
+    inserted_field_ids = []
+    for field in fields:
+        obj_ref = field.get("object_reference")
 
-            if (not (field.get("id") in inserted_field_ids)):
-                inserted_field_ids.append(field.get("id"))
+        if (not (field.get("id") in inserted_field_ids)):
+            inserted_field_ids.append(field.get("id"))
 
-                core.insert(table="object_field", values={
-                    "id": core.id_to_binary(field.get("id"), "field.id"),
-                    "object_id": core.id_to_binary(field.get("object_id"), "field.object_id"),
-                    "parent_reference_id": core.id_to_binary(
-                        field.get("parent_reference_id"), "field.parent_reference_id", True),
-                    "represents_reference_id": core.id_to_binary(
-                        field.get("represents_reference_id"), "field.represents_reference_id", True),
-                    "name": field.get("name"),
-                    "position": field.get("position"),
-                    "db_column": core.convert_dict_to_json_string(field.get("db_column")),
-                    "enabled": field.get("enabled"),
-                    "allow_filtering": field.get("allow_filtering"),
-                    "allow_sorting": field.get("allow_sorting", 0),
-                    "no_check": field.get("no_check"),
-                    "sdk_options": core.convert_dict_to_json_string(field.get("sdk_options")),
-                    "comments": field.get("comments"),
-                }).exec(session)
+            core.insert(table="object_field", values={
+                "id": core.id_to_binary(field.get("id"), "field.id"),
+                "object_id": core.id_to_binary(field.get("object_id"), "field.object_id"),
+                "parent_reference_id": core.id_to_binary(
+                    field.get("parent_reference_id"), "field.parent_reference_id", True),
+                "represents_reference_id": core.id_to_binary(
+                    field.get("represents_reference_id"), "field.represents_reference_id", True),
+                "name": field.get("name"),
+                "position": field.get("position"),
+                "db_column": core.convert_dict_to_json_string(field.get("db_column")),
+                "enabled": field.get("enabled"),
+                "allow_filtering": field.get("allow_filtering"),
+                "allow_sorting": field.get("allow_sorting", 0),
+                "no_check": field.get("no_check"),
+                "sdk_options": core.convert_dict_to_json_string(field.get("sdk_options")),
+                "comments": field.get("comments"),
+            }).exec(session)

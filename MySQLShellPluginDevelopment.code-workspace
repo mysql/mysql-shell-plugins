@@ -52,7 +52,8 @@
             "VSCode Extension",
             "MRS Notes Example"
         ],
-        "msg.editor.defaultDbConnection": "Localhost 8.0"
+        "msg.editor.defaultDbConnection": "Localhost 8.0",
+        "git.ignoreLimitWarning": true
     },
     "launch": {
         "version": "0.2.0",

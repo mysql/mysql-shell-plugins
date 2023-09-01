@@ -177,9 +177,38 @@ def test_set_crud_operations(phone_book, table_contents):
     }
 
     result = get_db_object(**args)
-    set_crud_operations(crud_operations=result.get("crud_operations"),
-            crud_operation_format="FEED", **args)
-    assert db_object_table.assert_same
+    set_crud_operations(db_object_id=result["id"], crud_operations=result["crud_operations"],
+            crud_operation_format=result["crud_operation_format"])
+    assert db_object_table.same_as_snapshot
+
+    with pytest.raises(ValueError) as exc_info:
+        set_crud_operations(db_object_id=phone_book["db_object_id"], crud_operations=None,
+            crud_operation_format="FEED")
+    assert str(exc_info.value) == "No CRUD operations specified.Operation cancelled."
+
+    assert db_object_table.same_as_snapshot
+
+    with pytest.raises(ValueError) as exc_info:
+        set_crud_operations(db_object_id=phone_book["db_object_id"], crud_operations=('CREATE', 'READ', 'UPDATE', 'DELETE'),
+            crud_operation_format="FEED")
+    assert str(exc_info.value) == "The crud_operations need to be specified as list. Operation cancelled."
+
+    assert db_object_table.same_as_snapshot
+
+
+    with pytest.raises(ValueError) as exc_info:
+        set_crud_operations(db_object_id=phone_book["db_object_id"], crud_operations=['CRAETE'], crud_operation_format="FEED")
+    assert str(exc_info.value) == "The given CRUD operation CRAETE does not exist."
+
+    assert db_object_table.same_as_snapshot
+
+
+    with pytest.raises(ValueError) as exc_info:
+        set_crud_operations(db_object_id=phone_book["db_object_id"], crud_operations=['CREATE', 'READ', 'UPDATE', 'DELETE'],
+            crud_operation_format=None)
+    assert str(exc_info.value) == "No CRUD operation format specified.Operation cancelled."
+
+    assert db_object_table.same_as_snapshot
 
     with pytest.raises(Exception) as exc_info:
         result = get_db_object(request_path="test_db", db_object_name="db", **args)
@@ -410,7 +439,6 @@ def test_move_db_object(phone_book, mobile_phone_book, table_contents):
     assert str(exp.value) == "The object already exists in the target schema."
 
     schema_id_text = lib.core.convert_id_to_string(mobile_phone_book["schema_id"])
-    print(f"db_object name: {db_object['name']}, schema id: {schema_id_text}")
 
     db_object_to_remove = lib.db_objects.get_db_object(session, schema_id=mobile_phone_book["schema_id"], db_object_name=db_object["name"])
     assert db_object_to_remove
