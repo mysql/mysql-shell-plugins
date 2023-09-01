@@ -139,7 +139,7 @@ def load_object_dump(session, target_schema_id, object, reuse_ids):
     if reuse_ids:
         db_object_id = lib.core.id_to_binary(object["id"], "object.id")
 
-    lib.db_objects.add_db_object(session, target_schema_id,
+    return lib.db_objects.add_db_object(session, target_schema_id,
                                  object["name"],
                                  object["request_path"],
                                  object["object_type"],
@@ -176,7 +176,9 @@ def load_schema_dump(session, target_service_id, schema, reuse_ids):
                                        schema["options"],
                                        schema_id=schema_id)
 
+    grants = []
     for obj in schema["objects"]:
-        load_object_dump(session, schema_id, obj, reuse_ids)
+        _, grant = load_object_dump(session, schema_id, obj, reuse_ids)
+        grants.append(grant)
 
-    return schema_id
+    return schema_id, grants

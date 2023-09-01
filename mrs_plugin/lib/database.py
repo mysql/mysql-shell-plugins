@@ -139,24 +139,22 @@ def db_schema_object_is_table(session, db_schema_name, db_object_name):
     return row and "TABLE" in row["TABLE_TYPE"]
 
 
-def grant_procedure(session, schema_name, procedure_name):
-    sql = (f"GRANT EXECUTE ON PROCEDURE `"
-           f"{schema_name}`.`{procedure_name}` "
-           "TO 'mysql_rest_service_data_provider'")
-    session.run_sql(sql)
+def get_grant_statement(schema_name, db_object_name, grant_privileges):
+    return f"""GRANT {','.join(grant_privileges)}
+              ON {'PROCEDURE' if grant_privileges == ['EXECUTE'] else ''}
+              {schema_name}.{db_object_name}
+              TO 'mysql_rest_service_data_provider'@'%'"""
 
 
 def grant_db_object(session, schema_name, db_object_name, grant_privileges):
-    sql = (f"GRANT {','.join(grant_privileges)} ON "
-           f"{schema_name}.{db_object_name} "
-           "TO 'mysql_rest_service_data_provider'")
-    session.run_sql(sql)
+    session.run_sql(get_grant_statement(schema_name, db_object_name, grant_privileges))
 
 
-def revoke_all_from_db_object(session, schema_name, db_object_name):
+def revoke_all_from_db_object(session, schema_name, db_object_name, db_object_type):
     sql = f"""
-        REVOKE IF EXISTS ALL PRIVILEGES
-        ON {schema_name}.{db_object_name}
+        REVOKE IF EXISTS
+        {'EXECUTE ON PROCEDURE' if db_object_type == "PROCEDURE" else 'ALL PRIVILEGES ON'}
+        {schema_name}.{db_object_name}
         FROM 'mysql_rest_service_data_provider'@'%'
     """
     session.run_sql(sql)
@@ -213,3 +211,17 @@ def get_object_fields_with_references(session, object_id, binary_formatter=None)
     """
 
     return core.MrsDbExec(sql, binary_formatter=binary_formatter).exec(session, [object_id]).items
+
+def crud_mapping(crud_operations):
+    crud_to_grant_mapping = {
+        'CREATE': 'INSERT',
+        'READ': 'SELECT',
+        'UPDATE': 'UPDATE',
+        'DELETE': 'DELETE'
+    }
+
+    grant_privileges = []
+    for crud_operation in crud_operations:
+        grant_privileges.append(crud_to_grant_mapping[crud_operation])
+
+    return grant_privileges

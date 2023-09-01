@@ -20,12 +20,11 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 import pytest
-from ... import lib
 import os
 
-from ... schemas import add_schema, delete_schema
-from ... services import add_service, delete_service, get_service
-from ... db_objects import add_db_object, delete_db_object
+from mrs_plugin import lib
+from mrs_plugin.schemas import add_schema, delete_schema
+from mrs_plugin.services import add_service, delete_service
 class SchemaCT(object):
     def __init__(self, service_id, schema_name, request_path, **kwargs):
         self._schema_id = add_schema(service_id=service_id, schema_name=schema_name, request_path=request_path,

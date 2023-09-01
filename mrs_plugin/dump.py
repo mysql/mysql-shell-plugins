@@ -196,20 +196,26 @@ def load(path, **kwargs):
             # TODO(rennox): Dump upgrade logic is triggered here
             pass
 
+        grants = []
         with lib.core.MrsDbTransaction(session):
             if target_object == "service":
                 service = lib.services.get_service(
                     session, service_id=object_id)
                 lib.core.check_request_path(
                     session, service["host_ctx"] + content["schema"]["request_path"])
-                lib.dump.load_schema_dump(
+                _, grant = lib.dump.load_schema_dump(
                     session, object_id, content["schema"], reuse_ids)
+                grants = grants + grant
             elif target_object == "schema":
                 schema = lib.schemas.get_schema(session, schema_id=object_id)
                 lib.core.check_request_path(session,
                                             schema["host_ctx"] + schema["request_path"] + content["object"]["request_path"])
-                lib.dump.load_object_dump(
+                _, grant = lib.dump.load_object_dump(
                     session, object_id, content["object"], reuse_ids)
+                grants.append(grant)
+
+        for grant in grants:
+            lib.core.MrsDbExec(grant).exec(session)
 
 
 @plugin_function('mrs.load.schema', shell=True, cli=True, web=True)
