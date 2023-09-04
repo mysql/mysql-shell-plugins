@@ -38,6 +38,7 @@ export const explicitWait = 5000;
 export const ociExplicitWait = explicitWait * 2;
 export const ociTasksExplicitWait = explicitWait * 5;
 export const extensionReadyWait = 120000;
+export const queryWaits = explicitWait * 3;
 
 // TREE SEARCH LEVELS
 export const dbMaxLevel = 5;

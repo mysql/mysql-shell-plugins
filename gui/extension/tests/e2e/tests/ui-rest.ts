@@ -37,6 +37,7 @@ import { Database } from "../lib/db";
 import * as constants from "../lib/constants";
 import * as interfaces from "../lib/interfaces";
 import { Until } from "../lib/until";
+import { hostname } from "os";
 
 describe("MySQL REST Service", () => {
 
@@ -70,8 +71,8 @@ describe("MySQL REST Service", () => {
         },
     };
 
-    const schemaToDump = "schemaToDump";
-    const tableToDump = "tableToDump";
+    const schemaToDump = "dummyschema";
+    const tableToDump = "abc";
 
     before(async function () {
 
@@ -118,7 +119,6 @@ describe("MySQL REST Service", () => {
             throw e;
         }
     });
-
 
     describe("Main Context Menus", () => {
 
@@ -194,7 +194,7 @@ describe("MySQL REST Service", () => {
             await Misc.execOnTerminal("1234", constants.explicitWait * 2);
             await Misc.waitForTerminalText("Once the MySQL Router is started", constants.explicitWait * 2);
             expect(await Misc.terminalHasErrors()).to.be.false;
-            await Misc.getRouter(globalConn.caption);
+            expect(await Misc.existsTreeElement(constants.dbTreeSection, new RegExp(hostname()))).to.be.true;
 
         });
 
@@ -213,7 +213,7 @@ describe("MySQL REST Service", () => {
             await Misc.execOnTerminal("1234", constants.explicitWait * 2);
             await Misc.waitForTerminalText("Once the MySQL Router is started", constants.explicitWait * 2);
             expect(await Misc.terminalHasErrors()).to.be.false;
-            await Misc.getRouter(globalConn.caption);
+            expect(await Misc.existsTreeElement(constants.dbTreeSection, new RegExp(hostname()))).to.be.true;
 
         });
 
@@ -228,7 +228,7 @@ describe("MySQL REST Service", () => {
 
             expect(await Misc.terminalHasErrors()).to.be.false;
             await driver.wait(async () => {
-                const treeRouter = await Misc.getRouter(globalConn.caption);
+                const treeRouter = await Misc.getTreeElement(constants.dbTreeSection, new RegExp(hostname()), true);
 
                 return (await Misc.isRouterActive(treeRouter)) === true;
             }, constants.explicitWait * 2, `Router did not became active`);
@@ -242,7 +242,7 @@ describe("MySQL REST Service", () => {
             await Misc.waitForTerminalText(["mysqlrouter\\stop", "Unloading all plugins"], constants.explicitWait * 2);
             expect(await Misc.terminalHasErrors()).to.be.false;
             await driver.wait(async () => {
-                const treeRouter = await Misc.getRouter(globalConn.caption);
+                const treeRouter = await Misc.getTreeElement(constants.dbTreeSection, new RegExp(hostname()), true);
 
                 return (await Misc.isRouterActive(treeRouter)) === false;
 
@@ -546,7 +546,7 @@ describe("MySQL REST Service", () => {
                     `${constants.dbTreeSection} is still loading`);
 
                 await treeRestSakila.expand();
-                await Misc.getTreeElement(constants.dbTreeSection, `/${table} (${table})`, true);
+                expect(await Misc.existsTreeElement(constants.dbTreeSection, `/${table} (${table})`)).to.be.true;
             }
 
         });
@@ -966,12 +966,10 @@ describe("MySQL REST Service", () => {
                     "Start accepting connections for routing routing:bootstrap_x_rw listening on",
                     constants.explicitWait * 2);
                 await driver.wait(async () => {
-                    const treeRouter = await Misc.getRouter(globalConn.caption);
+                    const treeRouter = await Misc.getTreeElement(constants.dbTreeSection, new RegExp(hostname()), true);
 
                     return (await Misc.isRouterActive(treeRouter)) === true;
                 }, constants.explicitWait * 2, `Router did not became active`);
-                //crudService.settings.hostNameFilter = "127.0.0.1:8443";
-                //baseUrl = baseUrl.replace();
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;

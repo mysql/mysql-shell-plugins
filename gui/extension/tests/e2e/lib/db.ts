@@ -136,7 +136,7 @@ export class Database {
                 if (mds.profile) {
                     const inProfile = await dialog.findElement(By.id("profileName"));
                     await inProfile.click();
-                    await driver.findElement(By.id("profileNamePopup"));
+                    await driver.wait(until.elementLocated(By.id("profileNamePopup")), constants.explicitWait);
                     await driver.wait(until.elementLocated(By.id(mds.profile)), constants.explicitWait).click();
                 }
                 if (mds.dbSystemOCID) {
