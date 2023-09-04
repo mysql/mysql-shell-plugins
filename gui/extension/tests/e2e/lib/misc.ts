@@ -25,7 +25,7 @@ import { ChildProcess, spawn, spawnSync } from "child_process";
 import clipboard from "clipboardy";
 import fs from "fs/promises";
 import addContext from "mochawesome/addContext";
-import { platform, hostname } from "os";
+import { platform } from "os";
 import { join } from "path";
 import {
     BottomBarPanel, By, Condition, CustomTreeSection, EditorView, error, InputBox, ITimeouts,
@@ -386,6 +386,10 @@ export class Misc {
     public static writeCmd = async (cmd: string, slowWriting?: boolean): Promise<void> => {
         const textArea = await driver.wait(until.elementLocated(By.css("textarea")),
             constants.explicitWait, "Could not find the textarea");
+        await driver.executeScript(
+            "arguments[0].click();",
+            await driver.findElement(By.css(".current-line")),
+        );
         await driver.wait(async () => {
             try {
                 if (slowWriting) {
@@ -1124,7 +1128,7 @@ export class Misc {
 
     public static getTreeElement = async (
         section: string,
-        itemName: string,
+        itemName: string | RegExp,
         reloadSection = false,
     ): Promise<TreeItem> => {
         let el: TreeItem;
@@ -1141,6 +1145,8 @@ export class Misc {
         await driver.wait(async () => {
             try {
                 const sectionTree = await Misc.getSection(section);
+                await driver.wait(Until.isNotLoading(section), constants.explicitWait * 2,
+                    `${await sectionTree.getTitle()} is still loading`);
                 if (reloadSection) {
                     if (section === constants.dbTreeSection || section === constants.ociTreeSection) {
                         await Misc.clickSectionToolbarButton(sectionTree, reloadLabel);
@@ -1148,7 +1154,18 @@ export class Misc {
                 }
                 await driver.wait(Until.isNotLoading(section), constants.explicitWait * 2,
                     `${await sectionTree.getTitle()} is still loading`);
-                el = await sectionTree.findItem(itemName, 5);
+
+                if (itemName instanceof RegExp) {
+                    const treeItems = await sectionTree.getVisibleItems();
+                    for (const item of treeItems) {
+                        if ((await item.getLabel()).match(itemName) !== null) {
+                            el = item;
+                            break;
+                        }
+                    }
+                } else {
+                    el = await sectionTree.findItem(itemName, 5);
+                }
 
                 return el !== undefined;
             } catch (e) {
@@ -1156,14 +1173,16 @@ export class Misc {
                     throw e;
                 }
             }
-        }, constants.explicitWait * 3, `${itemName} on section ${section} was not found`);
+        }, constants.explicitWait * 3, `${itemName.toString()} on section ${section} was not found`);
 
         return el;
     };
 
-    public static existsTreeElement = async (section: string, itemName: string): Promise<boolean> => {
+    public static existsTreeElement = async (section: string, itemName: string | RegExp): Promise<boolean> => {
         let reloadLabel: string;
         const sectionTree = await Misc.getSection(section);
+        await driver.wait(Until.isNotLoading(section), constants.explicitWait * 2,
+            `${await sectionTree.getTitle()} is still loading`);
         if (section === constants.dbTreeSection || section === constants.ociTreeSection) {
             if (section === constants.dbTreeSection) {
                 reloadLabel = "Reload the connection list";
@@ -1175,31 +1194,18 @@ export class Misc {
         await driver.wait(Until.isNotLoading(section), constants.explicitWait * 2,
             `${await sectionTree.getTitle()} is still loading`);
 
-        return (await sectionTree.findItem(itemName, 5)) !== undefined;
-    };
-
-    public static getRouter = async (connectionCaption: string): Promise<TreeItem> => {
-        return driver.wait(async () => {
-            try {
-                const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, connectionCaption, true);
-                await (await Misc.getActionButton(treeGlobalConn, "Reload Database Information")).click();
-                const treeDBSection = await Misc.getSection(constants.dbTreeSection);
-                await driver.wait(Until.isNotLoading(constants.dbTreeSection), constants.ociExplicitWait * 2,
-                    `${await treeDBSection.getTitle()} is still loading`);
-
-                const items = await treeDBSection.getVisibleItems();
-                for (const item of items) {
-                    const label = await item.getLabel();
-                    if (label.includes(hostname())) {
-                        return item;
-                    }
-                }
-            } catch (e) {
-                if (!(e instanceof error.StaleElementReferenceError)) {
-                    throw e;
+        if (itemName instanceof RegExp) {
+            const treeItems = await sectionTree.getVisibleItems();
+            for (const item of treeItems) {
+                if ((await item.getLabel()).match(itemName) !== null) {
+                    return true;
                 }
             }
-        }, constants.explicitWait, `${hostname()} tree item was not found`);
+
+            return false;
+        } else {
+            return (await sectionTree.findItem(itemName, 5)) !== undefined;
+        }
     };
 
     public static setInputPath = async (path: string): Promise<void> => {
@@ -1217,6 +1223,15 @@ export class Misc {
                 // continue trying
             }
         }, constants.explicitWait * 2, `Could not set ${path} on input box`);
+    };
+
+    public static closeEditorsExcept = async (editor: string): Promise<void> => {
+        const editors = await new EditorView().getOpenEditorTitles();
+        for (const edit of editors) {
+            if (edit !== editor) {
+                await new EditorView().closeEditor(edit);
+            }
+        }
     };
 
     public static deleteConnection = async (dbName: string): Promise<void> => {

@@ -29,6 +29,7 @@ import {
     BottomBarPanel,
     TextEditor,
     ModalDialog,
+    error,
 } from "vscode-extension-tester";
 import { driver, Misc } from "../lib/misc";
 import { Database } from "../lib/db";
@@ -367,7 +368,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await Misc.openContextMenuItem(treeDbSystem, constants.deleteDBSystem, constants.checkNotif);
             await Misc.expandTreeSection(constants.tasksTreeSection);
             try {
-                expect(await Misc.getTreeElement(constants.tasksTreeSection, "Delete DB System (running)")).to.exist;
+                expect(await Misc.existsTreeElement(constants.tasksTreeSection,
+                    "Delete DB System (running)")).to.be.true;
                 const ntf = await Misc.getNotification("Are you sure you want to delete", false);
                 await Misc.clickOnNotificationButton(ntf, "NO");
                 await driver.wait(async () => {
@@ -417,20 +419,10 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             const treeTasksSection = await Misc.getSection(constants.tasksTreeSection);
             await treeTasksSection?.collapse();
 
-            const edView = new EditorView();
-            const editors = await edView.getOpenEditorTitles();
-            for (const editor of editors) {
-                await edView.closeEditor(editor);
-                try {
-                    const dialog = new ModalDialog();
-                    await dialog.pushButton("Don't Save");
-                } catch (e) {
-                    //continue
-                }
-            }
         });
 
         it("Get Bastion Information and set it as current", async () => {
+
 
             const treeBastion = await Misc.getTreeElement(constants.ociTreeSection, "Bastion4PrivateSubnetStandardVnc");
             await Misc.openContextMenuItem(treeBastion, constants.getBastionInfo, constants.checkNewTab);
@@ -457,6 +449,9 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             const parsed = JSON.parse(json);
             const bastionId = parsed.id;
 
+            await new EditorView().closeEditor("Bastion4PrivateSubnetStandardVnc Info.json");
+            await new ModalDialog().pushButton("Don't Save");
+
             await Misc.openContextMenuItem(treeBastion, constants.setAsCurrentBastion, undefined);
             await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 3,
                 `${constants.ociTreeSection} is still loading`);
@@ -476,6 +471,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             const result = await Misc.execCmd("mds.get.currentBastionId()", undefined, 60000);
             expect(result[0]).to.equal(bastionId);
 
+
         });
 
         it("Refresh When Bastion Reaches Active State", async () => {
@@ -488,7 +484,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             const outputView = await bottomBar.openOutputView();
             await Misc.waitForOutputText("Task 'Refresh Bastion' completed successfully", 20000);
             await outputView.clearText();
-            expect(await Misc.getTreeElement(constants.tasksTreeSection, "Refresh Bastion (done)")).to.exist;
+            expect(await Misc.existsTreeElement(constants.tasksTreeSection, "Refresh Bastion (done)")).to.be.true;
         });
 
         it("Delete Bastion", async () => {
@@ -500,14 +496,12 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await Misc.openContextMenuItem(treeBastion, constants.deleteBastion, undefined);
             const treeTasksSection = await Misc.getSection(constants.tasksTreeSection);
             await treeTasksSection.expand();
-            expect(await Misc.getTreeElement(constants.tasksTreeSection, "Delete Bastion (running)")).to.exist;
+            expect(await Misc.existsTreeElement(constants.tasksTreeSection, "Delete Bastion (running)")).to.be.true;
             await Misc.waitForOutputText("OCI profile 'E2ETESTS' loaded.", constants.ociTasksExplicitWait);
             const ntf = await Misc.getNotification("Are you sure you want to delete", false);
             await Misc.clickOnNotificationButton(ntf, "NO");
-            await driver.wait(Misc.getTreeElement(constants.tasksTreeSection, "Delete Bastion (error)"),
-                constants.explicitWait, "'Delete Bastion (error)' was not found on the tree");
-
             await Misc.waitForOutputText("Deletion aborted", constants.explicitWait);
+            expect(await Misc.existsTreeElement(constants.tasksTreeSection, "Delete Bastion (error)")).to.be.true;
             await outputView.clearText();
             await bottomBar.toggle(false);
 

@@ -94,67 +94,6 @@ try {
 
     #############################EXEC TESTS#####################################################
     
-    #MANAGE THE RE-RUN
-    $jsonReporter = Get-Content -Path "$basePath\jesthtmlreporter.config.json" | Out-String | ConvertFrom-Json
-    if ( !(Test-Path -Path "$basePath\src\tests\e2e\test-report.html") ){
-        $jsonReporter.append = $false
-    }
-    else {
-        $jsonReporter.append = $true
-        $jsonReporter.pageTitle += " RE-RUN FAILED TESTS" 
-    }
-
-    $jsonReporter | ConvertTo-Json -Depth 1 | Set-Content "$basePath\jesthtmlreporter.config.json"
-    
-    if ($env:RERUN -eq $true){
-        #CHECK IF THERE IS A TEST-REPORT
-        if ( Test-Path -Path "$basePath\src\tests\e2e\test-report.html" ){
-            writeMsg "Found an existing test report"
-
-            ###GET FAILED TESTS###
-            writeMsg "Getting failed tests from last run..."
-            $html = parseHTML "$basePath\src\tests\e2e\test-report.html"
-            $lastRun = $html.body.document.querySelectorAll("#jesthtml-content")
-            $lastRunSize = $lastRun.Length
-            $size = $lastRun[$lastRunSize -1].querySelectorAll(".failed .test-title").Length
-
-            if ($size -gt 0){
-                $failed = "`""
-                for($i=0; $i -le $size-1; $i++){
-                    $failedTest = $lastRun.querySelectorAll(".failed .test-title").item($i).InnerText
-                    writeMsg "- $failedTest"
-                    $failed += $failedTest
-                    if ($i -ne $size-1){
-                        $failed += "|"
-                    }
-                }
-                $failed += "`""
-                #RE-WRITE PACKAGE.JSON WITH TESTS TO RE-RUN
-                if ($failed.Length -gt 0){
-                    $json = Get-Content -Path "$basePath\package.json" | Out-String | ConvertFrom-Json
-                    if ($json.scripts.'e2e-tests-run' -like "*testNamePattern*"){
-                        $json.scripts.'e2e-tests-run' -match '--testNamePattern=''([^'']*)'''
-                        $json.scripts.'e2e-tests-run' = $json.scripts.'e2e-tests-run'.replace($matches[1], $failed)
-                    }
-                    else{
-                        $aux = $json.scripts.'e2e-tests-run'
-                        $json.scripts.'e2e-tests-run' = "$aux --testNamePattern='$failed'"
-                    }
-                    
-                    $json | ConvertTo-Json -Depth 3 | Set-Content "$basePath\package.json"
-                }
-
-                writeMsg "DONE"
-            }
-            else{
-                writeMsg "No failed tests were found. DONE"
-            }
-        }
-        else{
-            writeMsg "Test report not found."
-        }
-    }
-    
     #EXECUTE TESTS
     writeMsg "Executing GUI tests..." "-NoNewLine"
     Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-run" -Wait -RedirectStandardOutput "$env:WORKSPACE\resultsFE.log" -RedirectStandardError "$env:WORKSPACE\resultsFEErr.log"
