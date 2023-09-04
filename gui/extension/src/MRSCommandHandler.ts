@@ -851,10 +851,14 @@ export class MRSCommandHandler {
                 }
 
                 let routerConfigDir: string;
-                if (os.platform() === "win32") {
-                    routerConfigDir = path.join(this.getBaseDir(), "mysqlrouter");
+                if (process.env.MYSQL_ROUTER_CUSTOM_DIR !== undefined) {
+                    routerConfigDir = process.env.MYSQL_ROUTER_CUSTOM_DIR
                 } else {
-                    routerConfigDir = path.join(this.getBaseDir(), ".mysqlrouter");
+                    if (os.platform() === "win32") {
+                        routerConfigDir = path.join(this.getBaseDir(), "mysqlrouter");
+                    } else {
+                        routerConfigDir = path.join(this.getBaseDir(), ".mysqlrouter");
+                    }
                 }
 
                 if (fs.existsSync(routerConfigDir)) {
