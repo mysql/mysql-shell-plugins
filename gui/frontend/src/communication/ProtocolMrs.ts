@@ -1448,6 +1448,20 @@ export interface IMrsObject {
     storedFields?: IMrsObjectFieldWithReference[],
 }
 
+export enum MrsScriptResultType {
+    success = "success",
+    error = "error",
+}
+
+export interface IMrsScriptResult {
+    statementIndex: number,
+    type: MrsScriptResultType,
+    message: string,
+    operation: string,
+    id?: string,
+    result?: IDictionary,
+}
+
 export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsAddService]: { result: IMrsServiceData; };
     [ShellAPIMrs.MrsGetService]: { result: IMrsServiceData; };
@@ -1527,5 +1541,6 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsGetTableColumnsWithReferences]: { result: IMrsTableColumnWithReference[]; };
     [ShellAPIMrs.MrsGetObjectFieldsWithReferences]: { result: IMrsObjectFieldWithReference[]; };
     [ShellAPIMrs.MrsDumpSdkServiceFiles]: { result: boolean; };
+    [ShellAPIMrs.MrsRunScript]: {result: IMrsScriptResult[]; };
 }
 
