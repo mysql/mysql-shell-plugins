@@ -115,6 +115,15 @@ ORDER BY f.position;
 ALTER TABLE `mysql_rest_service_metadata`.`service`
     CHANGE COLUMN `url_protocol` `url_protocol` SET('HTTP', 'HTTPS') NOT NULL DEFAULT 'HTTP,HTTPS';
 
+DELIMITER $$
+
+DROP EVENT `mysql_rest_service_metadata`.`delete_old_audit_log_entries`$$
+
+CREATE EVENT `mysql_rest_service_metadata`.`delete_old_audit_log_entries` ON SCHEDULE EVERY 1 DAY STARTS '2023-01-01 00:00:00' DISABLE DO 
+DELETE FROM `mysql_rest_service_metadata`.`audit_log` WHERE changed_at < TIMESTAMP(DATE_SUB(NOW(), INTERVAL 14 DAY))$$
+
+DELIMITER ;
+
 ALTER SQL SECURITY INVOKER VIEW `schema_version` (major, minor, patch) AS SELECT 2, 1, 1;
 
 ALTER SQL SECURITY INVOKER VIEW `mrs_user_schema_version` (major, minor, patch) AS SELECT 2, 1, 1;
