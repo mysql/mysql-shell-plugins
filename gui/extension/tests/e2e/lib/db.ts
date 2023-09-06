@@ -35,7 +35,7 @@ import { driver, Misc } from "./misc";
 import { credentialHelperOk } from "./until";
 import * as constants from "./constants";
 import * as interfaces from "./interfaces";
-
+import { keyboard, Key as nutKey } from "@nut-tree/nut-js";
 
 export class Database {
 
@@ -907,78 +907,66 @@ export class Database {
         }
     };
 
-    public static setRestAuthenticationApp = async (
-        vendor?: string,
-        name?: string,
-        description?: string,
-        accessToken?: string,
-        appId?: string,
-        customUrl?: string,
-        customUrlAccToken?: string,
-        defaultRole?: string,
-        enabled?: boolean,
-        limitUsers?: boolean,
-    ): Promise<void> => {
-
+    public static setRestAuthenticationApp = async (authApp: interfaces.IRestAuthenticationApp): Promise<void> => {
         const dialog = await driver.wait(until.elementLocated(By.id("mrsAuthenticationAppDialog")),
             constants.explicitWait * 2, "Authentication app dialog was not displayed");
 
-        if (vendor) {
+        if (authApp.vendor) {
             await dialog.findElement(By.id("authVendorName")).click();
             const popup = await driver.wait(until.elementLocated(By.id("authVendorNamePopup")),
                 constants.explicitWait, "Auth vendor drop down list was not displayed");
 
-            await popup.findElement(By.id(vendor)).click();
+            await popup.findElement(By.id(authApp.vendor)).click();
         }
 
-        if (name) {
+        if (authApp.name) {
             const nameInput = await dialog.findElement(By.id("name"));
             await nameInput.clear();
-            await nameInput.sendKeys(name);
+            await nameInput.sendKeys(authApp.name);
         }
-        if (description) {
+        if (authApp.description) {
             const descriptionInput = await dialog.findElement(By.id("description"));
             await descriptionInput.clear();
-            await descriptionInput.sendKeys(description);
+            await descriptionInput.sendKeys(authApp.description);
         }
-        if (accessToken) {
+        if (authApp.accessToken) {
             const accessTokenInput = await dialog.findElement(By.id("accessToken"));
             await accessTokenInput.clear();
-            await accessTokenInput.sendKeys(accessToken);
+            await accessTokenInput.sendKeys(authApp.accessToken);
         }
-        if (appId) {
+        if (authApp.appId) {
             const appIdInput = await dialog.findElement(By.id("appId"));
             await appIdInput.clear();
-            await appIdInput.sendKeys(appId);
+            await appIdInput.sendKeys(authApp.appId);
         }
-        if (customUrl) {
+        if (authApp.customURL) {
             const urlInput = await dialog.findElement(By.id("url"));
             await urlInput.clear();
-            await urlInput.sendKeys(customUrl);
+            await urlInput.sendKeys(authApp.customURL);
         }
-        if (customUrlAccToken) {
+        if (authApp.customURLforAccessToken) {
             const urlDirectAuthInput = await dialog.findElement(By.id("urlDirectAuth"));
             await urlDirectAuthInput.clear();
-            await urlDirectAuthInput.sendKeys(customUrlAccToken);
+            await urlDirectAuthInput.sendKeys(authApp.customURLforAccessToken);
         }
 
-        if (defaultRole) {
+        if (authApp.defaultRole) {
             await dialog.findElement(By.id("defaultRoleName")).click();
             const popup = await driver.wait(until.elementLocated(By.id("defaultRoleNamePopup")),
                 constants.explicitWait, "Auth vendor drop down list was not displayed");
 
-            await popup.findElement(By.id(defaultRole)).click();
+            await popup.findElement(By.id(authApp.defaultRole)).click();
         }
 
-        if (enabled !== undefined) {
+        if (authApp.enabled !== undefined) {
             const enabledInput = await dialog.findElement(By.id("enabled"));
             const status = await enabledInput.getAttribute("class");
             if (status.includes("unchecked")) {
-                if (enabled) {
+                if (authApp.enabled) {
                     await enabledInput.click();
                 }
             } else {
-                if (!enabled) {
+                if (!authApp.enabled) {
                     await enabledInput.click();
                 }
             }
@@ -986,15 +974,15 @@ export class Database {
             await dialog.click();
         }
 
-        if (limitUsers !== undefined) {
+        if (authApp.limitToRegisteredUsers !== undefined) {
             const limitInput = await dialog.findElement(By.id("limitToRegisteredUsers"));
             const status = await limitInput.getAttribute("class");
             if (status.includes("unchecked")) {
-                if (limitUsers) {
+                if (authApp.limitToRegisteredUsers) {
                     await limitInput.click();
                 }
             } else {
-                if (!limitUsers) {
+                if (!authApp.limitToRegisteredUsers) {
                     await limitInput.click();
                 }
             }
@@ -1010,18 +998,54 @@ export class Database {
 
     };
 
-    public static setRestUser = async (
-        name: string,
-        password: string,
-        authApp?: string,
-        email?: string,
-        roles?: string,
-        permitLogin?: boolean,
-        options?: string,
-        vendorUserId?: string,
-        mappedUserId?: string,
-    ): Promise<void> => {
+    public static getAuthenticationApp = async (): Promise<interfaces.IRestAuthenticationApp> => {
+        const dialog = await driver.wait(until.elementLocated(By.id("mrsAuthenticationAppDialog")),
+            constants.explicitWait * 2, "Authentication app dialog was not displayed");
 
+        const authenticationApp: interfaces.IRestAuthenticationApp = {
+            vendor: await dialog.findElement(By.css("#authVendorName label")).getText(),
+            name: await dialog.findElement(By.id("name")).getAttribute("value"),
+            description: await dialog.findElement(By.id("description")).getAttribute("value"),
+            accessToken: await dialog.findElement(By.id("accessToken")).getAttribute("value"),
+            appId: await dialog.findElement(By.id("appId")).getAttribute("value"),
+            customURL: await dialog.findElement(By.id("url")).getAttribute("value"),
+            customURLforAccessToken: await dialog.findElement(By.id("urlDirectAuth")).getAttribute("value"),
+            defaultRole: await dialog.findElement(By.css("#defaultRoleName label")).getText(),
+        };
+
+        const inputEnabled = await dialog.findElement(By.id("enabled"));
+        const inputEnabledClasses = await inputEnabled.getAttribute("class");
+        let classes = inputEnabledClasses.split(" ");
+        if (classes.includes("unchecked")) {
+            authenticationApp.enabled = false;
+        } else if (classes.includes("checked")) {
+            authenticationApp.enabled = true;
+        } else {
+            throw new Error("Unknown value for Enabled checkbox");
+        }
+
+        const inputLimit = await dialog.findElement(By.id("limitToRegisteredUsers"));
+        const inputLimitClasses = await inputLimit.getAttribute("class");
+        classes = inputLimitClasses.split(" ");
+        if (classes.includes("unchecked")) {
+            authenticationApp.limitToRegisteredUsers = false;
+        } else if (classes.includes("checked")) {
+            authenticationApp.limitToRegisteredUsers = true;
+        } else {
+            throw new Error("Unknown value for Limit to registered users checkbox");
+        }
+
+        await driver.wait(async () => {
+            await dialog.findElement(By.id("ok")).click();
+
+            return (await Misc.existsWebViewDialog()) === false;
+        }, constants.explicitWait * 2, "The Authentication App Dialog was not closed");
+
+        return authenticationApp;
+
+    };
+
+    public static setRestUser = async (restUser: interfaces.IRestUser): Promise<void> => {
 
         const dialog = await driver.wait(until.elementLocated(By.id("mrsUserDialog")),
             constants.explicitWait * 2, "User dialog was not displayed");
@@ -1030,69 +1054,70 @@ export class Database {
         const passwordInput = await dialog.findElement(By.id("authString"));
 
         await nameInput.clear();
-        await nameInput.sendKeys(name);
+        await nameInput.sendKeys(restUser.username);
 
         await passwordInput.clear();
-        await passwordInput.sendKeys(password);
+        await passwordInput.sendKeys(restUser.password);
 
-        if (authApp) {
+        if (restUser.authenticationApp) {
             await dialog.findElement(By.id("authApp")).click();
             const popup = await driver.wait(until.elementLocated(By.id("authAppPopup")),
                 constants.explicitWait, "Auth app drop down list was not displayed");
 
-            await popup.findElement(By.id(authApp)).click();
+            await popup.findElement(By.id(restUser.authenticationApp)).click();
         }
 
-        if (email) {
+        if (restUser.email) {
             const emailInput = await dialog.findElement(By.id("email"));
             await emailInput.clear();
-            await emailInput.sendKeys(email);
+            await emailInput.sendKeys(restUser.email);
         }
 
-        if (roles) {
+        if (restUser.assignedRoles) {
             await dialog.findElement(By.id("roles")).click();
-            const popup = await driver.wait(until.elementLocated(By.id("rolesPopup")),
+            await driver.wait(until.elementLocated(By.id("rolesPopup")),
                 constants.explicitWait, "Roles drop down list was not displayed");
 
-            const rolesLabel = await popup.findElement(By.css(`#${roles} label`));
+            const roles = await driver.findElement(By.id(restUser.assignedRoles));
+            const rolesLabel = await roles.findElement(By.css("label"));
             const rolesLabelClass = await rolesLabel.getAttribute("class");
             if (rolesLabelClass.includes("unchecked")) {
-                await rolesLabel.click();
+                await roles.click();
             } else {
-                await dialog.click();
+                await keyboard.type(nutKey.Escape);
             }
         }
 
-        if (permitLogin !== undefined) {
+        if (restUser.permitLogin !== undefined) {
             const inputPermitLogin = await dialog.findElement(By.id("loginPermitted"));
             const inputPermitLoginClass = await inputPermitLogin.getAttribute("class");
             if (inputPermitLoginClass.includes("unchecked")) {
-                if (permitLogin) {
+                if (restUser.permitLogin) {
                     await inputPermitLogin.click();
                 }
             } else {
-                if (!permitLogin) {
+                if (!restUser.permitLogin) {
                     await inputPermitLogin.click();
                 }
             }
         }
 
-        if (options) {
+        if (restUser.userOptions) {
             const appOptionsInput = await dialog.findElement(By.id("appOptions"));
             await appOptionsInput.clear();
-            await appOptionsInput.sendKeys(options);
+            await appOptionsInput.sendKeys(restUser.userOptions);
         }
 
-        if (vendorUserId) {
+        if (restUser.vendorUserId) {
             const vendorUserIdInput = await dialog.findElement(By.id("vendorUserId"));
             await vendorUserIdInput.clear();
-            await vendorUserIdInput.sendKeys(vendorUserId);
+            await vendorUserIdInput.sendKeys(restUser.vendorUserId);
         }
 
-        if (mappedUserId) {
+        if (restUser.mappedUserId) {
             const mappedUserIdInput = await dialog.findElement(By.id("mappedUserId"));
             await mappedUserIdInput.clear();
-            await mappedUserIdInput.sendKeys(mappedUserId);
+            await mappedUserIdInput.sendKeys(restUser.mappedUserId);
         }
 
         await driver.wait(async () => {
@@ -1100,6 +1125,44 @@ export class Database {
 
             return (await Misc.existsWebViewDialog()) === false;
         }, constants.explicitWait * 2, "The MRS User dialog was not closed");
+
+    };
+
+    public static getRestUser = async (): Promise<interfaces.IRestUser> => {
+
+        const dialog = await driver.wait(until.elementLocated(By.id("mrsUserDialog")),
+            constants.explicitWait * 2, "User dialog was not displayed");
+
+        const restUser: interfaces.IRestUser = {
+            username: await dialog.findElement(By.id("name")).getAttribute("value"),
+            password: await dialog.findElement(By.id("authString")).getAttribute("value"),
+            authenticationApp: await dialog.findElement(By.css("#authApp label")).getText(),
+            email: await dialog.findElement(By.id("email")).getAttribute("value"),
+            assignedRoles: await dialog.findElement(By.css("#roles label")).getText(),
+            userOptions: (await dialog.findElement(By.id("appOptions"))
+                .getAttribute("value")).replace(/\r?\n|\r|\s+/gm, "").trim(),
+            vendorUserId: await dialog.findElement(By.id("vendorUserId")).getAttribute("value"),
+            mappedUserId: await dialog.findElement(By.id("mappedUserId")).getAttribute("value"),
+        };
+
+        const inputLogin = await dialog.findElement(By.id("loginPermitted"));
+        const inputLoginClasses = await inputLogin.getAttribute("class");
+        const classes = inputLoginClasses.split(" ");
+        if (classes.includes("unchecked")) {
+            restUser.permitLogin = false;
+        } else if (classes.includes("checked")) {
+            restUser.permitLogin = true;
+        } else {
+            throw new Error("Unknown value for Permit Login checkbox");
+        }
+
+        await driver.wait(async () => {
+            await dialog.findElement(By.id("ok")).click();
+
+            return (await Misc.existsWebViewDialog()) === false;
+        }, constants.explicitWait * 2, "The MRS User dialog was not closed");
+
+        return restUser;
 
     };
 
