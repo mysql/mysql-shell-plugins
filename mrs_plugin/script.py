@@ -41,15 +41,15 @@ def run_mrs_script(mrs_script=None, **kwargs):
         session (object): The database session to use.
 
     Returns:
-        The schema_id of the created schema when not in interactive mode
+        A list of results as defined in /gui/tools/src/protocol/results_mrs.txt
     """
 
     interactive = lib.core.get_interactive_default()
 
     try:
-        results = lib.script.run_mrs_script(mrs_script=None, **kwargs)
+        results = lib.script.run_mrs_script(mrs_script=mrs_script, **kwargs)
 
-        if len(results) > 0:
+        if interactive is True:
             for res in results:
                 if res.get("type") == "success":
                     result = res.get("result")
@@ -58,10 +58,15 @@ def run_mrs_script(mrs_script=None, **kwargs):
                     print(res.get("message"))
                 else:
                     print(f'ERROR: {res.get("message")}')
+
+            if len(results) == 0:
+                print("No statements executed.")
+        else:
+            return results
+
     except Exception as e:
         if interactive is True:
             print(f"{e}")
             # For debugging, re-raise the exception
-            raise
         else:
             raise
