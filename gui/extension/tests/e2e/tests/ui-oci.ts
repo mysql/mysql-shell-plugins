@@ -29,7 +29,6 @@ import {
     BottomBarPanel,
     TextEditor,
     ModalDialog,
-    error,
 } from "vscode-extension-tester";
 import { driver, Misc } from "../lib/misc";
 import { Database } from "../lib/db";

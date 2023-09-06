@@ -158,3 +158,28 @@ export interface IRestObjectAuthorization {
     rowOwnerShipField?: string;
     customStoredProcedure?: string;
 }
+
+export interface IRestAuthenticationApp {
+    vendor: string;
+    name: string;
+    description?: string;
+    accessToken?: string;
+    appId?: string;
+    customURL?: string;
+    customURLforAccessToken?: string;
+    defaultRole?: string;
+    enabled?: boolean;
+    limitToRegisteredUsers?: boolean;
+}
+
+export interface IRestUser {
+    username: string;
+    password: string;
+    authenticationApp?: string;
+    email?: string;
+    assignedRoles?: string;
+    userOptions?: string;
+    permitLogin?: boolean;
+    vendorUserId?: string;
+    mappedUserId?: string;
+}
