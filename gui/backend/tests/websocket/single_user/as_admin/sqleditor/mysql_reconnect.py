@@ -42,16 +42,12 @@ connection_options = {
 
 def get_session_ids(session, session_id):
     res = session.run_sql(
-        f"""SELECT pl.Id
-            FROM performance_schema.session_connect_attrs AS attrs
-            INNER JOIN INFORMATION_SCHEMA.PROCESSLIST as pl
-            ON attrs.PROCESSLIST_ID = pl.Id
-            WHERE attrs.ATTR_NAME='test_session_id'
-            AND attrs.ATTR_VALUE='{session_id}'
-            ORDER BY pl.Id ASC""")
+        f"""SELECT PROCESSLIST_ID
+            FROM performance_schema.session_connect_attrs
+            WHERE ATTR_NAME='test_session_id'
+            AND ATTR_VALUE='{session_id}'
+            ORDER BY PROCESSLIST_ID ASC""")
 
-    user_session_id = None
-    service_session_id = None
     id1 = res.fetch_one()[0]
     id2 = res.fetch_one()[0]
 
