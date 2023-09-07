@@ -380,7 +380,7 @@ describe("MySQL REST Service", () => {
             mappedUserId: "testing",
         };
 
-        const destDumpSchema = join(process.cwd(), schemaToDump);
+        const destDumpSchema = join(process.cwd(), restSchemaToDump.settings.schemaName);
         const destDumpTable = join(process.cwd(), tableToDump);
 
         before(async function () {
@@ -482,16 +482,16 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it.skip("Edit REST Schema", async () => {
+        it("Edit REST Schema", async () => {
 
             const treeRandomService = await Misc.getTreeElement(constants.dbTreeSection,
                 `${globalService.servicePath} (${globalService.settings.hostNameFilter})`, true);
             const randomServiceLabel = await treeRandomService.getLabel();
             const treeService = await Misc.getTreeElement(constants.dbTreeSection, String(randomServiceLabel));
             await treeService.expand();
-            const treeRestSchemaToDump = await Misc.getTreeElement(constants.dbTreeSection,
-                `${restSchemaToDump.restSchemaPath} (${restSchemaToDump.settings.schemaName})`);
-            await Misc.openContextMenuItem(treeRestSchemaToDump,
+            const treeRestSchemaToEdit = await Misc.getTreeElement(constants.dbTreeSection,
+                `${worldRestSchema.restSchemaPath} (${worldRestSchema.settings.schemaName})`);
+            await Misc.openContextMenuItem(treeRestSchemaToEdit,
                 constants.editRESTSchema, constants.checkWebViewDialog);
 
             const editedSchema = {
@@ -514,9 +514,6 @@ describe("MySQL REST Service", () => {
                 `${editedSchema.restSchemaPath} (${editedSchema.settings.schemaName})`, true);
             await Misc.openContextMenuItem(treeEdited, constants.editRESTSchema, constants.checkWebViewDialog);
             const thisSchema = await Database.getRestSchema();
-            console.log(editedSchema);
-            console.log("----");
-            console.log(thisSchema);
             expect(thisSchema).to.deep.equal(editedSchema);
 
         });
@@ -563,7 +560,7 @@ describe("MySQL REST Service", () => {
         it("Dump Rest Schema to Json file", async () => {
 
             const treeMySQLRESTSchema = await Misc.getTreeElement(constants.dbTreeSection,
-                `/${schemaToDump} (${schemaToDump})`, true);
+                `${restSchemaToDump.restSchemaPath} (${restSchemaToDump.settings.schemaName})`, true);
             await fs.rm(`${destDumpSchema}.mrs.json`, { recursive: true, force: true });
             await Misc.openContextMenuItem(treeMySQLRESTSchema, constants.dumpRESTSchemaToJSON, constants.checkInput);
             await Misc.setInputPath(destDumpSchema);
@@ -601,25 +598,24 @@ describe("MySQL REST Service", () => {
             const treeRandomService = await Misc.getTreeElement(constants.dbTreeSection,
                 `${globalService.servicePath} (${globalService.settings.hostNameFilter})`, true);
             await treeRandomService.expand();
-
             const treeMySQLRESTSchema = await Misc.getTreeElement(constants.dbTreeSection,
-                `/${schemaToDump} (${schemaToDump})`, true);
+                `${restSchemaToDump.restSchemaPath} (${restSchemaToDump.settings.schemaName})`, true);
 
             // first we click to delete the schema but we change our mind later (BUG#35377927)
             await Misc.openContextMenuItem(treeMySQLRESTSchema, constants.deleteRESTSchema, constants.checkNotif);
-            let ntf = await Misc.getNotification(`Are you sure the MRS schema ${schemaToDump} should be deleted?`,
-                false);
+            const txt = `Are you sure the MRS schema ${restSchemaToDump.settings.schemaName} should be deleted?`;
+            let ntf = await Misc.getNotification(txt, false);
             await Misc.clickOnNotificationButton(ntf, "No");
             expect(await Misc.existsTreeElement(constants.dbTreeSection,
-                `/${schemaToDump} (${schemaToDump})`)).to.be.true;
+                `${restSchemaToDump.restSchemaPath} (${restSchemaToDump.settings.schemaName})`)).to.be.true;
 
             // now we try again, but we really want to delete the schema
             await Misc.openContextMenuItem(treeMySQLRESTSchema, constants.deleteRESTSchema, constants.checkNotif);
-            ntf = await Misc.getNotification(`Are you sure the MRS schema ${schemaToDump} should be deleted?`, false);
+            ntf = await Misc.getNotification(txt, false);
             await Misc.clickOnNotificationButton(ntf, "Yes");
             await Misc.getNotification("The MRS schema has been deleted successfully");
             expect(await Misc.existsTreeElement(constants.dbTreeSection,
-                `/${schemaToDump} (${schemaToDump})`)).to.be.false;
+                `${restSchemaToDump.restSchemaPath} (${restSchemaToDump.settings.schemaName})`)).to.be.false;
         });
 
         it("Load REST Schema from JSON file", async () => {
@@ -630,7 +626,7 @@ describe("MySQL REST Service", () => {
             await Misc.setInputPath(`${destDumpSchema}.mrs.json`);
             await Misc.getNotification("The REST Schema has been loaded successfully");
             expect(await Misc.existsTreeElement(constants.dbTreeSection,
-                `/${schemaToDump} (${schemaToDump})`)).to.be.true;
+                `${restSchemaToDump.restSchemaPath} (${restSchemaToDump.settings.schemaName})`)).to.be.true;
 
         });
 
@@ -711,7 +707,7 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it.skip("Edit Authentication App", async () => {
+        it("Edit Authentication App", async () => {
 
             let treeAuthApp = await Misc.getTreeElement(constants.dbTreeSection,
                 `${restAuthenticationApp.name} (${restAuthenticationApp.vendor})`);
@@ -752,7 +748,7 @@ describe("MySQL REST Service", () => {
             const editedUser: interfaces.IRestUser = {
                 username: "testuser",
                 password: "[Stored Password]",
-                authenticationApp: restUser.authenticationApp,
+                authenticationApp: restAuthenticationApp.name,
                 email: "testuser@oracle.com",
                 assignedRoles: "Full Access",
                 userOptions: `{"test":"value"}`,

@@ -283,6 +283,7 @@ def update_auth_app(**kwargs):
         session (object): The database session to use
 
     Allowed options for value:
+        auth_vendor_id (str): The auth_vendor_id
         name (str): The new name for the app
         description (str): The new description
         url (str): The new url for the app
@@ -297,7 +298,7 @@ def update_auth_app(**kwargs):
         A dict with content_set_id and number_of_files_uploaded
     """
     lib.core.convert_ids_to_binary(["app_id", "service_id"], kwargs)
-    lib.core.convert_ids_to_binary(["default_role_id"], kwargs["value"])
+    lib.core.convert_ids_to_binary(["default_role_id", "auth_vendor_id"], kwargs["value"])
 
     app_id = kwargs.get("app_id")
 
