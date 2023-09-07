@@ -789,6 +789,7 @@ export class MrsHub extends ComponentBase {
         if (authApp) {
             try {
                 await backend.mrs.updateAuthApp(authApp.id as string, {
+                    authVendorId,
                     name: data.name,
                     description: data.description,
                     url: data.url,

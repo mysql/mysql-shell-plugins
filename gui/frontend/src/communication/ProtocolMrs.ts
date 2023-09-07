@@ -635,6 +635,8 @@ export interface IShellMrsDeleteAuthenticationAppKwargs {
 }
 
 export interface IShellMrsUpdateAuthenticationAppKwargsValue {
+    /** The auth_vendor_id */
+    authVendorId?: string;
     /** The new name for the app */
     name?: string;
     /** The new description */

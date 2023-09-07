@@ -1061,10 +1061,10 @@ export class Database {
 
         if (restUser.authenticationApp) {
             await dialog.findElement(By.id("authApp")).click();
-            const popup = await driver.wait(until.elementLocated(By.id("authAppPopup")),
+            await driver.wait(until.elementLocated(By.id("authAppPopup")),
                 constants.explicitWait, "Auth app drop down list was not displayed");
 
-            await popup.findElement(By.id(restUser.authenticationApp)).click();
+            await driver.wait(until.elementLocated(By.id(restUser.authenticationApp)), constants.explicitWait).click();
         }
 
         if (restUser.email) {
