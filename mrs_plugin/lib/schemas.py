@@ -101,8 +101,6 @@ def delete_schemas(session, schemas: list):
 
 
 def update_schema(session, schemas: list, value: dict):
-    value = core.convert_json(value)
-
     if not schemas:
         raise ValueError("The specified schema was not found.")
 
