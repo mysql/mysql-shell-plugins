@@ -31,7 +31,8 @@ from .interactive import resolve_service
 def verify_value_keys(**kwargs):
     for key in kwargs["value"].keys():
         if key not in ["name", "request_path", "requires_auth",
-                       "enabled", "items_per_page", "comments", "options"] and key != "delete":
+                       "enabled", "items_per_page", "comments",
+                       "service_id", "options"] and key != "delete":
             raise Exception(f"Attempting to change an invalid schema value.")
 
 
@@ -587,6 +588,7 @@ def update_schema(**kwargs):
         session (object): The database session to use.
 
     Allowed options for value:
+        service_id (str): The new service id for the schema
         schema_name (str): The name of the schema
         request_path (str): The request_path
         requires_auth (bool): Whether authentication is required to access
@@ -600,6 +602,9 @@ def update_schema(**kwargs):
         The result message as string
     """
     lib.core.convert_ids_to_binary(["service_id", "schema_id"], kwargs)
+
+    kwargs["value"] = lib.core.convert_json(kwargs["value"])
+    lib.core.convert_ids_to_binary(["service_id"], kwargs["value"])
 
     if kwargs.get("request_path") is not None:
         lib.core.Validations.request_path(kwargs["request_path"])

@@ -557,6 +557,8 @@ export interface IShellMrsSetSchemaCommentsKwargs {
 }
 
 export interface IShellMrsUpdateSchemaKwargsValue {
+    /** The new service id for the schema */
+    serviceId?: string;
     /** The name of the schema */
     schemaName?: string;
     /** The request_path */

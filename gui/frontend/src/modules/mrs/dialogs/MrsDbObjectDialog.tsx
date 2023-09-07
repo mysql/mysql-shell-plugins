@@ -134,8 +134,14 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
         title?: string): IDialogValues {
 
         let selectedService = services.find((service) => {
-            return service.isCurrent === 1;
+            return service.id === request.values?.serviceId;
         });
+
+        if (selectedService === undefined) {
+            selectedService = services.find((service) => {
+                return service.isCurrent === 1;
+            });
+        }
 
         if (services.length > 0 && !selectedService) {
             selectedService = services[0];

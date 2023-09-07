@@ -395,7 +395,7 @@ export class ShellInterfaceMrs {
         return response.result;
     }
 
-    public async updateSchema(schemaId: string, schemaName: string, requestPath: string,
+    public async updateSchema(schemaId: string, serviceId: string, schemaName: string, requestPath: string,
         requiresAuth: boolean, enabled: boolean, itemsPerPage: number | null, comments: string,
         options: IShellDictionary | null): Promise<void> {
         await MessageScheduler.get.sendRequest({
@@ -405,6 +405,7 @@ export class ShellInterfaceMrs {
                     moduleSessionId: this.moduleSessionId,
                     schemaId,
                     value: {
+                        serviceId,
                         schemaName,
                         requestPath,
                         requiresAuth,

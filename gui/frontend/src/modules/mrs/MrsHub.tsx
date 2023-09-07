@@ -370,7 +370,8 @@ export class MrsHub extends ComponentBase {
                 }
             } else {
                 try {
-                    await backend.mrs.updateSchema(schema.id, dbSchemaName, requestPath, requiresAuth, enabled,
+                    await backend.mrs.updateSchema(schema.id, serviceId, dbSchemaName,
+                        requestPath, requiresAuth, enabled,
                         itemsPerPage, comments, options);
 
                     void requisitions.executeRemote("refreshConnections", undefined);
