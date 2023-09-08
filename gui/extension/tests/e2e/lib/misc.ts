@@ -216,7 +216,6 @@ export class Misc {
     };
 
     public static clickSectionToolbarButton = async (section: CustomTreeSection, button: string): Promise<void> => {
-
         await driver.actions().move({ origin: section }).perform();
         const sectionActions = await driver
             .findElement(By.xpath(`//ul[contains(@aria-label, '${await section.getTitle()} actions')]`));

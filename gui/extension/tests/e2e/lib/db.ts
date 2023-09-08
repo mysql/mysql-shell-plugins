@@ -1084,7 +1084,11 @@ export class Database {
             if (rolesLabelClass.includes("unchecked")) {
                 await roles.click();
             } else {
-                await keyboard.type(nutKey.Escape);
+                await driver.wait(async () => {
+                    await keyboard.type(nutKey.Escape);
+
+                    return (await driver.findElements(By.css(".popup.visible"))).length === 0;
+                }, constants.explicitWait, "Roles drop down list was not closed");
             }
         }
 

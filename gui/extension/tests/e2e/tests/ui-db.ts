@@ -938,7 +938,7 @@ describe("DATABASE CONNECTIONS", () => {
             await new EditorView().openEditor(globalConn.caption);
             await Misc.switchToWebView();
             let result = await Misc.execCmd(`drop schema if exists \`${testSchema}\`;`,
-                undefined, constants.queryWaits);
+                constants.execFullBlockSql, constants.queryWaits);
             expect(result[0]).to.include("OK");
             result = await Misc.execCmd(`create schema ${testSchema};`, undefined, constants.queryWaits);
             expect(result[0]).to.include("OK");
