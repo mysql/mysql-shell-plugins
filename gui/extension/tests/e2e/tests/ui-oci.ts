@@ -73,8 +73,17 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             config += "5mmi2z3a\nregion=us-ashburn-1\nkey_file=";
             config += `${process.env.MYSQLSH_OCI_CONFIG_FILE.replace("config", "")}id_rsa_e2e.pem`;
             console.log(config);
-            await editor.sendKeys(config);
-            await textEditor.save();
+            await driver.wait(async () => {
+                await editor.sendKeys(config);
+                const text = await textEditor.getText();
+                if (text.includes("E2ETESTS")) {
+                    await textEditor.save();
+
+                    return true;
+                }
+            }, constants.explicitWait, "Could no set the config file");
+
+
             await Misc.clickSectionToolbarButton(treeOCISection, "Reload the OCI Profile list");
 
             const treeE2eTests = await Misc.getTreeElement(constants.ociTreeSection, "E2ETESTS (us-ashburn-1)");

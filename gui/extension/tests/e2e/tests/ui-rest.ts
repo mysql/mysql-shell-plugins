@@ -373,7 +373,7 @@ describe("MySQL REST Service", () => {
             password: "testing",
             authenticationApp: restAuthenticationApp.name,
             email: "user@oracle.com",
-            assignedRoles: "Full Access",
+            assignedRoles: undefined,
             userOptions: "",
             permitLogin: true,
             vendorUserId: "1234",
@@ -750,7 +750,7 @@ describe("MySQL REST Service", () => {
                 password: "[Stored Password]",
                 authenticationApp: restAuthenticationApp.name,
                 email: "testuser@oracle.com",
-                assignedRoles: "Full Access",
+                assignedRoles: undefined,
                 userOptions: `{"test":"value"}`,
                 permitLogin: false,
                 vendorUserId: "123467",
@@ -763,6 +763,7 @@ describe("MySQL REST Service", () => {
             treeUser = await Misc.getTreeElement(constants.dbTreeSection, editedUser.username);
             await Misc.openContextMenuItem(treeUser, constants.editRESTUser, constants.checkWebViewDialog);
             const user = await Database.getRestUser();
+            editedUser.assignedRoles = "Full Access";
             expect(editedUser).to.deep.equal(user);
             restUser = editedUser;
         });
