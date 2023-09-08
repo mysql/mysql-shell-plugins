@@ -97,13 +97,16 @@
             <nav class="section-nav">
                 <h1>MRS Documentation</h1>
                 <h2>
-                    <div class="icon bookIcon"></div> <a href="index.html#document-top">MRS Developer's Guide</a>
+                    <div class="icon bookIcon"></div> <a href="index.html#document-top">Developer's Guide</a>
                 </h2>
                 <h2>
-                    <div class="icon bookIcon"></div> <a href="ddl.html#document-top">MRS DDL Reference</a>
+                    <div class="icon bookIcon"></div> <a href="ddl.html#document-top">DDL Reference</a>
                 </h2>
                 <h2>
-                    <div class="icon bookIcon"></div> <a href="sdk.html#document-top">MRS SDK Reference</a>
+                    <div class="icon bookIcon"></div> <a href="restApi.html#document-top">Core REST APIs</a>
+                </h2>
+                <h2>
+                    <div class="icon bookIcon"></div> <a href="sdk.html#document-top">SDK Reference</a>
                 </h2>
                 <hr />
                 <h3>MRS Developer's Guide</h3>
@@ -193,61 +196,14 @@
                                 MySQL REST Object Dialog
                                 Reference</a></li>
                                 </ul></li>
-                                <li><a
-                                href="#working-with-mrs-restful-web-services"
-                                id="toc-working-with-mrs-restful-web-services"><span
-                                class="toc-section-number">6</span>
-                                Working with MRS RESTful Web
-                                Services</a>
-                                <ul>
-                                <li><a
-                                href="#about-mrs-restful-web-services"
-                                id="toc-about-mrs-restful-web-services"><span
-                                class="toc-section-number">6.1</span>
-                                About MRS RESTful Web Services</a></li>
-                                <li><a href="#get-schema-metadata"
-                                id="toc-get-schema-metadata"><span
-                                class="toc-section-number">6.2</span>
-                                Get Schema Metadata</a></li>
-                                <li><a href="#get-object-metadata"
-                                id="toc-get-object-metadata"><span
-                                class="toc-section-number">6.3</span>
-                                Get Object Metadata</a></li>
-                                <li><a href="#get-object-data"
-                                id="toc-get-object-data"><span
-                                class="toc-section-number">6.4</span>
-                                Get Object Data</a></li>
-                                <li><a href="#insert-table-row"
-                                id="toc-insert-table-row"><span
-                                class="toc-section-number">6.5</span>
-                                Insert Table Row</a></li>
-                                <li><a href="#updateinsert-table-row"
-                                id="toc-updateinsert-table-row"><span
-                                class="toc-section-number">6.6</span>
-                                Update/Insert Table Row</a></li>
-                                <li><a href="#delete-using-filter"
-                                id="toc-delete-using-filter"><span
-                                class="toc-section-number">6.7</span>
-                                Delete Using Filter</a></li>
-                                <li><a href="#filterobject-grammar"
-                                id="toc-filterobject-grammar"><span
-                                class="toc-section-number">6.8</span>
-                                FilterObject Grammar</a></li>
-                                <li><a
-                                href="#examples-filterobject-specifications"
-                                id="toc-examples-filterobject-specifications"><span
-                                class="toc-section-number">6.9</span>
-                                Examples: FilterObject
-                                Specifications</a></li>
-                                </ul></li>
                                 <li><a href="#mrs-examples"
                                 id="toc-mrs-examples"><span
-                                class="toc-section-number">7</span> MRS
+                                class="toc-section-number">6</span> MRS
                                 Examples</a>
                                 <ul>
                                 <li><a href="#mrs-notes-examples"
                                 id="toc-mrs-notes-examples"><span
-                                class="toc-section-number">7.1</span>
+                                class="toc-section-number">6.1</span>
                                 MRS Notes Examples</a></li>
                                 </ul></li>
                                 </ul>
@@ -277,9 +233,6 @@
                 <li><a
                 href="#adding-schemas-and-objects-to-a-rest-service">Adding
                 Schemas and Objects to a REST Service</a></li>
-                <li><a
-                href="#working-with-mrs-restful-web-services">Working
-                with MRS RESTful Web Services</a></li>
                 <li><a href="#mrs-examples">MRS Examples</a>
                 <ul>
                 <li><a href="#mrs-notes-examples">MRS Notes
@@ -289,14 +242,18 @@
                 <hr />
                 <p>Please also see</p>
                 <ul>
-                <li><strong><a href="sdk.html">MySQL REST Service - SDK
-                Reference</a></strong> - This document explains how to
-                work with the MRS Software Development Kit and discusses
-                the Client APIs.</li>
                 <li><strong><a href="ddl.html">MySQL REST Service - DDL
-                Extension Reference</a></strong> - This document
-                discusses the MySQL REST Service (MRS) DDL SQL
-                Extension..</li>
+                Reference</a></strong> - This book discusses the MySQL
+                REST Service (MRS) DDL SQL Extension.</li>
+                <li><strong><a href="restApi.html">MySQL REST Service -
+                Core REST APIs</a></strong> - This book provides
+                examples of using the MySQL REST Service queries and
+                other operations against tables and views after you have
+                REST-enabled them.</li>
+                <li><strong><a href="sdk.html">MySQL REST Service - SDK
+                Reference</a></strong> - This book explains how to work
+                with the MRS Software Development Kit and discusses the
+                Client APIs.</li>
                 </ul>
                 <hr />
                 <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
@@ -1802,948 +1759,8 @@ router_id=16</code></pre>
                 You should have received a copy of the GNU General Public License
                 along with this program; if not, write to the Free Software Foundation, Inc.,
                 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
-                <h1 data-number="6"
-                id="working-with-mrs-restful-web-services"><span
-                class="header-section-number">6</span> Working with MRS
-                RESTful Web Services</h1>
-                <p>This section provides examples of using the MySQL
-                REST Service queries and other operations against tables
-                and views after you have REST-enabled them.</p>
-                <h2 data-number="6.1"
-                id="about-mrs-restful-web-services"><span
-                class="header-section-number">6.1</span> About MRS
-                RESTful Web Services</h2>
-                <p>MRS supports the creation of an unlimited amount of
-                distinct RESTful Web Services. You can also refer to
-                them as MRS services. Each of those MRS services usually
-                maps to one (or more) web applications.</p>
-                <p>After you create a RESTful Web Service, you can
-                access it by entering the following URL in your
-                browser:</p>
-                <p>Pattern:</p>
-                <pre><code>https://&lt;HOSTNAME:PORT&gt;/&lt;MRS_SERVICE_PATH&gt;/&lt;MRS_DATABASE_SCHEMA_PATH&gt;/&lt;MRS_DATABASE_OBJECT_PATH&gt;/</code></pre>
-                <ul>
-                <li><code>HOSTNAME:PORT/MRS_SERVICE_PATH</code>:
-                Specifies the address at which the given MRS service is
-                running. You can also refer to it as the MRS service
-                URI.</li>
-                <li><code>MRS_DATABASE_SCHEMA_PATH</code>: Specifies the
-                path that you provided while REST-enabling your database
-                schema. By default, it is the name of the schema.</li>
-                <li><code>MRS_DATABASE_OBJECT_PATH</code>: Specifies the
-                path that you provided while REST-enabling your database
-                object (TABLE, VIEW or PROCEDURE).</li>
-                </ul>
-                <p>Together, these values comprise the MRS endpoint
-                URL.</p>
-                <p>Example:</p>
-                <pre><code>https://localhost:8000/mrs/sakila/actor</code></pre>
-                <h3 data-number="6.1.1"
-                id="about-request-path-syntax-requirements"><span
-                class="header-section-number">6.1.1</span> About Request
-                Path Syntax Requirements</h3>
-                <p>To prevent path-based attacks, MRS requires the
-                syntax of the path element of each request URL to
-                conform to the following rules:</p>
-                <ul>
-                <li>Is not empty or whitespace-only</li>
-                <li>Does not contain any of the following characters: ?,
-                #, ;, %</li>
-                <li>Does not contain the null character (000)</li>
-                <li>Does not contain characters in the range:
-                001-031</li>
-                <li>Does not end with white space or a period (.)</li>
-                <li>Does not contain double forward slash (//) or double
-                back slash(\)</li>
-                <li>Does not contain two or more periods in sequence
-                (.., …, and so on)</li>
-                <li>Total length is {<span class="citation"
-                data-cites="value">@value</span> #MAX_PATH_LENGTH}
-                characters or less</li>
-                <li>Does not match any of the following names (case
-                insensitive), with or without file extensions: CON, PRN,
-                AUX, CLOCK$, NUL, COM0, COM1, COM2, COM3, COM4, COM5,
-                COM6, COM7, COM8, COM9, LPT0, LPT1, LPT2, LPT3, LPT4,
-                LPT5, LPT6, LPT7, LPT8, LPT9</li>
-                </ul>
-                <p>If you intend to auto-REST enable objects, then avoid
-                object names that do not comply with these requirements.
-                For example, do not create a table named #EMPS. If you
-                do want to auto-REST enable objects that have
-                non-compliant names, then you must use an alias that
-                complies with the requirements.</p>
-                <p>These requirements are applied to the URL decoded
-                form of the URL, to prevent attempted circumvention of
-                percent encodings.</p>
-                <h3 data-number="6.1.2"
-                id="about-curl-and-testing-restful-services"><span
-                class="header-section-number">6.1.2</span> About cURL
-                and Testing RESTful Services</h3>
-                <p>Other sections show the testing of RESTful services
-                using a web browser. However, another useful way to test
-                RESTful Services is using the command line tool named
-                cURL.</p>
-                <p>This powerful tool is available for most platforms,
-                and enables you to see and control what data is being
-                sent to and received from a RESTful service.</p>
-                <pre><code>curl -i https://localhost:8000/mrs/sakila/actor/2</code></pre>
-                <p>This example produces a response like the
-                following:</p>
-                <pre><code>{
-    &quot;links&quot;: [
-        {
-            &quot;rel&quot;: &quot;self&quot;,
-            &quot;href&quot;: &quot;http://localhost:8000/mrs/sakila/actor/2&quot;
-        }
-    ],
-    &quot;actor_id&quot;: 2,
-    &quot;last_name&quot;: &quot;WAHLBERG&quot;,
-    &quot;first_name&quot;: &quot;NICK&quot;,
-    &quot;last_update&quot;: &quot;2006-02-15 03:34:33.000000&quot;
-}</code></pre>
-                <p>The -i option tells cURL to display the HTTP headers
-                returned by the server.</p>
-                <h2 data-number="6.2" id="get-schema-metadata"><span
-                class="header-section-number">6.2</span> Get Schema
-                Metadata</h2>
-                <p>This example retrieves a list of resources available
-                through the specified schema alias. It shows RESTful
-                services that are created by enabling a table, view or
-                procedure.</p>
-                <p>This example retrieves a list of resources available
-                through the specified schema alias.</p>
-                <p>Pattern:</p>
-                <pre><code>GET http://&lt;HOST&gt;:&lt;PORT&gt;/&lt;ServiceAlias&gt;/&lt;SchemaAlias&gt;/metadata-catalog/</code></pre>
-                <p>Example:</p>
-                <pre><code>GET http://localhost:8000/mrs/sakila/metadata-catalog/</code></pre>
-                <p>Result:</p>
-                <pre><code>{
-    &quot;items&quot;: [
-        {
-            &quot;name&quot;: &quot;/actor&quot;,
-            &quot;links&quot;: [
-                {
-                    &quot;rel&quot;: &quot;describes&quot;,
-                    &quot;href&quot;: &quot;http://localhost:8000/mrs/sakila/actor&quot;
-                },
-                {
-                    &quot;rel&quot;: &quot;canonical&quot;,
-                    &quot;href&quot;: &quot;http://localhost:8000/mrs/sakila/metadata-catalog/actor&quot;
-                }
-            ]
-        },
-        {
-            &quot;name&quot;: &quot;/address&quot;,
-            &quot;links&quot;: [
-                {
-                    &quot;rel&quot;: &quot;describes&quot;,
-                    &quot;href&quot;: &quot;http://localhost:8000/mrs/sakila/address&quot;
-                },
-                {
-                    &quot;rel&quot;: &quot;canonical&quot;,
-                    &quot;href&quot;: &quot;http://localhost:8000/mrs/sakila/metadata-catalog/address&quot;
-                }
-            ]
-        }
-    ],
-    &quot;limit&quot;: 25,
-    &quot;offset&quot;: 0,
-    &quot;hasMore&quot;: false,
-    &quot;count&quot;: 2,
-    &quot;links&quot;: [
-        {
-            &quot;rel&quot;: &quot;self&quot;,
-            &quot;href&quot;: &quot;http://localhost:8000/mrs/sakila/metadata-catalog/&quot;
-        }
-    ]
-}</code></pre>
-                <p>Each available resource has two hyperlinks:</p>
-                <ul>
-                <li>The link with relation describes points to the
-                actual resource.</li>
-                <li>The link with relation canonical describes the
-                resource.</li>
-                </ul>
-                <h2 data-number="6.3" id="get-object-metadata"><span
-                class="header-section-number">6.3</span> Get Object
-                Metadata</h2>
-                <p>This example retrieves the metadata (which describes
-                the object) of an individual object. The location of the
-                metadata is indicated by the canonical link
-                relation.</p>
-                <p>Pattern:</p>
-                <pre><code>GET http://&lt;HOST&gt;:&lt;PORT&gt;/&lt;ServiceAlias&gt;/&lt;SchemaAlias&gt;/metadata-catalog/&lt;ObjectAlias&gt;/</code></pre>
-                <p>Example:</p>
-                <pre><code>GET http://localhost:8000/mrs/sakila/metadata-catalog/actor/</code></pre>
-                <p>Result:</p>
-                <pre><code>{
-    &quot;name&quot;: &quot;/actor&quot;,
-    &quot;primaryKey&quot;: [
-        &quot;actor_id&quot;
-    ],
-    &quot;members&quot;: [
-        {
-            &quot;name&quot;: &quot;actor_id&quot;,
-            &quot;type&quot;: &quot;null&quot;
-        },
-        {
-            &quot;name&quot;: &quot;first_name&quot;,
-            &quot;type&quot;: &quot;null&quot;
-        },
-        {
-            &quot;name&quot;: &quot;last_name&quot;,
-            &quot;type&quot;: &quot;null&quot;
-        },
-        {
-            &quot;name&quot;: &quot;last_update&quot;,
-            &quot;type&quot;: &quot;string&quot;
-        }
-    ],
-    &quot;links&quot;: [
-        {
-            &quot;rel&quot;: &quot;collection&quot;,
-            &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/metadata-catalog&quot;,
-            &quot;mediaType&quot;: &quot;application/json&quot;
-        },
-        {
-            &quot;rel&quot;: &quot;canonical&quot;,
-            &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/metadata-catalog/actor&quot;
-        },
-        {
-            &quot;rel&quot;: &quot;describes&quot;,
-            &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor&quot;
-        }
-    ]
-}</code></pre>
-                <h2 data-number="6.4" id="get-object-data"><span
-                class="header-section-number">6.4</span> Get Object
-                Data</h2>
-                <p>This example retrieves the data in the object. Each
-                row in the object corresponds to a JSON object embedded
-                within the JSON array</p>
-                <p>Pattern:</p>
-                <pre><code>GET http://&lt;HOST&gt;:&lt;PORT&gt;/&lt;ServiceAlias&gt;/&lt;SchemaAlias&gt;/&lt;ObjectAlias&gt;/</code></pre>
-                <p>Example:</p>
-                <pre><code>GET http://localhost:8000/mrs/sakila/actor/</code></pre>
-                <p>Result:</p>
-                <pre><code>{
-    &quot;items&quot;: [
-        {
-            &quot;links&quot;: [
-                {
-                    &quot;rel&quot;: &quot;self&quot;,
-                    &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/1&quot;
-                }
-            ],
-            &quot;actor_id&quot;: 1,
-            &quot;last_name&quot;: &quot;GUINESSS&quot;,
-            &quot;first_name&quot;: &quot;PENELOPE&quot;,
-            &quot;last_update&quot;: &quot;2021-09-28 20:18:53.000000&quot;
-        },
-        {
-            &quot;links&quot;: [
-                {
-                    &quot;rel&quot;: &quot;self&quot;,
-                    &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/2&quot;
-                }
-            ],
-            &quot;actor_id&quot;: 2,
-            &quot;last_name&quot;: &quot;WAHLBERG&quot;,
-            &quot;first_name&quot;: &quot;NICK&quot;,
-            &quot;last_update&quot;: &quot;2006-02-15 03:34:33.000000&quot;
-        },
-        {
-            &quot;links&quot;: [
-                {
-                    &quot;rel&quot;: &quot;self&quot;,
-                    &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/3&quot;
-                }
-            ],
-            &quot;actor_id&quot;: 3,
-            &quot;last_name&quot;: &quot;CHASE&quot;,
-            &quot;first_name&quot;: &quot;ED&quot;,
-            &quot;last_update&quot;: &quot;2006-02-15 03:34:33.000000&quot;
-        },
-        ...
-    ]
-}</code></pre>
-                <h3 data-number="6.4.1"
-                id="get-table-data-using-paging"><span
-                class="header-section-number">6.4.1</span> Get Table
-                Data Using Paging</h3>
-                <p>This example specifies the offset and limit
-                parameters to control paging of result data.</p>
-                <p>Pattern:</p>
-                <pre><code>GET http://&lt;HOST&gt;:&lt;PORT&gt;/&lt;ServiceAlias&gt;/&lt;SchemaAlias&gt;/&lt;ObjectAlias&gt;/?offset=&lt;Offset&gt;&amp;limit=&lt;Limit&gt;</code></pre>
-                <p>Example:</p>
-                <pre><code>GET http://localhost:8080/mrs/sakila/actor/?offset=10&amp;limit=2</code></pre>
-                <p>Result:</p>
-                <pre><code>{
-    &quot;items&quot;: [
-        {
-            &quot;links&quot;: [
-                {
-                    &quot;rel&quot;: &quot;self&quot;,
-                    &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/11&quot;
-                }
-            ],
-            &quot;actor_id&quot;: 11,
-            &quot;last_name&quot;: &quot;CAGE&quot;,
-            &quot;first_name&quot;: &quot;ZERO&quot;,
-            &quot;last_update&quot;: &quot;2006-02-15 03:34:33.000000&quot;
-        },
-        {
-            &quot;links&quot;: [
-                {
-                    &quot;rel&quot;: &quot;self&quot;,
-                    &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/12&quot;
-                }
-            ],
-            &quot;actor_id&quot;: 12,
-            &quot;last_name&quot;: &quot;BERRY&quot;,
-            &quot;first_name&quot;: &quot;KARL&quot;,
-            &quot;last_update&quot;: &quot;2006-02-15 03:34:33.000000&quot;
-        }
-    ],
-    &quot;limit&quot;: 2,
-    &quot;offset&quot;: 10,
-    &quot;hasMore&quot;: true,
-    &quot;count&quot;: 2,
-    &quot;links&quot;: [
-        {
-            &quot;rel&quot;: &quot;self&quot;,
-            &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/&quot;
-        },
-        {
-            &quot;rel&quot;: &quot;next&quot;,
-            &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/?offset=12&amp;limit=2&quot;
-        },
-        {
-            &quot;rel&quot;: &quot;prev&quot;,
-            &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/?offset=8&amp;limit=2&quot;
-        },
-        {
-            &quot;rel&quot;: &quot;first&quot;,
-            &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/?limit=2&quot;
-        }
-    ]
-}</code></pre>
-                <h3 data-number="6.4.2"
-                id="get-table-data-using-query"><span
-                class="header-section-number">6.4.2</span> Get Table
-                Data Using Query</h3>
-                <p>This example specifies a filter clause to restrict
-                objects returned.</p>
-                <p>Pattern:</p>
-                <pre><code>GET http://&lt;HOST&gt;:&lt;PORT&gt;/&lt;ServiceAlias&gt;/&lt;SchemaAlias&gt;/&lt;ObjectAlias&gt;/?q=&lt;FilterClause&gt;</code></pre>
-                <p>Example:</p>
-                <pre><code>GET http://localhost:8080/mrs/sakila/actor/?q={&quot;last_name&quot;:{&quot;$like&quot;:&quot;WAW%&quot;}}</code></pre>
-                <p>Result:</p>
-                <pre><code>{
-    &quot;items&quot;: [
-        {
-            &quot;links&quot;: [
-                {
-                    &quot;rel&quot;: &quot;self&quot;,
-                    &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/97&quot;
-                }
-            ],
-            &quot;actor_id&quot;: 97,
-            &quot;last_name&quot;: &quot;HAWKE&quot;,
-            &quot;first_name&quot;: &quot;MEG&quot;,
-            &quot;last_update&quot;: &quot;2006-02-15 03:34:33.000000&quot;
-        }
-    ],
-    &quot;limit&quot;: 25,
-    &quot;offset&quot;: 0,
-    &quot;hasMore&quot;: false,
-    &quot;count&quot;: 1,
-    &quot;links&quot;: [
-        {
-            &quot;rel&quot;: &quot;self&quot;,
-            &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/&quot;
-        }
-    ]
-}</code></pre>
-                <h3 data-number="6.4.3"
-                id="get-table-row-using-primary-key"><span
-                class="header-section-number">6.4.3</span> Get Table Row
-                Using Primary Key</h3>
-                <p>This example retrieves an object by specifying its
-                identifying key values.</p>
-                <p>Note: If a table does not have a primary key, then
-                MRS uses the ROWID to uniquely address the rows.</p>
-                <p>Pattern:</p>
-                <pre><code>GET http://&lt;HOST&gt;:&lt;PORT&gt;/&lt;ServiceAlias&gt;/&lt;SchemaAlias&gt;/&lt;ObjectAlias&gt;/&lt;KeyValues&gt;</code></pre>
-                <p>Where <code>&lt;KeyValues&gt;</code> is a
-                comma-separated list of key values (in key order).</p>
-                <p>Example:</p>
-                <pre><code>GET http://localhost:8000/mrs/sakila/actor/53</code></pre>
-                <p>Result:</p>
-                <pre><code>{
-    &quot;links&quot;: [
-        {
-            &quot;rel&quot;: &quot;self&quot;,
-            &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/53&quot;
-        }
-    ],
-    &quot;actor_id&quot;: 53,
-    &quot;last_name&quot;: &quot;TEMPLE&quot;,
-    &quot;first_name&quot;: &quot;MENA&quot;,
-    &quot;last_update&quot;: &quot;2006-02-15 03:34:33.000000&quot;
-}</code></pre>
-                <h2 data-number="6.5" id="insert-table-row"><span
-                class="header-section-number">6.5</span> Insert Table
-                Row</h2>
-                <p>This example inserts data into the object. The body
-                data supplied with the request is a JSON object
-                containing the data to be inserted.</p>
-                <p>If the object has a primary key, then the POST
-                request can include the primary key value in the body.
-                Or, if the table has an AUTO_INCREMENT column then the
-                primary key column may be omitted.</p>
-                <p>Pattern:</p>
-                <pre><code>POST http://&lt;HOST&gt;:&lt;PORT&gt;/&lt;ServiceAlias&gt;/&lt;SchemaAlias&gt;/&lt;ObjectAlias&gt;/</code></pre>
-                <p>Example:</p>
-                <pre><code>curl -i -H &quot;Content-Type: application/json&quot; -X POST -d &quot;{ \&quot;last_name\&quot; : \&quot;FOLEY\&quot;, \&quot;first_name\&quot;: \&quot;MIKE\&quot; }&quot; &quot;http://localhost:8000/mrs/sakila/actor/&quot; Content-Type: application/json</code></pre>
-                <p>Result:</p>
-                <pre><code>{
-    &quot;links&quot;: [
-        {
-            &quot;rel&quot;: &quot;self&quot;,
-            &quot;href&quot;: &quot;http://localhost:8000/mrs/sakila/actor/201&quot;
-        }
-    ],
-    &quot;actor_id&quot;: 201,
-    &quot;last_name&quot;: &quot;FOLEY&quot;,
-    &quot;first_name&quot;: &quot;MIKE&quot;,
-    &quot;last_update&quot;: &quot;2022-11-29 15:35:17.000000&quot;
-}</code></pre>
-                <h2 data-number="6.6" id="updateinsert-table-row"><span
-                class="header-section-number">6.6</span> Update/Insert
-                Table Row</h2>
-                <p>This example inserts or updates (sometimes called an
-                “upsert”) data in the object. The body data supplied
-                with the request is a JSON object containing the data to
-                be inserted or updated.</p>
-                <p>Pattern:</p>
-                <pre><code>PUT http://&lt;HOST&gt;:&lt;PORT&gt;/&lt;ServiceAlias&gt;/&lt;SchemaAlias&gt;/&lt;ObjectAlias&gt;/&lt;KeyValues&gt;</code></pre>
-                <p>Example:</p>
-                <pre><code>curl -i -H &quot;Content-Type: application/json&quot; -X PUT -d &quot;{ \&quot;last_name\&quot; : \&quot;FOLEY\&quot;, \&quot;first_name\&quot;: \&quot;JACK\&quot; }&quot; &quot;https://localhost:8000/mrs/sakila/actor/201&quot; Content-Type: application/json</code></pre>
-                <p>Result:</p>
-                <pre><code>{
-    &quot;links&quot;: [
-        {
-            &quot;rel&quot;: &quot;self&quot;,
-            &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/201&quot;
-        }
-    ],
-    &quot;actor_id&quot;: 201,
-    &quot;last_name&quot;: &quot;FOLEY&quot;,
-    &quot;first_name&quot;: &quot;JACK&quot;,
-    &quot;last_update&quot;: &quot;2022-11-29 15:45:10.000000&quot;
-}</code></pre>
-                <h2 data-number="6.7" id="delete-using-filter"><span
-                class="header-section-number">6.7</span> Delete Using
-                Filter</h2>
-                <p>This example deletes object data specified by a
-                filter clause.</p>
-                <p>Pattern:</p>
-                <pre><code>DELETE http://&lt;HOST&gt;:&lt;PORT&gt;/&lt;ServiceAlias&gt;/&lt;SchemaAlias&gt;/&lt;ObjectAlias&gt;/?q=&lt;FilterClause&gt;</code></pre>
-                <p>Example:</p>
-                <pre><code>curl -i -X DELETE &quot;https://localhost:8000/mrs/sakila/actor/?q=\{\&quot;actor_id\&quot;:201\}&quot;</code></pre>
-                <p>Result:</p>
-                <pre><code>{
-    &quot;itemsDeleted&quot;: 1
-}</code></pre>
-                <h2 data-number="6.8" id="filterobject-grammar"><span
-                class="header-section-number">6.8</span> FilterObject
-                Grammar</h2>
-                <p>The FilterObject must be a JSON object that complies
-                with the following syntax:</p>
-                <pre><code>FilterObject { orderby , asof, wmembers }</code></pre>
-                <p>The orderby, asof, and wmembers attributes are
-                optional, and their definitions are as follows:</p>
-                <pre><code>orderby
-&quot;$orderby&quot;: {orderByMembers}
-
-orderByMembers
-    orderByProperty
-    orderByProperty , orderByMembers
-
-orderByProperty
-    columnName : sortingValue
-
-sortingValue
-&quot;ASC&quot;
-&quot;DESC&quot;
-&quot;-1&quot;
-&quot;1&quot;
--1
-1
-
-asof
-&quot;$asof&quot;: date
-&quot;$asof&quot;: &quot;datechars&quot;
-&quot;$asof&quot;: scn
-&quot;$asof&quot;: +int
-
-wmembers
-    wpair
-    wpair , wmembers
-
-wpair
-    columnProperty
-    complexOperatorProperty
-
-columnProperty
-    columnName : string
-    columnName : number
-    columnName : date
-    columnName : simpleOperatorObject
-columnName : complexOperatorObject
-    columnName : [complexValues]
-
-columnName
-&quot;\p{Alpha}[[\p{Alpha}]]([[\p{Alnum}]#$_])*$&quot;
-
-complexOperatorProperty
-    complexKey : [complexValues]
-    complexKey : simpleOperatorObject 
-
-complexKey
-&quot;$and&quot;
-&quot;$or&quot;
-
-complexValues
-    complexValue , complexValues
-
-complexValue
-    simpleOperatorObject
-    complexOperatorObject
-    columnObject
-
-columnObject
-    {columnProperty}
-
-simpleOperatorObject
-    {simpleOperatorProperty}
-
-complexOperatorObject
-    {complexOperatorProperty}
-
-simpleOperatorProperty
-&quot;$eq&quot; : string | number | date
-&quot;$ne&quot; : string | number | date
-&quot;$lt&quot; :  number | date
-&quot;$lte&quot; : number | date
-&quot;$gt&quot; : number | date
-&quot;$gte&quot; : number | date
-&quot;$instr&quot; : string 
-&quot;$ninstr&quot; : string
-&quot;$like&quot; : string
-&quot;$null&quot; : null
-&quot;$notnull&quot; : null
-&quot;$between&quot; : betweenValue
-&quot;$like&quot;: string
-
-betweenValue
-    [null , betweenNotNull]
-    [betweenNotNull , null]
-    [betweenRegular , betweenRegular]
-
-betweenNotNull
-    number
-    date
-    
-betweenRegular
-    string
-    number
-    date</code></pre>
-                <p>Data type definitions include the following:</p>
-                <pre><code>   string 
-          JSONString
-   number
-          JSONNumber
-   date
-          {&quot;$date&quot;:&quot;datechars&quot;}
-   scn
-          {&quot;$scn&quot;: +int}</code></pre>
-                <p>Where:</p>
-                <pre><code>datechars is an RFC3339 date format in UTC (Z)
-        
-
-JSONString
-        &quot;&quot;
-        &quot; chars &quot;
-chars
-        char
-        char chars
-char
-        any-Unicode-character except-&quot;-or-\-or-control-character
-        \&quot;
-        \\
-        \/
-        \b
-        \f
-        \n
-        \r
-        \t
-        \u four-hex-digits
-
-
-JSONNumber
-    int
-    int frac
-    int exp
-    int frac exp
-int
-    digit
-    digit1-9 digits 
-    - digit
-    - digit1-9 digits
-frac
-    . digits
-exp
-    e digits
-digits
-    digit
-    digit digits
-e
-    e
-    e+
-    e-
-    E
-    E+
-    E-</code></pre>
-                <p>The FilterObject must be encoded according to Section
-                2.1 of RFC3986.</p>
-                <h2 data-number="6.9"
-                id="examples-filterobject-specifications"><span
-                class="header-section-number">6.9</span> Examples:
-                FilterObject Specifications</h2>
-                <p>The following are examples of operators in
-                FilterObject specifications.</p>
-                <pre><code>ORDER BY property ($orderby)
-
-Order by with literals
-
-{
-&quot;$orderby&quot;: {&quot;SALARY&quot;:  &quot;ASC&quot;,&quot;ENAME&quot;:&quot;DESC&quot;}
-}
-
-Order by with numbers
-
-{
-&quot;$orderby&quot;: {&quot;SALARY&quot;:  -1,&quot;ENAME&quot;:  1}
-}
-
-
-ASOF property ($asof)
-
-With SCN (Implicit)
-
-{
-  &quot;$asof&quot;: 1273919
-}
-
-With SCN (Explicit)
-
-{
-  &quot;$asof&quot;: {&quot;$scn&quot;: &quot;1273919&quot;}
-}
-
-With Date (Implicit)
-
-{
-  &quot;$asof&quot;: &quot;2014-06-30T00:00:00Z&quot;
-}
-
-With Date (Explicit)
-
-{
-  &quot;$asof&quot;: {&quot;$date&quot;: &quot;2014-06-30T00:00:00Z&quot;}
-}
-
-
-EQUALS operator ($eq)
-
-(Implicit and explicit equality supported._
-
-Implicit (Support String and Dates too)
-
-{
-&quot;SALARY&quot;: 1000
-}
-
-Explicit
-
-{
-&quot;SALARY&quot;: {&quot;$eq&quot;: 1000}
-}
-
-Strings
-
-{
-&quot;ENAME&quot;: {&quot;$eq&quot;:&quot;SMITH&quot;}
-}
-
-Dates
-
-{
-  &quot;HIREDATE&quot;: {&quot;$date&quot;: &quot;1981-11-17T08:00:00Z&quot;}
-}
-
-
-NOT EQUALS operator ($ne)
-
-Number
-
-{
-&quot;SALARY&quot;: {&quot;$ne&quot;: 1000}
-}
-
-String
-
-{
-&quot;ENAME&quot;: {&quot;$ne&quot;:&quot;SMITH&quot;}
-}
-
-Dates
-
-{
-  &quot;HIREDATE&quot;: {&quot;$ne&quot;: {&quot;$date&quot;:&quot;1981-11-17T08:00:00Z&quot;}}
-}
-
-
-LESS THAN operator ($lt)
-(Supports dates and numbers only)
-
-Numbers
-
-{
-  &quot;SALARY&quot;: {&quot;$lt&quot;: 10000}
-}
-
-Dates
-
-{
-  &quot;SALARY&quot;: {&quot;$lt&quot;: {&quot;$date&quot;:&quot;1999-12-17T08:00:00Z&quot;}}
-}
-
-LESS THAN OR EQUALS operator ($lte)
-(Supports dates and numbers only)
-
-Numbers
-
-{
-  &quot;SALARY&quot;: {&quot;$lte&quot;: 10000}
-}
-
-Dates
-
-{
-  &quot;HIREDATE&quot;: {&quot;$lte&quot;: {&quot;$date&quot;:&quot;1999-12-17T08:00:00Z&quot;}}
-}
-
-GREATER THAN operator ($gt)
-(Supports dates and numbers only)
-
-Numbers
-
-{
-  &quot;SALARY&quot;: {&quot;$gt&quot;: 10000}
-}
-
-Dates
-
-{
-  &quot;SALARY&quot;: {&quot;$gt&quot;: {&quot;$date&quot;:&quot;1999-12-17T08:00:00Z&quot;}}
-}
-
-
-GREATER THAN OR EQUALS operator ($gte)
-(Supports dates and numbers only)
-
-Numbers
-
-{
-  &quot;SALARY&quot;: {&quot;$gte&quot;: 10000}
-}
-
-Dates
-
-{
-  &quot;HIREDATE&quot;: {&quot;$gte&quot;: {&quot;$date&quot;:&quot;1999-12-17T08:00:00Z&quot;}}
-}
-
-
-In string operator ($instr)
-(Supports strings only)
-
-{
-  &quot;ENAME&quot;: {&quot;$instr&quot;:&quot;MC&quot;}
-}
-
-
-Not in string operator ($ninstr)
-(Supports strings only)
-
-{
-  &quot;ENAME&quot;: {&quot;$ninstr&quot;:&quot;MC&quot;}
-}
-
-
-### LIKE operator ($like)
-(Supports strings. Eescape character not supported to try to match expressions with _ or % characters.)
-
-{
-  &quot;ENAME&quot;: {&quot;$like&quot;:&quot;AX%&quot;}
-}
-
-
-### BETWEEN operator ($between)
-(Supports string, dates, and numbers)
-
-Numbers
-
-{
-  &quot;SALARY&quot;: {&quot;$between&quot;: [1000,2000]}
-}
-
-Dates
-
-{
-  &quot;SALARY&quot;: {&quot;$between&quot;: [{&quot;$date&quot;:&quot;1989-12-17T08:00:00Z&quot;},{&quot;$date&quot;:&quot;1999-12-17T08:00:00Z&quot;}]}
-}
-
-Strings
-
-{
-  &quot;ENAME&quot;: {&quot;$between&quot;: [&quot;A&quot;,&quot;C&quot;]}
-}
-
-Null Ranges ($lte equivalent) 
-(Supported by numbers and dates only)
-
-{
-  &quot;SALARY&quot;: {&quot;$between&quot;: [null,2000]}
-}
-
-Null Ranges ($gte equivalent)
-(Supported by numbers and dates only)
-
-{
-  &quot;SALARY&quot;: {&quot;$between&quot;: [1000,null]}
-}
-
-
-### NULL operator ($null)
-
-{
-  &quot;ENAME&quot;: {&quot;$null&quot;: null}
-}
-
-### NOT NULL operator ($notnull)
-
-{
-  &quot;ENAME&quot;: {&quot;$notnull&quot;: null}
-}
-
-
-### AND operator ($and)
-(Supports all operators, including $and and $or)
-
-Column context delegation
-(Operators inside $and will use the closest context defined in the JSON tree.)
-
-{
-  &quot;SALARY&quot;: {&quot;$and&quot;: [{&quot;$gt&quot;: 1000},{&quot;$lt&quot;:4000}]}
-}
-
-Column context override
-(Example: salary greater than 1000 and name like S%) 
-
-{
-  &quot;SALARY&quot;: {&quot;$and&quot;: [{&quot;$gt&quot;: 1000},{&quot;ENAME&quot;: {&quot;$like&quot;:&quot;S%&quot;}} ] }
-}
-
-Implicit and in columns
-
-```
-{
-  &quot;SALARY&quot;: [{&quot;$gt&quot;: 1000},{&quot;$lt&quot;:4000}] 
-}
-```
-
-High order AND
-(All first columns and or high order operators -- $and and $ors -- defined at the first level of the JSON will be joined and an implicit AND)
-(Example: Salary greater than 1000 and name starts with S or T)
-
-{
-  &quot;SALARY&quot;: {&quot;$gt&quot;: 1000}, 
-  &quot;ENAME&quot;: {&quot;$or&quot;: [{&quot;$like&quot;:&quot;S%&quot;}, {&quot;$like&quot;:&quot;T%&quot;}]} 
-}
-
-Invalid expression (operators $lt and $gt lack column context)
-
-{
-  &quot;$and&quot;: [{&quot;$lt&quot;: 5000},{&quot;$gt&quot;: 1000}]
-}
-
-Valid alternatives for the previous invalid expression
-
-{
-  &quot;$and&quot;: [{&quot;SALARY&quot;: {&quot;$lt&quot;: 5000}}, {&quot;SALARY&quot;: {&quot;$gt&quot;: 1000}}]
-}
-
-{
-  &quot;SALARY&quot;: [{&quot;$lt&quot;: 5000},{&quot;$gt&quot;: 1000}]
-}
-
-{
-  &quot;SALARY&quot;: {&quot;$and&quot;: [{&quot;$lt&quot;: 5000},{&quot;$gt&quot;: 1000}]}
-}
-
-
-OR operator ($or)
-(Supports all operators including $and and $or)
-
-Column context delegation
-(Operators inside $or will use the closest context defined in the JSON tree)
-
-{
-  &quot;ENAME&quot;: {&quot;$or&quot;: [{&quot;$eq&quot;:&quot;SMITH&quot;},{&quot;$eq&quot;:&quot;KING&quot;}]}
-}
-
-Column context override
-(Example: name starts with S or salary greater than 1000)
-
-{
-  &quot;SALARY&quot;: {&quot;$or&quot;: [{&quot;$gt&quot;: 1000},{&quot;ENAME&quot;: {&quot;$like&quot;:&quot;S%&quot;}} ] }
-}</code></pre>
-                <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
-
-                This program is free software; you can redistribute it and/or modify
-                it under the terms of the GNU General Public License, version 2.0,
-                as published by the Free Software Foundation.
-
-                This program is also distributed with certain software (including
-                but not limited to OpenSSL) that is licensed under separate terms, as
-                designated in a particular file or component or in included license
-                documentation.  The authors of MySQL hereby grant you an additional
-                permission to link the program and your derivative works with the
-                separately licensed software that they have included with MySQL.
-                This program is distributed in the hope that it will be useful,  but
-                WITHOUT ANY WARRANTY; without even the implied warranty of
-                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
-                the GNU General Public License, version 2.0, for more details.
-
-                You should have received a copy of the GNU General Public License
-                along with this program; if not, write to the Free Software Foundation, Inc.,
-                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
-                <h1 data-number="7" id="mrs-examples"><span
-                class="header-section-number">7</span> MRS Examples</h1>
+                <h1 data-number="6" id="mrs-examples"><span
+                class="header-section-number">6</span> MRS Examples</h1>
                 <p>The MRS Shell Plugin ships with a set of example
                 projects that showcase the possibilities of the MySQL
                 REST Service.</p>
@@ -2771,8 +1788,8 @@ Column context override
                 You should have received a copy of the GNU General Public License
                 along with this program; if not, write to the Free Software Foundation, Inc.,
                 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
-                <h2 data-number="7.1" id="mrs-notes-examples"><span
-                class="header-section-number">7.1</span> MRS Notes
+                <h2 data-number="6.1" id="mrs-notes-examples"><span
+                class="header-section-number">6.1</span> MRS Notes
                 Examples</h2>
                 <p>The MRS Notes example implements a simple note taking
                 application as a <a
@@ -2787,9 +1804,9 @@ Column context override
                 <figcaption aria-hidden="true">mrsNotes App running on a
                 Mobile</figcaption>
                 </figure>
-                <h3 data-number="7.1.1"
+                <h3 data-number="6.1.1"
                 id="mrs-notes-developer-showcase"><span
-                class="header-section-number">7.1.1</span> MRS Notes
+                class="header-section-number">6.1.1</span> MRS Notes
                 Developer Showcase</h3>
                 <p>The following features are showcased in this
                 example.</p>
@@ -2801,8 +1818,8 @@ Column context override
                 <li>Using <a href="https://jwt.io/">JSON Web Tokens
                 (JWT)</a> to manage user sessions</li>
                 </ul>
-                <h3 data-number="7.1.2" id="mrs-notes-quick-guide"><span
-                class="header-section-number">7.1.2</span> MRS Notes
+                <h3 data-number="6.1.2" id="mrs-notes-quick-guide"><span
+                class="header-section-number">6.1.2</span> MRS Notes
                 Quick Guide</h3>
                 <p>To quickly get the MRS Notes Examples working, please
                 feel free to follow this guide. If you want to learn
@@ -2829,9 +1846,9 @@ Column context override
                 <li>Build and deploy the app by following the steps
                 below.</li>
                 </ol>
-                <h4 data-number="7.1.2.1"
+                <h4 data-number="6.1.2.1"
                 id="deploying-the-typescript-example"><span
-                class="header-section-number">7.1.2.1</span> Deploying
+                class="header-section-number">6.1.2.1</span> Deploying
                 the TypeScript Example</h4>
                 <p>The MrsNotesTS project implements a full TypeScript
                 demo app that allows sharing of notes between users.</p>
@@ -2859,9 +1876,9 @@ Column context override
                 specified in the previous step to open the app,
                 e.g. <code>https://localhost:8443/myService/app/index.html</code></li>
                 </ol>
-                <h4 data-number="7.1.2.2"
+                <h4 data-number="6.1.2.2"
                 id="deploying-the-javascript-example"><span
-                class="header-section-number">7.1.2.2</span> Deploying
+                class="header-section-number">6.1.2.2</span> Deploying
                 the JavaScript Example</h4>
                 <p>The MrsNotes project also ships with a minimal
                 JavaScript demo app that allows each user to store his
@@ -2881,17 +1898,17 @@ Column context override
                 the previous step to open the app,
                 e.g. <code>https://localhost:8443/myService/app_js/index.html</code></li>
                 </ol>
-                <h3 data-number="7.1.3"
+                <h3 data-number="6.1.3"
                 id="mrs-setup-and-configuration-for-the-mrs-notes-examples"><span
-                class="header-section-number">7.1.3</span> MRS Setup and
+                class="header-section-number">6.1.3</span> MRS Setup and
                 Configuration for the MRS Notes Examples</h3>
                 <p>Please refer to the MRS documentation on how to setup
                 and configure a MRS service in detail.</p>
                 <p>If you are using a local MRS deployment deployment
                 you can use these simplified steps.</p>
-                <h3 data-number="7.1.4"
+                <h3 data-number="6.1.4"
                 id="deploy-the-mrsnotes-mysql-database-schema"><span
-                class="header-section-number">7.1.4</span> Deploy the
+                class="header-section-number">6.1.4</span> Deploy the
                 mrsNotes MySQL database schema</h3>
                 <p>The mrsNotes MySQL database schema is the center of
                 the MRS project. It defines the structure of the data
@@ -2911,9 +1928,9 @@ Column context override
                 <p>mysqlsh dba@localhost –sql -f
                 examples/mrs_notes/db_schema/mrs_notes.sql</p></li>
                 </ul>
-                <h4 data-number="7.1.4.1"
+                <h4 data-number="6.1.4.1"
                 id="mrsnotes-eer-diagram"><span
-                class="header-section-number">7.1.4.1</span> mrsNotes
+                class="header-section-number">6.1.4.1</span> mrsNotes
                 EER Diagram</h4>
                 <p>The following diagram shows all components of the
                 mrsNotes schema.</p>

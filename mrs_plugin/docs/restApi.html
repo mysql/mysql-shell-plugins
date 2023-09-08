@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.-->
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MRS Core REST APIs</title>
+    <link rel="shortcut icon" href="images/favicon.png" type="image/x-icon">
+        <link rel="stylesheet" href="style/style.css">
+                <!-- cSpell:ignore pagetitle -->
+    <title>MRS Core REST APIs</title>
+    <style type="text/css">
+        code {
+            white-space: pre;
+        }
+    </style>
+        <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const observer = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    const id = entry.target.getAttribute('id');
+                    if (entry.intersectionRatio > 0) {
+                        const e = document.querySelector(`nav li a[href="#` + id + `"]`).parentElement;
+                        e.classList.add('active');
+                        if (e.scrollIntoViewIfNeeded !== undefined) {
+                            e.scrollIntoViewIfNeeded(true);
+                        } else {
+                            e.scrollIntoView(true);
+                        }
+                    } else {
+                        document.querySelector(`nav li a[href="#` + id + `"]`).parentElement.classList.remove('active');
+                    }
+                });
+            });
+            // Track all h that have an `id` applied
+            document.querySelectorAll('.content h1[id],h2[id],h3[id]').forEach((section) => {
+                observer.observe(section);
+            });
+
+            if (typeof acquireVsCodeApi === "function") {
+                document.vscode = acquireVsCodeApi();
+
+                const addVsCodeDecorations = () => {
+                    const addVsActionBtn = (e, command, caption) => {
+                        const d = document.createElement("button");
+
+                        d.innerHTML = '<i class="arrow right"></i><p>' + caption + '</p>';
+                        d.onclick = () => {
+                            document.vscode.postMessage({ command, path: e.innerHTML });
+                        }
+                        e.parentNode.insertBefore(d, e.nextSibling)
+                    }
+
+                    document.querySelectorAll("code").forEach((e) => {
+                        if (e.innerHTML.endsWith(".sql")) {
+                            addVsActionBtn(e, "openSqlFile", "Open in MySQL Shell");
+                        } else if (e.innerHTML.endsWith(".mrs.json")) {
+                            addVsActionBtn(e, "loadMrsDump", "Load MRS Dump");
+                        } else if (e.innerHTML.startsWith("VSCodeProject:") > 0) {
+                            e.innerHTML = e.innerHTML.slice("VSCodeProject:".length);
+                            addVsActionBtn(e, "saveProject", "Save Project");
+                        }
+                    });
+                }
+
+                addVsCodeDecorations();
+            } else {
+                document.querySelectorAll("code").forEach((e) => {
+                    if (e.innerHTML.startsWith("VSCodeProject:") > 0) {
+                        e.innerHTML = e.innerHTML.slice("VSCodeProject:".length);
+                    }
+                });
+            }
+        });
+
+        // Handle the message inside the webview
+        window.addEventListener('message', event => {
+
+            const message = event.data; // The JSON data our extension sent
+
+            switch (message.command) {
+                case 'goToId':
+                    if (message.id) {
+                        window.location = "#" + message.id;
+                    }
+
+                    break;
+            }
+        });
+    </script>
+</head>
+
+<body>
+    <div class="page">
+        <div class="sidebar">
+            <nav class="section-nav">
+                <h1>MRS Documentation</h1>
+                <h2>
+                    <div class="icon bookIcon"></div> <a href="index.html#document-top">Developer's Guide</a>
+                </h2>
+                <h2>
+                    <div class="icon bookIcon"></div> <a href="ddl.html#document-top">DDL Reference</a>
+                </h2>
+                <h2>
+                    <div class="icon bookIcon"></div> <a href="restApi.html#document-top">Core REST APIs</a>
+                </h2>
+                <h2>
+                    <div class="icon bookIcon"></div> <a href="sdk.html#document-top">SDK Reference</a>
+                </h2>
+                <hr />
+                <h3>MRS Core REST APIs</h3>
+                                <ul>
+                                <li><a href="#mrs-core-rest-apis"
+                                id="toc-mrs-core-rest-apis"><span
+                                class="toc-section-number">1</span> MRS
+                                Core REST APIs</a>
+                                <ul>
+                                <li><a
+                                href="#about-mrs-restful-web-services"
+                                id="toc-about-mrs-restful-web-services"><span
+                                class="toc-section-number">1.1</span>
+                                About MRS RESTful Web Services</a></li>
+                                <li><a
+                                href="#about-request-path-syntax-requirements"
+                                id="toc-about-request-path-syntax-requirements"><span
+                                class="toc-section-number">1.2</span>
+                                About Request Path Syntax
+                                Requirements</a></li>
+                                <li><a
+                                href="#about-curl-and-testing-restful-services"
+                                id="toc-about-curl-and-testing-restful-services"><span
+                                class="toc-section-number">1.3</span>
+                                About cURL and Testing RESTful
+                                Services</a></li>
+                                </ul></li>
+                                <li><a href="#mrs-rest-queries"
+                                id="toc-mrs-rest-queries"><span
+                                class="toc-section-number">2</span> MRS
+                                REST Queries</a>
+                                <ul>
+                                <li><a href="#get-schema-metadata"
+                                id="toc-get-schema-metadata"><span
+                                class="toc-section-number">2.1</span>
+                                Get Schema Metadata</a></li>
+                                <li><a href="#get-object-metadata"
+                                id="toc-get-object-metadata"><span
+                                class="toc-section-number">2.2</span>
+                                Get Object Metadata</a></li>
+                                <li><a href="#get-object-data"
+                                id="toc-get-object-data"><span
+                                class="toc-section-number">2.3</span>
+                                Get Object Data</a></li>
+                                <li><a href="#insert-table-row"
+                                id="toc-insert-table-row"><span
+                                class="toc-section-number">2.4</span>
+                                Insert Table Row</a></li>
+                                <li><a href="#updateinsert-table-row"
+                                id="toc-updateinsert-table-row"><span
+                                class="toc-section-number">2.5</span>
+                                Update/Insert Table Row</a></li>
+                                <li><a href="#delete-using-filter"
+                                id="toc-delete-using-filter"><span
+                                class="toc-section-number">2.6</span>
+                                Delete Using Filter</a></li>
+                                </ul></li>
+                                <li><a href="#filterobject-grammar"
+                                id="toc-filterobject-grammar"><span
+                                class="toc-section-number">3</span>
+                                FilterObject Grammar</a></li>
+                                <li><a
+                                href="#filterobject-grammar-examples"
+                                id="toc-filterobject-grammar-examples"><span
+                                class="toc-section-number">4</span>
+                                FilterObject Grammar Examples</a>
+                                <ul>
+                                <li><a href="#order-by-property-orderby"
+                                id="toc-order-by-property-orderby"><span
+                                class="toc-section-number">4.1</span>
+                                ORDER BY property ($orderby)</a></li>
+                                <li><a href="#asof-property-asof"
+                                id="toc-asof-property-asof"><span
+                                class="toc-section-number">4.2</span>
+                                ASOF property ($asof)</a></li>
+                                <li><a href="#equals-operator-eq"
+                                id="toc-equals-operator-eq"><span
+                                class="toc-section-number">4.3</span>
+                                EQUALS operator ($eq)</a></li>
+                                <li><a href="#not-equals-operator-ne"
+                                id="toc-not-equals-operator-ne"><span
+                                class="toc-section-number">4.4</span>
+                                NOT EQUALS operator ($ne)</a></li>
+                                <li><a href="#less-than-operator-lt"
+                                id="toc-less-than-operator-lt"><span
+                                class="toc-section-number">4.5</span>
+                                LESS THAN operator ($lt)</a></li>
+                                <li><a
+                                href="#less-than-or-equals-operator-lte"
+                                id="toc-less-than-or-equals-operator-lte"><span
+                                class="toc-section-number">4.6</span>
+                                LESS THAN OR EQUALS operator
+                                ($lte)</a></li>
+                                <li><a href="#greater-than-operator-gt"
+                                id="toc-greater-than-operator-gt"><span
+                                class="toc-section-number">4.7</span>
+                                GREATER THAN operator ($gt)</a></li>
+                                <li><a
+                                href="#greater-than-or-equals-operator-gte"
+                                id="toc-greater-than-or-equals-operator-gte"><span
+                                class="toc-section-number">4.8</span>
+                                GREATER THAN OR EQUALS operator
+                                ($gte)</a></li>
+                                <li><a href="#in-string-operator-instr"
+                                id="toc-in-string-operator-instr"><span
+                                class="toc-section-number">4.9</span> In
+                                string operator ($instr)</a></li>
+                                <li><a
+                                href="#not-in-string-operator-ninstr"
+                                id="toc-not-in-string-operator-ninstr"><span
+                                class="toc-section-number">4.10</span>
+                                Not in string operator
+                                ($ninstr)</a></li>
+                                <li><a href="#like-operator-like"
+                                id="toc-like-operator-like"><span
+                                class="toc-section-number">4.11</span>
+                                LIKE operator ($like)</a></li>
+                                <li><a href="#between-operator-between"
+                                id="toc-between-operator-between"><span
+                                class="toc-section-number">4.12</span>
+                                BETWEEN operator ($between)</a></li>
+                                <li><a href="#null-operator-null"
+                                id="toc-null-operator-null"><span
+                                class="toc-section-number">4.13</span>
+                                NULL operator ($null)</a></li>
+                                <li><a href="#not-null-operator-notnull"
+                                id="toc-not-null-operator-notnull"><span
+                                class="toc-section-number">4.14</span>
+                                NOT NULL operator ($notnull)</a></li>
+                                <li><a href="#and-operator-and"
+                                id="toc-and-operator-and"><span
+                                class="toc-section-number">4.15</span>
+                                AND operator ($and)</a></li>
+                                <li><a href="#high-order-and"
+                                id="toc-high-order-and"><span
+                                class="toc-section-number">4.16</span>
+                                High order AND</a></li>
+                                <li><a href="#or-operator-or"
+                                id="toc-or-operator-or"><span
+                                class="toc-section-number">4.17</span>
+                                OR operator ($or)</a></li>
+                                </ul></li>
+                                </ul>
+                            </nav>
+        </div>
+        <div class="content">
+            <div class="header" id="document-top">
+                <p>MySQL REST Service - PREVIEW</p>
+                <h1>MRS Core REST APIs</h1>
+            </div>
+            <div class="main">
+                <p>This book provides examples of using the MySQL REST
+                Service queries and other operations against tables and
+                views after you have REST-enabled them.</p>
+                <p><strong>Chapter Overview</strong></p>
+                <ul>
+                <li><a href="#about-mrs-restful-web-services">About MRS
+                RESTful Web Services</a></li>
+                <li><a href="#get-schema-metadata">Get Schema
+                Metadata</a></li>
+                <li><a href="#get-object-metadata">Get Object
+                Metadata</a></li>
+                <li><a href="#get-object-data">Get Object Data</a></li>
+                <li><a href="#insert-table-row">Insert Table
+                Row</a></li>
+                <li><a href="#delete-using-filter">Delete Using
+                Filter</a></li>
+                <li><a href="#filterobject-grammar">FilterObject
+                Grammar</a></li>
+                <li><a
+                href="#examples-filterobject-specifications">Examples:
+                FilterObject Specifications</a></li>
+                </ul>
+                <hr />
+                <p>Please also see</p>
+                <ul>
+                <li><strong><a href="index.html">MySQL REST Service -
+                Developer’s Guide</a></strong> - This book explains how
+                to install and configure the MySQL REST Service (MRS) as
+                well as how to access the data through REST calls.</li>
+                <li><strong><a href="sdk.html">MySQL REST Service - SDK
+                Reference</a></strong> - This book explains how to work
+                with the MRS Software Development Kit and discusses the
+                Client APIs.</li>
+                <li><strong><a href="ddl.html">MySQL REST Service - DDL
+                Reference</a></strong> - This book discusses the MySQL
+                REST Service (MRS) DDL SQL Extension.</li>
+                </ul>
+                <hr />
+                <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+
+                This program is free software; you can redistribute it and/or modify
+                it under the terms of the GNU General Public License, version 2.0,
+                as published by the Free Software Foundation.
+
+                This program is also distributed with certain software (including
+                but not limited to OpenSSL) that is licensed under separate terms, as
+                designated in a particular file or component or in included license
+                documentation.  The authors of MySQL hereby grant you an additional
+                permission to link the program and your derivative works with the
+                separately licensed software that they have included with MySQL.
+                This program is distributed in the hope that it will be useful,  but
+                WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+                the GNU General Public License, version 2.0, for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program; if not, write to the Free Software Foundation, Inc.,
+                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+                <h1 data-number="1" id="mrs-core-rest-apis"><span
+                class="header-section-number">1</span> MRS Core REST
+                APIs</h1>
+                <p>This section provides examples of using the MySQL
+                REST Service queries and other operations against tables
+                and views after you have REST-enabled them.</p>
+                <p>The examples in this section provide an insight into
+                the direct, low-level REST API calls that can be made
+                against the MySQL REST Service. They can be used to gain
+                a deep understanding of how MRS works.</p>
+                <p>When developing an application with MRS, it is
+                recommended to use a higher-level MRS Software
+                Development Kit (SDK) instead. Please check if a <a
+                href="sdk.html">SDK</a> has already been made available
+                for your programming language and platform.</p>
+                <h2 data-number="1.1"
+                id="about-mrs-restful-web-services"><span
+                class="header-section-number">1.1</span> About MRS
+                RESTful Web Services</h2>
+                <p>MRS supports the creation of an unlimited amount of
+                distinct RESTful Web Services. You can also refer to
+                them as MRS services. Each of those MRS services usually
+                maps to one (or more) web applications.</p>
+                <p>After you create a RESTful Web Service, you can
+                access it by navigating to the following URL.</p>
+                <p>Pattern:</p>
+                <pre><code>https://&lt;HOSTNAME:PORT&gt;/&lt;MRS_SERVICE_PATH&gt;/&lt;MRS_DATABASE_SCHEMA_PATH&gt;/&lt;MRS_DATABASE_OBJECT_PATH&gt;/</code></pre>
+                <ul>
+                <li><code>HOSTNAME:PORT/MRS_SERVICE_PATH</code>:
+                Specifies the address at which the given MRS service is
+                running. You can also refer to it as the MRS service
+                URI.</li>
+                <li><code>MRS_DATABASE_SCHEMA_PATH</code>: Specifies the
+                path that you provided while REST-enabling your database
+                schema. By default, it is the name of the schema.</li>
+                <li><code>MRS_DATABASE_OBJECT_PATH</code>: Specifies the
+                path that you provided while REST-enabling your database
+                object (TABLE, VIEW or PROCEDURE).</li>
+                </ul>
+                <p>Together, these values comprise the MRS endpoint
+                URL.</p>
+                <p>Example:</p>
+                <pre><code>https://localhost:8000/mrs/sakila/actor</code></pre>
+                <h2 data-number="1.2"
+                id="about-request-path-syntax-requirements"><span
+                class="header-section-number">1.2</span> About Request
+                Path Syntax Requirements</h2>
+                <p>To prevent path-based attacks, MRS requires the
+                syntax of the path element of each request URL to
+                conform to the following rules:</p>
+                <ul>
+                <li>Is not empty or whitespace-only</li>
+                <li>Does not contain any of the following characters: ?,
+                #, ;, %</li>
+                <li>Does not contain the null character (000)</li>
+                <li>Does not contain characters in the range:
+                001-031</li>
+                <li>Does not end with white space or a period (.)</li>
+                <li>Does not contain double forward slash (//) or double
+                back slash(\)</li>
+                <li>Does not contain two or more periods in sequence
+                (.., …, and so on)</li>
+                <li>Total length is {<span class="citation"
+                data-cites="value">@value</span> #MAX_PATH_LENGTH}
+                characters or less</li>
+                <li>Does not match any of the following names (case
+                insensitive), with or without file extensions: CON, PRN,
+                AUX, CLOCK$, NUL, COM0, COM1, COM2, COM3, COM4, COM5,
+                COM6, COM7, COM8, COM9, LPT0, LPT1, LPT2, LPT3, LPT4,
+                LPT5, LPT6, LPT7, LPT8, LPT9</li>
+                </ul>
+                <p>If you intend to enable REST endpoints for database
+                objects, then avoid object names that do not comply with
+                these requirements. For example, do not create a table
+                named #EMPS. If you do want to auto-REST enable objects
+                that have non-compliant names, then you must use an
+                alias that complies with the requirements.</p>
+                <p>These requirements are applied to the URL decoded
+                form of the URL, to prevent attempted circumvention of
+                percent encodings.</p>
+                <h2 data-number="1.3"
+                id="about-curl-and-testing-restful-services"><span
+                class="header-section-number">1.3</span> About cURL and
+                Testing RESTful Services</h2>
+                <p>Usually you can navigate to a URL of a RESTful
+                service using a web browser. However, another way to
+                test it is by using a command line tool like cURL.</p>
+                <p>cURL enables you to see and control what data is
+                being sent to and received from a RESTful service.</p>
+                <pre><code>curl -i https://localhost:8000/mrs/sakila/actor/2</code></pre>
+                <p>This example produces a response like the
+                following:</p>
+                <pre><code>{
+    &quot;links&quot;: [
+        {
+            &quot;rel&quot;: &quot;self&quot;,
+            &quot;href&quot;: &quot;http://localhost:8000/mrs/sakila/actor/2&quot;
+        }
+    ],
+    &quot;actor_id&quot;: 2,
+    &quot;last_name&quot;: &quot;WAHLBERG&quot;,
+    &quot;first_name&quot;: &quot;NICK&quot;,
+    &quot;last_update&quot;: &quot;2006-02-15 03:34:33.000000&quot;
+}</code></pre>
+                <p>The -i option tells cURL to display the HTTP headers
+                returned by the server.</p>
+                <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+
+                This program is free software; you can redistribute it and/or modify
+                it under the terms of the GNU General Public License, version 2.0,
+                as published by the Free Software Foundation.
+
+                This program is also distributed with certain software (including
+                but not limited to OpenSSL) that is licensed under separate terms, as
+                designated in a particular file or component or in included license
+                documentation.  The authors of MySQL hereby grant you an additional
+                permission to link the program and your derivative works with the
+                separately licensed software that they have included with MySQL.
+                This program is distributed in the hope that it will be useful,  but
+                WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+                the GNU General Public License, version 2.0, for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program; if not, write to the Free Software Foundation, Inc.,
+                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+                <h1 data-number="2" id="mrs-rest-queries"><span
+                class="header-section-number">2</span> MRS REST
+                Queries</h1>
+                <p>A MRS REST service provides access to one or more
+                schemas (and their metadata) as well as their comprising
+                database objects such as tables, views and procedures
+                (and their metadata).</p>
+                <h2 data-number="2.1" id="get-schema-metadata"><span
+                class="header-section-number">2.1</span> Get Schema
+                Metadata</h2>
+                <p>This example retrieves a list of resources available
+                through the specified schema alias. It shows RESTful
+                services that are created by enabling a table, view or
+                procedure.</p>
+                <p>Pattern:</p>
+                <pre><code>GET http://&lt;HOST&gt;:&lt;PORT&gt;/&lt;ServiceAlias&gt;/&lt;SchemaAlias&gt;/metadata-catalog/</code></pre>
+                <p>Example:</p>
+                <pre><code>GET http://localhost:8000/mrs/sakila/metadata-catalog/</code></pre>
+                <p>Result:</p>
+                <pre><code>{
+    &quot;items&quot;: [
+        {
+            &quot;name&quot;: &quot;/actor&quot;,
+            &quot;links&quot;: [
+                {
+                    &quot;rel&quot;: &quot;describes&quot;,
+                    &quot;href&quot;: &quot;http://localhost:8000/mrs/sakila/actor&quot;
+                },
+                {
+                    &quot;rel&quot;: &quot;canonical&quot;,
+                    &quot;href&quot;: &quot;http://localhost:8000/mrs/sakila/metadata-catalog/actor&quot;
+                }
+            ]
+        },
+        {
+            &quot;name&quot;: &quot;/address&quot;,
+            &quot;links&quot;: [
+                {
+                    &quot;rel&quot;: &quot;describes&quot;,
+                    &quot;href&quot;: &quot;http://localhost:8000/mrs/sakila/address&quot;
+                },
+                {
+                    &quot;rel&quot;: &quot;canonical&quot;,
+                    &quot;href&quot;: &quot;http://localhost:8000/mrs/sakila/metadata-catalog/address&quot;
+                }
+            ]
+        }
+    ],
+    &quot;limit&quot;: 25,
+    &quot;offset&quot;: 0,
+    &quot;hasMore&quot;: false,
+    &quot;count&quot;: 2,
+    &quot;links&quot;: [
+        {
+            &quot;rel&quot;: &quot;self&quot;,
+            &quot;href&quot;: &quot;http://localhost:8000/mrs/sakila/metadata-catalog/&quot;
+        }
+    ]
+}</code></pre>
+                <p>Each available resource has two hyperlinks:</p>
+                <ul>
+                <li>The link with a “describes” relation points to the
+                actual resource</li>
+                <li>The link with a “canonical” relation points to the
+                resource metadata</li>
+                </ul>
+                <h2 data-number="2.2" id="get-object-metadata"><span
+                class="header-section-number">2.2</span> Get Object
+                Metadata</h2>
+                <p>This example retrieves the metadata (which describes
+                the object) of an individual object. The location of the
+                metadata is specified by the canonical link
+                relation.</p>
+                <p>Pattern:</p>
+                <pre><code>GET http://&lt;HOST&gt;:&lt;PORT&gt;/&lt;ServiceAlias&gt;/&lt;SchemaAlias&gt;/metadata-catalog/&lt;ObjectAlias&gt;/</code></pre>
+                <p>Example:</p>
+                <pre><code>GET http://localhost:8000/mrs/sakila/metadata-catalog/actor/</code></pre>
+                <p>Result:</p>
+                <pre><code>{
+    &quot;name&quot;: &quot;/actor&quot;,
+    &quot;primaryKey&quot;: [
+        &quot;actor_id&quot;
+    ],
+    &quot;members&quot;: [
+        {
+            &quot;name&quot;: &quot;actor_id&quot;,
+            &quot;type&quot;: &quot;null&quot;
+        },
+        {
+            &quot;name&quot;: &quot;first_name&quot;,
+            &quot;type&quot;: &quot;null&quot;
+        },
+        {
+            &quot;name&quot;: &quot;last_name&quot;,
+            &quot;type&quot;: &quot;null&quot;
+        },
+        {
+            &quot;name&quot;: &quot;last_update&quot;,
+            &quot;type&quot;: &quot;string&quot;
+        }
+    ],
+    &quot;links&quot;: [
+        {
+            &quot;rel&quot;: &quot;collection&quot;,
+            &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/metadata-catalog&quot;,
+            &quot;mediaType&quot;: &quot;application/json&quot;
+        },
+        {
+            &quot;rel&quot;: &quot;canonical&quot;,
+            &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/metadata-catalog/actor&quot;
+        },
+        {
+            &quot;rel&quot;: &quot;describes&quot;,
+            &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor&quot;
+        }
+    ]
+}</code></pre>
+                <h2 data-number="2.3" id="get-object-data"><span
+                class="header-section-number">2.3</span> Get Object
+                Data</h2>
+                <p>This example retrieves the data in the object. Each
+                row in the object corresponds to a JSON object embedded
+                within the JSON array</p>
+                <p>Pattern:</p>
+                <pre><code>GET http://&lt;HOST&gt;:&lt;PORT&gt;/&lt;ServiceAlias&gt;/&lt;SchemaAlias&gt;/&lt;ObjectAlias&gt;/</code></pre>
+                <p>Example:</p>
+                <pre><code>GET http://localhost:8000/mrs/sakila/actor/</code></pre>
+                <p>Result:</p>
+                <pre><code>{
+    &quot;items&quot;: [
+        {
+            &quot;links&quot;: [
+                {
+                    &quot;rel&quot;: &quot;self&quot;,
+                    &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/1&quot;
+                }
+            ],
+            &quot;actor_id&quot;: 1,
+            &quot;last_name&quot;: &quot;GUINESSS&quot;,
+            &quot;first_name&quot;: &quot;PENELOPE&quot;,
+            &quot;last_update&quot;: &quot;2021-09-28 20:18:53.000000&quot;
+        },
+        {
+            &quot;links&quot;: [
+                {
+                    &quot;rel&quot;: &quot;self&quot;,
+                    &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/2&quot;
+                }
+            ],
+            &quot;actor_id&quot;: 2,
+            &quot;last_name&quot;: &quot;WAHLBERG&quot;,
+            &quot;first_name&quot;: &quot;NICK&quot;,
+            &quot;last_update&quot;: &quot;2006-02-15 03:34:33.000000&quot;
+        },
+        {
+            &quot;links&quot;: [
+                {
+                    &quot;rel&quot;: &quot;self&quot;,
+                    &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/3&quot;
+                }
+            ],
+            &quot;actor_id&quot;: 3,
+            &quot;last_name&quot;: &quot;CHASE&quot;,
+            &quot;first_name&quot;: &quot;ED&quot;,
+            &quot;last_update&quot;: &quot;2006-02-15 03:34:33.000000&quot;
+        },
+        ...
+    ]
+}</code></pre>
+                <h3 data-number="2.3.1"
+                id="get-table-data-using-pagination"><span
+                class="header-section-number">2.3.1</span> Get Table
+                Data Using Pagination</h3>
+                <p>We can specify offset and limit parameters which are
+                used for result data pagination.</p>
+                <p>Pattern:</p>
+                <pre><code>GET http://&lt;HOST&gt;:&lt;PORT&gt;/&lt;ServiceAlias&gt;/&lt;SchemaAlias&gt;/&lt;ObjectAlias&gt;/?offset=&lt;Offset&gt;&amp;limit=&lt;Limit&gt;</code></pre>
+                <p>Example:</p>
+                <pre><code>GET http://localhost:8080/mrs/sakila/actor/?offset=10&amp;limit=2</code></pre>
+                <p>Result:</p>
+                <pre><code>{
+    &quot;items&quot;: [
+        {
+            &quot;links&quot;: [
+                {
+                    &quot;rel&quot;: &quot;self&quot;,
+                    &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/11&quot;
+                }
+            ],
+            &quot;actor_id&quot;: 11,
+            &quot;last_name&quot;: &quot;CAGE&quot;,
+            &quot;first_name&quot;: &quot;ZERO&quot;,
+            &quot;last_update&quot;: &quot;2006-02-15 03:34:33.000000&quot;
+        },
+        {
+            &quot;links&quot;: [
+                {
+                    &quot;rel&quot;: &quot;self&quot;,
+                    &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/12&quot;
+                }
+            ],
+            &quot;actor_id&quot;: 12,
+            &quot;last_name&quot;: &quot;BERRY&quot;,
+            &quot;first_name&quot;: &quot;KARL&quot;,
+            &quot;last_update&quot;: &quot;2006-02-15 03:34:33.000000&quot;
+        }
+    ],
+    &quot;limit&quot;: 2,
+    &quot;offset&quot;: 10,
+    &quot;hasMore&quot;: true,
+    &quot;count&quot;: 2,
+    &quot;links&quot;: [
+        {
+            &quot;rel&quot;: &quot;self&quot;,
+            &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/&quot;
+        },
+        {
+            &quot;rel&quot;: &quot;next&quot;,
+            &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/?offset=12&amp;limit=2&quot;
+        },
+        {
+            &quot;rel&quot;: &quot;prev&quot;,
+            &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/?offset=8&amp;limit=2&quot;
+        },
+        {
+            &quot;rel&quot;: &quot;first&quot;,
+            &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/?limit=2&quot;
+        }
+    ]
+}</code></pre>
+                <h3 data-number="2.3.2"
+                id="get-table-data-using-query"><span
+                class="header-section-number">2.3.2</span> Get Table
+                Data Using Query</h3>
+                <p>We can use a filter clause to restrict the set of
+                objects that are returned.</p>
+                <p>Pattern:</p>
+                <pre><code>GET http://&lt;HOST&gt;:&lt;PORT&gt;/&lt;ServiceAlias&gt;/&lt;SchemaAlias&gt;/&lt;ObjectAlias&gt;/?q=&lt;FilterClause&gt;</code></pre>
+                <p>Example:</p>
+                <pre><code>GET http://localhost:8080/mrs/sakila/actor/?q={&quot;last_name&quot;:{&quot;$like&quot;:&quot;WAW%&quot;}}</code></pre>
+                <p>Result:</p>
+                <pre><code>{
+    &quot;items&quot;: [
+        {
+            &quot;links&quot;: [
+                {
+                    &quot;rel&quot;: &quot;self&quot;,
+                    &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/97&quot;
+                }
+            ],
+            &quot;actor_id&quot;: 97,
+            &quot;last_name&quot;: &quot;HAWKE&quot;,
+            &quot;first_name&quot;: &quot;MEG&quot;,
+            &quot;last_update&quot;: &quot;2006-02-15 03:34:33.000000&quot;
+        }
+    ],
+    &quot;limit&quot;: 25,
+    &quot;offset&quot;: 0,
+    &quot;hasMore&quot;: false,
+    &quot;count&quot;: 1,
+    &quot;links&quot;: [
+        {
+            &quot;rel&quot;: &quot;self&quot;,
+            &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/&quot;
+        }
+    ]
+}</code></pre>
+                <h3 data-number="2.3.3"
+                id="get-table-row-using-primary-key"><span
+                class="header-section-number">2.3.3</span> Get Table Row
+                Using Primary Key</h3>
+                <p>This example retrieves an object by specifying its
+                identifying key values.</p>
+                <p>Note: A table requires a primary key to be part of a
+                REST service.</p>
+                <p>Pattern:</p>
+                <pre><code>GET http://&lt;HOST&gt;:&lt;PORT&gt;/&lt;ServiceAlias&gt;/&lt;SchemaAlias&gt;/&lt;ObjectAlias&gt;/&lt;KeyValues&gt;</code></pre>
+                <p>Where <code>&lt;KeyValues&gt;</code> is a
+                comma-separated list of key values (in key order).</p>
+                <p>Example:</p>
+                <pre><code>GET http://localhost:8000/mrs/sakila/actor/53</code></pre>
+                <p>Result:</p>
+                <pre><code>{
+    &quot;links&quot;: [
+        {
+            &quot;rel&quot;: &quot;self&quot;,
+            &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/53&quot;
+        }
+    ],
+    &quot;actor_id&quot;: 53,
+    &quot;last_name&quot;: &quot;TEMPLE&quot;,
+    &quot;first_name&quot;: &quot;MENA&quot;,
+    &quot;last_update&quot;: &quot;2006-02-15 03:34:33.000000&quot;
+}</code></pre>
+                <h2 data-number="2.4" id="insert-table-row"><span
+                class="header-section-number">2.4</span> Insert Table
+                Row</h2>
+                <p>To insert data into a table, the request body should
+                be a JSON object that contains the data to be
+                inserted.</p>
+                <p>If the object has a primary key, then the POST
+                request can include the primary key value in the body.
+                If the table has an AUTO_INCREMENT column then the
+                primary key column may be omitted.</p>
+                <p>Pattern:</p>
+                <pre><code>POST http://&lt;HOST&gt;:&lt;PORT&gt;/&lt;ServiceAlias&gt;/&lt;SchemaAlias&gt;/&lt;ObjectAlias&gt;/</code></pre>
+                <p>Example:</p>
+                <pre><code>curl -i -H &quot;Content-Type: application/json&quot; -X POST -d &quot;{ \&quot;last_name\&quot; : \&quot;FOLEY\&quot;, \&quot;first_name\&quot;: \&quot;MIKE\&quot; }&quot; &quot;http://localhost:8000/mrs/sakila/actor/&quot; Content-Type: application/json</code></pre>
+                <p>Result:</p>
+                <pre><code>{
+    &quot;links&quot;: [
+        {
+            &quot;rel&quot;: &quot;self&quot;,
+            &quot;href&quot;: &quot;http://localhost:8000/mrs/sakila/actor/201&quot;
+        }
+    ],
+    &quot;actor_id&quot;: 201,
+    &quot;last_name&quot;: &quot;FOLEY&quot;,
+    &quot;first_name&quot;: &quot;MIKE&quot;,
+    &quot;last_update&quot;: &quot;2022-11-29 15:35:17.000000&quot;
+}</code></pre>
+                <h2 data-number="2.5" id="updateinsert-table-row"><span
+                class="header-section-number">2.5</span> Update/Insert
+                Table Row</h2>
+                <p>To insert, update or “upsert” (update if exists,
+                insert if not) data into a table, we can send a request
+                where the body contains a JSON object with the data to
+                insert or update.</p>
+                <p>Pattern:</p>
+                <pre><code>PUT http://&lt;HOST&gt;:&lt;PORT&gt;/&lt;ServiceAlias&gt;/&lt;SchemaAlias&gt;/&lt;ObjectAlias&gt;/&lt;KeyValues&gt;</code></pre>
+                <p>Example:</p>
+                <pre><code>curl -i -H &quot;Content-Type: application/json&quot; -X PUT -d &quot;{ \&quot;last_name\&quot; : \&quot;FOLEY\&quot;, \&quot;first_name\&quot;: \&quot;JACK\&quot; }&quot; &quot;https://localhost:8000/mrs/sakila/actor/201&quot; Content-Type: application/json</code></pre>
+                <p>Result:</p>
+                <pre><code>{
+    &quot;links&quot;: [
+        {
+            &quot;rel&quot;: &quot;self&quot;,
+            &quot;href&quot;: &quot;http://mrs.zinner.org/mrs/sakila/actor/201&quot;
+        }
+    ],
+    &quot;actor_id&quot;: 201,
+    &quot;last_name&quot;: &quot;FOLEY&quot;,
+    &quot;first_name&quot;: &quot;JACK&quot;,
+    &quot;last_update&quot;: &quot;2022-11-29 15:45:10.000000&quot;
+}</code></pre>
+                <h2 data-number="2.6" id="delete-using-filter"><span
+                class="header-section-number">2.6</span> Delete Using
+                Filter</h2>
+                <p>Deleting a object or other database object can be
+                done by specifying a filter clause that identifies the
+                object to delete.</p>
+                <p>Pattern:</p>
+                <pre><code>DELETE http://&lt;HOST&gt;:&lt;PORT&gt;/&lt;ServiceAlias&gt;/&lt;SchemaAlias&gt;/&lt;ObjectAlias&gt;/?q=&lt;FilterClause&gt;</code></pre>
+                <p>Example:</p>
+                <pre><code>curl -i -X DELETE &quot;https://localhost:8000/mrs/sakila/actor/?q=\{\&quot;actor_id\&quot;:201\}&quot;</code></pre>
+                <p>Result:</p>
+                <pre><code>{
+    &quot;itemsDeleted&quot;: 1
+}</code></pre>
+                <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+
+                This program is free software; you can redistribute it and/or modify
+                it under the terms of the GNU General Public License, version 2.0,
+                as published by the Free Software Foundation.
+
+                This program is also distributed with certain software (including
+                but not limited to OpenSSL) that is licensed under separate terms, as
+                designated in a particular file or component or in included license
+                documentation.  The authors of MySQL hereby grant you an additional
+                permission to link the program and your derivative works with the
+                separately licensed software that they have included with MySQL.
+                This program is distributed in the hope that it will be useful,  but
+                WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+                the GNU General Public License, version 2.0, for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program; if not, write to the Free Software Foundation, Inc.,
+                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+                <h1 data-number="3" id="filterobject-grammar"><span
+                class="header-section-number">3</span> FilterObject
+                Grammar</h1>
+                <p>The FilterObject must be a JSON object that complies
+                with the following syntax:</p>
+                <div class="sourceCode" id="cb32"><pre
+                class="sourceCode txt"><code class="sourceCode default"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>    FilterObject { orderby , asof, wmembers }</span></code></pre></div>
+                <p>The orderby, asof, and wmembers attributes are
+                optional, and their definitions are as follows:</p>
+                <div class="sourceCode" id="cb33"><pre
+                class="sourceCode txt"><code class="sourceCode default"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>orderby</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>&quot;$orderby&quot;: {orderByMembers}</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>orderByMembers</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>    orderByProperty</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>    orderByProperty , orderByMembers</span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>orderByProperty</span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>    columnName : sortingValue</span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>sortingValue</span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>&quot;ASC&quot;</span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a>&quot;DESC&quot;</span>
+<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a>&quot;-1&quot;</span>
+<span id="cb33-15"><a href="#cb33-15" aria-hidden="true" tabindex="-1"></a>&quot;1&quot;</span>
+<span id="cb33-16"><a href="#cb33-16" aria-hidden="true" tabindex="-1"></a>-1</span>
+<span id="cb33-17"><a href="#cb33-17" aria-hidden="true" tabindex="-1"></a>1</span>
+<span id="cb33-18"><a href="#cb33-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-19"><a href="#cb33-19" aria-hidden="true" tabindex="-1"></a>asof</span>
+<span id="cb33-20"><a href="#cb33-20" aria-hidden="true" tabindex="-1"></a>&quot;$asof&quot;: date</span>
+<span id="cb33-21"><a href="#cb33-21" aria-hidden="true" tabindex="-1"></a>&quot;$asof&quot;: &quot;datechars&quot;</span>
+<span id="cb33-22"><a href="#cb33-22" aria-hidden="true" tabindex="-1"></a>&quot;$asof&quot;: scn</span>
+<span id="cb33-23"><a href="#cb33-23" aria-hidden="true" tabindex="-1"></a>&quot;$asof&quot;: +int</span>
+<span id="cb33-24"><a href="#cb33-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-25"><a href="#cb33-25" aria-hidden="true" tabindex="-1"></a>wmembers</span>
+<span id="cb33-26"><a href="#cb33-26" aria-hidden="true" tabindex="-1"></a>    wpair</span>
+<span id="cb33-27"><a href="#cb33-27" aria-hidden="true" tabindex="-1"></a>    wpair , wmembers</span>
+<span id="cb33-28"><a href="#cb33-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-29"><a href="#cb33-29" aria-hidden="true" tabindex="-1"></a>wpair</span>
+<span id="cb33-30"><a href="#cb33-30" aria-hidden="true" tabindex="-1"></a>    columnProperty</span>
+<span id="cb33-31"><a href="#cb33-31" aria-hidden="true" tabindex="-1"></a>    complexOperatorProperty</span>
+<span id="cb33-32"><a href="#cb33-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-33"><a href="#cb33-33" aria-hidden="true" tabindex="-1"></a>columnProperty</span>
+<span id="cb33-34"><a href="#cb33-34" aria-hidden="true" tabindex="-1"></a>    columnName : string</span>
+<span id="cb33-35"><a href="#cb33-35" aria-hidden="true" tabindex="-1"></a>    columnName : number</span>
+<span id="cb33-36"><a href="#cb33-36" aria-hidden="true" tabindex="-1"></a>    columnName : date</span>
+<span id="cb33-37"><a href="#cb33-37" aria-hidden="true" tabindex="-1"></a>    columnName : simpleOperatorObject</span>
+<span id="cb33-38"><a href="#cb33-38" aria-hidden="true" tabindex="-1"></a>columnName : complexOperatorObject</span>
+<span id="cb33-39"><a href="#cb33-39" aria-hidden="true" tabindex="-1"></a>    columnName : [complexValues]</span>
+<span id="cb33-40"><a href="#cb33-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-41"><a href="#cb33-41" aria-hidden="true" tabindex="-1"></a>columnName</span>
+<span id="cb33-42"><a href="#cb33-42" aria-hidden="true" tabindex="-1"></a>&quot;\p{Alpha}[[\p{Alpha}]]([[\p{Alnum}]#$_])*$&quot;</span>
+<span id="cb33-43"><a href="#cb33-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-44"><a href="#cb33-44" aria-hidden="true" tabindex="-1"></a>complexOperatorProperty</span>
+<span id="cb33-45"><a href="#cb33-45" aria-hidden="true" tabindex="-1"></a>    complexKey : [complexValues]</span>
+<span id="cb33-46"><a href="#cb33-46" aria-hidden="true" tabindex="-1"></a>    complexKey : simpleOperatorObject </span>
+<span id="cb33-47"><a href="#cb33-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-48"><a href="#cb33-48" aria-hidden="true" tabindex="-1"></a>complexKey</span>
+<span id="cb33-49"><a href="#cb33-49" aria-hidden="true" tabindex="-1"></a>&quot;$and&quot;</span>
+<span id="cb33-50"><a href="#cb33-50" aria-hidden="true" tabindex="-1"></a>&quot;$or&quot;</span>
+<span id="cb33-51"><a href="#cb33-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-52"><a href="#cb33-52" aria-hidden="true" tabindex="-1"></a>complexValues</span>
+<span id="cb33-53"><a href="#cb33-53" aria-hidden="true" tabindex="-1"></a>    complexValue , complexValues</span>
+<span id="cb33-54"><a href="#cb33-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-55"><a href="#cb33-55" aria-hidden="true" tabindex="-1"></a>complexValue</span>
+<span id="cb33-56"><a href="#cb33-56" aria-hidden="true" tabindex="-1"></a>    simpleOperatorObject</span>
+<span id="cb33-57"><a href="#cb33-57" aria-hidden="true" tabindex="-1"></a>    complexOperatorObject</span>
+<span id="cb33-58"><a href="#cb33-58" aria-hidden="true" tabindex="-1"></a>    columnObject</span>
+<span id="cb33-59"><a href="#cb33-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-60"><a href="#cb33-60" aria-hidden="true" tabindex="-1"></a>columnObject</span>
+<span id="cb33-61"><a href="#cb33-61" aria-hidden="true" tabindex="-1"></a>    {columnProperty}</span>
+<span id="cb33-62"><a href="#cb33-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-63"><a href="#cb33-63" aria-hidden="true" tabindex="-1"></a>simpleOperatorObject</span>
+<span id="cb33-64"><a href="#cb33-64" aria-hidden="true" tabindex="-1"></a>    {simpleOperatorProperty}</span>
+<span id="cb33-65"><a href="#cb33-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-66"><a href="#cb33-66" aria-hidden="true" tabindex="-1"></a>complexOperatorObject</span>
+<span id="cb33-67"><a href="#cb33-67" aria-hidden="true" tabindex="-1"></a>    {complexOperatorProperty}</span>
+<span id="cb33-68"><a href="#cb33-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-69"><a href="#cb33-69" aria-hidden="true" tabindex="-1"></a>simpleOperatorProperty</span>
+<span id="cb33-70"><a href="#cb33-70" aria-hidden="true" tabindex="-1"></a>&quot;$eq&quot; : string | number | date</span>
+<span id="cb33-71"><a href="#cb33-71" aria-hidden="true" tabindex="-1"></a>&quot;$ne&quot; : string | number | date</span>
+<span id="cb33-72"><a href="#cb33-72" aria-hidden="true" tabindex="-1"></a>&quot;$lt&quot; :  number | date</span>
+<span id="cb33-73"><a href="#cb33-73" aria-hidden="true" tabindex="-1"></a>&quot;$lte&quot; : number | date</span>
+<span id="cb33-74"><a href="#cb33-74" aria-hidden="true" tabindex="-1"></a>&quot;$gt&quot; : number | date</span>
+<span id="cb33-75"><a href="#cb33-75" aria-hidden="true" tabindex="-1"></a>&quot;$gte&quot; : number | date</span>
+<span id="cb33-76"><a href="#cb33-76" aria-hidden="true" tabindex="-1"></a>&quot;$instr&quot; : string </span>
+<span id="cb33-77"><a href="#cb33-77" aria-hidden="true" tabindex="-1"></a>&quot;$ninstr&quot; : string</span>
+<span id="cb33-78"><a href="#cb33-78" aria-hidden="true" tabindex="-1"></a>&quot;$like&quot; : string</span>
+<span id="cb33-79"><a href="#cb33-79" aria-hidden="true" tabindex="-1"></a>&quot;$null&quot; : null</span>
+<span id="cb33-80"><a href="#cb33-80" aria-hidden="true" tabindex="-1"></a>&quot;$notnull&quot; : null</span>
+<span id="cb33-81"><a href="#cb33-81" aria-hidden="true" tabindex="-1"></a>&quot;$between&quot; : betweenValue</span>
+<span id="cb33-82"><a href="#cb33-82" aria-hidden="true" tabindex="-1"></a>&quot;$like&quot;: string</span>
+<span id="cb33-83"><a href="#cb33-83" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-84"><a href="#cb33-84" aria-hidden="true" tabindex="-1"></a>betweenValue</span>
+<span id="cb33-85"><a href="#cb33-85" aria-hidden="true" tabindex="-1"></a>    [null , betweenNotNull]</span>
+<span id="cb33-86"><a href="#cb33-86" aria-hidden="true" tabindex="-1"></a>    [betweenNotNull , null]</span>
+<span id="cb33-87"><a href="#cb33-87" aria-hidden="true" tabindex="-1"></a>    [betweenRegular , betweenRegular]</span>
+<span id="cb33-88"><a href="#cb33-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-89"><a href="#cb33-89" aria-hidden="true" tabindex="-1"></a>betweenNotNull</span>
+<span id="cb33-90"><a href="#cb33-90" aria-hidden="true" tabindex="-1"></a>    number</span>
+<span id="cb33-91"><a href="#cb33-91" aria-hidden="true" tabindex="-1"></a>    date</span>
+<span id="cb33-92"><a href="#cb33-92" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb33-93"><a href="#cb33-93" aria-hidden="true" tabindex="-1"></a>betweenRegular</span>
+<span id="cb33-94"><a href="#cb33-94" aria-hidden="true" tabindex="-1"></a>    string</span>
+<span id="cb33-95"><a href="#cb33-95" aria-hidden="true" tabindex="-1"></a>    number</span>
+<span id="cb33-96"><a href="#cb33-96" aria-hidden="true" tabindex="-1"></a>    date</span></code></pre></div>
+                <p>Data type definitions include the following:</p>
+                <div class="sourceCode" id="cb34"><pre
+                class="sourceCode txt"><code class="sourceCode default"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>string </span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>      JSONString</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>number</span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>      JSONNumber</span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>date</span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>      {&quot;$date&quot;:&quot;datechars&quot;}</span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>scn</span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>      {&quot;$scn&quot;: +int}</span></code></pre></div>
+                <p>Where:</p>
+                <div class="sourceCode" id="cb35"><pre
+                class="sourceCode txt"><code class="sourceCode default"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>datechars is an RFC3339 date format in UTC (Z)</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>JSONString</span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>        &quot;&quot;</span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>        &quot; chars &quot;</span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>chars</span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>        char</span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>        char chars</span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a>char</span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>        any-Unicode-character except-&quot;-or-\-or-control-character</span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a>        \&quot;</span>
+<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a>        \\</span>
+<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a>        \/</span>
+<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a>        \b</span>
+<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a>        \f</span>
+<span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a>        \n</span>
+<span id="cb35-18"><a href="#cb35-18" aria-hidden="true" tabindex="-1"></a>        \r</span>
+<span id="cb35-19"><a href="#cb35-19" aria-hidden="true" tabindex="-1"></a>        \t</span>
+<span id="cb35-20"><a href="#cb35-20" aria-hidden="true" tabindex="-1"></a>        \u four-hex-digits</span>
+<span id="cb35-21"><a href="#cb35-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-22"><a href="#cb35-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-23"><a href="#cb35-23" aria-hidden="true" tabindex="-1"></a>JSONNumber</span>
+<span id="cb35-24"><a href="#cb35-24" aria-hidden="true" tabindex="-1"></a>    int</span>
+<span id="cb35-25"><a href="#cb35-25" aria-hidden="true" tabindex="-1"></a>    int frac</span>
+<span id="cb35-26"><a href="#cb35-26" aria-hidden="true" tabindex="-1"></a>    int exp</span>
+<span id="cb35-27"><a href="#cb35-27" aria-hidden="true" tabindex="-1"></a>    int frac exp</span>
+<span id="cb35-28"><a href="#cb35-28" aria-hidden="true" tabindex="-1"></a>int</span>
+<span id="cb35-29"><a href="#cb35-29" aria-hidden="true" tabindex="-1"></a>    digit</span>
+<span id="cb35-30"><a href="#cb35-30" aria-hidden="true" tabindex="-1"></a>    digit1-9 digits </span>
+<span id="cb35-31"><a href="#cb35-31" aria-hidden="true" tabindex="-1"></a>    - digit</span>
+<span id="cb35-32"><a href="#cb35-32" aria-hidden="true" tabindex="-1"></a>    - digit1-9 digits</span>
+<span id="cb35-33"><a href="#cb35-33" aria-hidden="true" tabindex="-1"></a>frac</span>
+<span id="cb35-34"><a href="#cb35-34" aria-hidden="true" tabindex="-1"></a>    . digits</span>
+<span id="cb35-35"><a href="#cb35-35" aria-hidden="true" tabindex="-1"></a>exp</span>
+<span id="cb35-36"><a href="#cb35-36" aria-hidden="true" tabindex="-1"></a>    e digits</span>
+<span id="cb35-37"><a href="#cb35-37" aria-hidden="true" tabindex="-1"></a>digits</span>
+<span id="cb35-38"><a href="#cb35-38" aria-hidden="true" tabindex="-1"></a>    digit</span>
+<span id="cb35-39"><a href="#cb35-39" aria-hidden="true" tabindex="-1"></a>    digit digits</span>
+<span id="cb35-40"><a href="#cb35-40" aria-hidden="true" tabindex="-1"></a>e</span>
+<span id="cb35-41"><a href="#cb35-41" aria-hidden="true" tabindex="-1"></a>    e</span>
+<span id="cb35-42"><a href="#cb35-42" aria-hidden="true" tabindex="-1"></a>    e+</span>
+<span id="cb35-43"><a href="#cb35-43" aria-hidden="true" tabindex="-1"></a>    e-</span>
+<span id="cb35-44"><a href="#cb35-44" aria-hidden="true" tabindex="-1"></a>    E</span>
+<span id="cb35-45"><a href="#cb35-45" aria-hidden="true" tabindex="-1"></a>    E+</span>
+<span id="cb35-46"><a href="#cb35-46" aria-hidden="true" tabindex="-1"></a>    E-</span></code></pre></div>
+                <p>The FilterObject must be encoded according to Section
+                2.1 of RFC3986.</p>
+                <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+
+                This program is free software; you can redistribute it and/or modify
+                it under the terms of the GNU General Public License, version 2.0,
+                as published by the Free Software Foundation.
+
+                This program is also distributed with certain software (including
+                but not limited to OpenSSL) that is licensed under separate terms, as
+                designated in a particular file or component or in included license
+                documentation.  The authors of MySQL hereby grant you an additional
+                permission to link the program and your derivative works with the
+                separately licensed software that they have included with MySQL.
+                This program is distributed in the hope that it will be useful,  but
+                WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+                the GNU General Public License, version 2.0, for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program; if not, write to the Free Software Foundation, Inc.,
+                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+                <h1 data-number="4"
+                id="filterobject-grammar-examples"><span
+                class="header-section-number">4</span> FilterObject
+                Grammar Examples</h1>
+                <h2 data-number="4.1"
+                id="order-by-property-orderby"><span
+                class="header-section-number">4.1</span> ORDER BY
+                property ($orderby)</h2>
+                <div class="sourceCode" id="cb36"><pre
+                class="sourceCode txt"><code class="sourceCode default"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>Order by with literals</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>  &quot;$orderby&quot;: {&quot;SALARY&quot;:  &quot;ASC&quot;,&quot;ENAME&quot;:&quot;DESC&quot;}</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>Order by with numbers</span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a>  &quot;$orderby&quot;: {&quot;SALARY&quot;:  -1,&quot;ENAME&quot;:  1}</span>
+<span id="cb36-11"><a href="#cb36-11" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <h2 data-number="4.2" id="asof-property-asof"><span
+                class="header-section-number">4.2</span> ASOF property
+                ($asof)</h2>
+                <div class="sourceCode" id="cb37"><pre
+                class="sourceCode txt"><code class="sourceCode default"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>With SCN (Implicit)</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>  &quot;$asof&quot;: 1273919</span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a>With SCN (Explicit)</span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a>  &quot;$asof&quot;: {&quot;$scn&quot;: &quot;1273919&quot;}</span>
+<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb37-12"><a href="#cb37-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-13"><a href="#cb37-13" aria-hidden="true" tabindex="-1"></a>With Date (Implicit)</span>
+<span id="cb37-14"><a href="#cb37-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-15"><a href="#cb37-15" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb37-16"><a href="#cb37-16" aria-hidden="true" tabindex="-1"></a>  &quot;$asof&quot;: &quot;2014-06-30T00:00:00Z&quot;</span>
+<span id="cb37-17"><a href="#cb37-17" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb37-18"><a href="#cb37-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-19"><a href="#cb37-19" aria-hidden="true" tabindex="-1"></a>With Date (Explicit)</span>
+<span id="cb37-20"><a href="#cb37-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-21"><a href="#cb37-21" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb37-22"><a href="#cb37-22" aria-hidden="true" tabindex="-1"></a>  &quot;$asof&quot;: {&quot;$date&quot;: &quot;2014-06-30T00:00:00Z&quot;}</span>
+<span id="cb37-23"><a href="#cb37-23" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <h2 data-number="4.3" id="equals-operator-eq"><span
+                class="header-section-number">4.3</span> EQUALS operator
+                ($eq)</h2>
+                <div class="sourceCode" id="cb38"><pre
+                class="sourceCode txt"><code class="sourceCode default"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>Implicit (Support String and Dates too)</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>  &quot;SALARY&quot;: 1000</span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a>Explicit</span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a>  &quot;SALARY&quot;: {&quot;$eq&quot;: 1000}</span>
+<span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-13"><a href="#cb38-13" aria-hidden="true" tabindex="-1"></a>Strings</span>
+<span id="cb38-14"><a href="#cb38-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-15"><a href="#cb38-15" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb38-16"><a href="#cb38-16" aria-hidden="true" tabindex="-1"></a>  &quot;ENAME&quot;: {&quot;$eq&quot;:&quot;SMITH&quot;}</span>
+<span id="cb38-17"><a href="#cb38-17" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb38-18"><a href="#cb38-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-19"><a href="#cb38-19" aria-hidden="true" tabindex="-1"></a>Dates</span>
+<span id="cb38-20"><a href="#cb38-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-21"><a href="#cb38-21" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb38-22"><a href="#cb38-22" aria-hidden="true" tabindex="-1"></a>  &quot;HIREDATE&quot;: {&quot;$date&quot;: &quot;1981-11-17T08:00:00Z&quot;}</span>
+<span id="cb38-23"><a href="#cb38-23" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <h2 data-number="4.4" id="not-equals-operator-ne"><span
+                class="header-section-number">4.4</span> NOT EQUALS
+                operator ($ne)</h2>
+                <div class="sourceCode" id="cb39"><pre
+                class="sourceCode txt"><code class="sourceCode default"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>Number</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>  &quot;SALARY&quot;: {&quot;$ne&quot;: 1000}</span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>String</span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a>  &quot;ENAME&quot;: {&quot;$ne&quot;:&quot;SMITH&quot;}</span>
+<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a>Dates</span>
+<span id="cb39-14"><a href="#cb39-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-15"><a href="#cb39-15" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb39-16"><a href="#cb39-16" aria-hidden="true" tabindex="-1"></a>  &quot;HIREDATE&quot;: {&quot;$ne&quot;: {&quot;$date&quot;:&quot;1981-11-17T08:00:00Z&quot;}}</span>
+<span id="cb39-17"><a href="#cb39-17" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <h2 data-number="4.5" id="less-than-operator-lt"><span
+                class="header-section-number">4.5</span> LESS THAN
+                operator ($lt)</h2>
+                <p>(Supports dates and numbers only)</p>
+                <div class="sourceCode" id="cb40"><pre
+                class="sourceCode txt"><code class="sourceCode default"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>Numbers</span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>  &quot;SALARY&quot;: {&quot;$lt&quot;: 10000}</span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a>Dates</span>
+<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb40-10"><a href="#cb40-10" aria-hidden="true" tabindex="-1"></a>  &quot;SALARY&quot;: {&quot;$lt&quot;: {&quot;$date&quot;:&quot;1999-12-17T08:00:00Z&quot;}}</span>
+<span id="cb40-11"><a href="#cb40-11" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <h2 data-number="4.6"
+                id="less-than-or-equals-operator-lte"><span
+                class="header-section-number">4.6</span> LESS THAN OR
+                EQUALS operator ($lte)</h2>
+                <p>(Supports dates and numbers only)</p>
+                <div class="sourceCode" id="cb41"><pre
+                class="sourceCode txt"><code class="sourceCode default"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>Numbers</span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>  &quot;SALARY&quot;: {&quot;$lte&quot;: 10000}</span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a>Dates</span>
+<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a>  &quot;HIREDATE&quot;: {&quot;$lte&quot;: {&quot;$date&quot;:&quot;1999-12-17T08:00:00Z&quot;}}</span>
+<span id="cb41-11"><a href="#cb41-11" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <h2 data-number="4.7"
+                id="greater-than-operator-gt"><span
+                class="header-section-number">4.7</span> GREATER THAN
+                operator ($gt)</h2>
+                <p>(Supports dates and numbers only)</p>
+                <div class="sourceCode" id="cb42"><pre
+                class="sourceCode txt"><code class="sourceCode default"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>Numbers</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>  &quot;SALARY&quot;: {&quot;$gt&quot;: 10000}</span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a>Dates</span>
+<span id="cb42-8"><a href="#cb42-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-9"><a href="#cb42-9" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb42-10"><a href="#cb42-10" aria-hidden="true" tabindex="-1"></a>  &quot;SALARY&quot;: {&quot;$gt&quot;: {&quot;$date&quot;:&quot;1999-12-17T08:00:00Z&quot;}}</span>
+<span id="cb42-11"><a href="#cb42-11" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <h2 data-number="4.8"
+                id="greater-than-or-equals-operator-gte"><span
+                class="header-section-number">4.8</span> GREATER THAN OR
+                EQUALS operator ($gte)</h2>
+                <p>(Supports dates and numbers only)</p>
+                <div class="sourceCode" id="cb43"><pre
+                class="sourceCode txt"><code class="sourceCode default"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>Numbers</span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>  &quot;SALARY&quot;: {&quot;$gte&quot;: 10000}</span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>Dates</span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a>  &quot;HIREDATE&quot;: {&quot;$gte&quot;: {&quot;$date&quot;:&quot;1999-12-17T08:00:00Z&quot;}}</span>
+<span id="cb43-11"><a href="#cb43-11" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <h2 data-number="4.9"
+                id="in-string-operator-instr"><span
+                class="header-section-number">4.9</span> In string
+                operator ($instr)</h2>
+                <p>(Supports strings only)</p>
+                <div class="sourceCode" id="cb44"><pre
+                class="sourceCode txt"><code class="sourceCode default"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>  &quot;ENAME&quot;: {&quot;$instr&quot;:&quot;MC&quot;}</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <h2 data-number="4.10"
+                id="not-in-string-operator-ninstr"><span
+                class="header-section-number">4.10</span> Not in string
+                operator ($ninstr)</h2>
+                <p>(Supports strings only)</p>
+                <div class="sourceCode" id="cb45"><pre
+                class="sourceCode txt"><code class="sourceCode default"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>  &quot;ENAME&quot;: {&quot;$ninstr&quot;:&quot;MC&quot;}</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <h2 data-number="4.11" id="like-operator-like"><span
+                class="header-section-number">4.11</span> LIKE operator
+                ($like)</h2>
+                <p>(Supports strings. Eescape character not supported to
+                try to match expressions with _ or % characters.)</p>
+                <div class="sourceCode" id="cb46"><pre
+                class="sourceCode txt"><code class="sourceCode default"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>  &quot;ENAME&quot;: {&quot;$like&quot;:&quot;AX%&quot;}</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <h2 data-number="4.12"
+                id="between-operator-between"><span
+                class="header-section-number">4.12</span> BETWEEN
+                operator ($between)</h2>
+                <p>(Supports string, dates, and numbers)</p>
+                <div class="sourceCode" id="cb47"><pre
+                class="sourceCode txt"><code class="sourceCode default"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>Numbers</span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>  &quot;SALARY&quot;: {&quot;$between&quot;: [1000,2000]}</span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a>Dates</span>
+<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb47-10"><a href="#cb47-10" aria-hidden="true" tabindex="-1"></a>  &quot;SALARY&quot;: {&quot;$between&quot;: [{&quot;$date&quot;:&quot;1989-12-17T08:00:00Z&quot;},{&quot;$date&quot;:&quot;1999-12-17T08:00:00Z&quot;}]}</span>
+<span id="cb47-11"><a href="#cb47-11" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb47-12"><a href="#cb47-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-13"><a href="#cb47-13" aria-hidden="true" tabindex="-1"></a>Strings</span>
+<span id="cb47-14"><a href="#cb47-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-15"><a href="#cb47-15" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb47-16"><a href="#cb47-16" aria-hidden="true" tabindex="-1"></a>  &quot;ENAME&quot;: {&quot;$between&quot;: [&quot;A&quot;,&quot;C&quot;]}</span>
+<span id="cb47-17"><a href="#cb47-17" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb47-18"><a href="#cb47-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-19"><a href="#cb47-19" aria-hidden="true" tabindex="-1"></a>Null Ranges ($lte equivalent)</span>
+<span id="cb47-20"><a href="#cb47-20" aria-hidden="true" tabindex="-1"></a>(Supported by numbers and dates only)</span>
+<span id="cb47-21"><a href="#cb47-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-22"><a href="#cb47-22" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb47-23"><a href="#cb47-23" aria-hidden="true" tabindex="-1"></a>  &quot;SALARY&quot;: {&quot;$between&quot;: [null,2000]}</span>
+<span id="cb47-24"><a href="#cb47-24" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb47-25"><a href="#cb47-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-26"><a href="#cb47-26" aria-hidden="true" tabindex="-1"></a>Null Ranges ($gte equivalent)</span>
+<span id="cb47-27"><a href="#cb47-27" aria-hidden="true" tabindex="-1"></a>(Supported by numbers and dates only)</span>
+<span id="cb47-28"><a href="#cb47-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-29"><a href="#cb47-29" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb47-30"><a href="#cb47-30" aria-hidden="true" tabindex="-1"></a>  &quot;SALARY&quot;: {&quot;$between&quot;: [1000,null]}</span>
+<span id="cb47-31"><a href="#cb47-31" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <h2 data-number="4.13" id="null-operator-null"><span
+                class="header-section-number">4.13</span> NULL operator
+                ($null)</h2>
+                <div class="sourceCode" id="cb48"><pre
+                class="sourceCode json"><code class="sourceCode json"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;ENAME&quot;</span><span class="fu">:</span> <span class="fu">{</span><span class="dt">&quot;$null&quot;</span><span class="fu">:</span> <span class="kw">null</span><span class="fu">}</span></span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+                <h2 data-number="4.14"
+                id="not-null-operator-notnull"><span
+                class="header-section-number">4.14</span> NOT NULL
+                operator ($notnull)</h2>
+                <div class="sourceCode" id="cb49"><pre
+                class="sourceCode json"><code class="sourceCode json"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;ENAME&quot;</span><span class="fu">:</span> <span class="fu">{</span><span class="dt">&quot;$notnull&quot;</span><span class="fu">:</span> <span class="kw">null</span><span class="fu">}</span></span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+                <h2 data-number="4.15" id="and-operator-and"><span
+                class="header-section-number">4.15</span> AND operator
+                ($and)</h2>
+                <p>(Supports all operators, including $and and $or)</p>
+                <div class="sourceCode" id="cb50"><pre
+                class="sourceCode txt"><code class="sourceCode default"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>Column context delegation</span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>(Operators inside $and will use the closest context defined in the JSON tree.)</span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a>  &quot;SALARY&quot;: {&quot;$and&quot;: [{&quot;$gt&quot;: 1000},{&quot;$lt&quot;:4000}]}</span>
+<span id="cb50-6"><a href="#cb50-6" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb50-7"><a href="#cb50-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-8"><a href="#cb50-8" aria-hidden="true" tabindex="-1"></a>Column context override</span>
+<span id="cb50-9"><a href="#cb50-9" aria-hidden="true" tabindex="-1"></a>(Example: salary greater than 1000 and name like S%)</span>
+<span id="cb50-10"><a href="#cb50-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-11"><a href="#cb50-11" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb50-12"><a href="#cb50-12" aria-hidden="true" tabindex="-1"></a>  &quot;SALARY&quot;: {&quot;$and&quot;: [{&quot;$gt&quot;: 1000},{&quot;ENAME&quot;: {&quot;$like&quot;:&quot;S%&quot;}} ] }</span>
+<span id="cb50-13"><a href="#cb50-13" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb50-14"><a href="#cb50-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-15"><a href="#cb50-15" aria-hidden="true" tabindex="-1"></a>Implicit and in columns</span>
+<span id="cb50-16"><a href="#cb50-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-17"><a href="#cb50-17" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb50-18"><a href="#cb50-18" aria-hidden="true" tabindex="-1"></a>  &quot;SALARY&quot;: [{&quot;$gt&quot;: 1000},{&quot;$lt&quot;:4000}]</span>
+<span id="cb50-19"><a href="#cb50-19" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <h2 data-number="4.16" id="high-order-and"><span
+                class="header-section-number">4.16</span> High order
+                AND</h2>
+                <p>(All first columns and or high order operators – $and
+                and $ors – defined at the first level of the JSON will
+                be joined and an implicit AND)</p>
+                <div class="sourceCode" id="cb51"><pre
+                class="sourceCode txt"><code class="sourceCode default"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>(Example: Salary greater than 1000 and name starts with S or T)</span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>  &quot;SALARY&quot;: {&quot;$gt&quot;: 1000},</span>
+<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a>  &quot;ENAME&quot;: {&quot;$or&quot;: [{&quot;$like&quot;:&quot;S%&quot;}, {&quot;$like&quot;:&quot;T%&quot;}]}</span>
+<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb51-7"><a href="#cb51-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-8"><a href="#cb51-8" aria-hidden="true" tabindex="-1"></a>Invalid expression (operators $lt and $gt lack column context)</span>
+<span id="cb51-9"><a href="#cb51-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-10"><a href="#cb51-10" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb51-11"><a href="#cb51-11" aria-hidden="true" tabindex="-1"></a>  &quot;$and&quot;: [{&quot;$lt&quot;: 5000},{&quot;$gt&quot;: 1000}]</span>
+<span id="cb51-12"><a href="#cb51-12" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb51-13"><a href="#cb51-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-14"><a href="#cb51-14" aria-hidden="true" tabindex="-1"></a>Valid alternatives for the previous invalid expression</span>
+<span id="cb51-15"><a href="#cb51-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-16"><a href="#cb51-16" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb51-17"><a href="#cb51-17" aria-hidden="true" tabindex="-1"></a>  &quot;$and&quot;: [{&quot;SALARY&quot;: {&quot;$lt&quot;: 5000}}, {&quot;SALARY&quot;: {&quot;$gt&quot;: 1000}}]</span>
+<span id="cb51-18"><a href="#cb51-18" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb51-19"><a href="#cb51-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-20"><a href="#cb51-20" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb51-21"><a href="#cb51-21" aria-hidden="true" tabindex="-1"></a>  &quot;SALARY&quot;: [{&quot;$lt&quot;: 5000},{&quot;$gt&quot;: 1000}]</span>
+<span id="cb51-22"><a href="#cb51-22" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb51-23"><a href="#cb51-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-24"><a href="#cb51-24" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb51-25"><a href="#cb51-25" aria-hidden="true" tabindex="-1"></a>  &quot;SALARY&quot;: {&quot;$and&quot;: [{&quot;$lt&quot;: 5000},{&quot;$gt&quot;: 1000}]}</span>
+<span id="cb51-26"><a href="#cb51-26" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <h2 data-number="4.17" id="or-operator-or"><span
+                class="header-section-number">4.17</span> OR operator
+                ($or)</h2>
+                <p>(Supports all operators including $and and $or)</p>
+                <div class="sourceCode" id="cb52"><pre
+                class="sourceCode txt"><code class="sourceCode default"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>Column context delegation</span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>(Operators inside $or will use the closest context defined in the JSON tree)</span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a>  &quot;ENAME&quot;: {&quot;$or&quot;: [{&quot;$eq&quot;:&quot;SMITH&quot;},{&quot;$eq&quot;:&quot;KING&quot;}]}</span>
+<span id="cb52-6"><a href="#cb52-6" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb52-7"><a href="#cb52-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-8"><a href="#cb52-8" aria-hidden="true" tabindex="-1"></a>Column context override</span>
+<span id="cb52-9"><a href="#cb52-9" aria-hidden="true" tabindex="-1"></a>(Example: name starts with S or salary greater than 1000)</span>
+<span id="cb52-10"><a href="#cb52-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-11"><a href="#cb52-11" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb52-12"><a href="#cb52-12" aria-hidden="true" tabindex="-1"></a>  &quot;SALARY&quot;: {&quot;$or&quot;: [{&quot;$gt&quot;: 1000},{&quot;ENAME&quot;: {&quot;$like&quot;:&quot;S%&quot;}} ] }</span>
+<span id="cb52-13"><a href="#cb52-13" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <p>Copyright (c) 2022, 2023, Oracle and/or its
+                affiliates.</p>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
