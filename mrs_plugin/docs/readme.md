@@ -31,7 +31,7 @@ The documentation is written in Markdown syntax. It is converted to HTML with th
 
 ### Installing pandoc 2.19.2
 
-Download and install pandoc 2.19.2 from https://github.com/jgm/pandoc/releases/tag/2.19.2
+Download and install pandoc 2.19.2 from <https://github.com/jgm/pandoc/releases/tag/2.19.2>
 
 ### Installing pandoc-include
 

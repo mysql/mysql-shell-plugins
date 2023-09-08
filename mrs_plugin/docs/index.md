@@ -11,7 +11,6 @@ __Chapter Overview__
 - [MRS Configuration](#configuration-of-the-mysql-rest-service)
 - [Adding REST Services](#adding-rest-services)
 - [Adding Schemas and Objects to a REST Service](#adding-schemas-and-objects-to-a-rest-service)
-- [Working with MRS RESTful Web Services](#working-with-mrs-restful-web-services)
 - [MRS Examples](#mrs-examples)
   - [MRS Notes Examples](#mrs-notes-examples)
 
@@ -19,8 +18,9 @@ __Chapter Overview__
 
 Please also see
 
-- __[MySQL REST Service - SDK Reference](sdk.html)__ - This document explains how to work with the MRS Software Development Kit and discusses the Client APIs.
-- __[MySQL REST Service - DDL Extension Reference](ddl.html)__ - This document discusses the MySQL REST Service (MRS) DDL SQL Extension..
+- __[MySQL REST Service - DDL Reference](ddl.html)__ - This book discusses the MySQL REST Service (MRS) DDL SQL Extension.
+- __[MySQL REST Service - Core REST APIs](restApi.html)__ - This book provides examples of using the MySQL REST Service queries and other operations against tables and views after you have REST-enabled them.
+- __[MySQL REST Service - SDK Reference](sdk.html)__ - This book explains how to work with the MRS Software Development Kit and discusses the Client APIs.
 
 ---
 
@@ -33,8 +33,6 @@ Please also see
 !include sections/AddingRESTServices.md
 
 !include sections/AddingRESTSchemasAndObjects.md
-
-!include sections/WorkingWithMrsRestfulWebServices.md
 
 !include ../examples/readme.md
 
