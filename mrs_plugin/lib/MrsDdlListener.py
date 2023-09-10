@@ -25,6 +25,7 @@ from mrs_plugin.lib.mrs_parser import MRSListener
 from mrs_plugin.lib.mrs_parser import MRSParser
 from mrs_plugin.lib.MrsDdlExecutorInterface import MrsDdlExecutorInterface
 
+
 class MrsDdlListener(MRSListener):
 
     def __init__(self, mrs_ddl_executor: MrsDdlExecutorInterface, session):
@@ -45,7 +46,7 @@ class MrsDdlListener(MRSListener):
     def enterComments(self, ctx):
         self.mrs_object["comments"] = ctx.quotedText().getText()[1:-1]
 
-    def enabledDisabled(self, ctx):
+    def enterEnabledDisabled(self, ctx):
         if ctx.ENABLED_SYMBOL() is not None:
             self.mrs_object["enabled"] = True
         if ctx.DISABLED_SYMBOL() is not None:
@@ -205,9 +206,74 @@ class MrsDdlListener(MRSListener):
 
         return fields
 
+    def get_db_object(self, ctx):
+        if ctx.serviceSchemaSelector() is not None:
+            schema_request_path = ctx.serviceSchemaSelector().schemaRequestPath().getText()
+            url_context_root = None
+            url_host_name = None
+
+            if ctx.serviceSchemaSelector().serviceRequestPath() is not None:
+                url_context_root = ctx.serviceSchemaSelector(
+                ).serviceRequestPath().requestPathIdentifier().getText()
+                if ctx.serviceSchemaSelector().serviceRequestPath().hostAndPortIdentifier() is not None:
+                    url_host_name = ctx.serviceSchemaSelector(
+                    ).serviceRequestPath().hostAndPortIdentifier().getText()
+        else:
+            schema_request_path = self.mrs_object.get("schema_request_path")
+            url_context_root = self.mrs_object.get("url_context_root")
+            url_host_name = self.mrs_object.get("url_host_name")
+
+        if schema_request_path is None:
+            schema_id = self.mrs_ddl_executor.get_current_schema_id()
+            if schema_id is None:
+                raise Exception("No REST schema given.")
+        else:
+            if url_context_root is None:
+                raise Exception("No REST service given.")
+
+            service = lib.services.get_service(
+                session=self.session,
+                url_context_root=url_context_root,
+                url_host_name=url_host_name)
+            if service is None:
+                raise Exception(
+                    f"The REST service `{url_host_name}{url_context_root}` was not found.")
+
+            schema = lib.schemas.get_schema(
+                session=self.session,
+                service_id=service["id"],
+                request_path=schema_request_path)
+
+            if schema is None:
+                raise Exception(
+                    f"""The REST schema `{
+                        url_host_name if url_host_name is not None else ''}{
+                            url_context_root if url_context_root is not None else ''}{
+                                schema_request_path if schema_request_path is not None else ''
+                                }` was not found.""")
+            schema_id = schema["id"]
+
+        db_object = lib.db_objects.get_db_object(
+            session=self.session,
+            schema_id=schema_id,
+            request_path=self.mrs_object.get("request_path"))
+        if db_object is None:
+            raise Exception(
+                f'''REST object `{url_host_name}{url_context_root}{
+                    schema_request_path}{
+                        self.mrs_object.get("request_path")}` was not found.''')
+
+        return db_object
+
     def set_schema_name_and_name(self, ctx):
+        # If no schema name nor name was given, look it up from existing db_object
+        if ctx.qualifiedIdentifier() is None:
+            db_object = self.get_db_object(ctx=ctx)
+
+            self.mrs_object["name"] = db_object.get("name")
+            self.mrs_object["schema_name"] = db_object.get("schema_name")
         # If no db schema name was given, get the schema name from the current REST schema
-        if ctx.qualifiedIdentifier().dotIdentifier() is None:
+        elif ctx.qualifiedIdentifier().dotIdentifier() is None:
             self.mrs_object["name"] = ctx.qualifiedIdentifier().getText()
 
             if self.current_schema_id is None:
@@ -229,9 +295,9 @@ class MrsDdlListener(MRSListener):
 
     def enterCreateRestViewStatement(self, ctx):
         self.mrs_object = {
-            "current_operation": (
-                "CREATE" if ctx.REPLACE_SYMBOL() is None
-                else "CREATE OR REPLACE") + " REST DUALITY VIEW",
+            "current_operation": f"""CREATE{
+                '' if ctx.REPLACE_SYMBOL() is None else ' OR REPLACE'
+                } REST DUALITY VIEW""",
             "do_replace": ctx.REPLACE_SYMBOL() is not None,
             "id": self.get_uuid(),
             "request_path": ctx.viewRequestPath().requestPathIdentifier().getText(),
@@ -472,26 +538,13 @@ class MrsDdlListener(MRSListener):
     # ------------------------------------------------------------------------------------------------------------------
     # CREATE REST PROCEDURE
 
-    def enterCreateRestProcedureStatement(self, ctx):
-        self.mrs_object = {
-            "current_operation": (
-                "CREATE" if ctx.REPLACE_SYMBOL() is None
-                else "CREATE OR REPLACE") + " REST PROCEDURE",
-            "do_replace": ctx.REPLACE_SYMBOL() is not None,
-            "id": self.get_uuid(),
-            "request_path": ctx.procedureRequestPath().getText(),
-            "db_object_type": "PROCEDURE",
-            "crud_operations": ["UPDATE"]
-        }
-
+    def add_rest_procedure_params(self, ctx, db_schema_name, db_object_name):
         object_id = self.get_uuid()
-
-        self.set_schema_name_and_name(ctx=ctx)
 
         params = lib.db_objects.get_db_object_parameters(
             session=self.session,
-            db_schema_name=self.mrs_object["schema_name"],
-            db_object_name=self.mrs_object["name"])
+            db_schema_name=db_schema_name,
+            db_object_name=db_object_name)
 
         param_fields = []
         for param in params:
@@ -522,15 +575,145 @@ class MrsDdlListener(MRSListener):
 
         self.mrs_object["objects"] = [{
             "id": object_id,
-            "db_object_id": self.mrs_object.get("id"),
+            "db_object_id": self.mrs_object["id"],
             "name": ctx.restObjectName().identifier().getText(),
             "kind": "PARAMETERS",
             "position": 0,
             "fields": param_fields
         }]
 
+    def enterCreateRestProcedureStatement(self, ctx):
+        self.mrs_object = {
+            "current_operation": (
+                "CREATE" if ctx.REPLACE_SYMBOL() is None
+                else "CREATE OR REPLACE") + " REST PROCEDURE",
+            "do_replace": ctx.REPLACE_SYMBOL() is not None,
+            "id": self.get_uuid(),
+            "request_path": ctx.procedureRequestPath().getText(),
+            "db_object_type": "PROCEDURE",
+            "crud_operations": ["UPDATE"]
+        }
+
+        self.set_schema_name_and_name(ctx=ctx)
+
+        self.add_rest_procedure_params(
+            ctx=ctx,
+            db_schema_name=self.mrs_object["schema_name"],
+            db_object_name=self.mrs_object["name"])
+
     def exitCreateRestProcedureStatement(self, ctx):
         self.mrs_ddl_executor.createRestDbObject(self.mrs_object)
+
+    # ==================================================================================================================
+    # ALTER REST Statements
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # ALTER REST SERVICE
+
+    def enterAlterRestServiceStatement(self, ctx):
+        self.mrs_object = {
+            "current_operation": "ALTER REST SERVICE"
+        }
+
+    def enterNewServiceRequestPath(self, ctx):
+        self.mrs_object["new_url_context_root"] = ctx.requestPathIdentifier(
+        ).getText()
+        # Check if there was a host:port defined as well
+        val = ctx.hostAndPortIdentifier()
+        if val is not None:
+            self.mrs_object["new_url_host_name"] = val.getText()
+
+    def exitAlterRestServiceStatement(self, ctx):
+        self.mrs_ddl_executor.alterRestService(self.mrs_object)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # ALTER REST SCHEMA
+
+    def enterAlterRestSchemaStatement(self, ctx):
+        self.mrs_object = {
+            "current_operation": "ALTER REST SCHEMA"
+        }
+
+    def enterNewSchemaRequestPath(self, ctx):
+        self.mrs_object["new_request_path"] = ctx.requestPathIdentifier(
+        ).getText()
+
+    def exitAlterRestSchemaStatement(self, ctx):
+        self.mrs_ddl_executor.alterRestSchema(self.mrs_object)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # ALTER REST VIEW
+
+    def enterAlterRestViewStatement(self, ctx):
+        self.mrs_object = {
+            "current_operation": "ALTER REST VIEW",
+            "request_path": ctx.viewRequestPath().requestPathIdentifier().getText(),
+            "new_request_path": (
+                ctx.newViewRequestPath().requestPathIdentifier().getText()
+                if ctx.newViewRequestPath() is not None else None),
+            "new_object_name": (
+                ctx.restObjectName().identifier().getText()
+                if ctx.restObjectName() is not None else None),
+            "type": "DUALITY VIEW",
+            "parent_reference_stack": []
+        }
+
+        if ctx.graphGlCrudOptions() is not None:
+            self.mrs_object["crud_operations"] = self.build_crud_operations_list(
+                ctx=ctx.graphGlCrudOptions())
+
+        db_object = self.get_db_object(ctx=ctx)
+
+        # Set mrs_object["id"] since the field listener need that
+        self.mrs_object["id"] = db_object["id"]
+
+        if ctx.restObjectName() is not None:
+            object_id = self.get_uuid()
+            self.mrs_object["objects"] = [{
+                "id": object_id,
+                "db_object_id": db_object["id"],
+                "name": ctx.restObjectName().identifier().getText(),
+                "kind": "RESULT",
+                "position": 0,
+                # Get top level fields
+                "fields": self.get_db_object_fields(
+                    object_id=object_id,
+                    db_schema_name=db_object["schema_name"],
+                    db_object_name=db_object["name"])
+            }]
+
+    def exitAlterRestViewStatement(self, ctx):
+        self.mrs_ddl_executor.alterRestDbObject(self.mrs_object)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # ALTER REST PROCEDURE
+
+    def enterAlterRestProcedureStatement(self, ctx):
+        self.mrs_object = {
+            "current_operation": "ALTER REST PROCEDURE",
+            "request_path": ctx.procedureRequestPath().getText(),
+            "new_request_path": (
+                ctx.newProcedureRequestPath().requestPathIdentifier().getText()
+                if ctx.newProcedureRequestPath() is not None else None),
+            "new_object_name": (
+                ctx.restObjectName().identifier().getText()
+                if ctx.restObjectName() is not None else None),
+            "type": "PROCEDURE"
+        }
+
+        db_object = self.get_db_object(ctx=ctx)
+
+        # Set mrs_object["id"] since the field listener need that
+        self.mrs_object["id"] = db_object["id"]
+
+        if ctx.restObjectName() is not None:
+            self.add_rest_procedure_params(
+                ctx=ctx,
+                db_schema_name=db_object["schema_name"],
+                db_object_name=db_object["name"])
+
+    def exitAlterRestProcedureStatement(self, ctx):
+        self.mrs_ddl_executor.alterRestDbObject(self.mrs_object)
 
     # ==================================================================================================================
     # DROP REST Statements
@@ -663,6 +846,58 @@ class MrsDdlListener(MRSListener):
     def exitShowRestProceduresStatement(self, ctx):
         self.mrs_ddl_executor.showRestDbObjects(self.mrs_object)
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # SHOW CREATE REST SERVICE
+
+    def enterShowCreateRestServiceStatement(self, ctx):
+        self.mrs_object = {
+            "current_operation":
+                "SHOW CREATE REST SERVICE"
+        }
+
+    def exitShowCreateRestServiceStatement(self, ctx):
+        self.mrs_ddl_executor.showCreateRestService(self.mrs_object)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # SHOW CREATE REST SCHEMA
+
+    def enterShowCreateRestSchemaStatement(self, ctx):
+        self.mrs_object = {
+            "current_operation":
+                "SHOW CREATE REST SCHEMA"
+        }
+
+    def exitShowCreateRestSchemaStatement(self, ctx):
+        self.mrs_ddl_executor.showCreateRestSchema(self.mrs_object)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # SHOW CREATE REST VIEW
+
+    def enterShowCreateRestViewStatement(self, ctx):
+        self.mrs_object = {
+            "current_operation":
+                "SHOW CREATE REST VIEW",
+            "request_path": ctx.viewRequestPath().getText(),
+            "type": "DUALITY VIEW"
+        }
+
+    def exitShowCreateRestViewStatement(self, ctx):
+        self.mrs_ddl_executor.showCreateRestDbObject(self.mrs_object)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # SHOW CREATE REST PROCEDURE
+
+    def enterShowCreateRestProcedureStatement(self, ctx):
+        self.mrs_object = {
+            "current_operation":
+                "SHOW CREATE REST PROCEDURE",
+            "request_path": ctx.procedureRequestPath().getText(),
+            "type": "PROCEDURE"
+        }
+
+    def exitShowCreateRestProcedureStatement(self, ctx):
+        self.mrs_ddl_executor.showCreateRestDbObject(self.mrs_object)
+
 
 class MrsDdlErrorListener(antlr4.error.ErrorListener.ErrorListener):
     def __init__(self, errors):
@@ -675,4 +910,3 @@ class MrsDdlErrorListener(antlr4.error.ErrorListener.ErrorListener):
             "message": msg.capitalize(),
             "fullMessage": f"Syntax Error: {msg.capitalize()} [Ln {line}: Col {column}]"
         })
-

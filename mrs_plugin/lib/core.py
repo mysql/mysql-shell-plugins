@@ -1125,8 +1125,17 @@ def format_result(result):
             for col in columns:
                 field = str(row.get(col))
                 current_length = max_lengths.get(col, 0)
-                if len(field) > current_length:
-                    max_lengths[col] = len(field)
+                length = len(field)
+
+                # If the field contains linebreaks, consider the longest line
+                if "\n" in field:
+                    length = 0
+                    for ln in field.split("\n"):
+                        if len(ln) > length:
+                            length = len(ln)
+
+                if length > current_length:
+                    max_lengths[col] = length
 
         h_sep = "+"
         for col in columns:
@@ -1139,9 +1148,30 @@ def format_result(result):
 
         for row in result:
             formatted_res += "|"
-            for col in columns:
+            for index, col in enumerate(columns):
                 f = str(row.get(col))
-                formatted_res += f' {f}{" " * (max_lengths[col] - len(f))} |'
+
+                # If there are linebreaks in the field, add each line and extend the grid
+                if "\n" in f:
+                    pre = "| "
+                    post = " "
+                    for i, c in enumerate(columns):
+                        if i < index:
+                            pre += f'{" " * max_lengths[c]} | '
+                        elif i > index:
+                            post += f'{" " * max_lengths[c]} | '
+                    pre = pre[:-1]
+                    post = post[:-1]
+
+                    lines = f.split("\n")
+                    for ln_i, ln in enumerate(lines):
+                        if ln_i > 0:
+                            formatted_res += pre
+                        formatted_res += f' {ln}{" " * (max_lengths[col] - len(ln))} |'
+                        if ln_i < len(lines) - 1:
+                            formatted_res += post + "\n"
+                else:
+                    formatted_res += f' {f}{" " * (max_lengths[col] - len(f))} |'
 
             formatted_res += "\n"
 

@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2023, Oracle and/or its affiliates.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify it under the terms of the
  * GNU General Public License, version 2.0, as published by the Free Software Foundation.
- * 
+ *
  * This program is also distributed with certain software (including but not limited to OpenSSL)
  * that is licensed under separate terms, as designated in a particular file or component or in
  * included license documentation. The authors of MySQL hereby grant you an additional permission to
@@ -11,7 +11,7 @@
  * included with MySQL. This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE. See the GNU General Public License, version 2.0, for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with this program; if
  * not, write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA
@@ -22,7 +22,7 @@ grammar MRS;
 
 mrsScript:
 	EOF
-	| (mrsStatement (SEMICOLON_SYMBOL mrsStatement)*) (
+	| (mrsStatement (SEMICOLON_SYMBOL+ mrsStatement)*) (
 		SEMICOLON_SYMBOL EOF?
 		| EOF
 	);
@@ -33,6 +33,10 @@ mrsStatement:
 	| createRestSchemaStatement
 	| createRestViewStatement
 	| createRestProcedureStatement
+	| alterRestServiceStatement
+	| alterRestSchemaStatement
+	| alterRestViewStatement
+	| alterRestProcedureStatement
 	| dropRestServiceStatement
 	| dropRestSchemaStatement
 	| dropRestDualityViewStatement
@@ -42,7 +46,11 @@ mrsStatement:
 	| showRestServicesStatement
 	| showRestSchemasStatement
 	| showRestViewsStatement
-	| showRestProceduresStatement;
+	| showRestProceduresStatement
+	| showCreateRestServiceStatement
+	| showCreateRestSchemaStatement
+	| showCreateRestViewStatement
+	| showCreateRestProcedureStatement;
 
 /* Common Definitions ======================================================= */
 
@@ -90,9 +98,9 @@ createRestServiceStatement:
 
 restServiceOptions: (
 		enabledDisabled
-/*		| restProtocol -- not enabled yet */
+		/*		| restProtocol -- not enabled yet */
 		| restAuthentication
-/*		| userManagementSchema -- not enabled yet */
+		/*		| userManagementSchema -- not enabled yet */
 		| jsonOptions
 		| comments
 	)+;
@@ -179,6 +187,43 @@ createRestProcedureStatement:
 
 restProcedureResult: RESULT_SYMBOL restResultName graphGlObj;
 
+/* ALTER statements ========================================================= */
+
+/* - ALTER REST SERVICE ----------------------------------------------------- */
+
+alterRestServiceStatement:
+	ALTER_SYMBOL REST_SYMBOL SERVICE_SYMBOL serviceRequestPath (
+		NEW_SYMBOL REQUEST_SYMBOL PATH_SYMBOL newServiceRequestPath
+	)? restServiceOptions?;
+
+/* - ALTER REST SERVICE ----------------------------------------------------- */
+
+alterRestSchemaStatement:
+	ALTER_SYMBOL REST_SYMBOL SCHEMA_SYMBOL schemaRequestPath? (
+		ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
+	)? (
+		NEW_SYMBOL REQUEST_SYMBOL PATH_SYMBOL newSchemaRequestPath
+	)? (FROM_SYMBOL schemaName)? restSchemaOptions?;
+
+/* - ALTER REST VIEW -------------------------------------------------------- */
+
+alterRestViewStatement:
+	ALTER_SYMBOL REST_SYMBOL RELATIONAL_SYMBOL? JSON_SYMBOL? DUALITY_SYMBOL? VIEW_SYMBOL
+		viewRequestPath (
+		NEW_SYMBOL REQUEST_SYMBOL PATH_SYMBOL newViewRequestPath
+	)? serviceSchemaSelector? restDualityViewOptions? (
+		AS_SYMBOL restObjectName graphGlCrudOptions? graphGlObj?
+	)?;
+
+/* - ALTER REST PROCEDURE --------------------------------------------------- */
+
+alterRestProcedureStatement:
+	ALTER_SYMBOL REST_SYMBOL PROCEDURE_SYMBOL procedureRequestPath (
+		NEW_SYMBOL REQUEST_SYMBOL PATH_SYMBOL newProcedureRequestPath
+	)? serviceSchemaSelector? (
+		AS_SYMBOL restObjectName (PARAMETERS_SYMBOL graphGlObj)?
+	)? restProcedureResult*;
+
 /* DROP statements ========================================================== */
 
 dropRestServiceStatement:
@@ -228,18 +273,41 @@ showRestProceduresStatement:
 		(IN_SYMBOL | FROM_SYMBOL) serviceAndSchemaRequestPaths
 	)?;
 
+showCreateRestServiceStatement:
+	SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL SERVICE_SYMBOL serviceRequestPath?;
+
+showCreateRestSchemaStatement:
+	SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL SCHEMA_SYMBOL schemaRequestPath? (
+		(IN_SYMBOL | FROM_SYMBOL) SERVICE_SYMBOL? serviceRequestPath
+	)?;
+
+showCreateRestViewStatement:
+	SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL RELATIONAL_SYMBOL? JSON_SYMBOL? DUALITY_SYMBOL?
+		VIEW_SYMBOL viewRequestPath serviceSchemaSelector?;
+
+showCreateRestProcedureStatement:
+	SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL PROCEDURE_SYMBOL procedureRequestPath
+		serviceSchemaSelector?;
+
 /* Named identifiers ======================================================== */
 
 serviceRequestPath:
+	hostAndPortIdentifier? requestPathIdentifier;
+
+newServiceRequestPath:
 	hostAndPortIdentifier? requestPathIdentifier;
 
 schemaName: identifier;
 
 schemaRequestPath: requestPathIdentifier;
 
+newSchemaRequestPath: requestPathIdentifier;
+
 viewName: identifier;
 
 viewRequestPath: requestPathIdentifier;
+
+newViewRequestPath: requestPathIdentifier;
 
 restObjectName: identifier;
 
@@ -248,6 +316,8 @@ restResultName: identifier;
 procedureName: identifier;
 
 procedureRequestPath: requestPathIdentifier;
+
+newProcedureRequestPath: requestPathIdentifier;
 
 //-------------------------------------------------------------------------------------------------
 
@@ -258,6 +328,8 @@ CREATE_SYMBOL: C R E A T E;
 OR_SYMBOL: O R;
 
 REPLACE_SYMBOL: R E P L A C E;
+
+ALTER_SYMBOL: A L T E R;
 
 SHOW_SYMBOL: S H O W;
 
@@ -270,6 +342,8 @@ STATUS_SYMBOL: S T A T U S;
 SERVICES_SYMBOL: S E R V I C E S;
 
 SERVICE_SYMBOL: S E R V I C E;
+
+NEW_SYMBOL: N E W;
 
 ON_SYMBOL: O N;
 
@@ -320,6 +394,8 @@ FILTER_SYMBOL: F I L T E R;
 COMMENTS_SYMBOL: C O M M E N T S;
 
 AUTHENTICATION_SYMBOL: A U T H E N T I C A T I O N;
+
+REQUEST_SYMBOL: R E Q U E S T;
 
 PATH_SYMBOL: P A T H;
 

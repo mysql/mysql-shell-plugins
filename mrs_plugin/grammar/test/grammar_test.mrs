@@ -5,10 +5,10 @@ Copyright (c) 2023, Oracle and/or its affiliates. */
 CONFIGURE REST METADATA
     ENABLED
     OPTIONS {
-        "gtid": { 
+        "gtid": {
             "cache": {
                 "enable": true,
-                "refresh_rate": 5, 
+                "refresh_rate": 5,
                 "refresh_when_increases_by": 500
             }
         }
@@ -48,6 +48,24 @@ CREATE OR REPLACE REST SERVICE localhost/myTestService
         "returnInternalErrorDetails": true
     };
 
+ALTER REST SERVICE localhost/myTestService
+    NEW REQUEST PATH localhost/myAlteredTestService
+    DISABLED
+    COMMENTS "A real simple REST service"
+    AUTHENTICATION
+        PATH "/authentication2"
+        REDIRECTION "/authReDir"
+        VALIDATION "/authVal"
+    OPTIONS {
+        "logging": {
+            "exceptions": true
+        },
+        "returnInternalErrorDetails": false
+    };
+
+ALTER REST SERVICE localhost/myAlteredTestService
+    NEW REQUEST PATH localhost/myTestService;
+
 CREATE REST SCHEMA ON SERVICE localhost/myTestService FROM `sakila`
     ENABLED
     AUTHENTICATION NOT REQUIRED
@@ -56,7 +74,22 @@ CREATE REST SCHEMA ON SERVICE localhost/myTestService FROM `sakila`
 
 USE REST SERVICE localhost/myTestService;
 
-CREATE OR REPLACE REST SCHEMA /sakila FROM `sakila`;
+/* CREATE OR REPLACE REST SCHEMA /sakila FROM `sakila` */
+CREATE OR REPLACE REST SCHEMA /sakila FROM `sakila`
+    DISABLED
+    OPTIONS {
+        "logging": {
+            "exceptions": true
+        },
+        "returnInternalErrorDetails": false
+    };
+
+/* ALTER REST SCHEMA /sakila
+    NEW REQUEST PATH /sakila2
+    DISABLED;
+
+ALTER REST SCHEMA /sakila2
+    NEW REQUEST PATH /sakila; */
 
 USE REST SCHEMA /sakila;
 
@@ -100,8 +133,44 @@ FROM `sakila`.`actor_info` AS MyServiceSakilaActorInfo {
     filmInfo: film_info
 };
 
+ALTER REST DUALITY VIEW /actorInfo
+    ON SERVICE localhost/myTestService SCHEMA /sakila
+    DISABLED
+    OPTIONS {
+        "option1": "this is option 1",
+        "option2": {
+            "option11": "this is option 1.1"
+        }
+    }
+    FORMAT ITEM;
+
+ALTER REST DUALITY VIEW /actorInfo
+    NEW REQUEST PATH /actorInfo2
+    AS MyServiceSakilaActorInfoTest;
+
+ALTER REST DUALITY VIEW /actorInfo2
+    NEW REQUEST PATH /actorInfo;
+
+SHOW CREATE REST VIEW /actorInfo;
+
+ALTER REST DUALITY VIEW /actorInfo
+    DISABLED
+    AS MyServiceSakilaActorInfoTest2 @UPDATE @INSERT @DELETE {
+    actorId: actor_id @SORTABLE,
+    firstName: first_name
+};
+
+SHOW CREATE REST VIEW /actorInfo;
+
+ALTER REST DUALITY VIEW /actorInfo
+    AS MyServiceSakilaActorInfoTest5 {
+    actorId: actor_id @SORTABLE,
+    firstName: first_name
+};
+
+
 CREATE OR REPLACE REST PROCEDURE /filmInStock
-FROM sakila.film_in_stock AS MyServiceSakilaFilmInStockParams
+FROM sakila.film_in_stock AS MyServiceSakilaFilmInStock
 PARAMETERS {
     pFilmId: p_film_id @IN,
     pStoreId: p_store_id @IN,
@@ -110,6 +179,61 @@ PARAMETERS {
 RESULT MyServiceSakilaFilmInStock {
     inventoryId: inventory_id @DATATYPE("int")
 };
+
+SHOW CREATE REST PROCEDURE /filmInStock;
+
+ALTER REST PROCEDURE /filmInStock
+ON SERVICE localhost/myTestService SCHEMA /sakila AS MyServiceSakilaFilmInStock
+PARAMETERS {
+    pFilmId: p_film_id @IN,
+    pStoreId: p_store_id @IN,
+    pFilmCount: p_film_count @OUT
+}
+RESULT MyServiceSakilaFilmInStock {
+    inventoryId: inventory_id @DATATYPE("int")
+}
+RESULT MyServiceSakilaFilmInStock {
+    inventoryId2: inventory_id @DATATYPE("int")
+};
+
+SHOW CREATE REST PROCEDURE /filmInStock;
+
+ALTER REST PROCEDURE /filmInStock
+    NEW REQUEST PATH /filmInStockUpdated
+ON SERVICE localhost/myTestService SCHEMA /sakila AS MyServiceSakilaFilmInStockUpdated
+PARAMETERS {
+    pFilmId: p_film_id @IN,
+    pStoreId: p_store_id @IN,
+    pFilmCount: p_film_count @OUT
+}
+RESULT MyServiceSakilaFilmInStock {
+    inventoryId: inventory_id @DATATYPE("int")
+}
+RESULT MyServiceSakilaFilmInStock {
+    inventoryId2: inventory_id @DATATYPE("int")
+};
+
+SHOW CREATE REST PROCEDURE /filmInStockUpdated;
+
+ALTER REST PROCEDURE /filmInStockUpdated
+    NEW REQUEST PATH /filmInStock
+ON SERVICE localhost/myTestService SCHEMA /sakila AS MyServiceSakilaFilmInStock
+PARAMETERS {
+    pFilmId: p_film_id @IN,
+    pStoreId: p_store_id @IN,
+    pFilmCount: p_film_count @OUT
+}
+RESULT MyServiceSakilaFilmInStock {
+    inventoryId: inventory_id @DATATYPE("int")
+}
+RESULT MyServiceSakilaFilmInStock {
+    inventoryId2: inventory_id @DATATYPE("int")
+};
+
+SHOW CREATE REST PROCEDURE /filmInStock;
+
+SHOW CREATE REST VIEW /country;
+SHOW CREATE REST PROCEDURE /filmInStock;
 
 SHOW REST METADATA STATUS;
 
@@ -122,7 +246,26 @@ SHOW REST DUALITY VIEWS
 
 SHOW REST PROCEDURES;
 
-DROP REST DUALITY VIEW /country 
+SHOW CREATE REST SERVICE localhost/myTestService;
+
+SHOW CREATE REST SCHEMA /sakila;
+
+SHOW CREATE REST DUALITY VIEW /actorInfo;
+
+ALTER REST SCHEMA /sakila
+ON SERVICE localhost/myTestService
+    NEW REQUEST PATH /sakila123;
+
+
+SHOW REST SCHEMAS;
+
+ALTER REST SCHEMA /sakila123
+ON SERVICE localhost/myTestService
+    NEW REQUEST PATH /sakila;
+
+SHOW REST SCHEMAS;
+
+DROP REST DUALITY VIEW /country
 ON SERVICE localhost/myTestService SCHEMA /sakila;
 
 DROP REST DUALITY VIEW /actor;
