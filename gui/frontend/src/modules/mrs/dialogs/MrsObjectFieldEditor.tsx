@@ -285,8 +285,8 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
 
             if (mrsObject) {
                 view = `CREATE OR REPLACE REST DUALITY VIEW ${data.dbObject.requestPath}\n` +
-                    `ON SERVICE ${data.servicePath} SCHEMA ${data.dbSchemaPath}\n` +
-                    `FROM ${data.dbSchemaName}.${data.dbObject.name} AS ${mrsObject.name}`;
+                    `    ON SERVICE ${data.servicePath} SCHEMA ${data.dbSchemaPath}\n` +
+                    `    FROM ${data.dbSchemaName}.${data.dbObject.name} AS ${mrsObject.name}`;
                 for (const op of data.dbObject.crudOperations) {
                     if (op === "CREATE") {
                         view += ` @INSERT`;
@@ -298,7 +298,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                 }
 
                 if (mrsObject.fields) {
-                    view += ` {\n${cutLastComma(walk(mrsObject?.fields))}\n};`;
+                    view += ` {\n${cutLastComma(walk(mrsObject?.fields, undefined, 2))}\n    };`;
                 }
             }
         } else {
@@ -309,8 +309,8 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
 
             if (mrsObject) {
                 view = `CREATE OR REPLACE REST PROCEDURE ${data.dbObject.requestPath}\n` +
-                    `ON SERVICE ${data.servicePath} SCHEMA ${data.dbSchemaPath}\n` +
-                    `FROM ${data.dbSchemaName}.${data.dbObject.name} AS ${mrsObject.name}\n`;
+                    `    ON SERVICE ${data.servicePath} SCHEMA ${data.dbSchemaPath}\n` +
+                    `    FROM ${data.dbSchemaName}.${data.dbObject.name} AS ${mrsObject.name}\n`;
 
                 if (mrsObject.fields) {
                     view += "PARAMETERS {\n" + walk(mrsObject?.fields).slice(0, -2) + "\n}";

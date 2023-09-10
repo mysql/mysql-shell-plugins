@@ -404,10 +404,9 @@ def update_db_objects(session, db_object_ids, value):
 
         # Grant privilege to the 'mysql_rest_service_data_provider' role
         if grant_privileges:
-
             if db_object["object_type"] == "PROCEDURE":
-                database.grant_procedure(
-                    session, schema.get("name"), db_object['name'])
+                database.grant_db_object(session, schema.get(
+                    "name"), db_object['name'], ['EXECUTE'])
             else:
                 database.grant_db_object(session, schema.get(
                     "name"), db_object['name'], grant_privileges)

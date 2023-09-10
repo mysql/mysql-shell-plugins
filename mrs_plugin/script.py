@@ -68,5 +68,6 @@ def run_mrs_script(mrs_script=None, **kwargs):
         if interactive is True:
             print(f"{e}")
             # For debugging, re-raise the exception
+            raise
         else:
             raise
