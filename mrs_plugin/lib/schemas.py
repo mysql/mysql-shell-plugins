@@ -64,14 +64,14 @@ def prompt_for_request_path(schema_name) -> str:
 
 def prompt_for_requires_auth() -> bool:
     return core.prompt(
-        "Should the schema require authentication [y/N]: ",
+        "Should the schema require authentication? [y/N]: ",
         {'defaultValue': 'n'}).strip().lower() == 'y'
 
 
 def prompt_for_items_per_page() -> int:
     while True:
         result = core.prompt(
-        "How many items should be listed per page [Schema Default]: ",
+        "How many items should be listed per page? [Schema Default]: ",
         {'defaultValue': '25'}).strip()
 
         try:
