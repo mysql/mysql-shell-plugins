@@ -23,22 +23,19 @@
 
 /* eslint-disable no-underscore-dangle */
 
-import { ANTLRErrorListener } from "antlr4ts/ANTLRErrorListener";
-import { ATNSimulator } from "antlr4ts/atn/ATNSimulator";
-import { RecognitionException } from "antlr4ts/RecognitionException";
-import { Recognizer } from "antlr4ts/Recognizer";
-import { Token } from "antlr4ts/Token";
+import { ATNSimulator, BaseErrorListener, RecognitionException, Recognizer, Token } from "antlr4ng";
 
 import { ErrorReportCallback } from "../parser-common";
 
-export class PythonErrorListener implements ANTLRErrorListener<Token> {
+export class PythonErrorListener extends BaseErrorListener<ATNSimulator> {
 
     public constructor(private callback: ErrorReportCallback) {
+        super();
     }
 
-    public syntaxError<T extends Token | number, R extends ATNSimulator>(_recognizer: Recognizer<T, R>,
-        _offendingSymbol: T | undefined, _line: number, _charPositionInLine: number, _msg: string,
-        _e: RecognitionException | undefined): void {
+    public syntaxError<T extends Token>(_recognizer: Recognizer<ATNSimulator>,
+        _offendingSymbol: T | null, _line: number, _charPositionInLine: number, _msg: string,
+        _e: RecognitionException | null): void {
         // Nothing to do here.
     }
 }

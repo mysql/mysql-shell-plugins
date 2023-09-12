@@ -101,7 +101,7 @@ describe("ShellInterfaceCore Tests", () => {
             }
 
             expect(info.major).toBe(8);
-            expect(info.minor).toBe(0);
+            expect(info.minor).toBe(1);
         }
     });
 

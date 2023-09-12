@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -33,8 +33,47 @@ interface ITestFile {
     initialDelimiter: string;
 }
 
+const services = MySQLParsingServices.instance;
+
+const runParserTests = () => {
+    const testFiles: ITestFile[] = [
+        // Large set of all possible query types in different combinations and versions.
+        { name: "./data/statements.txt", initialDelimiter: "$$" },
+
+        // Not so many, but some very long insert statements.
+        { name: "./data/sakila-db/sakila-data.sql", initialDelimiter: ";" },
+    ];
+
+    testFiles.forEach((entry) => {
+        const sql = fs.readFileSync(entry.name, { encoding: "utf-8" });
+
+        const ranges = services.determineStatementRanges(sql, entry.initialDelimiter);
+        ranges.forEach((range, index) => {
+            // The delimiter is considered part of the statement (e.g. for editing purposes)
+            // but must be ignored for parsing.
+            const end = range.span.start + range.span.length - (range.delimiter?.length ?? 0);
+            const statement = sql.substring(range.span.start, end).trim();
+
+            // The parser only supports syntax from 8.0 onwards. So we expect errors for older statements.
+            const checkResult = checkMinStatementVersion(statement, 80031);
+            if (checkResult.matched) {
+                const result = services.errorCheck(checkResult.statement, MySQLParseUnit.Generic,
+                    checkResult.version, "ANSI_QUOTES");
+                if (!result) {
+                    const errors = services.errorsWithOffset(0);
+                    const error = errors[0];
+                    fail(`This query failed to parse (${index}: ${checkResult.version}):\n${statement}\n` +
+                        `with error: ${error.message}, line: ${error.line - 1}, column: ${error.offset}`);
+                }
+            } else {
+                // Ignore all other statements. Since we don't check for versions below 8.0 in the grammar they
+                // may unexpectedly succeed.
+            }
+        });
+    });
+};
+
 describe("MySQL Parsing Services Tests", () => {
-    const services = MySQLParsingServices.instance;
 
     it("Statement splitter test", () => {
         const data = fs.readFileSync("./data/sakila-db/sakila-data.sql", { encoding: "utf-8" });
@@ -75,41 +114,11 @@ describe("MySQL Parsing Services Tests", () => {
         expect(r4.delimiter).toBe("$$");
     });
 
-    it("Parse a number of files with various statements", () => {
-        const testFiles: ITestFile[] = [
-            // Large set of all possible query types in different combinations and versions.
-            { name: "./data/statements.txt", initialDelimiter: "$$" },
+    it("Parse a number of files with various statements (cold run)", () => {
+        runParserTests();
+    });
 
-            // Not so many, but some very long insert statements.
-            { name: "./data/sakila-db/sakila-data.sql", initialDelimiter: ";" },
-        ];
-
-        testFiles.forEach((entry) => {
-            const sql = fs.readFileSync(entry.name, { encoding: "utf-8" });
-
-            const ranges = services.determineStatementRanges(sql, entry.initialDelimiter);
-            ranges.forEach((range, index) => {
-                // The delimiter is considered part of the statement (e.g. for editing purposes)
-                // but must be ignored for parsing.
-                const end = range.span.start + range.span.length - (range.delimiter?.length ?? 0);
-                const statement = sql.substring(range.span.start, end).trim();
-
-                // The parser only supports syntax from 8.0 onwards. So we expect errors for older statements.
-                const checkResult = checkMinStatementVersion(statement, 80000);
-                if (checkResult.matched) {
-                    const result = services.errorCheck(checkResult.statement, MySQLParseUnit.Generic,
-                        checkResult.version, "ANSI_QUOTES");
-                    if (!result) {
-                        const errors = services.errorsWithOffset(0);
-                        const error = errors[0];
-                        fail(`This query failed to parse (${index}: ${checkResult.version}):\n${statement}\n` +
-                            `with error: ${error.message}, line: ${error.line - 1}, column: ${error.offset}`);
-                    }
-                } else {
-                    // Ignore all other statements. Since we don't check for versions below 8.0 in the grammar they
-                    // may unexpectedly succeed.
-                }
-            });
-        });
+    it("Parse a number of files with various statements (warm run)", () => {
+        runParserTests();
     });
 });

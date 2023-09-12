@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { Symbol, ScopedSymbol, SymbolTableOptions } from "antlr4-c3";
+import { BaseSymbol, ScopedSymbol, ISymbolTableOptions } from "antlr4-c3";
 
 import {
     CharsetSymbol, CollationSymbol, ColumnSymbol, DBSymbolTable, EngineSymbol, ForeignKeySymbol, IndexSymbol,
@@ -37,7 +37,7 @@ export class DynamicSymbolTable extends DBSymbolTable {
     public constructor(
         private backend: ShellInterfaceDb | undefined,
         name: string,
-        options: SymbolTableOptions) {
+        options: ISymbolTableOptions) {
         super(name, options);
     }
 
@@ -50,7 +50,7 @@ export class DynamicSymbolTable extends DBSymbolTable {
      * @returns A set of found symbols.
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    public async getAllSymbols<T extends Symbol>(t: new (...args: any[]) => T, localOnly?: boolean): Promise<T[]> {
+    public async getAllSymbols<T extends BaseSymbol>(t: new (...args: any[]) => T, localOnly?: boolean): Promise<T[]> {
         let existing = await super.getAllSymbols(t, localOnly);
         if (existing.length === 0) {
             // Not yet loaded, so do it now.
@@ -241,7 +241,7 @@ export class DynamicSymbolTable extends DBSymbolTable {
      * @param parent The parent symbol where to add new symbols.
      * @param t The type of the symbol to add.
      */
-    private handleResults<T extends Symbol>(names: string[], parent: ScopedSymbol,
+    private handleResults<T extends BaseSymbol>(names: string[], parent: ScopedSymbol,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         t: new (...args: any[]) => T): void {
 

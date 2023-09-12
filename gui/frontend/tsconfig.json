@@ -51,5 +51,8 @@
     "exclude": [
         "build",
         "node_modules"
-    ]
+    ],
+    "ts-node": {
+        "esm": true
+    },
 }

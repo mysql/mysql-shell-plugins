@@ -23,8 +23,7 @@
 
 /* eslint-disable no-underscore-dangle */
 
-import { Token } from "antlr4ts/Token";
-import { Lexer } from "antlr4ts/Lexer";
+import { Lexer, Token } from "antlr4ng";
 
 import { QueryType } from "../parser-common";
 
@@ -211,7 +210,7 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
      */
     public reset(): void {
         this.inVersionComment = false;
-        super.reset(true);
+        super.reset();
     }
 
     /**
@@ -236,7 +235,7 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
             return this.sqlModes.has(SqlMode.AnsiQuotes);
         }
 
-        const symbol = this.vocabulary.getSymbolicName(type);
+        const symbol = this.getVocabulary().getSymbolicName(type);
         if (symbol && symbol.endsWith("_SYMBOL")) {
             if (!isReservedKeyword(symbol.substring(0, symbol.length - "_SYMBOL".length),
                 numberToVersion(this.serverVersion))) {
@@ -264,9 +263,9 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
 
         // Generate string -> enum value map, if not yet done.
         if (this.symbols.size === 0) {
-            const max = this.vocabulary.maxTokenType;
+            const max = this.getVocabulary().maxTokenType;
             for (let i = 0; i <= max; ++i) {
-                const symbolName = this.vocabulary.getSymbolicName(i);
+                const symbolName = this.getVocabulary().getSymbolicName(i);
                 if (symbolName && symbolName.endsWith("_SYMBOL")) {
                     this.symbols.set(symbolName.substring(0, symbolName.length - "_SYMBOL".length).toUpperCase(), i);
                 }
@@ -1231,7 +1230,7 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
      * @param text The text from a matched token.
      * @returns True if so the number matches, otherwise false.
      */
-    protected checkVersion(text: string): boolean {
+    protected checkMySQLVersion(text: string): boolean {
         if (text.length < 8) {// Minimum is: /*!12345
             return false;
         }
@@ -1261,9 +1260,9 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
         let input = String.fromCharCode(this._input.LA(1));
         if (this.isSqlModeActive(SqlMode.IgnoreSpace)) {
             while (input === " " || input === "\t" || input === "\r" || input === "\n") {
-                this.interpreter.consume(this._input);
-                this.channel = Lexer.HIDDEN;
-                this.type = MySQLLexer.WHITESPACE;
+                this._interp.consume(this._input);
+                this._channel = Lexer.HIDDEN;
+                this._type = MySQLLexer.WHITESPACE;
                 input = String.fromCharCode(this._input.LA(1));
             }
         }
@@ -1379,8 +1378,8 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
      * Creates a DOT token in the token stream.
      */
     protected emitDot(): void {
-        this.pendingTokens.push(this._factory.create({ source: this, stream: this._input }, MySQLLexer.DOT_SYMBOL,
-            this._text, this.channel, this._tokenStartCharIndex, this._tokenStartCharIndex, this._tokenStartLine,
+        this.pendingTokens.push(this._factory.create([this, this._input], MySQLLexer.DOT_SYMBOL,
+            null, this._channel, this._tokenStartCharIndex, this._tokenStartCharIndex, this._tokenStartLine,
             this._tokenStartCharPositionInLine,
         ));
 

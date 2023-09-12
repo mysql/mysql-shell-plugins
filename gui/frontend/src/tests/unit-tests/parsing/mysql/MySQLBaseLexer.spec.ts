@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { CharStreams } from "antlr4ts/CharStreams";
+import { CharStreams } from "antlr4ng";
 
 import { MySQLLexer } from "../../../../parsing/mysql/generated/MySQLLexer";
 import { SqlMode } from "../../../../parsing/mysql/MySQLRecognizerCommon";

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -40,7 +40,7 @@ fi
 if [ "$run_generation" = true ]
 then
     #echo "regenerate MySQL"
-    antlr4ts -no-visitor -Xexact-output-dir -o $target_path src/parsing/mysql/*.g4
+    antlr4ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o $target_path src/parsing/mysql/*.g4
 fi
 
 target_path=./src/parsing/SQLite/generated
@@ -60,7 +60,7 @@ fi
 if [ "$run_generation" = true ]
 then
     #echo "regenerate SQLite"
-    antlr4ts -no-visitor -Xexact-output-dir -o $target_path src/parsing/SQLite/*.g4
+    antlr4ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o $target_path src/parsing/SQLite/*.g4
 fi
 
 target_path=./src/parsing/python/generated
@@ -80,7 +80,7 @@ fi
 if [ "$run_generation" = true ]
 then
     #echo "regenerate Python"
-    antlr4ts -no-visitor -Xexact-output-dir -o $target_path src/parsing/python/*.g4
+    antlr4ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o $target_path src/parsing/python/*.g4
 fi
 
 echo "Fixing node module(s)..."

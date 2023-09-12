@@ -21,17 +21,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable no-underscore-dangle, @typescript-eslint/naming-convention */
 
-import { CharStreams } from "antlr4ts/CharStreams";
-import { CommonTokenStream } from "antlr4ts/CommonTokenStream";
-import { TokenStreamRewriter } from "antlr4ts/TokenStreamRewriter";
-import { ParseTree } from "antlr4ts/tree/ParseTree";
-import { BailErrorStrategy } from "antlr4ts/BailErrorStrategy";
-import { PredictionMode } from "antlr4ts/atn/PredictionMode";
-import { ParseCancellationException } from "antlr4ts/misc/ParseCancellationException";
-import { DefaultErrorStrategy } from "antlr4ts/DefaultErrorStrategy";
-import { XPath } from "antlr4ts/tree/xpath/XPath";
+import {
+    BailErrorStrategy, CharStreams, CommonTokenStream, DefaultErrorStrategy, ParseCancellationException, ParseTree,
+    PredictionMode, TokenStreamRewriter, XPath,
+} from "antlr4ng";
 
 import {
     ICompletionData, IParserErrorInfo, IStatementSpan, ISymbolInfo, QueryType, StatementFinishState, tokenFromPosition,
@@ -39,7 +34,7 @@ import {
 
 import { SQLiteErrorListener } from "./SQLiteErrorListener";
 import { SQLiteLexer } from "./generated/SQLiteLexer";
-import { Select_stmtContext, SQLiteParser, Sql_stmt_listContext } from "./generated/SQLiteParser";
+import { SQLiteParser, Select_stmtContext, Sql_stmt_listContext } from "./generated/SQLiteParser";
 import { getCodeCompletionItems } from "./SqliteCodeCompletion";
 
 import { unquote } from "../../utilities/string-helpers";
@@ -86,7 +81,7 @@ export class SQLiteParsingServices {
         void import("./data/builtin-functions.json").then((systemFunctions) => {
             Object.keys(systemFunctions.default).forEach((name: string) => {
                 this.globalSymbols
-                    .addNewSymbolOfType(SystemFunctionSymbol, undefined, name, systemFunctions[name]);
+                    .addNewSymbolOfType(SystemFunctionSymbol, undefined, name, systemFunctions[name] as []);
             });
         });
     }
@@ -145,7 +140,7 @@ export class SQLiteParsingServices {
     public async getQuickInfo(text: string, offset: number): Promise<ISymbolInfo | undefined> {
         this.errors = [];
         this.lexer.inputStream = CharStreams.fromString(text);
-        this.tokenStream.tokenSource = this.lexer;
+        this.tokenStream.setTokenSource(this.lexer);
         this.tokenStream.fill();
 
         const token = tokenFromPosition(this.tokenStream, offset);
@@ -159,7 +154,7 @@ export class SQLiteParsingServices {
                     if (info) {
                         info.definition = {
                             text: tokenText,
-                            span: { start: token.startIndex, length: tokenText.length },
+                            span: { start: token.start, length: tokenText.length },
                         };
 
                         return info;
@@ -193,13 +188,13 @@ export class SQLiteParsingServices {
 
         this.errors = [];
         this.lexer.inputStream = CharStreams.fromString(text);
-        this.tokenStream.tokenSource = this.lexer;
+        this.tokenStream.setTokenSource(this.lexer);
         this.tokenStream.fill();
 
         let isQuoted = false;
         const token = tokenFromPosition(this.tokenStream, offset);
         if (token) {
-            const tokenText = token.text!.trim();
+            const tokenText = token.text.trim();
             const unquoted = unquote(tokenText);
             isQuoted = unquoted.length < tokenText.length;
         }
@@ -488,7 +483,7 @@ export class SQLiteParsingServices {
     public determineQueryType(sql: string, serverVersion: number): QueryType {
         this.errors = [];
         this.lexer.inputStream = CharStreams.fromString(sql);
-        this.tokenStream.tokenSource = this.lexer;
+        this.tokenStream.setTokenSource(this.lexer);
 
         return determineQueryType(this.tokenStream);
     }
@@ -604,14 +599,14 @@ export class SQLiteParsingServices {
     private startParsing(text: string, fast: boolean): ParseTree | undefined {
         this.errors = [];
         this.lexer.inputStream = CharStreams.fromString(text);
-        this.tokenStream.tokenSource = this.lexer;
+        this.tokenStream.setTokenSource(this.lexer);
 
         this.parser.reset();
-        this.parser.buildParseTree = !fast;
+        this.parser.buildParseTrees = !fast;
 
         // First parse with the bail error strategy to get quick feedback for correct queries.
-        this.parser.errorHandler = new BailErrorStrategy();
-        this.parser.interpreter.setPredictionMode(PredictionMode.SLL);
+        this.parser._errHandler = new BailErrorStrategy();
+        this.parser._interp.predictionMode = PredictionMode.SLL;
 
         try {
             this.tree = this.parser.parse();
@@ -627,8 +622,8 @@ export class SQLiteParsingServices {
                     this.tokenStream.seek(0);
                     this.parser.reset();
                     this.errors = [];
-                    this.parser.errorHandler = new DefaultErrorStrategy();
-                    this.parser.interpreter.setPredictionMode(PredictionMode.LL);
+                    this.parser._errHandler = new DefaultErrorStrategy();
+                    this.parser._interp.predictionMode = PredictionMode.LL;
                     this.tree = this.parser.parse();
                 }
             } else {

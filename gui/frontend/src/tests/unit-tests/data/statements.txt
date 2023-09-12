@@ -4,9 +4,9 @@ $$
 select 1$$
 --
 $$
--- 
+--
 $$
---	
+--
 $$
 -- comment
 select 1$$
@@ -278,7 +278,6 @@ TRUNCATE auth_user_user_permissions ;$$
 CREATE INDEX app_recipe_author_id ON app_recipe ( author_id ) ;$$
 DELETE FROM django_site WHERE id IN ( ? /* , ... */ )$$
 UPDATE inventory_instance_attributes SET supported = ? , frequency = ? , insert_count = ? , latest_save_time = ? , latest_string_value = NULL , latest_double_value = ? , latest_long_value = NULL WHERE instance_attribute_id = ?$$
-rollback$$
 INSERT INTO inventory_instances ( instance_name , type_id , parent_id , insert_count , instance_id ) VALUES ( ? , ? , ? , ? , ? ) ON DUPLICATE KEY UPDATE insert_count = insert_count + ?$$
 SELECT ( ? ) AS `a` FROM auth_user WHERE auth_user . username = ?$$
 UPDATE django_site SET domain = ? , name = ? WHERE django_site . id = ?$$
@@ -419,23 +418,23 @@ BEGIN
   SELECT result;
 END$$
 select (select t1.id as a, sakila.actor.actor_id b, t2.id c, (select  1 * 0.123, a from t3) from  `ÄÖÜ丈` t1, sakila.actor as t2)$$
-SELECT 
+SELECT
 	currency_code,
-	SUM(CASE WHEN TYPE = 'buy'THEN to_amount END ) AS BUY, 
-	SUM(CASE WHEN TYPE = 'sell' THEN to_amount END ) AS SELL, 
-	SUM(CASE WHEN TYPE = 'sell' THEN rate END ) AS SELL_RATE, 
-	SUM(CASE WHEN TYPE = 'buy' THEN rate END ) AS BUY_RATE, 
-	AVG(CASE WHEN TYPE = 'buy' THEN rate END ) AS AVG_BUY_RATE, 
+	SUM(CASE WHEN TYPE = 'buy'THEN to_amount END ) AS BUY,
+	SUM(CASE WHEN TYPE = 'sell' THEN to_amount END ) AS SELL,
+	SUM(CASE WHEN TYPE = 'sell' THEN rate END ) AS SELL_RATE,
+	SUM(CASE WHEN TYPE = 'buy' THEN rate END ) AS BUY_RATE,
+	AVG(CASE WHEN TYPE = 'buy' THEN rate END ) AS AVG_BUY_RATE,
 	AVG(CASE WHEN TYPE = 'sell' THEN rate END ) AS AVG_SELL_RATE
 FROM tb_currency
-LEFT JOIN tb_bill 
+LEFT JOIN tb_bill
 	ON tb_currency.CURRENCY_ID = tb_bill.CURRENCY_ID
 		AND tb_bill.TYPE IN ('buy', 'sell')
 		AND date( DATE_TIME ) >= '2011-01-01'
 		AND date( DATE_TIME ) <= '2011-01-11'
 GROUP BY currency_code$$
 
-select 
+select
     r.referrer,
     t.type,
     (case
@@ -528,7 +527,7 @@ from
         join
     type t ON 1 = 1
         left join
-    (select 
+    (select
         referrer, type, count(1) as referrals
     from
         referral
@@ -537,7 +536,7 @@ from
     group by referrer , type) ref_prior ON ref_prior.referrer = r.referrer
         and ref_prior.type = t.type
         left join
-    (select 
+    (select
         referrer, type, count(1) as referrals
     from
         referral
@@ -546,7 +545,7 @@ from
     group by referrer , type) ref_period ON ref_period.referrer = r.referrer
         and ref_period.type = t.type$$
 
-SELECT 
+SELECT
   item,
   SUBSTR( MIN( CONCAT( LPAD(price,6,0),supplier) ), 7)   AS MinSupplier,
     LEFT( MIN( CONCAT( LPAD(price,6,0),supplier) ), 6)+0 AS MinPrice,
@@ -558,18 +557,18 @@ CREATE PROCEDURE ListDbUsers( dbname CHAR(64) )
   SELECT host,user
   FROM mysql.user
   WHERE Select_priv = 'Y' OR Insert_priv = 'Y' OR Update_priv = 'Y' OR Delete_priv = 'Y' OR Create_priv = 'Y' OR Drop_priv = 'Y'
-	OR Reload_priv = 'Y' OR Shutdown_priv = 'Y' OR Process_priv = 'Y' OR File_priv = 'Y' OR Grant_priv = 'Y' OR References_priv = 'Y' 
-	OR Index_priv = 'Y' OR Alter_priv = 'Y' OR Show_db_priv = 'Y' OR Super_priv = 'Y' OR Create_tmp_table_priv = 'Y' OR Lock_tables_priv = 'Y' 
+	OR Reload_priv = 'Y' OR Shutdown_priv = 'Y' OR Process_priv = 'Y' OR File_priv = 'Y' OR Grant_priv = 'Y' OR References_priv = 'Y'
+	OR Index_priv = 'Y' OR Alter_priv = 'Y' OR Show_db_priv = 'Y' OR Super_priv = 'Y' OR Create_tmp_table_priv = 'Y' OR Lock_tables_priv = 'Y'
 	OR Execute_priv = 'Y' OR Repl_slave_priv = 'Y' OR Repl_client_priv = 'Y' OR Create_view_priv = 'Y' OR Show_view_priv = 'Y'
-	OR Create_routine_priv = 'Y' OR Alter_routine_priv = 'Y' OR Create_user_priv = 'Y' OR Event_priv = 'Y' OR Trigger_priv = 'Y' 
+	OR Create_routine_priv = 'Y' OR Alter_routine_priv = 'Y' OR Create_user_priv = 'Y' OR Event_priv = 'Y' OR Trigger_priv = 'Y'
   UNION
   SELECT host,user
   FROM mysql.db
   WHERE db=dbname
     AND (
-     Select_priv = 'Y' OR Insert_priv = 'Y' OR Update_priv = 'Y' OR Delete_priv = 'Y' OR Create_priv = 'Y' OR Drop_priv = 'Y' OR Grant_priv = 'Y' 
-     OR References_priv = 'Y' OR Index_priv = 'Y' OR Alter_priv = 'Y' OR Create_tmp_table_priv = 'Y' OR Lock_tables_priv = 'Y' OR Create_view_priv = 'Y' 
-     OR Show_view_priv = 'Y' OR Create_routine_priv = 'Y' OR Alter_routine_priv = 'Y' OR Execute_priv = 'Y' OR Event_priv = 'Y' OR Trigger_priv = 'Y' 
+     Select_priv = 'Y' OR Insert_priv = 'Y' OR Update_priv = 'Y' OR Delete_priv = 'Y' OR Create_priv = 'Y' OR Drop_priv = 'Y' OR Grant_priv = 'Y'
+     OR References_priv = 'Y' OR Index_priv = 'Y' OR Alter_priv = 'Y' OR Create_tmp_table_priv = 'Y' OR Lock_tables_priv = 'Y' OR Create_view_priv = 'Y'
+     OR Show_view_priv = 'Y' OR Create_routine_priv = 'Y' OR Alter_routine_priv = 'Y' OR Execute_priv = 'Y' OR Event_priv = 'Y' OR Trigger_priv = 'Y'
   )
   UNION
   SELECT host,user
@@ -579,27 +578,27 @@ CREATE PROCEDURE ListDbUsers( dbname CHAR(64) )
   SELECT host,user
   FROM mysql.columns_priv
   WHERE db=dbname$$
-SELECT GROUP_CONCAT('\\\\\n* ', t.table_schema, '.', t.table_name, ' (', ROUND(t.pct_used, 1) , '%)' ORDER BY pct_used DESC) AS table_list 
-  FROM ( SELECT t.table_schema, t.table_name, 
+SELECT GROUP_CONCAT('\\\\\n* ', t.table_schema, '.', t.table_name, ' (', ROUND(t.pct_used, 1) , '%)' ORDER BY pct_used DESC) AS table_list
+  FROM ( SELECT t.table_schema, t.table_name,
                 100 * (t.auto_increment / (
-                CASE 
-                  WHEN ((LOCATE('tinyint',   c.column_type) > 0) AND (LOCATE('unsigned', c.column_type) = 0)) THEN 127 
-                  WHEN ((LOCATE('tinyint',   c.column_type) > 0) AND (LOCATE('unsigned', c.column_type) > 0)) THEN 255 
-                  WHEN ((LOCATE('smallint',  c.column_type) > 0) AND (LOCATE('unsigned', c.column_type) = 0)) THEN 32767 
-                  WHEN ((LOCATE('smallint',  c.column_type) > 0) AND (LOCATE('unsigned', c.column_type) > 0)) THEN 65535 
-                  WHEN ((LOCATE('mediumint', c.column_type) > 0) AND (LOCATE('unsigned', c.column_type) = 0)) THEN 8388607 
-                  WHEN ((LOCATE('mediumint', c.column_type) > 0) AND (LOCATE('unsigned', c.column_type) > 0)) THEN 16777215 
-                  WHEN ((LOCATE('bigint',    c.column_type) > 0) AND (LOCATE('unsigned', c.column_type) = 0)) THEN 9223372036854775807 
-                  WHEN ((LOCATE('bigint',    c.column_type) > 0) AND (LOCATE('unsigned', c.column_type) > 0)) THEN 18446744073709551615 
-                  WHEN ((LOCATE('int',       c.column_type) > 0) AND (LOCATE('unsigned', c.column_type) = 0)) THEN 2147483647 
-                  WHEN ((LOCATE('int',       c.column_type) > 0) AND (LOCATE('unsigned', c.column_type) > 0)) THEN 4294967295 
-                  ELSE 0 
-                END)) AS pct_used 
-           FROM information_schema.tables t, information_schema.columns c 
-          WHERE t.table_schema = c.table_schema 
-            AND t.table_name = c.table_name 
+                CASE
+                  WHEN ((LOCATE('tinyint',   c.column_type) > 0) AND (LOCATE('unsigned', c.column_type) = 0)) THEN 127
+                  WHEN ((LOCATE('tinyint',   c.column_type) > 0) AND (LOCATE('unsigned', c.column_type) > 0)) THEN 255
+                  WHEN ((LOCATE('smallint',  c.column_type) > 0) AND (LOCATE('unsigned', c.column_type) = 0)) THEN 32767
+                  WHEN ((LOCATE('smallint',  c.column_type) > 0) AND (LOCATE('unsigned', c.column_type) > 0)) THEN 65535
+                  WHEN ((LOCATE('mediumint', c.column_type) > 0) AND (LOCATE('unsigned', c.column_type) = 0)) THEN 8388607
+                  WHEN ((LOCATE('mediumint', c.column_type) > 0) AND (LOCATE('unsigned', c.column_type) > 0)) THEN 16777215
+                  WHEN ((LOCATE('bigint',    c.column_type) > 0) AND (LOCATE('unsigned', c.column_type) = 0)) THEN 9223372036854775807
+                  WHEN ((LOCATE('bigint',    c.column_type) > 0) AND (LOCATE('unsigned', c.column_type) > 0)) THEN 18446744073709551615
+                  WHEN ((LOCATE('int',       c.column_type) > 0) AND (LOCATE('unsigned', c.column_type) = 0)) THEN 2147483647
+                  WHEN ((LOCATE('int',       c.column_type) > 0) AND (LOCATE('unsigned', c.column_type) > 0)) THEN 4294967295
+                  ELSE 0
+                END)) AS pct_used
+           FROM information_schema.tables t, information_schema.columns c
+          WHERE t.table_schema = c.table_schema
+            AND t.table_name = c.table_name
             AND LOCATE('auto_increment', c.extra) > 0
-       ) AS t 
+       ) AS t
  WHERE t.pct_used > 75$$
 SELECT * FROM merlintest . agentlist WHERE id NOT IN ( SELECT SUBSTR( `o` . value , ? , ? ) AS agentID FROM mem . dc_ng_string_now AS `o` JOIN mem . inventory_instance_attributes AS iia USING ( instance_attribute_id ) JOIN mem . inventory_instances USING ( instance_id ) JOIN ( SELECT inventory_attributes . attribute_id , attribute_name , instance_attribute_id , MAX( end_time ) AS _end_time FROM mem . dc_ng_string_now JOIN mem . inventory_instance_attributes USING ( instance_attribute_id ) JOIN mem . inventory_instances USING ( instance_id ) JOIN mem . inventory_attributes USING ( attribute_id ) WHERE attribute_name = ? GROUP BY instance_attribute_id ) AS `i` ON `o` . instance_attribute_id = `i` . instance_attribute_id AND `o` . end_time = `i` . _end_time ) ORDER BY id$$
 DELETE FROM FUS_DB_STATE WHERE LAST_CHECK < DATE_SUB(NOW(),INTERVAL 8 HOUR)$$
@@ -871,7 +870,7 @@ begin
       repeat
         select now();
       until done end repeat;
-      if vara then 
+      if vara then
         select now();
         repeat
           select now();
@@ -883,7 +882,7 @@ begin
             label1: while varb do
               select now();
             end while label1;
-            if vara then 
+            if vara then
               select now();
               repeat
                 select now();
@@ -895,7 +894,7 @@ begin
                   label1: while varb do
                     select now();
                   end while label1;
-                  if vara then 
+                  if vara then
                     select now();
                     while varb do
                       select now();
@@ -913,7 +912,7 @@ begin
                             select now();
                             label1: loop
                               select now();
-                              if vara then 
+                              if vara then
                                 select now();
                               end if;
                             end loop label1;
@@ -935,7 +934,7 @@ create procedure p_37228 ()
 BEGIN
   DECLARE v INT DEFAULT 123;
 
-  IF (v > 1) THEN SET v = 1; 
+  IF (v > 1) THEN SET v = 1;
   ELSEIF (v < 10) THEN SET v = 10;
   ELSEIF (v < 11) THEN SET v = 11;
   ELSEIF (v < 12) THEN SET v = 12;
@@ -1012,20 +1011,20 @@ QRY_SID_QQ.Unknown AS Unknown,
 QRY_SID_QQ.UnitID AS UnitID,
 QRY_SID_QQ.Threshold AS Threshold,
 QRY_SID_QQ.OtherUnit AS OtherUnit
-FROM 
-QRY_A0154_QuizQuestions QRY_SID_QQ 
+FROM
+QRY_A0154_QuizQuestions QRY_SID_QQ
 LEFT JOIN
-QRY_A0154_RecordQns QRY_SID_RQ 
+QRY_A0154_RecordQns QRY_SID_RQ
 ON (
 QRY_SID_QQ.QuizID=QRY_SID_RQ.QuizID AND
-QRY_SID_QQ.QuestionID=QRY_SID_RQ.QuestionID AND 
-QRY_SID_RQ.AttemptID='0' AND 
+QRY_SID_QQ.QuestionID=QRY_SID_RQ.QuestionID AND
+QRY_SID_RQ.AttemptID='0' AND
 QRY_SID_RQ.UserID='319459'
 )
-WHERE 
+WHERE
 QRY_SID_QQ.QuizID='c29f8c6a94a2488eb93750d631b96ebb' AND
 QRY_SID_RQ.QuestionID IS NULL
-ORDER BY 
+ORDER BY
 RAND()
 LIMIT 1$$
 (select a from t1) union (select a from t2) union select b from t2$$
@@ -2150,18 +2149,18 @@ CREATE ALGORITHM = UNDEFINED DEFINER = `root`@`localhost` SQL SECURITY DEFINER V
   join `actor` ON ((`film_actor`.`actor_id` = `actor`.`actor_id`))) group by `film`.`film_id`$$
 CREATE FUNCTION `inventory_held_by_customer`(p_inventory_id INT) RETURNS int(11) READS SQL DATA
   BEGIN DECLARE v_customer_id INT; DECLARE EXIT HANDLER FOR NOT FOUND RETURN NULL;
-  SELECT customer_id INTO v_customer_id FROM rental WHERE return_date IS NULL AND inventory_id = 
+  SELECT customer_id INTO v_customer_id FROM rental WHERE return_date IS NULL AND inventory_id =
   p_inventory_id; RETURN v_customer_id; END$$
 create aggregate function udf1 returns real soname 'lib-name'$$
 CREATE TRIGGER `upd_film` AFTER UPDATE ON `film` FOR EACH ROW BEGIN
-  IF (old.title != new.title) or (old.description != new.description) THEN UPDATE film_text 
+  IF (old.title != new.title) or (old.description != new.description) THEN UPDATE film_text
   SET title=new.title, `description`=new.description, film_id=new.film_id WHERE film_id=old.film_id;
   END IF; END$$
-CREATE DEFINER=CURRENT_USER TRIGGER trigger1 BEFORE INSERT ON table1 FOR EACH ROW 
-BEGIN 
+CREATE DEFINER=CURRENT_USER TRIGGER trigger1 BEFORE INSERT ON table1 FOR EACH ROW
+BEGIN
   UPDATE table2 SET table2.type = 'translator' WHERE table2.profile_id = NEW.translator_id;
 END$$
-  
+
 create logfile group group1 add undofile 'file' initial_size = 1G redo_buffer_size 20M wait, no_wait, engine InnoDB initial_size = 100M$$
 create server 'server1' foreign data wrapper 'blah' options (host 'host', port 3306)$$
 create tablespace space1 add datafile 'file1' use logfile group group1 autoextend_size = 1M no_wait, initial_size 10G$$
@@ -2177,7 +2176,7 @@ drop temporary tables if exists sakila.actor, sakila.city restrict$$
 drop tablespace space1 wait$$
 drop trigger if exists payment.payment_date$$
 drop view sakila.film_list, actor_info cascade$$
-  
+
 rename tables a to b, c to d, sakila.actor to sakila.bctor$$
 
 truncate sakila.film_text$$
@@ -2222,10 +2221,14 @@ xa commit '1'$$
 xa recover$$
 
 purge binary logs to 'blah'$$
-purge master logs before (select * from customer)$$
-change master to master_bind = 'blah', relay_log_pos = 1, ignore_server_ids = (1, 2, 3, 4)$$
-start slave relay_thread, sql_thread, sql_thread until master_log_pos = 42 user = 'mike'$$
-stop slave relay_thread, sql_thread$$
+[<80024]purge master logs before (select * from customer)$$
+[<80024]change master to master_bind = 'blah', relay_log_pos = 1, ignore_server_ids = (1, 2, 3, 4)$$
+[<80024]start slave relay_thread, sql_thread, sql_thread until master_log_pos = 42 user = 'mike'$$
+[<80024]stop slave relay_thread, sql_thread$$
+[>=80024]purge replication source logs before (select * from customer)$$
+[>=80024]change replication source to source_bind = 'blah', relay_log_pos = 1, ignore_server_ids = (1, 2, 3, 4)$$
+[>=80024]start replica relay_thread, sql_thread, sql_thread until source_log_pos = 42 user = 'mike'$$
+[>=80024]stop replica relay_thread, sql_thread$$
 
 prepare s1 from 'select * from customer'$$
 prepare s2 from @select_var$$
@@ -2264,7 +2267,8 @@ cache index actor index (idx_actor_last_name, primary, primary), category key (p
 kill query 1$$
 load index into cache inventory$$
 [<80000]reset master, query cache, slave$$
-reset master, slave$$
+[<80024]reset master, slave$$
+[>=80024]reset replication source, replica$$
 
 describe sakila.inventory store_id$$
 [<80000]explain extended replace staff (staff_id, address_id, active) (select staff_id, address_id, active from staff where staff_id < 5) union (select staff_id, address_id, active from staff where staff_id > 10)$$
@@ -2503,7 +2507,7 @@ ALTER TABLE `SMaLLCallUps`
   ADD CONSTRAINT `FK_CallUps_FromTeamID_Teams` FOREIGN KEY (`FromTeamID`) REFERENCES `SMaLLTeams` (`id`),
   ADD CONSTRAINT `FK_CallUps_PlayerID_Players` FOREIGN KEY (`PlayerID`) REFERENCES `SMaLLPlayers` (`id`)$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `create_synonym_db`(
-        IN in_db_name VARCHAR(64), 
+        IN in_db_name VARCHAR(64),
         IN in_synonym VARCHAR(64)
     )
     MODIFIES SQL DATA
@@ -2519,9 +2523,9 @@ BEGIN
     DECLARE db_doesnt_exist CONDITION FOR SQLSTATE '42000';
     DECLARE db_name_exists CONDITION FOR SQLSTATE 'HY000';
 
-    DECLARE c_table_names CURSOR FOR 
-        SELECT TABLE_NAME 
-          FROM INFORMATION_SCHEMA.TABLES 
+    DECLARE c_table_names CURSOR FOR
+        SELECT TABLE_NAME
+          FROM INFORMATION_SCHEMA.TABLES
          WHERE TABLE_SCHEMA = in_db_name;
 
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_done = TRUE;
@@ -2604,7 +2608,7 @@ BEGIN
     INSERT INTO performance_schema.setup_actors SELECT * FROM tmp_setup_actors;
 
     BEGIN
-        
+
         DECLARE v_name varchar(64);
         DECLARE v_enabled enum('YES', 'NO');
         DECLARE c_consumers CURSOR FOR SELECT NAME, ENABLED FROM tmp_setup_consumers;
@@ -2630,7 +2634,7 @@ BEGIN
        SET performance_schema.setup_instruments.ENABLED = tmp_setup_instruments.ENABLED,
            performance_schema.setup_instruments.TIMED   = tmp_setup_instruments.TIMED;
     BEGIN
-        
+
         DECLARE v_thread_id bigint unsigned;
         DECLARE v_instrumented enum('YES', 'NO');
         DECLARE c_threads CURSOR FOR SELECT THREAD_ID, INSTRUMENTED FROM tmp_threads;
@@ -2664,11 +2668,11 @@ BEGIN
 
     SELECT RELEASE_LOCK('sys.ps_setup_save') INTO v_lock_result;
 
-    SET sql_log_bin = @log_bin; 
+    SET sql_log_bin = @log_bin;
 END$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `ps_trace_statement_digest`(
         IN in_digest VARCHAR(32),
-        IN in_runtime INT, 
+        IN in_runtime INT,
         IN in_interval DECIMAL(2,2),
         IN in_start_fresh BOOLEAN,
         IN in_auto_enable BOOLEAN
@@ -2684,7 +2688,7 @@ BEGIN
     DECLARE v_start INT DEFAULT 0;
     DECLARE v_found_stmts INT;
 
-    
+
     CALL sys.ps_setup_disable_thread(CONNECTION_ID());
 
     DROP TEMPORARY TABLE IF EXISTS stmt_trace;
@@ -2730,7 +2734,7 @@ BEGIN
         SELECT UNIX_TIMESTAMP() INTO v_start;
 
         INSERT IGNORE INTO stmt_trace
-        SELECT thread_id, timer_start, event_id, sql_text, timer_wait, lock_time, errors, mysql_errno, 
+        SELECT thread_id, timer_start, event_id, sql_text, timer_wait, lock_time, errors, mysql_errno,
                rows_sent, rows_affected, rows_examined, created_tmp_tables, created_tmp_disk_tables, no_index_used
           FROM performance_schema.events_statements_history_long
         WHERE digest = in_digest;
@@ -2811,16 +2815,16 @@ CREATE DEFINER=`forex`@`%` PROCEDURE `set_next_minute`()
 BEGIN
     SET @next_minute = (
         SELECT FLOOR(timestamp/60000) * 60
-        FROM tick t 
+        FROM tick t
         WHERE timestamp > (
-            (SELECT value 
-            FROM setting 
+            (SELECT value
+            FROM setting
             WHERE name = 'next_minute')
-            + 60) * 1000 
-        ORDER BY timestamp 
+            + 60) * 1000
+        ORDER BY timestamp
         LIMIT 1);
-    UPDATE setting 
-    SET value = @next_minute 
+    UPDATE setting
+    SET value = @next_minute
     WHERE name = 'next_minute';
 END$$
 CREATE PROCEDURE `new_procedure` ()
@@ -2841,17 +2845,17 @@ BEGIN
   (SELECT ufn_getMaxMarks( AssessmentID))) * 100),0) AS Percentage FROM tr_t_assessments where AssessmentType='LiveTest');
   SET Assesavg= (SELECT COALESCE(round(AVG(Percentage)),0) FROM assesTemp);
   DROP TABLE IF EXISTS  learnTemp;
-  CREATE TEMPORARY TABLE IF NOT EXISTS   learnTemp AS (SELECT IFNULL(ROUND((SELECT count(MaterialID) FROM tr_t_materialtracking 
-  where MaterialStatus=1 and UserID=pUserID and SubjectID = S.SubjectID and MaterialID in 
+  CREATE TEMPORARY TABLE IF NOT EXISTS   learnTemp AS (SELECT IFNULL(ROUND((SELECT count(MaterialID) FROM tr_t_materialtracking
+  where MaterialStatus=1 and UserID=pUserID and SubjectID = S.SubjectID and MaterialID in
   (SELECT MaterialID FROM tr_m_material where ClassID=pclass and SubjectID = S.SubjectID)) /
-  (SELECT COUNT(TopicID) FROM tr_m_material where TopicID IN 
+  (SELECT COUNT(TopicID) FROM tr_m_material where TopicID IN
   (SELECT TopicID FROM tr_m_subjecttopics where SubjectID = S.SubjectID))* 100) ,0) AS Percentage
   FROM tr_m_subjects S WHERE Status = 1 AND SubjectID IN (SELECT SubjectID FROM tr_m_subjects where ClassID=pclass));
   SET learnavg= (SELECT round(AVG(Percentage)) FROM learnTemp);
   DROP TABLE IF EXISTS  PratiecTemp;
-  CREATE TEMPORARY TABLE IF NOT EXISTS PratiecTemp AS (SELECT COALESCE(ufn_getPracticePercentage(pUserID,pclass,S.SubjectID),0) as Percentage   
+  CREATE TEMPORARY TABLE IF NOT EXISTS PratiecTemp AS (SELECT COALESCE(ufn_getPracticePercentage(pUserID,pclass,S.SubjectID),0) as Percentage
   FROM tr_m_subjects S WHERE Status = 1 AND SubjectID IN (SELECT SubjectID FROM tr_m_subjects where ClassID=pclass)) ;
-  SET Pratiecavg= (SELECT ROUND(AVG(Percentage)) FROM PratiecTemp); 
+  SET Pratiecavg= (SELECT ROUND(AVG(Percentage)) FROM PratiecTemp);
   INSERT INTO AvgTemp(SType ,Percentage) VALUES('Learn',learnavg);
   INSERT INTO AvgTemp(SType ,Percentage) VALUES('Pratice',Pratiecavg);
   INSERT INTO AvgTemp(SType ,Percentage) VALUES('Assess',Assesavg);
@@ -2892,3 +2896,4 @@ create user mike identified by 'a'$$
 [>=80031]revoke if exists all privileges, grant option from mike, goofy $$
 [>=80031]revoke proxy on mike from current_user() ignore unknown user$$
 [>=80031]analyze table a, b, c update histogram on x using data 'xyz' $$
+[>=80031]select 1 except select 2 $$

@@ -43,7 +43,7 @@ export class SQLiteLanguageService extends RdbmsLanguageService {
         void import("./data/builtin-functions.json").then((systemFunctions) => {
             Object.keys(systemFunctions.default).forEach((name: string) => {
                 SQLiteLanguageService.globalSymbols
-                    .addNewSymbolOfType(SystemFunctionSymbol, undefined, name, systemFunctions[name]);
+                    .addNewSymbolOfType(SystemFunctionSymbol, undefined, name, systemFunctions[name] as string[]);
             });
         });
 

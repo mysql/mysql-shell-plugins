@@ -23,8 +23,7 @@
 
 /* eslint-disable no-underscore-dangle */
 
-import { Lexer } from "antlr4ts/Lexer";
-import { Token } from "antlr4ts/Token";
+import { Lexer, Token } from "antlr4ng";
 
 import { SQLiteLexer } from "./generated/SQLiteLexer";
 import { isReservedKeyword, SQLiteVersion } from "./SQLiteRecognizerCommon";
@@ -149,7 +148,7 @@ export abstract class SQLiteBaseLexer extends Lexer {
             return true;
         }
 
-        const symbol = this.vocabulary.getSymbolicName(type);
+        const symbol = this.getVocabulary().getSymbolicName(type);
         if (symbol && symbol !== "" && !isReservedKeyword(symbol, SQLiteVersion.Standard)) {
             return true;
         }
@@ -187,8 +186,8 @@ export abstract class SQLiteBaseLexer extends Lexer {
      * Creates a DOT token in the token stream.
      */
     protected emitDot(): void {
-        this.pendingTokens.push(this._factory.create({ source: this, stream: this._input }, SQLiteLexer.DOT,
-            this._text, this.channel, this._tokenStartCharIndex, this._tokenStartCharIndex, this._tokenStartLine,
+        this.pendingTokens.push(this._factory.create([this, this._input], SQLiteLexer.DOT,
+            this.text, this._channel, this._tokenStartCharIndex, this._tokenStartCharIndex, this._tokenStartLine,
             this._tokenStartCharPositionInLine,
         ));
 

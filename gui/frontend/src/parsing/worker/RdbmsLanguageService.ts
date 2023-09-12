@@ -22,7 +22,7 @@
  */
 
 import { IPosition, IRange, languages } from "monaco-editor";
-import { ScopedSymbol, Symbol, SymbolTable } from "antlr4-c3";
+import { ScopedSymbol, BaseSymbol, SymbolTable } from "antlr4-c3";
 
 import { ICodeEditorModel } from "../../components/ui/CodeEditor/CodeEditor";
 import { CompletionItem, CompletionList } from "../../components/ui/CodeEditor";
@@ -516,7 +516,7 @@ export class RdbmsLanguageService {
      *
      * @returns A set with the found symbols.
      */
-    private getSymbolsOfKind(parent: ScopedSymbol, kind: LanguageCompletionKind): Promise<Symbol[]> {
+    private getSymbolsOfKind(parent: ScopedSymbol, kind: LanguageCompletionKind): Promise<BaseSymbol[]> {
         switch (kind) {
             case LanguageCompletionKind.Schema: {
                 this.loadedSchemaTables.add(schemaKey);

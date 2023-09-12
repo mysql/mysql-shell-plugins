@@ -21,9 +21,9 @@ rem 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 node scripts/copy-oci-typings.js
 
-call antlr4ts -no-visitor -Xexact-output-dir -o src/parsing/mysql/generated src/parsing/mysql/*.g4
-call antlr4ts -no-visitor -Xexact-output-dir -o src/parsing/SQLite/generated src/parsing/SQLite/*.g4
-call antlr4ts -no-visitor -Xexact-output-dir -o src/parsing/python/generated src/parsing/python/*.g4
+antlr4ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o src/parsing/mysql/generated src/parsing/mysql/*.g4
+antlr4ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o src/parsing/SQLite/generated src/parsing/SQLite/*.g4
+antlr4ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o src/parsing/python/generated src/parsing/python/*.g4
 
 SET NODE_OPTIONS=--max-old-space-size=16000
 SET SOURCE_MAPS=$1

@@ -23,26 +23,25 @@
 
 // This file contains the main interface to all language services for MySQL.
 
-import { CharStreams } from "antlr4ts/CharStreams";
-import { CommonTokenStream } from "antlr4ts/CommonTokenStream";
-import { ParseTree } from "antlr4ts/tree/ParseTree";
-import { TokenStreamRewriter } from "antlr4ts/TokenStreamRewriter";
-import { XPath } from "antlr4ts/tree/xpath/XPath";
-import { BailErrorStrategy } from "antlr4ts/BailErrorStrategy";
-import { ParseCancellationException } from "antlr4ts/misc/ParseCancellationException";
-import { DefaultErrorStrategy } from "antlr4ts/DefaultErrorStrategy";
-import { PredictionMode } from "antlr4ts/atn/PredictionMode";
+/* eslint-disable no-underscore-dangle */
+
+import {
+    BailErrorStrategy, CharStreams, CommonTokenStream, DefaultErrorStrategy, ParseCancellationException,
+    ParseTree, PredictionMode, TokenStreamRewriter, XPath,
+} from "antlr4ng";
 
 import { MySQLLexer } from "./generated/MySQLLexer";
 import {
     MySQLParser, QueryContext, QueryExpressionContext, QuerySpecificationContext, SubqueryContext,
 } from "./generated/MySQLParser";
+
 import { MySQLErrorListener } from "./MySQLErrorListener";
 import { MySQLParseUnit } from "./MySQLServiceTypes";
 import {
     ICompletionData, IParserErrorInfo, IStatementSpan, ISymbolInfo, QueryType, StatementFinishState, TextSpan,
     tokenFromPosition,
 } from "../parser-common";
+
 import { SystemVariableSymbol, SystemFunctionSymbol, DBSymbolTable } from "../DBSymbolTable";
 import { getCodeCompletionItems } from "./MySQLCodeCompletion";
 import { unquote } from "../../utilities/string-helpers";
@@ -139,9 +138,9 @@ export class MySQLParsingServices {
                 this.errors.splice(0, 0, {
                     message: "Unfinished multi line comment",
                     tokenType: MySQLLexer.INVALID_BLOCK_COMMENT,
-                    charOffset: lastToken.startIndex,
+                    charOffset: lastToken.start,
                     line: lastToken.line,
-                    offset: lastToken.charPositionInLine,
+                    offset: lastToken.column,
                     length: 100,
                 });
             }
@@ -180,7 +179,7 @@ export class MySQLParsingServices {
         this.lexer.serverVersion = serverVersion;
         this.errors = [];
         this.lexer.inputStream = CharStreams.fromString(text);
-        this.tokenStream.tokenSource = this.lexer;
+        this.tokenStream.setTokenSource(this.lexer);
         this.tokenStream.fill();
 
         const token = tokenFromPosition(this.tokenStream, offset);
@@ -190,7 +189,7 @@ export class MySQLParsingServices {
             switch (token.type) {
                 case MySQLLexer.IDENTIFIER:
                 case MySQLLexer.BACK_TICK_QUOTED_ID: {
-                    const previousToken = this.tokenStream.tryLT(-1);
+                    const previousToken = this.tokenStream.LT(-1);
                     if (previousToken) {
                         if (previousToken.type === MySQLLexer.AT_AT_SIGN_SYMBOL) {
                             // System variables.
@@ -198,7 +197,7 @@ export class MySQLParsingServices {
                             if (info) {
                                 info.definition = {
                                     text: tokenText,
-                                    span: { start: token.startIndex - 2, length: tokenText.length + 2 },
+                                    span: { start: token.start - 2, length: tokenText.length + 2 },
                                 };
 
                                 return info;
@@ -213,7 +212,7 @@ export class MySQLParsingServices {
                                     if (info) {
                                         info.definition = {
                                             text: tokenText,
-                                            span: { start: token.startIndex, length: tokenText.length },
+                                            span: { start: token.start, length: tokenText.length },
                                         };
 
                                         return info;
@@ -238,7 +237,7 @@ export class MySQLParsingServices {
                     if (info) {
                         info.definition = {
                             text: tokenText,
-                            span: { start: token.startIndex, length: tokenText.length },
+                            span: { start: token.start, length: tokenText.length },
                         };
 
                         return info;
@@ -270,13 +269,13 @@ export class MySQLParsingServices {
 
         this.errors = [];
         this.lexer.inputStream = CharStreams.fromString(text);
-        this.tokenStream.tokenSource = this.lexer;
+        this.tokenStream.setTokenSource(this.lexer);
         this.tokenStream.fill();
 
         let isQuoted = false;
         const token = tokenFromPosition(this.tokenStream, offset);
         if (token) {
-            const tokenText = token.text!.trim();
+            const tokenText = token.text.trim();
             const unquoted = unquote(tokenText);
             isQuoted = unquoted.length < tokenText.length;
         }
@@ -670,14 +669,14 @@ export class MySQLParsingServices {
         const rewriter = new TokenStreamRewriter(this.tokenStream);
 
         // LIMIT clause.
-        const expressions = XPath.findAll(tree, "/query/simpleStatement//queryExpression", this.parser);
         let changed = false;
+        const expressions = XPath.findAll(tree, "/query/simpleStatement//queryExpression", this.parser);
         if (expressions.size > 0) {
             // There can only be one top-level query expression where we can add a LIMIT clause.
             const candidate: ParseTree = expressions.values().next().value;
 
             // Check if the candidate comes from a subquery.
-            let run: ParseTree | undefined = candidate;
+            let run: ParseTree | null = candidate;
             let invalid = false;
             while (run) {
                 if (run instanceof SubqueryContext) {
@@ -685,15 +684,14 @@ export class MySQLParsingServices {
                     break;
                 }
 
-                run = run.parent;
+                run = run.getParent();
             }
 
-            if (!invalid) {
+            if (!invalid && candidate instanceof QueryExpressionContext) {
                 // Top level query expression here. Check if there's already a LIMIT clause before adding one.
-                const context = candidate as QueryExpressionContext;
-                if (!context.limitClause() && context.stop) {
+                if (!candidate.limitClause() && candidate.stop) {
                     // OK, ready to add an own limit clause.
-                    rewriter.insertAfter(context.stop, ` LIMIT ${offset}, ${count}`);
+                    rewriter.insertAfter(candidate.stop, ` LIMIT ${offset}, ${count}`);
                     changed = true;
                 }
             }
@@ -733,8 +731,8 @@ export class MySQLParsingServices {
         }
 
         const rewriter = new TokenStreamRewriter(this.tokenStream);
-        const expressions = XPath.findAll(tree, "/query", this.parser);
         let changed = false;
+        const expressions = XPath.findAll(tree, "/query", this.parser);
         if (expressions.size > 0) {
             // There can only be one top-level query.
             const candidate: ParseTree = expressions.values().next().value;
@@ -770,7 +768,7 @@ export class MySQLParsingServices {
         this.applyServerDetails(serverVersion, sqlMode);
         this.errors = [];
         this.lexer.inputStream = CharStreams.fromString(sql);
-        this.tokenStream.tokenSource = this.lexer;
+        this.tokenStream.setTokenSource(this.lexer);
         this.tokenStream.fill();
 
         const tokens = this.tokenStream.getTokens();
@@ -837,14 +835,14 @@ export class MySQLParsingServices {
     private startParsing(text: string, fast: boolean, unit: MySQLParseUnit): ParseTree | undefined {
         this.errors = [];
         this.lexer.inputStream = CharStreams.fromString(text);
-        this.tokenStream.tokenSource = this.lexer;
+        this.tokenStream.setTokenSource(this.lexer);
 
         this.parser.reset();
-        this.parser.buildParseTree = !fast;
+        this.parser.buildParseTrees = !fast;
 
         // First parse with the bail error strategy to get quick feedback for correct queries.
-        this.parser.errorHandler = new BailErrorStrategy();
-        this.parser.interpreter.setPredictionMode(PredictionMode.SLL);
+        this.parser._errHandler = new BailErrorStrategy();
+        this.parser._interp.predictionMode = PredictionMode.SLL;
 
         try {
             this.tree = this.parseUnit(unit);
@@ -860,8 +858,8 @@ export class MySQLParsingServices {
                     this.tokenStream.seek(0);
                     this.parser.reset();
                     this.errors = [];
-                    this.parser.errorHandler = new DefaultErrorStrategy();
-                    this.parser.interpreter.setPredictionMode(PredictionMode.LL);
+                    this.parser._errHandler = new DefaultErrorStrategy();
+                    this.parser._interp.predictionMode = PredictionMode.LL;
                     this.tree = this.parseUnit(unit);
                 }
             } else {

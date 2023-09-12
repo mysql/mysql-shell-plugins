@@ -32,6 +32,8 @@ options {
 }
 
 @header {
+/* eslint-disable @typescript-eslint/no-unused-vars, no-useless-escape */
+
 import { SQLiteBaseLexer } from "../SQLiteBaseLexer";
 }
 

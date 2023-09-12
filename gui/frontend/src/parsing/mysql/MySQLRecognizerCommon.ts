@@ -21,17 +21,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-
-import { Interval } from "antlr4ts/misc/Interval";
-import { ParserRuleContext } from "antlr4ts/ParserRuleContext";
-import { RuleContext } from "antlr4ts/RuleContext";
-import { Token } from "antlr4ts/Token";
-import { ErrorNode } from "antlr4ts/tree/ErrorNode";
-import { ParseTree } from "antlr4ts/tree/ParseTree";
-import { TerminalNode } from "antlr4ts/tree/TerminalNode";
-import { Vocabulary } from "antlr4ts/Vocabulary";
-
-import { TextLiteralContext, MySQLParser } from "./generated/MySQLParser";
+import { ErrorNode, ParserRuleContext, ParseTree, RuleContext, TerminalNode, Token, Vocabulary } from "antlr4ng";
+import { MySQLParser, TextLiteralContext } from "./generated/MySQLParser";
 import { reservedMySQLKeywords, mysqlKeywords, MySQLVersion } from "./mysql-keywords";
 
 // This interface describes functionality found in both, lexer and parser classes.
@@ -117,7 +108,7 @@ export const getText = (context: RuleContext, convertEscapes: boolean): string =
         // TODO: take the optional repertoire prefix into account.
         let result = "";
 
-        for (let index = 0; index < context.childCount; ++index) {
+        for (let index = 0; index < context.getChildCount(); ++index) {
             const child = context.textStringLiteral(index);
             // eslint-disable-next-line no-underscore-dangle
             const token = child._value;
@@ -185,7 +176,7 @@ export const getText = (context: RuleContext, convertEscapes: boolean): string =
         return result;
     }
 
-    return context.text; // In all other cases return the text unprocessed.
+    return context.getText(); // In all other cases return the text unprocessed.
 };
 
 /**
@@ -200,28 +191,29 @@ export const getText = (context: RuleContext, convertEscapes: boolean): string =
 export const dumpTree = (context: RuleContext, vocabulary: Vocabulary, indentation: string): string => {
     let result = "";
 
-    for (let index = 0; index < context.childCount; ++index) {
-        const child = context.getChild(index);
+    for (const child of context.children ?? []) {
         if (child instanceof RuleContext) {
             if (child instanceof TextLiteralContext) {
-                const interval = child.sourceInterval;
+                const interval = child.getSourceInterval();
                 const childText = getText(child, true);
-                result += `${indentation} (index range: ${interval.a}..${interval.b}, string literal) ${childText}\n`;
+                result += `${indentation} (index range: ${interval.start}..${interval.stop}, string literal) ` +
+                    `${childText}\n`;
             } else {
                 result += dumpTree(child, vocabulary, indentation.length < 100 ? indentation + " " : indentation);
             }
-        } else {
+        } else if (child instanceof TerminalNode) {
             // A terminal node.
             result += indentation;
 
-            const node = child as TerminalNode;
-            if (child instanceof ErrorNode) { result += "Syntax Error: "; }
+            if (child instanceof ErrorNode) {
+                result += "Syntax Error: ";
+            }
 
-            const token = node.symbol;
+            const token = child.symbol;
 
             const type = token.type;
             const tokenName = type === Token.EOF ? "<EOF>" : (vocabulary.getSymbolicName(token.type) ?? "<not found>");
-            result += `(line: ${token.line}, offset: ${token.charPositionInLine}, index: ${token.tokenIndex}, ` +
+            result += `(line: ${token.line}, offset: ${token.column}, index: ${token.tokenIndex}, ` +
                 `${tokenName} [${token.type}]) ${token.text ?? ""}\n`;
         }
     }
@@ -245,17 +237,17 @@ export const sourceTextForRange = (start: Token | ParseTree, stop: Token | Parse
 
     let startToken = start as Token;
     if (!isToken) {
-        startToken = (start instanceof TerminalNode) ? start.symbol : (start as ParserRuleContext).start;
+        startToken = (start instanceof TerminalNode) ? start.symbol : (start as ParserRuleContext).start!;
     }
 
     let stopToken = stop as Token;
     if (!isToken) { // start + stop must either both Token or ParseTree instances.
-        stopToken = (stop instanceof TerminalNode) ? stop.symbol : (stop as ParserRuleContext).start;
+        stopToken = (stop instanceof TerminalNode) ? stop.symbol : (stop as ParserRuleContext).start!;
     }
 
     const stream = startToken.tokenSource?.inputStream;
-    const stopIndex = stop ? stopToken.stopIndex : 1e100;
-    let result = stream?.getText(new Interval(startToken.startIndex, stopIndex)) || "";
+    const stopIndex = stop ? stopToken.stop : 1e100;
+    let result = stream?.getText(startToken.start, stopIndex) ?? "";
     if (keepQuotes || result.length < 2) {
         return result;
     }
@@ -282,7 +274,7 @@ export const sourceTextForRange = (start: Token | ParseTree, stop: Token | Parse
  * @returns The original source text.
  */
 export const sourceTextForContext = (ctx: ParserRuleContext, keepQuotes: boolean): string => {
-    return sourceTextForRange(ctx.start, ctx.stop, keepQuotes);
+    return sourceTextForRange(ctx.start!, ctx.stop!, keepQuotes);
 };
 
 /**
@@ -293,10 +285,10 @@ export const sourceTextForContext = (ctx: ParserRuleContext, keepQuotes: boolean
  *
  * @returns The node preceding the given node in the same parent or undefined if the given node is the first child.
  */
-export const getPreviousSibling = (tree: ParseTree): ParseTree | undefined => {
-    const parent = tree.parent;
+export const getPreviousSibling = (tree: RuleContext): RuleContext | null => {
+    const parent = tree.parentCtx;
     if (!parent) {
-        return undefined;
+        return null;
     }
 
     // Get the index of the given tree in the child list of its parent.
@@ -306,7 +298,7 @@ export const getPreviousSibling = (tree: ParseTree): ParseTree | undefined => {
         ++index;
     }
 
-    return index > 0 ? parent.getChild(index - 1) : undefined;
+    return index > 0 ? parent.getChild(index - 1) : null;
 };
 
 /**
@@ -316,8 +308,8 @@ export const getPreviousSibling = (tree: ParseTree): ParseTree | undefined => {
  *
  * @returns The node that immediately precedes the given node or nothing if there's none anymore.
  */
-export const getPrevious = (tree: ParseTree): ParseTree | undefined => {
-    let walker: ParseTree | undefined;
+export const getPrevious = (tree: RuleContext): RuleContext | null => {
+    let walker: RuleContext | null;
 
     do {
         const sibling = getPreviousSibling(tree);
@@ -327,19 +319,19 @@ export const getPrevious = (tree: ParseTree): ParseTree | undefined => {
             }
 
             walker = sibling;
-            while (walker.childCount > 0) { // Walk down to the last child node.
-                walker = walker.getChild(walker.childCount - 1);
+            while (walker!.getChildCount() > 0) { // Walk down to the last child node.
+                walker = walker!.getChild(walker!.getChildCount() - 1);
             }
 
             if (walker instanceof TerminalNode) {
                 return walker;
             }
         } else {
-            walker = walker?.parent;
+            walker = walker!.parentCtx;
         }
     } while (walker);
 
-    return undefined;
+    return null;
 
 };
 
@@ -351,10 +343,10 @@ export const getPrevious = (tree: ParseTree): ParseTree | undefined => {
  *
  * @returns The node following the given node in the same parent or undefined if the given node is the last child.
  */
-export const getNextSibling = (tree: ParseTree): ParseTree | undefined => {
-    const parent = tree.parent;
+export const getNextSibling = (tree: RuleContext): RuleContext | null => {
+    const parent = tree.parentCtx;
     if (!parent) {
-        return undefined;
+        return null;
     }
 
     // Get the index of the given tree in the child list of its parent.
@@ -364,7 +356,7 @@ export const getNextSibling = (tree: ParseTree): ParseTree | undefined => {
         ++index;
     }
 
-    return index < parent.childCount - 1 ? parent.getChild(index + 1) : undefined;
+    return index < parent.getChildCount() - 1 ? parent.getChild(index + 1) : null;
 };
 
 /**
@@ -374,18 +366,18 @@ export const getNextSibling = (tree: ParseTree): ParseTree | undefined => {
  *
  * @returns The next terminal if there's any.
  */
-export const getNext = (tree: ParseTree): ParseTree | undefined => {
+export const getNext = (tree: RuleContext): RuleContext | null => {
     // If we have children then return the first one.
-    if (tree.childCount > 0) {
+    if (tree.getChildCount() > 0) {
         do {
-            tree = tree.getChild(0);
-        } while (tree.childCount > 0);
+            tree = tree.getChild(0)!;
+        } while (tree.getChildCount() > 0);
 
         return tree;
     }
 
     // No children, so try our next sibling (or that of our parent(s)).
-    let run: ParseTree | undefined = tree;
+    let run: RuleContext | null = tree;
     do {
         const sibling = getNextSibling(run);
         if (sibling) {
@@ -395,10 +387,10 @@ export const getNext = (tree: ParseTree): ParseTree | undefined => {
 
             return getNext(sibling);
         }
-        run = run.parent;
+        run = run.parentCtx;
     } while (run);
 
-    return undefined;
+    return null;
 };
 
 /**
@@ -413,8 +405,8 @@ export const getNext = (tree: ParseTree): ParseTree | undefined => {
  *
  * @returns The found terminal node or undefined if nothing could be found.
  */
-export const terminalFromPosition = (root: ParseTree, column: number, line: number): ParseTree | undefined => {
-    let run: ParseTree | undefined = root;
+export const terminalFromPosition = (root: RuleContext, column: number, line: number): RuleContext | null => {
+    let run: RuleContext | null = root;
     do {
         run = getNext(run);
         if (run instanceof TerminalNode) {
@@ -429,18 +421,18 @@ export const terminalFromPosition = (root: ParseTree, column: number, line: numb
                 return getPrevious(run);
             }
 
-            if (line === token.line && column < token.charPositionInLine) {
+            if (line === token.line && column < token.column) {
                 return getPrevious(run);
             }
 
-            const length = token.stopIndex - token.startIndex + 1;
-            if (line === token.line && (column < token.charPositionInLine + length)) {
+            const length = token.stop - token.start + 1;
+            if (line === token.line && (column < token.column + length)) {
                 return run;
             }
         }
     } while (run);
 
-    return undefined;
+    return null;
 };
 
 /**
@@ -453,11 +445,11 @@ export const terminalFromPosition = (root: ParseTree, column: number, line: numb
  */
 const treeContainsPosition = (node: ParseTree, position: number): boolean => {
     if (node instanceof TerminalNode) {
-        return node.symbol.startIndex <= position && position <= node.symbol.stopIndex;
+        return node.symbol.start <= position && position <= node.symbol.stop;
     }
 
     if (node instanceof ParserRuleContext && node.stop) {
-        return node.start.startIndex <= position && position <= node.stop.stopIndex;
+        return node.start!.start <= position && position <= node.stop.stop;
     }
 
     return false;
@@ -471,15 +463,17 @@ const treeContainsPosition = (node: ParseTree, position: number): boolean => {
  *
  * @returns The parse tree if there's one containing the given position or undefined.
  */
-export const contextFromPosition = (root: ParseTree, position: number): ParseTree | undefined => {
+export const contextFromPosition = (root: RuleContext, position: number): RuleContext | null => {
     if (!treeContainsPosition(root, position)) {
-        return undefined;
+        return null;
     }
 
-    for (let index = 0; index < root.childCount; ++index) {
-        const result = contextFromPosition(root.getChild(index), position);
-        if (result) {
-            return result;
+    if (root.children) {
+        for (const child of root.children) {
+            const result = contextFromPosition(child as RuleContext, position);
+            if (result) {
+                return result;
+            }
         }
     }
 

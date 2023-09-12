@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -44,7 +44,7 @@ const postResultMessage = (taskId: number, data: ILanguageWorkerResultData): voi
 };
 
 ctx.addEventListener("message", (event: MessageEvent) => {
-    const { taskId, data }: { taskId: number; data: ILanguageWorkerTaskData } = event.data;
+    const { taskId, data }: { taskId: number; data: ILanguageWorkerTaskData; } = event.data;
 
     let services;
     switch (data.language) {

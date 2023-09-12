@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { Parser } from "antlr4ts/Parser";
+import { Parser } from "antlr4ng";
 
 import { IMySQLRecognizerCommon, SqlMode } from "./MySQLRecognizerCommon";
 

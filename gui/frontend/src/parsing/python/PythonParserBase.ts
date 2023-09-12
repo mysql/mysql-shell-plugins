@@ -21,8 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { Parser } from "antlr4ts/Parser";
-import { TokenStream } from "antlr4ts/TokenStream";
+import { Parser, TokenStream } from "antlr4ng";
 
 export enum PythonVersion {
     Auto = 0,
@@ -37,7 +36,7 @@ export abstract class PythonParserBase extends Parser {
         super(input);
     }
 
-    protected checkVersion(version: number): boolean {
+    protected checkPythonVersion(version: number): boolean {
         return version === PythonVersion.Auto || version === this.version;
     }
 
