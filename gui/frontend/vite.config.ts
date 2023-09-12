@@ -124,7 +124,7 @@ export default defineConfig({
         chunkSizeWarningLimit: 1000,
         commonjsOptions: {
             dynamicRequireTargets: (os.platform() === "win32") ? [] : [
-                "node_modules/antlr4ts/**/*.js",
+                "node_modules/antlr4ng/**/*.js",
             ],
         },
         minify: process.env.SOURCE_MAPS ? false : "terser",

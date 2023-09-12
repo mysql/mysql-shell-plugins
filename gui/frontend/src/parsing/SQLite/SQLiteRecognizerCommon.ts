@@ -23,8 +23,7 @@
 
 /* eslint-disable no-underscore-dangle */
 
-import { CommonTokenStream } from "antlr4ts/CommonTokenStream";
-import { Token } from "antlr4ts/Token";
+import { CommonTokenStream, Token } from "antlr4ng";
 
 import { QueryType, Scanner } from "../parser-common";
 import { SQLiteLexer } from "./generated/SQLiteLexer";

@@ -23,29 +23,24 @@
 
 /* eslint-disable no-underscore-dangle */
 
-import { Interval } from "antlr4ts/misc";
-import { ANTLRErrorListener } from "antlr4ts/ANTLRErrorListener";
-import { Token } from "antlr4ts/Token";
-import { Recognizer } from "antlr4ts/Recognizer";
-import { RecognitionException } from "antlr4ts/RecognitionException";
-import { InputMismatchException } from "antlr4ts/InputMismatchException";
-import { FailedPredicateException } from "antlr4ts/FailedPredicateException";
-import { NoViableAltException } from "antlr4ts/NoViableAltException";
-import { LexerNoViableAltException } from "antlr4ts/LexerNoViableAltException";
-import { ATNSimulator } from "antlr4ts/atn/ATNSimulator";
+import {
+    BaseErrorListener, FailedPredicateException, InputMismatchException, LexerATNSimulator, LexerNoViableAltException,
+    NoViableAltException, ParserATNSimulator, RecognitionException, Recognizer, Token,
+} from "antlr4ng";
 
 import { ErrorReportCallback } from "../parser-common";
 import { SQLiteParser } from "./generated/SQLiteParser";
 import { SQLiteLexer } from "./generated/SQLiteLexer";
 
-export class SQLiteErrorListener implements ANTLRErrorListener<Token> {
+export class SQLiteErrorListener extends BaseErrorListener<LexerATNSimulator | ParserATNSimulator> {
 
     public constructor(private callback: ErrorReportCallback) {
+        super();
     }
 
-    public syntaxError<T extends Token | number, R extends ATNSimulator>(recognizer: Recognizer<T, R>,
+    public syntaxError<T extends Token>(recognizer: Recognizer<LexerATNSimulator | ParserATNSimulator>,
         offendingSymbol: T | undefined, line: number, charPositionInLine: number, msg: string,
-        e: RecognitionException | undefined): void {
+        e: RecognitionException | null): void {
 
         let message = "";
 
@@ -56,10 +51,10 @@ export class SQLiteErrorListener implements ANTLRErrorListener<Token> {
             const parser = recognizer as unknown as SQLiteParser;
             const isEof = token.type === Token.EOF;
             if (isEof) {
-                token = parser.inputStream.get(token.tokenIndex - 1);
+                token = parser._input.get(token.tokenIndex - 1);
             }
 
-            const errorLength = token.stopIndex - token.startIndex + 1;
+            const errorLength = token.stop - token.start + 1;
             let wrongText = token.text || "";
 
             // getExpectedTokens() ignores predicates, so it might include the token for which we got this syntax error,
@@ -75,7 +70,7 @@ export class SQLiteErrorListener implements ANTLRErrorListener<Token> {
             if (!e) {
                 // Missing or unwanted tokens.
                 if (msg.includes("missing")) {
-                    if (expected.size === 1) {
+                    if (expected.length === 1) {
                         message = "Missing " + expectedText;
                     }
                 } else {
@@ -111,13 +106,13 @@ export class SQLiteErrorListener implements ANTLRErrorListener<Token> {
                 }
             }
 
-            this.callback(message, token.type, token.startIndex, line, charPositionInLine, errorLength);
+            this.callback(message, token.type, token.start, line, charPositionInLine, errorLength);
         } else {
             // No offending symbol, which indicates this is a lexer error.
             if (e instanceof LexerNoViableAltException) {
                 const lexer = recognizer as unknown as SQLiteLexer;
-                const input = lexer.inputStream;
-                let text = lexer.getErrorDisplay(input.getText(new Interval(lexer._tokenStartCharIndex, input.index)));
+                const input = lexer._input;
+                let text = lexer.getErrorDisplay(input.getText(lexer._tokenStartCharIndex, input.index));
                 if (text === "") {
                     text = " ";  // Should never happen, but we must ensure we have text.
                 }

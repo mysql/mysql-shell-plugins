@@ -21,10 +21,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { CharStream } from "antlr4ts/CharStream";
-import { CommonToken } from "antlr4ts/CommonToken";
-import { Lexer } from "antlr4ts/Lexer";
-import { Token } from "antlr4ts/Token";
+/* eslint-disable no-underscore-dangle */
+
+import { CharStream, CommonToken, Lexer, Token } from "antlr4ng";
 
 import { PythonLexer } from "./generated/PythonLexer";
 
@@ -44,21 +43,21 @@ export abstract class PythonLexerBase extends Lexer {
         super(input);
     }
 
-    /*public emit(token?: Token): Token {
+    public emit(token?: Token): Token {
         if (!token) {
             return super.emit();
         }
 
-        super.token = token;
+        super._token = token;
         this.buffer.push(token);
         this.lastToken = token;
 
         return token;
-    }*/
+    }
 
-    /*public nextToken(): Token {
+    public nextToken(): Token {
         // Check if the end-of-file is ahead and there are still some indentations left over.
-        if (this.inputStream.LA(1) === PythonLexerBase.EOF && this.indents.length > 0) {
+        if (this._input.LA(1) === PythonLexer.EOF && this.indents.length > 0) {
             const token = this.buffer[this.buffer.length - 1];
             if (!token || token.type !== PythonLexer.LINE_BREAK) {
                 // First emit an extra line break that serves as the end of the statement.
@@ -78,21 +77,46 @@ export abstract class PythonLexerBase extends Lexer {
         }
 
         return super.nextToken();
-    }*/
+    }
+
+    public emitToken(token: Token): void;
+    public emitToken(tokenType: number, channel?: number, text?: string): void;
+    public emitToken(tokenOrTokenType: Token | number, channel?: number, text?: string): void {
+        if (tokenOrTokenType instanceof Token) {
+            this.emit(tokenOrTokenType);
+
+            return;
+        }
+
+        channel = channel ?? PythonLexerBase.DEFAULT_TOKEN_CHANNEL;
+        text = text ?? "";
+
+        const charIndex = this._tokenStartCharIndex;
+        const token = new CommonToken(this._tokenFactorySourcePair, tokenOrTokenType, channel, charIndex - text.length,
+            charIndex);
+        token.text = text;
+        token.line = this.line;
+
+        if (tokenOrTokenType !== PythonLexer.NEWLINE) {
+            token.column = this.column - text.length;
+        }
+
+        this.emit(token);
+    }
 
     protected handleNewLine(): void {
-        /*this.emitToken(PythonLexer.NEWLINE, PythonLexerBase.HIDDEN, this.text);
+        this.emitToken(PythonLexer.NEWLINE, PythonLexerBase.HIDDEN, this.text);
 
-        const next = String.fromCharCode(this.inputStream.LA(1));
+        const next = String.fromCharCode(this._input.LA(1));
 
         // Process whitespaces in HandleSpaces
         if (next !== " " && next !== "\t" && this.isNotNewLineOrComment(next)) {
             this.processNewLine(0);
-        }*/
+        }
     }
 
     protected handleSpaces(): void {
-        /*const next = String.fromCharCode(this.inputStream.LA(1));
+        const next = String.fromCharCode(this._input.LA(1));
 
         if ((!this.lastToken || this.lastToken.type === PythonLexer.NEWLINE)
             && this.isNotNewLineOrComment(next)) {
@@ -109,13 +133,13 @@ export abstract class PythonLexerBase extends Lexer {
             const text = this.text;
 
             for (let i = 0; i < text.length; ++i) {
-                indent += text.charAt(i) === "\t" ? PythonLexerBase.TabSize - indent % PythonLexerBase.TabSize : 1;
+                indent += text.charAt(i) === "\t" ? PythonLexerBase.tabSize - indent % PythonLexerBase.tabSize : 1;
             }
 
             this.processNewLine(indent);
         }
 
-        this.emitToken(PythonLexer.WS, PythonLexerBase.HIDDEN, this.text);*/
+        this.emitToken(PythonLexer.WS, PythonLexerBase.HIDDEN, this.text);
     }
 
     protected incIndentLevel(): void {
@@ -149,17 +173,4 @@ export abstract class PythonLexerBase extends Lexer {
         }
     }
 
-    private emitToken(tokenType: number, channel = PythonLexerBase.DEFAULT_TOKEN_CHANNEL, text = ""): void {
-        const charIndex = this.charIndex;
-        // eslint-disable-next-line no-underscore-dangle
-        const token = new CommonToken(tokenType, text, this._tokenFactorySourcePair, channel, charIndex - text.length,
-            charIndex);
-        token.line = this.line;
-
-        if (tokenType !== PythonLexer.NEWLINE) {
-            token.charPositionInLine = this.charPositionInLine - text.length;
-        }
-
-        this.emit(token);
-    }
 }

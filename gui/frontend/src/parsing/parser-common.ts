@@ -23,11 +23,7 @@
 
 // Common data structures/types used in all parser implementations.
 
-import { Token } from "antlr4ts/Token";
-import { CommonTokenStream } from "antlr4ts/CommonTokenStream";
-import { BufferedTokenStream } from "antlr4ts/BufferedTokenStream";
-
-import { Interval } from "antlr4ts/misc/Interval";
+import { BufferedTokenStream, CommonTokenStream, Token } from "antlr4ng";
 import { IDictionary, ParameterFormatType } from "../app-logic/Types";
 
 import { Stack } from "../supplement";
@@ -508,7 +504,7 @@ export interface IRdbmsDataTypeInfo {
     synonyms?: string[];
 }
 
-export type ErrorReportCallback = (message: string, tokenType: number, startIndex: number, line: number,
+export type ErrorReportCallback = (message: string, tokenType: number, start: number, line: number,
     column: number, length: number) => void;
 
 /**
@@ -525,10 +521,10 @@ export const tokenFromPosition = (stream: CommonTokenStream, offset: number): To
     let high = tokens.length - 1;
     while (low < high) {
         const middle = low + Math.floor((high - low + 1) / 2);
-        if (tokens[middle].startIndex > offset) {
+        if (tokens[middle].start > offset) {
             high = middle - 1;
         } else {
-            const end = tokens[low].stopIndex;
+            const end = tokens[low].stop;
             if (end >= offset) {
                 break;
             }
@@ -561,7 +557,7 @@ export class Scanner {
 
         // The tokens are managed by the token stream, hence this must stay alive
         // at least as long as the scanner class that holds references to the stream's tokens.
-        this.tokens = input.getTokens();
+        this.tokens = input.getTokens(0, input.size - 1);
     }
 
     /**
@@ -621,8 +617,8 @@ export class Scanner {
             const run = this.tokens[i];
             const tokenLine = run.line;
             if (tokenLine >= line) {
-                const tokenOffset = run.charPositionInLine;
-                const tokenLength = run.stopIndex - run.startIndex + 1;
+                const tokenOffset = run.column;
+                const tokenLength = run.stop - run.start + 1;
                 if (tokenLine === line && tokenOffset <= offset && offset < tokenOffset + tokenLength) {
                     this.index = i;
                     break;
@@ -828,7 +824,7 @@ export class Scanner {
      * @returns The (zero-based) character offset of the token on its line.
      */
     public get tokenStart(): number {
-        return this.tokens[this.index].charPositionInLine;
+        return this.tokens[this.index].column;
     }
 
     /**
@@ -842,7 +838,7 @@ export class Scanner {
      * @returns The offset of the token in its source string.
      */
     public get tokenOffset(): number {
-        return this.tokens[this.index].startIndex;
+        return this.tokens[this.index].start;
     }
 
     /**
@@ -851,7 +847,7 @@ export class Scanner {
     public get tokenLength(): number {
         const token = this.tokens[this.index];
 
-        return token.stopIndex - token.startIndex + 1;
+        return token.stop - token.start + 1;
     }
 
     /**
@@ -867,7 +863,7 @@ export class Scanner {
     public get tokenSubText(): string {
         const cs = this.tokens[this.index].tokenSource?.inputStream;
 
-        return cs!.getText(Interval.of(this.tokens[this.index].startIndex, 1e100));
+        return cs?.getText(this.tokens[this.index].start, 1e100) ?? "";
     }
 
 }

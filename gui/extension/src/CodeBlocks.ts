@@ -28,8 +28,7 @@ import {
     DecorationRangeBehavior, OverviewRulerLane, workspace, TextDocument, TextDocumentChangeEvent, Range,
 } from "vscode";
 
-import { CharStreams } from "antlr4ts/CharStreams";
-import { CommonTokenStream } from "antlr4ts/CommonTokenStream";
+import { CharStreams, CommonTokenStream } from "antlr4ng";
 
 import { PythonLexer } from "../../frontend/src/parsing/python/generated/PythonLexer";
 
@@ -177,12 +176,12 @@ export class CodeBlocks {
             while (index < tokens.length) {
                 let token = tokens[index];
                 const tokenLine = token.line - 1; // ANTLR lines are one-based.
-                if (tokenLine > line || (tokenLine === line && token.charPositionInLine > character)) {
+                if (tokenLine > line || (tokenLine === line && token.column > character)) {
                     // First token starting after the caret.
                     if (index > 0) {
                         // See if the previous token starts before or on the caret.
                         token = tokens[index - 1];
-                        if (token.line - 1 < line || token.charPositionInLine <= character) {
+                        if (token.line - 1 < line || token.column <= character) {
                             if (token.type === stringType && token.text) {
                                 const [prefix, postfix] = this.determinePythonQuotes(token.text);
                                 const sql = token.text.substring(prefix, token.text.length - postfix);
@@ -193,8 +192,8 @@ export class CodeBlocks {
                                     id: CodeBlocks.nextSpanId++,
                                     originalCode: sql,
                                     whiteSpaces,
-                                    start: token.startIndex + prefix,
-                                    length: token.stopIndex + 1 - postfix - (token.startIndex + prefix),
+                                    start: token.start + prefix,
+                                    length: token.stop + 1 - postfix - (token.start + prefix),
                                 };
 
                                 // Do we already have this range linked?

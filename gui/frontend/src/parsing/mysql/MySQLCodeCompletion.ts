@@ -24,11 +24,7 @@
 // cspell: disable
 
 import { CandidatesCollection, CodeCompletionCore } from "antlr4-c3";
-import { BufferedTokenStream } from "antlr4ts/BufferedTokenStream";
-import { CommonTokenStream } from "antlr4ts/CommonTokenStream";
-import { CharStreams } from "antlr4ts/CharStreams";
-import { ParseTreeWalker } from "antlr4ts/tree/ParseTreeWalker";
-import { ParseTreeListener } from "antlr4ts/tree/ParseTreeListener";
+import { BufferedTokenStream, CharStreams, CommonTokenStream, ParseTreeListener, ParseTreeWalker } from "antlr4ng";
 
 import { MySQLLexer } from "./generated/MySQLLexer";
 import { MySQLParser } from "./generated/MySQLParser";
@@ -627,7 +623,7 @@ export class AutoCompletionContext {
         this.lexer.sqlModes = this.parser.sqlModes;
         fromParser.serverVersion = this.parser.serverVersion;
         fromParser.sqlModes = this.parser.sqlModes;
-        fromParser.buildParseTree = true;
+        fromParser.buildParseTrees = true;
 
         fromParser.removeErrorListeners();
         const tree = fromParser.fromClause();
@@ -673,14 +669,14 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
 
     // Also create a separate scanner which allows us to easily navigate the tokens
     // without affecting the token stream used by the parser.
-    const scanner = new Scanner(parser.inputStream as BufferedTokenStream);
+    const scanner = new Scanner(parser.getInputStream() as BufferedTokenStream);
 
     // Move to caret position and store that on the this.scanner stack.
     scanner.advanceToPosition(caretLine, caretOffset);
     scanner.push();
 
     let queryType = QueryType.Unknown;
-    const lexer = parser.inputStream.tokenSource as MySQLLexer;
+    const lexer = parser.getInputStream().getTokenSource() as MySQLLexer;
     if (lexer) {
         lexer.reset(); // Set back the input position to the beginning for query type determination.
         queryType = lexer.determineQueryType();
@@ -689,10 +685,10 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
     const context = new AutoCompletionContext(parser, scanner, lexer);
     context.collectCandidates();
 
-    const vocabulary = parser.vocabulary;
+    const vocabulary = parser.getVocabulary();
 
     for (const candidate of context.completionCandidates.tokens) {
-        let entry = vocabulary.getDisplayName(candidate[0]);
+        let entry = vocabulary.getDisplayName(candidate[0])!;
         if (entry.endsWith("_SYMBOL")) {
             entry = entry.substring(0, entry.length - 7);
         } else {
@@ -706,7 +702,7 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
                 isFunction = true;
             } else {
                 for (const token of candidate[1]) {
-                    let subEntry = vocabulary.getDisplayName(token);
+                    let subEntry = vocabulary.getDisplayName(token)!;
                     if (subEntry.endsWith("_SYMBOL")) {
                         subEntry = subEntry.substring(0, subEntry.length - 7);
                     } else {

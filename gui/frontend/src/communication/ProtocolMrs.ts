@@ -1453,8 +1453,8 @@ export interface IMrsObject {
 }
 
 export enum MrsScriptResultType {
-    success = "success",
-    error = "error",
+    Success = "success",
+    Error = "error",
 }
 
 export interface IMrsScriptResult {
@@ -1545,6 +1545,6 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsGetTableColumnsWithReferences]: { result: IMrsTableColumnWithReference[]; };
     [ShellAPIMrs.MrsGetObjectFieldsWithReferences]: { result: IMrsObjectFieldWithReference[]; };
     [ShellAPIMrs.MrsDumpSdkServiceFiles]: { result: boolean; };
-    [ShellAPIMrs.MrsRunScript]: {result: IMrsScriptResult[]; };
+    [ShellAPIMrs.MrsRunScript]: { result: IMrsScriptResult[]; };
 }
 

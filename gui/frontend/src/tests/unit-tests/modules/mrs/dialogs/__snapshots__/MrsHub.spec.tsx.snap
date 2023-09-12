@@ -740,7 +740,7 @@ exports[`MrsHub Tests Show MRS DB Object Dialog (snapshot) 1`] = `
             class="msg label valueTitle"
             data-tooltip="expand"
           >
-            Flags
+            MRS Object Flags
           </label>
           <label
             class="msg checkbox checked valueEditor"
@@ -805,6 +805,32 @@ exports[`MrsHub Tests Show MRS DB Object Dialog (snapshot) 1`] = `
                       class="msg label"
                       data-tooltip="inherit"
                     >
+                      Settings
+                    </label>
+                  </div>
+                  <div
+                    class="msg button tabItem"
+                    id="page2"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      Authorization
+                    </label>
+                  </div>
+                  <div
+                    class="msg button tabItem"
+                    id="page3"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
                       Options
                     </label>
                   </div>
@@ -855,6 +881,7 @@ exports[`MrsHub Tests Show MRS DB Object Dialog (snapshot) 1`] = `
                           </label>
                           <input
                             class="msg input"
+                            id="dbObject"
                             spellcheck="true"
                             type="text"
                           />
@@ -866,7 +893,7 @@ exports[`MrsHub Tests Show MRS DB Object Dialog (snapshot) 1`] = `
                       >
                         <div
                           class="msg button imageOnly sqlPreviewBtn"
-                          data-tooltip="Toggle MRS SQL Preview"
+                          data-tooltip="Toggle MRS DDL Preview"
                           role="button"
                           tabindex="0"
                         >
@@ -878,7 +905,7 @@ exports[`MrsHub Tests Show MRS DB Object Dialog (snapshot) 1`] = `
                             class="msg label"
                             data-tooltip="inherit"
                           >
-                            SQL Preview
+                            DDL Preview
                           </label>
                         </div>
                         <div
@@ -1127,34 +1154,6 @@ exports[`MrsHub Tests Show MRS Schema Dialog (snapshot) 1`] = `
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 5;"
-        >
-          <label
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-            Comments
-          </label>
-          <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
-          >
-            <input
-              class="msg input valueEditor"
-              id="comments"
-              spellcheck="true"
-              type="text"
-            />
-          </div>
-          <label
-            class="msg label cellDescription"
-            data-tooltip="expand"
-          >
-            Comments to describe this REST Schema.
-          </label>
-        </div>
-        <div
-          class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
         >
           <label
@@ -1183,63 +1182,13 @@ exports[`MrsHub Tests Show MRS Schema Dialog (snapshot) 1`] = `
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
-        >
-          <label
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-            Schema Name
-          </label>
-          <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
-          >
-            <input
-              class="msg input valueEditor"
-              id="name"
-              spellcheck="true"
-              type="text"
-            />
-          </div>
-          <label
-            class="msg label cellDescription"
-            data-tooltip="expand"
-          >
-            The name of the corresponding database schema.
-          </label>
-        </div>
-        <div
-          class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 2;"
         >
           <label
             class="msg label valueTitle"
             data-tooltip="expand"
           >
-            Items per Page
-          </label>
-          <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
-          >
-            <input
-              class="msg input valueEditor"
-              id="itemsPerPage"
-              spellcheck="true"
-              type="text"
-            />
-          </div>
-        </div>
-        <div
-          class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
-        >
-          <label
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-            Flags
+            REST Schema Flags
           </label>
           <label
             class="msg checkbox checked valueEditor"
@@ -1259,36 +1208,153 @@ exports[`MrsHub Tests Show MRS Schema Dialog (snapshot) 1`] = `
             <span
               class="checkMark"
             />
-            Requires Authentication
+            Requires Auth
           </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 5;"
+          style="flex-direction: row; grid-column: span 8;"
         >
-          <label
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-            Options
-          </label>
           <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
+            class="msg container fixedScrollbar tabview top"
+            style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
           >
-            <textarea
-              class="msg input valueEditor"
-              id="options"
-              spellcheck="true"
-              type="text"
-            />
+            <div
+              class="msg container tabAreaContainer"
+              style="flex-direction: row;"
+            >
+              <div
+                class="scrollable"
+              >
+                <div
+                  class="msg container tabArea stretched"
+                  style="flex-direction: row;"
+                >
+                  <div
+                    class="msg button tabItem selected"
+                    id="page0"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      Settings
+                    </label>
+                  </div>
+                  <div
+                    class="msg button tabItem"
+                    id="page1"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      Options
+                    </label>
+                  </div>
+                </div>
+                <div
+                  class="scrollbar"
+                >
+                  <div
+                    class="slider"
+                  />
+                </div>
+              </div>
+            </div>
+            <div
+              class="msg container fixedScrollbar content"
+              style="flex-direction: column;"
+            >
+              <div
+                class="msg grid"
+                style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
+              >
+                <div
+                  class="msg container fixedScrollbar gridCell"
+                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 5;"
+                >
+                  <label
+                    class="msg label valueTitle"
+                    data-tooltip="expand"
+                  >
+                    Database Schema Name
+                  </label>
+                  <div
+                    class="msg container fixedScrollbar inputWithProgress"
+                    style="flex-direction: row;"
+                  >
+                    <input
+                      class="msg input valueEditor"
+                      id="dbSchemaName"
+                      spellcheck="true"
+                      type="text"
+                    />
+                  </div>
+                  <label
+                    class="msg label cellDescription"
+                    data-tooltip="expand"
+                  >
+                    The name of the corresponding database schema.
+                  </label>
+                </div>
+                <div
+                  class="msg container fixedScrollbar gridCell"
+                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
+                >
+                  <label
+                    class="msg label valueTitle"
+                    data-tooltip="expand"
+                  >
+                    Items per Page
+                  </label>
+                  <div
+                    class="msg container fixedScrollbar inputWithProgress"
+                    style="flex-direction: row;"
+                  >
+                    <input
+                      class="msg input valueEditor"
+                      id="itemsPerPage"
+                      spellcheck="true"
+                      type="text"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="msg container fixedScrollbar gridCell"
+                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+                >
+                  <label
+                    class="msg label valueTitle"
+                    data-tooltip="expand"
+                  >
+                    Comments
+                  </label>
+                  <div
+                    class="msg container fixedScrollbar inputWithProgress"
+                    style="flex-direction: row;"
+                  >
+                    <input
+                      class="msg input valueEditor"
+                      id="comments"
+                      spellcheck="true"
+                      type="text"
+                    />
+                  </div>
+                  <label
+                    class="msg label cellDescription"
+                    data-tooltip="expand"
+                  >
+                    Comments to describe this REST Schema.
+                  </label>
+                </div>
+              </div>
+            </div>
           </div>
-          <label
-            class="msg label cellDescription"
-            data-tooltip="expand"
-          >
-            Additional options in JSON format
-          </label>
         </div>
       </div>
     </div>
@@ -1381,7 +1447,7 @@ exports[`MrsHub Tests Show MRS Service Dialog (snapshot) 1`] = `
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 6;"
         >
           <label
             class="msg label valueTitle"
@@ -1409,101 +1475,13 @@ exports[`MrsHub Tests Show MRS Service Dialog (snapshot) 1`] = `
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 5;"
-        >
-          <label
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-            Comments
-          </label>
-          <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
-          >
-            <input
-              class="msg input valueEditor"
-              id="comments"
-              spellcheck="true"
-              type="text"
-            />
-          </div>
-          <label
-            class="msg label cellDescription"
-            data-tooltip="expand"
-          >
-            Comments to describe this MRS Service.
-          </label>
-        </div>
-        <div
-          class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
-        >
-          <label
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-            Host Name Filter
-          </label>
-          <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
-          >
-            <input
-              class="msg input valueEditor"
-              id="hostName"
-              placeholder="<Host Name Filter:Port>"
-              spellcheck="true"
-              type="text"
-            />
-          </div>
-          <label
-            class="msg label cellDescription"
-            data-tooltip="expand"
-          >
-            If specified, only requests for this host will served.
-          </label>
-        </div>
-        <div
-          class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
-        >
-          <label
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-            Supported Protocols
-          </label>
-          <div
-            class="msg container fixedScrollbar tagInput dropdown multiSelect"
-            id="protocols"
-            style="flex-direction: row; flex-wrap: wrap;"
-            tabindex="0"
-          >
-            <label
-              class="msg label tag"
-              data-tooltip="expand"
-              draggable="true"
-            >
-              HTTPS
-            </label>
-          </div>
-          <label
-            class="msg label cellDescription"
-            data-tooltip="expand"
-          >
-            The supported protocols.
-          </label>
-        </div>
-        <div
-          class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 2;"
         >
           <label
             class="msg label valueTitle"
             data-tooltip="expand"
           >
-            MRS Service Flags
+            REST Service Flags
           </label>
           <label
             class="msg checkbox checked valueEditor"
@@ -1555,7 +1533,7 @@ exports[`MrsHub Tests Show MRS Service Dialog (snapshot) 1`] = `
                       class="msg label"
                       data-tooltip="inherit"
                     >
-                      Options
+                      Settings
                     </label>
                   </div>
                   <div
@@ -1568,12 +1546,25 @@ exports[`MrsHub Tests Show MRS Service Dialog (snapshot) 1`] = `
                       class="msg label"
                       data-tooltip="inherit"
                     >
-                      Authentication
+                      Options
                     </label>
                   </div>
                   <div
                     class="msg button tabItem"
                     id="page2"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      Authentication
+                    </label>
+                  </div>
+                  <div
+                    class="msg button tabItem"
+                    id="page3"
                     role="button"
                     tabindex="-1"
                   >
@@ -1610,19 +1601,54 @@ exports[`MrsHub Tests Show MRS Service Dialog (snapshot) 1`] = `
                     class="msg label valueTitle"
                     data-tooltip="expand"
                   >
-                    Options in JSON Format:
+                    Comments
                   </label>
                   <div
                     class="msg container fixedScrollbar inputWithProgress"
                     style="flex-direction: row;"
                   >
-                    <textarea
+                    <input
                       class="msg input valueEditor"
-                      id="options"
+                      id="comments"
                       spellcheck="true"
                       type="text"
                     />
                   </div>
+                  <label
+                    class="msg label cellDescription"
+                    data-tooltip="expand"
+                  >
+                    Comments to describe this REST Service.
+                  </label>
+                </div>
+                <div
+                  class="msg container fixedScrollbar gridCell"
+                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+                >
+                  <label
+                    class="msg label valueTitle"
+                    data-tooltip="expand"
+                  >
+                    Host Name Filter
+                  </label>
+                  <div
+                    class="msg container fixedScrollbar inputWithProgress"
+                    style="flex-direction: row;"
+                  >
+                    <input
+                      class="msg input valueEditor"
+                      id="hostName"
+                      placeholder="<Host Name Filter:Port>"
+                      spellcheck="true"
+                      type="text"
+                    />
+                  </div>
+                  <label
+                    class="msg label cellDescription"
+                    data-tooltip="expand"
+                  >
+                    If specified, the REST service will only be made available to requests for this specific host.
+                  </label>
                 </div>
               </div>
             </div>

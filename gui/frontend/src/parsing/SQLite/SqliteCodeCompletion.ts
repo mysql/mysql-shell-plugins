@@ -24,9 +24,7 @@
 /* eslint-disable no-underscore-dangle */
 
 import { CandidatesCollection, CodeCompletionCore } from "antlr4-c3";
-import { CharStreams } from "antlr4ts/CharStreams";
-import { CommonTokenStream } from "antlr4ts/CommonTokenStream";
-import { BufferedTokenStream } from "antlr4ts/BufferedTokenStream";
+import { BufferedTokenStream, CharStreams, CommonTokenStream } from "antlr4ng";
 
 import { SQLiteLexer } from "./generated/SQLiteLexer";
 import { SQLiteParser } from "./generated/SQLiteParser";
@@ -433,7 +431,7 @@ class AutoCompletionContext {
             return true;
         }
 
-        const symbol = this.lexer.vocabulary.getSymbolicName(type);
+        const symbol = this.lexer.getVocabulary().getSymbolicName(type);
         if (symbol && symbol !== "" && !isReservedKeyword(symbol, SQLiteVersion.Standard)) {
             return true;
         }
@@ -600,22 +598,22 @@ class AutoCompletionContext {
         const tokens = new CommonTokenStream(lexer);
         const fromParser = new SQLiteParser(tokens);
 
-        fromParser.buildParseTree = true;
+        fromParser.buildParseTrees = true;
 
         fromParser.removeErrorListeners();
         const tree = fromParser.from_clause();
-        tree.table_or_subquery().forEach((entry) => {
+        tree.table_or_subquery__list().forEach((entry) => {
             if (entry.table_name()) {
-                const table = unquote(entry.table_name()!.text, "\"`'[(");
+                const table = unquote(entry.table_name()!.getText(), "\"`'[(");
 
                 let schema = "";
                 if (entry.schema_name()) {
-                    schema = unquote(entry.schema_name()!.text, "\"`'[(");
+                    schema = unquote(entry.schema_name()!.getText(), "\"`'[(");
                 }
 
                 let alias = "";
                 if (entry.table_alias()) {
-                    alias = unquote(entry.table_alias()!.text, "\"`'[(");
+                    alias = unquote(entry.table_alias()!.getText(), "\"`'[(");
                 }
 
                 this.pushTableReference({
@@ -672,23 +670,23 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
 
     // Also create a separate this.scanner which allows us to easily navigate the tokens
     // without affecting the token stream used by the parser.
-    const scanner = new Scanner(parser.inputStream as BufferedTokenStream);
+    const scanner = new Scanner(parser._input as BufferedTokenStream);
 
     // Move to caret position and store that on the this.scanner stack.
     scanner.advanceToPosition(caretLine, caretOffset);
     scanner.push();
 
-    const lexer = parser.inputStream.tokenSource as SQLiteLexer;
+    const lexer = parser._input.getTokenSource() as SQLiteLexer;
     const context = new AutoCompletionContext(parser, lexer, scanner);
     context.collectCandidates();
 
-    const vocabulary = lexer.vocabulary;
+    const vocabulary = lexer.getVocabulary();
 
     // Note: sorting within the lists is done using the `sortText` field in a completion item.
     for (const candidate of context.completionCandidates.tokens) {
-        let entry = vocabulary.getDisplayName(candidate[0]);
+        let entry = vocabulary.getDisplayName(candidate[0])!;
         if (entry.endsWith("_")) {
-            entry = entry.substr(0, entry.length - 1);
+            entry = entry.substring(0, entry.length - 1);
         } else {
             entry = unquote(entry);
         }
@@ -700,9 +698,9 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
                 isFunction = true;
             } else {
                 for (const token of candidate[1]) {
-                    let subEntry = vocabulary.getDisplayName(token);
+                    let subEntry = vocabulary.getDisplayName(token)!;
                     if (subEntry.endsWith("_")) {
-                        subEntry = subEntry.substr(0, subEntry.length - 1);
+                        subEntry = subEntry.substring(0, subEntry.length - 1);
                     } else {
                         subEntry = unquote(subEntry);
                     }

@@ -421,5 +421,94 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
       </Menu>
     </ValueEditDialog>
   </MdsHWLoadDataDialog>
+  <MdsEndpointDialog
+    onClose={[Function]}
+  >
+    <ValueEditDialog
+      id="mdsEndpointDialog"
+      onClose={[Function]}
+      onValidate={[Function]}
+    >
+      <Dialog
+        actions={
+          {
+            "begin": [],
+            "end": [
+              <Button
+                caption="OK"
+                disabled={false}
+                id="ok"
+                onClick={[Function]}
+              />,
+              <Button
+                caption="Cancel"
+                id="cancel"
+                onClick={[Function]}
+              />,
+            ],
+          }
+        }
+        caption={
+          <p>
+            <Icon
+              disabled={false}
+              src={389}
+            />
+            <Label />
+          </p>
+        }
+        className="msg valueEditDialog"
+        container={
+          <body
+            theme="dark"
+          />
+        }
+        content={
+          <Grid
+            columnGap={16}
+            columns={8}
+            id="contentGrid"
+            rowGap={16}
+          />
+        }
+        id="mdsEndpointDialog"
+        onClose={[Function]}
+      >
+        <Portal
+          container={
+            <body
+              theme="dark"
+            />
+          }
+          id="mdsEndpointDialog"
+          onClose={[Function]}
+          onOpen={[Function]}
+        />
+      </Dialog>
+      <Menu
+        onItemClick={[Function]}
+        orientation="column"
+        placement="right-start"
+      >
+        <Popup
+          className="msg menu"
+          onClose={[Function]}
+          onKeyDown={[Function]}
+          onOpen={[Function]}
+          orientation="column"
+          pinned={false}
+          placement="right-start"
+          showArrow={false}
+        >
+          <Portal
+            className="popupPortal"
+            onClose={[Function]}
+            onKeyDown={[Function]}
+            onOpen={[Function]}
+          />
+        </Popup>
+      </Menu>
+    </ValueEditDialog>
+  </MdsEndpointDialog>
 </DialogHost>
 `;

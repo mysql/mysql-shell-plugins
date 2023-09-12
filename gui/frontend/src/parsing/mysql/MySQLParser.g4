@@ -567,10 +567,7 @@ routineOption:
 
 createIndex:
     onlineOption? (
-        UNIQUE_SYMBOL? type = INDEX_SYMBOL (
-            {this.serverVersion >= 80014}? indexName indexTypeClause?
-            | indexNameAndType?
-        ) createIndexTarget indexOption*
+        UNIQUE_SYMBOL? type = INDEX_SYMBOL indexName indexTypeClause? createIndexTarget indexOption*
         | type = FULLTEXT_SYMBOL INDEX_SYMBOL indexName createIndexTarget fulltextIndexOption*
         | type = SPATIAL_SYMBOL INDEX_SYMBOL indexName createIndexTarget spatialIndexOption*
     ) indexLockAndAlgorithm?
@@ -600,7 +597,7 @@ indexNameAndType:
 ;
 
 createIndexTarget:
-    ON_SYMBOL tableRef keyListVariants
+    ON_SYMBOL tableRef keyListWithExpression
 ;
 
 createLogfileGroup:
@@ -650,8 +647,8 @@ createUndoTablespace:
 ;
 
 tsDataFileName:
-    {this.serverVersion >= 80014}? (ADD_SYMBOL tsDataFile)?
-    | ADD_SYMBOL tsDataFile
+    ADD_SYMBOL tsDataFile
+    | {this.serverVersion >= 80014}? (ADD_SYMBOL tsDataFile)? // now optional
 ;
 
 tsDataFile:
@@ -977,14 +974,9 @@ insertValues:
 ;
 
 insertQueryExpression:
-    {this.serverVersion < 80031}? (
-        queryExpressionOrParens
-        | OPEN_PAR_SYMBOL fields? CLOSE_PAR_SYMBOL queryExpressionWithOptLockingClauses
-    )
-    | {this.serverVersion >= 80031}? (
-        queryExpressionWithOptLockingClauses
-        | OPEN_PAR_SYMBOL fields? CLOSE_PAR_SYMBOL queryExpressionWithOptLockingClauses
-    )
+    queryExpression
+    | queryExpressionParens
+    | (OPEN_PAR_SYMBOL fields? CLOSE_PAR_SYMBOL)? queryExpressionWithOptLockingClauses
 ;
 
 valueList:
@@ -1070,29 +1062,19 @@ selectStatementWithInto:
 ;
 
 queryExpression:
-    {this.serverVersion < 80031}? (
-        withClause? (queryExpressionBody | queryExpressionParens) orderClause? limitClause?
-    )
-    | {this.serverVersion >= 80031}? (
-        withClause? queryExpressionBodyNew orderClause? limitClause?
-    )
+    withClause? queryExpressionBody orderClause? limitClause?
 ;
 
 queryExpressionBody:
-    (
-        queryPrimary
-        | queryExpressionParens UNION_SYMBOL unionOption? (
-            queryPrimary
-            | queryExpressionParens
-        )
-    ) (UNION_SYMBOL unionOption? ( queryPrimary | queryExpressionParens))*
-;
+    (queryPrimary | queryExpressionParens)
 
-// Have to factor this part out into a new rule as ANTLR4 will otherwise complain about direct left recursion.
-queryExpressionBodyNew:
-    queryPrimary
-    | queryExpressionParens
-    | queryExpressionBody (UNION_SYMBOL | EXCEPT_SYMBOL | INTERSECT_SYMBOL) unionOption? queryExpressionBody
+    // Unlimited UNIONS.
+    (
+        (
+            UNION_SYMBOL
+            | {this.serverVersion >= 80031}? (EXCEPT_SYMBOL | INTERSECT_SYMBOL)
+        ) unionOption? queryExpressionBody
+    )*
 ;
 
 queryExpressionParens:
@@ -1569,10 +1551,7 @@ resetOption:
 ;
 
 sourceResetOptions:
-    TO_SYMBOL (
-        {this.serverVersion < 80017}? real_ulong_number
-        | {this.serverVersion >= 80017}? real_ulonglong_number
-    )
+    TO_SYMBOL real_ulonglong_number
 ;
 
 replicationLoad:
@@ -2111,8 +2090,7 @@ grantTargetList:
 ;
 
 grantOptions:
-    {this.serverVersion < 80011}? WITH_SYMBOL grantOption+
-    | {this.serverVersion >= 80011}? WITH_SYMBOL GRANT_SYMBOL OPTION_SYMBOL
+    WITH_SYMBOL grantOption ({this.serverVersion < 80011}? grantOption)*
 ;
 
 exceptRoleList:
@@ -2215,10 +2193,12 @@ requireListElement:
 
 grantOption:
     option = GRANT_SYMBOL OPTION_SYMBOL
-    | option = MAX_QUERIES_PER_HOUR_SYMBOL ulong_number
-    | option = MAX_UPDATES_PER_HOUR_SYMBOL ulong_number
-    | option = MAX_CONNECTIONS_PER_HOUR_SYMBOL ulong_number
-    | option = MAX_USER_CONNECTIONS_SYMBOL ulong_number
+    | {this.serverVersion < 80011}? (
+        option = MAX_QUERIES_PER_HOUR_SYMBOL ulong_number
+        | option = MAX_UPDATES_PER_HOUR_SYMBOL ulong_number
+        | option = MAX_CONNECTIONS_PER_HOUR_SYMBOL ulong_number
+        | option = MAX_USER_CONNECTIONS_SYMBOL ulong_number
+    )
 ;
 
 setRoleStatement:
@@ -2912,8 +2892,8 @@ windowFunctionCall:
         | PERCENT_RANK_SYMBOL
     ) parentheses windowingClause
     | NTILE_SYMBOL (
-        {this.serverVersion < 80024}? simpleExprWithParentheses
-        | {this.serverVersion >= 80024}? OPEN_PAR_SYMBOL stableInteger CLOSE_PAR_SYMBOL
+        OPEN_PAR_SYMBOL stableInteger CLOSE_PAR_SYMBOL
+        | {this.serverVersion < 80024}? simpleExprWithParentheses
     ) windowingClause
     | (LEAD_SYMBOL | LAG_SYMBOL) OPEN_PAR_SYMBOL expr leadLagInfo? CLOSE_PAR_SYMBOL nullTreatment? windowingClause
     | (FIRST_VALUE_SYMBOL | LAST_VALUE_SYMBOL) exprWithParentheses nullTreatment? windowingClause
@@ -2928,7 +2908,8 @@ windowingClause:
 
 leadLagInfo:
     COMMA_SYMBOL (
-        {this.serverVersion < 80024}? (ulonglong_number | PARAM_MARKER)
+        ulonglong_number
+        | PARAM_MARKER
         | {this.serverVersion >= 80024}? stableInteger
     ) (COMMA_SYMBOL expr)?
 ;
@@ -3133,7 +3114,7 @@ rvalueSystemOrUserVariable:
 
 lvalueVariable: (
         // Check in semantic phase that the first id is not global/local/session/default.
-        {this.serverVersion < 80017}? identifier dotIdentifier?
+        identifier dotIdentifier?
         | {this.serverVersion >= 80017}? lValueIdentifier dotIdentifier?
     )
     | DEFAULT_SYMBOL dotIdentifier
@@ -3497,11 +3478,11 @@ constraintEnforcement:
 ;
 
 tableConstraintDef:
-    type = (KEY_SYMBOL | INDEX_SYMBOL) indexNameAndType? keyListVariants indexOption*
-    | type = FULLTEXT_SYMBOL keyOrIndex? indexName? keyListVariants fulltextIndexOption*
-    | type = SPATIAL_SYMBOL keyOrIndex? indexName? keyListVariants spatialIndexOption*
+    type = (KEY_SYMBOL | INDEX_SYMBOL) indexNameAndType? keyListWithExpression indexOption*
+    | type = FULLTEXT_SYMBOL keyOrIndex? indexName? keyListWithExpression fulltextIndexOption*
+    | type = SPATIAL_SYMBOL keyOrIndex? indexName? keyListWithExpression spatialIndexOption*
     | constraintName? (
-        (type = PRIMARY_SYMBOL KEY_SYMBOL | type = UNIQUE_SYMBOL keyOrIndex?) indexNameAndType? keyListVariants indexOption*
+        (type = PRIMARY_SYMBOL KEY_SYMBOL | type = UNIQUE_SYMBOL keyOrIndex?) indexNameAndType? keyListWithExpression indexOption*
         | type = FOREIGN_SYMBOL KEY_SYMBOL indexName? keyList references
         | checkConstraint ({this.serverVersion >= 80017}? constraintEnforcement)?
     )
@@ -3525,9 +3506,7 @@ columnAttribute:
     NOT_SYMBOL? nullLiteral
     | {this.serverVersion >= 80014}? NOT_SYMBOL SECONDARY_SYMBOL
     | value = DEFAULT_SYMBOL (
-        {this.serverVersion < 80024}? signedLiteral
-        | {this.serverVersion >= 80024}? nowOrSignedLiteral
-        | NOW_SYMBOL timeFunctionParameters?
+        nowOrSignedLiteral
         | {this.serverVersion >= 80013}? exprWithParentheses
     )
     | value = ON_SYMBOL UPDATE_SYMBOL NOW_SYMBOL timeFunctionParameters?
@@ -3609,12 +3588,7 @@ keyListWithExpression:
 
 keyPartOrExpression: // key_part_with_expression in sql_yacc.yy.
     keyPart
-    | exprWithParentheses direction?
-;
-
-keyListVariants:
-    {this.serverVersion >= 80013}? keyListWithExpression
-    | {this.serverVersion < 80013}? keyList
+    | {this.serverVersion >= 80013}? exprWithParentheses direction?
 ;
 
 indexType:

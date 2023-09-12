@@ -21,15 +21,14 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+/* eslint-disable no-underscore-dangle */
+
 // This file contains the main interface to all language services for Python.
 
-import { CharStreams } from "antlr4ts/CharStreams";
-import { CommonTokenStream } from "antlr4ts/CommonTokenStream";
-import { ParseTree } from "antlr4ts/tree/ParseTree";
-import { BailErrorStrategy } from "antlr4ts/BailErrorStrategy";
-import { PredictionMode } from "antlr4ts/atn/PredictionMode";
-import { ParseCancellationException } from "antlr4ts/misc/ParseCancellationException";
-import { DefaultErrorStrategy } from "antlr4ts/DefaultErrorStrategy";
+import {
+    BailErrorStrategy, CharStreams, CommonTokenStream, DefaultErrorStrategy, ParseCancellationException,
+    ParseTree, PredictionMode,
+} from "antlr4ng";
 
 import { PythonLexer } from "./generated/PythonLexer";
 import { PythonParser } from "./generated/PythonParser";
@@ -43,9 +42,7 @@ export enum PythonParseUnit {
 }
 
 export class PythonParsingServices {
-
     private static services?: PythonParsingServices;
-    private static readonly delimiterKeyword = /delimiter/i;
 
     private lexer = new PythonLexer(CharStreams.fromString(""));
     private tokenStream = new CommonTokenStream(this.lexer);
@@ -142,12 +139,12 @@ export class PythonParsingServices {
             while (index < tokens.length) {
                 let token = tokens[index];
                 const tokenLine = token.line - 1; // ANTLR lines are one-based.
-                if (tokenLine > line || (tokenLine === line && token.charPositionInLine > offset)) {
+                if (tokenLine > line || (tokenLine === line && token.column > offset)) {
                     // First token starting after the caret.
                     if (index > 0) {
                         // See if the previous token starts before or on the caret.
                         token = tokens[index - 1];
-                        if (token.line - 1 < line || token.charPositionInLine <= offset) {
+                        if (token.line - 1 < line || token.column <= offset) {
                             if (token.type === PythonLexer.STRING && token.text) {
                                 return unquote(token.text);
                             }
@@ -179,14 +176,14 @@ export class PythonParsingServices {
     private startParsing(text: string, fast: boolean, unit: PythonParseUnit): ParseTree | undefined {
         this.errors = [];
         this.lexer.inputStream = CharStreams.fromString(text);
-        this.tokenStream.tokenSource = this.lexer;
+        this.tokenStream.setTokenSource(this.lexer);
 
         this.parser.reset();
-        this.parser.buildParseTree = !fast;
+        this.parser.buildParseTrees = !fast;
 
         // First parse with the bail error strategy to get quick feedback for correct queries.
-        this.parser.errorHandler = new BailErrorStrategy();
-        this.parser.interpreter.setPredictionMode(PredictionMode.SLL);
+        this.parser._errHandler = new BailErrorStrategy();
+        this.parser._interp.predictionMode = PredictionMode.SLL;
 
         try {
             this.tree = this.parseUnit(unit);
@@ -202,8 +199,8 @@ export class PythonParsingServices {
                     this.tokenStream.seek(0);
                     this.parser.reset();
                     this.errors = [];
-                    this.parser.errorHandler = new DefaultErrorStrategy();
-                    this.parser.interpreter.setPredictionMode(PredictionMode.LL);
+                    this.parser._errHandler = new DefaultErrorStrategy();
+                    this.parser._interp.predictionMode = PredictionMode.LL;
                     this.tree = this.parseUnit(unit);
                 }
             } else {
