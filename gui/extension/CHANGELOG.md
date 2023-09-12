@@ -81,6 +81,7 @@
 - Updated TypeScript MRS SDK and fixed compilation issues
 - BUG#35649509 "mrs.add.db_object()" cannot add schema automatically
 - BUG#35745272 Excessively deep and possibly infinite type instantiation for GEOMETRY values
+- BUG#35797406 Questions that prompt for user action do not have trailing question marks
 
 ## Changes in 1.12.0+8.1.1
 

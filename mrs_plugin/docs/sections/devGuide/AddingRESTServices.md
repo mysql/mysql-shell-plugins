@@ -194,8 +194,8 @@ When started without parameters, an interactive wizard prompts you for the requi
 
 Please enter the name or index of a schema: 4
 Please enter the request path for this schema [/sakila]: /sakila
-Should the schema require authentication [y/N]:
-How many items should be listed per page [Schema Default]:
+Should the schema require authentication? [y/N]:
+How many items should be listed per page? [Schema Default]:
 Comments:
 Options:
 
@@ -319,9 +319,9 @@ Please select the CRUD operations that should be supported, '*' for all [READ]:
    3 MEDIA
 
 Please select the CRUD operation format [FEED]:
-Should the db_object require authentication [y/N]:
-Should row ownership be required when querying the object [y/N]:
-How many items should be listed per page [Schema Default]:
+Should the db_object require authentication? [y/N]:
+Should row ownership be required when querying the object? [y/N]:
+How many items should be listed per page? [Schema Default]:
 Comments:
 
 Object added successfully.

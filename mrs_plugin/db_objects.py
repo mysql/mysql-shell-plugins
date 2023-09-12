@@ -294,7 +294,7 @@ def add_db_object(**kwargs):
             if requires_auth is None:
                 if interactive:
                     requires_auth = lib.core.prompt(
-                        "Should the db_object require authentication [y/N]: ",
+                        "Should the db_object require authentication? [y/N]: ",
                         {'defaultValue': 'n'}).strip().lower() == 'y'
                 else:
                     requires_auth = False
@@ -304,7 +304,7 @@ def add_db_object(**kwargs):
                 if interactive:
                     row_user_ownership_enforced = lib.core.prompt(
                         "Should row ownership be required when querying the "
-                        "object [y/N]: ",
+                        "object? [y/N]: ",
                         {'defaultValue': 'n'}).strip().lower() == 'y'
                 else:
                     row_user_ownership_enforced = False
@@ -332,7 +332,7 @@ def add_db_object(**kwargs):
             if items_per_page is None:
                 if interactive:
                     items_per_page = lib.core.prompt(
-                        "How many items should be listed per page "
+                        "How many items should be listed per page? "
                         "[Schema Default]: ",
                         {'defaultValue': "25"}).strip()
                     if items_per_page:
