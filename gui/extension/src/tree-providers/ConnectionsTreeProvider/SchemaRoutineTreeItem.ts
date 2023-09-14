@@ -23,27 +23,29 @@
 
 import { Command } from "vscode";
 
+import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
+
 import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem";
-import { IConnectionEntry } from "./ConnectionsTreeProvider";
 
 export class SchemaRoutineTreeItem extends ConnectionsTreeBaseItem {
     public contextValue = "schemaRoutineItem";
 
     public constructor(
-        public name: string,
-        public schema: string,
-        public type: "function" | "procedure",
-        public entry: IConnectionEntry,
+        name: string,
+        schema: string,
+        private type: "function" | "procedure",
+        backend: ShellInterfaceSqlEditor,
+        connectionId: number,
         hasChildren: boolean,
         command?: Command) {
-        super(name, schema, entry, "schemaRoutine.svg", hasChildren, command);
+        super(name, schema, backend, connectionId, "schemaRoutine.svg", hasChildren, command);
     }
 
     public get qualifiedName(): string {
         return `\`${this.schema}\`.\`${this.name}\``;
     }
 
-    public get dbType(): string {
+    public get dbType(): "function" | "procedure" {
         return this.type;
     }
 

@@ -103,9 +103,10 @@ export class NotebookEditorProvider implements CustomTextEditorProvider {
             void host.determineConnection(DBType.MySQL, true).then((connection) => {
                 if (connection) {
                     void workspace.openTextDocument(uri).then((document) => {
+                        const item = connection.treeItem;
                         void commands.executeCommand("vscode.openWith", uri, "msg.notebook").then(() => {
-                            void host.context.workspaceState.update(document.uri.toString(), connection.details.id);
-                            void this.showNotebookPage(connection.details.id, document.getText());
+                            void host.context.workspaceState.update(document.uri.toString(), item.details.id);
+                            void this.showNotebookPage(item.details.id, document.getText());
                         });
                     });
                 }
@@ -241,7 +242,7 @@ export class NotebookEditorProvider implements CustomTextEditorProvider {
         if (usedConnectionId === undefined) {
             const connection = await this.#host!.determineConnection(DBType.MySQL);
             if (connection) {
-                usedConnectionId = connection.details.id;
+                usedConnectionId = connection.treeItem.details.id;
             }
         }
 
@@ -307,7 +308,7 @@ export class NotebookEditorProvider implements CustomTextEditorProvider {
      */
     private isValidConnectionId(connectionId?: number): boolean {
         return connectionId !== undefined
-            && this.#host!.connections.find((c) => { return c.details.id === connectionId; }) !== undefined;
+            && this.#host!.connections.find((c) => { return c.treeItem.details.id === connectionId; }) !== undefined;
     }
 
     private handleDispose(): void {

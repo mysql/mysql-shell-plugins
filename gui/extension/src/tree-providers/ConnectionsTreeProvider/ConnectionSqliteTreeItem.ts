@@ -22,16 +22,17 @@
  */
 
 import * as path from "path";
+import { IConnectionDetails } from "../../../../frontend/src/supplement/ShellInterface";
+import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
 
-import { IConnectionEntry } from "./ConnectionsTreeProvider";
 import { ConnectionTreeItem } from "./ConnectionTreeItem";
 
 export class ConnectionSqliteTreeItem extends ConnectionTreeItem {
 
     public contextValue = "connectionSqlite";
 
-    public constructor(public entry: IConnectionEntry) {
-        super(entry);
+    public constructor(details: IConnectionDetails, backend: ShellInterfaceSqlEditor) {
+        super(details, backend);
 
         this.iconPath = {
             light: path.join(__dirname, "..", "images", "light", "connectionSqlite.svg"),

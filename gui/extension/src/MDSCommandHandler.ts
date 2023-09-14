@@ -43,10 +43,10 @@ import { DbSystem } from "../../frontend/src/oci-typings/oci-mysql/lib/model";
 
 import { DialogResponseClosure, IDictionary, MdsDialogType } from "../../frontend/src/app-logic/Types";
 import { DialogWebviewManager } from "./web-views/DialogWebviewProvider";
-import { ConnectionsTreeBaseItem } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeBaseItem";
 import { SchemaMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaMySQLTreeItem";
 import { IMdsProfileData } from "../../frontend/src/communication/ProtocolMds";
 import { ShellInterfaceShellSession } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceShellSession";
+import { ICdmSchemaEntry } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeDataModel";
 import { ShellInterface } from "../../frontend/src/supplement/ShellInterface/ShellInterface";
 import { webSession } from "../../frontend/src/supplement/WebSession";
 import { requisitions } from "../../frontend/src/supplement/Requisitions";
@@ -501,26 +501,27 @@ export class MDSCommandHandler {
             }));
 
         host.context.subscriptions.push(commands.registerCommand("msg.mds.loadToHeatWave",
-            async (item?: SchemaMySQLTreeItem, items?: ConnectionsTreeBaseItem[]) => {
-                if (item) {
+            async (entry?: ICdmSchemaEntry, items?: ICdmSchemaEntry[]) => {
+                if (entry) {
                     const schemas: string[] = [];
                     if (items && items.length > 0) {
                         items?.forEach((schema) => {
                             // Only consider SchemaMySQLTreeItems of the same connection
                             if (schema instanceof SchemaMySQLTreeItem
-                                && schema.entry.details.caption === item.entry.details.caption) {
+                                && schema.parent.treeItem.details.caption === entry.parent.treeItem.details.caption) {
                                 schemas.push(schema.name);
                             }
                         });
                     } else {
-                        schemas.push(item.name);
+                        schemas.push(entry.treeItem.name);
                     }
 
                     if (schemas.length > 0) {
                         try {
-                            const allSchemas = await item?.entry?.backend?.getCatalogObjects("Schema");
+                            const allSchemas = await entry?.treeItem.backend.getCatalogObjects("Schema");
                             if (allSchemas) {
-                                await this.showMdsHWLoadDataDialog(item.entry.details.id, schemas, allSchemas, host);
+                                await this.showMdsHWLoadDataDialog(entry.treeItem.connectionId, schemas, allSchemas,
+                                    host);
                             }
                         } catch (reason) {
                             await window.showErrorMessage(`Error retrieving schema list: ${String(reason)}`);

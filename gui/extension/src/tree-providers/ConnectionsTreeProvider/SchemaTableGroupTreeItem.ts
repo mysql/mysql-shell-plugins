@@ -23,7 +23,7 @@
 
 import { SchemaItemGroupType } from "./SchemaIndex";
 import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem";
-import { IConnectionEntry } from "./ConnectionsTreeProvider";
+import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
 
 export class TableGroupTreeItem extends ConnectionsTreeBaseItem {
 
@@ -32,9 +32,10 @@ export class TableGroupTreeItem extends ConnectionsTreeBaseItem {
     public constructor(
         schema: string,
         public table: string,
-        entry: IConnectionEntry,
-        type: SchemaItemGroupType) {
-        super(type, schema, entry, TableGroupTreeItem.getIconName(type), true);
+        backend: ShellInterfaceSqlEditor,
+        connectionId: number,
+        public groupType: SchemaItemGroupType) {
+        super(groupType, schema, backend, connectionId, TableGroupTreeItem.getIconName(groupType), true);
     }
 
 

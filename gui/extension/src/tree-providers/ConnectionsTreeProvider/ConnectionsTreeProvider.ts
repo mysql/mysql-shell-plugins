@@ -21,100 +21,89 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import {
-    TreeDataProvider, TreeItem, EventEmitter, ProviderResult, Event, window,
-} from "vscode";
+import { Event, EventEmitter, TreeDataProvider, TreeItem, window } from "vscode";
 
 import {
+    IEditorCloseChangeData,
+    IEditorOpenChangeData,
     IRequestListEntry, IRequestTypeMap, IWebviewProvider, requisitions,
 } from "../../../../frontend/src/supplement/Requisitions";
 
-import { DBType, IConnectionDetails } from "../../../../frontend/src/supplement/ShellInterface";
+import { DBType } from "../../../../frontend/src/supplement/ShellInterface";
 import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
 import { webSession } from "../../../../frontend/src/supplement/WebSession";
 
-import { ConnectionTreeItem } from "./ConnectionTreeItem";
-import { SchemaTreeItem } from "./SchemaTreeItem";
-import { SchemaMySQLTreeItem } from "./SchemaMySQLTreeItem";
 import { ISqliteConnectionOptions } from "../../../../frontend/src/communication/Sqlite";
 import { SchemaGroupTreeItem } from "./SchemaGroupTreeItem";
 import { SchemaItemGroupType } from "./SchemaIndex";
+import { SchemaMySQLTreeItem } from "./SchemaMySQLTreeItem";
 
-import { showStatusText } from "../../extension";
 import { IDictionary } from "../../../../frontend/src/app-logic/Types";
-import { SchemaListTreeItem } from "./SchemaListTreeItem";
-import { SchemaViewMySQLTreeItem } from "./SchemaViewMySQLTreeItem";
-import { SchemaRoutineMySQLTreeItem } from "./SchemaRoutineMySQLTreeItem";
-import { MrsContentSetTreeItem } from "./MrsContentSetTreeItem";
-import { openSqlEditorConnection } from "../../utilitiesShellGui";
-import { MrsContentFileTreeItem } from "./MrsContentFileTreeItem";
-import { compareVersionStrings, formatBytes } from "../../../../frontend/src/utilities/string-helpers";
 import { ShellInterface } from "../../../../frontend/src/supplement/ShellInterface/ShellInterface";
+import { uuid } from "../../../../frontend/src/utilities/helpers";
+import { compareVersionStrings, formatBytes } from "../../../../frontend/src/utilities/string-helpers";
+import { showStatusText } from "../../extension";
+import { showMessageWithTimeout } from "../../utilities";
+import { openSqlEditorConnection } from "../../utilitiesShellGui";
 import { AdminSectionTreeItem } from "./AdminSectionTreeItem";
 import { AdminTreeItem } from "./AdminTreeItem";
 import { ConnectionMySQLTreeItem } from "./ConnectionMySQLTreeItem";
 import { ConnectionSqliteTreeItem } from "./ConnectionSqliteTreeItem";
+import {
+    ConnectionsTreeDataModelEntry, ICdmConnectionEntry, ICdmRestAuthAppEntry, ICdmRestContentSetEntry,
+    ICdmRestRootEntry, ICdmRestSchemaEntry, ICdmRestServiceEntry, ICdmSchemaEntry, ICdmSchemaGroupEntry,
+    ICdmTableGroupEntry,
+} from "./ConnectionsTreeDataModel";
+import { MrsAuthAppTreeItem } from "./MrsAuthAppTreeItem";
+import { MrsContentFileTreeItem } from "./MrsContentFileTreeItem";
+import { MrsContentSetTreeItem } from "./MrsContentSetTreeItem";
 import { MrsDbObjectTreeItem } from "./MrsDbObjectTreeItem";
+import { MrsRouterTreeItem } from "./MrsRouterTreeItem";
 import { MrsSchemaTreeItem } from "./MrsSchemaTreeItem";
 import { MrsServiceTreeItem } from "./MrsServiceTreeItem";
 import { MrsTreeItem } from "./MrsTreeItem";
+import { MrsUserTreeItem } from "./MrsUserTreeItem";
 import { SchemaEventTreeItem } from "./SchemaEventTreeItem";
+import { SchemaRoutineMySQLTreeItem } from "./SchemaRoutineMySQLTreeItem";
 import { SchemaRoutineTreeItem } from "./SchemaRoutineTreeItem";
+import { SchemaSqliteTreeItem } from "./SchemaSqliteTreeItem";
 import { SchemaTableColumnTreeItem } from "./SchemaTableColumnTreeItem";
 import { SchemaTableForeignKeyTreeItem } from "./SchemaTableForeignKeyTreeItem";
 import { TableGroupTreeItem } from "./SchemaTableGroupTreeItem";
 import { SchemaTableIndexTreeItem } from "./SchemaTableIndexTreeItem";
 import { SchemaTableMySQLTreeItem } from "./SchemaTableMySQLTreeItem";
-import { SchemaTableTreeItem } from "./SchemaTableTreeItem";
-import { SchemaTableTriggerTreeItem } from "./SchemaTableTriggerTreeItem";
-import { MrsAuthAppTreeItem } from "./MrsAuthAppTreeItem";
-import { MrsUserTreeItem } from "./MrsUserTreeItem";
-import { MrsRouterTreeItem } from "./MrsRouterTreeItem";
-import { uuid } from "../../../../frontend/src/utilities/helpers";
-import { showMessageWithTimeout } from "../../utilities";
-import { SchemaSqliteTreeItem } from "./SchemaSqliteTreeItem";
 import { SchemaTableSqliteTreeItem } from "./SchemaTableSqliteTreeItem";
+import { SchemaTableTriggerTreeItem } from "./SchemaTableTriggerTreeItem";
+import { SchemaViewMySQLTreeItem } from "./SchemaViewMySQLTreeItem";
 import { SchemaViewSqliteTreeItem } from "./SchemaViewSqliteTreeItem";
+import { DBConnectionViewProvider } from "../../web-views/DBConnectionViewProvider";
 
-export interface IConnectionEntry {
-    id: string;
-    details: IConnectionDetails;
-    backend?: ShellInterfaceSqlEditor;
-    schemas?: string[];
-    mrsTreeItem?: MrsTreeItem;
-}
 
-// A class to provide the entire tree structure for DB editor connections and the DB objects from them.
-export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
+/** A class to provide the entire tree structure for DB editor connections and the DB objects from them. */
+export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionsTreeDataModelEntry> {
     // A running number to identify uniquely every connection entry.
     private static nextId = 1;
 
-    public connections: IConnectionEntry[] = [];
+    public connections: ICdmConnectionEntry[] = [];
 
     // List to keep track of visible MrsTreeItems
-    private expandedMrsTreeItems: MrsTreeItem[] = [];
+    private expandedMrsTreeItems = new Set<ICdmRestRootEntry>();
 
-    private changeEvent = new EventEmitter<TreeItem | undefined>();
-
-    private useDedicatedSchemaSubtree: boolean;
-
-    private refreshMrsRoutersTimer: ReturnType<typeof setTimeout> | null;
-
+    private changeEvent = new EventEmitter<ConnectionsTreeDataModelEntry | undefined>();
+    private refreshMrsRoutersTimer: ReturnType<typeof setTimeout> | null = null;
     private requiredRouterVersion?: string;
 
-    public get onDidChangeTreeData(): Event<TreeItem | undefined> {
+    // When set a timer will be started to remove all current schemas from the tree.
+    private clearCurrentSchemas = false;
+
+    public get onDidChangeTreeData(): Event<ConnectionsTreeDataModelEntry | undefined> {
         return this.changeEvent.event;
     }
 
     public constructor() {
-        // TODO: make this configurable.
-        this.useDedicatedSchemaSubtree = false;
-
         // A connection refresh request can be scheduled from the frontend or within the extension.
         requisitions.register("refreshConnections", this.refreshConnections);
         requisitions.register("proxyRequest", this.proxyRequest);
-
-        this.refreshMrsRoutersTimer = null;
     }
 
     public dispose(): void {
@@ -125,13 +114,13 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
         requisitions.unregister("refreshConnections", this.refreshConnections);
         requisitions.unregister("proxyRequest", this.proxyRequest);
 
-        this.closeAllConnections();
+        void this.closeAllConnections();
     }
 
-    public refresh(item?: TreeItem): void {
-        if (!item) {
+    public refresh(entry?: ConnectionsTreeDataModelEntry): void {
+        if (!entry) {
             void this.updateConnections().then(() => {
-                this.changeEvent.fire(item);
+                this.changeEvent.fire(entry);
 
                 // Start the Router refresh timer
                 if (this.refreshMrsRoutersTimer === null) {
@@ -141,183 +130,272 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                 void requisitions.execute("connectionsUpdated", undefined);
             });
         } else {
-            this.changeEvent.fire(item);
+            this.changeEvent.fire(entry);
         }
     }
 
-    public getTreeItem(element: TreeItem): TreeItem {
-        return element;
-    }
-
-    public getChildren(element?: TreeItem): ProviderResult<TreeItem[]> {
-        if (!element) {
-            return this.connections.map((connection) => {
-                switch (connection.details.dbType) {
-                    case DBType.MySQL: {
-                        return new ConnectionMySQLTreeItem(connection);
-                    }
-
-                    case DBType.Sqlite: {
-                        return new ConnectionSqliteTreeItem(connection);
-                    }
-
-                    default: {
-                        throw new Error("Unsupported DB type: " + String(connection.details.dbType));
-                    }
-                }
+    /**
+     * Updates the current schema when the user switches between different providers (that is, different app tabs).
+     *
+     * @param provider The provider that has changed its visibility state.
+     * @param active Indicates whether the provider is now active or not.
+     */
+    public providerStateChanged(provider: DBConnectionViewProvider, active: boolean): void {
+        if (active) {
+            // A provider is now active, so update the current schemas for all connections.
+            this.clearCurrentSchemas = false;
+            const currentSchemas = provider.currentSchemas;
+            this.connections.forEach((connection) => {
+                connection.currentSchema = currentSchemas.get(connection.treeItem.details.id) ?? "";
             });
-        }
 
-        if (element instanceof ConnectionTreeItem) {
-            if (this.useDedicatedSchemaSubtree) {
-                const items = [];
-                if (element.entry.details.dbType === DBType.MySQL) {
-                    items.push(new AdminTreeItem("MySQL Administration", element.entry, true));
+            this.changeEvent.fire(undefined);
+        } else {
+            // A provider is no longer active, so remove all current schemas from the connection tree
+            // (after a short delay to allow for switching between providers).
+            this.clearCurrentSchemas = true;
+            setTimeout(() => {
+                if (this.clearCurrentSchemas) {
+                    this.clearCurrentSchemas = false;
+                    this.resetCurrentSchemas();
                 }
-
-                items.push(new SchemaListTreeItem("Schemas", element.entry, true));
-
-                return items;
-            }
-
-            return this.updateSchemaList(element.entry);
+            }, 300);
         }
-
-        if (element instanceof AdminTreeItem) {
-            const serverStatusCommand = {
-                title: "Show Server Status",
-                command: "msg.showServerStatus",
-                // The first argument is undefined to show the page on the currently selected connection.
-                arguments: [undefined, "Server Status", element.entry.details.id, uuid()],
-            };
-
-            const clientConnectionsCommand = {
-                title: "Show Client Connections",
-                command: "msg.showClientConnections",
-                arguments: [undefined, "Client Connections", element.entry.details.id, uuid()],
-            };
-
-            const performanceDashboardCommand = {
-                title: "Show Performance Dashboard",
-                command: "msg.showPerformanceDashboard",
-                arguments: [undefined, "Performance Dashboard", element.entry.details.id, uuid()],
-            };
-
-            return [
-                new AdminSectionTreeItem("Server Status", element.entry, "adminServerStatus.svg", false,
-                    serverStatusCommand),
-                new AdminSectionTreeItem("Client Connections", element.entry, "clientConnections.svg", false,
-                    clientConnectionsCommand),
-                new AdminSectionTreeItem("Performance Dashboard", element.entry, "adminPerformanceDashboard.svg",
-                    false, performanceDashboardCommand),
-            ];
-        }
-
-        if (this.useDedicatedSchemaSubtree) {
-            if (element instanceof SchemaListTreeItem) {
-                return this.updateSchemaList(element.entry);
-            }
-        }
-
-        if (element instanceof SchemaTreeItem) {
-            const result: SchemaGroupTreeItem[] = [
-                new SchemaGroupTreeItem(element.schema, element.entry, SchemaItemGroupType.Tables),
-                new SchemaGroupTreeItem(element.schema, element.entry, SchemaItemGroupType.Views),
-            ];
-
-            if (element.entry.details.dbType === DBType.MySQL) {
-                result.push(new SchemaGroupTreeItem(element.schema, element.entry, SchemaItemGroupType.Routines));
-                result.push(new SchemaGroupTreeItem(element.schema, element.entry, SchemaItemGroupType.Events));
-            }
-
-            return result;
-        }
-
-        if (element instanceof SchemaGroupTreeItem) {
-            return this.loadSchemaMembers(element);
-        }
-
-        if (element instanceof SchemaTableTreeItem) {
-            return [
-                new TableGroupTreeItem(element.schema, element.name, element.entry, SchemaItemGroupType.Columns),
-                new TableGroupTreeItem(element.schema, element.name, element.entry, SchemaItemGroupType.Indexes),
-                new TableGroupTreeItem(element.schema, element.name, element.entry, SchemaItemGroupType.ForeignKeys),
-                new TableGroupTreeItem(element.schema, element.name, element.entry, SchemaItemGroupType.Triggers),
-            ];
-        }
-
-        if (element instanceof TableGroupTreeItem) {
-            return this.loadTableMembers(element);
-        }
-
-        if (element instanceof MrsTreeItem) {
-            return this.getMrsChildren(element);
-        }
-
-        if (element instanceof MrsServiceTreeItem) {
-            return this.getMrsServiceChildren(element);
-        }
-
-        if (element instanceof MrsAuthAppTreeItem) {
-            return this.getMrsAuthAppChildren(element);
-        }
-
-        if (element instanceof MrsContentSetTreeItem) {
-            return this.getMrsContentSetChildren(element);
-        }
-
-        if (element instanceof MrsSchemaTreeItem) {
-            return this.listMrsDbObjects(element);
-        }
-
-        return Promise.resolve([]);
     }
 
-    public closeAllConnections(): void {
-        this.connections.forEach((entry) => {
-            if (entry.backend) {
-                entry.backend.closeSession().catch(() => { /**/ });
-            }
+    public makeCurrentSchema(entry: ICdmSchemaEntry): void {
+        entry.parent.currentSchema = entry.treeItem.schema;
+        this.changeEvent.fire(entry.parent);
+    }
+
+    public resetCurrentSchemas(): void {
+        this.connections.forEach((connection) => {
+            connection.currentSchema = "";
         });
+        this.changeEvent.fire(undefined);
+    }
+
+    public getTreeItem(entry: ConnectionsTreeDataModelEntry): TreeItem {
+        return entry.treeItem;
+    }
+
+    public getParent(entry: ConnectionsTreeDataModelEntry): ConnectionsTreeDataModelEntry | undefined {
+        if ("parent" in entry) {
+            return entry.parent;
+        }
+
+        return undefined;
+    }
+
+    public async getChildren(entry?: ConnectionsTreeDataModelEntry): Promise<ConnectionsTreeDataModelEntry[]> {
+        if (!entry) {
+            return this.connections;
+        }
+
+        switch (entry.type) {
+            case "connection": {
+                const entries: ConnectionsTreeDataModelEntry[] = [];
+                await this.updateSchemaList(entry);
+
+                if (entry.mrsEntry !== undefined) {
+                    entries.push(entry.mrsEntry);
+                }
+
+                if (entry.adminEntry !== undefined) {
+                    entries.push(entry.adminEntry);
+                }
+
+                entries.push(...entry.schemaEntries);
+
+                return entries;
+            }
+
+            case "admin": {
+                const serverStatusCommand = {
+                    title: "Show Server Status",
+                    command: "msg.showServerStatus",
+                    // The first argument is undefined to show the page on the currently selected connection.
+                    arguments: [undefined, "Server Status", entry.treeItem.connectionId, uuid()],
+                };
+
+                const clientConnectionsCommand = {
+                    title: "Show Client Connections",
+                    command: "msg.showClientConnections",
+                    arguments: [undefined, "Client Connections", entry.treeItem.connectionId, uuid()],
+                };
+
+                const performanceDashboardCommand = {
+                    title: "Show Performance Dashboard",
+                    command: "msg.showPerformanceDashboard",
+                    arguments: [undefined, "Performance Dashboard", entry.treeItem.connectionId, uuid()],
+                };
+
+                const item = entry.treeItem;
+                entry.sections = [
+                    {
+                        parent: entry,
+                        type: "adminSection",
+                        treeItem: new AdminSectionTreeItem("Server Status", item.backend, item.connectionId,
+                            "adminServerStatus.svg", false, serverStatusCommand),
+                    },
+                    {
+                        parent: entry,
+                        type: "adminSection",
+                        treeItem: new AdminSectionTreeItem("Client Connections", item.backend, item.connectionId,
+                            "clientConnections.svg", false, clientConnectionsCommand),
+                    },
+                    {
+                        parent: entry,
+                        type: "adminSection",
+                        treeItem: new AdminSectionTreeItem("Performance Dashboard", item.backend, item.connectionId,
+                            "adminPerformanceDashboard.svg", false, performanceDashboardCommand),
+                    },
+                ];
+
+                return entry.sections;
+            }
+
+            case "schema": {
+                const item = entry.treeItem;
+                entry.groups = [
+                    {
+                        parent: entry,
+                        type: "schemaMemberGroup",
+                        treeItem: new SchemaGroupTreeItem(item.schema, item.backend, item.connectionId,
+                            SchemaItemGroupType.Tables),
+                        members: [],
+                    },
+                    {
+                        parent: entry,
+                        type: "schemaMemberGroup",
+                        treeItem: new SchemaGroupTreeItem(item.schema, item.backend, item.connectionId,
+                            SchemaItemGroupType.Views),
+                        members: [],
+                    },
+                ];
+
+                if (entry.parent.treeItem.details.dbType === DBType.MySQL) {
+                    entry.groups.push({
+                        parent: entry,
+                        type: "schemaMemberGroup",
+                        treeItem: new SchemaGroupTreeItem(item.schema, item.backend, item.connectionId,
+                            SchemaItemGroupType.Routines),
+                        members: [],
+                    },
+                        {
+                            parent: entry,
+                            type: "schemaMemberGroup",
+                            treeItem: new SchemaGroupTreeItem(item.schema, item.backend, item.connectionId,
+                                SchemaItemGroupType.Events),
+                            members: [],
+                        });
+                }
+
+                return entry.groups;
+            }
+
+            case "schemaMemberGroup": {
+                await this.loadSchemaGroupMembers(entry);
+
+                return entry.members;
+            }
+
+            case "table": {
+                const item = entry.treeItem;
+                entry.groups = [];
+
+                for (const type of [
+                    SchemaItemGroupType.Columns, SchemaItemGroupType.Indexes,
+                    SchemaItemGroupType.ForeignKeys, SchemaItemGroupType.Triggers,
+                ]) {
+                    entry.groups.push(
+                        {
+                            parent: entry,
+                            type: "tableMemberGroup",
+                            treeItem: new TableGroupTreeItem(item.schema, item.name, item.backend, item.connectionId,
+                                type),
+                            members: [],
+                        },
+                    );
+                }
+
+                return entry.groups;
+            }
+
+            case "tableMemberGroup": {
+                await this.loadTableMembers(entry);
+
+                return entry.members;
+            }
+
+            case "mrs": {
+                await this.loadMrsServices(entry);
+
+                return [...entry.services, ...entry.routers];
+            }
+
+            case "mrsService": {
+                await this.loadMrsServiceEntries(entry);
+
+                return [...entry.schemas, ...entry.contentSets, ...entry.authApps];
+            }
+
+            case "mrsAuthApp": {
+                await this.loadMrsAuthAppUsers(entry);
+
+                return entry.users;
+            }
+
+            case "mrsContentSet": {
+                await this.loadMrsContentSetFiles(entry);
+
+                return entry.files;
+            }
+
+            case "mrsSchema": {
+                await this.loadMrsDbObjects(entry);
+
+                return entry.dbObjects;
+            }
+
+            default: {
+                return Promise.resolve([]);
+            }
+        }
+    }
+
+    public async closeAllConnections(): Promise<void> {
+        for (const entry of this.connections) {
+            await entry.treeItem.backend.closeSession().catch(() => { /**/ });
+        }
 
         this.connections = [];
     }
 
     /**
-     * When assigned to the TreeView.onDidExpandElement it updates the list of expanded MrsTreeView nodes
+     * When assigned to the TreeView.onDidExpandElement it updates the list of expanded MrsTreeView nodes.
      *
-     * @param i The tree item that got expanded
+     * @param entry The tree entry that got expanded.
      */
-    public readonly didExpandElement = (i: TreeItem): void => {
-        if (i instanceof ConnectionMySQLTreeItem && i.entry.mrsTreeItem !== undefined) {
-            i = i.entry.mrsTreeItem;
-        }
-
-        if (i instanceof MrsTreeItem && this.expandedMrsTreeItems.indexOf(i) === -1) {
-            this.expandedMrsTreeItems.push(i);
+    public readonly didExpandElement = (entry: ConnectionsTreeDataModelEntry): void => {
+        if (entry.type === "mrs") {
+            this.expandedMrsTreeItems.add(entry);
         }
     };
 
     /**
-     * When assigned to the TreeView.onDidCollapseElement it updates the list of expanded MrsTreeView nodes
+     * When assigned to the TreeView.onDidCollapseElement it updates the list of expanded MrsTreeView nodes.
      *
-     * @param i The tree item that got expanded
+     * @param entry The tree entry that got collapsed.
      */
-    public readonly didCollapseElement = (i: TreeItem): void => {
-        if (i instanceof ConnectionMySQLTreeItem && i.entry.mrsTreeItem !== undefined) {
-            i = i.entry.mrsTreeItem;
-        }
-
-        if (i instanceof MrsTreeItem) {
-            const index = this.expandedMrsTreeItems.indexOf(i);
-            if (index > -1) {
-                this.expandedMrsTreeItems.splice(index, 1);
-            }
+    public readonly didCollapseElement = (entry: ConnectionsTreeDataModelEntry): void => {
+        if (entry.type === "mrs") {
+            this.expandedMrsTreeItems.delete(entry);
         }
     };
 
     /**
-     * Refreshes all visible MrsTreeItems every 10 seconds to visualize MySQL Routers getting inactive
+     * Refreshes all visible MrsTreeItems every 10 seconds to visualize MySQL Routers getting inactive.
      */
     public readonly refreshMrsRouters = (): void => {
         if (this.refreshMrsRoutersTimer !== null) {
@@ -328,7 +406,8 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
             this.refresh(item);
         }
 
-        // Start a 10s timer to check if new invitations have been created
+        // Start the next 10s timeout. Using a timeout here instead of an interval, as the refresh might take longer
+        // than 10s and we don't want to run multiple refreshes in parallel.
         this.refreshMrsRoutersTimer = setTimeout(() => {
             this.refreshMrsRouters();
         }, 10000);
@@ -339,50 +418,58 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
      */
     private async updateConnections(): Promise<void> {
         if (webSession.currentProfileId === -1) {
-            this.closeAllConnections();
+            await this.closeAllConnections();
         } else {
             try {
-                const details = await ShellInterface.dbConnections.listDbConnections(webSession.currentProfileId, "");
+                const detailList = await ShellInterface.dbConnections.listDbConnections(webSession.currentProfileId);
 
                 // Close and remove all open connections that are no longer in the new list.
                 // Sort in new connection entries on the way.
                 let left = 0;  // The current index into the existing entries.
                 let right = 0; // The current index into the new entries while looking for a match.
-                while (left < this.connections.length && details.length > 0) {
-                    if (this.connections[left].details.caption === details[right].caption) {
+                while (left < this.connections.length && detailList.length > 0) {
+                    if (this.connections[left].treeItem.details.caption === detailList[right].caption) {
                         // Entries match.
                         if (right > 0) {
                             // We had to jump over other entries to arrive here. Add those
                             // as new entries in our current list.
                             for (let i = 0; i < right; ++i) {
+                                const details = detailList[i];
                                 this.connections.splice(left, 0, {
-                                    id: String(ConnectionsTreeDataProvider.nextId++),
-                                    details: details[i],
+                                    id: ConnectionsTreeDataProvider.nextId++,
+                                    type: "connection",
+                                    isOpen: false,
+                                    openEditors: 0,
+                                    currentSchema: "",
+                                    treeItem: details.dbType === DBType.MySQL
+                                        ? new ConnectionMySQLTreeItem(details, new ShellInterfaceSqlEditor())
+                                        : new ConnectionSqliteTreeItem(details, new ShellInterfaceSqlEditor()),
+                                    schemaEntries: [],
                                 });
                             }
 
-                            details.splice(0, right);
+                            detailList.splice(0, right);
                             right = 0;
                         }
 
                         // Advance to the next entry.
                         ++left;
-                        details.shift();
+                        detailList.shift();
                     } else {
                         // Entries don't match. Check if we can find the current entry in the new
                         // list at a higher position (which would mean we have new entries before
                         // the current one).
-                        while (++right < details.length) {
-                            if (this.connections[left].details.caption === details[right].caption) {
+                        while (++right < detailList.length) {
+                            if (this.connections[left].treeItem.details.caption === detailList[right].caption) {
                                 break;
                             }
                         }
 
-                        if (right === details.length) {
+                        if (right === detailList.length) {
                             // Current entry no longer exists. Close the session (if one is open)
                             // and remove it from the current list.
                             const entry = this.connections.splice(left, 1)[0];
-                            void entry.backend?.closeSession();
+                            void entry.treeItem.backend.closeSession();
 
                             // Reset the right index to the top of the list and keep the current
                             // index where it is (points already to the next entry after removal).
@@ -392,19 +479,27 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
                 }
 
                 // Take over all remaining entries from the new list.
-                while (details.length > 0) {
+                while (detailList.length > 0) {
                     ++left;
 
+                    const details = detailList.shift()!;
                     this.connections.push({
-                        id: String(ConnectionsTreeDataProvider.nextId++),
-                        details: details.shift()!,
+                        id: ConnectionsTreeDataProvider.nextId++,
+                        type: "connection",
+                        isOpen: false,
+                        openEditors: 0,
+                        currentSchema: "",
+                        treeItem: details.dbType === DBType.MySQL
+                            ? new ConnectionMySQLTreeItem(details, new ShellInterfaceSqlEditor())
+                            : new ConnectionSqliteTreeItem(details, new ShellInterfaceSqlEditor()),
+                        schemaEntries: [],
                     });
                 }
 
                 // Remove all remaining entries we haven't touched yet.
                 while (left < this.connections.length) {
                     const entry = this.connections.splice(left, 1)[0];
-                    await entry.backend?.closeSession();
+                    await entry.treeItem.backend.closeSession();
                 }
             } catch (reason) {
                 void window.showErrorMessage(`Cannot load DB connections: ${String(reason)}`);
@@ -422,52 +517,50 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
      *
      * @returns A promise that resolves to a list of tree items for the UI.
      */
-    private updateSchemaList = async (entry: IConnectionEntry): Promise<TreeItem[]> => {
-        if (!entry.backend) {
-            const backend = new ShellInterfaceSqlEditor();
-            entry.backend = backend;
+    private updateSchemaList = async (entry: ICdmConnectionEntry): Promise<void> => {
+        if (entry.isOpen) {
+            return this.doUpdateSchemaList(entry);
+        }
 
-            await backend.startSession(entry.id + "ConnectionTreeProvider");
+        const item = entry.treeItem;
+        await item.backend.startSession(String(entry.id) + "ConnectionTreeProvider");
 
-            try {
-                if (entry.details.dbType === DBType.Sqlite) {
-                    const options = entry.details.options as ISqliteConnectionOptions;
+        try {
+            if (item.details.dbType === DBType.Sqlite) {
+                const options = item.details.options as ISqliteConnectionOptions;
 
-                    // Before opening the connection check the DB file, if this is an sqlite connection.
-                    if (await ShellInterface.core.validatePath(options.dbFile)) {
-                        await openSqlEditorConnection(entry.backend, entry.details.id, (message) => {
-                            showStatusText(message);
-                        });
-
-                        return this.updateSchemaList(entry);
-                    } else {
-                        // If the path is not ok then we might have to create the DB file first.
-                        try {
-                            await ShellInterface.core.createDatabaseFile(options.dbFile);
-
-                            return this.updateSchemaList(entry);
-                        } catch (error) {
-                            throw Error(`DB Creation Error: \n${String(error) ?? "<unknown>"}`);
-                        }
-                    }
-                } else {
-                    await openSqlEditorConnection(entry.backend, entry.details.id, (message) => {
+                // Before opening the connection check the DB file, if this is an sqlite connection.
+                if (await ShellInterface.core.validatePath(options.dbFile)) {
+                    await openSqlEditorConnection(item.backend, item.details.id, (message) => {
                         showStatusText(message);
                     });
+                    entry.isOpen = true;
 
-                    return this.updateSchemaList(entry);
+                    return this.doUpdateSchemaList(entry);
+                } else {
+                    // If the path is not ok then we might have to create the DB file first.
+                    try {
+                        await ShellInterface.core.createDatabaseFile(options.dbFile);
+
+                        return this.doUpdateSchemaList(entry);
+                    } catch (error) {
+                        throw Error(`DB Creation Error: \n${String(error) ?? "<unknown>"}`);
+                    }
                 }
+            } else {
+                await openSqlEditorConnection(item.backend, item.details.id, (message) => {
+                    showStatusText(message);
+                });
+                entry.isOpen = true;
 
-            } catch (error) {
-                await entry.backend?.closeSession();
-
-                entry.backend = undefined;
-
-                throw new Error(`Error during module session creation: \n` +
-                    `${(error instanceof Error) ? error.message : String(error)}`);
+                return this.doUpdateSchemaList(entry);
             }
-        } else {
-            return this.doUpdateSchemaList(entry);
+
+        } catch (error) {
+            await item.backend.closeSession();
+
+            throw new Error(`Error during module session creation: \n` +
+                `${(error instanceof Error) ? error.message : String(error)}`);
         }
     };
 
@@ -476,115 +569,125 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
      *
      * @param entry The entry to update.
      *
-     * @returns A new list of tree items for the updated schema list.
+     * @returns A promise that resolves once the schema list has been updated.
      */
-    private doUpdateSchemaList = async (entry: IConnectionEntry): Promise<TreeItem[]> => {
+    private doUpdateSchemaList = async (entry: ICdmConnectionEntry): Promise<void> => {
         try {
-            const backend = entry.backend;
-            if (backend) {
-                const schemaList: TreeItem[] = [];
-                if (entry.details.dbType === DBType.MySQL) {
-                    schemaList.push(new AdminTreeItem("MySQL Administration", entry, true));
-                }
+            const item = entry.treeItem;
 
-                const schemas = await backend.getCatalogObjects("Schema");
-                const currentSchema = await backend.getCurrentSchema();
-                for (const schema of schemas) {
-                    if (entry.details.dbType === "MySQL") {
-                        // If the schema is the MRS metadata schema, add the MRS tree item
-                        if (schema === "mysql_rest_service_metadata") {
-                            try {
-                                let addMrsTreeItem = true;
-                                const status = await backend.mrs.status();
-                                this.requiredRouterVersion = status.requiredRouterVersion;
+            entry.schemaEntries = [];
+            if (item.details.dbType === DBType.MySQL) {
+                entry.adminEntry = {
+                    parent: entry,
+                    type: "admin",
+                    treeItem: new AdminTreeItem("MySQL Administration", item.backend, item.details.id, true),
+                    sections: [],
+                };
+            }
 
-                                if (status.majorUpgradeRequired) {
-                                    // If a major MRS metadata schema upgrade is required, the MRS tree item should
-                                    // only be displayed if the user agrees to upgrade i.e. drop and re-create the
-                                    // schema.
-                                    addMrsTreeItem = false;
-                                    let answer: string | undefined = await window.showInformationMessage(
-                                        "This MySQL Shell version requires a new major version of the MRS metadata " +
-                                        `schema, ${String(status.requiredMetadataVersion)}. The currently deployed ` +
-                                        `schema version is ${String(status.currentMetadataVersion)}. You need to ` +
-                                        "downgrade the MySQL Shell version or drop and recreate the MRS metadata " +
-                                        "schema. Do you want to drop and recreate the MRS metadata schema? " +
-                                        "WARNING: All existing MRS data will be lost."
-                                        , "Yes", "No");
+            const schemas = await item.backend.getCatalogObjects("Schema");
+            for (const schema of schemas) {
+                if (item.details.dbType === "MySQL") {
+                    // If the schema is the MRS metadata schema, add the MRS tree item
+                    if (schema === "mysql_rest_service_metadata") {
+                        try {
+                            let addMrsTreeItem = true;
+                            const status = await item.backend.mrs.status();
+                            this.requiredRouterVersion = status.requiredRouterVersion;
 
-                                    if (answer === "Yes") {
-                                        answer = await window.showInformationMessage(
-                                            "Are you really sure you want to drop and recreate the MRS metadata " +
-                                            "schema? WARNING: All existing MRS data will be lost."
-                                            , "Drop and Recreate", "No");
-                                        if (answer === "Drop and Recreate") {
-                                            await backend.mrs.configure(undefined, true);
-                                            addMrsTreeItem = true;
-                                        }
-                                    }
-                                } else if (status.serviceUpgradeable) {
-                                    addMrsTreeItem = false;
+                            if (status.majorUpgradeRequired) {
+                                // If a major MRS metadata schema upgrade is required, the MRS tree item should
+                                // only be displayed if the user agrees to upgrade i.e. drop and re-create the
+                                // schema.
+                                addMrsTreeItem = false;
+                                let answer: string | undefined = await window.showInformationMessage(
+                                    "This MySQL Shell version requires a new major version of the MRS metadata " +
+                                    `schema, ${String(status.requiredMetadataVersion)}. The currently deployed ` +
+                                    `schema version is ${String(status.currentMetadataVersion)}. You need to ` +
+                                    "downgrade the MySQL Shell version or drop and recreate the MRS metadata " +
+                                    "schema. Do you want to drop and recreate the MRS metadata schema? " +
+                                    "WARNING: All existing MRS data will be lost."
+                                    , "Yes", "No");
 
-                                    const answer: string | undefined = await window.showInformationMessage(
-                                        "This MySQL Shell version requires a new minor version of the MRS metadata " +
-                                        `schema, ${String(status.requiredMetadataVersion)}. The currently deployed ` +
-                                        `schema version is ${String(status.currentMetadataVersion)}. Do you want to ` +
-                                        "update the MRS metadata schema?"
-                                        , "Yes", "No");
-                                    if (answer === "Yes") {
+                                if (answer === "Yes") {
+                                    answer = await window.showInformationMessage(
+                                        "Are you really sure you want to drop and recreate the MRS metadata " +
+                                        "schema? WARNING: All existing MRS data will be lost."
+                                        , "Drop and Recreate", "No");
+                                    if (answer === "Drop and Recreate") {
+                                        await item.backend.mrs.configure(true, true);
                                         addMrsTreeItem = true;
-                                        const statusbarItem = window.createStatusBarItem();
-                                        try {
-                                            statusbarItem.text = "$(loading~spin) Updating the MySQL REST Service " +
-                                                "Metadata Schema ...";
-                                            statusbarItem.show();
-
-                                            await backend.mrs.configure(undefined, undefined, true);
-
-                                            showMessageWithTimeout(
-                                                "The MySQL REST Service Metadata Schema has been updated.");
-                                        } finally {
-                                            statusbarItem.hide();
-                                        }
                                     }
                                 }
+                            } else if (status.serviceUpgradeable) {
+                                addMrsTreeItem = false;
 
-                                if (addMrsTreeItem) {
-                                    const mrsTreeItem =
-                                        new MrsTreeItem("MySQL REST Service", schema, entry, true,
-                                            status.serviceEnabled);
-                                    schemaList.unshift(mrsTreeItem);
-                                    // Store the mrsTreeItem in the IConnectionEntry so it can be accessed later on
-                                    entry.mrsTreeItem = mrsTreeItem;
+                                const answer: string | undefined = await window.showInformationMessage(
+                                    "This MySQL Shell version requires a new minor version of the MRS metadata " +
+                                    `schema, ${String(status.requiredMetadataVersion)}. The currently deployed ` +
+                                    `schema version is ${String(status.currentMetadataVersion)}. Do you want to ` +
+                                    "update the MRS metadata schema?"
+                                    , "Yes", "No");
+                                if (answer === "Yes") {
+                                    addMrsTreeItem = true;
+                                    const statusbarItem = window.createStatusBarItem();
+                                    try {
+                                        statusbarItem.text = "$(loading~spin) Updating the MySQL REST Service " +
+                                            "Metadata Schema ...";
+                                        statusbarItem.show();
+
+                                        await item.backend.mrs.configure();
+
+                                        showMessageWithTimeout(
+                                            "The MySQL REST Service Metadata Schema has been updated.");
+                                    } finally {
+                                        statusbarItem.hide();
+                                    }
                                 }
-
-                            } catch (reason) {
-                                void window.showErrorMessage(
-                                    "Failed to check and upgrade the MySQL REST Service Schema. " +
-                                    `Error: ${reason instanceof Error ? reason.message : String(reason)}`);
                             }
-                        }
 
-                        // Only show system schemas if allowed.
-                        const hideSystemSchemas = entry.details.hideSystemSchemas ?? true;
+                            if (addMrsTreeItem) {
+                                entry.mrsEntry = {
+                                    parent: entry,
+                                    type: "mrs",
+                                    treeItem: new MrsTreeItem("MySQL REST Service", schema, item.backend,
+                                        item.details.id, true, status.serviceEnabled),
+                                    routers: [],
+                                    services: [],
+                                };
+                            }
 
-                        if ((schema !== "mysql" &&
-                            schema !== "mysql_innodb_cluster_metadata" &&
-                            schema !== "mysql_rest_service_metadata")
-                            || !hideSystemSchemas) {
-                            schemaList.push(new SchemaMySQLTreeItem(schema, schema, entry, schema === currentSchema,
-                                true));
+                        } catch (reason) {
+                            void window.showErrorMessage(
+                                "Failed to check and upgrade the MySQL REST Service Schema. " +
+                                `Error: ${reason instanceof Error ? reason.message : String(reason)}`);
                         }
-                    } else {
-                        schemaList.push(new SchemaSqliteTreeItem(schema, schema, entry, schema === currentSchema,
-                            true));
                     }
+
+                    // Only show system schemas if allowed.
+                    const hideSystemSchemas = item.details.hideSystemSchemas ?? true;
+
+                    if ((schema !== "mysql" &&
+                        schema !== "mysql_innodb_cluster_metadata" &&
+                        schema !== "mysql_rest_service_metadata")
+                        || !hideSystemSchemas) {
+                        entry.schemaEntries.push({
+                            parent: entry,
+                            type: "schema",
+                            treeItem: new SchemaMySQLTreeItem(schema, schema, item.backend, item.details.id,
+                                schema === entry.currentSchema, true),
+                            groups: [],
+                        });
+                    }
+                } else {
+                    entry.schemaEntries.push({
+                        parent: entry,
+                        type: "schema",
+                        treeItem: new SchemaSqliteTreeItem(schema, schema, item.backend, item.details.id,
+                            schema === entry.currentSchema, true),
+                        groups: [],
+                    });
                 }
-
-                return schemaList;
-
-            } else {
-                throw new Error("No entry.backend assignment on tree entry.");
             }
         } catch (error) {
             throw new Error(`Error retrieving schema list: ${error instanceof Error ? error.message : String(error)}`);
@@ -594,286 +697,335 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
     /**
      * Loads a list of schemas object names (tables, views etc.).
      *
-     * @param element The tree item for which to load the children.
+     * @param entry The tree item for which to load the children.
      *
-     * @returns A promise that resolves to a list of tree items for the UI.
+     * @returns A promise that resolves once the schema groups have been loaded.
      */
-    private async loadSchemaMembers(element: SchemaGroupTreeItem): Promise<TreeItem[]> {
-        if (!element.entry.backend) {
-            return [];
-        }
+    private async loadSchemaGroupMembers(entry: ICdmSchemaGroupEntry): Promise<void> {
+        const item = entry.treeItem;
+        const isMySQL = entry.parent.parent.treeItem.details.dbType === "MySQL";
 
-        const name = element.label as string;
-        const schema = element.schema;
-        const entry = element.entry;
-
-        const items: TreeItem[] = [];
-
-        const objectType = name.slice(0, -1);
-        if (objectType === "Routine") {
-            const createItems = (type: "function" | "procedure", list: string[]): void => {
-                for (const objectName of list) {
-                    if (element.entry.details.dbType === "MySQL") {
-                        items.push(new SchemaRoutineMySQLTreeItem(objectName, schema, type, entry, false));
-                    } else {
-                        items.push(new SchemaRoutineTreeItem(objectName, schema, type, entry, false));
+        switch (entry.treeItem.groupType) {
+            case "Routines": {
+                const createItems = (type: "function" | "procedure", list: string[]): void => {
+                    for (const objectName of list) {
+                        if (isMySQL) {
+                            entry.members.push({
+                                parent: entry,
+                                type: "routine",
+                                treeItem: new SchemaRoutineMySQLTreeItem(objectName, item.schema, type, item.backend,
+                                    item.connectionId, false),
+                            });
+                        } else {
+                            entry.members.push({
+                                parent: entry,
+                                type: "routine",
+                                treeItem: new SchemaRoutineTreeItem(objectName, item.schema, type, item.backend,
+                                    item.connectionId, false),
+                            });
+                        }
                     }
+                };
+
+                try {
+                    let names = await item.backend.getSchemaObjects(item.schema, "routine", "function");
+                    createItems("function", names);
+                    names = await item.backend.getSchemaObjects(item.schema, "routine", "procedure");
+                    createItems("procedure", names);
+                } catch (error) {
+                    void window.showErrorMessage("Error while retrieving schema objects: " + String(error));
                 }
-            };
 
-            try {
-                let names = await element.entry.backend.getSchemaObjects(element.schema, objectType, "function");
-                createItems("function", names);
-                names = await element.entry.backend.getSchemaObjects(element.schema, objectType, "procedure");
-                createItems("procedure", names);
-            } catch (error) {
-                void window.showErrorMessage("Error while retrieving schema objects: " + (error as string));
-            }
-        } else {
-            try {
-                const names = await element.entry.backend.getSchemaObjects(element.schema, objectType);
-                names.forEach((objectName) => {
-                    switch (name) {
-                        case SchemaItemGroupType.Tables: {
-                            if (element.entry.details.dbType === "MySQL") {
-                                items.push(new SchemaTableMySQLTreeItem(objectName, schema, entry, true));
-                            } else {
-                                items.push(new SchemaTableSqliteTreeItem(objectName, schema, entry, true));
-                            }
-
-                            break;
-                        }
-
-                        case SchemaItemGroupType.Views: {
-                            if (element.entry.details.dbType === "MySQL") {
-                                items.push(new SchemaViewMySQLTreeItem(objectName, schema, entry, true));
-                            } else {
-                                items.push(new SchemaViewSqliteTreeItem(objectName, schema, entry, true));
-                            }
-
-                            break;
-                        }
-
-                        case SchemaItemGroupType.Events: {
-                            items.push(new SchemaEventTreeItem(objectName, schema, entry, false));
-
-                            break;
-                        }
-
-                        default:
-                    }
-                });
-            } catch (error) {
-                void window.showErrorMessage("Error while retrieving schema objects: " + (error as string));
+                break;
             }
 
+            default: {
+                try {
+                    const objectType = entry.treeItem.groupType.slice(0, -1);
+                    const names = await item.backend.getSchemaObjects(item.schema, objectType);
+                    names.forEach((objectName) => {
+                        switch (entry.treeItem.groupType) {
+                            case SchemaItemGroupType.Tables: {
+                                if (isMySQL) {
+                                    entry.members.push({
+                                        parent: entry,
+                                        type: "table",
+                                        treeItem: new SchemaTableMySQLTreeItem(objectName, item.schema, item.backend,
+                                            item.connectionId, true),
+                                        groups: [],
+                                    });
+                                } else {
+                                    entry.members.push({
+                                        parent: entry,
+                                        type: "table",
+                                        treeItem: new SchemaTableSqliteTreeItem(objectName, item.schema, item.backend,
+                                            item.connectionId, true),
+                                        groups: [],
+                                    });
+                                }
+
+                                break;
+                            }
+
+                            case SchemaItemGroupType.Views: {
+                                if (isMySQL) {
+                                    entry.members.push({
+                                        parent: entry,
+                                        type: "view",
+                                        treeItem: new SchemaViewMySQLTreeItem(objectName, item.schema, item.backend,
+                                            item.connectionId, true),
+                                    });
+                                } else {
+                                    entry.members.push({
+                                        parent: entry,
+                                        type: "view",
+                                        treeItem: new SchemaViewSqliteTreeItem(objectName, item.schema, item.backend,
+                                            item.connectionId, true),
+                                    });
+                                }
+
+                                break;
+                            }
+
+                            case SchemaItemGroupType.Events: {
+                                entry.members.push({
+                                    parent: entry,
+                                    type: "event",
+                                    treeItem: new SchemaEventTreeItem(objectName, item.schema, item.backend,
+                                        item.connectionId, false),
+                                });
+
+                                break;
+                            }
+
+                            default:
+                        }
+                    });
+                } catch (error) {
+                    void window.showErrorMessage("Error while retrieving schema objects: " + (error as string));
+                }
+
+            }
         }
-
-        return items;
     }
 
     /**
      * Loads a list of table object names (indexes, triggers etc.).
      *
-     * @param element The tree item for which to load the children.
+     * @param entry The data model node for which to load the children.
      *
-     * @returns A promise that resolves to a list of tree items for the UI.
+     * @returns A promise that resolves once the table group members have been loaded.
      */
-    private loadTableMembers(element: TableGroupTreeItem): Promise<TreeItem[]> {
-        return new Promise((resolve, reject) => {
-            if (!element.entry.backend) {
-                resolve([]);
+    private async loadTableMembers(entry: ICdmTableGroupEntry): Promise<void> {
+        const item = entry.treeItem;
 
-                return;
-            }
-
-            const itemList: TreeItem[] = [];
-
-            const name = element.label as string;
-            const schema = element.schema;
-            const table = element.table;
-            const entry = element.entry;
-
-            const type = name === "Indexes" ? "Index" : name.slice(0, -1);
-            element.entry.backend.getTableObjects(element.schema, element.table, type).then((names) => {
+        switch (item.groupType) {
+            case SchemaItemGroupType.Columns: {
+                const names = await item.backend.getTableObjects(item.schema, item.table, "Column");
                 names.forEach((objectName) => {
-                    let item: TreeItem | undefined;
-                    switch (name) {
-                        case SchemaItemGroupType.Columns: {
-                            item = new SchemaTableColumnTreeItem(objectName, schema, table, entry);
-
-                            break;
-                        }
-
-                        case SchemaItemGroupType.Indexes: {
-                            item = new SchemaTableIndexTreeItem(objectName, schema, table, entry);
-
-                            break;
-                        }
-
-                        case SchemaItemGroupType.ForeignKeys: {
-                            item = new SchemaTableForeignKeyTreeItem(objectName, schema, table, entry);
-
-                            break;
-                        }
-
-                        case SchemaItemGroupType.Triggers: {
-                            item = new SchemaTableTriggerTreeItem(objectName, schema, table, entry);
-
-                            break;
-                        }
-
-                        default: {
-                            break;
-                        }
-                    }
-
-                    if (item) {
-                        itemList.push(item);
-                    }
+                    entry.members.push({
+                        parent: entry,
+                        type: "column",
+                        treeItem: new SchemaTableColumnTreeItem(objectName, item.schema, item.table,
+                            item.backend, item.connectionId),
+                    });
                 });
 
-                resolve(itemList);
-            }).catch((reason) => {
-                reject("Error while retrieving schema objects: " + String(reason));
-            });
-        });
+                break;
+            }
+
+            case SchemaItemGroupType.Indexes: {
+                const names = await item.backend.getTableObjects(item.schema, item.table, "Index");
+                names.forEach((objectName) => {
+                    entry.members.push({
+                        parent: entry,
+                        type: "index",
+                        treeItem: new SchemaTableIndexTreeItem(objectName, item.schema, item.table,
+                            item.backend, item.connectionId),
+                    });
+                });
+
+                break;
+            }
+
+            case SchemaItemGroupType.Triggers: {
+                const names = await item.backend.getTableObjects(item.schema, item.table, "Trigger");
+                names.forEach((objectName) => {
+                    entry.members.push({
+                        parent: entry,
+                        type: "trigger",
+                        treeItem: new SchemaTableTriggerTreeItem(objectName, item.schema, item.table,
+                            item.backend, item.connectionId),
+                    });
+                });
+
+                break;
+            }
+
+            case SchemaItemGroupType.ForeignKeys: {
+                const names = await item.backend.getTableObjects(item.schema, item.table, "Foreign Key");
+                names.forEach((objectName) => {
+                    entry.members.push({
+                        parent: entry,
+                        type: "foreignKey",
+                        treeItem: new SchemaTableForeignKeyTreeItem(objectName, item.schema, item.table,
+                            item.backend, item.connectionId),
+                    });
+                });
+
+                break;
+            }
+
+            default:
+        }
     }
 
     /**
      * Loads the list of MRS services.
      *
-     * @param element The MRS tree element
+     * @param entry The MRS root element.
      *
-     * @returns A promise that resolves to a list of tree items for the UI.
+     * @returns A promise that resolves once the MRS services have been loaded.
      */
-    private async getMrsChildren(element: MrsTreeItem): Promise<TreeItem[]> {
-        if (element.entry.backend) {
-            try {
-                const treeItemList: TreeItem[] = [];
+    private async loadMrsServices(entry: ICdmRestRootEntry): Promise<void> {
+        try {
+            const item = entry.treeItem;
 
-                const services = await element.entry.backend.mrs.listServices();
-                const serviceList: TreeItem[] = services.map((value) => {
-                    let label = value.urlContextRoot;
-                    if (value.urlHostName) {
-                        label = label + ` (${value.urlHostName})`;
-                    }
+            const services = await item.backend.mrs.listServices();
+            entry.services = services.map((value) => {
+                let label = value.urlContextRoot;
+                if (value.urlHostName) {
+                    label = label + ` (${value.urlHostName})`;
+                }
 
-                    return new MrsServiceTreeItem(label, value, element.entry);
-                });
+                return {
+                    parent: entry,
+                    type: "mrsService",
+                    treeItem: new MrsServiceTreeItem(label, value, item.backend, item.connectionId),
+                    schemas: [],
+                    contentSets: [],
+                    authApps: [],
+                };
+            });
 
-                const routers = await element.entry.backend.mrs.listRouters(10);
-                const routerList: TreeItem[] = routers.map((value) => {
-                    return new MrsRouterTreeItem(value.address, value, element.entry,
-                        this.requiredRouterVersion
+            const routers = await item.backend.mrs.listRouters(10);
+            entry.routers = routers.map((value) => {
+                return {
+                    parent: entry,
+                    type: "mrsRouter",
+                    treeItem: new MrsRouterTreeItem(value.address, value, item.backend, item.connectionId,
+                        this.requiredRouterVersion !== undefined
                             ? compareVersionStrings(this.requiredRouterVersion, value.version) > 0
-                            : false);
-                });
-
-                return treeItemList.concat(serviceList, routerList);
-            } catch (error) {
-                throw new Error("Error during retrieving MRS content. " +
-                    `Error: ${error instanceof Error ? error.message : String(error) ?? "<unknown>"}`);
-            }
+                            : false),
+                };
+            });
+        } catch (error) {
+            throw new Error("Error during retrieving MRS content. " +
+                `Error: ${error instanceof Error ? error.message : String(error) ?? "<unknown>"}`);
         }
-
-        return [];
     }
 
     /**
      * Loads the list of MRS content sets.
      *
-     * @param element The MRS service element.
+     * @param entry The MRS service element.
      *
-     * @returns A promise that resolves to a list of tree items for the UI.
+     * @returns A promise that resolves to when the MRS service elements have been loaded.
      */
-    private getMrsServiceChildren = async (element: MrsServiceTreeItem): Promise<TreeItem[]> => {
-        if (element.entry.backend) {
-            try {
-                const treeItemList: TreeItem[] = [];
+    private loadMrsServiceEntries = async (entry: ICdmRestServiceEntry): Promise<void> => {
+        try {
+            const item = entry.treeItem;
 
-                // Get all MRS Schemas
-                const schemas = await element.entry.backend.mrs.listSchemas(element.value.id);
-                const schemaList: TreeItem[] = schemas.map((value) => {
-                    return new MrsSchemaTreeItem(`${value.requestPath} (${value.name})`, value, element.entry);
-                });
+            // Get all MRS Schemas
+            const schemas = await item.backend.mrs.listSchemas(item.value.id);
+            entry.schemas = schemas.map((value) => {
+                return {
+                    parent: entry,
+                    type: "mrsSchema",
+                    treeItem: new MrsSchemaTreeItem(`${value.requestPath} (${value.name})`, value, item.backend,
+                        item.connectionId),
+                    dbObjects: [],
+                };
+            });
 
-                // Get all MRS ContentSets
-                const contentSets = await element.entry.backend.mrs.listContentSets(element.value.id);
-                const contentSetsTreeItemList = contentSets.map((value) => {
-                    return new MrsContentSetTreeItem(`${value.requestPath}`, value, element.entry);
-                });
+            // Get all MRS ContentSets
+            const contentSets = await item.backend.mrs.listContentSets(item.value.id);
+            entry.contentSets = contentSets.map((value) => {
+                return {
+                    parent: entry,
+                    type: "mrsContentSet",
+                    treeItem: new MrsContentSetTreeItem(`${value.requestPath}`, value, item.backend, item.connectionId),
+                    files: [],
+                };
+            });
 
-                // Get all MRS auth apps
-                const authApps = await element.entry.backend.mrs.getAuthApps(element.value.id);
-                const authAppList: TreeItem[] = authApps.map((value) => {
-                    const name = value.name ?? "unknown";
-                    const vendor = value.authVendor ?? "unknown";
+            // Get all MRS auth apps
+            const authApps = await item.backend.mrs.getAuthApps(item.value.id);
+            entry.authApps = authApps.map((value) => {
+                const name = value.name ?? "unknown";
+                const vendor = value.authVendor ?? "unknown";
 
-                    return new MrsAuthAppTreeItem(`${name} (${vendor})`, value, element.entry);
-                });
-
-                return treeItemList.concat(schemaList, contentSetsTreeItemList, authAppList);
-            } catch (error) {
-                throw new Error("Error during retrieving MRS service content. " +
-                    `Error: ${error instanceof Error ? error.message : String(error) ?? "<unknown>"}`);
-            }
+                return {
+                    parent: entry,
+                    type: "mrsAuthApp",
+                    treeItem: new MrsAuthAppTreeItem(`${name} (${vendor})`, value, item.backend, item.connectionId),
+                    users: [],
+                };
+            });
+        } catch (error) {
+            throw new Error("Error during retrieving MRS service content. " +
+                `Error: ${error instanceof Error ? error.message : String(error) ?? "<unknown>"}`);
         }
-
-        return [];
     };
-
 
     /**
      * Loads the list of MRS authentication apps.
      *
-     * @param element The MRS authentication app element.
+     * @param entry The MRS authentication app element.
      *
-     * @returns A promise that resolves to a list of tree items for the UI.
+     * @returns A promise that resolves to when the MRS users have been loaded.
      */
-    private getMrsAuthAppChildren = async (element: MrsAuthAppTreeItem): Promise<TreeItem[]> => {
-        if (element.entry.backend) {
-            try {
-                // Get all MRS content files
-                const users = await element.entry.backend.mrs.listUsers(undefined, element.value.id);
-                const treeItemList: TreeItem[] = users.map((value) => {
-                    return new MrsUserTreeItem(value.name ?? "unknown", value, element.entry);
-                });
+    private loadMrsAuthAppUsers = async (entry: ICdmRestAuthAppEntry): Promise<void> => {
+        try {
+            const item = entry.treeItem;
 
-                return treeItemList;
-            } catch (error) {
-                throw new Error("Error during retrieving MRS users. " +
-                    `Error: ${error instanceof Error ? error.message : String(error) ?? "<unknown>"}`);
-            }
-        } else {
-            return [];
+            const users = await item.backend.mrs.listUsers(undefined, item.value.id);
+            entry.users = users.map((value) => {
+                return {
+                    parent: entry,
+                    type: "mrsUser",
+                    treeItem: new MrsUserTreeItem(value.name ?? "unknown", value, item.backend, item.connectionId),
+                };
+            });
+        } catch (error) {
+            throw new Error("Error during retrieving MRS users. " +
+                `Error: ${error instanceof Error ? error.message : String(error) ?? "<unknown>"}`);
         }
     };
 
     /**
      * Loads the list of MRS content sets.
      *
-     * @param element The MRS service element.
+     * @param entry The MRS service element.
      *
-     * @returns A promise that resolves to a list of tree items for the UI.
+     * @returns A promise that resolves to when the MRS content set files have been loaded.
      */
-    private getMrsContentSetChildren = async (element: MrsContentSetTreeItem): Promise<TreeItem[]> => {
-        if (element.entry.backend) {
-            try {
-                // Get all MRS content files
-                const contentFiles = await element.entry.backend.mrs.listContentFiles(element.value.id);
-                const treeItemList: TreeItem[] = contentFiles.map((value) => {
-                    return new MrsContentFileTreeItem(`${value.requestPath} (${formatBytes(value.size)})`, value,
-                        element.entry);
-                });
+    private loadMrsContentSetFiles = async (entry: ICdmRestContentSetEntry): Promise<void> => {
+        try {
+            const item = entry.treeItem;
 
-                return treeItemList;
-            } catch (error) {
-                throw new Error("Error during retrieving MRS content files. " +
-                    `Error: ${error instanceof Error ? error.message : String(error) ?? "<unknown>"}`);
-            }
-        } else {
-            return [];
+            const contentFiles = await item.backend.mrs.listContentFiles(item.value.id);
+            entry.files = contentFiles.map((value) => {
+                return {
+                    parent: entry,
+                    type: "mrsContentFile",
+                    treeItem: new MrsContentFileTreeItem(`${value.requestPath} (${formatBytes(value.size)})`, value,
+                        item.backend, item.connectionId),
+                };
+            });
+        } catch (error) {
+            throw new Error("Error during retrieving MRS content files. " +
+                `Error: ${error instanceof Error ? error.message : String(error) ?? "<unknown>"}`);
         }
     };
 
@@ -881,24 +1033,26 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
     /**
      * Loads the list of MRS db objects.
      *
-     * @param element The MRS service element.
+     * @param entry The MRS service element.
      *
-     * @returns A promise that resolves to a list of tree items for the UI.
+     * @returns A promise that resolves to when the MRS schema objects have been loaded.
      */
-    private async listMrsDbObjects(element: MrsSchemaTreeItem): Promise<TreeItem[]> {
-        if (element.entry.backend) {
-            const objects = await element.entry.backend.mrs.listDbObjects(element.value.id);
+    private async loadMrsDbObjects(entry: ICdmRestSchemaEntry): Promise<void> {
+        const item = entry.treeItem;
 
-            return objects.map((value) => {
-                return new MrsDbObjectTreeItem(`${value.requestPath} (${value.name})`, value, element.entry);
-            });
-        }
-
-        return [];
+        const objects = await item.backend.mrs.listDbObjects(item.value.id);
+        entry.dbObjects = objects.map((value) => {
+            return {
+                parent: entry,
+                type: "mrsDbObject",
+                treeItem: new MrsDbObjectTreeItem(`${value.requestPath} (${value.name})`, value, item.backend,
+                    item.connectionId),
+            };
+        });
     }
 
     private refreshConnections = (data?: IDictionary): Promise<boolean> => {
-        this.refresh(data?.item as TreeItem);
+        this.refresh(data?.entry as ConnectionsTreeDataModelEntry);
 
         return Promise.resolve(true);
     };
@@ -912,13 +1066,56 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<TreeItem> {
      *
      * @returns A promise that resolves to true if the request was handled.
      */
-    private proxyRequest = (request: {
+    private proxyRequest = async (request: {
         provider: IWebviewProvider;
         original: IRequestListEntry<keyof IRequestTypeMap>;
     }): Promise<boolean> => {
         switch (request.original.requestType) {
+            case "sqlSetCurrentSchema": {
+                // Find the connection for which the schema should be changed.
+                const response = request.original.parameter as {
+                    editorId: string, connectionId: number, schema: string;
+                };
+                const connection = this.connections.find((value) => {
+                    return value.treeItem.details.id === response.connectionId;
+                });
+
+                if (connection && connection.currentSchema !== response.schema) {
+                    connection.currentSchema = response.schema;
+
+                    return this.refreshConnections({ entry: connection });
+                }
+
+                break;
+            }
+
             case "refreshConnections": {
-                return this.refreshConnections();
+                const data = request.original.parameter as IDictionary;
+
+                return this.refreshConnections(data);
+            }
+
+            case "editorsChanged": {
+                // Handle the request after closing an editor, by updating the current schema list.
+                const response = request.original.parameter as IEditorOpenChangeData | IEditorCloseChangeData;
+                const connection = this.connections.find((value) => {
+                    return value.treeItem.details.id === response.connectionId;
+                });
+
+                if (connection) {
+                    if (response.opened) {
+                        ++connection.openEditors;
+                    } else {
+                        --connection.openEditors;
+                        if (connection.openEditors === 0) {
+                            connection.currentSchema = "";
+
+                            return this.refreshConnections({ entry: connection });
+                        }
+                    }
+                }
+
+                return Promise.resolve(true);
             }
 
             default:

@@ -21,16 +21,17 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
 import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem";
-import { IConnectionEntry } from "./ConnectionsTreeProvider";
 
 export class AdminTreeItem extends ConnectionsTreeBaseItem {
     public contextValue = "admin";
 
     public constructor(
-        public name: string,
-        public entry: IConnectionEntry,
+        name: string,
+        backend: ShellInterfaceSqlEditor,
+        connectionId: number,
         hasChildren: boolean) {
-        super(name, "", entry, "adminDashboard.svg", hasChildren);
+        super(name, "", backend, connectionId, "adminDashboard.svg", hasChildren);
     }
 }

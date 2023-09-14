@@ -25,13 +25,14 @@ import * as path from "path";
 
 import { TreeItem, TreeItemCollapsibleState } from "vscode";
 
-import { IConnectionEntry } from "./ConnectionsTreeProvider";
+import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
 
 export class MrsTreeBaseItem extends TreeItem {
 
     public constructor(
         label: string,
-        public entry: IConnectionEntry,
+        public backend: ShellInterfaceSqlEditor,
+        public connectionId: number,
         iconName: string,
         hasChildren: boolean,
     ) {

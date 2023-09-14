@@ -22,7 +22,7 @@
  */
 
 import { IMrsUserData } from "../../../../frontend/src/communication/ProtocolMrs";
-import { IConnectionEntry } from "./ConnectionsTreeProvider";
+import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
 import { MrsTreeBaseItem } from "./MrsTreeBaseItem";
 
 export class MrsUserTreeItem extends MrsTreeBaseItem {
@@ -31,7 +31,8 @@ export class MrsUserTreeItem extends MrsTreeBaseItem {
     public constructor(
         label: string,
         public value: IMrsUserData,
-        entry: IConnectionEntry) {
-        super(label, entry, "ociProfile.svg", false);
+        backend: ShellInterfaceSqlEditor,
+        connectionId: number) {
+        super(label, backend, connectionId, "ociProfile.svg", false);
     }
 }

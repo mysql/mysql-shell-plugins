@@ -22,7 +22,7 @@
  */
 
 import { IMrsServiceData } from "../../../../frontend/src/communication/ProtocolMrs";
-import { IConnectionEntry } from "./ConnectionsTreeProvider";
+import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
 import { MrsTreeBaseItem } from "./MrsTreeBaseItem";
 
 export class MrsServiceTreeItem extends MrsTreeBaseItem {
@@ -31,11 +31,12 @@ export class MrsServiceTreeItem extends MrsTreeBaseItem {
     public constructor(
         label: string,
         public value: IMrsServiceData,
-        details: IConnectionEntry) {
-
+        backend: ShellInterfaceSqlEditor,
+        connectionId: number) {
         const iconName = value.isCurrent ?
             !value.enabled ? "mrsServiceDefaultDisabled.svg" : "mrsServiceDefault.svg" :
             !value.enabled ? "mrsServiceDisabled.svg" : "mrsService.svg";
-        super(label, details, iconName, true);
+
+        super(label, backend, connectionId, iconName, true);
     }
 }

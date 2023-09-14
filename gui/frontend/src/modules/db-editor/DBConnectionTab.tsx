@@ -300,6 +300,10 @@ Execute \\help or \\? for help;`;
         requisitions.register("editorSaveNotebook", this.editorSaveNotebook);
         requisitions.register("editorLoadNotebook", this.editorLoadNotebook);
 
+        const { id, connectionId, savedState } = this.props;
+        requisitions.executeRemote("sqlSetCurrentSchema",
+            { id: id ?? "", connectionId, schema: savedState.currentSchema });
+
         this.notebookRef.current?.focus();
 
         // Update the cachedMrsServiceSdk for the first time
@@ -311,6 +315,10 @@ Execute \\help or \\? for help;`;
             void clearIntervalAsync(resultTimer.timer);
         });
         this.resultTimers.clear();
+
+        const { id, connectionId } = this.props;
+        requisitions.executeRemote("sqlSetCurrentSchema",
+            { id: id ?? "", connectionId, schema: "" });
 
         requisitions.unregister("editorStopExecution", this.editorStopExecution);
         requisitions.unregister("editorCommit", this.editorCommit);
@@ -331,12 +339,15 @@ Execute \\help or \\? for help;`;
     }
 
     public componentDidUpdate(prevProps: IDBConnectionTabProperties): void {
-        const { connectionId, savedState } = this.props;
+        const { id, connectionId, savedState } = this.props;
 
         if (connectionId !== prevProps.connectionId) {
             this.setState({
                 backend: savedState.backend,
             });
+
+            requisitions.executeRemote("sqlSetCurrentSchema",
+                { id: id ?? "", connectionId, schema: savedState.currentSchema });
         }
     }
 
@@ -1344,6 +1355,7 @@ Execute \\help or \\? for help;`;
                 // This may have failed so query the backend for the current schema and then trigger the command.
                 const schema = await backend?.getCurrentSchema();
                 if (schema) {
+                    requisitions.executeRemote("sqlSetCurrentSchema", { id: id ?? "", connectionId, schema });
                     await requisitions.execute("sqlSetCurrentSchema", { id: id ?? "", connectionId, schema });
                 }
 
@@ -1952,12 +1964,10 @@ Execute \\help or \\? for help;`;
         const data = params as ISchemaTreeEntry;
         switch (actionId) {
             case "setCurrentSchemaMenuItem": {
-                backend?.setCurrentSchema(data.qualifiedName.schema).then(() => {
-                    void requisitions.execute("sqlSetCurrentSchema",
-                        { id, connectionId, schema: data.qualifiedName.schema });
-                }).catch((reason) => {
-                    void requisitions.execute("showError", ["Cannot set default schema", String(reason)]);
-                });
+                // Send the request to the DB editor module, which will then change the current schema for
+                // this connection.
+                void requisitions.execute("sqlSetCurrentSchema",
+                    { id, connectionId, schema: data.qualifiedName.schema });
 
                 break;
             }

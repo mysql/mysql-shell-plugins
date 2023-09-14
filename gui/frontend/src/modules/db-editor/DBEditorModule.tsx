@@ -601,9 +601,13 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             // Update all editor tabs with this connection.
             editorTabs.forEach((info: IDBEditorTabInfo) => {
                 if (info.details.id === data.connectionId) {
-                    const connectionState = this.connectionState.get(data.id);
+                    // Either update the current schema only for the given tab or for all tabs using the same connection
+                    // id (if no tab id is given).
+                    const connectionState = this.connectionState.get(data.id.length > 0 ? data.id : info.tabId);
                     if (connectionState) {
                         if (connectionState.currentSchema !== data.schema) {
+                            void connectionState.backend.setCurrentSchema(data.schema);
+
                             // Change for new editors.
                             connectionState.currentSchema = data.schema;
 
@@ -1304,12 +1308,12 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 }
 
                 connectionState.editors.splice(index, 1);
-                this.notifyRemoteEditorClose(connectionState.connectionId, editor.id);
 
                 if (connectionState.editors.length === 0) {
-                    // No editor left over -> close the connection.
+                    // No editor left over -> close the connection. This will also send a remote notification.
                     void this.removeTab(tabId);
                 } else {
+                    this.notifyRemoteEditorClose(connectionState.connectionId, editor.id);
                     this.forceUpdate();
                 }
 

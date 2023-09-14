@@ -23,24 +23,22 @@
 
 import { Command } from "vscode";
 
-import { IConnectionEntry } from "./ConnectionsTreeProvider";
+import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
+
 import { SchemaTreeItem } from "./SchemaTreeItem";
 
 export class SchemaMySQLTreeItem extends SchemaTreeItem {
     public contextValue = "schemaItemMySQL";
 
     public constructor(
-        public name: string,
-        public schema: string,
-        public entry: IConnectionEntry,
+        name: string,
+        schema: string,
+        backend: ShellInterfaceSqlEditor,
+        connectionId: number,
         isCurrent: boolean,
         hasChildren: boolean,
         command?: Command) {
-        super(name, schema, entry, isCurrent ? "schemaMySQLCurrent.svg" : "schemaMySQL.svg", hasChildren, command);
+        super(name, schema, backend, connectionId, isCurrent ? "schemaMySQLCurrent.svg" : "schemaMySQL.svg",
+            hasChildren, command);
     }
-
-    public async makeCurrent(): Promise<void> {
-        return this.entry.backend?.setCurrentSchema(this.schema);
-    }
-
 }

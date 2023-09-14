@@ -24,15 +24,15 @@
 import * as path from "path";
 
 import { TreeItem, TreeItemCollapsibleState } from "vscode";
-
-import { IConnectionEntry } from "./ConnectionsTreeProvider";
+import { IConnectionDetails } from "../../../../frontend/src/supplement/ShellInterface";
+import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
 
 export class ConnectionTreeItem extends TreeItem {
 
     public contextValue = "connection";
 
-    public constructor(public entry: IConnectionEntry) {
-        super(entry.details.caption, TreeItemCollapsibleState.Collapsed);
+    public constructor(public details: IConnectionDetails, public backend: ShellInterfaceSqlEditor) {
+        super(details.caption, TreeItemCollapsibleState.Collapsed);
 
         this.iconPath = {
             light: path.join(__dirname, "..", "images", "light", "connected.svg"),

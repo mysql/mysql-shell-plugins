@@ -22,7 +22,7 @@
  */
 
 import { IMrsContentSetData } from "../../../../frontend/src/communication/ProtocolMrs";
-import { IConnectionEntry } from "./ConnectionsTreeProvider";
+import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
 import { MrsTreeBaseItem } from "./MrsTreeBaseItem";
 
 export class MrsContentSetTreeItem extends MrsTreeBaseItem {
@@ -31,7 +31,11 @@ export class MrsContentSetTreeItem extends MrsTreeBaseItem {
     public constructor(
         label: string,
         public value: IMrsContentSetData,
-        entry: IConnectionEntry) {
-        super(label, entry, value.enabled === 1 ? "mrsContentSet.svg" : "mrsContentSetDisabled.svg", true);
+        backend: ShellInterfaceSqlEditor,
+        connectionId: number,
+    ) {
+        super(label, backend, connectionId, value.enabled === 1
+            ? "mrsContentSet.svg"
+            : "mrsContentSetDisabled.svg", true);
     }
 }

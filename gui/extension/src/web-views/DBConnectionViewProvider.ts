@@ -40,6 +40,12 @@ import { WebviewProvider } from "./WebviewProvider";
 
 export class DBConnectionViewProvider extends WebviewProvider {
     /**
+     * Tracks the current schema of all open connections in this provider.
+     * This is needed to update the UI when the user changes the current provider.
+     */
+    public readonly currentSchemas = new Map<number, string>();
+
+    /**
      * Shows the given module page.
      *
      * @param page The page to show.
@@ -298,6 +304,28 @@ export class DBConnectionViewProvider extends WebviewProvider {
         ], "newConnection");
     }
 
+    /**
+     * Tell the web app to switch the current schema to the given one.
+     *
+     * @param connectionId The ID of the connection to switch the schema for.
+     * @param schema The new current schema.
+     *
+     * @returns Returns a promise which resolves after the command was executed.
+     */
+    public makeCurrentSchema(connectionId: number, schema: string): Promise<boolean> {
+        // Assume we can set the given schema. If we can't, the web app will tell us next time an editor is activated.
+        this.currentSchemas.set(connectionId, schema);
+
+        if (this.panel) {
+            // Tell the web app to switch the schema, if one is open.
+            return this.runCommand("job", [
+                { requestType: "sqlSetCurrentSchema", parameter: { id: "", connectionId, schema } },
+            ], "connections");
+        }
+
+        return Promise.resolve(false);
+    }
+
     protected requisitionsCreated(): void {
         super.requisitionsCreated();
 
@@ -317,6 +345,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
             this.requisitions.register("editorSaveNotebook", this.editorSaveNotebook);
             this.requisitions.register("editorLoadNotebook", this.editorLoadNotebook);
             this.requisitions.register("showOpenDialog", this.showOpenDialog);
+            this.requisitions.register("sqlSetCurrentSchema", this.setCurrentSchema);
         }
     }
 
@@ -379,6 +408,21 @@ export class DBConnectionViewProvider extends WebviewProvider {
         return requisitions.execute("proxyRequest", {
             provider: this,
             original: { requestType: "editorSelect", parameter: details },
+        });
+    };
+
+    private setCurrentSchema = (data: {
+        id: string,
+        connectionId: number,
+        schema: string,
+    }): Promise<boolean> => {
+        // The connection entry set here is never removed, but that doesn't matter as all we need is to
+        // track the current schema for each connection (which can also be empty if no editor is open).
+        this.currentSchemas.set(data.connectionId, data.schema);
+
+        return requisitions.execute("proxyRequest", {
+            provider: this,
+            original: { requestType: "sqlSetCurrentSchema", parameter: data },
         });
     };
 
