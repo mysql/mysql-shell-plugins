@@ -169,6 +169,13 @@ export const checkDialog = "Check Dialog";
 export const checkWebView = "Check WebView";
 export const checkTerminal = "Check terminal";
 
+// REST COLUMN OPTIONS
+export const rowOwnership = "Set as row ownership field";
+export const allowSorting = "Allow sorting operations using this field";
+export const preventFiltering = "Prevent filtering operations on this field";
+export const preventUpdates = "Prevent updates on this field";
+export const excludeETAG = "Exclude this field from ETAG calculations";
+
 export const dbMainCtxMenu = new Map([
     [restartInternalShell, 1],
     [connectToExternalShell, 2],

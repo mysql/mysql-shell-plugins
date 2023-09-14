@@ -658,7 +658,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await Misc.sectionFocus(constants.dbTreeSection);
 
             await Database.createConnection(localConn);
-            const treeLocalConn = await Misc.getTreeElement(constants.dbTreeSection, localConn.caption, true);
+            const treeLocalConn = await Misc.getTreeElement(constants.dbTreeSection, localConn.caption);
             await new EditorView().closeAllEditors();
             await (await Misc.getActionButton(treeLocalConn, constants.openNewConnection)).click();
             await Misc.switchToWebView();

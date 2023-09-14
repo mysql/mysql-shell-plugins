@@ -140,9 +140,26 @@ export interface IRestObject {
 
 export interface IRestObjectJsonDual {
     dbObject?: string;
-    sdkLanguange?: string;
-    columns?: string[];
-    crud?: string[];
+    sdkLanguage?: string;
+    columns?: IRestObjectColumn[];
+    crud?: IRestObjectCrud;
+}
+
+export interface IRestObjectCrud {
+    create: boolean;
+    read: boolean;
+    update: boolean;
+    delete: boolean;
+}
+
+export interface IRestObjectColumn {
+    name?: string;
+    isSelected?: boolean;
+    rowOwnership?: boolean;
+    allowSorting?: boolean;
+    preventFiltering?: boolean;
+    preventUpdates?: boolean;
+    excludeETAG?: boolean;
 }
 
 export interface IRestObjectSettings {

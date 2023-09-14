@@ -92,17 +92,7 @@ export class Database {
                     await inSchema.sendKeys((basic as interfaces.IConnBasicMySQL).schema);
                 }
                 if ((basic as interfaces.IConnBasicMySQL).ociBastion !== undefined) {
-                    const inBastion = await dialog.findElement(By.id("useMDS"));
-                    const classes = await inBastion.getAttribute("class");
-                    if (classes.includes("unchecked")) {
-                        if ((basic as interfaces.IConnBasicMySQL).ociBastion) {
-                            await inBastion.click();
-                        }
-                    } else {
-                        if (!(basic as interfaces.IConnBasicMySQL).ociBastion) {
-                            await inBastion.click();
-                        }
-                    }
+                    await Database.toggleCheckBox("useMDS", (basic as interfaces.IConnBasicMySQL).ociBastion);
                 }
             }
 
@@ -487,31 +477,8 @@ export class Database {
         await inputServPath.clear();
         await inputServPath.sendKeys(restService.servicePath);
 
-        const inputMrsDef = await dialog.findElement(By.id("makeDefault"));
-        const inputMrsDefClasses = await inputMrsDef.getAttribute("class");
-        let classes = inputMrsDefClasses.split(" ");
-        if (restService.default === true) {
-            if (classes.includes("unchecked")) {
-                await inputMrsDef.findElement(By.css(".checkMark")).click();
-            }
-        } else {
-            if (classes.includes("checked")) {
-                await inputMrsDef.findElement(By.css(".checkMark")).click();
-            }
-        }
-
-        const inputMrsEnabled = await dialog.findElement(By.id("enabled"));
-        const inputMrsEnabledClasses = await inputMrsEnabled.getAttribute("class");
-        classes = inputMrsEnabledClasses.split(" ");
-        if (restService.enabled === true) {
-            if (classes.includes("unchecked")) {
-                await inputMrsEnabled.findElement(By.css(".checkMark")).click();
-            }
-        } else {
-            if (classes.includes("checked")) {
-                await inputMrsEnabled.findElement(By.css(".checkMark")).click();
-            }
-        }
+        await Database.toggleCheckBox("makeDefault", restService.default);
+        await Database.toggleCheckBox("enabled", restService.enabled);
 
         // Settings
         if (restService.settings) {
@@ -587,32 +554,12 @@ export class Database {
                 await descriptionInput.sendKeys(restService.authenticationApps.description);
             }
             if (restService.authenticationApps.enabled !== undefined) {
-                const inputAuthAppEnabled = await dialog.findElement(By.id("authApps.enabled"));
-                const inputAuthAppEnabledClasses = await inputAuthAppEnabled.getAttribute("class");
-                classes = inputAuthAppEnabledClasses.split(" ");
-                if (restService.authenticationApps.enabled === true) {
-                    if (classes.includes("unchecked")) {
-                        await inputAuthAppEnabled.findElement(By.css(".checkMark")).click();
-                    }
-                } else {
-                    if (classes.includes("checked")) {
-                        await inputAuthAppEnabled.findElement(By.css(".checkMark")).click();
-                    }
-                }
+                await Database.toggleCheckBox("authApps.enabled", restService.authenticationApps.enabled);
             }
             if (restService.authenticationApps.limitToRegisteredUsers !== undefined) {
-                const inputAuthAppLimit = await dialog.findElement(By.id("authApps.limitToRegisteredUsers"));
-                const inputAuthAppLimitClasses = await inputAuthAppLimit.getAttribute("class");
-                classes = inputAuthAppLimitClasses.split(" ");
-                if (restService.authenticationApps.limitToRegisteredUsers === true) {
-                    if (classes.includes("unchecked")) {
-                        await inputAuthAppLimit.findElement(By.css(".checkMark")).click();
-                    }
-                } else {
-                    if (classes.includes("checked")) {
-                        await inputAuthAppLimit.findElement(By.css(".checkMark")).click();
-                    }
-                }
+                await Database.toggleCheckBox("authApps.limitToRegisteredUsers",
+                    restService.authenticationApps.limitToRegisteredUsers);
+
             }
             if (restService.authenticationApps.appId) {
                 const appIdInput = await dialog.findElement(By.id("authApps.appId"));
@@ -652,27 +599,8 @@ export class Database {
             servicePath: await dialog.findElement(By.id("servicePath")).getAttribute("value"),
         };
 
-        const inputMrsDef = await dialog.findElement(By.id("makeDefault"));
-        const inputMrsDefClasses = await inputMrsDef.getAttribute("class");
-        let classes = inputMrsDefClasses.split(" ");
-        if (classes.includes("unchecked")) {
-            restService.default = false;
-        } else if (classes.includes("checked")) {
-            restService.default = true;
-        } else {
-            throw new Error("Unknown value for Default checkbox on Main settings section");
-        }
-
-        const inputMrsEnabled = await dialog.findElement(By.id("enabled"));
-        const inputMrsEnabledClasses = await inputMrsEnabled.getAttribute("class");
-        classes = inputMrsEnabledClasses.split(" ");
-        if (classes.includes("unchecked")) {
-            restService.enabled = false;
-        } else if (classes.includes("checked")) {
-            restService.enabled = true;
-        } else {
-            throw new Error("Unknown value for Enabled checkbox on Main settings section");
-        }
+        restService.default = await Database.getCheckBoxValue("makeDefault");
+        restService.enabled = await Database.getCheckBoxValue("enabled");
 
         // Settings
         const restServiceSettings: interfaces.IRestServiceSettings = {};
@@ -698,38 +626,20 @@ export class Database {
 
         // Authentication apps
         await dialog.findElement(By.id("page3")).click();
-        const authenticationApps: interfaces.IRestServiceAuthApps = {};
-        authenticationApps.vendor = await dialog.findElement(By.id("authApps.authVendorName"))
-            .findElement(By.css("label")).getText();
-        authenticationApps.name = await dialog.findElement(By.id("authApps.name")).getAttribute("value");
-        authenticationApps.description = await dialog.findElement(By.id("authApps.description")).getAttribute("value");
-        const inputAuthAppEnabled = await dialog.findElement(By.id("authApps.enabled"));
-        const inputAuthAppEnabledClasses = await inputAuthAppEnabled.getAttribute("class");
-        classes = inputAuthAppEnabledClasses.split(" ");
-        if (classes.includes("unchecked")) {
-            authenticationApps.enabled = false;
-        } else if (classes.includes("checked")) {
-            authenticationApps.enabled = true;
-        } else {
-            throw new Error("Unknown value for Enabled checkbox on Authentication Apps section");
-        }
+        const authenticationApps: interfaces.IRestServiceAuthApps = {
+            vendor: await dialog.findElement(By.id("authApps.authVendorName"))
+                .findElement(By.css("label")).getText(),
+            name: await dialog.findElement(By.id("authApps.name")).getAttribute("value"),
+            description: await dialog.findElement(By.id("authApps.description")).getAttribute("value"),
+            enabled: await Database.getCheckBoxValue("authApps.enabled"),
+            limitToRegisteredUsers: await Database.getCheckBoxValue("authApps.limitToRegisteredUsers"),
+            appId: await dialog.findElement(By.id("authApps.appId")).getAttribute("value"),
+            accessToken: await dialog.findElement(By.id("authApps.accessToken")).getAttribute("value"),
+            customUrl: await dialog.findElement(By.id("authApps.url")).getAttribute("value"),
+            customUrlForAccessToken: await dialog.findElement(By.id("authApps.urlDirectAuth"))
+                .getAttribute("value"),
+        };
 
-        const inputAuthAppLimit = await dialog.findElement(By.id("authApps.limitToRegisteredUsers"));
-        const inputAuthAppLimitClasses = await inputAuthAppLimit.getAttribute("class");
-        classes = inputAuthAppLimitClasses.split(" ");
-        if (classes.includes("unchecked")) {
-            authenticationApps.limitToRegisteredUsers = false;
-        } else if (classes.includes("checked")) {
-            authenticationApps.limitToRegisteredUsers = true;
-        } else {
-            throw new Error("Unknown value for Limit to Registered Users checkbox on Authentication Apps section");
-        }
-
-        authenticationApps.appId = await dialog.findElement(By.id("authApps.appId")).getAttribute("value");
-        authenticationApps.accessToken = await dialog.findElement(By.id("authApps.accessToken")).getAttribute("value");
-        authenticationApps.customUrl = await dialog.findElement(By.id("authApps.url")).getAttribute("value");
-        authenticationApps.customUrlForAccessToken = await dialog.findElement(By.id("authApps.urlDirectAuth"))
-            .getAttribute("value");
         restService.authenticationApps = authenticationApps;
 
         await driver.wait(async () => {
@@ -770,33 +680,11 @@ export class Database {
         }
 
         if (restSchema.enabled !== undefined) {
-            const inputEnabled = await dialog.findElement(By.id("enabled"));
-            const inputEnabledClasses = await inputEnabled.getAttribute("class");
-            const classes = inputEnabledClasses.split(" ");
-            if (restSchema.enabled === true) {
-                if (classes.includes("unchecked")) {
-                    await inputEnabled.findElement(By.css(".checkMark")).click();
-                }
-            } else {
-                if (!classes.includes("unchecked")) {
-                    await inputEnabled.findElement(By.css(".checkMark")).click();
-                }
-            }
+            await Database.toggleCheckBox("enabled", restSchema.enabled);
         }
 
         if (restSchema.requiresAuth !== undefined) {
-            const inputRequiresAuth = await dialog.findElement(By.id("requiresAuth"));
-            const inputRequiresAuthClasses = await inputRequiresAuth.getAttribute("class");
-            const classes = inputRequiresAuthClasses.split(" ");
-            if (restSchema.requiresAuth === true) {
-                if (classes.includes("unchecked")) {
-                    await inputRequiresAuth.findElement(By.css(".checkMark")).click();
-                }
-            } else {
-                if (!classes.includes("unchecked")) {
-                    await inputRequiresAuth.findElement(By.css(".checkMark")).click();
-                }
-            }
+            await Database.toggleCheckBox("requiresAuth", restSchema.requiresAuth);
         }
 
         // Settings
@@ -849,27 +737,8 @@ export class Database {
             restSchemaPath: await dialog.findElement(By.id("requestPath")).getAttribute("value"),
         };
 
-        const inputEnabled = await dialog.findElement(By.id("enabled"));
-        const inputEnabledClasses = await inputEnabled.getAttribute("class");
-        let classes = inputEnabledClasses.split(" ");
-        if (classes.includes("unchecked")) {
-            restShema.enabled = false;
-        } else if (classes.includes("checked")) {
-            restShema.enabled = true;
-        } else {
-            throw new Error("Unknown value for Enabled checkbox on Main settings section");
-        }
-
-        const inputRequiresAuth = await dialog.findElement(By.id("requiresAuth"));
-        const inputRequiresAuthClasses = await inputRequiresAuth.getAttribute("class");
-        classes = inputRequiresAuthClasses.split(" ");
-        if (classes.includes("unchecked")) {
-            restShema.requiresAuth = false;
-        } else if (classes.includes("checked")) {
-            restShema.requiresAuth = true;
-        } else {
-            throw new Error("Unknown value for Requires Auth checkbox on Main settings section");
-        }
+        restShema.enabled = await Database.getCheckBoxValue("enabled");
+        restShema.requiresAuth = await Database.getCheckBoxValue("requiresAuth");
 
         // Settings
         const restSchemaSettings: interfaces.IRestSchemaSettings = {};
@@ -959,34 +828,12 @@ export class Database {
         }
 
         if (authApp.enabled !== undefined) {
-            const enabledInput = await dialog.findElement(By.id("enabled"));
-            const status = await enabledInput.getAttribute("class");
-            if (status.includes("unchecked")) {
-                if (authApp.enabled) {
-                    await enabledInput.click();
-                }
-            } else {
-                if (!authApp.enabled) {
-                    await enabledInput.click();
-                }
-            }
-
+            await Database.toggleCheckBox("enabled", authApp.enabled);
             await dialog.click();
         }
 
         if (authApp.limitToRegisteredUsers !== undefined) {
-            const limitInput = await dialog.findElement(By.id("limitToRegisteredUsers"));
-            const status = await limitInput.getAttribute("class");
-            if (status.includes("unchecked")) {
-                if (authApp.limitToRegisteredUsers) {
-                    await limitInput.click();
-                }
-            } else {
-                if (!authApp.limitToRegisteredUsers) {
-                    await limitInput.click();
-                }
-            }
-
+            await Database.toggleCheckBox("limitToRegisteredUsers", authApp.limitToRegisteredUsers);
             await dialog.click();
         }
 
@@ -1013,27 +860,8 @@ export class Database {
             defaultRole: await dialog.findElement(By.css("#defaultRoleName label")).getText(),
         };
 
-        const inputEnabled = await dialog.findElement(By.id("enabled"));
-        const inputEnabledClasses = await inputEnabled.getAttribute("class");
-        let classes = inputEnabledClasses.split(" ");
-        if (classes.includes("unchecked")) {
-            authenticationApp.enabled = false;
-        } else if (classes.includes("checked")) {
-            authenticationApp.enabled = true;
-        } else {
-            throw new Error("Unknown value for Enabled checkbox");
-        }
-
-        const inputLimit = await dialog.findElement(By.id("limitToRegisteredUsers"));
-        const inputLimitClasses = await inputLimit.getAttribute("class");
-        classes = inputLimitClasses.split(" ");
-        if (classes.includes("unchecked")) {
-            authenticationApp.limitToRegisteredUsers = false;
-        } else if (classes.includes("checked")) {
-            authenticationApp.limitToRegisteredUsers = true;
-        } else {
-            throw new Error("Unknown value for Limit to registered users checkbox");
-        }
+        authenticationApp.enabled = await Database.getCheckBoxValue("enabled");
+        authenticationApp.limitToRegisteredUsers = await Database.getCheckBoxValue("limitToRegisteredUsers");
 
         await driver.wait(async () => {
             await dialog.findElement(By.id("ok")).click();
@@ -1042,7 +870,6 @@ export class Database {
         }, constants.explicitWait * 2, "The Authentication App Dialog was not closed");
 
         return authenticationApp;
-
     };
 
     public static setRestUser = async (restUser: interfaces.IRestUser): Promise<void> => {
@@ -1093,17 +920,7 @@ export class Database {
         }
 
         if (restUser.permitLogin !== undefined) {
-            const inputPermitLogin = await dialog.findElement(By.id("loginPermitted"));
-            const inputPermitLoginClass = await inputPermitLogin.getAttribute("class");
-            if (inputPermitLoginClass.includes("unchecked")) {
-                if (restUser.permitLogin) {
-                    await inputPermitLogin.click();
-                }
-            } else {
-                if (!restUser.permitLogin) {
-                    await inputPermitLogin.click();
-                }
-            }
+            await Database.toggleCheckBox("loginPermitted", restUser.permitLogin);
         }
 
         if (restUser.userOptions) {
@@ -1149,16 +966,7 @@ export class Database {
             mappedUserId: await dialog.findElement(By.id("mappedUserId")).getAttribute("value"),
         };
 
-        const inputLogin = await dialog.findElement(By.id("loginPermitted"));
-        const inputLoginClasses = await inputLogin.getAttribute("class");
-        const classes = inputLoginClasses.split(" ");
-        if (classes.includes("unchecked")) {
-            restUser.permitLogin = false;
-        } else if (classes.includes("checked")) {
-            restUser.permitLogin = true;
-        } else {
-            throw new Error("Unknown value for Permit Login checkbox");
-        }
+        restUser.permitLogin = await Database.getCheckBoxValue("loginPermitted");
 
         await driver.wait(async () => {
             await dialog.findElement(By.id("ok")).click();
@@ -1171,8 +979,140 @@ export class Database {
     };
 
     public static setRestObject = async (restObject: interfaces.IRestObject): Promise<void> => {
+
         const dialog = await driver.wait(until.elementLocated(By.id("mrsDbObjectDialog")),
             constants.explicitWait * 2, "Edit REST Object dialog was not displayed");
+
+        const processColumnActivation = async (colOption: interfaces.IRestObjectColumn): Promise<void> => {
+            const inColumns = await driver.wait(until.elementsLocated(By.css(".mrsObjectJsonFieldDiv.withoutChildren")),
+                constants.explicitWait);
+            for (const col of inColumns) {
+                if ((await col.findElement(By.css(".label")).getText()) === colOption.name) {
+                    const isNotSelected = (await col.findElements(By.css(".checkbox.unchecked"))).length > 0;
+                    if (colOption.isSelected === true) {
+                        if (isNotSelected === true) {
+                            await col.findElement(By.css(".checkMark")).click();
+
+                            return;
+                        }
+                    } else {
+                        if (isNotSelected === false) {
+                            await col.findElement(By.css(".checkMark")).click();
+
+                            return;
+                        }
+                    }
+                }
+            }
+        };
+
+        const processColumnOption = async (colName: string, colOption: string, wantedValue: boolean): Promise<void> => {
+            const inColumns = await driver.wait(until.elementsLocated(By.css(".mrsObjectJsonFieldDiv.withoutChildren")),
+                constants.explicitWait);
+            for (const col of inColumns) {
+                if ((await col.findElement(By.css(".label")).getText()) === colName) {
+                    const fieldOptions = await col.findElements(By.css(".fieldOptions > .icon"));
+                    for (const option of fieldOptions) {
+                        const inOptionName = await option.getAttribute("data-tooltip");
+                        if (inOptionName === constants.rowOwnership && colOption === constants.rowOwnership) {
+                            const inOptionIsNotSelected = (await option.getAttribute("class"))
+                                .split(" ").includes("notSelected");
+                            if (wantedValue === true) {
+                                if (inOptionIsNotSelected === true) {
+                                    await driver.actions().move({ origin: col }).perform();
+                                    await option.click();
+
+                                    return;
+                                }
+                            } else {
+                                if (inOptionIsNotSelected === false) {
+                                    await driver.actions().move({ origin: col }).perform();
+                                    await option.click();
+
+                                    return;
+                                }
+                            }
+                        }
+                        if (inOptionName === constants.allowSorting && colOption === constants.allowSorting) {
+                            const inOptionIsNotSelected = (await option.getAttribute("class"))
+                                .split(" ").includes("notSelected");
+                            if (wantedValue === true) {
+                                if (inOptionIsNotSelected === true) {
+                                    await driver.actions().move({ origin: col }).perform();
+                                    await option.click();
+
+                                    return;
+                                }
+                            } else {
+                                if (inOptionIsNotSelected === false) {
+                                    await driver.actions().move({ origin: col }).perform();
+                                    await option.click();
+
+                                    return;
+                                }
+                            }
+                        }
+                        if (inOptionName === constants.preventFiltering && colOption === constants.preventFiltering) {
+                            const inOptionIsNotSelected = (await option.getAttribute("class"))
+                                .split(" ").includes("notSelected");
+                            if (wantedValue === true) {
+                                if (inOptionIsNotSelected === true) {
+                                    await driver.actions().move({ origin: col }).perform();
+                                    await option.click();
+
+                                    return;
+                                }
+                            } else {
+                                if (inOptionIsNotSelected === false) {
+                                    await driver.actions().move({ origin: col }).perform();
+                                    await option.click();
+
+                                    return;
+                                }
+                            }
+                        }
+                        if (inOptionName === constants.preventUpdates && colOption === constants.preventUpdates) {
+                            const inOptionIsNotSelected = (await option.getAttribute("class"))
+                                .split(" ").includes("notSelected");
+                            if (wantedValue === true) {
+                                if (inOptionIsNotSelected === true) {
+                                    await driver.actions().move({ origin: col }).perform();
+                                    await option.click();
+
+                                    return;
+                                }
+                            } else {
+                                if (inOptionIsNotSelected === false) {
+                                    await driver.actions().move({ origin: col }).perform();
+                                    await option.click();
+
+                                    return;
+                                }
+                            }
+                        }
+                        if (inOptionName === constants.excludeETAG && colOption === constants.excludeETAG) {
+                            const inOptionIsNotSelected = (await option.getAttribute("class"))
+                                .split(" ").includes("notSelected");
+                            if (wantedValue === true) {
+                                if (inOptionIsNotSelected === true) {
+                                    await driver.actions().move({ origin: col }).perform();
+                                    await option.click();
+
+                                    return;
+                                }
+                            } else {
+                                if (inOptionIsNotSelected === false) {
+                                    await driver.actions().move({ origin: col }).perform();
+                                    await option.click();
+
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        };
 
         if (restObject.restServicePath) {
             const inService = await dialog.findElement(By.id("service"));
@@ -1194,61 +1134,135 @@ export class Database {
             await inObjPath.sendKeys(restObject.restObjectPath);
         }
         if (restObject.enabled !== undefined) {
-            const inputEnabled = await dialog.findElement(By.id("enabled"));
-            const inputEnabledClasses = await inputEnabled.getAttribute("class");
-            const classes = inputEnabledClasses.split(" ");
-            if (restObject.enabled === true) {
-                if (classes.includes("unchecked")) {
-                    await inputEnabled.findElement(By.css(".checkMark")).click();
-                }
-            } else {
-                if (!classes.includes("unchecked")) {
-                    await inputEnabled.findElement(By.css(".checkMark")).click();
-                }
-            }
+            await Database.toggleCheckBox("enabled", restObject.enabled);
         }
         if (restObject.requiresAuth !== undefined) {
-            const inputRequiresAuth = await dialog.findElement(By.id("requiresAuth"));
-            const inputRequiresAuthClasses = await inputRequiresAuth.getAttribute("class");
-            const classes = inputRequiresAuthClasses.split(" ");
-            if (restObject.requiresAuth === true) {
-                if (classes.includes("unchecked")) {
-                    await inputRequiresAuth.findElement(By.css(".checkMark")).click();
-                }
-            } else {
-                if (!classes.includes("unchecked")) {
-                    await inputRequiresAuth.findElement(By.css(".checkMark")).click();
+            await Database.toggleCheckBox("requiresAuth", restObject.requiresAuth);
+        }
+        if (restObject.jsonRelDuality) {
+            if (restObject.jsonRelDuality.dbObject) {
+                const inDbObj = await dialog.findElement(By.id("dbObject"));
+                await inDbObj.clear();
+                await inDbObj.sendKeys(restObject.jsonRelDuality.dbObject);
+            }
+            if (restObject.jsonRelDuality.sdkLanguage) {
+                if (restObject.jsonRelDuality.sdkLanguage !== "SDK Language") {
+                    const inSdk = await dialog.findElement(By.id("sdkLanguage"));
+                    await inSdk.click();
+                    const popup = await driver.wait(until.elementLocated(By.id("sdkLanguagePopup")),
+                        constants.explicitWait, "SDK Language drop down list was not found");
+                    await popup.findElement(By.id(restObject.jsonRelDuality.sdkLanguage)).click();
                 }
             }
-        }
-
-        if (restObject.jsonRelDuality) {
+            if (restObject.jsonRelDuality.columns) {
+                for (const column of restObject.jsonRelDuality.columns) {
+                    await processColumnActivation(column);
+                    const colKeys = Object.keys(column).splice(0);
+                    for (let i = 0; i <= colKeys.length - 1; i++) {
+                        if (i >= 2) {
+                            await processColumnOption(column.name,
+                                constants[colKeys[i]] as string, (column[colKeys[i]] as boolean));
+                        }
+                    }
+                }
+            }
             if (restObject.jsonRelDuality.crud) {
-                const clickCrudItem = async (elToClick: string): Promise<void> => {
+                const processCrudItem = async (item: { name: string, value: boolean }): Promise<void> => {
                     const crudDivs = await dialog.findElements(By.css(".crudDiv div"));
                     for (const crudDiv of crudDivs) {
                         const isInactive = (await crudDiv.getAttribute("class")).includes("deactivated");
-                        const labelName = await (await crudDiv.findElement(By.css("label"))).getText();
-                        if (elToClick === labelName) {
-                            if (isInactive) {
-                                await crudDiv.click();
-                                break;
+                        const tooltip = await crudDiv.getAttribute("data-tooltip");
+                        if (tooltip.toLowerCase().includes(item.name)) {
+                            if (item.value === true) {
+                                if (isInactive) {
+                                    await crudDiv.click();
+                                    break;
+                                }
+                            } else {
+                                if (!isInactive) {
+                                    await crudDiv.click();
+                                    break;
+                                }
                             }
                         }
                     }
                 };
-                for (const itemCrud of restObject.jsonRelDuality.crud) {
+                for (const key of Object.keys(restObject.jsonRelDuality.crud)) {
                     try {
-                        await clickCrudItem(itemCrud);
+                        await processCrudItem({ name: key, value: restObject.jsonRelDuality.crud[key] });
                     } catch (e) {
                         if (!(e instanceof error.StaleElementReferenceError)) {
                             throw e;
                         } else {
-                            await clickCrudItem(itemCrud);
+                            await processCrudItem({ name: key, value: restObject.jsonRelDuality.crud[key] });
                         }
                     }
                 }
             }
+        }
+        if (restObject.settings) {
+            await driver.wait(async () => {
+                await dialog.findElement(By.id("page1")).click();
+
+                return (await dialog.findElement(By.id("page1")).getAttribute("class")).includes("selected");
+            }, constants.explicitWait, "Settings tab was not selected");
+            if (restObject.settings.resultFormat) {
+                const inResultFormat = await dialog.findElement(By.id("crudOperationFormat"));
+                await inResultFormat.click();
+                const popup = await driver.wait(until.elementLocated(By.id("crudOperationFormatPopup")),
+                    constants.explicitWait, "#crudOperationFormatPopup not found");
+                await popup.findElement(By.id(restObject.settings.resultFormat)).click();
+            }
+            if (restObject.settings.itemsPerPage) {
+                const inItemsPerPage = await dialog.findElement(By.id("itemsPerPage"));
+                await inItemsPerPage.clear();
+                await inItemsPerPage.sendKeys(restObject.settings.itemsPerPage);
+            }
+            if (restObject.settings.comments) {
+                const inComments = await dialog.findElement(By.id("comments"));
+                await inComments.clear();
+                await inComments.sendKeys(restObject.settings.comments);
+            }
+            if (restObject.settings.mediaType) {
+                const inMediaType = await dialog.findElement(By.id("mediaType"));
+                await inMediaType.clear();
+                await inMediaType.sendKeys(restObject.settings.mediaType);
+            }
+            if (restObject.settings.autoDetectMediaType !== undefined) {
+                await Database.toggleCheckBox("autoDetectMediaType", restObject.settings.autoDetectMediaType);
+            }
+        }
+        if (restObject.authorization) {
+            await driver.wait(async () => {
+                await dialog.findElement(By.id("page2")).click();
+
+                return (await dialog.findElement(By.id("page2")).getAttribute("class")).includes("selected");
+            }, constants.explicitWait, "Authorization tab was not selected");
+            if (restObject.authorization.enforceRowUserOwner !== undefined) {
+                await Database.toggleCheckBox("rowUserOwnershipEnforced", restObject.authorization.enforceRowUserOwner);
+            }
+            if (restObject.authorization.rowOwnerShipField) {
+                const inOwner = await dialog.findElement(By.id("rowUserOwnershipColumn"));
+                await inOwner.click();
+                const popup = await driver.wait(until.elementLocated(By.id("rowUserOwnershipColumnPopup")),
+                    constants.explicitWait, "#rowUserOwnershipColumnPopup not found");
+                await popup.findElement(By.id(restObject.authorization.rowOwnerShipField)).click();
+            }
+            if (restObject.authorization.customStoredProcedure) {
+                const inStoredPrc = await dialog.findElement(By.id("authStoredProcedure"));
+                await inStoredPrc.clear();
+                await inStoredPrc.sendKeys(restObject.authorization.customStoredProcedure);
+            }
+        }
+        if (restObject.options) {
+            await driver.wait(async () => {
+                await dialog.findElement(By.id("page3")).click();
+
+                return (await dialog.findElement(By.id("page3")).getAttribute("class")).includes("selected");
+            }, constants.explicitWait, "Options tab was not selected");
+            const inputOptions = await dialog.findElement(By.id("options"));
+            await inputOptions.clear();
+            await inputOptions.sendKeys(restObject.options);
         }
 
         await driver.wait(async () => {
@@ -1256,6 +1270,125 @@ export class Database {
 
             return (await Misc.existsWebViewDialog()) === false;
         }, constants.explicitWait * 2, "The MRS Object dialog was not closed");
+    };
+
+    public static getRestObject = async (): Promise<interfaces.IRestObject> => {
+
+        const dialog = await driver.wait(until.elementLocated(By.id("mrsDbObjectDialog")),
+            constants.explicitWait * 2, "Edit REST Object dialog was not displayed");
+
+        const restObject: interfaces.IRestObject = {
+            restServicePath: await dialog.findElement(By.css("#service label")).getText(),
+            restSchemaPath: await dialog.findElement(By.css("#schema label")).getText(),
+            restObjectPath: await dialog.findElement(By.id("requestPath")).getAttribute("value"),
+            jsonRelDuality: {
+                dbObject: await dialog.findElement(By.id("dbObject")).getAttribute("value"),
+                sdkLanguage: await dialog.findElement(By.css("#sdkLanguage label")).getText(),
+            },
+        };
+
+        restObject.enabled = await Database.getCheckBoxValue("enabled");
+        restObject.requiresAuth = await Database.getCheckBoxValue("requiresAuth");
+
+        const inColumns = await driver.wait(until.elementsLocated(By.css(".mrsObjectJsonFieldDiv.withoutChildren")),
+            constants.explicitWait);
+        const restColumns: interfaces.IRestObjectColumn[] = [];
+        for (const col of inColumns) {
+            const restObjectColumn: interfaces.IRestObjectColumn = {
+                name: await col.findElement(By.css(".label")).getText(),
+                isSelected: !((await col.findElements(By.css(".checkbox.unchecked"))).length > 0),
+            };
+
+            const fieldOptions = await col.findElements(By.css(".fieldOptions > .icon"));
+            for (const option of fieldOptions) {
+                const inOptionName = await option.getAttribute("data-tooltip");
+                if (inOptionName === constants.rowOwnership) {
+                    restObjectColumn.rowOwnership = !(await option.getAttribute("class"))
+                        .split(" ").includes("notSelected");
+                }
+                if (inOptionName === constants.allowSorting) {
+                    restObjectColumn.allowSorting = !(await option.getAttribute("class"))
+                        .split(" ").includes("notSelected");
+                }
+                if (inOptionName === constants.preventFiltering) {
+                    restObjectColumn.preventFiltering = !(await option.getAttribute("class"))
+                        .split(" ").includes("notSelected");
+                }
+                if (inOptionName === constants.preventUpdates) {
+                    restObjectColumn.preventUpdates = !(await option.getAttribute("class"))
+                        .split(" ").includes("notSelected");
+                }
+                if (inOptionName === constants.excludeETAG) {
+                    restObjectColumn.excludeETAG = !(await option.getAttribute("class"))
+                        .split(" ").includes("notSelected");
+                }
+            }
+            restColumns.push(restObjectColumn);
+        }
+        restObject.jsonRelDuality.columns = restColumns;
+
+        const restObjectCrud: interfaces.IRestObjectCrud = {
+            create: undefined,
+            read: undefined,
+            update: undefined,
+            delete: undefined,
+        };
+        const crudDivs = await driver.wait(until.elementsLocated(By.css(".crudDiv div")), constants.explicitWait);
+        const crudKeys = Object.keys(restObjectCrud);
+        for (const crudDiv of crudDivs) {
+            const isInactive = (await crudDiv.getAttribute("class")).includes("deactivated");
+            const tooltip = await crudDiv.getAttribute("data-tooltip");
+            for (const key of crudKeys) {
+                if (tooltip.toLowerCase().includes(key)) {
+                    restObjectCrud[key] = !isInactive;
+                }
+            }
+        }
+        restObject.jsonRelDuality.crud = restObjectCrud;
+
+        await driver.wait(async () => {
+            await dialog.findElement(By.id("page1")).click();
+
+            return (await dialog.findElement(By.id("page1")).getAttribute("class")).includes("selected");
+        }, constants.explicitWait, "Settings tab was not selected");
+        restObject.settings = {
+            resultFormat: await dialog.findElement(By.css("#crudOperationFormat label")).getText(),
+            itemsPerPage: await dialog.findElement(By.id("itemsPerPage")).getAttribute("value"),
+            comments: await dialog.findElement(By.id("comments")).getAttribute("value"),
+            mediaType: await dialog.findElement(By.id("mediaType")).getAttribute("value"),
+        };
+
+        restObject.settings.autoDetectMediaType = await Database.getCheckBoxValue("autoDetectMediaType");
+
+        await driver.wait(async () => {
+            await dialog.findElement(By.id("page2")).click();
+
+            return (await dialog.findElement(By.id("page2")).getAttribute("class")).includes("selected");
+        }, constants.explicitWait, "Authorization tab was not selected");
+        restObject.authorization = {};
+
+        restObject.authorization.enforceRowUserOwner = await Database.getCheckBoxValue("rowUserOwnershipEnforced");
+
+        restObject.authorization.rowOwnerShipField = await dialog.findElement(By.css("#rowUserOwnershipColumn label"))
+            .getText();
+        restObject.authorization.customStoredProcedure = await dialog.findElement(By.id("authStoredProcedure"))
+            .getAttribute("value");
+
+        await driver.wait(async () => {
+            await dialog.findElement(By.id("page3")).click();
+
+            return (await dialog.findElement(By.id("page3")).getAttribute("class")).includes("selected");
+        }, constants.explicitWait, "Options tab was not selected");
+        restObject.options = (await dialog.findElement(By.id("options")).getAttribute("value"))
+            .replace(/\r?\n|\r|\s+/gm, "").trim();
+
+        await driver.wait(async () => {
+            await dialog.findElement(By.id("ok")).click();
+
+            return (await Misc.existsWebViewDialog()) === false;
+        }, constants.explicitWait * 2, "The MRS Object dialog was not closed");
+
+        return restObject;
     };
 
     public static getCurrentEditor = async (): Promise<string> => {
@@ -1509,5 +1642,26 @@ export class Database {
         }
 
         await dialog.findElement(By.id("ok")).click();
+    };
+
+    private static toggleCheckBox = async (elId: string, checked: boolean): Promise<void> => {
+        const isUnchecked = async () => {
+            return (await driver.findElement(By.id(elId)).getAttribute("class")).split(" ")
+                .includes("unchecked");
+        };
+
+        if (checked && (await isUnchecked())) {
+            await driver.findElement(By.id(elId)).findElement(By.css(".checkMark")).click();
+        } else {
+            if (!checked && !(await isUnchecked())) {
+                await driver.findElement(By.id(elId)).findElement(By.css(".checkMark")).click();
+            }
+        }
+    };
+
+    private static getCheckBoxValue = async (elId: string): Promise<boolean> => {
+        const classes = (await driver.findElement(By.id(elId)).getAttribute("class")).split(" ");
+
+        return !classes.includes("unchecked");
     };
 }

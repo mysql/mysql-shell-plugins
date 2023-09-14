@@ -1128,32 +1128,30 @@ export class Misc {
     public static getTreeElement = async (
         section: string,
         itemName: string | RegExp,
-        reloadSection = false,
     ): Promise<TreeItem> => {
         let el: TreeItem;
         let reloadLabel: string;
 
-        if (reloadSection) {
-            if (section === constants.dbTreeSection) {
-                reloadLabel = "Reload the connection list";
-            } else if (section === constants.ociTreeSection) {
-                reloadLabel = "Reload the OCI Profile list";
-            }
+        if (section === constants.dbTreeSection) {
+            reloadLabel = "Reload the connection list";
+        } else if (section === constants.ociTreeSection) {
+            reloadLabel = "Reload the OCI Profile list";
         }
+
+        const sectionTree = await Misc.getSection(section);
+        await driver.wait(Until.isNotLoading(section), constants.explicitWait * 2,
+            `${await sectionTree.getTitle()} is still loading`);
+        let reload = false;
 
         await driver.wait(async () => {
             try {
-                const sectionTree = await Misc.getSection(section);
-                await driver.wait(Until.isNotLoading(section), constants.explicitWait * 2,
-                    `${await sectionTree.getTitle()} is still loading`);
-                if (reloadSection) {
+                if (reload) {
                     if (section === constants.dbTreeSection || section === constants.ociTreeSection) {
                         await Misc.clickSectionToolbarButton(sectionTree, reloadLabel);
+                        await driver.wait(Until.isNotLoading(section), constants.explicitWait * 2,
+                            `${await sectionTree.getTitle()} is still loading`);
                     }
                 }
-                await driver.wait(Until.isNotLoading(section), constants.explicitWait * 2,
-                    `${await sectionTree.getTitle()} is still loading`);
-
                 if (itemName instanceof RegExp) {
                     const treeItems = await sectionTree.getVisibleItems();
                     for (const item of treeItems) {
@@ -1166,13 +1164,17 @@ export class Misc {
                     el = await sectionTree.findItem(itemName, 5);
                 }
 
-                return el !== undefined;
+                if (el === undefined) {
+                    reload = true;
+                } else {
+                    return true;
+                }
             } catch (e) {
                 if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
                 }
             }
-        }, constants.explicitWait * 3, `${itemName.toString()} on section ${section} was not found`);
+        }, constants.explicitWait * 2, `${itemName.toString()} on section ${section} was not found`);
 
         return el;
     };
@@ -1189,9 +1191,9 @@ export class Misc {
                 reloadLabel = "Reload the OCI Profile list";
             }
             await Misc.clickSectionToolbarButton(sectionTree, reloadLabel);
+            await driver.wait(Until.isNotLoading(section), constants.explicitWait * 2,
+                `${await sectionTree.getTitle()} is still loading`);
         }
-        await driver.wait(Until.isNotLoading(section), constants.explicitWait * 2,
-            `${await sectionTree.getTitle()} is still loading`);
 
         if (itemName instanceof RegExp) {
             const treeItems = await sectionTree.getVisibleItems();
