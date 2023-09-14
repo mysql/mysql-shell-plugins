@@ -1600,7 +1600,7 @@
     },
     "dependencies": {
         "anser": "2.1.1",
-        "antlr4ng": "1.0.6",
+        "antlr4ng": "1.0.7",
         "regedit": "5.1.1",
         "ws": "8.12.0"
     },

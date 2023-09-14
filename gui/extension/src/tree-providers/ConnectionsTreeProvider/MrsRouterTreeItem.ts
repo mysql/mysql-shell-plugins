@@ -22,7 +22,7 @@
  */
 
 import { IMrsRouterData } from "../../../../frontend/src/communication/ProtocolMrs";
-import { IConnectionEntry } from "./ConnectionsTreeProvider";
+import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
 import { MrsTreeBaseItem } from "./MrsTreeBaseItem";
 
 export class MrsRouterTreeItem extends MrsTreeBaseItem {
@@ -31,9 +31,10 @@ export class MrsRouterTreeItem extends MrsTreeBaseItem {
     public constructor(
         label: string,
         public value: IMrsRouterData,
-        details: IConnectionEntry,
+        backend: ShellInterfaceSqlEditor,
+        connectionId: number,
         requiresUpgrade: boolean) {
-        super(label, details, MrsRouterTreeItem.getIconName(value, requiresUpgrade), false);
+        super(label, backend, connectionId, MrsRouterTreeItem.getIconName(value, requiresUpgrade), false);
 
         this.description = value.version;
         this.tooltip = requiresUpgrade

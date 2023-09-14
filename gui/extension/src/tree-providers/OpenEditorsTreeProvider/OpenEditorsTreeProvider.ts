@@ -136,7 +136,14 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
         requisitions.unregister("editorSaved", this.editorSaved);
     }
 
-    public clear(provider?: IWebviewProvider): void {
+    /**
+     * Removes the given provider from the list of open providers.
+     *
+     * @param provider The provider to remove. If not given, all providers are removed.
+     *
+     * @returns True if the list of open providers is empty after the removal, false otherwise.
+     */
+    public clear(provider?: IWebviewProvider): boolean {
         if (provider) {
             this.#openProviders.delete(provider);
         } else {
@@ -144,6 +151,8 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
         }
 
         this.#changeEvent.fire(undefined);
+
+        return this.#openProviders.size === 0;
     }
 
     /**
@@ -156,7 +165,7 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
     public isOpen(item: ConnectionTreeItem): boolean {
         for (const [_, entry] of this.#openProviders.entries()) {
             if (entry.connections.some((connection) => {
-                return connection.connectionId === item.entry.details.id;
+                return connection.connectionId === item.details.id;
             })) {
                 return true;
             }

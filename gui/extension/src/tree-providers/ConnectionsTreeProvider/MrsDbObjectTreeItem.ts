@@ -22,8 +22,8 @@
  */
 
 import { IMrsDbObjectData } from "../../../../frontend/src/communication/ProtocolMrs";
+import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
 import { convertToPascalCase } from "../../../../frontend/src/utilities/string-helpers";
-import { IConnectionEntry } from "./ConnectionsTreeProvider";
 import { MrsTreeBaseItem } from "./MrsTreeBaseItem";
 
 export class MrsDbObjectTreeItem extends MrsTreeBaseItem {
@@ -32,8 +32,9 @@ export class MrsDbObjectTreeItem extends MrsTreeBaseItem {
     public constructor(
         label: string,
         public value: IMrsDbObjectData,
-        details: IConnectionEntry) {
-        super(label, details, MrsDbObjectTreeItem.getIconName(value), false);
+        backend: ShellInterfaceSqlEditor,
+        connectionId: number) {
+        super(label, backend, connectionId, MrsDbObjectTreeItem.getIconName(value), false);
     }
 
     private static getIconName = (value: IMrsDbObjectData): string => {

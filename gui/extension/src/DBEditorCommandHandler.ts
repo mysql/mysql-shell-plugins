@@ -24,7 +24,7 @@
 import fs from "fs";
 import { basename } from "path";
 
-import { window, commands, TextEditor, workspace, Uri } from "vscode";
+import { commands, TextEditor, Uri, window, workspace } from "vscode";
 
 import {
     IRequestListEntry, IRequestTypeMap, IWebviewProvider, requisitions,
@@ -33,33 +33,31 @@ import {
 import { OciDbSystemTreeItem } from "./tree-providers/OCITreeProvider";
 import { ScriptTreeItem } from "./tree-providers/ScriptTreeItem";
 
-import { DBConnectionViewProvider } from "./web-views/DBConnectionViewProvider";
-import { EditorLanguage, INewEditorRequest, IRunQueryRequest, IScriptRequest } from "../../frontend/src/supplement";
 import { EntityType, IDBEditorScriptState } from "../../frontend/src/modules/db-editor";
+import { EditorLanguage, INewEditorRequest, IRunQueryRequest, IScriptRequest } from "../../frontend/src/supplement";
+import { DBConnectionViewProvider } from "./web-views/DBConnectionViewProvider";
 
-import { CodeBlocks } from "./CodeBlocks";
+import { IMrsDbObjectData } from "../../frontend/src/communication/ProtocolMrs";
+import { DBType } from "../../frontend/src/supplement/ShellInterface";
+import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
 import { uuid } from "../../frontend/src/utilities/helpers";
-import { DBType, IConnectionDetails } from "../../frontend/src/supplement/ShellInterface";
+import { CodeBlocks } from "./CodeBlocks";
 import { WebviewProvider } from "./web-views/WebviewProvider";
 import { ExtensionHost } from "./ExtensionHost";
-import { ConnectionMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvider/ConnectionMySQLTreeItem";
 import { ConnectionsTreeBaseItem } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeBaseItem";
 import {
-    ConnectionsTreeDataProvider, IConnectionEntry,
+    CdmSchemaGroupMember,
+    ConnectionsTreeDataModelEntry, ICdmConnectionEntry, ICdmRestDbObjectEntry, ICdmRoutineEntry, ICdmSchemaEntry,
+    ICdmTableEntry, ICdmTriggerEntry,
+} from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeDataModel";
+import {
+    ConnectionsTreeDataProvider,
 } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeProvider";
 import { ConnectionTreeItem } from "./tree-providers/ConnectionsTreeProvider/ConnectionTreeItem";
 import { SchemaEventTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaEventTreeItem";
-import { SchemaMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaMySQLTreeItem";
-import { SchemaRoutineTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaRoutineTreeItem";
-import { SchemaTableTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaTableTreeItem";
-import { SchemaTableTriggerTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaTableTriggerTreeItem";
-import { SchemaViewTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaViewTreeItem";
 import {
     IEditorConnectionEntry, IOpenEditorBaseEntry, IOpenEditorEntry, OpenEditorsTreeDataProvider,
 } from "./tree-providers/OpenEditorsTreeProvider/OpenEditorsTreeProvider";
-import { MrsDbObjectTreeItem } from "./tree-providers/ConnectionsTreeProvider/MrsDbObjectTreeItem";
-import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
-import { IMrsDbObjectData } from "../../frontend/src/communication/ProtocolMrs";
 import { showMessageWithTimeout } from "./utilities";
 import { snakeToCamelCase } from "../../frontend/src/utilities/string-helpers";
 
@@ -94,12 +92,12 @@ export class DBEditorCommandHandler {
         context.subscriptions.push(dbConnectionsTreeView);
 
         // Register expand/collapse handlers
-        dbConnectionsTreeView.onDidExpandElement((e) => {
-            this.connectionsProvider.didExpandElement(e.element);
+        dbConnectionsTreeView.onDidExpandElement((event) => {
+            this.connectionsProvider.didExpandElement(event.element);
         });
 
-        dbConnectionsTreeView.onDidCollapseElement((e) => {
-            this.connectionsProvider.didCollapseElement(e.element);
+        dbConnectionsTreeView.onDidCollapseElement((event) => {
+            this.connectionsProvider.didCollapseElement(event.element);
         });
 
         this.#openEditorsTreeDataProvider = new OpenEditorsTreeDataProvider();
@@ -147,57 +145,67 @@ export class DBEditorCommandHandler {
             this.connectionsProvider.refreshMrsRouters();
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.openConnection", (item: ConnectionTreeItem) => {
-            // "Open connection" acts differently, depending on whether the same connection is already open or not.
-            let provider;
-            if (this.#openEditorsTreeDataProvider.isOpen(item)) {
-                provider = this.#host.newProvider;
-            } else {
-                provider = this.#host.currentProvider;
-            }
+        context.subscriptions.push(commands.registerCommand("msg.openConnection", (entry?: ICdmConnectionEntry) => {
+            if (entry) {
+                // "Open connection" acts differently, depending on whether the same connection is already open or not.
+                let provider;
+                if (this.#openEditorsTreeDataProvider.isOpen(entry.treeItem)) {
+                    provider = this.#host.newProvider;
+                } else {
+                    provider = this.#host.currentProvider;
+                }
 
-            void provider?.show(String(item.entry.details.id));
+                void provider?.show(String(entry.treeItem.details.id));
+            }
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.openConnectionNewTab",
-            (params: ConnectionTreeItem) => {
-                const provider = this.#host.newProvider;
-                void provider?.show(String(params.entry.details.id));
+            (entry?: ICdmConnectionEntry) => {
+                if (entry) {
+                    const provider = this.#host.newProvider;
+                    void provider?.show(String(entry.treeItem.details.id));
+                }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.showTableData", (item: SchemaTableTreeItem) => {
-            const provider = this.#host.currentProvider;
+        context.subscriptions.push(commands.registerCommand("msg.showTableData", (entry?: ICdmTableEntry) => {
+            if (entry) {
+                const provider = this.#host.currentProvider;
 
-            const configuration = workspace.getConfiguration(`msg.dbEditor`);
-            const uppercaseKeywords = configuration.get("upperCaseKeywords", true);
-            const select = uppercaseKeywords ? "SELECT" : "select";
-            const from = uppercaseKeywords ? "FROM" : "from";
+                const configuration = workspace.getConfiguration(`msg.dbEditor`);
+                const uppercaseKeywords = configuration.get("upperCaseKeywords", true);
+                const select = uppercaseKeywords ? "SELECT" : "select";
+                const from = uppercaseKeywords ? "FROM" : "from";
 
-            const query = `${select} * ${from} \`${item.schema}\`.\`${item.label as string}\``;
-            const name = `${item.schema}.${item.label as string} - Data`;
-            void provider?.runScript(String(item.entry.details.id), {
-                scriptId: uuid(),
-                language: "mysql",
-                content: query,
-                name,
-            });
+                const item = entry.treeItem;
+                const query = `${select} * ${from} \`${item.schema}\`.\`${item.label as string}\``;
+                const name = `${item.schema}.${item.label as string} - Data`;
+                void provider?.runScript(String(item.connectionId), {
+                    scriptId: uuid(),
+                    language: "mysql",
+                    content: query,
+                    name,
+                });
+            }
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.selectTableRows", (item: SchemaTableTreeItem) => {
-            const provider = this.#host.currentProvider;
+        context.subscriptions.push(commands.registerCommand("msg.selectTableRows", (entry?: ICdmTableEntry) => {
+            if (entry) {
+                const provider = this.#host.currentProvider;
 
-            const configuration = workspace.getConfiguration(`msg.dbEditor`);
-            const uppercaseKeywords = configuration.get("upperCaseKeywords", true);
-            const select = uppercaseKeywords ? "SELECT" : "select";
-            const from = uppercaseKeywords ? "FROM" : "from";
+                const configuration = workspace.getConfiguration(`msg.dbEditor`);
+                const uppercaseKeywords = configuration.get("upperCaseKeywords", true);
+                const select = uppercaseKeywords ? "SELECT" : "select";
+                const from = uppercaseKeywords ? "FROM" : "from";
 
-            const query = `${select} * ${from} \`${item.schema}\`.\`${item.label as string}\``;
-            void provider?.runQuery(String(item.entry.details.id), {
-                query,
-                data: {},
-                linkId: -1,
-                parameters: [],
-            });
+                const item = entry.treeItem;
+                const query = `${select} * ${from} \`${item.schema}\`.\`${item.label as string}\``;
+                void provider?.runQuery(String(item.connectionId), {
+                    query,
+                    data: {},
+                    linkId: -1,
+                    parameters: [],
+                });
+            }
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.showNotebook",
@@ -245,9 +253,11 @@ export class DBEditorCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.insertScript", (item: ScriptTreeItem) => {
-            const provider = this.#host.currentProvider;
-            void provider?.insertScriptData(item.entry as IDBEditorScriptState);
+        context.subscriptions.push(commands.registerCommand("msg.insertScript", (item?: ScriptTreeItem) => {
+            if (item) {
+                const provider = this.#host.currentProvider;
+                void provider?.insertScriptData(item.entry as IDBEditorScriptState);
+            }
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.addConnection", () => {
@@ -260,34 +270,44 @@ export class DBEditorCommandHandler {
                 void requisitions.execute("refreshConnections", { item });
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.removeConnection", (item: ConnectionTreeItem) => {
-            const provider = this.#host.currentProvider;
-            void provider?.removeConnection(item.entry.details.id);
+        context.subscriptions.push(commands.registerCommand("msg.removeConnection", (entry?: ICdmConnectionEntry) => {
+            if (entry) {
+                const provider = this.#host.currentProvider;
+                void provider?.removeConnection(entry.treeItem.details.id);
+            }
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.editConnection", (item: ConnectionTreeItem) => {
-            const provider = this.#host.currentProvider;
-            void provider?.editConnection(item.entry.details.id);
+        context.subscriptions.push(commands.registerCommand("msg.editConnection", (entry?: ICdmConnectionEntry) => {
+            if (entry) {
+                const provider = this.#host.currentProvider;
+                void provider?.editConnection(entry?.treeItem.details.id);
+            }
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.duplicateConnection",
-            (item: ConnectionTreeItem) => {
-                const provider = this.#host.currentProvider;
-                void provider?.duplicateConnection(item.entry.details.id);
+            (entry?: ICdmConnectionEntry) => {
+                if (entry) {
+                    const provider = this.#host.currentProvider;
+                    void provider?.duplicateConnection(entry.treeItem.details.id);
+                }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.showSystemSchemasOnConnection",
-            (item: ConnectionTreeItem) => {
-                item.entry.details.hideSystemSchemas = false;
+            (entry?: ICdmConnectionEntry) => {
+                if (entry) {
+                    entry.treeItem.details.hideSystemSchemas = false;
 
-                void requisitions.execute("refreshConnections", { item });
+                    void requisitions.execute("refreshConnections", { entry });
+                }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.hideSystemSchemasOnConnection",
-            (item: ConnectionTreeItem) => {
-                item.entry.details.hideSystemSchemas = true;
+            (entry?: ICdmConnectionEntry) => {
+                if (entry) {
+                    entry.treeItem.details.hideSystemSchemas = true;
 
-                void requisitions.execute("refreshConnections", { item });
+                    void requisitions.execute("refreshConnections", { entry });
+                }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.openDBBrowser", (provider?: IWebviewProvider) => {
@@ -302,54 +322,67 @@ export class DBEditorCommandHandler {
             }
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.makeCurrentSchema", (item?: SchemaMySQLTreeItem) => {
-            void item?.makeCurrent().then(() => {
-                void commands.executeCommand("msg.refreshConnections");
-            });
+        context.subscriptions.push(commands.registerCommand("msg.makeCurrentSchema", (entry?: ICdmSchemaEntry) => {
+            if (entry) {
+                const provider = this.#host.currentProvider;
+                if (provider) {
+                    void provider?.makeCurrentSchema(entry.parent.treeItem.details.id, entry.treeItem.name)
+                        .then((success) => {
+                            if (success) {
+                                this.connectionsProvider.makeCurrentSchema(entry);
+                            }
+                        });
+                }
+            }
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.dropSchema", (item?: SchemaMySQLTreeItem) => {
-            item?.dropItem();
+        context.subscriptions.push(commands.registerCommand("msg.dropSchema", (entry?: ICdmSchemaEntry) => {
+            entry?.treeItem.dropItem();
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.dropTable", (item?: SchemaTableTreeItem) => {
-            item?.dropItem();
+        context.subscriptions.push(commands.registerCommand("msg.dropTable", (entry?: ICdmSchemaEntry) => {
+            entry?.treeItem.dropItem();
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.dropView", (item?: SchemaViewTreeItem) => {
-            item?.dropItem();
+        context.subscriptions.push(commands.registerCommand("msg.dropView", (entry?: ICdmSchemaEntry) => {
+            entry?.treeItem.dropItem();
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.dropRoutine", (item?: SchemaRoutineTreeItem) => {
-            item?.dropItem();
+        context.subscriptions.push(commands.registerCommand("msg.dropRoutine", (entry?: ICdmRoutineEntry) => {
+            entry?.treeItem.dropItem();
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.dropTrigger",
-            (item?: SchemaTableTriggerTreeItem) => {
-                item?.dropItem();
-            }));
+        context.subscriptions.push(commands.registerCommand("msg.dropTrigger", (entry?: ICdmTriggerEntry) => {
+            entry?.treeItem.dropItem();
+        }));
 
         context.subscriptions.push(commands.registerCommand("msg.dropEvent", (item?: SchemaEventTreeItem) => {
             item?.dropItem();
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.defaultConnection",
-            (item: ConnectionTreeItem) => {
-                const configuration = workspace.getConfiguration(`msg.editor`);
-                void configuration.update("defaultDbConnection", item.entry.details.caption).then(() => {
-                    void window.showInformationMessage(
-                        `"${item.label as string}" has been set as default DB Connection.`);
-                });
+            (entry?: ICdmConnectionEntry) => {
+                if (entry) {
+                    const configuration = workspace.getConfiguration(`msg.editor`);
+                    void configuration.update("defaultDbConnection", entry.treeItem.details.caption).then(() => {
+                        void window.showInformationMessage(
+                            `"${entry.treeItem.label as string}" has been set as default DB Connection.`);
+                    });
+                }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.copyNameToClipboard",
-            (item: ConnectionsTreeBaseItem) => {
-                item.copyNameToClipboard();
+            (entry?: ConnectionsTreeDataModelEntry) => {
+                if (entry && entry.treeItem instanceof ConnectionsTreeBaseItem) {
+                    entry.treeItem.copyNameToClipboard();
+                }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.copyCreateScriptToClipboard",
-            (item: ConnectionsTreeBaseItem) => {
-                item.copyCreateScriptToClipboard();
+            (entry?: ConnectionsTreeDataModelEntry) => {
+                if (entry && entry.treeItem instanceof ConnectionsTreeBaseItem) {
+                    entry.treeItem.copyCreateScriptToClipboard();
+                }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.editInScriptEditor", async (uri?: Uri) => {
@@ -385,7 +418,7 @@ export class DBEditorCommandHandler {
                                     }
                                     scripts.set(details.scriptId, uri);
 
-                                    void provider.editScript(String(connection.details.id), details);
+                                    void provider.editScript(String(connection.treeItem.details.id), details);
                                 }
                             });
                         }
@@ -394,88 +427,79 @@ export class DBEditorCommandHandler {
             }
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.loadScriptFromDisk",
-            (item?: ConnectionMySQLTreeItem | IEditorConnectionEntry) => {
-                // TODO: allow selection of a connection if no menu item is given.
-                if (item) {
-                    let details: Partial<IConnectionDetails>;
-                    if (item instanceof ConnectionMySQLTreeItem) {
-                        details = item.entry.details;
-                    } else {
-                        details = item.treeItem.entry.details;
-                    }
+        context.subscriptions.push(commands.registerCommand("msg.loadScriptFromDisk", (entry?: ICdmConnectionEntry) => {
+            if (entry) {
+                void window.showOpenDialog({
+                    title: "Select the script file to load to MySQL Shell",
+                    openLabel: "Select Script File",
+                    canSelectFiles: true,
+                    canSelectFolders: false,
+                    canSelectMany: false,
+                    filters: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        SQL: ["sql", "mysql"], TypeScript: ["ts"], JavaScript: ["js"],
+                    },
+                }).then(async (value) => {
+                    if (value && value.length === 1) {
+                        const uri = value[0];
+                        const stat = await workspace.fs.stat(uri);
 
-                    void window.showOpenDialog({
-                        title: "Select the script file to load to MySQL Shell",
-                        openLabel: "Select Script File",
-                        canSelectFiles: true,
-                        canSelectFolders: false,
-                        canSelectMany: false,
-                        filters: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            SQL: ["sql", "mysql"], TypeScript: ["ts"], JavaScript: ["js"],
-                        },
-                    }).then(async (value) => {
-                        if (value && value.length === 1) {
-                            const uri = value[0];
-                            const stat = await workspace.fs.stat(uri);
+                        if (stat.size >= 10000000) {
+                            await window.showInformationMessage(`The file "${uri.fsPath}" ` +
+                                `is too large to edit it in a web view. Instead use the VS Code built-in editor.`);
+                        } else {
+                            await workspace.fs.readFile(uri).then((value) => {
+                                const content = value.toString();
+                                const provider = this.#host.currentProvider;
 
-                            if (stat.size >= 10000000) {
-                                await window.showInformationMessage(`The file "${uri.fsPath}" ` +
-                                    `is too large to edit it in a web view. Instead use the VS Code built-in editor.`);
-                            } else {
-                                await workspace.fs.readFile(uri).then((value) => {
-                                    const content = value.toString();
-                                    const provider = this.#host.currentProvider;
-
-                                    if (provider) {
-                                        let language: EditorLanguage = "mysql";
-                                        const name = basename(uri.fsPath);
-                                        const ext = name.substring(name.lastIndexOf(".") ?? 0);
-                                        switch (ext) {
-                                            case ".ts": {
-                                                language = "typescript";
-                                                break;
-                                            }
-
-                                            case ".js": {
-                                                language = "javascript";
-                                                break;
-                                            }
-
-                                            case ".sql": {
-                                                if (details.dbType === DBType.Sqlite) {
-                                                    language = "sql";
-                                                }
-
-                                                break;
-                                            }
-
-                                            default:
+                                if (provider) {
+                                    let language: EditorLanguage = "mysql";
+                                    const name = basename(uri.fsPath);
+                                    const ext = name.substring(name.lastIndexOf(".") ?? 0);
+                                    switch (ext) {
+                                        case ".ts": {
+                                            language = "typescript";
+                                            break;
                                         }
 
-                                        const request: IScriptRequest = {
-                                            scriptId: uuid(),
-                                            name,
-                                            content,
-                                            language,
-                                        };
-
-                                        let scripts = this.#openScripts.get(provider);
-                                        if (!scripts) {
-                                            scripts = new Map();
-                                            this.#openScripts.set(provider, scripts);
+                                        case ".js": {
+                                            language = "javascript";
+                                            break;
                                         }
-                                        scripts.set(request.scriptId, uri);
 
-                                        void provider.editScript(String(details.id), request);
+                                        case ".sql": {
+                                            if (entry.treeItem.details.dbType === DBType.Sqlite) {
+                                                language = "sql";
+                                            }
+
+                                            break;
+                                        }
+
+                                        default:
                                     }
-                                });
-                            }
+
+                                    const details: IScriptRequest = {
+                                        scriptId: uuid(),
+                                        name,
+                                        content,
+                                        language,
+                                    };
+
+                                    let scripts = this.#openScripts.get(provider);
+                                    if (!scripts) {
+                                        scripts = new Map();
+                                        this.#openScripts.set(provider, scripts);
+                                    }
+                                    scripts.set(details.scriptId, uri);
+
+                                    void provider.editScript(String(entry.treeItem.details.id), details);
+                                }
+                            });
                         }
-                    });
-                }
-            }));
+                    }
+                });
+            }
+        }));
 
         context.subscriptions.push(commands.registerCommand("msg.mds.createConnectionViaBastionService",
             (item?: OciDbSystemTreeItem) => {
@@ -486,110 +510,120 @@ export class DBEditorCommandHandler {
             }));
 
         context.subscriptions.push(commands.registerTextEditorCommand("msg.executeEmbeddedSqlFromEditor",
-            (editor: TextEditor) => {
-                void host.determineConnection().then((connection) => {
-                    if (connection) {
-                        this.#codeBlocks.executeSqlFromEditor(editor, connection.details.caption,
-                            connection.details.id);
-                    }
-                });
+            (editor?: TextEditor) => {
+                if (editor) {
+                    void host.determineConnection().then((connection) => {
+                        if (connection) {
+                            this.#codeBlocks.executeSqlFromEditor(editor, connection.treeItem.details.caption,
+                                connection.treeItem.details.id);
+                        }
+                    });
+                }
             }));
 
         context.subscriptions.push(commands.registerTextEditorCommand("msg.executeSelectedSqlFromEditor",
-            (editor) => {
-                void host.determineConnection().then((connection) => {
-                    if (connection) {
-                        const provider = this.#host.currentProvider;
-                        if (provider) {
-                            let sql = "";
-                            if (!editor.selection.isEmpty) {
-                                editor.selections.forEach((selection) => {
-                                    sql += editor.document.getText(selection);
-                                });
-                            } else {
-                                sql = editor.document.getText();
-                            }
+            (editor?: TextEditor) => {
+                if (editor) {
+                    void host.determineConnection().then((connection) => {
+                        if (connection) {
+                            const provider = this.#host.currentProvider;
+                            if (provider) {
+                                let sql = "";
+                                if (!editor.selection.isEmpty) {
+                                    editor.selections.forEach((selection) => {
+                                        sql += editor.document.getText(selection);
+                                    });
+                                } else {
+                                    sql = editor.document.getText();
+                                }
 
-                            return provider.runScript(String(connection.details.id), {
-                                scriptId: uuid(),
-                                content: sql,
-                                language: this.languageFromConnection(connection),
-                            });
+                                return provider.runScript(String(connection.treeItem.details.id), {
+                                    scriptId: uuid(),
+                                    content: sql,
+                                    language: this.languageFromConnection(connection),
+                                });
+                            }
                         }
-                    }
-                });
+                    });
+                }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.closeEditor", (entry: IOpenEditorEntry) => {
-            const provider = entry.parent.parent.provider;
-            if (provider instanceof DBConnectionViewProvider) {
-                void provider.closeEditor(entry.parent.connectionId, entry.id);
+        context.subscriptions.push(commands.registerCommand("msg.closeEditor", (entry?: IOpenEditorEntry) => {
+            if (entry) {
+                const provider = entry.parent.parent.provider;
+                if (provider instanceof DBConnectionViewProvider) {
+                    void provider.closeEditor(entry.parent.connectionId, entry.id);
+                }
             }
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.newNotebookMysql",
-            (entry: IEditorConnectionEntry) => {
+            (entry?: IEditorConnectionEntry) => {
                 void this.createNewEditor({ entry, language: "msg" });
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.newNotebookSqlite",
-            (entry: IEditorConnectionEntry) => {
+            (entry?: IEditorConnectionEntry) => {
                 void this.createNewEditor({ entry, language: "msg" });
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.newScriptJs", (entry: IEditorConnectionEntry) => {
+        context.subscriptions.push(commands.registerCommand("msg.newScriptJs", (entry?: IEditorConnectionEntry) => {
             void this.createNewEditor({ entry, language: "javascript" });
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.newScriptMysql", (entry: IEditorConnectionEntry) => {
+        context.subscriptions.push(commands.registerCommand("msg.newScriptMysql", (entry?: IEditorConnectionEntry) => {
             void this.createNewEditor({ entry, language: "mysql" });
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.newScriptSqlite",
-            (entry: IEditorConnectionEntry) => {
+            (entry?: IEditorConnectionEntry) => {
                 void this.createNewEditor({ entry, language: "sql" });
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.newScriptTs", (entry: IEditorConnectionEntry) => {
+        context.subscriptions.push(commands.registerCommand("msg.newScriptTs", (entry?: IEditorConnectionEntry) => {
             void this.createNewEditor({ entry, language: "typescript" });
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.addDbObject",
-            (item?: ConnectionsTreeBaseItem) => {
-                if (item?.entry.backend) {
-                    const objectType = item.dbType.toUpperCase();
-
-                    if (objectType === "TABLE" || objectType === "VIEW" || objectType === "PROCEDURE") {
-                        // First, create a new temporary dbObject, then call the DbObject dialog
-                        this.createNewDbObject(item.entry.backend, item, objectType).then((dbObject) => {
-                            const provider = this.#host.currentProvider;
-                            void provider?.editMrsDbObject(String(item.entry.details.id),
-                                { dbObject, createObject: true });
-                        }).catch((reason) => {
-                            void window.showErrorMessage(`${String(reason)}`);
-                        });
-                    } else {
-                        void window.showErrorMessage(
-                            `The database object type '${objectType}' is not supported at this time`);
-                    }
+        context.subscriptions.push(commands.registerCommand("msg.mrs.addDbObject", (entry?: CdmSchemaGroupMember) => {
+            if (entry) {
+                let objectType;
+                if (entry.type === "routine") {
+                    objectType = entry.treeItem.dbType.toUpperCase();
+                } else {
+                    objectType = entry.type.toUpperCase();
                 }
-            }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.editDbObject",
-            (item?: MrsDbObjectTreeItem) => {
-                if (item) {
-                    const provider = this.#host.currentProvider;
-                    void provider?.editMrsDbObject(String(item.entry.details.id),
-                        { dbObject: item.value, createObject: false });
+                const item = entry.treeItem;
+                if (objectType === "TABLE" || objectType === "VIEW" || objectType === "PROCEDURE") {
+                    // First, create a new temporary dbObject, then call the DbObject dialog
+                    this.createNewDbObject(entry.treeItem.backend, item, objectType).then((dbObject) => {
+                        const provider = this.#host.currentProvider;
+                        void provider?.editMrsDbObject(String(item.connectionId),
+                            { dbObject, createObject: true });
+                    }).catch((reason) => {
+                        void window.showErrorMessage(`${String(reason)}`);
+                    });
+                } else {
+                    void window.showErrorMessage(
+                        `The database object type '${objectType}' is not supported at this time`);
                 }
-            }));
+            }
+        }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.editDbObject", (entry?: ICdmRestDbObjectEntry) => {
+            if (entry) {
+                const provider = this.#host.currentProvider;
+                void provider?.editMrsDbObject(String(entry.treeItem.connectionId),
+                    { dbObject: entry.treeItem.value, createObject: false });
+            }
+        }));
     }
 
     /**
      * Triggered on authentication, which means existing connections are no longer valid.
      */
-    public refreshConnectionTree(): void {
-        this.connectionsProvider.closeAllConnections();
+    public async refreshConnectionTree(): Promise<void> {
+        await this.connectionsProvider.closeAllConnections();
         this.connectionsProvider.refresh();
     }
 
@@ -599,8 +633,12 @@ export class DBEditorCommandHandler {
 
     public providerClosed(provider: DBConnectionViewProvider): void {
         this.#openScripts.delete(provider);
-        this.#openEditorsTreeDataProvider.clear(provider);
+        if (this.#openEditorsTreeDataProvider.clear(provider)) {
+            // No provider remained open. Reset the current schemas.
+            this.connectionsProvider.resetCurrentSchemas();
+        }
     }
+
 
     /**
      * Helper to create a unique caption for a new provider.
@@ -609,6 +647,10 @@ export class DBEditorCommandHandler {
      */
     public generateNewProviderCaption(): string {
         return this.#openEditorsTreeDataProvider.createUniqueCaption();
+    }
+
+    public providerStateChanged(provider: DBConnectionViewProvider, active: boolean): void {
+        this.connectionsProvider.providerStateChanged(provider, active);
     }
 
     private createNewDbObject = async (backend: ShellInterfaceSqlEditor,
@@ -930,8 +972,8 @@ export class DBEditorCommandHandler {
         });
     };
 
-    private languageFromConnection = (connection: IConnectionEntry): EditorLanguage => {
-        switch (connection.details.dbType) {
+    private languageFromConnection = (entry: ICdmConnectionEntry): EditorLanguage => {
+        switch (entry.treeItem.details.dbType) {
             case DBType.MySQL: {
                 return "mysql";
             }

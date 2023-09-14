@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IConnectionEntry } from "./ConnectionsTreeProvider";
+import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
 import { SchemaTableTreeItem } from "./SchemaTableTreeItem";
 
 export class SchemaTableSqliteTreeItem extends SchemaTableTreeItem {
@@ -29,9 +29,10 @@ export class SchemaTableSqliteTreeItem extends SchemaTableTreeItem {
 
     public constructor(
         name: string,
-        public schema: string,
-        entry: IConnectionEntry,
+        schema: string,
+        backend: ShellInterfaceSqlEditor,
+        connectionId: number,
         hasChildren: boolean) {
-        super(name, schema, entry, "schemaTable.svg", hasChildren);
+        super(name, schema, backend, connectionId, "schemaTable.svg", hasChildren);
     }
 }

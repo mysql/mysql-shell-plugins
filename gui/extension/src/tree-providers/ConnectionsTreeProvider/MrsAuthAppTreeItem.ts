@@ -22,7 +22,7 @@
  */
 
 import { IMrsAuthAppData } from "../../../../frontend/src/communication/ProtocolMrs";
-import { IConnectionEntry } from "./ConnectionsTreeProvider";
+import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
 import { MrsTreeBaseItem } from "./MrsTreeBaseItem";
 
 export class MrsAuthAppTreeItem extends MrsTreeBaseItem {
@@ -31,8 +31,10 @@ export class MrsAuthAppTreeItem extends MrsTreeBaseItem {
     public constructor(
         label: string,
         public value: IMrsAuthAppData,
-        entry: IConnectionEntry) {
-        super(label, entry, value.enabled ? "shield.svg" : "shieldDisabled.svg", true);
+        backend: ShellInterfaceSqlEditor,
+        connectionId: number,
+    ) {
+        super(label, backend, connectionId, value.enabled ? "shield.svg" : "shieldDisabled.svg", true);
         this.tooltip = value.description ?? label;
     }
 }

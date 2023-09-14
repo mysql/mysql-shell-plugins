@@ -23,20 +23,21 @@
 
 import { Command } from "vscode";
 
+import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
+
 import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem";
-import { IConnectionEntry } from "./ConnectionsTreeProvider";
 
 export class MrsTreeItem extends ConnectionsTreeBaseItem {
     public contextValue = "mrs";
 
     public constructor(
-        public name: string,
-        public schema: string,
-        public entry: IConnectionEntry,
+        name: string,
+        schema: string,
+        backend: ShellInterfaceSqlEditor,
+        connectionId: number,
         hasChildren: boolean,
         enabled: boolean,
         command?: Command) {
-        super(name, schema, entry, enabled ? "mrs.svg" : "mrsDisabled.svg", hasChildren, command);
+        super(name, schema, backend, connectionId, enabled ? "mrs.svg" : "mrsDisabled.svg", hasChildren, command);
     }
-
 }

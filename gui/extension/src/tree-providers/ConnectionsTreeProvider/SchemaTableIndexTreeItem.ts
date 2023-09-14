@@ -21,18 +21,19 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
 import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem";
-import { IConnectionEntry } from "./ConnectionsTreeProvider";
 
 export class SchemaTableIndexTreeItem extends ConnectionsTreeBaseItem {
     public contextValue = "schemaTableIndexItem";
 
     public constructor(
         name: string,
-        public schema: string,
+        schema: string,
         public table: string,
-        entry: IConnectionEntry) {
-        super(name, schema, entry, "schemaTableIndex.svg", false);
+        backend: ShellInterfaceSqlEditor,
+        connectionId: number) {
+        super(name, schema, backend, connectionId, "schemaTableIndex.svg", false);
     }
 
     public get qualifiedName(): string {

@@ -50,7 +50,7 @@ export const openSqlEditorConnection = async (sqlEditor: ShellInterfaceSqlEditor
         if (isShellPromptResult(result)) {
             if (result.type === "password") {
                 void window.showInputBox({ title: result.prompt, password: true }).then((value) => {
-                    if (value) {
+                    if (value !== undefined) {
                         void sqlEditor.sendReply(requestId, ShellPromptResponseType.Ok, value);
                     } else {
                         void sqlEditor.sendReply(requestId, ShellPromptResponseType.Cancel, "");

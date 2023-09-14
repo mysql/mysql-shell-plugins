@@ -24,17 +24,17 @@
 import * as path from "path";
 
 import { Command, TreeItem, TreeItemCollapsibleState, env, window, commands } from "vscode";
+import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
 
 import { showMessageWithTimeout, showModalDialog } from "../../utilities";
-
-import { IConnectionEntry } from "./ConnectionsTreeProvider";
 
 export class ConnectionsTreeBaseItem extends TreeItem {
 
     public constructor(
         public name: string,
         public schema: string,
-        public entry: IConnectionEntry,
+        public backend: ShellInterfaceSqlEditor,
+        public connectionId: number,
         iconName: string,
         hasChildren: boolean,
         command?: Command) {
@@ -54,7 +54,7 @@ export class ConnectionsTreeBaseItem extends TreeItem {
     }
 
     public copyCreateScriptToClipboard(): void {
-        this.entry.backend?.execute(`show create ${this.dbType} ${this.qualifiedName}`).then((data) => {
+        this.backend.execute(`show create ${this.dbType} ${this.qualifiedName}`).then((data) => {
             if (data) {
                 if (data.rows && data.rows.length > 0) {
                     const firstRow = data.rows[0] as string[];
@@ -77,7 +77,7 @@ export class ConnectionsTreeBaseItem extends TreeItem {
         void showModalDialog(message, okText, "This operation cannot be reverted!").then((accepted) => {
             if (accepted) {
                 const query = `drop ${this.dbType} ${this.qualifiedName}`;
-                this.entry.backend?.execute(query).then(() => {
+                this.backend.execute(query).then(() => {
                     // TODO: refresh only the affected connection.
                     void commands.executeCommand("msg.refreshConnections");
                     showMessageWithTimeout(`The object ${this.name} has been dropped successfully.`);

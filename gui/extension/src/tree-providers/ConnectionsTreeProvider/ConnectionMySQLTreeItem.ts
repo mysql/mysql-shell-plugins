@@ -24,7 +24,8 @@
 import * as path from "path";
 
 import { IMySQLConnectionOptions } from "../../../../frontend/src/communication/MySQL";
-import { IConnectionEntry } from "./ConnectionsTreeProvider";
+import { IConnectionDetails } from "../../../../frontend/src/supplement/ShellInterface";
+import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
 
 import { ConnectionTreeItem } from "./ConnectionTreeItem";
 
@@ -32,11 +33,11 @@ export class ConnectionMySQLTreeItem extends ConnectionTreeItem {
 
     public contextValue = "connectionMySQL";
 
-    public constructor(public entry: IConnectionEntry) {
-        super(entry);
+    public constructor(details: IConnectionDetails, backend: ShellInterfaceSqlEditor) {
+        super(details, backend);
 
         let fileName = "connectionMySQL.svg";
-        const optionsMySQL = entry.details.options as IMySQLConnectionOptions;
+        const optionsMySQL = details.options as IMySQLConnectionOptions;
         if (optionsMySQL["mysql-db-system-id"] !== undefined) {
             fileName = "ociDbSystem.svg";
         }

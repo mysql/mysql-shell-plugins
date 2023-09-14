@@ -23,18 +23,20 @@
 
 import { Command } from "vscode";
 
+import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
+
 import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem";
-import { IConnectionEntry } from "./ConnectionsTreeProvider";
 
 export class AdminSectionTreeItem extends ConnectionsTreeBaseItem {
     public contextValue = "adminSection";
 
     public constructor(
-        public name: string,
-        public entry: IConnectionEntry,
+        name: string,
+        backend: ShellInterfaceSqlEditor,
+        connectionId: number,
         iconName: string,
         hasChildren: boolean,
         command?: Command) {
-        super(name, "", entry, iconName, hasChildren, command);
+        super(name, "", backend, connectionId, iconName, hasChildren, command);
     }
 }
