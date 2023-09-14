@@ -103,7 +103,7 @@ describe("NOTEBOOKS", () => {
             try {
                 await Misc.cleanCredentials();
                 await Misc.sectionFocus(constants.dbTreeSection);
-                const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption, true);
+                const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
                 await (await Misc.getActionButton(treeGlobalConn, constants.openNewConnection)).click();
                 await Misc.switchToWebView();
                 await driver.wait(Database.isConnectionLoaded(),
@@ -133,7 +133,7 @@ describe("NOTEBOOKS", () => {
         after(async function () {
             try {
                 await driver.switchTo().defaultContent();
-                const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption, true);
+                const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
                 await treeGlobalConn.collapse();
                 await new EditorView().closeAllEditors();
             } catch (e) {
@@ -558,7 +558,7 @@ describe("NOTEBOOKS", () => {
             try {
                 await Misc.cleanCredentials();
                 await Misc.sectionFocus(constants.dbTreeSection);
-                const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption, true);
+                const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
                 await (await Misc.getActionButton(treeGlobalConn, constants.openNewConnection)).click();
                 await Misc.switchToWebView();
                 await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
@@ -584,7 +584,7 @@ describe("NOTEBOOKS", () => {
             try {
                 await driver.switchTo().defaultContent();
                 await Misc.sectionFocus(constants.dbTreeSection);
-                const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption, true);
+                const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
                 await treeGlobalConn.collapse();
                 await new EditorView().closeAllEditors();
             } catch (e) {
@@ -658,7 +658,7 @@ describe("NOTEBOOKS", () => {
                 }
 
                 await Misc.sectionFocus(constants.dbTreeSection);
-                const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption, true);
+                const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
                 await (await Misc.getActionButton(treeGlobalConn, constants.openNewConnection)).click();
                 await Misc.switchToWebView();
                 await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
