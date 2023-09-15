@@ -83,34 +83,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 }
             }, constants.explicitWait, "Could no set the config file");
 
-
             await Misc.clickSectionToolbarButton(treeOCISection, "Reload the OCI Profile list");
-
-            const treeE2eTests = await Misc.getTreeElement(constants.ociTreeSection, "E2ETESTS (us-ashburn-1)");
-            await treeE2eTests?.expand();
-
-            await driver.wait(Until.isNotLoading(constants.ociTreeSection), 250000,
-                `${constants.ociTreeSection} is still loading`);
-
-            const treeRoot = await treeOCISection.findItem("/ (Root Compartment)", constants.ociMaxLevel) ||
-                await treeOCISection.findItem("/ (Root Compartment) (Default)", constants.ociMaxLevel);
-            await treeRoot.expand();
-
-            await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 20,
-                `${constants.ociTreeSection} is still loading`);
-
-            const treeQA = await treeOCISection.findItem("QA", constants.ociMaxLevel) ||
-                await treeOCISection.findItem("QA (Default)", constants.ociMaxLevel);
-            await treeQA?.expand();
-
-            await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 20,
-                `${constants.ociTreeSection} is still loading`);
-
-            const treeShellTesting = await Misc.getTreeElement(constants.ociTreeSection, "MySQLShellTesting");
-            await treeShellTesting?.expand();
-
-            await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 20,
-                `${constants.ociTreeSection} is still loading`);
         } catch (e) {
             await Misc.processFailure(this);
             throw e;
@@ -159,7 +132,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 3,
                 `${constants.ociTreeSection} is still loading`);
             await driver.wait(async () => {
-                return Misc.isDefaultItem(treeE2eTests, "profile");
+                return Misc.isDefaultItem(constants.ociTreeSection, "E2ETESTS (us-ashburn-1)", "profile");
             }, constants.explicitWait * 2, "E2e tests is not the deault item");
 
         });
@@ -169,10 +142,14 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         let compartmentId = "";
 
-        beforeEach(async function () {
+        before(async function () {
             try {
-                await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 3,
-                    `${constants.ociTreeSection} is still loading`);
+                await Misc.expandTree(constants.ociTreeSection, [
+                    "E2ETESTS (us-ashburn-1)",
+                    /(Root Compartment)/,
+                    /QA/,
+                    "MySQLShellTesting",
+                ], constants.explicitWait * 5);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -211,9 +188,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         it("View Compartment Information", async () => {
 
-            const treeOCISection = await Misc.getSection(constants.ociTreeSection);
-            const treeQA = await treeOCISection.findItem("QA", constants.ociMaxLevel) ||
-                await treeOCISection.findItem("QA (Default)", constants.ociMaxLevel);
+            const treeQA = await Misc.getTreeElement(constants.ociTreeSection, /QA/);
             await Misc.openContextMenuItem(treeQA, constants.viewCompartmentInfo, constants.checkNewTab);
             await driver.wait(async () => {
                 const editors = await new EditorView().getOpenEditorTitles();
@@ -237,13 +212,13 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         it("Set as Current Compartment", async () => {
 
             const treeOCISection = await Misc.getSection(constants.ociTreeSection);
-            let treeQA = await treeOCISection.findItem("QA", constants.ociMaxLevel) ||
-                await treeOCISection.findItem("QA (Default)", constants.ociMaxLevel);
+            let treeQA = await Misc.getTreeElement(constants.ociTreeSection, /QA/);
             await Misc.openContextMenuItem(treeQA, constants.setCurrentCompartment, undefined);
             await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 3,
                 `${constants.ociTreeSection} is still loading`);
             treeQA = await treeOCISection.findItem("QA (Default)", constants.ociMaxLevel);
-            expect(await Misc.isDefaultItem(treeQA, "compartment")).to.be.true;
+            expect(await Misc.isDefaultItem(constants.ociTreeSection,
+                await treeQA.getLabel(), "compartment")).to.be.true;
             await treeQA.expand();
             await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 20,
                 `${constants.ociTreeSection} is still loading`);
@@ -267,6 +242,20 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
     });
 
     describe("DB System", () => {
+
+        before(async function () {
+            try {
+                await Misc.expandTree(constants.ociTreeSection, [
+                    "E2ETESTS (us-ashburn-1)",
+                    /(Root Compartment)/,
+                    /QA/,
+                    "MySQLShellTesting",
+                ], constants.explicitWait * 5);
+            } catch (e) {
+                await Misc.processFailure(this);
+                throw e;
+            }
+        });
 
         beforeEach(async function () {
             try {
@@ -401,6 +390,19 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         before(async function () {
             try {
                 await Misc.sectionFocus(constants.ociTreeSection);
+                before(async function () {
+                    try {
+                        await Misc.expandTree(constants.ociTreeSection, [
+                            "E2ETESTS (us-ashburn-1)",
+                            /(Root Compartment)/,
+                            /QA/,
+                            "MySQLShellTesting",
+                        ], constants.explicitWait * 5);
+                    } catch (e) {
+                        await Misc.processFailure(this);
+                        throw e;
+                    }
+                });
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -465,7 +467,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 `${constants.ociTreeSection} is still loading`);
 
             await driver.wait(async () => {
-                return Misc.isDefaultItem(treeBastion, "bastion");
+                return Misc.isDefaultItem(constants.ociTreeSection, "Bastion4PrivateSubnetStandardVnc", "bastion");
             }, constants.explicitWait * 2, "Bastion is not the deault item");
 
             const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
@@ -661,7 +663,6 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             const treeLocalConn = await Misc.getTreeElement(constants.dbTreeSection, localConn.caption);
             await new EditorView().closeAllEditors();
             await (await Misc.getActionButton(treeLocalConn, constants.openNewConnection)).click();
-            await Misc.switchToWebView();
             await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
                 "DB Connection was not loaded");
             await Database.setDBConnectionCredentials(localConn, 30000);

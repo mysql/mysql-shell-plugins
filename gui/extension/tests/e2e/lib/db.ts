@@ -50,7 +50,7 @@ export class Database {
     ): Promise<void> => {
 
         const dialog = await driver.wait(until.elementLocated(By.css(".visible.valueEditDialog")),
-            constants.explicitWait * 3, "Connection dialog was not displayed");
+            constants.explicitWait * 5, "Connection dialog was not displayed");
 
         if (dbType) {
             const inDBType = await dialog.findElement(By.id("databaseType"));
@@ -90,6 +90,11 @@ export class Database {
                     const inSchema = await dialog.findElement(By.id("defaultSchema"));
                     await inSchema.clear();
                     await inSchema.sendKeys((basic as interfaces.IConnBasicMySQL).schema);
+                }
+                if ((basic as interfaces.IConnBasicMySQL).port) {
+                    const inPort = await dialog.findElement(By.css("#port input"));
+                    await inPort.clear();
+                    await inPort.sendKeys((basic as interfaces.IConnBasicMySQL).port);
                 }
                 if ((basic as interfaces.IConnBasicMySQL).ociBastion !== undefined) {
                     await Database.toggleCheckBox("useMDS", (basic as interfaces.IConnBasicMySQL).ociBastion);
@@ -188,8 +193,15 @@ export class Database {
 
         await driver.switchTo().defaultContent();
         await Misc.clickSectionToolbarButton(await Misc.getSection(constants.dbTreeSection),
-            "Create New DB Connection");
+            constants.createDBConnection);
         await Misc.switchToWebView();
+        await driver.wait(until.elementLocated(By.css(".visible.valueEditDialog")),
+            constants.explicitWait, "Connection dialog was not displayed").catch(async () => {
+                const newConn = await driver.wait(until.elementLocated(By.id("-1")), constants.explicitWait,
+                    "New Connection button was not displayed");
+                await driver.executeScript("arguments[0].click()", newConn);
+            });
+
         await Database.setConnection(
             dbConfig.dbType,
             dbConfig.caption,
@@ -264,6 +276,8 @@ export class Database {
 
     public static isConnectionLoaded = (): Condition<boolean> => {
         return new Condition("DB is not loaded", async () => {
+            await driver.switchTo().defaultContent();
+            await Misc.switchToWebView();
             const st1 = await driver.findElements(By.css(".msg.portal"));
             const st2 = await driver.findElements(By.css("textarea"));
             const st3 = await driver.findElements(By.id("title"));

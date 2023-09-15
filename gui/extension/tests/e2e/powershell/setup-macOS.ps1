@@ -25,7 +25,7 @@ $basePath = Join-Path $PSScriptRoot ".."
 Set-Location $basePath
 $basePath = Get-Location
 $env:WORKSPACE = Resolve-Path(Join-Path $basePath ".." ".." ".." "..")
-$vsCodeVersion = "1.78.2"
+$vsCodeVersion = "1.78.1"
 $testSuites = @("db", "notebook", "oci", "shell", "rest")
 
 if (!$env:VSIX_PATH){
@@ -52,8 +52,9 @@ ForEach ($testSuite in $testSuites) {
     }
 } 
 write-host "DONE"
-npm run e2e-tests-get-vscode -- -s "test-resources" -c $vscodeVersion
-npm run e2e-tests-get-chromedriver -- -s "test-resources" -c $vscodeVersion
+$testResources = Join-Path $home "test-resources"
+npm run e2e-tests-get-vscode -- -s $testResources -c $vscodeVersion
+npm run e2e-tests-get-chromedriver -- -s $testResources -c $vscodeVersion
 
 # CREATE OCI Directory
 $ociPath = Join-Path $env:WORKSPACE "oci"
@@ -75,4 +76,4 @@ Get-ChildItem -Path $itemsPath | % {
 npm run e2e-tests-tsc
 
 # INSTALL VSIX
-npm run e2e-tests-install-vsix -- -s "test-resources" -e "test-resources/ext" -f $env:VSIX_PATH
+npm run e2e-tests-install-vsix -- -s $testResources -e "$testResources/ext" -f $env:VSIX_PATH

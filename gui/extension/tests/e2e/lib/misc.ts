@@ -43,16 +43,17 @@ export let browser: VSBrowser;
 
 export class Misc {
 
-
     public static getSection = async (name: string): Promise<CustomTreeSection> => {
-        return await new SideBarView().getContent().getSection(name) as CustomTreeSection;
+        return new SideBarView().getContent().getSection(name);
     };
 
     public static isDefaultItem = async (
-        treeItem: TreeItem,
+        section: string,
+        treeItemName: string,
         itemType: string,
     ): Promise<boolean | undefined> => {
 
+        const treeItem = await Misc.getTreeElement(section, treeItemName);
         const el = await treeItem.findElement(By.css(".custom-view-tree-node-item-icon"));
         const backImage = await el.getCssValue("background-image");
 
@@ -216,9 +217,15 @@ export class Misc {
     };
 
     public static clickSectionToolbarButton = async (section: CustomTreeSection, button: string): Promise<void> => {
-        await driver.actions().move({ origin: section }).perform();
-        const sectionActions = await driver
-            .findElement(By.xpath(`//ul[contains(@aria-label, '${await section.getTitle()} actions')]`));
+        let sectionActions: WebElement;
+        await driver.wait(async () => {
+            await driver.actions().move({ origin: section }).perform();
+            sectionActions = await driver
+                .findElement(By.xpath(`//ul[contains(@aria-label, '${await section.getTitle()} actions')]`));
+
+            return sectionActions.isDisplayed();
+        }, constants.explicitWait, `Toolbar buttons for ${await section.getTitle()} were not displayed`);
+
         const actionItems = await sectionActions.findElements(By.css("li"));
         for (const action of actionItems) {
             const title = await action.getAttribute("title");
@@ -271,7 +278,7 @@ export class Misc {
         const notification = await Misc.getNotification("This will close all MySQL Shell tabs", false);
         await Misc.clickOnNotificationButton(notification, "Restart MySQL Shell");
         await driver.wait(async () => {
-            return Misc.findOnMySQLShLog("Info");
+            return Misc.findOnMySQLShLog(/Info/);
         }, constants.explicitWait * 3, "Shell server did not start");
     };
 
@@ -310,7 +317,7 @@ export class Misc {
         try {
             await fs.access(extDir);
         } catch (e) {
-            extDir = join(process.cwd(), "test-resources", "ext");
+            extDir = join(constants.basePath, `test-resources`, "ext");
         }
         const items = await fs.readdir(extDir);
         let extDirName = "";
@@ -495,46 +502,80 @@ export class Misc {
 
     };
 
+    public static expandDBConnectionTree = async (conn: TreeItem, password: string): Promise<void> => {
+        await driver.wait(async () => {
+            await conn.expand();
+
+            return conn.isExpanded();
+        }, constants.explicitWait, `Could not expand ${await conn.getLabel()}`);
+
+        await driver.wait(async () => {
+            const inputWidget = await driver.wait(until.elementLocated(By.css(".quick-input-widget")), 500)
+                .catch(() => { return undefined; });
+            if (inputWidget && (await (inputWidget as WebElement).isDisplayed())) {
+                await Misc.setInputPassword(conn, password);
+
+                return driver.wait(async () => {
+                    return conn.hasChildren();
+                }, 2000, `${await conn.getLabel()} should have children after setting the password`);
+            } else if (await conn.hasChildren()) {
+                return true;
+            }
+        }, constants.explicitWait * 2,
+            `The input password was not displayed nor the ${await conn.getLabel()} has children`);
+    };
+
     public static switchToWebView = async (): Promise<void> => {
-        const visibleDiv = await driver.wait(async () => {
-            const divs = await driver.findElements(By.css(".file-icons-enabled > div"));
-            for (const div of divs) {
-                try {
-                    const id = await div.getAttribute("id");
-                    if (id !== "") {
-                        const visibility = await div.getCssValue("visibility");
-                        if (visibility.includes("visible")) {
-                            return div;
+        await driver.wait(async () => {
+            try {
+                const visibleDiv = await driver.wait(async () => {
+                    const divs = await driver.findElements(By.css(".file-icons-enabled > div"));
+                    for (const div of divs) {
+                        try {
+                            const id = await div.getAttribute("id");
+                            if (id !== "") {
+                                const visibility = await div.getCssValue("visibility");
+                                if (visibility.includes("visible")) {
+                                    return div;
+                                }
+                            }
+                        } catch (e) {
+                            // continue
                         }
                     }
-                } catch (e) {
-                    // continue
+                }, constants.explicitWait, "Could not find a visible iframe div");
+
+                const expectedFrames = 2;
+
+                const firstIframe = await visibleDiv.findElement(By.css("iframe"));
+                await driver.wait(until.ableToSwitchToFrame(firstIframe),
+                    constants.explicitWait, "Could not enter the first iframe");
+
+                for (let i = 0; i <= expectedFrames - 1; i++) {
+                    const frame = await driver.findElements(By.css("iframe"));
+                    if (frame.length > 0) {
+                        await driver.wait(until.ableToSwitchToFrame(frame[0]),
+                            constants.explicitWait, "Could not enter the second iframe");
+                        const deepestFrame = await driver.findElements(By.css("iframe"));
+                        if (deepestFrame.length > 0) {
+                            await driver.executeScript("arguments[0].style.width='100%';", deepestFrame[0]);
+                            await driver.executeScript("arguments[0].style.height='100%';", deepestFrame[0]);
+                            await driver.executeScript("arguments[0].style.transform='scale(1)';", deepestFrame[0]);
+                        }
+                    }
+                    else {
+                        break;
+                    }
+                }
+
+                return true;
+            } catch (e) {
+                if (!String(e.message).includes("target frame detached")) {
+                    throw e;
                 }
             }
-        }, constants.explicitWait, "Could not find a visible iframe div");
+        }, constants.explicitWait * 2, "target frame detached");
 
-        const expectedFrames = 2;
-
-        const firstIframe = await visibleDiv.findElement(By.css("iframe"));
-        await driver.wait(until.ableToSwitchToFrame(firstIframe),
-            constants.explicitWait, "Could not enter the first iframe");
-
-        for (let i = 0; i <= expectedFrames - 1; i++) {
-            const frame = await driver.findElements(By.css("iframe"));
-            if (frame.length > 0) {
-                await driver.wait(until.ableToSwitchToFrame(frame[0]),
-                    constants.explicitWait, "Could not enter the second iframe");
-                const deepestFrame = await driver.findElements(By.css("iframe"));
-                if (deepestFrame.length > 0) {
-                    await driver.executeScript("arguments[0].style.width='100%';", deepestFrame[0]);
-                    await driver.executeScript("arguments[0].style.height='100%';", deepestFrame[0]);
-                    await driver.executeScript("arguments[0].style.transform='scale(1)';", deepestFrame[0]);
-                }
-            }
-            else {
-                break;
-            }
-        }
     };
 
     public static isRouterInstalled = async (): Promise<boolean> => {
@@ -573,9 +614,6 @@ export class Misc {
             return foundNotifications.length > 0;
         }, constants.explicitWait, "Could not find any notification");
 
-        let possibleError = `Could not find notification '${text}'. `;
-        possibleError += `But these found: ${foundNotifications.toString()}`;
-
         let notif: Notification;
         await driver.wait(async () => {
             try {
@@ -590,13 +628,12 @@ export class Misc {
                         return true;
                     }
                 }
-                throw new Error(possibleError);
             } catch (e) {
                 if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
                 }
             }
-        }, constants.explicitWait, "Notification was stale");
+        }, constants.explicitWait, `Could not find '${text}' notification`);
 
         return notif;
     };
@@ -706,6 +743,8 @@ export class Misc {
             }
         }, constants.explicitWait * 2, "Could not get output text from clipboard");
 
+        console.log(clipBoardText);
+
         if (textToSearch instanceof RegExp) {
             return (clipBoardText.match(textToSearch)) !== null;
         } else {
@@ -722,42 +761,24 @@ export class Misc {
     public static setInputPassword = async (connection: TreeItem, password: string): Promise<void> => {
         let inputBox: InputBox;
 
-        await driver.wait(async () => {
-            inputBox = new InputBox();
-
-            return inputBox.getTitle()
-                .then((title) => {
-                    return title.includes("Please provide the password");
-                }).catch(() => {
-                    return false;
-                });
-        }, constants.explicitWait * 3, "Provide password dialog was not displayed");
-
-        await inputBox.setText(password);
-        await inputBox.confirm();
-
-        if (credentialHelperOk) {
-            await driver.wait(async () => {
-                inputBox = new InputBox();
-
-                return inputBox.getTitle()
-                    .then((title) => {
-                        return title.includes("Save password");
-                    }).catch(() => {
-                        return false;
-                    });
-            }, constants.explicitWait * 3, "Save password Input Box was not displayed");
-
-            await inputBox.setText("N");
+        inputBox = await InputBox.create();
+        if (await inputBox.isPassword()) {
+            await inputBox.setText(password);
             await inputBox.confirm();
         }
 
-        await driver.wait(async () => {
-            return connection.hasChildren();
-        }, constants.explicitWait * 3, `Could not Save the password for ${await connection.getLabel()}`);
+        if (credentialHelperOk) {
+            await driver.wait(async () => {
+                inputBox = await InputBox.create();
+                if ((await inputBox.isPassword()) === false) {
+                    await inputBox.setText("N");
+                    await inputBox.confirm();
 
+                    return true;
+                }
+            }, constants.explicitWait, "Save password dialog was not displayed");
+        }
     };
-
 
     public static setConfirmDialog = async (dbConfig: interfaces.IDBConnection, value: string,
         timeoutDialog = 500): Promise<void> => {
@@ -1133,9 +1154,9 @@ export class Misc {
         let reloadLabel: string;
 
         if (section === constants.dbTreeSection) {
-            reloadLabel = "Reload the connection list";
+            reloadLabel = constants.reloadConnections;
         } else if (section === constants.ociTreeSection) {
-            reloadLabel = "Reload the OCI Profile list";
+            reloadLabel = constants.reloadOci;
         }
 
         const sectionTree = await Misc.getSection(section);
@@ -1224,15 +1245,6 @@ export class Misc {
                 // continue trying
             }
         }, constants.explicitWait * 2, `Could not set ${path} on input box`);
-    };
-
-    public static closeEditorsExcept = async (editor: string): Promise<void> => {
-        const editors = await new EditorView().getOpenEditorTitles();
-        for (const edit of editors) {
-            if (edit !== editor) {
-                await new EditorView().closeEditor(edit);
-            }
-        }
     };
 
     public static deleteConnection = async (dbName: string): Promise<void> => {
@@ -1358,12 +1370,26 @@ export class Misc {
         }, constants.explicitWait * 3, "Could not reload VSCode");
     };
 
-    public static findOnMySQLShLog = async (textToFind: string): Promise<boolean> => {
+    public static writeMySQLshLogs = async (): Promise<void> => {
         const text = await fs.readFile(Misc.getMysqlshLog());
+        console.log(`------`);
         console.log(text.toString());
-        console.log("---");
+        console.log(`------`);
+    };
 
-        return text.toString().includes(textToFind);
+    public static findOnMySQLShLog = async (textToFind: RegExp[] | RegExp): Promise<boolean> => {
+        const text = await fs.readFile(Misc.getMysqlshLog());
+        if (Array.isArray(textToFind)) {
+            for (const rex of textToFind) {
+                if (text.toString().match(rex) === null) {
+                    return false;
+                }
+            }
+
+            return true;
+        } else {
+            return text.toString().match(textToFind) !== null;
+        }
     };
 
     public static selectContextMenuItem = async (
@@ -1436,6 +1462,23 @@ export class Misc {
             }, constants.explicitWait).catch(() => {
                 return false;
             });
+        }
+    };
+
+    public static expandTree = async (section: string, treeItems: Array<string | RegExp>,
+        loadingTimeout = constants.explicitWait * 2): Promise<void> => {
+        const sec = await Misc.getSection(section);
+        if (!(await sec.isExpanded())) {
+            await sec.expand();
+        }
+
+        for (const item of treeItems) {
+            const treeItem = await Misc.getTreeElement(section, item);
+            if (!(await treeItem.isExpanded())) {
+                await treeItem.expand();
+                await driver.wait(Until.isNotLoading(section), loadingTimeout,
+                    `${section} is still loading`);
+            }
         }
     };
 
@@ -1687,5 +1730,4 @@ export class Misc {
             throw new Error(`Could not find ${item} on any map`);
         }
     };
-
 }

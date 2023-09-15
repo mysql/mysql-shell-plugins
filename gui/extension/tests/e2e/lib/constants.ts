@@ -21,11 +21,16 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { join } from "path";
+
 // EXTENSION NAME
 export const extensionName = "MySQL Shell for VS Code";
 
 // BASE PATH
 export const basePath = process.env.USERPROFILE ?? process.env.HOME;
+
+// WORKSPACE - shell_plufings folder
+export const workspace = join(process.cwd(), "..", "..", "..", "..");
 
 // TREE SECTIONS
 export const dbTreeSection = "DATABASE CONNECTIONS";
@@ -57,6 +62,9 @@ export const commit = "Commit DB changes";
 export const autoCommit = "Auto commit DB changes";
 export const saveNotebook = "Save this Notebook";
 export const loadNotebook = "Replace this Notebook With Content from a file";
+export const reloadConnections = "Reload the connection list";
+export const reloadOci = "Reload the OCI Profile list";
+export const createDBConnection = "Create New DB Connection";
 
 // TABS
 export const dbDefaultEditor = "MySQL Shell";
@@ -74,6 +82,11 @@ export const mrsDocs = "MRS Docs";
 // MISC
 export const openEditorsDBNotebook = "DB Notebook";
 export const dbConnectionsLabel = "DB Connection Overview";
+export const serverStatus = "Server Status";
+export const clientConns = "Client Connections";
+export const perfDash = "Performance Dashboard";
+export const mysqlAdmin = "MySQL Administration";
+export const vscodeChannel = "MySQL Shell for VS Code";
 
 // CONTEXT MENUS ITEMS
 export const restartInternalShell = "Restart the Internal MySQL Shell Process";
