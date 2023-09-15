@@ -1,6 +1,5 @@
 {
     "terminal.integrated.copyOnSelection": true,
     "terminal.integrated.sendKeybindingsToShell": true,
-    "window.dialogStyle": "custom",
-    "msg.debugLog.level": "DEBUG3"
+    "window.dialogStyle": "custom"
 }

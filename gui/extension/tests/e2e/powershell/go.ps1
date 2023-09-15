@@ -65,23 +65,23 @@ try {
 
     switch ($env:TEST_SUITE) {
         "db" {
-            $env:MYSQLSH_GUI_CUSTOM_PORT = 33335
+            $env:MYSQLSH_GUI_CUSTOM_PORT = 3335
             break
         }
         "oci" {
-            $env:MYSQLSH_GUI_CUSTOM_PORT = 33336
+            $env:MYSQLSH_GUI_CUSTOM_PORT = 3336
             break
         }
         "shell" {
-            $env:MYSQLSH_GUI_CUSTOM_PORT = 33337
+            $env:MYSQLSH_GUI_CUSTOM_PORT = 3337
             break
         }
         "notebook" {
-            $env:MYSQLSH_GUI_CUSTOM_PORT = 33338
+            $env:MYSQLSH_GUI_CUSTOM_PORT = 3338
             break
         }
         "rest" {
-            $env:MYSQLSH_GUI_CUSTOM_PORT = 33339
+            $env:MYSQLSH_GUI_CUSTOM_PORT = 3339
             break
         }
         default {
@@ -146,11 +146,18 @@ try {
         }
     }
 
+    # DEFINE OCI ENV VARS
     if ($env:TEST_SUITE -eq "oci"){
-        # DEFINE OCI ENV VARS
         $env:MYSQLSH_OCI_CONFIG_FILE = Join-Path $workspace "oci" "config"
         $env:MYSQLSH_OCI_RC_FILE = Join-Path $workspace "oci" "e2e_cli_rc"
+    } 
+    else {
+        $env:MYSQLSH_OCI_CONFIG_FILE = Join-Path $workspace "oci_dummy" "config"
+        $env:MYSQLSH_OCI_RC_FILE = Join-Path $workspace "oci_dummy" "e2e_cli_rc"
     }
+
+    New-Item -Path $env:MYSQLSH_OCI_CONFIG_FILE -Force -ItemType "file"
+    New-Item -Path $env:MYSQLSH_OCI_RC_FILE -Force -ItemType "file"
 
     # EXECUTE TESTS
     writeMsg "Executing GUI tests for $env:TEST_SUITE suite..."

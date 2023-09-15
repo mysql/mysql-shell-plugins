@@ -20,13 +20,14 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-
 import fs from "fs/promises";
 import { platform } from "os";
 import {
-    Condition, EditorView, error,
+    Condition,
     ActivityBar,
     By,
+    EditorView,
+    BottomBarPanel,
 } from "vscode-extension-tester";
 import * as constants from "./constants";
 import { Misc, driver } from "./misc";
@@ -46,72 +47,67 @@ export class Until {
                 }
             };
 
-            await driver.wait(async () => {
-                if ((await new EditorView().getOpenEditorTitles()).length > 0) {
-                    await new EditorView().closeAllEditors();
-
-                    return true;
-                }
-            }, constants.explicitWait * 2, "Welcome tab was not displayed");
+            await driver.wait(Until.tabIsOpened("Welcome"), constants.explicitWait * 2, "Welcome tab was not opened");
+            await driver.wait(Until.tabIsOpened("Welcome to MySQL Shell"), constants.explicitWait * 2,
+                "Welcome to MySQL Shell tab was not opened");
+            await new EditorView().closeEditor("Welcome");
+            await new EditorView().closeEditor("Welcome to MySQL Shell");
+            const bottomBar = new BottomBarPanel();
+            const output = await bottomBar.openOutputView();
+            await bottomBar.maximize();
+            await (output).selectChannel(constants.vscodeChannel);
 
             const activityBare = new ActivityBar();
             await (await activityBare.getViewControl(constants.extensionName))?.openView();
 
-            // restart internal shell process
             await Misc.restartShell();
 
+            const successStartupWords: RegExp[] = [
+                /Certificate is installed/,
+                /Mode: Single user/,
+                /Registering session/,
+            ];
+
             await driver.wait(async () => {
-                console.log("start>>>>>>>");
-                let isOciLoaded = false;
-                try {
-                    const ociSection = await Misc.getSection(constants.ociTreeSection);
-                    isOciLoaded = (await ociSection.findItem("E2ETESTS (us-ashburn-1)")) !== undefined;
-                } catch (e) {
-                    if (!(e instanceof error.ElementNotInteractableError)) {
-                        throw e;
+                if (await Misc.findOnMySQLShLog(successStartupWords) &&
+                    !(await Misc.findOnMySQLShLog(/.*Error:.*\[MSG\].*/))) {
+
+                    console.log("<<<<<<Server seems OK>>>>>>>");
+                    console.log(await Misc.writeMySQLshLogs());
+                    try {
+                        await driver.wait(Until.tabIsOpened(constants.dbDefaultEditor),
+                            constants.explicitWait, `${constants.dbDefaultEditor} tab was not opened`);
+                        await driver.wait(async () => {
+                            return (await Misc.findOutputText(/application did start/)) === true;
+                        }, constants.explicitWait * 2, "Front end was not fully loaded");
+                        console.log("<<<<<<Extension is Ready>>>>>>>");
+
+                        return true;
+                    } catch (e) {
+                        console.log(e.message);
+                        console.log("<<<<Reloading Shell - FE not loaded>>>>");
+                        await new EditorView().closeAllEditors();
+                        await fs.truncate(Misc.getMysqlshLog());
+                        await reloadExt(platform());
+                    }
+                } else {
+                    if (await Misc.findOutputText(/Could not establish websocket connection/)) {
+                        console.log("<<<<Reloading Shell>>>>");
+                        console.log(await Misc.writeMySQLshLogs());
+                        await fs.truncate(Misc.getMysqlshLog());
+                        await reloadExt(platform());
+                    } else {
+                        console.log("<<<<<<Not Yet Ready>>>>>>>");
+                        console.log(await Misc.writeMySQLshLogs());
                     }
                 }
-                if (isOciLoaded) {
-                    return true;
-                } else if (await Misc.findOnMySQLShLog("Certificate is installed")) {
-                    console.log("certificate is installed");
-                    if (await Misc.findOnMySQLShLog("Mode: Single user")) {
-                        console.log("found single user");
-                        if (await Misc.findOnMySQLShLog("Error: [MSG]")) {
-                            console.log("error found, restarting...");
-
-                            return fs.truncate(Misc.getMysqlshLog())
-                                .then(async () => {
-                                    await reloadExt(platform()).then(() => {
-                                        return false;
-                                    }).catch((e) => {
-                                        throw e;
-                                    });
-                                });
-                        } else if (await Misc.findOutputText("Could not establish websocket connection")) {
-                            console.log("websocket error");
-
-                            return fs.truncate(Misc.getMysqlshLog())
-                                .then(async () => {
-                                    await reloadExt(platform()).then(() => {
-                                        return false;
-                                    }).catch((e) => {
-                                        throw e;
-                                    });
-                                });
-                        } else if (await Misc.findOnMySQLShLog("Registering session...")) {
-                            console.log("ALL GOOD !");
-
-                            return true;
-                        }
-                    }
-                }
-            }, constants.explicitWait * 12, "Could not verify if extension was ready");
+            }, constants.explicitWait * 12, "Extension was NOT ready. Please check the logs");
 
             credentialHelperOk = !(await Misc
-                .findOnMySQLShLog(`Failed to initialize the default helper "windows-credential"`));
-            await new EditorView().closeAllEditors();
+                .findOnMySQLShLog(/Failed to initialize the default helper "windows-credential"/));
             await Misc.dismissNotifications();
+
+            await new BottomBarPanel().closePanel();
 
             return true;
         });
@@ -126,6 +122,12 @@ export class Until {
             const progressBadge = await icon.findElements(By.css(".progress-badge"));
 
             return (loading.length === 0) && (progressBadge.length === 0);
+        });
+    };
+
+    public static tabIsOpened = (tabName: string): Condition<boolean> => {
+        return new Condition("Is not loading", async () => {
+            return (await new EditorView().getOpenEditorTitles()).includes(tabName);
         });
     };
 

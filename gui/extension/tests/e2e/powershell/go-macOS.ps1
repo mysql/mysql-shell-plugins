@@ -66,11 +66,19 @@ if ($env:TEST_SUITE -eq "rest"){
     }
 }
 
+# DEFINE OCI ENV VARS
 if ($env:TEST_SUITE -eq "oci"){
-    # DEFINE OCI ENV VARS
     $env:MYSQLSH_OCI_CONFIG_FILE = Join-Path $env:WORKSPACE "oci" "config"
     $env:MYSQLSH_OCI_RC_FILE = Join-Path $env:WORKSPACE "oci" "e2e_cli_rc"
+} else {
+    $env:MYSQLSH_OCI_CONFIG_FILE = Join-Path $env:WORKSPACE "oci_dummy" "config"
+    $env:MYSQLSH_OCI_RC_FILE = Join-Path $env:WORKSPACE "oci_dummy" "e2e_cli_rc"
 }
 
+New-Item -Path $env:MYSQLSH_OCI_CONFIG_FILE -Force -ItemType "file"
+New-Item -Path $env:MYSQLSH_OCI_RC_FILE -Force -ItemType "file"
+
+$testResources = Join-Path $home "test-resources"
+
 # EXECUTE TESTS
-npm run e2e-tests -- -s "test-resources" -e "test-resources/ext" -f -o "vscode_settings.json" "./output/tests/ui-$env:TEST_SUITE.js"
+npm run e2e-tests -- -s $testResources -e "$testResources/ext" -f -o "vscode_settings.json" "./output/tests/ui-$env:TEST_SUITE.js"

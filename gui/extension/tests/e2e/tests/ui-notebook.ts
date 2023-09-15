@@ -105,11 +105,11 @@ describe("NOTEBOOKS", () => {
                 await Misc.sectionFocus(constants.dbTreeSection);
                 const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
                 await (await Misc.getActionButton(treeGlobalConn, constants.openNewConnection)).click();
-                await Misc.switchToWebView();
                 await driver.wait(Database.isConnectionLoaded(),
                     constants.explicitWait * 3, "DB Connection was not loaded");
                 await Database.setDBConnectionCredentials(globalConn);
-                await driver.wait(until.elementLocated(By.css("textarea")), constants.explicitWait, "erro");
+                await driver.wait(until.elementLocated(By.css("textarea")), constants.explicitWait,
+                    "Db editor text area was not found");
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -560,7 +560,6 @@ describe("NOTEBOOKS", () => {
                 await Misc.sectionFocus(constants.dbTreeSection);
                 const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
                 await (await Misc.getActionButton(treeGlobalConn, constants.openNewConnection)).click();
-                await Misc.switchToWebView();
                 await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
                     "DB Connection was not loaded");
                 await Database.setDBConnectionCredentials(globalConn);
@@ -660,7 +659,6 @@ describe("NOTEBOOKS", () => {
                 await Misc.sectionFocus(constants.dbTreeSection);
                 const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
                 await (await Misc.getActionButton(treeGlobalConn, constants.openNewConnection)).click();
-                await Misc.switchToWebView();
                 await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
                     "DB Connection was not loaded");
                 await Database.setDBConnectionCredentials(globalConn);
@@ -741,7 +739,6 @@ describe("NOTEBOOKS", () => {
             await (await input.findQuickPick(globalConn.caption)).select();
             await new EditorView().openEditor("test.mysql-notebook");
 
-            await Misc.switchToWebView();
             await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
                 "DB Connection was not loaded");
             await Database.setDBConnectionCredentials(globalConn);
@@ -765,7 +762,6 @@ describe("NOTEBOOKS", () => {
             const input = await InputBox.create();
             await (await input.findQuickPick(globalConn.caption)).select();
             await new EditorView().openEditor("test.mysql-notebook");
-            await Misc.switchToWebView();
             await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
                 "DB Connection was not loaded");
             await Database.setDBConnectionCredentials(globalConn);
@@ -794,7 +790,6 @@ describe("NOTEBOOKS", () => {
             }, constants.explicitWait, "E2E section was not found");
             const file = await section.findItem("test.mysql-notebook", 3);
             await file.click();
-            await Misc.switchToWebView();
             await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
                 "DB Connection was not loaded");
             await Database.setDBConnectionCredentials(globalConn);
