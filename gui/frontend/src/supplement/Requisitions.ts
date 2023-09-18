@@ -338,10 +338,26 @@ export interface IRequestTypeMap {
     "removeSession": (session: IShellSessionDetails) => Promise<boolean>;
     "newSession": (session: IShellSessionDetails) => Promise<boolean>;
 
+    /** Triggers adding a new connection. */
     "addNewConnection": (details: { mdsData?: IMySQLDbSystem; profileName?: String; }) => Promise<boolean>;
+
+    /** Triggers removing a connection */
     "removeConnection": (connectionId: number) => Promise<boolean>;
+
+    /** Triggers editing a connection */
     "editConnection": (connectionId: number) => Promise<boolean>;
+
+    /** Triggers duplicating a connection */
     "duplicateConnection": (connectionId: number) => Promise<boolean>;
+
+    /** Sent when a connection was added. This is more effective than refreshing all connections. */
+    "connectionAdded": (details: IConnectionDetails) => Promise<boolean>;
+
+    /** Sent when a connection was edited. */
+    "connectionUpdated": (details: IConnectionDetails) => Promise<boolean>;
+
+    /** Sent when a connection was removed. */
+    "connectionRemoved": (details: IConnectionDetails) => Promise<boolean>;
 
     "explorerDoubleClick": (entry: ISchemaTreeEntry) => Promise<boolean>;
 
@@ -423,9 +439,14 @@ export interface IRequestTypeMap {
     "debugger": (data: IDebuggerData) => Promise<boolean>;
 }
 
-/** A function that can be use to send messages between host and client parts in embedded scenarios. */
+/** Defines an interface to use for executing remote requisition requests. */
 interface IRemoteTarget {
-    postMessage: (data: IEmbeddedMessage, origin: string) => void;
+    /** Remote target is a HTML window (usually the host in embedded scenarios). */
+    postMessage?: (data: IEmbeddedMessage, origin: string) => void;
+
+    /** Remote target is code that does different handling of a request, like sending it out to yet another target. */
+    broadcastRequest?: <K extends keyof IRequestTypeMap>(sender: IWebviewProvider | undefined,
+        requestType: K, parameter: IRequisitionCallbackValues<K>) => Promise<void>;
 }
 
 /** A generic type to extract the (single) callback parameter type from the callback map. */
@@ -452,10 +473,29 @@ export class RequisitionHub {
     // Created and held here to keep it alive. It works via job subscriptions, not direct calls.
     private requestPipeline: RequisitionPipeline;
 
-    public constructor(source: IEmbeddedSourceType = "app", target?: IRemoteTarget) {
+    public constructor(source: IEmbeddedSourceType = "app") {
         this.source = source;
         this.requestPipeline = new RequisitionPipeline(this);
 
+        this.setRemoteTarget(); // Use the default target.
+    }
+
+    /**
+     * Creates a new instance of the requisition hub with default parameters.
+     *
+     * @returns A new instance of the requisition hub.
+     */
+    public static get instance(): RequisitionHub {
+        return new RequisitionHub();
+    }
+
+    /**
+     * Injects the remote end for sending messages to the host.
+     *
+     * @param target The remote target to use for sending/broadcasting messages. If undefined, the environment
+     *               is examined to find a suitable target, which is usually a message handler in the host.
+     */
+    public setRemoteTarget(target?: IRemoteTarget): void {
         if (target) {
             this.remoteTarget = target;
         } else if (typeof window !== "undefined") {
@@ -478,6 +518,9 @@ export class RequisitionHub {
                 (window as any).onNativeMessage = (message: IEmbeddedMessage): void => {
                     this.handleRemoteMessage(message);
                 };
+
+                /* eslint-enable @typescript-eslint/no-explicit-any */
+
             } else {
                 // Here we know the app is running in a browser. This can be a standalone browser or a web view
                 // in Visual Studio Code. In all these cases we can just send messages to the parent window.
@@ -554,14 +597,7 @@ export class RequisitionHub {
                     });
                 }
             }
-
-            /* eslint-enable @typescript-eslint/no-explicit-any */
-
         }
-    }
-
-    public static get instance(): RequisitionHub {
-        return new RequisitionHub();
     }
 
     /**
@@ -680,18 +716,55 @@ export class RequisitionHub {
         parameter: IRequisitionCallbackValues<K>): boolean => {
 
         if (this.remoteTarget) {
-            const message: IEmbeddedMessage = {
-                source: this.source,
-                command: requestType,
-                data: parameter as IDictionary,
-            };
+            if (this.remoteTarget.postMessage) {
+                const message: IEmbeddedMessage = {
+                    source: this.source,
+                    command: requestType,
+                    data: parameter as IDictionary,
+                };
 
-            this.remoteTarget.postMessage(message, "*");
+                this.remoteTarget.postMessage(message, "*");
+            } else if (this.remoteTarget.broadcastRequest) {
+                // Broadcasts are the way to send requests from a host to all embedded web views.
+                // So, they have per definition no sending web view provider.
+                void this.remoteTarget.broadcastRequest(undefined, requestType, parameter);
+            }
 
             return true;
         }
 
         return false;
+    };
+
+    /**
+     * A combination of local and remote execution. The actual execution depends on the provider parameter.
+     * If it is undefined, the request is executed locally and remotely. Otherwise it is executed only remotely.
+     *
+     * @param provider If assigned specifies the source of the request. This is used to avoid sending the request
+     *                 back to the same provider.
+     * @param requestType The request type for which to execute the registered callbacks.
+     * @param parameter The value required for the callbacks.
+     *
+     * @returns True if any of the callbacks returned true, otherwise false.
+     */
+    public broadcastRequest = async <K extends keyof IRequestTypeMap>(provider: IWebviewProvider | undefined,
+        requestType: K, parameter: IRequisitionCallbackValues<K>): Promise<boolean> => {
+
+        let result = false;
+
+        if (!provider) {
+            result ||= await this.execute(requestType, parameter);
+        }
+
+        if (this.remoteTarget?.broadcastRequest) {
+            await this.remoteTarget.broadcastRequest(provider, requestType, parameter);
+            result = true;
+        } else {
+            result ||= this.executeRemote(requestType, parameter);
+        }
+
+
+        return result;
     };
 
     /**
@@ -729,7 +802,6 @@ export class RequisitionHub {
                 void callback(parameter as never);
             });
         }
-
     }
 
     /**
@@ -746,7 +818,7 @@ export class RequisitionHub {
                 text,
             };
 
-            this.remoteTarget?.postMessage(message, "*");
+            this.remoteTarget?.postMessage?.(message, "*");
         } else {
             void navigator.clipboard.writeText(text);
         }

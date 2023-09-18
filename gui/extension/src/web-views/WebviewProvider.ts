@@ -148,7 +148,8 @@ export class WebviewProvider implements IWebviewProvider {
                     light: Uri.file(path.join(__dirname, "..", "images", "light", "mysql.svg")),
                 };
 
-                this.requisitions = new RequisitionHub("host", this.panel.webview);
+                this.requisitions = new RequisitionHub("host");
+                this.requisitions.setRemoteTarget(this.panel.webview);
                 this.requisitions.register("applicationDidStart", (): Promise<boolean> => {
                     resolve(true);
                     printChannelOutput("State: application did start");
@@ -192,8 +193,6 @@ export class WebviewProvider implements IWebviewProvider {
 
             this.requisitions.register("closeInstance",
                 this.forwardSimple.bind(this, "closeInstance") as SimpleCallback);
-            this.requisitions.register("refreshConnections",
-                this.forwardSimple.bind(this, "refreshConnections") as SimpleCallback);
         }
     }
 

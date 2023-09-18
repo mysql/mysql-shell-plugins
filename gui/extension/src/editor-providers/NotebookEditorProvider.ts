@@ -259,7 +259,9 @@ export class NotebookEditorProvider implements CustomTextEditorProvider {
             };
 
             // Set up the communication between the webview and the extension.
-            this.#requisitions = new RequisitionHub("host", webviewPanel.webview);
+            this.#requisitions = new RequisitionHub("host");
+            this.#requisitions.setRemoteTarget(webviewPanel.webview);
+
             this.#requisitions.register("editorChanged", async (): Promise<boolean> => {
                 // Sent by the webview when the user changes the content of the editor.
                 await this.makeDocumentDirty();
