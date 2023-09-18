@@ -205,6 +205,11 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         requisitions.register("profileLoaded", this.profileLoaded);
         requisitions.register("webSessionStarted", this.webSessionStarted);
 
+        requisitions.register("connectionAdded", this.handleConnectionAdded);
+        requisitions.register("connectionUpdated", this.handleConnectionUpdated);
+        requisitions.register("connectionRemoved", this.handleConnectionRemoved);
+        requisitions.register("refreshConnections", this.handleRefreshConnections);
+
         requisitions.register("showMrsDbObjectDialog", this.showMrsDbObjectDialog);
         requisitions.register("showMrsServiceDialog", this.showMrsServiceDialog);
         requisitions.register("showMrsSchemaDialog", this.showMrsSchemaDialog);
@@ -225,6 +230,11 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         requisitions.unregister("createNewEditor", this.createNewEditor);
         requisitions.unregister("profileLoaded", this.profileLoaded);
         requisitions.unregister("webSessionStarted", this.webSessionStarted);
+
+        requisitions.unregister("connectionAdded", this.handleConnectionAdded);
+        requisitions.unregister("connectionUpdated", this.handleConnectionUpdated);
+        requisitions.unregister("connectionRemoved", this.handleConnectionRemoved);
+        requisitions.unregister("refreshConnections", this.handleRefreshConnections);
 
         requisitions.unregister("showMrsDbObjectDialog", this.showMrsDbObjectDialog);
         requisitions.unregister("showMrsServiceDialog", this.showMrsServiceDialog);
@@ -535,7 +545,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 connections.push(details);
 
                 this.setState({ connections });
-                requisitions.executeRemote("refreshConnections", undefined);
+                requisitions.executeRemote("connectionAdded", details);
             }
         }).catch((event) => {
             void requisitions.execute("showError",
@@ -547,7 +557,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
     private handleUpdateConnection = (details: IConnectionDetails): void => {
         ShellInterface.dbConnections.updateDbConnection(webSession.currentProfileId, details).then(() => {
             this.forceUpdate();
-            requisitions.executeRemote("refreshConnections", undefined);
+            requisitions.executeRemote("connectionUpdated", details);
         }).catch((event) => {
             void requisitions.execute("showError",
                 ["Update Connection Error", "Cannot update DB connection:", String(event.message)]);
@@ -559,13 +569,31 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         const { connections } = this.state;
         const index = connections.findIndex((value: IConnectionDetails) => { return value.id === connectionId; });
         if (index > -1) {
-            void ShellInterface.dbConnections.removeDbConnection(webSession.currentProfileId, connectionId).then(() => {
-                connections.splice(index, 1);
-                this.setState({ connections });
-
-                void this.removeTabsForConnection(connectionId);
-            });
+            this.doDropConnection(index, true);
         }
+    };
+
+    /**
+     * Helper to remove all tabs for a given connection.
+     *
+     * @param index The index of the connection in the list of connections.
+     * @param sendNotification A flag to indicate if a notification should be sent to the host.
+     */
+    private doDropConnection = (index: number, sendNotification: boolean): void => {
+        const { connections } = this.state;
+        const connection = connections[index];
+        void ShellInterface.dbConnections.removeDbConnection(webSession.currentProfileId, connection.id).then(() => {
+            const connection = connections[index];
+
+            connections.splice(index, 1);
+            this.setState({ connections });
+
+            if (sendNotification) {
+                requisitions.executeRemote("connectionRemoved", connection);
+            }
+
+            void this.removeTabsForConnection(connection.id);
+        });
     };
 
     private showPage = (
@@ -690,6 +718,61 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         }
 
         return true;
+    };
+
+    /**
+     * Called when a new connection was added from outside (usually the application host like the VS Code extension).
+     *
+     * @param details The connection details.
+     *
+     * @returns A promise always fulfilled to true.
+     */
+    private handleConnectionAdded = (details: IConnectionDetails): Promise<boolean> => {
+        const { connections } = this.state;
+        connections.push(details);
+        this.setState({ connections });
+
+        return Promise.resolve(true);
+    };
+
+    /**
+     * Called when a connection was changed from outside (usually the application host like the VS Code extension).
+     *
+     * @param details The connection details.
+     *
+     * @returns A promise always fulfilled to true.
+     */
+    private handleConnectionUpdated = (details: IConnectionDetails): Promise<boolean> => {
+        const { connections } = this.state;
+        const index = connections.findIndex((value: IConnectionDetails) => { return value.id === details.id; });
+        if (index > -1) {
+            connections[index] = details;
+
+            this.setState({ connections });
+        }
+
+        return Promise.resolve(true);
+    };
+
+    /**
+     * Called when a new connection was added from outside (usually the application host like the VS Code extension).
+     *
+     * @param details The connection details.
+     *
+     * @returns A promise always fulfilled to true.
+     */
+    private handleConnectionRemoved = (details: IConnectionDetails): Promise<boolean> => {
+        const { connections } = this.state;
+        const index = connections.findIndex((value: IConnectionDetails) => { return value.id === details.id; });
+        if (index > -1) {
+            this.doDropConnection(index, false);
+        }
+
+        return Promise.resolve(true);
+    };
+
+    private handleRefreshConnections = (): Promise<boolean> => {
+        return this.loadConnections().then(() => { return true; });
     };
 
     private showMrsDbObjectDialog = async (request: IMrsDbObjectEditRequest): Promise<boolean> => {

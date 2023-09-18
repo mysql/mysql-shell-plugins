@@ -38,7 +38,7 @@ import { ShellTasksTreeDataProvider } from "./tree-providers/ShellTreeProvider/S
 import { IStatusbarInfo } from "../../frontend/src/app-logic/Types";
 import { IShellModuleDataCategoriesEntry, IShellProfile } from "../../frontend/src/communication/ProtocolGui";
 import {
-    IRequestListEntry, IRequestTypeMap, IWebviewProvider, requisitions,
+    IRequestListEntry, IRequestTypeMap, IRequisitionCallbackValues, IWebviewProvider, requisitions,
 } from "../../frontend/src/supplement/Requisitions";
 import { ShellInterface } from "../../frontend/src/supplement/ShellInterface/ShellInterface";
 import { NodeMessageScheduler } from "./communication/NodeMessageScheduler";
@@ -222,6 +222,29 @@ export class ExtensionHost {
         return connection;
     };
 
+    /**
+     * Sends the given request to all currently open providers. The request is executed asynchronously and in parallel.
+     * This method actually handles broadcast requests from the requisition hub.
+     *
+     * @param sender The origin of the request, in case it came from a provider. This provider will not receive the
+     *               request.
+     * @param requestType The type of the request to send.
+     * @param parameter The request parameters to use for the request.
+     *
+     * @returns A promise resolving when all requests have been sent.
+     */
+    public broadcastRequest = async <K extends keyof IRequestTypeMap>(sender: IWebviewProvider | undefined,
+        requestType: K, parameter: IRequisitionCallbackValues<K>): Promise<void> => {
+
+        await Promise.all(this.providers.map((provider) => {
+            if (sender === undefined || provider !== sender) {
+                return provider.runCommand(requestType, parameter);
+            }
+
+            return Promise.resolve();
+        }));
+    };
+
     public get currentProvider(): DBConnectionViewProvider | undefined {
         if (this.lastActiveProvider) {
             return this.lastActiveProvider;
@@ -258,6 +281,9 @@ export class ExtensionHost {
     private setupEnvironment(): void {
         // Access the node specific message scheduler once to create the correct version of it.
         void NodeMessageScheduler.get;
+
+        // Register the extension host as target for broadcasts.
+        requisitions.setRemoteTarget(this);
 
         this.dbEditorCommandHandler.setup(this);
         this.shellConsoleCommandHandler.setup(this);
@@ -635,6 +661,18 @@ export class ExtensionHost {
                 this.updateStatusbar(request.original.parameter as IStatusbarInfo[]);
 
                 return Promise.resolve(true);
+            }
+
+            case "connectionAdded":
+            case "connectionUpdated":
+            case "connectionRemoved":
+            case "refreshConnections": {
+                return new Promise((resolve) => {
+                    void requisitions.broadcastRequest(request.provider, request.original.requestType,
+                        request.original.parameter).then(() => {
+                            resolve(true);
+                        });
+                });
             }
 
             default:

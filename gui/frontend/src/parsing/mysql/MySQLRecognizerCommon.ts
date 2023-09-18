@@ -116,7 +116,7 @@ export const getText = (context: RuleContext, convertEscapes: boolean): string =
                 let text = token.text || "''";
                 const quoteChar = text[0];
                 const doubledQuoteChar = quoteChar.repeat(2);
-                text = text.substr(1, text.length - 2); // Remove outer quotes.
+                text = text.substring(1, text.length - 1); // Remove outer quotes.
                 text = text.replace(doubledQuoteChar, quoteChar); // Add replace double quote chars.
 
                 result += text;
@@ -170,7 +170,9 @@ export const getText = (context: RuleContext, convertEscapes: boolean): string =
                 result += c;
             }
 
-            if (pendingEscape) { result += "\\"; }
+            if (pendingEscape) {
+                result += "\\";
+            }
         }
 
         return result;

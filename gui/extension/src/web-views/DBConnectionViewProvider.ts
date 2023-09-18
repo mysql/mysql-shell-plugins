@@ -26,7 +26,7 @@ import { readFile, writeFile } from "fs/promises";
 import { commands, OpenDialogOptions, SaveDialogOptions, Uri, window } from "vscode";
 
 import {
-    IEditorCloseChangeData, IEditorOpenChangeData, IMrsDbObjectEditRequest, IOpenDialogOptions, IOpenFileDialogResult,
+    IMrsDbObjectEditRequest, IOpenDialogOptions, IOpenFileDialogResult, IRequestTypeMap, IRequisitionCallbackValues,
     requisitions,
 } from "../../../frontend/src/supplement/Requisitions";
 
@@ -326,21 +326,26 @@ export class DBConnectionViewProvider extends WebviewProvider {
         return Promise.resolve(false);
     }
 
-    protected requisitionsCreated(): void {
+    protected override requisitionsCreated(): void {
         super.requisitionsCreated();
 
         if (this.requisitions) {
             // For requests sent by the web app. These are often forwarded to the global extension requisitions.
-            this.requisitions.register("refreshConnections", this.refreshConnections);
-            this.requisitions.register("refreshOciTree", this.refreshOciTree);
-            this.requisitions.register("codeBlocksUpdate", this.updateCodeBlock);
-            this.requisitions.register("editorLoadScript", this.editorLoadScript);
-            this.requisitions.register("editorSaveScript", this.editorSaveScript);
-            this.requisitions.register("createNewEditor", this.handleCreateNewEditor);
+
+            /* eslint-disable @typescript-eslint/no-unsafe-argument */
+            // Have to disable ESLint checks for the following lines because ESLint cannot infer the type of the
+            // callback.
+            ["refreshConnections", "connectionAdded", "connectionUpdated", "connectionRemoved", "refreshOciTree",
+                "codeBlocksUpdate", "editorLoadScript",
+                "editorSaveScript", "createNewEditor", "editorsChanged", "editorSelect"]
+                .forEach((requestType: keyof IRequestTypeMap) => {
+                    this.requisitions!.register(requestType, this.forwardRequest.bind(this, requestType));
+                });
+
+            /* eslint-enable @typescript-eslint/no-unsafe-argument */
+
             this.requisitions.register("newSession", this.createNewSession);
             this.requisitions.register("closeInstance", this.closeInstance);
-            this.requisitions.register("editorsChanged", this.editorsChanged);
-            this.requisitions.register("editorSelect", this.editorSelect);
             this.requisitions.register("showInfo", this.showInfo);
             this.requisitions.register("editorSaveNotebook", this.editorSaveNotebook);
             this.requisitions.register("editorLoadNotebook", this.editorLoadNotebook);
@@ -349,45 +354,20 @@ export class DBConnectionViewProvider extends WebviewProvider {
         }
     }
 
-    protected refreshConnections = (): Promise<boolean> => {
-        return requisitions.execute("proxyRequest", {
-            provider: this,
-            original: { requestType: "refreshConnections", parameter: undefined },
-        });
-    };
+    /**
+     * Takes a request and forwards it to the global extension requisitions, as a proxy request.
+     *
+     * @param requestType The type of request to forward.
+     * @param parameter The request parameter.
+     *
+     * @returns The promise returned by the global extension requisitions.
+     */
+    protected forwardRequest = async <K extends keyof IRequestTypeMap>(requestType: K,
+        parameter: IRequisitionCallbackValues<K>): Promise<boolean> => {
 
-    protected refreshOciTree = (): Promise<boolean> => {
         return requisitions.execute("proxyRequest", {
             provider: this,
-            original: { requestType: "refreshOciTree", parameter: undefined },
-        });
-    };
-
-    protected updateCodeBlock = (data: { linkId: number; code: string; }): Promise<boolean> => {
-        return requisitions.execute("proxyRequest", {
-            provider: this,
-            original: { requestType: "codeBlocksUpdate", parameter: data },
-        });
-    };
-
-    private editorLoadScript = (details: IScriptRequest): Promise<boolean> => {
-        return requisitions.execute("proxyRequest", {
-            provider: this,
-            original: { requestType: "editorLoadScript", parameter: details },
-        });
-    };
-
-    private editorSaveScript = (details: IScriptRequest): Promise<boolean> => {
-        return requisitions.execute("proxyRequest", {
-            provider: this,
-            original: { requestType: "editorSaveScript", parameter: details },
-        });
-    };
-
-    private handleCreateNewEditor = (details: INewEditorRequest): Promise<boolean> => {
-        return requisitions.execute("proxyRequest", {
-            provider: this,
-            original: { requestType: "createNewEditor", parameter: details },
+            original: { requestType, parameter },
         });
     };
 
@@ -395,20 +375,6 @@ export class DBConnectionViewProvider extends WebviewProvider {
         await commands.executeCommand("msg.newSession");
 
         return true;
-    };
-
-    private editorsChanged = (details: IEditorOpenChangeData | IEditorCloseChangeData): Promise<boolean> => {
-        return requisitions.execute("proxyRequest", {
-            provider: this,
-            original: { requestType: "editorsChanged", parameter: details },
-        });
-    };
-
-    private editorSelect = (details: { connectionId: number, editorId: string; }): Promise<boolean> => {
-        return requisitions.execute("proxyRequest", {
-            provider: this,
-            original: { requestType: "editorSelect", parameter: details },
-        });
     };
 
     private setCurrentSchema = (data: {

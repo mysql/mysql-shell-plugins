@@ -24,12 +24,10 @@
 import { Event, EventEmitter, TreeDataProvider, TreeItem, window } from "vscode";
 
 import {
-    IEditorCloseChangeData,
-    IEditorOpenChangeData,
-    IRequestListEntry, IRequestTypeMap, IWebviewProvider, requisitions,
+    IEditorCloseChangeData, IEditorOpenChangeData, IRequestListEntry, IRequestTypeMap, IWebviewProvider, requisitions,
 } from "../../../../frontend/src/supplement/Requisitions";
 
-import { DBType } from "../../../../frontend/src/supplement/ShellInterface";
+import { DBType, IConnectionDetails } from "../../../../frontend/src/supplement/ShellInterface";
 import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
 import { webSession } from "../../../../frontend/src/supplement/WebSession";
 
@@ -77,7 +75,6 @@ import { SchemaTableTriggerTreeItem } from "./SchemaTableTriggerTreeItem";
 import { SchemaViewMySQLTreeItem } from "./SchemaViewMySQLTreeItem";
 import { SchemaViewSqliteTreeItem } from "./SchemaViewSqliteTreeItem";
 import { DBConnectionViewProvider } from "../../web-views/DBConnectionViewProvider";
-
 
 /** A class to provide the entire tree structure for DB editor connections and the DB objects from them. */
 export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionsTreeDataModelEntry> {
@@ -1093,6 +1090,76 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
                 const data = request.original.parameter as IDictionary;
 
                 return this.refreshConnections(data);
+            }
+
+            case "connectionAdded": {
+                const response = request.original.parameter as IConnectionDetails;
+                let connection = this.connections.find((value) => {
+                    return value.treeItem.details.id === response.id;
+                });
+
+                if (!connection) {
+                    let treeItem;
+
+                    if (response.dbType === DBType.MySQL) {
+                        treeItem = new ConnectionMySQLTreeItem(response, new ShellInterfaceSqlEditor());
+                    } else {
+                        treeItem = new ConnectionSqliteTreeItem(response, new ShellInterfaceSqlEditor());
+                    }
+
+                    connection = {
+                        id: ConnectionsTreeDataProvider.nextId++,
+                        type: "connection",
+                        isOpen: false,
+                        openEditors: 0,
+                        currentSchema: "",
+                        treeItem,
+                        schemaEntries: [],
+                    };
+
+                    this.connections.push(connection);
+                }
+
+                break;
+            }
+
+            case "connectionUpdated": {
+                const response = request.original.parameter as IConnectionDetails;
+                const connection = this.connections.find((value) => {
+                    return value.treeItem.details.id === response.id;
+                });
+
+                if (connection) {
+                    let treeItem;
+
+                    if (response.dbType === DBType.MySQL) {
+                        treeItem = new ConnectionMySQLTreeItem(response, new ShellInterfaceSqlEditor());
+                    } else {
+                        treeItem = new ConnectionSqliteTreeItem(response, new ShellInterfaceSqlEditor());
+                    }
+
+                    // We could just take over all the values from the response, but it's easier to just
+                    // replace the tree item.
+                    connection.treeItem = treeItem;
+
+                    this.refresh(connection);
+                }
+
+                break;
+            }
+
+            case "connectionRemoved": {
+                const response = request.original.parameter as IConnectionDetails;
+                const connection = this.connections.find((value) => {
+                    return value.treeItem.details.id === response.id;
+                });
+
+                if (connection) {
+                    await connection.treeItem.backend.closeSession();
+                    this.connections.splice(this.connections.indexOf(connection), 1);
+                }
+
+                break;
             }
 
             case "editorsChanged": {

@@ -50,7 +50,7 @@ import { ICdmSchemaEntry } from "./tree-providers/ConnectionsTreeProvider/Connec
 import { ShellInterface } from "../../frontend/src/supplement/ShellInterface/ShellInterface";
 import { webSession } from "../../frontend/src/supplement/WebSession";
 import { requisitions } from "../../frontend/src/supplement/Requisitions";
-import { DBType, IConnectionDetails } from "../../frontend/src/supplement/ShellInterface";
+import { DBType } from "../../frontend/src/supplement/ShellInterface";
 import { MySQLConnCompression, MySQLConnectionScheme } from "../../frontend/src/communication/MySQL";
 
 export class MDSCommandHandler {
@@ -843,7 +843,7 @@ export class MDSCommandHandler {
                     ShellInterface.dbConnections.addDbConnection(
                         webSession.currentProfileId, details, "").then((connectionId) => {
                             if (connectionId !== undefined) {
-                                void requisitions.execute("refreshConnections", undefined);
+                                void requisitions.broadcastRequest(undefined, "refreshConnections", undefined);
                             }
                         }).catch((event) => {
                             void window.showErrorMessage(
