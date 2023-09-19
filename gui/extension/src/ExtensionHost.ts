@@ -22,7 +22,8 @@
  */
 
 import {
-    commands, ConfigurationChangeEvent, ExtensionContext, StatusBarItem, window, workspace, WorkspaceConfiguration,
+    commands, ConfigurationChangeEvent, ConfigurationTarget, ExtensionContext, StatusBarItem, window, workspace,
+    WorkspaceConfiguration,
 } from "vscode";
 
 import { ShellTask } from "../../frontend/src/shell-tasks/ShellTask";
@@ -508,7 +509,7 @@ export class ExtensionHost {
                     const configuration = workspace.getConfiguration(`msg.${parts[0]}`);
                     const currentValue = configuration.get(`${parts[1]}.${parts[2]}`);
                     if (currentValue !== entry.value) {
-                        await configuration.update(`${parts[1]}.${parts[2]}`, entry.value, true);
+                        await configuration.update(`${parts[1]}.${parts[2]}`, entry.value, ConfigurationTarget.Global);
                     }
                 }
             } else {
@@ -522,7 +523,8 @@ export class ExtensionHost {
                                     const setting = Settings.get(value.id);
                                     const currentValue = configuration.get(`${child.key}.${value.key}`);
                                     if (setting !== currentValue) {
-                                        await configuration.update(`${child.key}.${value.key}`, setting, true);
+                                        await configuration.update(`${child.key}.${value.key}`, setting,
+                                            ConfigurationTarget.Global);
                                     }
                                 }
 
@@ -538,7 +540,7 @@ export class ExtensionHost {
                                 const setting = Settings.get(value.id);
                                 const currentValue = configuration.get(value.key);
                                 if (setting !== currentValue) {
-                                    await configuration.update(value.key, setting, true);
+                                    await configuration.update(value.key, setting, ConfigurationTarget.Global);
                                 }
                             }
 

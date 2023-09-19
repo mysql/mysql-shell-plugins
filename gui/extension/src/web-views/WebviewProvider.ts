@@ -23,7 +23,7 @@
 
 import * as path from "path";
 
-import { commands, Uri, ViewColumn, WebviewPanel, window, workspace } from "vscode";
+import { commands, ConfigurationTarget, Uri, ViewColumn, WebviewPanel, window, workspace } from "vscode";
 
 import {
     IRequestTypeMap, IRequisitionCallbackValues, IWebviewProvider, RequisitionHub, requisitions, SimpleCallback,
@@ -245,9 +245,10 @@ export class WebviewProvider implements IWebviewProvider {
                 const parts = entry.key.split(".");
                 if (parts.length === 3) {
                     const configuration = workspace.getConfiguration(`msg.${parts[0]}`);
-                    void configuration.update(`${parts[1]}.${parts[2]}`, entry.value, true).then(() => {
-                        resolve(true);
-                    });
+                    void configuration.update(`${parts[1]}.${parts[2]}`, entry.value,
+                        ConfigurationTarget.Global).then(() => {
+                            resolve(true);
+                        });
                 }
             }
 

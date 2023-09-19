@@ -24,7 +24,7 @@
 import fs from "fs";
 import { basename } from "path";
 
-import { commands, TextEditor, Uri, window, workspace } from "vscode";
+import { commands, ConfigurationTarget, TextEditor, Uri, window, workspace } from "vscode";
 
 import {
     IRequestListEntry, IRequestTypeMap, IWebviewProvider, requisitions,
@@ -364,10 +364,11 @@ export class DBEditorCommandHandler {
             (entry?: ICdmConnectionEntry) => {
                 if (entry) {
                     const configuration = workspace.getConfiguration(`msg.editor`);
-                    void configuration.update("defaultDbConnection", entry.treeItem.details.caption).then(() => {
-                        void window.showInformationMessage(
-                            `"${entry.treeItem.label as string}" has been set as default DB Connection.`);
-                    });
+                    void configuration.update("defaultDbConnection", entry.treeItem.details.caption,
+                        ConfigurationTarget.Global).then(() => {
+                            void window.showInformationMessage(
+                                `"${entry.treeItem.label as string}" has been set as default DB Connection.`);
+                        });
                 }
             }));
 
