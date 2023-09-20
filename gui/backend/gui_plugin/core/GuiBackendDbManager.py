@@ -19,6 +19,7 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
+import pathlib
 import mysqlsh
 import sqlite3
 import re
@@ -299,6 +300,15 @@ class BackendSqliteDbManager(BackendDbManager):
             chdir(self.current_dir)
 
     def backup_logs(self, db):
+        # create new backup file
+        # attach it to db as backup
+        new_filename = pathlib.Path(self.db_dir,
+                                    f"mysqlsh_gui_backend_log_{date.today().strftime('%Y.%m.%d')}.sqlite3")
+
+        # The backup was done for today already
+        if new_filename.exists():
+            return
+
         # check files, remove oldest if count > 6
         backup_files = []
         for f in listdir(self.db_dir):
@@ -313,10 +323,6 @@ class BackendSqliteDbManager(BackendDbManager):
             backup_files.remove(file_to_remove)
 
         try:
-            # create new backup file
-            # attach it to db as backup
-            new_filename = path.join(self.db_dir,
-                                     f"mysqlsh_gui_backend_log_{date.today().strftime('%Y.%m.%d')}.sqlite3")
             db.execute(
                 f"ATTACH DATABASE '{new_filename}' as 'backup';")
 
