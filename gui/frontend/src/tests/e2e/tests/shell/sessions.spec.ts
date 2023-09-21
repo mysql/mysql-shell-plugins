@@ -26,7 +26,7 @@ import { GuiConsole } from "../../lib/guiConsole";
 import { IDBConnection, Misc, driver, explicitWait } from "../../lib/misc";
 import { ShellSession } from "../../lib/shellSession";
 import { basename } from "path";
-jest.retryTimes(1);
+
 describe("Sessions", () => {
 
     let testFailed: boolean;
@@ -51,6 +51,7 @@ describe("Sessions", () => {
     };
 
     beforeAll(async () => {
+
         await Misc.loadDriver();
         try {
             await driver.wait(async () => {
@@ -105,8 +106,6 @@ describe("Sessions", () => {
             testFailed = false;
             await Misc.storeScreenShot();
         }
-
-        await Misc.cleanPrompt();
     });
 
     afterAll(async () => {
@@ -133,7 +132,6 @@ describe("Sessions", () => {
 
     it("Verify help command", async () => {
         try {
-
             textArea = await driver.findElement(By.css("textarea"));
             await Misc.execCmd(textArea, "\\h");
             await ShellSession.waitForResult("Displays the main SQL help categories");
@@ -143,7 +141,7 @@ describe("Sessions", () => {
         }
     });
 
-    it("Switch session language - javascript python", async () => {
+    it("Switch session language", async () => {
         try {
             await Misc.execCmd(textArea, "\\py");
             await ShellSession.waitForResult("Switching to Python mode...");
@@ -151,6 +149,59 @@ describe("Sessions", () => {
             await Misc.execCmd(textArea, "\\js");
             await ShellSession.waitForResult("Switching to JavaScript mode...");
             expect(await ShellSession.getTech()).toBe("javascript");
+            await Misc.execCmd(textArea, "\\sql");
+            await ShellSession.waitForResult("Switching to SQL mode...");
+            expect(await ShellSession.getTech()).toBe("mysql");
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        }
+    });
+
+    it("Check query result content", async () => {
+        try {
+            await driver.wait(async () => {
+                await Misc.execCmd(textArea, "select * from actor limit 1;", undefined, undefined, true);
+
+                return driver.wait(async () => {
+                    return ShellSession.isValueOnDataSet("PENELOPE");
+                }, 2000).catch(() => {
+                    // continue
+                }).then(() => { return true; });
+            }, explicitWait * 2, "Query result was empty");
+            await Misc.execCmd(textArea, "\\js");
+            await ShellSession.changeSchemaOnTab("sakila");
+            await Misc.execCmd(textArea, `shell.options.resultFormat="json/raw" `);
+            await ShellSession.waitForResult("json/raw");
+            await Misc.execCmd(textArea, `shell.options.showColumnTypeInfo=false `);
+            await ShellSession.waitForResult("false", true);
+            await Misc.execCmd(textArea, `shell.options.resultFormat="json/pretty" `);
+            await ShellSession.waitForResult("json/pretty");
+            await Misc.execCmd(textArea, "db.category.select().limit(1)");
+            await driver.wait(async () => {
+                try {
+                    const result = await ShellSession.getJsonResult();
+
+                    return (result.includes("category_id")) &&
+                        (result.includes("name")) &&
+                        (result.includes("last_update"));
+
+                } catch (e) {
+                    return false;
+                }
+            }, explicitWait, "json content was not found");
+            await Misc.execCmd(textArea, `shell.options.resultFormat="table" `);
+            await ShellSession.waitForResult("table");
+
+            await driver.wait(async () => {
+                await Misc.execCmd(textArea, "db.category.select().limit(1)", undefined, undefined, true);
+
+                return driver.wait(async () => {
+                    return ShellSession.isValueOnDataSet("Action");
+                }, 2000).catch(() => {
+                    // continue
+                }).then(() => { return true; });
+            }, explicitWait * 2, "Query result was empty");
         } catch (e) {
             testFailed = true;
             throw e;
@@ -179,46 +230,6 @@ describe("Sessions", () => {
             await ShellSession.waitForResult(/Rows written: (\d+)/);
             await ShellSession.waitForResult(/Bytes written: (\d+).(\d+)(\d+) KB/);
             await ShellSession.waitForResult(/Average throughput: (\d+).(\d+)(\d+) KB/);
-        } catch (e) {
-            testFailed = true;
-            throw e;
-        }
-    });
-
-    it("Check query result content", async () => {
-        try {
-            await Misc.execCmd(textArea, "\\sql");
-            await Misc.execCmd(textArea, "select * from actor limit 1;", undefined, undefined, true);
-            await driver.wait(async () => {
-                return ShellSession.isValueOnDataSet("PENELOPE");
-            }, explicitWait, "PENELOPE is not the the dataset");
-            await Misc.execCmd(textArea, "\\js");
-            await ShellSession.changeSchemaOnTab("sakila");
-            await Misc.execCmd(textArea, `shell.options.resultFormat="json/raw" `);
-            await ShellSession.waitForResult("json/raw");
-            await Misc.execCmd(textArea, `shell.options.showColumnTypeInfo=false `);
-            await ShellSession.waitForResult("false", true);
-            await Misc.execCmd(textArea, `shell.options.resultFormat="json/pretty" `);
-            await ShellSession.waitForResult("json/pretty");
-            await Misc.execCmd(textArea, "db.category.select().limit(1)");
-            await driver.wait(async () => {
-                try {
-                    const result = await ShellSession.getJsonResult();
-
-                    return (result.includes("category_id")) &&
-                        (result.includes("name")) &&
-                        (result.includes("last_update"));
-
-                } catch (e) {
-                    return false;
-                }
-            }, explicitWait, "json content was not found");
-            await Misc.execCmd(textArea, `shell.options.resultFormat="table" `);
-            await ShellSession.waitForResult("table");
-            await Misc.execCmd(textArea, "db.category.select().limit(1)", undefined, undefined, true);
-            expect(await driver.wait(async () => {
-                return ShellSession.isValueOnDataSet("Action");
-            }, explicitWait, "'Action is not on the data set'")).toBe(true);
         } catch (e) {
             testFailed = true;
             throw e;

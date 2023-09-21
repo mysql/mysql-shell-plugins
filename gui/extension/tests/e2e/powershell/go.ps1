@@ -98,10 +98,11 @@ try {
     writeMsg "Using test file: $testFile"
 
     ## REMOVE EXISTING EXTENSION DATABASES
-    $sqlite = Join-Path $env:userprofile "mysqlsh-$env:TEST_SUITE" "plugin_data" "gui_plugin" "mysqlsh_gui_backend.sqlite3"
-    if (Test-Path -Path $sqlite){
-        writeMsg "Removing Plugin database for mysqlsh $env:TEST_SUITE suite..." "-NoNewLine"
-        Remove-Item -Path $sqlite -Force
+    $guiPluginFolder = Join-Path $env:userprofile "mysqlsh-$env:TEST_SUITE" "plugin_data" "gui_plugin"
+    $files = Get-ChildItem -Path $guiPluginFolder -Filter "*mysqlsh_gui*"
+    foreach ($file in $files)     {
+        writeMsg "Removing file $file" "-NoNewLine"
+        Remove-Item $file -Force
         writeMsg "DONE"
     }
 
@@ -161,6 +162,7 @@ try {
 
     # EXECUTE TESTS
     writeMsg "Executing GUI tests for $env:TEST_SUITE suite..."
+    $env:NODE_ENV = "test"
     $prcExecTests = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests", "--", "-s $testResources", "-e $extPath", "-f", "-o vscode_settings.json", "./output/tests/ui-$env:TEST_SUITE.js" -Wait -PassThru -RedirectStandardOutput "$workspace\resultsExt-$env:TEST_SUITE.log" -RedirectStandardError "$workspace\resultsExtErr-$env:TEST_SUITE.log"
     if ($prcExecTests.ExitCode -eq 0) {
         writeMsg "DONE for $($env:TEST_SUITE.toUpper()) suite. All tests PASSED!"

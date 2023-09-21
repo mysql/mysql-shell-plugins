@@ -63,8 +63,10 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await Misc.clickSectionToolbarButton(treeOCISection,
                 "Configure the OCI Profile list");
 
-            const editors = await new EditorView().getOpenEditorTitles();
-            expect(editors).to.include.members(["config"]);
+            await driver.wait(async () => {
+                return (await new EditorView().getOpenEditorTitles()).includes("config");
+            }, constants.explicitWait, "config editor was not opened");
+
             const textEditor = new TextEditor();
             const editor = await driver.findElement(By.css("textarea"));
             let config = `[E2ETESTS]\nuser=ocid1.user.oc1..aaaaaaaan67cojwa52khe44xtpqsygzxlk4te6gqs7nkmy`;
@@ -93,12 +95,22 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
     describe("Profile", () => {
 
+        beforeEach(async function () {
+            try {
+                await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 3,
+                    `${constants.ociTreeSection} is still loading`);
+            } catch (e) {
+                await Misc.processFailure(this);
+                throw e;
+            }
+        });
+
         afterEach(async function () {
             if (this.currentTest?.state === "failed") {
                 await Misc.processFailure(this);
             }
 
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             const edView = new EditorView();
             const editors = await edView.getOpenEditorTitles();
             for (const editor of editors) {
@@ -161,7 +173,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 await Misc.processFailure(this);
             }
 
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             const edView = new EditorView();
             const editors = await edView.getOpenEditorTitles();
             for (const editor of editors) {
@@ -211,14 +223,14 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         it("Set as Current Compartment", async () => {
 
-            const treeOCISection = await Misc.getSection(constants.ociTreeSection);
             let treeQA = await Misc.getTreeElement(constants.ociTreeSection, /QA/);
             await Misc.openContextMenuItem(treeQA, constants.setCurrentCompartment, undefined);
             await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 3,
                 `${constants.ociTreeSection} is still loading`);
+            const treeOCISection = await Misc.getSection(constants.ociTreeSection);
             treeQA = await treeOCISection.findItem("QA (Default)", constants.ociMaxLevel);
             expect(await Misc.isDefaultItem(constants.ociTreeSection,
-                await treeQA.getLabel(), "compartment")).to.be.true;
+                "QA (Default)", "compartment")).to.be.true;
             await treeQA.expand();
             await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 20,
                 `${constants.ociTreeSection} is still loading`);
@@ -226,7 +238,6 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await treeShellTesting.expand();
             await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 20,
                 `${constants.ociTreeSection} is still loading`);
-
             const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
             await treeOpenEditorsSection.expand();
             const treeDBConnections = await Misc.getTreeElement(constants.openEditorsTreeSection,
@@ -273,7 +284,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 await Misc.processFailure(this);
             }
 
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             const edView = new EditorView();
             const editors = await edView.getOpenEditorTitles();
             for (const editor of editors) {
@@ -425,7 +436,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 await Misc.processFailure(this);
             }
 
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             const treeTasksSection = await Misc.getSection(constants.tasksTreeSection);
             await treeTasksSection?.collapse();
 
@@ -546,14 +557,16 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 }, 3000, "BastionID field was not set");
                 bastionOCID = await driver.findElement(By.id("bastionId")).getAttribute("value");
                 await newConDialog.findElement(By.id("ok")).click();
-                await driver.switchTo().defaultContent();
+                await Misc.switchBackToTopFrame();
                 const mds = await Database.getWebViewConnection("MDSforVSCodeExtension");
                 expect(mds).to.exist;
-                await Misc.switchToWebView();
+                await Misc.switchToFrame();
                 await mds.click();
+                let skipThisTest: boolean;
                 await driver.wait(async () => {
                     const fingerprintDialog = await driver.findElements(By.css(".visible.confirmDialog"));
                     let passwordDialog = await driver.findElements(By.css(".visible.passwordDialog"));
+                    const errors = await driver.findElements(By.css(".visible.errorPanel"));
                     if (fingerprintDialog.length > 0) {
                         await fingerprintDialog[0].findElement(By.id("accept")).click();
                         passwordDialog = await driver.findElements(By.css(".visible.passwordDialog"));
@@ -564,9 +577,23 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
                         return true;
                     }
+                    if (errors.length > 0) {
+                        const errorMsg = await driver.findElement(By.css("#errorMessage > label"));
+                        if ((await errorMsg.getText()).match(/SSH Tunnel/) !== null) {
+                            console.log("SSH Tunnel error, skipping");
+                            skipThisTest = true;
+
+                            return true;
+                        }
+                    }
 
                     return false;
                 }, 30000, "Dialogs were not displayed");
+
+                if (skipThisTest === true) {
+                    await new EditorView().closeEditor(constants.dbDefaultEditor);
+                    this.skip();
+                }
 
                 try {
                     const confirmDialog = await driver.wait(until.elementLocated(By.css(".visible.confirmDialog")),
@@ -580,7 +607,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                     constants.ociExplicitWait, "Connection was not loaded");
                 const result = await Misc.execCmd("select version();", undefined, 10000);
                 expect(result[0]).to.include("OK");
-                await driver.switchTo().defaultContent();
+                await Misc.switchBackToTopFrame();
                 expect(await Misc.existsTreeElement(constants.ociTreeSection,
                     "Bastion4PrivateSubnetStandardVnc")).to.be.true;
 
@@ -626,7 +653,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 localMDSInfo,
             );
 
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             expect(await Misc.existsTreeElement(constants.dbTreeSection, mdsConn.caption)).to.be.true;
 
         });

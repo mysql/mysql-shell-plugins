@@ -250,7 +250,6 @@ def main() -> None:
         executor.add_task(task_utils.StartBeServersTask(be_servers))
         executor.add_task(task_utils.AddUserToBE(executor.environment, tmp_dirname, be_servers))
         executor.add_task(NPMScript(executor.environment, "e2e-tests-run", [f"--maxWorkers={MAX_WORKERS}"]))
-        executor.add_task(NPMScript(executor.environment, "e2e-tests-report", []))
 
         if executor.check_prerequisites():
             try:
@@ -258,15 +257,9 @@ def main() -> None:
             except task_utils.TaskFailException as exception:
                 task_utils.Logger.error(exception)
                 test_failed = True
+                NPMScript(executor.environment, "e2e-tests-report", []).run()
 
             executor.clean_up()
-
-
-        mysqlsh_log_file = pathlib.Path(tmp_dirname, "mysqlsh", "mysqlsh.log")
-        if test_failed and mysqlsh_log_file.exists():
-            with open(mysqlsh_log_file, "r", encoding="UTF-8") as log_file:
-                content = log_file.read()
-                Logger.info(f"Content of the mysqlsh.log file:\n{content}")
 
     if test_failed:
         sys.exit(1)

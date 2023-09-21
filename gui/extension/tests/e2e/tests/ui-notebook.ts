@@ -132,7 +132,7 @@ describe("NOTEBOOKS", () => {
 
         after(async function () {
             try {
-                await driver.switchTo().defaultContent();
+                await Misc.switchBackToTopFrame();
                 const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
                 await treeGlobalConn.collapse();
                 await new EditorView().closeAllEditors();
@@ -563,7 +563,7 @@ describe("NOTEBOOKS", () => {
                 await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
                     "DB Connection was not loaded");
                 await Database.setDBConnectionCredentials(globalConn);
-                await driver.switchTo().defaultContent();
+                await Misc.switchBackToTopFrame();
                 await Misc.sectionFocus(constants.openEditorsTreeSection);
             } catch (e) {
                 await Misc.processFailure(this);
@@ -581,7 +581,7 @@ describe("NOTEBOOKS", () => {
 
         after(async function () {
             try {
-                await driver.switchTo().defaultContent();
+                await Misc.switchBackToTopFrame();
                 await Misc.sectionFocus(constants.dbTreeSection);
                 const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
                 await treeGlobalConn.collapse();
@@ -603,7 +603,7 @@ describe("NOTEBOOKS", () => {
             expect(await Database.getCurrentEditorType()).to.include("Mysql");
             const result = await Database.execScript("select * from sakila.actor limit 1;");
             expect(result).to.match(/OK, (\d+) record/);
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
             refItem = await Misc.getTreeScript(treeOpenEditorsSection, "Untitled-", "Mysql");
             expect(refItem).to.exist;
@@ -618,7 +618,7 @@ describe("NOTEBOOKS", () => {
             expect(await Database.getCurrentEditorType()).to.include("scriptTs");
             const result = await Database.execScript("Math.random()");
             expect(result).to.match(/(\d+).(\d+)/);
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
             refItem = await Misc.getTreeScript(treeOpenEditorsSection, "Untitled-", "scriptTs");
             expect(refItem).to.exist;
@@ -634,7 +634,7 @@ describe("NOTEBOOKS", () => {
             expect(await Database.getCurrentEditorType()).to.include("scriptJs");
             const result = await Database.execScript("Math.random()");
             expect(result).to.match(/(\d+).(\d+)/);
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
             refItem = await Misc.getTreeScript(treeOpenEditorsSection, "Untitled-", "scriptJs");
             expect(refItem).to.exist;
@@ -677,7 +677,7 @@ describe("NOTEBOOKS", () => {
 
         after(async function () {
             try {
-                await driver.switchTo().defaultContent();
+                await Misc.switchBackToTopFrame();
                 await new EditorView().closeAllEditors();
                 await fs.unlink(`${destFile}.mysql-notebook`);
                 const activityBar = new ActivityBar();
@@ -693,7 +693,7 @@ describe("NOTEBOOKS", () => {
             const result = await Misc.execCmd("SELECT VERSION();", undefined, constants.explicitWait * 2);
             expect(result[0]).to.include("1 record retrieved");
             await (await Database.getToolbarButton(constants.saveNotebook)).click();
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             await Misc.setInputPath(destFile);
             await driver.wait(new Condition("", async () => {
                 try {
@@ -708,19 +708,19 @@ describe("NOTEBOOKS", () => {
 
         it("Replace this Notebook with content from a file", async () => {
 
-            await Misc.switchToWebView();
+            await Misc.switchToFrame();
             await Misc.cleanEditor();
             await (await Database.getToolbarButton(constants.loadNotebook)).click();
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             await Misc.setInputPath(`${destFile}.mysql-notebook`);
-            await Misc.switchToWebView();
+            await Misc.switchToFrame();
             await Database.verifyNotebook("SELECT VERSION();", "1 record retrieved");
 
         });
 
         it("Open the Notebook from file", async () => {
 
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             await new EditorView().closeAllEditors();
             await browser.openResources(process.cwd());
             await Misc.dismissNotifications();
@@ -748,7 +748,7 @@ describe("NOTEBOOKS", () => {
 
         it("Open the Notebook from file with connection", async () => {
 
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             await new EditorView().closeAllEditors();
             await browser.openResources(process.cwd());
             let section: CustomTreeSection;
@@ -771,7 +771,7 @@ describe("NOTEBOOKS", () => {
 
         it("Auto close notebook tab when DB connection is deleted", async () => {
 
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             await new EditorView().closeEditor("test.mysql-notebook");
 
             // The file may be dirty
@@ -793,7 +793,7 @@ describe("NOTEBOOKS", () => {
             await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
                 "DB Connection was not loaded");
             await Database.setDBConnectionCredentials(globalConn);
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             await new EditorView().openEditor("test.mysql-notebook");
             const activityBar = new ActivityBar();
             await (await activityBar.getViewControl("MySQL Shell for VS Code"))?.openView();
@@ -823,10 +823,10 @@ describe("NOTEBOOKS", () => {
             await file.click();
             await new EditorView().openEditor("test.mysql-notebook");
             await Misc.getNotification("Please create a MySQL Database Connection first.");
-            await Misc.switchToWebView();
+            await Misc.switchToFrame();
             expect(await driver.findElement(By.css("h2")).getText()).to.equals("No connection selected");
 
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             await new EditorView().closeAllEditors();
 
             await Misc.openContextMenuItem(file, constants.openNotebookWithConn, constants.checkNotif);

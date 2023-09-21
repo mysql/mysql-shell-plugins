@@ -117,7 +117,7 @@ export class Misc {
                         const prevOpenedTabs = await new EditorView().getOpenEditorTitles();
                         await Misc.selectContextMenuItem(treeItem, ctxMenuItem, map);
                         if (await Misc.existsNewTab(prevOpenedTabs.length)) {
-                            await Misc.switchToWebView();
+                            await Misc.switchToFrame();
 
                             return true;
                         }
@@ -147,7 +147,7 @@ export class Misc {
                 await driver.wait(async () => {
                     try {
                         await Misc.selectContextMenuItem(treeItem, ctxMenuItem, map);
-                        await Misc.switchToWebView();
+                        await Misc.switchToFrame();
 
                         return true;
                     } catch (e) {
@@ -184,7 +184,7 @@ export class Misc {
                 await driver.wait(async () => {
                     try {
                         await Misc.selectContextMenuItem(treeItem, ctxMenuItem, map);
-                        await Misc.switchToWebView();
+                        await Misc.switchToFrame();
 
                         return await Misc.existsWebViewDialog(true);
                     } catch (e) {
@@ -517,7 +517,8 @@ export class Misc {
 
                 return driver.wait(async () => {
                     return conn.hasChildren();
-                }, 2000, `${await conn.getLabel()} should have children after setting the password`);
+                }, constants.explicitWait * 2,
+                    `${await conn.getLabel()} should have children after setting the password`);
             } else if (await conn.hasChildren()) {
                 return true;
             }
@@ -525,7 +526,7 @@ export class Misc {
             `The input password was not displayed nor the ${await conn.getLabel()} has children`);
     };
 
-    public static switchToWebView = async (): Promise<void> => {
+    public static switchToFrame = async (): Promise<void> => {
         await driver.wait(async () => {
             try {
                 const visibleDiv = await driver.wait(async () => {
@@ -572,6 +573,8 @@ export class Misc {
             } catch (e) {
                 if (!String(e.message).includes("target frame detached")) {
                     throw e;
+                } else {
+                    console.log(e);
                 }
             }
         }, constants.explicitWait * 2, "target frame detached");
@@ -602,30 +605,36 @@ export class Misc {
         }
     };
 
-    public static getNotification = async (text: string, dismiss = true): Promise<Notification> => {
-
-        const foundNotifications = [];
+    public static switchBackToTopFrame = async (): Promise<void> => {
         await driver.wait(async () => {
-            const notifications = await new Workbench().getNotifications();
-            for (const notif of notifications) {
-                foundNotifications.push(await notif.getMessage());
-            }
+            try {
+                await driver.switchTo().defaultContent();
 
-            return foundNotifications.length > 0;
-        }, constants.explicitWait, "Could not find any notification");
+                return true;
+            } catch (e) {
+                if (!(String(e.message)).includes("target frame detached")) {
+                    throw e;
+                }
+            }
+        }, constants.explicitWait, "Could not switch back to top frame");
+    };
+
+    public static getNotification = async (text: string, dismiss = true): Promise<Notification> => {
 
         let notif: Notification;
         await driver.wait(async () => {
             try {
                 const ntfs = await new Workbench().getNotifications();
-                for (const ntf of ntfs) {
-                    if ((await ntf.getMessage()).includes(text)) {
-                        notif = ntf;
-                        if (dismiss) {
-                            await Misc.dismissNotifications();
-                        }
+                if (ntfs.length > 0) {
+                    for (const ntf of ntfs) {
+                        if ((await ntf.getMessage()).includes(text)) {
+                            notif = ntf;
+                            if (dismiss) {
+                                await Misc.dismissNotifications();
+                            }
 
-                        return true;
+                            return true;
+                        }
                     }
                 }
             } catch (e) {
@@ -633,7 +642,7 @@ export class Misc {
                     throw e;
                 }
             }
-        }, constants.explicitWait, `Could not find '${text}' notification`);
+        }, constants.explicitWait * 2, `Could not find '${text}' notification`);
 
         return notif;
     };
@@ -683,6 +692,18 @@ export class Misc {
         }
     };
 
+    public static removeInternalDB = async (): Promise<void> => {
+        const path = join(constants.basePath, `mysqlsh-${String(process.env.TEST_SUITE)}`,
+            "plugin_data", "gui_plugin");
+        const files = await fs.readdir(path);
+        for (const file of files) {
+            if (file.match(/mysqlsh_gui/) !== null) {
+                await fs.rm(join(path, file), { force: true });
+                console.log(`Removed file '${join(path, file)}'`);
+            }
+        }
+    };
+
     public static execOnTerminal = async (cmd: string, timeout: number): Promise<void> => {
         timeout = timeout ?? constants.explicitWait;
 
@@ -721,7 +742,7 @@ export class Misc {
         return out.includes("ERR") || out.includes("err");
     };
 
-    public static findOutputText = async (textToSearch: string | RegExp): Promise<boolean> => {
+    public static findOutputText = async (textToSearch: string | RegExp | RegExp[]): Promise<boolean> => {
         let output: OutputView;
         await new BottomBarPanel().openOutputView();
         output = new OutputView();
@@ -745,6 +766,15 @@ export class Misc {
 
         console.log(clipBoardText);
 
+        if (Array.isArray(textToSearch)) {
+            for (const rex of textToSearch) {
+                if (clipBoardText.toString().match(rex) === null) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
         if (textToSearch instanceof RegExp) {
             return (clipBoardText.match(textToSearch)) !== null;
         } else {
@@ -781,7 +811,7 @@ export class Misc {
     };
 
     public static setConfirmDialog = async (dbConfig: interfaces.IDBConnection, value: string,
-        timeoutDialog = 500): Promise<void> => {
+        timeoutDialog = constants.explicitWait * 2): Promise<void> => {
 
         await driver.wait(until.elementsLocated(By.css(".confirmDialog")),
             timeoutDialog, "No confirm dialog was found");
@@ -834,17 +864,27 @@ export class Misc {
     };
 
     public static cleanEditor = async (): Promise<void> => {
-        const textArea = await driver.findElement(By.css("textarea"));
-        if (platform() === "darwin") {
-            await textArea.sendKeys(Key.chord(Key.COMMAND, "a", "a"));
-        } else {
-            await textArea.sendKeys(Key.chord(Key.CONTROL, "a", "a"));
-        }
-
-        await textArea.sendKeys(Key.BACK_SPACE);
         await driver.wait(async () => {
-            return await this.getPromptTextLine("last") === "";
-        }, 3000, "Prompt was not cleaned");
+            try {
+                const textArea = await driver.findElement(By.css("textarea"));
+                if (platform() === "darwin") {
+                    await textArea.sendKeys(Key.chord(Key.COMMAND, "a", "a"));
+                } else {
+                    await textArea.sendKeys(Key.chord(Key.CONTROL, "a", "a"));
+                }
+
+                await textArea.sendKeys(Key.BACK_SPACE);
+                await driver.wait(async () => {
+                    return await this.getPromptTextLine("last") === "";
+                }, 3000, "Prompt was not cleaned");
+
+                return true;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+        }, constants.explicitWait, "Editor was not cleaned");
     };
 
     public static getResultTabs = async (resultHost: WebElement): Promise<string[]> => {
@@ -1160,7 +1200,7 @@ export class Misc {
         }
 
         const sectionTree = await Misc.getSection(section);
-        await driver.wait(Until.isNotLoading(section), constants.explicitWait * 2,
+        await driver.wait(Until.isNotLoading(section), constants.loadingBarWait,
             `${await sectionTree.getTitle()} is still loading`);
         let reload = false;
 
@@ -1169,7 +1209,7 @@ export class Misc {
                 if (reload) {
                     if (section === constants.dbTreeSection || section === constants.ociTreeSection) {
                         await Misc.clickSectionToolbarButton(sectionTree, reloadLabel);
-                        await driver.wait(Until.isNotLoading(section), constants.explicitWait * 2,
+                        await driver.wait(Until.isNotLoading(section), constants.loadingBarWait,
                             `${await sectionTree.getTitle()} is still loading`);
                     }
                 }
@@ -1212,7 +1252,7 @@ export class Misc {
                 reloadLabel = "Reload the OCI Profile list";
             }
             await Misc.clickSectionToolbarButton(sectionTree, reloadLabel);
-            await driver.wait(Until.isNotLoading(section), constants.explicitWait * 2,
+            await driver.wait(Until.isNotLoading(section), constants.loadingBarWait,
                 `${await sectionTree.getTitle()} is still loading`);
         }
 
@@ -1258,7 +1298,7 @@ export class Misc {
             return await activeTab?.getTitle() === "MySQL Shell";
         }, 3000, "error");
 
-        await Misc.switchToWebView();
+        await Misc.switchToFrame();
         const dialog = await driver.wait(until.elementLocated(
             By.css(".visible.confirmDialog")), 7000, "confirm dialog was not found");
         await dialog.findElement(By.id("accept")).click();
@@ -1289,7 +1329,6 @@ export class Misc {
     };
 
     public static loadDriver = async (): Promise<void> => {
-
         const timeout: ITimeouts = { implicit: 0 };
         let counter = 0;
         while (counter <= 10) {
@@ -1309,6 +1348,51 @@ export class Misc {
                 }
             }
         }
+    };
+
+    public static connectToExternalShellProcess = async (): Promise<void> => {
+        const existsRootHost = async (): Promise<boolean> => {
+            return (await driver.findElements(By.className("shadow-root-host"))).length > 0;
+        };
+
+        const treeDBSection = await Misc.getSection(constants.dbTreeSection);
+        await driver.wait(Until.isNotLoading(constants.dbTreeSection), constants.explicitWait * 4,
+            `${await treeDBSection.getTitle()} is still loading`);
+        await treeDBSection.click();
+        const moreActions = await treeDBSection.findElement(By.xpath(".//a[contains(@title, 'More Actions...')]"));
+        await moreActions.click();
+
+        if (platform() === "darwin") {
+            await keyboard.type(nutKey.Right);
+            await keyboard.type(nutKey.Down);
+            await keyboard.type(nutKey.Enter);
+        } else {
+            const rootHost = await driver.findElement(By.className("shadow-root-host"));
+            const shadowRoot = await rootHost.getShadowRoot();
+            const menu = await shadowRoot.findElement(By.className("monaco-menu-container"));
+            const menuItems = await menu.findElements(By.className("action-label"));
+            for (const item of menuItems) {
+                if ((await item.getText()) === constants.connectToExternalShell) {
+                    await driver.wait(async () => {
+                        try {
+                            await item.click();
+
+                            return (await existsRootHost()) === false;
+                        } catch (e) {
+                            if (e instanceof error.StaleElementReferenceError) {
+                                return true;
+                            }
+                        }
+                    }, constants.explicitWait, "Could not click on Connect to External Shell process");
+                    break;
+                }
+            }
+        }
+
+        await Misc.setInputPath(`http://localhost:${String(process.env.MYSQLSH_GUI_CUSTOM_PORT)}/?token=vscode`);
+        await driver.wait(async () => {
+            return Misc.findOutputText(/application did start/);
+        }, constants.explicitWait * 3, "Shell server did not start");
     };
 
     public static getTerminalOutput = async (): Promise<string> => {
@@ -1372,9 +1456,7 @@ export class Misc {
 
     public static writeMySQLshLogs = async (): Promise<void> => {
         const text = await fs.readFile(Misc.getMysqlshLog());
-        console.log(`------`);
         console.log(text.toString());
-        console.log(`------`);
     };
 
     public static findOnMySQLShLog = async (textToFind: RegExp[] | RegExp): Promise<boolean> => {

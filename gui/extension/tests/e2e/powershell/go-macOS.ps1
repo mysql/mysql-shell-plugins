@@ -32,11 +32,12 @@ if (!$env:TEST_SUITE){
 
 $env:MYSQLSH_GUI_CUSTOM_CONFIG_DIR = Join-Path $home "mysqlsh-$env:TEST_SUITE"
 
-# REMOVE EXISTING EXTENSION DATABASES
-$sqlite = Join-Path $home "mysqlsh-$env:TEST_SUITE" "plugin_data" "gui_plugin" "mysqlsh_gui_backend.sqlite3"
-if (Test-Path -Path $sqlite){
-    write-host "Removing Plugin database for mysqlsh $env:TEST_SUITE suite..." "-NoNewLine"
-    Remove-Item -Path $sqlite -Force
+## REMOVE EXISTING EXTENSION DATABASES
+$guiPluginFolder = Join-Path $home "mysqlsh-$env:TEST_SUITE" "plugin_data" "gui_plugin"
+$files = Get-ChildItem -Path $guiPluginFolder -Filter "*mysqlsh_gui*"
+foreach ($file in $files)     {
+    write-host "Removing file $file" -NoNewLine
+    Remove-Item $file -Force
     write-host "DONE"
 }
 
@@ -81,4 +82,6 @@ New-Item -Path $env:MYSQLSH_OCI_RC_FILE -Force -ItemType "file"
 $testResources = Join-Path $home "test-resources"
 
 # EXECUTE TESTS
+$env:NODE_ENV = "test"
+
 npm run e2e-tests -- -s $testResources -e "$testResources/ext" -f -o "vscode_settings.json" "./output/tests/ui-$env:TEST_SUITE.js"

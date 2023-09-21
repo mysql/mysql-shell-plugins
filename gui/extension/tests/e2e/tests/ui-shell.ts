@@ -80,11 +80,8 @@ describe("MYSQL SHELL CONSOLES", () => {
         try {
             await driver.wait(Until.extensionIsReady(), constants.extensionReadyWait, "Extension was not ready");
             await Misc.toggleBottomBar(false);
-            await Misc.sectionFocus(constants.openEditorsTreeSection);
-            const treeDBConnections = await Misc.getTreeElement(constants.openEditorsTreeSection,
-                constants.dbConnectionsLabel);
-            await Misc.openContextMenuItem(treeDBConnections, constants.openNewShellConsole,
-                constants.checkNewTabAndWebView);
+            await Misc.switchToFrame();
+            await driver.wait(until.elementLocated(By.id("newConsoleMenuButton")), constants.explicitWait * 2).click();
             await driver.wait(Shell.isShellLoaded(), constants.explicitWait * 3, "Shell Console was not loaded");
         } catch (e) {
             await Misc.processFailure(this);
@@ -97,7 +94,7 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         beforeEach(async function () {
             try {
-                await driver.switchTo().defaultContent();
+                await Misc.switchBackToTopFrame();
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -109,7 +106,7 @@ describe("MYSQL SHELL CONSOLES", () => {
                 await Misc.processFailure(this);
             }
 
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             await new EditorView().closeAllEditors();
 
         });
@@ -122,7 +119,7 @@ describe("MYSQL SHELL CONSOLES", () => {
                 await Misc.openContextMenuItem(treeDBConnections, constants.openNewShellConsole,
                     constants.checkNewTabAndWebView);
                 await driver.wait(Shell.isShellLoaded(), constants.explicitWait * 3, "Shell Console was not loaded");
-                await driver.switchTo().defaultContent();
+                await Misc.switchBackToTopFrame();
                 expect(await Misc.existsTreeElement(constants.openEditorsTreeSection, `Session ${i}`)).to.be.true;
             }
 
@@ -158,7 +155,7 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         after(async function () {
             try {
-                await driver.switchTo().defaultContent();
+                await Misc.switchBackToTopFrame();
                 await new EditorView().closeAllEditors();
             } catch (e) {
                 await Misc.processFailure(this);
@@ -322,7 +319,7 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         after(async function () {
             try {
-                await driver.switchTo().defaultContent();
+                await Misc.switchBackToTopFrame();
                 await new EditorView().closeAllEditors();
             } catch (e) {
                 await Misc.processFailure(this);
