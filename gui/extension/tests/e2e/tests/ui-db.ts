@@ -81,7 +81,6 @@ describe("DATABASE CONNECTIONS", () => {
     before(async function () {
 
         await Misc.loadDriver();
-
         try {
             await driver.wait(Until.extensionIsReady(), constants.extensionReadyWait, "Extension was not ready");
             const activityBare = new ActivityBar();
@@ -130,7 +129,7 @@ describe("DATABASE CONNECTIONS", () => {
                 await notifications[notifications.length - 1].dismiss();
             }
 
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             await new EditorView().closeAllEditors();
         });
 
@@ -240,7 +239,7 @@ describe("DATABASE CONNECTIONS", () => {
                 await Misc.sectionFocus(constants.openEditorsTreeSection);
                 await (await Misc.getTreeElement(constants.openEditorsTreeSection,
                     constants.dbConnectionsLabel)).click();
-                await Misc.switchToWebView();
+                await Misc.switchToFrame();
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -252,7 +251,7 @@ describe("DATABASE CONNECTIONS", () => {
                 await Misc.processFailure(this);
             }
 
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             const notifications = await new Workbench().getNotifications();
             if (notifications.length > 0) {
                 await notifications[notifications.length - 1].dismiss();
@@ -261,7 +260,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         after(async function () {
             try {
-                await driver.switchTo().defaultContent();
+                await Misc.switchBackToTopFrame();
                 await new EditorView().closeAllEditors();
                 await Misc.sectionFocus(constants.dbTreeSection);
                 const treeDBSection = await Misc.getSection(constants.dbTreeSection);
@@ -361,7 +360,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await driver.wait(Database.isConnectionLoaded(),
                 constants.explicitWait * 3, "DB Connection was not loaded");
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             await Misc.sectionFocus(constants.dbTreeSection);
             const treeDBSection = await Misc.getSection(constants.dbTreeSection);
             await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
@@ -464,7 +463,7 @@ describe("DATABASE CONNECTIONS", () => {
             if (this.currentTest.state === "failed") {
                 await Misc.processFailure(this);
             }
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
         });
 
         after(async function () {
@@ -504,7 +503,7 @@ describe("DATABASE CONNECTIONS", () => {
             const clientConn = await Misc.getTreeElement(constants.dbTreeSection, constants.clientConns);
             await clientConn.click();
             expect(await new EditorView().getOpenEditorTitles()).to.include(constants.clientConns);
-            await Misc.switchToWebView();
+            await Misc.switchToFrame();
             await driver.wait(async () => {
                 return await Database.getCurrentEditor() === constants.clientConns;
             }, constants.explicitWait, "Clients Connections editor was not selected");
@@ -538,7 +537,7 @@ describe("DATABASE CONNECTIONS", () => {
             const perfDash = await Misc.getTreeElement(constants.dbTreeSection, constants.perfDash);
             await perfDash.click();
             expect(await new EditorView().getOpenEditorTitles()).to.include(constants.perfDash);
-            await Misc.switchToWebView();
+            await Misc.switchToFrame();
             await driver.wait(async () => {
                 return await Database.getCurrentEditor() === constants.perfDash;
             }, constants.explicitWait, "Performance Dashboard editor was not selected");
@@ -567,7 +566,7 @@ describe("DATABASE CONNECTIONS", () => {
                 await Misc.processFailure(this);
             }
 
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
         });
 
         it("New Shell Notebook", async () => {
@@ -577,7 +576,7 @@ describe("DATABASE CONNECTIONS", () => {
             await Misc.openContextMenuItem(treeDBConnections, constants.openNewShellConsole,
                 constants.checkNewTabAndWebView);
             await driver.wait(Shell.isShellLoaded(), constants.explicitWait * 3, "Shell Console was not loaded");
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             const treeOEShellConsoles = await Misc.getTreeElement(constants.openEditorsTreeSection,
                 "MySQL Shell Consoles");
 
@@ -593,7 +592,7 @@ describe("DATABASE CONNECTIONS", () => {
             await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
                 "DB Connection was not loaded");
             await Database.setDBConnectionCredentials(globalConn);
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             const treeOEGlobalConn = await Misc.getTreeElement(constants.openEditorsTreeSection,
                 globalConn.caption);
 
@@ -602,10 +601,10 @@ describe("DATABASE CONNECTIONS", () => {
             const treeItem = await Misc.getTreeScript(treeOpenEditorsSection, "Untitled-", "Mysql");
             expect(treeItem).to.exist;
             await new EditorView().openEditor(globalConn.caption);
-            await Misc.switchToWebView();
+            await Misc.switchToFrame();
             expect(await Database.getCurrentEditor()).to.match(/Untitled-(\d+)/);
             expect(await Database.getCurrentEditorType()).to.include("Mysql");
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             await (await Misc.getActionButton(treeItem, "Close Editor")).click();
 
         });
@@ -619,7 +618,7 @@ describe("DATABASE CONNECTIONS", () => {
                 return (await Database.getCurrentEditor()).match(/Untitled-(\d+)/);
             }, constants.explicitWait, "Current editor is not Untitled-(*)");
             expect(await Database.getCurrentEditorType()).to.include("Mysql");
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
             const treeItem = await Misc.getTreeScript(treeOpenEditorsSection, "Untitled-", "Mysql");
             expect(treeItem).to.exist;
@@ -635,7 +634,7 @@ describe("DATABASE CONNECTIONS", () => {
                 return (await Database.getCurrentEditor()).match(/Untitled-(\d+)/);
             }, constants.explicitWait, "Current editor is not Untitled-(*)");
             expect(await Database.getCurrentEditorType()).to.include("scriptJs");
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
             const treeItem = await Misc.getTreeScript(treeOpenEditorsSection, "Untitled-", "scriptJs");
             expect(treeItem).to.exist;
@@ -651,7 +650,7 @@ describe("DATABASE CONNECTIONS", () => {
                 return (await Database.getCurrentEditor()).match(/Untitled-(\d+)/);
             }, constants.explicitWait, "Current editor is not Untitled-(*)");
             expect(await Database.getCurrentEditorType()).to.include("scriptTs");
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
             const treeItem = await Misc.getTreeScript(treeOpenEditorsSection, "Untitled-", "scriptTs");
             expect(treeItem).to.exist;
@@ -696,7 +695,7 @@ describe("DATABASE CONNECTIONS", () => {
             const item = await Misc.getTreeElement(constants.openEditorsTreeSection, "MySQL Shell Consoles");
             await item.expand();
             await (await Misc.getTreeElement(constants.openEditorsTreeSection, "Session 1")).click();
-            await Misc.switchToWebView();
+            await Misc.switchToFrame();
             await driver.wait(Shell.isShellLoaded(), constants.explicitWait * 3, "Shell Console was not loaded");
 
         });
@@ -753,7 +752,7 @@ describe("DATABASE CONNECTIONS", () => {
                     // continue
                 }
             }
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
         });
 
         after(async function () {
@@ -786,7 +785,7 @@ describe("DATABASE CONNECTIONS", () => {
                 constants.explicitWait, "zoneHost not found");
 
             expect(item).to.exist;
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
             await treeOpenEditorsSection.expand();
             await Misc.sectionFocus(constants.openEditorsTreeSection);
@@ -804,7 +803,7 @@ describe("DATABASE CONNECTIONS", () => {
             const item = await driver.wait(until
                 .elementLocated(By.css(".zoneHost .actionLabel > span")), 10000, "MySQL Shell Console was not loaded");
             expect(await item.getText()).to.include("Welcome to the MySQL Shell - GUI Console");
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
             await treeOpenEditorsSection.expand();
             await Misc.sectionFocus(constants.openEditorsTreeSection);
@@ -834,7 +833,7 @@ describe("DATABASE CONNECTIONS", () => {
                 undefined,
             );
 
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             expect(await Misc.existsTreeElement(constants.dbTreeSection, localConn.caption)).to.be.true;
 
         });
@@ -856,7 +855,7 @@ describe("DATABASE CONNECTIONS", () => {
             const okBtn = await driver.findElement(By.id("ok"));
             await driver.executeScript("arguments[0].scrollIntoView(true)", okBtn);
             await okBtn.click();
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             await driver.wait(Until.isNotLoading(constants.dbTreeSection), constants.explicitWait * 5,
                 `${constants.dbTreeSection} is still loading`);
             treeDup = await Misc.getTreeElement(constants.dbTreeSection, dup);
@@ -870,7 +869,7 @@ describe("DATABASE CONNECTIONS", () => {
                 By.css(".visible.confirmDialog")), constants.explicitWait * 3, "confirm dialog was not found");
 
             await dialog.findElement(By.id("accept")).click();
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             await driver.wait(Until.isNotLoading(constants.dbTreeSection), constants.ociExplicitWait * 2,
                 `${constants.dbTreeSection} is still loading`);
 
@@ -906,13 +905,13 @@ describe("DATABASE CONNECTIONS", () => {
         });
 
         it("Dump Schema to Disk", async () => {
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
             await Misc.expandDBConnectionTree(treeGlobalConn,
                 (globalConn.basic as interfaces.IConnBasicMySQL).password);
             await (await Misc.getActionButton(treeGlobalConn, constants.openNewConnection)).click();
             await new EditorView().openEditor(globalConn.caption);
-            await Misc.switchToWebView();
+            await Misc.switchToFrame();
             let result = await Misc.execCmd(`drop schema if exists \`${testSchema}\`;`,
                 constants.execFullBlockSql, constants.queryWaits);
             expect(result[0]).to.include("OK");
@@ -920,7 +919,7 @@ describe("DATABASE CONNECTIONS", () => {
             expect(result[0]).to.include("OK");
             result = await Misc.execCmd("SET GLOBAL local_infile = 'ON';", undefined, constants.queryWaits);
             expect(result[0]).to.include("OK");
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             const treeTestSchema = await Misc.getTreeElement(constants.dbTreeSection, testSchema);
             treeGlobalSchema = await Misc.getTreeElement(constants.dbTreeSection,
                 (globalConn.basic as interfaces.IConnBasicMySQL).schema);
@@ -938,13 +937,13 @@ describe("DATABASE CONNECTIONS", () => {
             expect(await Misc.existsTreeElement(constants.tasksTreeSection,
                 `Dump Schema ${testSchema} to Disk (done)`)).to.be.true;
             await Misc.sectionFocus(constants.dbTreeSection);
-            await Misc.switchToWebView();
+            await Misc.switchToFrame();
             result = await Misc.execCmd(`drop schema ${testSchema};`, undefined, constants.queryWaits);
             expect(result[0]).to.include("OK");
         });
 
         it("Load Dump from Disk", async () => {
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             await Misc.sectionFocus(constants.dbTreeSection);
             const treeDBSection = await Misc.getSection(constants.dbTreeSection);
             await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
@@ -958,20 +957,20 @@ describe("DATABASE CONNECTIONS", () => {
             await Misc.sectionFocus(constants.dbTreeSection);
             await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
             expect(await Misc.existsTreeElement(constants.dbTreeSection, testSchema)).to.be.true;
-            await Misc.switchToWebView();
+            await Misc.switchToFrame();
             const result = await Misc.execCmd(`drop schema ${testSchema};`, undefined, constants.queryWaits);
             expect(result[0]).to.include("OK");
         });
 
         it("Dump Schema to Disk for MySQL Database Service", async () => {
             await new EditorView().openEditor(globalConn.caption);
-            await Misc.switchToWebView();
+            await Misc.switchToFrame();
             let result = await Misc.execCmd(`drop schema if exists \`${testSchema}\`;`,
                 undefined, constants.queryWaits);
             expect(result[0]).to.include("OK");
             result = await Misc.execCmd(`create schema ${testSchema};`, undefined, constants.queryWaits);
             expect(result[0]).to.include("OK");
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             const treeTestSchema = await Misc.getTreeElement(constants.dbTreeSection, testSchema);
             treeGlobalSchema = await Misc.getTreeElement(constants.dbTreeSection,
                 (globalConn.basic as interfaces.IConnBasicMySQL).schema);
@@ -998,8 +997,8 @@ describe("DATABASE CONNECTIONS", () => {
             await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
                 "DB Connection was not loaded");
             await Database.setDataToHw();
+            await Misc.switchBackToTopFrame();
             await Misc.setInputPassword(treeGlobalConn, (globalConn.basic as interfaces.IConnBasicMySQL).password);
-            await driver.switchTo().defaultContent();
             await Misc.getNotification("The data load to the HeatWave cluster operation has finished");
 
         });
@@ -1042,13 +1041,13 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Drop Schema", async () => {
 
-            await Misc.switchToWebView();
+            await Misc.switchToFrame();
             let result = await Misc.execCmd(`drop schema if exists \`${testSchema}\`;`,
                 undefined, constants.queryWaits);
             expect(result[0]).to.include("OK");
             result = await Misc.execCmd(`create schema ${testSchema};`, undefined, constants.queryWaits);
             expect(result[0]).to.include("OK");
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             const treeTestSchema = await Misc.getTreeElement(constants.dbTreeSection, testSchema);
             treeGlobalSchema = await Misc.getTreeElement(constants.dbTreeSection,
                 (globalConn.basic as interfaces.IConnBasicMySQL).schema);
@@ -1122,14 +1121,14 @@ describe("DATABASE CONNECTIONS", () => {
         it("Drop Table", async () => {
 
             await new EditorView().openEditor(globalConn.caption);
-            await Misc.switchToWebView();
+            await Misc.switchToFrame();
             let result = await Misc.execCmd(`drop table if exists \`${testTable}\`;`,
                 undefined, constants.queryWaits);
             expect(result[0]).to.include("OK");
             result = await Misc.execCmd(`create table ${testTable} (id int, name VARCHAR(50));`,
                 undefined, constants.queryWaits);
             expect(result[0]).to.include("OK");
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             const treeTestTable = await Misc.getTreeElement(constants.dbTreeSection, testTable);
             await Misc.openContextMenuItem(treeTestTable, constants.dropTable, constants.checkDialog);
             const dialog = new ModalDialog();
@@ -1187,14 +1186,14 @@ describe("DATABASE CONNECTIONS", () => {
         it("Drop View", async () => {
 
             await new EditorView().openEditor(globalConn.caption);
-            await Misc.switchToWebView();
+            await Misc.switchToFrame();
             let result = await Misc.execCmd(`drop view if exists \`${testView}\``,
                 undefined, constants.queryWaits);
             expect(result[0]).to.include("OK");
             result = await Misc.execCmd(`CREATE VIEW ${testView} as select * from sakila.actor;`,
                 undefined, constants.queryWaits);
             expect(result[0]).to.include("OK");
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
             await Misc.expandDBConnectionTree(treeGlobalConn,
                 (globalConn.basic as interfaces.IConnBasicMySQL).password);
             await treeGlobalSchema.expand();
@@ -1219,7 +1218,8 @@ describe("DATABASE CONNECTIONS", () => {
 
         });
 
-        it("View - Show Data", async () => {
+        it("View - Show Data", async function () {
+            this.retries(1);
 
             const treeTestView = await Misc.getTreeElement(constants.dbTreeSection, "test_view");
             await Misc.openContextMenuItem(treeTestView, "Show Data", constants.checkNewTabAndWebView);

@@ -1023,16 +1023,25 @@ export class DBConnection {
      *
      */
     public static openNewNotebook = async (): Promise<void> => {
-        await driver.executeScript(
-            "arguments[0].click()",
-            await driver.findElement(By.id("addConsole")),
-        );
+        await driver.wait(async () => {
+            try {
+                await driver.executeScript(
+                    "arguments[0].click()",
+                    await driver.findElement(By.id("addConsole")),
+                );
 
-        const input = await driver.wait(until.elementLocated(By.css("#editorSectionHost input")),
-            explicitWait, "Editor host input was not found");
+                const input = await driver.wait(until.elementLocated(By.css("#editorSectionHost input")),
+                    explicitWait, "Editor host input was not found");
 
-        await input.sendKeys(Key.ESCAPE);
+                await input.sendKeys(Key.ESCAPE);
 
+                return true;
+            } catch (e) {
+                if (!(e instanceof error.ElementNotInteractableError)) {
+                    throw e;
+                }
+            }
+        }, explicitWait, "Add console or the input were not interactable");
     };
 
 }

@@ -1042,19 +1042,23 @@ describe("Notebook", () => {
         const outDir = process.env.USERPROFILE ?? process.env.HOME;
         await driver.wait(async () => {
             const files = await fs.readdir(String(outDir));
-
             for (const file of files) {
                 if (file.includes(".mysql-notebook")) {
                     notebook = join(String(outDir), file);
+                    try {
+                        const file = await fs.readFile(notebook);
+                        JSON.parse(file.toString());
+                    } catch (e) {
+                        // continue
+                    }
 
                     return true;
                 }
             }
-        }, explicitWait, `The notebook was not saved on ${String(outDir)}`);
+        }, explicitWait, `The notebook was not correctly saved on ${String(outDir)}`);
 
         try {
-            const file = await fs.readFile(notebook);
-            const jsonResult = JSON.parse(file.toString());
+            const jsonResult = JSON.parse((await fs.readFile(notebook)).toString());
             expect(jsonResult.type).toBe("MySQLNotebook");
             expect(jsonResult.version).toMatch(/(\d+).(\d+)/);
         } finally {

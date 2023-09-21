@@ -132,23 +132,6 @@ try {
         }
     }
 
-    # REMOVE PACKAGE-LOCK.JSON
-    if (Test-Path -Path "$basePath\package-lock.json"){
-        writeMsg "Removing package-lock.json..." "-NoNewLine"
-        Remove-Item -Path "$basePath\package-lock.json" -Force
-        writeMsg "DONE"
-    }
-
-    #INSTALLING NODE MODULES
-    writeMsg "Installing node modules..."
-    $prc = Start-Process "npm" -ArgumentList "install" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\nodeExt.log" -RedirectStandardError "$env:WORKSPACE\nodeExtErr.log"
-    if ($prc.ExitCode -ne 0){
-        Throw "Error installing node modules"
-    }
-    else{
-        writeMsg "DONE"
-    }
-
     #CHECK TEST RESOURCES 
     writeMsg "Checking config folders..." "-NoNewLine"
     if($isWindows){
@@ -306,36 +289,17 @@ try {
     }
 
     # INSTALL VSIX
-    $testResources = Join-Path $env:userprofile "test-resources-$($testSuites[0])"
-    $extPath = Join-Path $env:userprofile "test-resources-$($testSuites[0])" "ext"
-    writeMsg "Start installing the extension at $extPath..." "-NoNewLine"
-    npm run e2e-tests-install-vsix -- -s $testResources -e $extPath -f $dest
-    writeMsg "DONE installing the extension!"
-
-    # CREATE THE SYMLINKS
-    writeMsg "Creating the links..."
-    $extFolderName = Get-ChildItem -Path $extPath -Filter "*oracle*" | select name
-    $extFolderName = $extFolderName.Name
-    writeMsg "Extension folder is $extFolderName"
-
-    $testResources = Join-Path $env:userprofile "test-resources-$($testSuites[0])"
-    for($i=1; $i -le $testSuites.length -1; $i++){
-        $extensionDir = Join-Path $env:userprofile "test-resources-$($testSuites[$i])" "ext"
-        writeMsg "Creating extension directory ($extensionDir) ..." "-NoNewLine"
-        New-Item -ItemType Directory -Path $extensionDir
-        writeMsg "DONE"
-        $link = Join-Path $env:userprofile "test-resources-$($testSuites[$i])" "ext" $extFolderName
-        $target = Join-Path $testResources "ext" $extFolderName
-        writeMsg "Creating link $link to $target ..." "-NoNewLine"
-        if ($isWindows){
-            New-Item -ItemType Junction -Path $link -Target $target
-        } else {
-            New-Item -ItemType SymbolicLink -Path $link -Target $target
+    writeMsg "Start installing the extension into vscode instances..." "-NoNewLine"
+    ForEach ($testSuite in $testSuites) {
+        $testResources = Join-Path $env:userprofile "test-resources-$($testSuite)"
+        $extLocation = Join-Path $testResources "ext"
+        Start-Job -Name "install-vsix" -ScriptBlock { 
+            npm run e2e-tests-install-vsix -- -s $using:testResources -e $using:extLocation -f $using:dest
         }
-        writeMsg "DONE"
     }
 
-    writeMsg "DONE"
+    Get-Job | Wait-Job
+    writeMsg "DONE installing the extension!"
 
     # TSC TO TEST FILES
     writeMsg "TSC..." "-NoNewLine"

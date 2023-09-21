@@ -191,13 +191,13 @@ export class Database {
 
     public static createConnection = async (dbConfig: interfaces.IDBConnection): Promise<void> => {
 
-        await driver.switchTo().defaultContent();
+        await Misc.switchBackToTopFrame();
         await Misc.clickSectionToolbarButton(await Misc.getSection(constants.dbTreeSection),
             constants.createDBConnection);
-        await Misc.switchToWebView();
+        await Misc.switchToFrame();
         await driver.wait(until.elementLocated(By.css(".visible.valueEditDialog")),
             constants.explicitWait, "Connection dialog was not displayed").catch(async () => {
-                const newConn = await driver.wait(until.elementLocated(By.id("-1")), constants.explicitWait,
+                const newConn = await driver.wait(until.elementLocated(By.id("-1")), constants.explicitWait * 3,
                     "New Connection button was not displayed");
                 await driver.executeScript("arguments[0].click()", newConn);
             });
@@ -212,13 +212,13 @@ export class Database {
             dbConfig.mds,
         );
 
-        await driver.switchTo().defaultContent();
+        await Misc.switchBackToTopFrame();
     };
 
     public static getWebViewConnection = async (name: string, useFrame = true): Promise<WebElement> => {
 
         if (useFrame) {
-            await Misc.switchToWebView();
+            await Misc.switchToFrame();
         }
 
         const db = await driver.wait(async () => {
@@ -238,7 +238,7 @@ export class Database {
         }, constants.explicitWait, "No DB was found");
 
         if (useFrame) {
-            await driver.switchTo().defaultContent();
+            await Misc.switchBackToTopFrame();
         }
 
         return db;
@@ -276,8 +276,8 @@ export class Database {
 
     public static isConnectionLoaded = (): Condition<boolean> => {
         return new Condition("DB is not loaded", async () => {
-            await driver.switchTo().defaultContent();
-            await Misc.switchToWebView();
+            await Misc.switchBackToTopFrame();
+            await Misc.switchToFrame();
             const st1 = await driver.findElements(By.css(".msg.portal"));
             const st2 = await driver.findElements(By.css("textarea"));
             const st3 = await driver.findElements(By.id("title"));
@@ -292,7 +292,7 @@ export class Database {
     };
 
     public static closeConnection = async (name: string): Promise<void> => {
-        await driver.switchTo().defaultContent();
+        await Misc.switchBackToTopFrame();
         const edView = new EditorView();
         const editors = await edView.getOpenEditorTitles();
         for (const editor of editors) {

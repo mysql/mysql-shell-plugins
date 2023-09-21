@@ -41,6 +41,7 @@ export const tasksTreeSection = "MYSQL SHELL TASKS";
 // TIMEOUTS
 export const explicitWait = 5000;
 export const ociExplicitWait = explicitWait * 2;
+export const loadingBarWait = explicitWait * 4;
 export const ociTasksExplicitWait = explicitWait * 5;
 export const extensionReadyWait = 120000;
 export const queryWaits = explicitWait * 3;
