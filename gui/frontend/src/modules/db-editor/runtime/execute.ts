@@ -23,6 +23,7 @@
 
 
 import { PrivateWorker } from "../console.worker-types";
+import { IDictionary } from "../../../app-logic/Types";
 
 /** This is a global var only in the current worker and used for all user-visible APIs. */
 export let currentWorker: PrivateWorker;
@@ -43,10 +44,12 @@ export class CodeExecutionError extends Error {
  *
  * @param worker The worker details for the execution.
  * @param code The code to execute.
+ * @param globalScriptingObject The global object that should be made available to the evaluated code
  *
  * @returns whatever the evaluation returned.
  */
-export const execute = async (worker: PrivateWorker, code: string): Promise<unknown> => {
+export const execute = async (worker: PrivateWorker, code: string,
+    globalScriptingObject?: IDictionary): Promise<unknown> => {
     currentWorker = worker;
 
     /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -54,11 +57,13 @@ export const execute = async (worker: PrivateWorker, code: string): Promise<unkn
     //       "unused" imports.
 
     // APIs which are directly available in user code.
-    const { runSql, runSqlIterative } = await import("./query");
-    const { print } = await import("./simple-functions");
+    const { runSql, runSqlIterative, runSqlWithCallback } = await import("./query");
+    const { print, setGlobalScriptingObjectProperty } = await import("./simple-functions");
 
     const { webFetch: fetch } = await import("./web-functions");
-    const { mrsSetServiceUrl, mrsAuthenticate, mrsEditDbObject } = await import("./web-functions");
+    const { mrsPrintSdkCode, mrsSetCurrentService, mrsEditService, mrsSetServiceUrl,
+        mrsAuthenticate, mrsEditSchema, mrsEditDbObject,
+    } = await import("./web-functions");
 
     // eslint-disable-next-line @typescript-eslint/naming-convention
     const { GraphProxy: Graph } = await import("./GraphProxy");
@@ -69,9 +74,29 @@ export const execute = async (worker: PrivateWorker, code: string): Promise<unkn
     // eslint-disable-next-line @typescript-eslint/naming-convention
     const { PieGraphLayout } = await import("../console.worker-types");
 
+    /* Define the variable $ as a proxy to the globalObject. This triggers the get/set functions of the proxy whenever
+    a property of $ set or read. Use the set function to update the globalObject property.*/
+    const $ = new Proxy<IDictionary>(globalScriptingObject ?? {}, {
+        get: (obj, name) => {
+            if (typeof name === "string" && Object.prototype.hasOwnProperty.call(obj, name)) {
+                return obj[name];
+            }
+        },
+        set: (obj, name, value): boolean => {
+            if (typeof name === "string") {
+                obj[name] = value;
+                setGlobalScriptingObjectProperty(name, value);
+            }
+
+            return true;
+        },
+    });
+    globalScriptingObject = undefined;
+
     /* eslint-enable @typescript-eslint/no-unused-vars */
 
     try {
+
         // eslint-disable-next-line no-eval
         const res = eval(code);
 

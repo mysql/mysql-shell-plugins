@@ -24,12 +24,12 @@ along with this program; if not, write to the Free Software Foundation, Inc.,
 To configure the MySQL REST Service (MRS), use these steps:
 
 1. Deploy a MySQL solution.
-2. Configure the MRS metadata database schema.
-3. Bootstrap and run one or more MySQL Router instances for MRS support.
+2. [Configure](#configuring-the-mrs-metadata-schema) the MRS metadata database schema.
+3. [Bootstrap](#bootstrapping-and-running-mysql-routers-with-mrs-support) and run one or more MySQL Router instances for MRS support.
 
 After performing these steps, MySQL REST Service is fully configured.
 
-The HTTPS endpoints can then be accessed as configured during the MySQL Router bootstrap process.
+The HTTP/S endpoints can then be accessed as configured during the MySQL Router bootstrap process.
 
 **_Deployment of a MySQL solution_**
 
@@ -59,7 +59,7 @@ Note: The MySQL user that is used to connect to the MySQL Solution must have MyS
 
 2. Right-click the connection in the DATABASE CONNECTIONS view and select Configure Instance for MySQL REST Service Support.
 
-![Configure Instance for MySQL REST Service Support](../images/vsc-mrs-configure.png "Configure Instance for MySQL REST Service Support")
+![Configure Instance for MySQL REST Service Support](../../images/vsc-mrs-configure.png "Configure Instance for MySQL REST Service Support")
 
 The MRS metadata schema has now been configured.
 
@@ -105,7 +105,7 @@ In this case, MySQL Shell for VS Code can be used to simplify the bootstrap proc
 
 Note: The previous task only works for classic MySQL connections that are not using the MySQL SSH tunneling or MDS tunneling feature.
 
-![Bootstrap and Start MySQL Router](../images/vsc-mrs-start-mysql-router.png "Bootstrap and Start MySQL Router")
+![Bootstrap and Start MySQL Router](../../images/vsc-mrs-start-mysql-router.png "Bootstrap and Start MySQL Router")
 
 After the MySQL Router has been bootstrapped and started, MRS is available at `https://localhost:8443/<service-name>`.
 

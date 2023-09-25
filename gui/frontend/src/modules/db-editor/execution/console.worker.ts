@@ -24,6 +24,7 @@
 /* eslint-disable no-restricted-globals */
 
 import { IDictionary } from "../../../app-logic/Types";
+import { formatTextBlock } from "../../../utilities/string-helpers";
 import {
     PrivateWorker, ScriptingApi, IConsoleWorkerResultData, IConsoleWorkerTaskData,
 } from "../console.worker-types";
@@ -186,7 +187,12 @@ const getErrorLineInfo = (lineno: number, colno: number) => {
         });
 
         if (position && position.length > 3) {
-            return `(Ln ${position[2] + 1 - worker.libCodeLineNumbers}, Col ${position[3] + 1})`;
+            const ln = position[2] + 1 - worker.libCodeLineNumbers;
+            if (ln < 1) {
+                return `(SDK Ln ${position[2] + 1}, Col ${position[3] + 1})`;
+            }
+
+            return `(Ln ${ln}, Col ${position[3] + 1})`;
         }
     }
 
@@ -223,7 +229,7 @@ worker.addEventListener("message", (event: MessageEvent) => {
 
         worker.sourceMap = sourceMap;
 
-        execute(worker, code).then((result) => {
+        execute(worker, code, data.globalScriptingObject).then((result) => {
             if (typeof result === "function") {
                 result = String(result);
             } else if (typeof result === "object" || Array.isArray(result)) {
@@ -250,7 +256,7 @@ worker.addEventListener("message", (event: MessageEvent) => {
             worker.postContextMessage(worker.currentTaskId, {
                 api: ScriptingApi.Result,
                 contextId: worker.currentContext,
-                result: `ERROR: ${String(e.message)} ${lineInfo}`,
+                result: formatTextBlock(`ERROR: ${String(e.message)} ${lineInfo}`, 80),
                 isError: true,
                 final: true,
             });

@@ -55,29 +55,6 @@ import {
     // --- importDeleteOnlyEnd
 } from "./MrsBaseClasses";
 // --- importLoopEnd
-// --- MySQL Shell for VS Code Extension Only --- Begin
-/**
- * Triggers the interactive MRS authentication process.
- *
- * @param serviceUrl The URL of the MRS service
- */
-declare function mrsSetServiceUrl(serviceUrl: string): void;
-/**
- * Triggers the interactive MRS authentication process.
- *
- * @param serviceUrl The URL of the MRS service
- * @param authPath The path of the authentication endpoints
- * @param authApp The id of the authApp to authenticate against
- * @param userName The optional name of the user
- */
-declare function mrsAuthenticate(serviceUrl: string, authPath: string, authApp?: string, userName?: string): void;
-/**
- * Triggers the interactive MRS authentication process.
- *
- * @param dbObjectId The id of the DB Object to edit
- */
-declare function mrsEditDbObject(dbObjectId: string): void;
-// --- MySQL Shell for VS Code Extension Only --- End
 /* =============================================================================
  * MRS Service ${service_url}
  */
@@ -95,13 +72,17 @@ export class ${service_class_name} extends MrsBaseService {
     public get ${schema_name}(): ${schema_class_name} { if (this.#${schema_name} === undefined) { this.#${schema_name} = new ${schema_class_name}(this, "${schema_request_path}"); } return this.#${schema_name}; }
     // --- schemaLoopEnd
     // --- MySQL Shell for VS Code Extension Only --- Begin
+    public edit = (): void => {
+        mrsEditService("${service_id}");
+    };
+
     public static url = (serviceUrl: string): void => {
         mrsSetServiceUrl(serviceUrl);
     };
 
     public get url(): string {
         return this.serviceUrl;
-    }
+    };
 
     public set url(serviceUrl: string) {
         this.serviceUrl = serviceUrl;
@@ -115,6 +96,10 @@ export class ${service_class_name} extends MrsBaseService {
 
     public authenticate = (username?: string, authApp = "MRS"): void => {
         ${service_class_name}.authenticate(username, authApp);
+    };
+
+    public setAsCurrent = () => {
+        mrsSetCurrentService("${service_id}");
     };
     // --- MySQL Shell for VS Code Extension Only --- End
 }
@@ -132,6 +117,11 @@ export class ${schema_class_name} extends MrsBaseSchema {
     // --- objectLoopStart
     public get ${obj_name}(): ${obj_class_name}Request { if (this.#${obj_name} === undefined) { this.#${obj_name} = new ${obj_class_name}Request(this); } return this.#${obj_name}; }
     // --- objectLoopEnd
+    // --- MySQL Shell for VS Code Extension Only --- Begin
+    public edit = (): void => {
+        mrsEditSchema("${schema_id}");
+    };
+    // --- MySQL Shell for VS Code Extension Only --- End
 }
 
 export class ${schema_class_name}ObjectRequest {

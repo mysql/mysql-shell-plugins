@@ -1176,3 +1176,7 @@ def format_result(result):
             formatted_res += "\n"
 
         return formatted_res + h_sep
+
+    # To make handling easier, return an empty string if there are no rows so
+    # the result does not have to be checked for None
+    return ""

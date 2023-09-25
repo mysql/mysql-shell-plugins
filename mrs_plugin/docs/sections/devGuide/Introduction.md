@@ -27,7 +27,7 @@ To start with a hands-on approach, see the [MRS Notes Example](#mrs-notes-exampl
 
 This section provides an overview of the MySQL REST Service and its features.
 
-## About the MySQL REST Service
+**_About the MySQL REST Service_**
 
 The MySQL REST Service (MRS) offers HTTPS REST access to selected MySQL schema objects. It is modelled after and supports a subset of the Oracle REST Data Services (ORDS).
 
@@ -44,7 +44,7 @@ MRS consists of the following components:
   - Support for managing MRS through a graphical user interface (GUI) embedded inside VS Code
   - MRS plugin to configure and manage the MRS setup on the terminal and using scripts
 
-### About REST APIs
+**_About REST APIs_**
 
 Representational State Transfer (REST) is a style of software architecture for distributed hypermedia systems such as the World Wide Web. An API is described as RESTful when it conforms to the tenets of REST. Although a full discussion of REST is outside the scope of this document, a REST API has the following characteristics:
 
@@ -53,48 +53,13 @@ Representational State Transfer (REST) is a style of software architecture for d
 - A resource can have multiple representations (for example, a blog might have an HTML representation and an RSS representation).
 - Services are stateless and because the client is likely to access related resources, these should be identified in the representation returned, typically by providing hypertext links.
 
-## Feature Overview
+**_Feature Overview_**
 
-In contrast to the feature-rich Oracle REST Data Services (ORDS), the MySQL REST Service (MRS) focuses on exposing MySQL schema objects using a CRUD/REST interface - in many aspects similar to the AutoREST feature of ORDS.
-
-For more information, see  [AutoREST](https://docs.oracle.com/en/database/oracle/oracle-rest-data-services/22.2/orddg/developing-REST-applications.html#GUID-4CE630AA-2F06-41D9-96F6-DA77AB1E6395)
-
-**_MRS AutoREST_**
-
-Enabling REST access to a table, view, or procedure allows it to be accessed through RESTful services. AutoREST is a quick and easy way to expose database tables as REST resources.
-
-Note: Enabling a schema is not equivalent to enabling all tables, views and procedures in the schema. It just means making MRS aware that the schema exists and that it may have zero or more resources to expose to HTTP. Those resources may be AutoREST resources or resource module resources.
-
-**_Serving Static Content_**
-
-In addition to serving dynamic content using AutoREST it is possible to upload static content, like HTML, CSS, and image files. This feature is not meant to replace dedicated HTTP servers that support capabilities like server-side programming. It can aid the quick deployments of prototypes and proof-of-concept efforts that help bring ideas to life.
-
-**_End User Authentication_**
-
-MRS currently supports the following authentication methods.
-
-**_Simple MySQL Authentication_**
-
-Authentication is performed against MySQL server user accounts. This authentication method does not need any external OAuth2 service, which makes it the preferred method to use during prototyping.
-
-**_OAuth2 Authentication_**
-
-Several OAuth2 services from 3rd-party vendors are supported by MRS; for example, sign in with FaceBook, Twitter, and Google. In order for a MRS service to authenticate against those vendors, one needs to be registered as a developer with those vendors and a vendor specific authentication apps need to be created. Then the OAuth2 specific settings - like access_token and app_id - need to be configured on the MRS side.
-
-**_End User Authorization_**
-
-Access to a given REST resource can have several levels of restrictions when using MRS:
-
-- Public access - no authorization is needed to access the REST resource and its data
-- Full access - after authentication the user has full access to all data of the REST resource
-- Limited access - after authentication the user has only access to a subset of the data of the REST resource
-
-MRS has built-in support for several authorization models. These authorization models define which data of a given REST resource that end users can see and manipulate:
-
-- User-ownership based - users can see their own data
-- Privilege based, managed using roles
-- User-hierarchy based
-- Group based
-- Group-hierarchy based
-
-If the use case of a given project matches one of the offered authorization models, then a custom authorization does not need to be implemented.
+| Feature | Description
+| --- | ----- |
+| MRS AutoREST | Enabling REST access to a table, view, or procedure allows it to be accessed through RESTful services. AutoREST is a quick and easy way to expose database tables as REST resources.|
+| JSON-Relational Duality Views | Duality views combine the advantages of relational schemas with the ease-of-use of document databases. They give your data a conceptual and an operational duality as it is organized both relationally and hierarchically. |
+| Serving Static Content | In addition to serving dynamic content using AutoREST it is possible to upload static content, like HTML, CSS, and image files. This feature is not meant to replace dedicated HTTP servers that support capabilities like server-side programming. It can aid the quick deployments of prototypes and proof-of-concept efforts that help bring ideas to life. |
+| End User Authentication | MRS supports a number of authentication methods, including MRS REST service specific authentication, native MySQL authentication and OAuth2 authentication (Sign in with FaceBook and Google)
+| End User Authorization | Built in support for row-level security, role based security, user-hierarchy based security, Group based security, Group-hierarchy based security as well as custom authorization support |
+| REST Service SDK API Generation | Live SDK API updates for interactive prototyping using TypeScript, SDK API generation for application development |

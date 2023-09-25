@@ -855,7 +855,7 @@ def get_sdk_service_classes(**kwargs):
     service_url = kwargs.get("service_url")
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
-        service = resolve_service(session, service_id, True, True)
+        service = resolve_service(session=session, service_id=service_id, required=False, auto_select_single=True)
 
         return lib.sdk.generate_service_sdk(
             service=service, sdk_language=sdk_language, session=session, prepare_for_runtime=prepare_for_runtime,
@@ -918,3 +918,21 @@ def dump_sdk_service_files(**kwargs):
             f.write(service_classes)
 
     return True
+
+
+@plugin_function('mrs.get.runtimeManagementCode', shell=True, cli=True, web=True)
+def get_runtime_management_code(**kwargs):
+    """Returns the SDK service classes source for the given language
+
+    Args:
+        **kwargs: Options to determine what should be generated.
+
+    Keyword Args:
+        session (object): The database session to use.
+
+    Returns:
+        The SDK base classes source
+    """
+
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        return lib.sdk.get_mrs_runtime_management_code(session=session)

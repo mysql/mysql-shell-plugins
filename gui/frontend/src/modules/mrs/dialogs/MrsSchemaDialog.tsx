@@ -69,13 +69,11 @@ export class MrsSchemaDialog extends AwaitableValueEditDialog {
                 if (!settingsSection.values.dbSchemaName.value) {
                     result.messages.dbSchemaName = "The database schema name must not be empty.";
                 }
-                if (!mainSection.values.requestPath.value) {
+                const requestPath = mainSection.values.requestPath.value as string;
+                if (!requestPath) {
                     result.messages.requestPath = "The request path must not be empty.";
-                } else {
-                    const requestPath = mainSection.values.requestPath.value as string;
-                    if (!requestPath.startsWith("/")) {
-                        result.messages.requestPath = "The request path must start with /.";
-                    }
+                } else if (!requestPath.startsWith("/")) {
+                    result.messages.requestPath = "The request path must start with /.";
                 }
             }
         }

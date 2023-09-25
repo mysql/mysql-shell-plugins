@@ -358,6 +358,25 @@ export class ShellInterfaceMrs {
         return response.result;
     }
 
+    public async getSchema(schemaId?: string, serviceId?: string, requestPath?: string,
+        schemaName?: string, autoSelectSingle?: boolean): Promise<IMrsSchemaData> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsGetSchema,
+            parameters: {
+                kwargs: {
+                    schemaId: schemaId ?? null,
+                    serviceId: serviceId ?? null,
+                    requestPath: requestPath ?? null,
+                    schemaName: schemaName ?? null,
+                    autoSelectSingle: autoSelectSingle ?? null,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
     public async deleteSchema(schemaId: string, serviceId: string): Promise<void> {
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsDeleteSchema,
@@ -773,6 +792,19 @@ export class ShellInterfaceMrs {
                     serviceUrl,
                     sdkLanguage,
                     prepareForRuntime,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    public async getRuntimeManagementCode(): Promise<string> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsGetRuntimeManagementCode,
+            parameters: {
+                kwargs: {
                     moduleSessionId: this.moduleSessionId,
                 },
             },

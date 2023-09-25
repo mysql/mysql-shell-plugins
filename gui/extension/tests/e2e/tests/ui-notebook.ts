@@ -506,19 +506,18 @@ describe("NOTEBOOKS", () => {
             let result = await Misc.execCmd("\\ts ");
             expect(result[0]).to.include("Switched to TypeScript mode");
             result = await Misc.execCmd(`
-                runSql("SELECT Name, Capital FROM world_x_cst.country limit 10",(result) => {
-                    const options: IGraphOptions = {
-                        series: [
-                            {
-                                type: "bar",
-                                yLabel: "Actors",
-                                data: result as IJsonGraphData,
-                            }
-                        ]
-                    }
-                    const i=0;
-                    Graph.render(options);
-                }`);
+const res = await runSql("SELECT Name, Capital FROM world_x_cst.country limit 10");
+const options: IGraphOptions = {
+    series: [
+        {
+            type: "bar",
+            yLabel: "Actors",
+            data: res as IJsonGraphData,
+        }
+    ]
+};
+Graph.render(options);
+`);
 
             const pieChart = await (result[1] as WebElement).findElement(By.css(".graphHost"));
             const chartColumns = await pieChart.findElements(By.css("rect"));

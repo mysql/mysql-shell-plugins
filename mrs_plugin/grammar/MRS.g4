@@ -33,6 +33,7 @@ mrsStatement:
 	| createRestSchemaStatement
 	| createRestViewStatement
 	| createRestProcedureStatement
+	| createRestContentSetStatement
 	| alterRestServiceStatement
 	| alterRestSchemaStatement
 	| alterRestViewStatement
@@ -41,6 +42,7 @@ mrsStatement:
 	| dropRestSchemaStatement
 	| dropRestDualityViewStatement
 	| dropRestProcedureStatement
+	| dropRestContentSetStatement
 	| useStatement
 	| showRestMetadataStatusStatement
 	| showRestServicesStatement
@@ -156,7 +158,7 @@ createRestViewStatement:
 	CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL RELATIONAL_SYMBOL? JSON_SYMBOL?
 		DUALITY_SYMBOL? VIEW_SYMBOL viewRequestPath serviceSchemaSelector? FROM_SYMBOL
 		qualifiedIdentifier restDualityViewOptions? AS_SYMBOL restObjectName graphGlCrudOptions?
-		graphGlObj;
+		graphGlObj?;
 
 restDualityViewOptions: (
 		enabledDisabled
@@ -182,10 +184,22 @@ restViewAuthenticationProcedure:
 
 createRestProcedureStatement:
 	CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL PROCEDURE_SYMBOL procedureRequestPath
-		serviceSchemaSelector? FROM_SYMBOL qualifiedIdentifier AS_SYMBOL restObjectName
-		PARAMETERS_SYMBOL graphGlObj restProcedureResult*;
+		serviceSchemaSelector? FROM_SYMBOL qualifiedIdentifier restProcedureOptions? AS_SYMBOL
+		restObjectName PARAMETERS_SYMBOL graphGlObj restProcedureResult*;
+
+restProcedureOptions: (enabledDisabled | authenticationRequired | jsonOptions | comments)+;
 
 restProcedureResult: RESULT_SYMBOL restResultName graphGlObj;
+
+/* - CREATE REST CONTENT SET ------------------------------------------------ */
+
+createRestContentSetStatement:
+	CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL CONTENT_SYMBOL SET_SYMBOL contentSetRequestPath
+		serviceSchemaSelector? (FROM_SYMBOL directoryFilePath)? restContentSetOptions?;
+
+directoryFilePath: quotedText;
+
+restContentSetOptions: (enabledDisabled | authenticationRequired | jsonOptions | comments)+;
 
 /* ALTER statements ========================================================= */
 
@@ -240,6 +254,9 @@ dropRestDualityViewStatement:
 
 dropRestProcedureStatement:
 	DROP_SYMBOL REST_SYMBOL PROCEDURE_SYMBOL procedureRequestPath serviceSchemaSelector?;
+
+dropRestContentSetStatement:
+	DROP_SYMBOL REST_SYMBOL CONTENT_SYMBOL SET_SYMBOL contentSetRequestPath serviceSchemaSelector?;
 
 /* USE statements =========================================================== */
 
@@ -318,6 +335,8 @@ procedureName: identifier;
 procedureRequestPath: requestPathIdentifier;
 
 newProcedureRequestPath: requestPathIdentifier;
+
+contentSetRequestPath: requestPathIdentifier;
 
 //-------------------------------------------------------------------------------------------------
 
@@ -428,6 +447,8 @@ PER_SYMBOL: P E R;
 PAGE_SYMBOL: P A G E;
 
 CONTENT_SYMBOL: C O N T E N T;
+
+SET_SYMBOL: S E T;
 
 HOST_SYMBOL: H O S T;
 

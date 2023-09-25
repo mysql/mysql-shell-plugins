@@ -24,10 +24,11 @@ from pathlib import Path
 import os
 import re
 from string import Template
+import json
 
 
 def get_base_classes(sdk_language, prepare_for_runtime=False):
-    if (sdk_language == "TypeScript"):
+    if sdk_language == "TypeScript":
         fileExt = ".ts"
     else:
         raise Exception(
@@ -37,19 +38,28 @@ def get_base_classes(sdk_language, prepare_for_runtime=False):
     code = Path(os.path.dirname(path), "..", "sdk",
                 f"MrsBaseClasses{fileExt}").read_text()
 
-    if (prepare_for_runtime):
+    if prepare_for_runtime is True:
         # Remove exports as everything will be in a single file
         code = code.replace("export ", "")
         # Remove the part that does not belong in the runtime SDK
         code = re.sub("\/\/ --- MySQL Shell for VS Code Extension Remove --- Begin.*?" +
                       "\/\/ --- MySQL Shell for VS Code Extension Remove --- End",
                       "", code, flags=re.DOTALL | re.MULTILINE)
+        code = remove_js_whitespace_and_comments(code)
 
     return code
 
 
 def generate_service_sdk(service, sdk_language, session, prepare_for_runtime=False, service_url=None):
-    if (sdk_language == "TypeScript"):
+    # If no services is given, return only the MRS runtime management TypeScript Code
+    # that allows the user to manage specific MRS runtime settings
+    if service is None:
+        if prepare_for_runtime is True and sdk_language == "TypeScript":
+            return remove_js_whitespace_and_comments(get_mrs_runtime_management_code(session=session))
+        else:
+            return ""
+
+    if sdk_language == "TypeScript":
         fileExt = ".ts.template"
     else:
         raise Exception(
@@ -68,7 +78,7 @@ def generate_service_sdk(service, sdk_language, session, prepare_for_runtime=Fal
 
     template = code.get("template")
 
-    if (prepare_for_runtime):
+    if prepare_for_runtime is True:
         # Remove imports as everything will be in a single file
         template = re.sub('import.*?;', '', template,
                           flags=re.DOTALL | re.MULTILINE)
@@ -78,6 +88,11 @@ def generate_service_sdk(service, sdk_language, session, prepare_for_runtime=Fal
         template = re.sub("\/\/ --- MySQL Shell for VS Code Extension Remove --- Begin.*?" +
                           "\/\/ --- MySQL Shell for VS Code Extension Remove --- End",
                           "", template, flags=re.DOTALL | re.MULTILINE)
+        # Add MRS management code
+        template += get_mrs_runtime_management_code(session=session,
+                                            service_url=service_url)
+
+        template = remove_js_whitespace_and_comments(template)
     else:
         # Remove the part that does not belong in the generated SDK
         template = re.sub("\/\/ --- MySQL Shell for VS Code Extension Only --- Begin.*?" +
@@ -105,7 +120,7 @@ def substitute_imports_in_template(template, enabled_crud_ops):
 
             for crud_loop in crud_op_loops:
                 # If the CRUD operation is enabled for any DB Object, keep the identified code block
-                if crud_op in enabled_crud_ops:
+                if enabled_crud_ops is not None and crud_op in enabled_crud_ops:
                     import_template = import_template.replace(
                         crud_loop.group(), crud_loop.group(1))
                 else:
@@ -139,6 +154,7 @@ def substitute_service_in_template(service, template, sdk_language, session, ser
         "service_class_name": lib.core.convert_path_to_pascal_case(service.get("url_context_root")),
         "service_url": service_url,
         "service_auth_path": service.get("auth_path"),
+        "service_id": lib.core.convert_id_to_string(service.get("id")),
     }
 
     template = Template(template).substitute(**mapping)
@@ -181,7 +197,8 @@ def substitute_schemas_in_template(service, template, sdk_language, session):
             mapping = {
                 "schema_name": name,
                 "schema_class_name": class_name,
-                "schema_request_path": schema.get("request_path")
+                "schema_request_path": schema.get("request_path"),
+                "schema_id": lib.core.convert_id_to_string(schema.get("id")),
             }
 
             filled_temp += Template(
@@ -650,3 +667,118 @@ def generate_nested_interfaces(
     if not parent_obj_ref.get("unnest"):
         obj_interfaces.append(
             f"export interface {interface_name} {{\n{''.join(interface_fields)}}}\n\n")
+
+
+def get_mrs_runtime_management_code(session, service_url=None):
+    """Returns TypeScript code that allows the user to manage specific MRS runtime settings.
+
+    This includes the configuration status of MRS with an info string giving context sensitive
+    information how and the list of available REST services with their URL and
+    and methods to set which REST services is the current one and to print the SDK runtime code.
+
+    Args:
+        session (object): The database session to use.
+        service_url (str): The URL of the current REST service
+
+    Returns:
+        The TypeScript code that defines and sets the mrs object
+    """
+    status = lib.general.get_status(session)
+
+    if status['service_configured'] is True:
+        services = lib.services.get_services(session=session)
+    else:
+        services = []
+
+    s = """
+class MrsService {
+    #serviceId: string;
+
+    public constructor(serviceId: string) {
+        this.#serviceId = serviceId;
+    }
+
+    public setAsCurrent = () => {
+        mrsSetCurrentService(this.#serviceId);
+    };
+
+    public edit = () => {
+        mrsEditService(this.#serviceId);
+    };
+}
+
+class Mrs {
+"""
+    serviceList = []
+    for service in services:
+        service_name = lib.core.convert_path_to_camel_case(
+            service.get("url_context_root"))
+        service_id = lib.core.convert_id_to_string(service.get("id"))
+        # If no explicit service_url is given, use the service's host_ctx and url_context_root
+        if not service_url or service.get("is_current") == 0:
+            host_ctx = service.get("host_ctx")
+            url_context_root = service.get("url_context_root")
+            # If no host_ctx starting with http is given, default to https://localhost:8443
+            if not host_ctx.lower().startswith("http"):
+                service_url = "https://localhost:8443" + url_context_root
+            else:
+                service_url = url_context_root + url_context_root
+
+        if service.get("is_current") == 1:
+            s += f'    public {service_name} = {service_name};\n'
+        else:
+            s += f'    public {service_name}: MrsService = new MrsService("{service_id}");\n'
+        serviceList.append({
+            "serviceName": service_name, "url": service_url, "isCurrent": service.get("is_current") == 1})
+
+    if status['service_configured'] is False:
+        statusOutput = {
+            "configured": False,
+            "info": "The MySQL REST Service has not been configured on this MySQL instance yet. Switch to " +
+            "SQL mode and use the CONFIGURE REST METADATA command to configure the instance.",
+            "services": []}
+    elif len(serviceList) == 0:
+        statusOutput = {
+            "configured": True,
+            "info": "No REST service has been created yet. Switch to SQL Mode and use the " +
+            "CREATE REST SERVICE command to create a new REST service.",
+            "services": []}
+    else:
+        statusOutput = {
+            "configured": True,
+            "info": f'{len(serviceList)} REST service{"s" if len(serviceList) > 1 else ""} available.',
+            "services": serviceList}
+
+    s += f"""
+    public getStatus = () => {{
+        return {json.dumps(statusOutput)};
+    }}
+
+    public printSdkCode = () => {{
+        mrsPrintSdkCode();
+    }}
+}}
+
+const mrs = new Mrs();
+"""
+
+    return s
+
+
+def replace_group_1_match_only(m):
+    return "" if m.group(1) is not None else m.group(0)
+
+
+def remove_js_whitespace_and_comments(code):
+    # Remove comments. This regex does not match single line comments that
+    # include a " character, which is ignored for simplicity.
+    code = re.sub(r"/\*.*?\*/|//[^\"]*?$", "",
+                  code, flags=re.DOTALL | re.MULTILINE)
+
+    # Remove all empty linebreaks
+    code = re.sub(r"^\s*\n", "", code, flags=re.DOTALL | re.MULTILINE)
+
+    # Substitute leading spaces with tabs
+    code = re.sub(r"    ", "\t", code, flags=re.DOTALL | re.MULTILINE)
+
+    return code

@@ -21,15 +21,21 @@
                 entries.forEach(entry => {
                     const id = entry.target.getAttribute('id');
                     if (entry.intersectionRatio > 0) {
-                        const e = document.querySelector(`nav li a[href="#` + id + `"]`).parentElement;
-                        e.classList.add('active');
-                        if (e.scrollIntoViewIfNeeded !== undefined) {
-                            e.scrollIntoViewIfNeeded(true);
-                        } else {
-                            e.scrollIntoView(true);
+                        const querySel = document.querySelector(`nav li a[href="#` + id + `"]`);
+                        if (querySel) {
+                            const e = querySel.parentElement;
+                            e.classList.add('active');
+                            if (e.scrollIntoViewIfNeeded !== undefined) {
+                                e.scrollIntoViewIfNeeded(true);
+                            } else {
+                                e.scrollIntoView(true);
+                            }
                         }
                     } else {
-                        document.querySelector(`nav li a[href="#` + id + `"]`).parentElement.classList.remove('active');
+                        const querySel = document.querySelector(`nav li a[href="#` + id + `"]`);
+                        if (querySel) {
+                            querySel.parentElement.classList.remove('active');
+                        }
                     }
                 });
             });
@@ -116,18 +122,7 @@
                                 id="toc-introduction-to-the-mysql-rest-service"><span
                                 class="toc-section-number">1</span>
                                 Introduction to the MySQL REST
-                                Service</a>
-                                <ul>
-                                <li><a
-                                href="#about-the-mysql-rest-service"
-                                id="toc-about-the-mysql-rest-service"><span
-                                class="toc-section-number">1.1</span>
-                                About the MySQL REST Service</a></li>
-                                <li><a href="#feature-overview"
-                                id="toc-feature-overview"><span
-                                class="toc-section-number">1.2</span>
-                                Feature Overview</a></li>
-                                </ul></li>
+                                Service</a></li>
                                 <li><a href="#deployment-architecture"
                                 id="toc-deployment-architecture"><span
                                 class="toc-section-number">2</span>
@@ -151,59 +146,114 @@
                                 Bootstrapping and Running MySQL Routers
                                 with MRS Support</a></li>
                                 </ul></li>
-                                <li><a href="#adding-rest-services"
-                                id="toc-adding-rest-services"><span
-                                class="toc-section-number">4</span>
-                                Adding REST Services</a>
-                                <ul>
                                 <li><a
-                                href="#preconditions-for-adding-a-rest-service"
-                                id="toc-preconditions-for-adding-a-rest-service"><span
-                                class="toc-section-number">4.1</span>
-                                Preconditions for Adding a REST
-                                Service</a></li>
+                                href="#adding-rest-services-and-database-objects"
+                                id="toc-adding-rest-services-and-database-objects"><span
+                                class="toc-section-number">4</span>
+                                Adding REST Services and Database
+                                Objects</a>
+                                <ul>
                                 <li><a
                                 href="#setting-up-a-new-rest-service"
                                 id="toc-setting-up-a-new-rest-service"><span
-                                class="toc-section-number">4.2</span>
+                                class="toc-section-number">4.1</span>
                                 Setting Up a New REST Service</a></li>
+                                <li><a
+                                href="#adding-a-database-schemas-to-a-rest-service"
+                                id="toc-adding-a-database-schemas-to-a-rest-service"><span
+                                class="toc-section-number">4.2</span>
+                                Adding a Database Schemas to a REST
+                                Service</a></li>
+                                <li><a
+                                href="#adding-a-schema-table-view-or-procedure"
+                                id="toc-adding-a-schema-table-view-or-procedure"><span
+                                class="toc-section-number">4.3</span>
+                                Adding a Schema Table, View or
+                                Procedure</a></li>
                                 </ul></li>
                                 <li><a
-                                href="#adding-database-schemas-and-objects-to-a-rest-service"
-                                id="toc-adding-database-schemas-and-objects-to-a-rest-service"><span
+                                href="#working-interactively-with-rest-services"
+                                id="toc-working-interactively-with-rest-services"><span
                                 class="toc-section-number">5</span>
-                                Adding Database Schemas and Objects to a
-                                REST Service</a>
+                                Working Interactively with REST
+                                Services</a>
                                 <ul>
                                 <li><a
-                                href="#preconditions-for-adding-database-schemas-and-objects"
-                                id="toc-preconditions-for-adding-database-schemas-and-objects"><span
+                                href="#switching-to-typescript-mode"
+                                id="toc-switching-to-typescript-mode"><span
                                 class="toc-section-number">5.1</span>
-                                Preconditions for Adding Database
-                                Schemas and Objects</a></li>
-                                <li><a href="#adding-a-database-schema"
-                                id="toc-adding-a-database-schema"><span
+                                Switching to TypeScript Mode</a></li>
+                                <li><a href="#choosing-a-rest-service"
+                                id="toc-choosing-a-rest-service"><span
                                 class="toc-section-number">5.2</span>
-                                Adding a Database Schema</a></li>
-                                <li><a href="#adding-a-database-object"
-                                id="toc-adding-a-database-object"><span
+                                Choosing a REST Service</a></li>
+                                <li><a href="#authentication"
+                                id="toc-authentication"><span
                                 class="toc-section-number">5.3</span>
-                                Adding a Database Object</a></li>
-                                <li><a
-                                href="#mysql-rest-object-dialog-reference"
-                                id="toc-mysql-rest-object-dialog-reference"><span
+                                Authentication</a></li>
+                                <li><a href="#querying-a-rest-object"
+                                id="toc-querying-a-rest-object"><span
                                 class="toc-section-number">5.4</span>
-                                MySQL REST Object Dialog
-                                Reference</a></li>
+                                Querying a REST Object</a></li>
+                                </ul></li>
+                                <li><a
+                                href="#json-relational-duality-views"
+                                id="toc-json-relational-duality-views"><span
+                                class="toc-section-number">6</span>
+                                JSON-Relational Duality Views</a>
+                                <ul>
+                                <li><a
+                                href="#introduction-to-duality-views"
+                                id="toc-introduction-to-duality-views"><span
+                                class="toc-section-number">6.1</span>
+                                Introduction to Duality Views</a></li>
+                                <li><a
+                                href="#interactive-duality-view-design"
+                                id="toc-interactive-duality-view-design"><span
+                                class="toc-section-number">6.2</span>
+                                Interactive Duality View Design</a></li>
+                                </ul></li>
+                                <li><a href="#mrs-dialog-reference"
+                                id="toc-mrs-dialog-reference"><span
+                                class="toc-section-number">7</span> MRS
+                                Dialog Reference</a>
+                                <ul>
+                                <li><a href="#mrs-service-dialog"
+                                id="toc-mrs-service-dialog"><span
+                                class="toc-section-number">7.1</span>
+                                MRS Service Dialog</a></li>
+                                <li><a href="#mrs-schema-dialog"
+                                id="toc-mrs-schema-dialog"><span
+                                class="toc-section-number">7.2</span>
+                                MRS Schema Dialog</a></li>
+                                <li><a href="#mrs-object-dialog"
+                                id="toc-mrs-object-dialog"><span
+                                class="toc-section-number">7.3</span>
+                                MRS Object Dialog</a></li>
+                                </ul></li>
+                                <li><a
+                                href="#authentication-and-authorization"
+                                id="toc-authentication-and-authorization"><span
+                                class="toc-section-number">8</span>
+                                Authentication and Authorization</a>
+                                <ul>
+                                <li><a href="#authentication-management"
+                                id="toc-authentication-management"><span
+                                class="toc-section-number">8.1</span>
+                                Authentication Management</a></li>
+                                <li><a href="#authorization-management"
+                                id="toc-authorization-management"><span
+                                class="toc-section-number">8.2</span>
+                                Authorization Management</a></li>
                                 </ul></li>
                                 <li><a href="#mrs-examples"
                                 id="toc-mrs-examples"><span
-                                class="toc-section-number">6</span> MRS
+                                class="toc-section-number">9</span> MRS
                                 Examples</a>
                                 <ul>
                                 <li><a href="#mrs-notes-examples"
                                 id="toc-mrs-notes-examples"><span
-                                class="toc-section-number">6.1</span>
+                                class="toc-section-number">9.1</span>
                                 MRS Notes Examples</a></li>
                                 </ul></li>
                                 </ul>
@@ -290,10 +340,8 @@
                 there.</p>
                 <p>This section provides an overview of the MySQL REST
                 Service and its features.</p>
-                <h2 data-number="1.1"
-                id="about-the-mysql-rest-service"><span
-                class="header-section-number">1.1</span> About the MySQL
-                REST Service</h2>
+                <p><strong><em>About the MySQL REST
+                Service</em></strong></p>
                 <p>The MySQL REST Service (MRS) offers HTTPS REST access
                 to selected MySQL schema objects. It is modelled after
                 and supports a subset of the Oracle REST Data Services
@@ -323,9 +371,7 @@
                 the terminal and using scripts</li>
                 </ul></li>
                 </ul>
-                <h3 data-number="1.1.1" id="about-rest-apis"><span
-                class="header-section-number">1.1.1</span> About REST
-                APIs</h3>
+                <p><strong><em>About REST APIs</em></strong></p>
                 <p>Representational State Transfer (REST) is a style of
                 software architecture for distributed hypermedia systems
                 such as the World Wide Web. An API is described as
@@ -347,80 +393,66 @@
                 identified in the representation returned, typically by
                 providing hypertext links.</li>
                 </ul>
-                <h2 data-number="1.2" id="feature-overview"><span
-                class="header-section-number">1.2</span> Feature
-                Overview</h2>
-                <p>In contrast to the feature-rich Oracle REST Data
-                Services (ORDS), the MySQL REST Service (MRS) focuses on
-                exposing MySQL schema objects using a CRUD/REST
-                interface - in many aspects similar to the AutoREST
-                feature of ORDS.</p>
-                <p>For more information, see <a
-                href="https://docs.oracle.com/en/database/oracle/oracle-rest-data-services/22.2/orddg/developing-REST-applications.html#GUID-4CE630AA-2F06-41D9-96F6-DA77AB1E6395">AutoREST</a></p>
-                <p><strong><em>MRS AutoREST</em></strong></p>
-                <p>Enabling REST access to a table, view, or procedure
+                <p><strong><em>Feature Overview</em></strong></p>
+                <table>
+                <colgroup>
+                <col style="width: 37%" />
+                <col style="width: 62%" />
+                </colgroup>
+                <thead>
+                <tr class="header">
+                <th>Feature</th>
+                <th>Description</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="odd">
+                <td>MRS AutoREST</td>
+                <td>Enabling REST access to a table, view, or procedure
                 allows it to be accessed through RESTful services.
                 AutoREST is a quick and easy way to expose database
-                tables as REST resources.</p>
-                <p>Note: Enabling a schema is not equivalent to enabling
-                all tables, views and procedures in the schema. It just
-                means making MRS aware that the schema exists and that
-                it may have zero or more resources to expose to HTTP.
-                Those resources may be AutoREST resources or resource
-                module resources.</p>
-                <p><strong><em>Serving Static Content</em></strong></p>
-                <p>In addition to serving dynamic content using AutoREST
-                it is possible to upload static content, like HTML, CSS,
-                and image files. This feature is not meant to replace
-                dedicated HTTP servers that support capabilities like
-                server-side programming. It can aid the quick
+                tables as REST resources.</td>
+                </tr>
+                <tr class="even">
+                <td>JSON-Relational Duality Views</td>
+                <td>Duality views combine the advantages of relational
+                schemas with the ease-of-use of document databases. They
+                give your data a conceptual and an operational duality
+                as it is organized both relationally and
+                hierarchically.</td>
+                </tr>
+                <tr class="odd">
+                <td>Serving Static Content</td>
+                <td>In addition to serving dynamic content using
+                AutoREST it is possible to upload static content, like
+                HTML, CSS, and image files. This feature is not meant to
+                replace dedicated HTTP servers that support capabilities
+                like server-side programming. It can aid the quick
                 deployments of prototypes and proof-of-concept efforts
-                that help bring ideas to life.</p>
-                <p><strong><em>End User Authentication</em></strong></p>
-                <p>MRS currently supports the following authentication
-                methods.</p>
-                <p><strong><em>Simple MySQL
-                Authentication</em></strong></p>
-                <p>Authentication is performed against MySQL server user
-                accounts. This authentication method does not need any
-                external OAuth2 service, which makes it the preferred
-                method to use during prototyping.</p>
-                <p><strong><em>OAuth2 Authentication</em></strong></p>
-                <p>Several OAuth2 services from 3rd-party vendors are
-                supported by MRS; for example, sign in with FaceBook,
-                Twitter, and Google. In order for a MRS service to
-                authenticate against those vendors, one needs to be
-                registered as a developer with those vendors and a
-                vendor specific authentication apps need to be created.
-                Then the OAuth2 specific settings - like access_token
-                and app_id - need to be configured on the MRS side.</p>
-                <p><strong><em>End User Authorization</em></strong></p>
-                <p>Access to a given REST resource can have several
-                levels of restrictions when using MRS:</p>
-                <ul>
-                <li>Public access - no authorization is needed to access
-                the REST resource and its data</li>
-                <li>Full access - after authentication the user has full
-                access to all data of the REST resource</li>
-                <li>Limited access - after authentication the user has
-                only access to a subset of the data of the REST
-                resource</li>
-                </ul>
-                <p>MRS has built-in support for several authorization
-                models. These authorization models define which data of
-                a given REST resource that end users can see and
-                manipulate:</p>
-                <ul>
-                <li>User-ownership based - users can see their own
-                data</li>
-                <li>Privilege based, managed using roles</li>
-                <li>User-hierarchy based</li>
-                <li>Group based</li>
-                <li>Group-hierarchy based</li>
-                </ul>
-                <p>If the use case of a given project matches one of the
-                offered authorization models, then a custom
-                authorization does not need to be implemented.</p>
+                that help bring ideas to life.</td>
+                </tr>
+                <tr class="even">
+                <td>End User Authentication</td>
+                <td>MRS supports a number of authentication methods,
+                including MRS REST service specific authentication,
+                native MySQL authentication and OAuth2 authentication
+                (Sign in with FaceBook and Google)</td>
+                </tr>
+                <tr class="odd">
+                <td>End User Authorization</td>
+                <td>Built in support for row-level security, role based
+                security, user-hierarchy based security, Group based
+                security, Group-hierarchy based security as well as
+                custom authorization support</td>
+                </tr>
+                <tr class="even">
+                <td>REST Service SDK API Generation</td>
+                <td>Live SDK API updates for interactive prototyping
+                using TypeScript, SDK API generation for application
+                development</td>
+                </tr>
+                </tbody>
+                </table>
                 <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
@@ -473,7 +505,8 @@
                 recommended to use a load balancer to expose the HTTPS
                 port of the MySQL Routers to the public internet.</p>
                 <figure>
-                <img src="sections/../images/mrs-architecture.svg"
+                <img
+                src="sections/devGuide/../../images/mrs-architecture.svg"
                 title="MySQL REST Service Architecture Diagram"
                 alt="MySQL REST Service Architecture Diagram" />
                 <figcaption aria-hidden="true">MySQL REST Service
@@ -507,13 +540,17 @@
                 steps:</p>
                 <ol type="1">
                 <li>Deploy a MySQL solution.</li>
-                <li>Configure the MRS metadata database schema.</li>
-                <li>Bootstrap and run one or more MySQL Router instances
-                for MRS support.</li>
+                <li><a
+                href="#configuring-the-mrs-metadata-schema">Configure</a>
+                the MRS metadata database schema.</li>
+                <li><a
+                href="#bootstrapping-and-running-mysql-routers-with-mrs-support">Bootstrap</a>
+                and run one or more MySQL Router instances for MRS
+                support.</li>
                 </ol>
                 <p>After performing these steps, MySQL REST Service is
                 fully configured.</p>
-                <p>The HTTPS endpoints can then be accessed as
+                <p>The HTTP/S endpoints can then be accessed as
                 configured during the MySQL Router bootstrap
                 process.</p>
                 <p><strong><em>Deployment of a MySQL
@@ -559,7 +596,8 @@
                 REST Service Support.</p></li>
                 </ol>
                 <figure>
-                <img src="sections/../images/vsc-mrs-configure.png"
+                <img
+                src="sections/devGuide/../../images/vsc-mrs-configure.png"
                 title="Configure Instance for MySQL REST Service Support"
                 alt="Configure Instance for MySQL REST Service Support" />
                 <figcaption aria-hidden="true">Configure Instance for
@@ -636,7 +674,7 @@
                 or MDS tunneling feature.</p>
                 <figure>
                 <img
-                src="sections/../images/vsc-mrs-start-mysql-router.png"
+                src="sections/devGuide/../../images/vsc-mrs-start-mysql-router.png"
                 title="Bootstrap and Start MySQL Router"
                 alt="Bootstrap and Start MySQL Router" />
                 <figcaption aria-hidden="true">Bootstrap and Start MySQL
@@ -837,9 +875,10 @@ router_id=16</code></pre>
                 You should have received a copy of the GNU General Public License
                 along with this program; if not, write to the Free Software Foundation, Inc.,
                 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
-                <h1 data-number="4" id="adding-rest-services"><span
+                <h1 data-number="4"
+                id="adding-rest-services-and-database-objects"><span
                 class="header-section-number">4</span> Adding REST
-                Services</h1>
+                Services and Database Objects</h1>
                 <p>MRS supports the setup of a large number individual
                 REST services.</p>
                 <p>Each REST service has its own settings for URL path,
@@ -849,10 +888,8 @@ router_id=16</code></pre>
                 <p>It is possible to perform an individual setup for
                 each application and it is advised to setup an separate
                 REST service for each application.</p>
-                <h2 data-number="4.1"
-                id="preconditions-for-adding-a-rest-service"><span
-                class="header-section-number">4.1</span> Preconditions
-                for Adding a REST Service</h2>
+                <p><strong><em>Preconditions for Adding a REST
+                Service</em></strong></p>
                 <p>Before setting up a new REST service, ensure that the
                 following preconditions are met:</p>
                 <ul>
@@ -870,12 +907,12 @@ router_id=16</code></pre>
                 <div class="sourceCode" id="cb8"><pre
                 class="sourceCode sql"><code class="sourceCode sql"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> <span class="st">&#39;mysql_rest_service_admin&#39;</span> <span class="kw">TO</span> <span class="st">&#39;user_account&#39;</span>@<span class="st">&#39;%&#39;</span>;</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co">-- Please ensure to include all roles in the next statement </span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co">-- Please ensure to include all roles in the next statement</span></span>
 <span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co">-- that should become active when the user connects</span></span>
 <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="kw">ALTER</span> <span class="fu">USER</span> <span class="st">&#39;user_account&#39;</span>@<span class="st">&#39;%&#39;</span> <span class="kw">DEFAULT</span> <span class="kw">ROLE</span> <span class="st">&#39;mysql_rest_service_admin&#39;</span>;</span></code></pre></div>
-                <h2 data-number="4.2"
+                <h2 data-number="4.1"
                 id="setting-up-a-new-rest-service"><span
-                class="header-section-number">4.2</span> Setting Up a
+                class="header-section-number">4.1</span> Setting Up a
                 New REST Service</h2>
                 <p>A new REST service can be added in one of the
                 following ways:</p>
@@ -889,9 +926,9 @@ router_id=16</code></pre>
                 MRS plugin can be used to script the creation in Python
                 or JavaScript.</li>
                 </ul>
-                <h3 data-number="4.2.1"
+                <h3 data-number="4.1.1"
                 id="adding-a-rest-service-using-mysql-shell-for-vs-code"><span
-                class="header-section-number">4.2.1</span> Adding a REST
+                class="header-section-number">4.1.1</span> Adding a REST
                 Service Using MySQL Shell for VS Code</h3>
                 <p>After configuring the MySQL REST Service on the
                 target MySQL instance, the DB Connection in the DATABASE
@@ -907,15 +944,16 @@ router_id=16</code></pre>
                 service.</p></li>
                 </ol>
                 <figure>
-                <img src="sections/../images/vsc-mrs-add-service.png"
+                <img
+                src="sections/devGuide/../../images/vsc-mrs-add-service.png"
                 title="Adding a REST Service"
                 alt="Adding a REST Service" />
                 <figcaption aria-hidden="true">Adding a REST
                 Service</figcaption>
                 </figure>
-                <h3 data-number="4.2.2"
+                <h3 data-number="4.1.2"
                 id="adding-a-rest-service-using-mysql-shell"><span
-                class="header-section-number">4.2.2</span> Adding a REST
+                class="header-section-number">4.1.2</span> Adding a REST
                 Service Using MySQL Shell</h3>
                 <p>For MySQL Shell, the <code>mrs</code> plugin is used
                 to work with the MySQL REST Service. The
@@ -927,17 +965,17 @@ router_id=16</code></pre>
                 <div class="sourceCode" id="cb9"><pre
                 class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">MySQL</span> <span class="op">&gt;</span> localhost:33060+ <span class="op">&gt;</span> Py <span class="op">&gt;</span> mrs.add.service<span class="er">(</span><span class="kw">)</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the context path for this service [/mrs]: /myservice</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the host name for this service <span class="er">(</span><span class="ex">e.g.</span> None or localhost<span class="kw">)</span> <span class="ex">[None]:</span> </span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the host name for this service <span class="er">(</span><span class="ex">e.g.</span> None or localhost<span class="kw">)</span> <span class="ex">[None]:</span></span>
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>   <span class="ex">1</span> HTTP</span>
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>   <span class="ex">2</span> HTTPS</span>
 <span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> select the protocol<span class="er">(</span><span class="ex">s</span><span class="kw">)</span> <span class="ex">the</span> service should support [HTTP,HTTPS]: 2</span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="ex">Comments:</span> </span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="ex">Comments:</span></span>
 <span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>   <span class="ex">1</span> Default Service Options for Development</span>
 <span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>   <span class="ex">2</span> No options</span>
 <span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>   <span class="ex">3</span> Custom options</span>
 <span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> select how to initialize the options [Default Service Options for Development]: </span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> select how to initialize the options [Default Service Options for Development]:</span>
 <span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a><span class="ex">Service</span> /myservice created successfully.</span></code></pre></div>
                 <p>Execute the following command to get detailed help
@@ -945,9 +983,983 @@ router_id=16</code></pre>
                 function.</p>
                 <div class="sourceCode" id="cb10"><pre
                 class="sourceCode js"><code class="sourceCode javascript"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>\<span class="op">?</span> mrs<span class="op">.</span><span class="at">add</span><span class="op">.</span><span class="at">service</span></span></code></pre></div>
+                <h3 data-number="4.1.3"
+                id="rest-service-definitions"><span
+                class="header-section-number">4.1.3</span> REST Service
+                Definitions</h3>
+                <h4 data-number="4.1.3.1" id="about-mrs-autorest"><span
+                class="header-section-number">4.1.3.1</span> About MRS
+                AutoREST</h4>
+                <p>AutoREST is a quick and easy way to expose database
+                schema tables, views, and procedures as REST
+                resources.</p>
+                <h4 data-number="4.1.3.2" id="rest-apis"><span
+                class="header-section-number">4.1.3.2</span> REST
+                APIs</h4>
+                <p>Representational State Transfer (REST) is a style of
+                software architecture for distributed hypermedia systems
+                such as the World Wide Web. An API is described as
+                RESTful when it conforms to the tenets of REST. Although
+                a full discussion of REST is outside the scope of this
+                document, a REST API has the following
+                characteristics:</p>
+                <ul>
+                <li><p>Data is modelled as a set of resources. Resources
+                are identified by URIs.</p></li>
+                <li><p>A small, uniform set of operations are used to
+                manipulate resources (for example, PUT, POST, GET,
+                DELETE).</p></li>
+                <li><p>A resource can have multiple representations (for
+                example, a blog might have an HTML representation and an
+                RSS representation).</p></li>
+                <li><p>Services are stateless and since it is likely
+                that the client will want to access related resources,
+                these should be identified in the representation
+                returned, typically by providing hypertext
+                links.</p></li>
+                </ul>
+                <h4 data-number="4.1.3.3"
+                id="restful-services-terminology"><span
+                class="header-section-number">4.1.3.3</span> RESTful
+                Services Terminology</h4>
+                <p>This section introduces some common terms that are
+                used throughout this document:</p>
+                <ul>
+                <li><p><strong>RESTful service:</strong> An HTTP web
+                service that conforms to the tenets of the RESTful
+                architectural style.</p></li>
+                <li><p><strong>Resource module:</strong> An
+                organizational unit that is used to group related
+                resource templates.</p></li>
+                <li><p><strong>Resource template:</strong> An individual
+                RESTful service that is able to service requests for
+                some set of URIs (Universal Resource Identifiers). The
+                set of URIs is defined by the URI Pattern of the
+                Resource Template</p></li>
+                <li><p><strong>URI pattern:</strong> A pattern for the
+                resource template. Can be either a route pattern or a
+                URI template, although you are encouraged to use route
+                patterns.</p></li>
+                <li><p><strong>Route pattern:</strong> A pattern that
+                focuses on decomposing the path portion of a URI into
+                its component parts. For example, a pattern of
+                /:object/:id? will match /emp/101 (matches a request for
+                the item in the emp resource with id of 101) and will
+                also match /emp/ (matches a request for the emp
+                resource, because the :id parameter is annotated with
+                the ? modifier, which indicates that the id parameter is
+                optional).</p></li>
+                <li><p><strong>HTTP operation:</strong> HTTP (HyperText
+                Transport Protocol) defines standard methods that can be
+                performed on resources: GET (retrieve the resource
+                contents), POST (store a new resource), PUT (update an
+                existing resource), and DELETE (remove a
+                resource).</p></li>
+                </ul>
+                <h2 data-number="4.2"
+                id="adding-a-database-schemas-to-a-rest-service"><span
+                class="header-section-number">4.2</span> Adding a
+                Database Schemas to a REST Service</h2>
+                <p>For each MySQL database schema a corresponding REST
+                schema can be created and added to a REST service. It is
+                possible to add the same MySQL database schema to
+                different REST services by creating several REST schemas
+                for the MySQL database schema.</p>
+                <p>The REST schema can be created by using MySQL Shell
+                for VS Code or MySQL Shell on the command line.</p>
+                <p>Note: Adding a database schema as a REST schema is
+                not equivalent to exposing all tables and views in the
+                schema through the RESTful Web service. It just means
+                making the MySQL REST Service aware that the schema
+                exists and that it may have zero or more resources to
+                expose via HTTP/S.</p>
+                <p><strong><em>Preconditions for Adding Database Schemas
+                and Objects</em></strong></p>
+                <p>Before adding REST schemas and objects, ensure that
+                the following preconditions are met:</p>
+                <ul>
+                <li>A REST service must be added first (see <a
+                href="#adding-a-rest-service">Adding a REST
+                Service</a>).</li>
+                <li>The MySQL account used to connect to the targeting
+                MySQL Solution needs to be granted the
+                <code>mysql_rest_service_schema_admin</code> MySQL role
+                or a superset of privileges.</li>
+                </ul>
+                <p>To grant the
+                <code>mysql_rest_service_schema_admin</code> MySQL role,
+                execute the following SQL statement.</p>
+                <div class="sourceCode" id="cb11"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> <span class="st">&#39;mysql_rest_service_schema_admin&#39;</span> <span class="kw">TO</span> <span class="st">&#39;user_account&#39;</span>@<span class="st">&#39;%&#39;</span>;</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co">-- Please ensure to include all roles in the next statement</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co">-- that should become active when the user connects</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="kw">ALTER</span> <span class="fu">USER</span> <span class="st">&#39;user_account&#39;</span>@<span class="st">&#39;%&#39;</span> <span class="kw">DEFAULT</span> <span class="kw">ROLE</span> <span class="st">&#39;mysql_rest_service_schema_admin&#39;</span>;</span></code></pre></div>
+                <h3 data-number="4.2.1"
+                id="adding-a-schema-via-mrs-ddl"><span
+                class="header-section-number">4.2.1</span> Adding a
+                Schema via MRS DDL</h3>
+                <p>On an active MySQL Shell connection execute the <a
+                href="ddl.html#create-rest-schema">CREATE REST
+                SCHEMA</a> DDL statement referencing the corresponding
+                MySQL database schema in the FROM clause. Please see the
+                MRS DDL Reference for more details.</p>
+                <p><strong><em>Example</em></strong></p>
+                <p>The following example adds a REST schema for the
+                <code>sakila</code> database schema to the REST service
+                <code>/myService</code>.</p>
+                <div class="sourceCode" id="cb12"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila <span class="kw">ON</span> SERVICE <span class="op">/</span>myService</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">FROM</span> `sakila`</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    COMMENTS <span class="ot">&quot;The sakila schema&quot;</span>;</span></code></pre></div>
+                <h3 data-number="4.2.2"
+                id="adding-a-schema-using-the-mysql-shell-for-vs-code-ui"><span
+                class="header-section-number">4.2.2</span> Adding a
+                Schema using the MySQL Shell for VS Code UI</h3>
+                <p>To add a database schema to a REST service:</p>
+                <ol type="1">
+                <li><p>Right-click the schema in the DATABASE
+                CONNECTIONS view and select
+                <code>Add Schema to REST Service</code>. This will open
+                a dialog where all REST schema parameters can be
+                set.</p></li>
+                <li><p>Click <code>OK</code> to add the schema.</p></li>
+                </ol>
+                <figure>
+                <img
+                src="sections/devGuide/../../images/vsc-mrs-add-schema.png"
+                title="Adding a Database Schema"
+                alt="Adding a Database Schema" />
+                <figcaption aria-hidden="true">Adding a Database
+                Schema</figcaption>
+                </figure>
                 <h3 data-number="4.2.3"
+                id="adding-a-rest-schema-with-a-mysql-shell-script"><span
+                class="header-section-number">4.2.3</span> Adding a REST
+                Schema with a MySQL Shell Script</h3>
+                <p>To add a database schema to a REST service, call the
+                <code>mrs.add.schema()</code> function.</p>
+                <p>When started without parameters, an interactive
+                wizard prompts you for the required parameters.</p>
+                <div class="sourceCode" id="cb13"><pre
+                class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a> <span class="ex">MySQL</span> <span class="op">&gt;</span> localhost:33060+ <span class="op">&gt;</span> JS <span class="op">&gt;</span> mrs.add.schema<span class="er">(</span><span class="kw">)</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>   <span class="ex">1</span> information_schema</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>   <span class="ex">2</span> performance_schema</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>   <span class="ex">3</span> sys</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>   <span class="ex">4</span> sakila</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>   <span class="ex">5</span> test</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>   <span class="ex">6</span> forum</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>   <span class="ex">7</span> ortho</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>   <span class="ex">8</span> mrs_notes</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the name or index of a schema: 4</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the request path for this schema [/sakila]: /sakila</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a><span class="ex">Should</span> the schema require authentication [y/N]:</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a><span class="ex">How</span> many items should be listed per page [Schema Default]:</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a><span class="ex">Comments:</span></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a><span class="ex">Options:</span></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a><span class="ex">Service</span> with path /sakila created successfully.</span></code></pre></div>
+                <p>Execute the following command to get detailed help
+                information about the <code>mrs.add.schema()</code>
+                function.</p>
+                <div class="sourceCode" id="cb14"><pre
+                class="sourceCode js"><code class="sourceCode javascript"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>\<span class="op">?</span> mrs<span class="op">.</span><span class="at">add</span><span class="op">.</span><span class="at">schema</span></span></code></pre></div>
+                <h2 data-number="4.3"
+                id="adding-a-schema-table-view-or-procedure"><span
+                class="header-section-number">4.3</span> Adding a Schema
+                Table, View or Procedure</h2>
+                <p>Adding database schema objects (tables, views, or
+                procedures) to a MySQL REST Service (MRS) allows them to
+                be accessed through RESTful Web services. Before
+                database schema object can be added as REST objects, the
+                database schema containing those objects has to be added
+                as a REST schema.</p>
+                <p>The following figure shows the a REST schema and its
+                REST objects.</p>
+                <figure>
+                <img
+                src="sections/devGuide/../../images/vsc-mrs-schema-and-objects.png"
+                title="REST Schema and its Objects"
+                alt="REST Schema and its Objects" />
+                <figcaption aria-hidden="true">REST Schema and its
+                Objects</figcaption>
+                </figure>
+                <p>Once a MySQL database schema has been added as a REST
+                schema, its objects can be added. Database schema tables
+                and views are added as <a
+                href="#json-relational-duality-views">REST duality
+                views</a>, stored procedures are added as REST
+                procedures.</p>
+                <blockquote>
+                <p>Note: REST duality views enabled application
+                developers to take a document centric approach when
+                implementing their applications. Please refer to the <a
+                href="#json-relational-duality-views">JSON duality
+                view</a> section of this document to learn about the
+                advantages of using REST duality views.</p>
+                </blockquote>
+                <p>The MySQL database schema objects can be added by
+                using MySQL Shell for VS Code or MySQL Shell on the
+                command line.</p>
+                <h3 data-number="4.3.1"
+                id="adding-a-schema-object-via-mrs-ddl"><span
+                class="header-section-number">4.3.1</span> Adding a
+                Schema Object via MRS DDL</h3>
+                <p>On an active MySQL Shell connection execute the <a
+                href="ddl.html#create-rest-duality-view">CREATE REST
+                DUALITY VIEW</a> DDL statement to add a database schema
+                table or view as REST object. Please see the <a
+                href="ddl.html#create-rest-duality-view">MRS DDL
+                Reference</a> for more details.</p>
+                <p>To add a stored procedure the <a
+                href="ddl.html#create-rest-procedure">CREATE REST
+                PROCEDURE</a> DDL statement can be used.</p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example adds a REST duality view for
+                the <code>sakila.city</code> database schema table.</p>
+                <div class="sourceCode" id="cb15"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST DUALITY <span class="kw">VIEW</span> <span class="op">/</span>city</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> `sakila`.`city` <span class="kw">AS</span> MyServiceSakilaCity {</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    cityId: city_id @SORTABLE,</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    city: city,</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    countryId: country_id,</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    lastUpdate: last_update</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>};</span></code></pre></div>
+                <p>The next example adds a REST procedure for the
+                <code>sakila.film_in_stock</code> database schema stored
+                procedure.</p>
+                <div class="sourceCode" id="cb16"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">PROCEDURE</span> <span class="op">/</span>filmInStock</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> `sakila`.`film_in_stock` <span class="kw">AS</span> MyServiceSakilaFilmInStock</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="kw">PARAMETERS</span> {</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    pFilmId: p_film_id @IN,</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    pStoreId: p_store_id @IN,</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    pFilmCount: p_film_count @OUT</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>RESULT MyServiceSakilaFilmInStock {</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>    inventoryId: inventory_id @DATATYPE(<span class="ot">&quot;int&quot;</span>)</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>};</span></code></pre></div>
+                <h3 data-number="4.3.2"
+                id="adding-a-schema-object-with-mysql-shell-for-vs-code-ui"><span
+                class="header-section-number">4.3.2</span> Adding a
+                Schema Object with MySQL Shell for VS Code UI</h3>
+                <p>To add a database schema object to a REST schema:</p>
+                <ol type="1">
+                <li><p>Right-click on the database object in the
+                DATABASE CONNECTIONS view and select
+                <code>Add Database Object to REST Service</code>. This
+                will open the <a
+                href="#mysql-rest-object-dialog-reference">MySQL REST
+                Object dialog</a>.</p></li>
+                <li><p>Adjust all REST object settings
+                accordingly.</p></li>
+                <li><p>Press <code>OK</code> to add the database schema
+                object.</p></li>
+                </ol>
+                <figure>
+                <img
+                src="sections/devGuide/../../images/vsc-mrs-add-db-object.png"
+                title="Adding a Database Object"
+                alt="Adding a Database Object" />
+                <figcaption aria-hidden="true">Adding a Database
+                Object</figcaption>
+                </figure>
+                <h3 data-number="4.3.3"
+                id="adding-a-database-object-with-mysql-shell"><span
+                class="header-section-number">4.3.3</span> Adding a
+                Database Object with MySQL Shell</h3>
+                <p>To add a database schema to a REST service call the
+                <code>mrs.add.dbObject()</code> function.</p>
+                <p>When started without parameters, an interactive
+                wizard prompts you for the required parameters.</p>
+                <div class="sourceCode" id="cb17"><pre
+                class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="ex">MySQL</span> <span class="op">&gt;</span> localhost:33060+ <span class="op">&gt;</span> JS <span class="op">&gt;</span> mrs.add.dbObject<span class="er">(</span><span class="kw">)</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>   <span class="ex">1</span> mrs_notes</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>   <span class="ex">2</span> sakila</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the name or index of a schema: 2</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>   <span class="ex">1</span> TABLE</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>   <span class="ex">2</span> VIEW</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>   <span class="ex">3</span> PROCEDURE</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the name or index of a database object type [TABLE]:</span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>   <span class="ex">1</span> actor</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>   <span class="ex">2</span> address</span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>   <span class="ex">3</span> category</span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>   <span class="ex">4</span> city</span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>   <span class="ex">5</span> country</span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>   <span class="ex">6</span> customer</span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>   <span class="ex">7</span> film</span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>   <span class="ex">8</span> film_actor</span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>   <span class="ex">9</span> film_category</span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>  <span class="ex">10</span> film_text</span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a>  <span class="ex">11</span> inventory</span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a>  <span class="ex">12</span> language</span>
+<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a>  <span class="ex">13</span> payment</span>
+<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a>  <span class="ex">14</span> rental</span>
+<span id="cb17-25"><a href="#cb17-25" aria-hidden="true" tabindex="-1"></a>  <span class="ex">15</span> staff</span>
+<span id="cb17-26"><a href="#cb17-26" aria-hidden="true" tabindex="-1"></a>  <span class="ex">16</span> store</span>
+<span id="cb17-27"><a href="#cb17-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-28"><a href="#cb17-28" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the name or index of an database object: 4</span>
+<span id="cb17-29"><a href="#cb17-29" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the request path for this object [/city]:</span>
+<span id="cb17-30"><a href="#cb17-30" aria-hidden="true" tabindex="-1"></a>   <span class="ex">1</span> CREATE</span>
+<span id="cb17-31"><a href="#cb17-31" aria-hidden="true" tabindex="-1"></a>   <span class="ex">2</span> READ</span>
+<span id="cb17-32"><a href="#cb17-32" aria-hidden="true" tabindex="-1"></a>   <span class="ex">3</span> UPDATE</span>
+<span id="cb17-33"><a href="#cb17-33" aria-hidden="true" tabindex="-1"></a>   <span class="ex">4</span> DELETE</span>
+<span id="cb17-34"><a href="#cb17-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-35"><a href="#cb17-35" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> select the CRUD operations that should be supported, <span class="st">&#39;*&#39;</span> for all [READ]:</span>
+<span id="cb17-36"><a href="#cb17-36" aria-hidden="true" tabindex="-1"></a>   <span class="ex">1</span> FEED</span>
+<span id="cb17-37"><a href="#cb17-37" aria-hidden="true" tabindex="-1"></a>   <span class="ex">2</span> ITEM</span>
+<span id="cb17-38"><a href="#cb17-38" aria-hidden="true" tabindex="-1"></a>   <span class="ex">3</span> MEDIA</span>
+<span id="cb17-39"><a href="#cb17-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-40"><a href="#cb17-40" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> select the CRUD operation format [FEED]:</span>
+<span id="cb17-41"><a href="#cb17-41" aria-hidden="true" tabindex="-1"></a><span class="ex">Should</span> the db_object require authentication [y/N]:</span>
+<span id="cb17-42"><a href="#cb17-42" aria-hidden="true" tabindex="-1"></a><span class="ex">Should</span> row ownership be required when querying the object [y/N]:</span>
+<span id="cb17-43"><a href="#cb17-43" aria-hidden="true" tabindex="-1"></a><span class="ex">How</span> many items should be listed per page [Schema Default]:</span>
+<span id="cb17-44"><a href="#cb17-44" aria-hidden="true" tabindex="-1"></a><span class="ex">Comments:</span></span>
+<span id="cb17-45"><a href="#cb17-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-46"><a href="#cb17-46" aria-hidden="true" tabindex="-1"></a><span class="ex">Object</span> added successfully.</span></code></pre></div>
+                <p>Execute the following command to get detailed help
+                information about the <code>mrs.add.dbObject()</code>
+                function.</p>
+                <div class="sourceCode" id="cb18"><pre
+                class="sourceCode js"><code class="sourceCode javascript"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>\<span class="op">?</span> mrs<span class="op">.</span><span class="at">add</span><span class="op">.</span><span class="at">dbObject</span></span></code></pre></div>
+                <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+
+                This program is free software; you can redistribute it and/or modify
+                it under the terms of the GNU General Public License, version 2.0,
+                as published by the Free Software Foundation.
+
+                This program is also distributed with certain software (including
+                but not limited to OpenSSL) that is licensed under separate terms, as
+                designated in a particular file or component or in included license
+                documentation.  The authors of MySQL hereby grant you an additional
+                permission to link the program and your derivative works with the
+                separately licensed software that they have included with MySQL.
+                This program is distributed in the hope that it will be useful,  but
+                WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+                the GNU General Public License, version 2.0, for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program; if not, write to the Free Software Foundation, Inc.,
+                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+                <h1 data-number="5"
+                id="working-interactively-with-rest-services"><span
+                class="header-section-number">5</span> Working
+                Interactively with REST Services</h1>
+                <p>MySQL Shell for VS Code features a live, interactive
+                workflow for designing REST Services.</p>
+                <p>It allows developers to immediately test their newly
+                created or modified REST duality views and REST
+                procedures by using the MRS SDK TypeScript client API
+                right from within a DB Notebook.</p>
+                <p><strong><em>Preconditions for The Interactive
+                Workflow</em></strong></p>
+                <ul>
+                <li>A MySQL Router instance needs to be <a
+                href="#bootstrapping-and-running-mysql-routers-with-mrs-support">bootstrapped
+                and running with MRS support</a>. When using a local
+                development setup it is also possible to do this <a
+                href="#using-mysql-shell-for-vs-code-to-bootstrap-and-run-mysql-router">directly
+                from within VS Code</a>.</li>
+                </ul>
+                <h2 data-number="5.1"
+                id="switching-to-typescript-mode"><span
+                class="header-section-number">5.1</span> Switching to
+                TypeScript Mode</h2>
+                <p>After opening a database connection in MySQL Shell
+                for VS Code the DB Notebook will be displayed. Switch
+                the DB Notebook to TypeScript mode with <code>\ts</code>
+                if it is in SQL mode.</p>
+                <figure>
+                <img
+                src="sections/devGuide/../../images/msg-db-notebook-switch-to-ts.svg"
+                title="DB Notebook - Switch to TS mode"
+                alt="DB Notebook - Switch to TS mode" />
+                <figcaption aria-hidden="true">DB Notebook - Switch to
+                TS mode</figcaption>
+                </figure>
+                <h2 data-number="5.2" id="choosing-a-rest-service"><span
+                class="header-section-number">5.2</span> Choosing a REST
+                Service</h2>
+                <p>In order to work with a REST service on a DB Notebook
+                it needs to be set as <code>current</code> REST Service.
+                This is similar to executing a SQL
+                <code>USE db_name</code> statement to set the
+                <code>current</code> database schema.</p>
+                <p>To get information about the current REST service use
+                the global <code>mrs</code> object and execute the
+                <code>mrs.getStatus()</code> function. It will print
+                information about the MRS status. The current REST
+                service has the property <code>isCurrent</code> set to
+                <code>true</code>.</p>
+                <p><strong><em>Example</em></strong></p>
+                <div class="sourceCode" id="cb19"><pre
+                class="sourceCode ts"><code class="sourceCode typescript"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>ts<span class="op">&gt;</span> mrs<span class="op">.</span><span class="fu">getStatus</span>()<span class="op">;</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;configured&quot;</span><span class="op">:</span> true<span class="op">,</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;info&quot;</span><span class="op">:</span> <span class="st">&quot;2 REST services available.&quot;</span><span class="op">,</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;services&quot;</span><span class="op">:</span> [</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>        {</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;serviceName&quot;</span><span class="op">:</span> <span class="st">&quot;myService&quot;</span><span class="op">,</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;url&quot;</span><span class="op">:</span> <span class="st">&quot;https://localhost:8443/myService&quot;</span><span class="op">,</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;isCurrent&quot;</span><span class="op">:</span> true</span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>        }<span class="op">,</span></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>        {</span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;serviceName&quot;</span><span class="op">:</span> <span class="st">&quot;myPublicService&quot;</span><span class="op">,</span></span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;url&quot;</span><span class="op">:</span> <span class="st">&quot;https://localhost:8443/myPublicService&quot;</span><span class="op">,</span></span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;isCurrent&quot;</span><span class="op">:</span> false</span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <p>Once a current REST service is set, the <a
+                href="sdk.html">MRS TypeScript Client API</a> for this
+                service is automatically generated on-the-fly and made
+                available to TypeScript code blocks on the DB
+                Notebooks.</p>
+                <p>The current REST service object be directly accessed
+                via a global variable using the same name as listed by
+                the <code>mrs.getStatus()</code> function in the
+                <code>serviceName</code> property. The
+                <code>serviceName</code> is directly derived from the
+                REST service’s <code>url context root</code> path by
+                converting it to <code>camel case</code> and removing
+                all slashes <code>/</code>. E.g. a REST service with the
+                <code>url context root</code> of <code>/myService</code>
+                will be accessible as <code>myService</code>.</p>
+                <p><strong><em>Example</em></strong></p>
+                <div class="sourceCode" id="cb20"><pre
+                class="sourceCode ts"><code class="sourceCode typescript"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>ts<span class="op">&gt;</span> myService<span class="op">.</span><span class="at">url</span><span class="op">;</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>https<span class="op">:</span><span class="co">//localhost:8443/myService</span></span></code></pre></div>
+                <p>The current REST service can either be set from a DB
+                Notebook via a TypeScript or through the VS Code UI.</p>
+                <h3 data-number="5.2.1"
+                id="using-typescript-to-setting-the-current-rest-service"><span
+                class="header-section-number">5.2.1</span> Using
+                Typescript to Setting the Current REST Service</h3>
+                <p>The global <code>mrs</code> object automatically
+                holds properties for all available REST services. The
+                naming of the REST service properties matches the
+                <code>serviceName</code> of each REST service as
+                discussed in the previous section.</p>
+                <p>Execute the
+                <code>mrs.&lt;serviceName&gt;.setAsCurrent()</code>
+                function to make the given REST service the current one.
+                The VS Code auto-completion feature will assist with
+                selecting the <code>serviceName</code>.</p>
+                <p><strong><em>Example</em></strong></p>
+                <div class="sourceCode" id="cb21"><pre
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>ts<span class="op">&gt;</span> mrs<span class="op">.</span><span class="at">myPublicService</span><span class="op">.</span><span class="fu">setAsCurrent</span>()<span class="op">;</span></span></code></pre></div>
+                <blockquote>
+                <p>Note: The current REST service is only available
+                after executing the full TypeScript code block with
+                <code>[command] + [Return]</code> on macOS and
+                <code>[Ctrl] + [Return]</code> on Linux and Windows. It
+                uses an async message pipeline which cannot be awaited.
+                For that reason, trying to access specific methods of
+                the current REST service will not work in the same code
+                block where it was changed.</p>
+                </blockquote>
+                <h3 data-number="5.2.2"
+                id="using-vs-code-to-setting-the-current-rest-service"><span
+                class="header-section-number">5.2.2</span> Using VS Code
+                to Setting the Current REST Service</h3>
+                <p>Browse the <code>DATABASE CONNECTIONS</code> View in
+                VS Code’s <code>Primary Sidebar</code>, open the current
+                DB Connection as well as the
+                <code>MySQL REST Service</code> tree items and right
+                click onto the desired MRS service and select
+                <code>Set as Current REST Service</code> from the
+                context menu.</p>
+                <figure>
+                <img
+                src="sections/devGuide/../../images/vsc-mrs-context-menu-set-current-service.svg"
+                title="Setting the Current REST Service"
+                alt="Setting the Current REST Service" />
+                <figcaption aria-hidden="true">Setting the Current REST
+                Service</figcaption>
+                </figure>
+                <p>The current REST service is indicated by a solid,
+                filled REST service icon. All other REST services use an
+                icon with outlines only.</p>
+                <h2 data-number="5.3" id="authentication"><span
+                class="header-section-number">5.3</span>
+                Authentication</h2>
+                <p>If some of the REST objects require authentication
+                and a REST Authentication App has been added to the REST
+                service, use the <code>authenticate()</code> function of
+                the REST service Client API object. This will show an
+                login dialog where the credentials of a user account can
+                be specified.</p>
+                <div class="sourceCode" id="cb22"><pre
+                class="sourceCode ts"><code class="sourceCode typescript"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>ts<span class="op">&gt;</span> myService<span class="op">.</span><span class="fu">authenticate</span>()<span class="op">;</span></span></code></pre></div>
+                <blockquote>
+                <p>The <code>authenticate()</code> function only works
+                with the built in MRS authentication vendor. Please make
+                sure to set this vendor when adding the REST
+                Authentication App.</p>
+                </blockquote>
+                <h2 data-number="5.4" id="querying-a-rest-object"><span
+                class="header-section-number">5.4</span> Querying a REST
+                Object</h2>
+                <p>In the following examples case the
+                <code>sakila.city</code> database table was used, as can
+                be seen in the screenshot above.</p>
+                <div class="sourceCode" id="cb23"><pre
+                class="sourceCode ts"><code class="sourceCode typescript"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>ts<span class="op">&gt;</span> myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findFirst</span>()<span class="op">;</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;city&quot;</span><span class="op">:</span> <span class="st">&quot;A Corua (La Corua)&quot;</span><span class="op">,</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;links&quot;</span><span class="op">:</span> [</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>      {</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>         <span class="st">&quot;rel&quot;</span><span class="op">:</span> <span class="st">&quot;self&quot;</span><span class="op">,</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>         <span class="st">&quot;href&quot;</span><span class="op">:</span> <span class="st">&quot;/myService/sakila/city/1&quot;</span></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>   ]<span class="op">,</span></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;cityId&quot;</span><span class="op">:</span> 1<span class="op">,</span></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;countryId&quot;</span><span class="op">:</span> 87<span class="op">,</span></span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;lastUpdate&quot;</span><span class="op">:</span> <span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span><span class="op">,</span></span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;_metadata&quot;</span><span class="op">:</span> {</span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;etag&quot;</span><span class="op">:</span> <span class="st">&quot;EE93452B41984F3F5BBB0395CCB2CED00F5C748FEEA4A36CCD749CC3F85B7CEA&quot;</span></span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>   }</span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <p>The fields can be filtered and a conditional where
+                clause can be added. Please refer to the <a
+                href="sdk.html">MRS SDK Client API</a> documentation for
+                more information.</p>
+                <div class="sourceCode" id="cb24"><pre
+                class="sourceCode ts"><code class="sourceCode typescript"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>ts<span class="op">&gt;</span> myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findMany</span>({select<span class="op">:</span> [<span class="st">&quot;city&quot;</span><span class="op">,</span> <span class="st">&quot;cityId&quot;</span>]<span class="op">,</span> where<span class="op">:</span> {city<span class="op">:</span> {$like<span class="op">:</span> <span class="st">&quot;NE%&quot;</span>}}})<span class="op">;</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;items&quot;</span><span class="op">:</span> [</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>        {</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;city&quot;</span><span class="op">:</span> <span class="st">&quot;Newcastle&quot;</span><span class="op">,</span></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;links&quot;</span><span class="op">:</span> [</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>                {</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>                    <span class="st">&quot;rel&quot;</span><span class="op">:</span> <span class="st">&quot;self&quot;</span><span class="op">,</span></span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>                    <span class="st">&quot;href&quot;</span><span class="op">:</span> <span class="st">&quot;/myService/sakila/city/364&quot;</span></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>                }</span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>            ]<span class="op">,</span></span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;cityId&quot;</span><span class="op">:</span> 364<span class="op">,</span></span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;_metadata&quot;</span><span class="op">:</span> {}</span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>        }<span class="op">,</span></span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>        {</span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;city&quot;</span><span class="op">:</span> <span class="st">&quot;Nezahualcyotl&quot;</span><span class="op">,</span></span>
+<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;links&quot;</span><span class="op">:</span> [</span>
+<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a>                {</span>
+<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a>                    <span class="st">&quot;rel&quot;</span><span class="op">:</span> <span class="st">&quot;self&quot;</span><span class="op">,</span></span>
+<span id="cb24-20"><a href="#cb24-20" aria-hidden="true" tabindex="-1"></a>                    <span class="st">&quot;href&quot;</span><span class="op">:</span> <span class="st">&quot;/myService/sakila/city/365&quot;</span></span>
+<span id="cb24-21"><a href="#cb24-21" aria-hidden="true" tabindex="-1"></a>                }</span>
+<span id="cb24-22"><a href="#cb24-22" aria-hidden="true" tabindex="-1"></a>            ]<span class="op">,</span></span>
+<span id="cb24-23"><a href="#cb24-23" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;cityId&quot;</span><span class="op">:</span> 365<span class="op">,</span></span>
+<span id="cb24-24"><a href="#cb24-24" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;_metadata&quot;</span><span class="op">:</span> {</span>
+<span id="cb24-25"><a href="#cb24-25" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;etag&quot;</span><span class="op">:</span> <span class="st">&quot;681C34301F6ED6FD1200505C9C2CFB90E3367A267B7AADBD85186D781FEC7C19&quot;</span></span>
+<span id="cb24-26"><a href="#cb24-26" aria-hidden="true" tabindex="-1"></a>            }</span>
+<span id="cb24-27"><a href="#cb24-27" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb24-28"><a href="#cb24-28" aria-hidden="true" tabindex="-1"></a>    ]<span class="op">,</span></span>
+<span id="cb24-29"><a href="#cb24-29" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;limit&quot;</span><span class="op">:</span> 25<span class="op">,</span></span>
+<span id="cb24-30"><a href="#cb24-30" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;offset&quot;</span><span class="op">:</span> 0<span class="op">,</span></span>
+<span id="cb24-31"><a href="#cb24-31" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;hasMore&quot;</span><span class="op">:</span> false<span class="op">,</span></span>
+<span id="cb24-32"><a href="#cb24-32" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;count&quot;</span><span class="op">:</span> 2<span class="op">,</span></span>
+<span id="cb24-33"><a href="#cb24-33" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;links&quot;</span><span class="op">:</span> [</span>
+<span id="cb24-34"><a href="#cb24-34" aria-hidden="true" tabindex="-1"></a>        {</span>
+<span id="cb24-35"><a href="#cb24-35" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;rel&quot;</span><span class="op">:</span> <span class="st">&quot;self&quot;</span><span class="op">,</span></span>
+<span id="cb24-36"><a href="#cb24-36" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;href&quot;</span><span class="op">:</span> <span class="st">&quot;/myService/sakila/city/&quot;</span></span>
+<span id="cb24-37"><a href="#cb24-37" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb24-38"><a href="#cb24-38" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb24-39"><a href="#cb24-39" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <p>To quickly edit a REST DB Object using the <a
+                href="#mrs-object-dialog">REST Object dialog</a>, the
+                <code>edit()</code> function can be used. Please note
+                that this function is only available on DB
+                Notebooks.</p>
+                <div class="sourceCode" id="cb25"><pre
+                class="sourceCode ts"><code class="sourceCode typescript"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>ts<span class="op">&gt;</span> myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">edit</span>()</span></code></pre></div>
+                <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+
+                This program is free software; you can redistribute it and/or modify
+                it under the terms of the GNU General Public License, version 2.0,
+                as published by the Free Software Foundation.
+
+                This program is also distributed with certain software (including
+                but not limited to OpenSSL) that is licensed under separate terms, as
+                designated in a particular file or component or in included license
+                documentation.  The authors of MySQL hereby grant you an additional
+                permission to link the program and your derivative works with the
+                separately licensed software that they have included with MySQL.
+                This program is distributed in the hope that it will be useful,  but
+                WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+                the GNU General Public License, version 2.0, for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program; if not, write to the Free Software Foundation, Inc.,
+                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+                <h1 data-number="6"
+                id="json-relational-duality-views"><span
+                class="header-section-number">6</span> JSON-Relational
+                Duality Views</h1>
+                <h2 data-number="6.1"
+                id="introduction-to-duality-views"><span
+                class="header-section-number">6.1</span> Introduction to
+                Duality Views</h2>
+                <p>Duality views combine the advantages of relational
+                schemas with the ease-of-use of document databases. They
+                give your data a conceptual and an operational duality
+                as it is organized both relationally and hierarchically.
+                You can base different duality views on data stored in
+                one or more of the same tables, providing different JSON
+                hierarchies over the same, shared data. This means that
+                applications can access (create, query, modify) the same
+                data as a collection of JSON documents or as a set of
+                related tables and columns, and both approaches can be
+                employed at the same time.</p>
+                <h3 data-number="6.1.1" id="use-cases"><span
+                class="header-section-number">6.1.1</span> Use
+                Cases</h3>
+                <p>The MySQL REST Service offers full support for
+                duality views. They are used to cover both, the
+                relational use case (1) as well as the document centric
+                use case (2).</p>
+                <ol type="1">
+                <li>Make a single relational table or view available via
+                a REST endpoint
+                <ul>
+                <li>Exposes the rows of a table as a set of
+                <strong>flat</strong> JSON documents</li>
+                <li>Allows the application to use a traditional
+                relational approach when needed</li>
+                </ul></li>
+                <li>Create a single REST endpoint for a set of related
+                database schema tables
+                <ul>
+                <li>Exposes the related tables as
+                <strong>nested</strong> JSON objects inside a set of
+                JSON documents</li>
+                <li>Allows the application to take an document oriented
+                approach</li>
+                </ul></li>
+                </ol>
+                <p>The following figure visualizes these two use
+                cases.</p>
+                <figure>
+                <img
+                src="sections/devGuide/../../images/json-relational-duality-use-cases.svg"
+                title="JSON Relational Duality - Use Cases"
+                alt="JSON Relational Duality - Use Cases" />
+                <figcaption aria-hidden="true">JSON Relational Duality -
+                Use Cases</figcaption>
+                </figure>
+                <h3 data-number="6.1.2"
+                id="rest-duality-view-workflow"><span
+                class="header-section-number">6.1.2</span> REST Duality
+                View Workflow</h3>
+                <p>In the scope of the MySQL REST Service,
+                JSON-Relational duality views are exposed as REST
+                duality views. These can be created using the <a
+                href="ddl.html#create-rest-duality-view">CREATE REST
+                DUALITY VIEW</a> MRS DDL statement or <a
+                href="#interactive-duality-view-design">interactively
+                using the MRS Object Dialog</a> of the MySQL Shell for
+                VS Code extension.</p>
+                <p>Once a REST duality views has been created, it is
+                extremely simple to access it using REST. The following
+                workflow applies.</p>
+                <ul>
+                <li>GET a document from the REST duality view</li>
+                <li>Make any changes needed to the document, including
+                changes to the nested JSON objects</li>
+                <li>PUT the document back into the REST duality
+                view</li>
+                </ul>
+                <p>The next figure shows a typical JSON document update
+                cycle.</p>
+                <figure>
+                <img
+                src="sections/devGuide/../../images/json-relational-duality-update-cycle.svg"
+                title="JSON Relational Duality - Update Cycle"
+                alt="JSON Relational Duality - Update Cycle" />
+                <figcaption aria-hidden="true">JSON Relational Duality -
+                Update Cycle</figcaption>
+                </figure>
+                <p>The database automatically detects the changes in the
+                new document and modifies the underlying rows, including
+                all nested tables. All duality views that share the same
+                data immediately reflect this change. This drastically
+                simplifies application development since developers no
+                longer have to worry about inconsistencies, compared to
+                using traditional document databases.</p>
+                <h2 data-number="6.2"
+                id="interactive-duality-view-design"><span
+                class="header-section-number">6.2</span> Interactive
+                Duality View Design</h2>
+                <p>While REST duality views can be created by manually
+                writing <a
+                href="ddl.html#create-rest-duality-view">CREATE REST
+                DUALITY VIEW</a> MRS DDL statements, it is often much
+                easier to design REST duality views in a visual
+                editor.</p>
+                <p><a
+                href="https://marketplace.visualstudio.com/items?itemName=Oracle.mysql-shell-for-vs-code">MySQL
+                Shell for VS Code</a> includes the MySQL REST Object
+                dialog which features an advanced
+                <code>JSON/Relational Duality</code> designer. Using
+                this designer it is possible to create even complex,
+                nested REST duality views within seconds.</p>
+                <p>The <code>DDL Preview</code> button allows to preview
+                the corresponding MRS DDL statement while interactively
+                designing the REST duality view.</p>
+                <h3 data-number="6.2.1"
+                id="building-a-jsonrelational-duality-view"><span
+                class="header-section-number">6.2.1</span> Building a
+                JSON/Relational Duality View</h3>
+                <p>Building a REST duality view for a single relational
+                table (or view) is straight forward. Using MySQL Shell
+                for VS Code to <a
+                href="adding-a-schema-object-with-mysql-shell-for-vs-code-ui">add
+                the database schema table</a> automatically creates the
+                corresponding REST duality view containing all columns
+                of the table in a <strong>flat</strong> JSON object.</p>
+                <figure>
+                <img
+                src="sections/devGuide/../../images/vsc-mrs-json-relational-editor.svg"
+                title="JSON Relational Editor"
+                alt="JSON Relational Editor" />
+                <figcaption aria-hidden="true">JSON Relational
+                Editor</figcaption>
+                </figure>
+                <p>Adding the database schema table via VS Code is equal
+                to calling the <a
+                href="ddl.html#create-rest-duality-view">CREATE REST
+                DUALITY VIEW</a> MRS DDL statement without a
+                <code>graphGlObj</code> definition, which also adds all
+                columns of the table as a <strong>flat</strong> JSON
+                object.</p>
+                <div class="sourceCode" id="cb26"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST DUALITY <span class="kw">VIEW</span> <span class="op">/</span>city</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> `sakila`.`city` <span class="kw">AS</span> MyServiceSakilaCity;</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST <span class="kw">VIEW</span> <span class="op">/</span>city;</span></code></pre></div>
+                <div class="sourceCode" id="cb27"><pre
+                class="sourceCode txt"><code class="sourceCode default"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>+-----------------------------------------------+</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>| CREATE REST DUALITY VIEW                      |</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>+-----------------------------------------------+</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>| CREATE OR REPLACE REST DUALITY VIEW /city     |</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>|     ON SERVICE /myTestService SCHEMA /sakila  |</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>|     AUTHENTICATION REQUIRED                   |</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>|     FROM sakila.city AS MyServiceSakilaCity { |</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>|         cityId: city_id,                      |</span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>|         city: city,                           |</span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>|         countryId: country_id,                |</span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>|         lastUpdate: last_update               |</span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>|     };                                        |</span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>+-----------------------------------------------+</span></code></pre></div>
+                <blockquote>
+                <p>Note: In order to be able to access the REST object
+                without authentication, the <code>Requires Auth</code>
+                checkbox needs to be unchecked in the MySQL REST Object
+                dialog or the <code>AUTHENTICATION NOT REQUIRED</code>
+                clause needs to be added to the MRS DDL statement. This
+                should only be done during development time or when a
+                REST endpoint should be publicly available.</p>
+                </blockquote>
+                <h4 data-number="6.2.1.1"
+                id="enabling-crud-operations"><span
+                class="header-section-number">6.2.1.1</span> Enabling
+                CRUD Operations</h4>
+                <p>Since only the <code>READ</code> CRUD operation is
+                enabled by default (see the <code>R</code> being
+                highlighted next to the relational object), only read
+                commands will be allowed on the REST object. To change
+                this, toggle each <code>CRUD</code> letter
+                (<code>C</code> - Create, <code>R</code> - Read,
+                <code>U</code> - Update and <code>D</code> - Delete) to
+                enable or disable the corresponding functionality in the
+                MySQL REST Object dialog.</p>
+                <p>The same can be achieved by using annotations in the
+                MRS DDL statement.</p>
+                <div class="sourceCode" id="cb28"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST DUALITY <span class="kw">VIEW</span> <span class="op">/</span>city</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> `sakila`.`city` @INSERT @UPDATE @DELETE <span class="kw">AS</span> MyServiceSakilaCity;</span></code></pre></div>
+                <p>The following table shows the mapping between CRUD
+                operations and SQL operations.</p>
+                <table>
+                <thead>
+                <tr class="header">
+                <th>Letter</th>
+                <th>CRUD Operation</th>
+                <th>SQL Operation</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="odd">
+                <td>C</td>
+                <td>CREATE</td>
+                <td>CREATE</td>
+                </tr>
+                <tr class="even">
+                <td>R</td>
+                <td>READ</td>
+                <td>SELECT</td>
+                </tr>
+                <tr class="odd">
+                <td>U</td>
+                <td>UPDATE</td>
+                <td>UPDATE</td>
+                </tr>
+                <tr class="even">
+                <td>D</td>
+                <td>DELETE</td>
+                <td>DELETE</td>
+                </tr>
+                </tbody>
+                </table>
+                <h3 data-number="6.2.2"
+                id="creating-a-nested-jsonrelational-duality-view"><span
+                class="header-section-number">6.2.2</span> Creating a
+                Nested JSON/Relational Duality View</h3>
+                <p>By enabling a referenced table, the columns of that
+                table are included as a nested entry in the JSON result.
+                Please note that this works with 1:1 and 1:n
+                relationships.</p>
+                <figure>
+                <img
+                src="sections/devGuide/../../images/vsc-mrs-json-relational-editor-2-referenced-table.png"
+                title="Adding a Referenced Table"
+                alt="Adding a Referenced Table" />
+                <figcaption aria-hidden="true">Adding a Referenced
+                Table</figcaption>
+                </figure>
+                <p>This leads to the following result.</p>
+                <div class="sourceCode" id="cb29"><pre
+                class="sourceCode js"><code class="sourceCode javascript"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findFirst</span>()<span class="op">;</span></span></code></pre></div>
+                <div class="sourceCode" id="cb30"><pre
+                class="sourceCode json"><code class="sourceCode json"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;city&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;A Corua (La Corua)&quot;</span><span class="fu">,</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;links&quot;</span><span class="fu">:</span><span class="er"> </span><span class="ot">[</span></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;rel&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;self&quot;</span><span class="fu">,</span></span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;href&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;/myService/sakila/city/1&quot;</span></span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;cityId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;country&quot;</span><span class="fu">:</span><span class="er"> </span><span class="fu">{</span></span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;country&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;Spain&quot;</span><span class="fu">,</span></span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;countryId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">87</span><span class="fu">,</span></span>
+<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;2006-02-15 04:44:00.000000&quot;</span></span>
+<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;countryId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">87</span><span class="fu">,</span></span>
+<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span><span class="fu">,</span></span>
+<span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;_metadata&quot;</span><span class="fu">:</span><span class="er"> </span><span class="fu">{</span></span>
+<span id="cb30-18"><a href="#cb30-18" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;etag&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;FFA2187AD4B98DF48EC40B3E807E0561A71D02C2F4F5A3B953AA6CB6E41CAD16&quot;</span></span>
+<span id="cb30-19"><a href="#cb30-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb30-20"><a href="#cb30-20" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+                <h3 data-number="6.2.3"
+                id="creating-a-jsonrelational-duality-view-with-an-unnested-referenced-table"><span
+                class="header-section-number">6.2.3</span> Creating a
+                JSON/Relational Duality View with an Unnested Referenced
+                Table</h3>
+                <p>If the columns of the referenced table should be
+                added to the level above, the <code>Unnest</code> option
+                can be enabled.</p>
+                <figure>
+                <img
+                src="sections/devGuide/../../images/vsc-mrs-json-relational-editor-3-referenced-table-unnested.png"
+                title="Unnest a Referenced Table"
+                alt="Unnest a Referenced Table" />
+                <figcaption aria-hidden="true">Unnest a Referenced
+                Table</figcaption>
+                </figure>
+                <p>This leads to the following result.</p>
+                <div class="sourceCode" id="cb31"><pre
+                class="sourceCode js"><code class="sourceCode javascript"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findFirst</span>()<span class="op">;</span></span></code></pre></div>
+                <div class="sourceCode" id="cb32"><pre
+                class="sourceCode json"><code class="sourceCode json"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;city&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;A Corua (La Corua)&quot;</span><span class="fu">,</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;links&quot;</span><span class="fu">:</span><span class="er"> </span><span class="ot">[</span></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;rel&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;self&quot;</span><span class="fu">,</span></span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;href&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;/myService/sakila/city/1&quot;</span></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;cityId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;country&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;Spain&quot;</span><span class="fu">,</span></span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;countryId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">87</span><span class="fu">,</span></span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span><span class="fu">,</span></span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;_metadata&quot;</span><span class="fu">:</span><span class="er"> </span><span class="fu">{</span></span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;etag&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;48889BABCBBA1491D25DFE0D7A270FA3FDF8A16DA8E44E42C61759DE1F0D6E35&quot;</span></span>
+<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+                <h3 data-number="6.2.4"
+                id="creating-a-jsonrelational-duality-view-with-a-reduced-referenced-table"><span
+                class="header-section-number">6.2.4</span> Creating a
+                JSON/Relational Duality View with a Reduced Referenced
+                Table</h3>
+                <p>Instead of having all columns unnested and disabling
+                all columns that are not wanted, the
+                <code>Reduce to...</code> dropdown can be used to select
+                the column that should be selected for the reduce
+                operation.</p>
+                <figure>
+                <img
+                src="sections/devGuide/../../images/vsc-mrs-json-relational-editor-4-referenced-table-reduced.png"
+                title="A Reduced Referenced Table"
+                alt="A Reduced Referenced Table" />
+                <figcaption aria-hidden="true">A Reduced Referenced
+                Table</figcaption>
+                </figure>
+                <p>This leads to the same result as the query above.</p>
+                <div class="sourceCode" id="cb33"><pre
+                class="sourceCode js"><code class="sourceCode javascript"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findFirst</span>()<span class="op">;</span></span></code></pre></div>
+                <div class="sourceCode" id="cb34"><pre
+                class="sourceCode json"><code class="sourceCode json"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;city&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;A Corua (La Corua)&quot;</span><span class="fu">,</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;links&quot;</span><span class="fu">:</span><span class="er"> </span><span class="ot">[</span></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;rel&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;self&quot;</span><span class="fu">,</span></span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;href&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;/myService/sakila/city/1&quot;</span></span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;cityId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;country&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;Spain&quot;</span><span class="fu">,</span></span>
+<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;countryId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">87</span><span class="fu">,</span></span>
+<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span><span class="fu">,</span></span>
+<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;_metadata&quot;</span><span class="fu">:</span><span class="er"> </span><span class="fu">{</span></span>
+<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;etag&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;48889BABCBBA1491D25DFE0D7A270FA3FDF8A16DA8E44E42C61759DE1F0D6E35&quot;</span></span>
+<span id="cb34-15"><a href="#cb34-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb34-16"><a href="#cb34-16" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+                <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+
+                This program is free software; you can redistribute it and/or modify
+                it under the terms of the GNU General Public License, version 2.0,
+                as published by the Free Software Foundation.
+
+                This program is also distributed with certain software (including
+                but not limited to OpenSSL) that is licensed under separate terms, as
+                designated in a particular file or component or in included license
+                documentation.  The authors of MySQL hereby grant you an additional
+                permission to link the program and your derivative works with the
+                separately licensed software that they have included with MySQL.
+                This program is distributed in the hope that it will be useful,  but
+                WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+                the GNU General Public License, version 2.0, for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program; if not, write to the Free Software Foundation, Inc.,
+                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+                <h1 data-number="7" id="mrs-dialog-reference"><span
+                class="header-section-number">7</span> MRS Dialog
+                Reference</h1>
+                <p>This section discusses the individual MRS UI dialogs
+                offered by MySQL Shell for VS Code.</p>
+                <h2 data-number="7.1" id="mrs-service-dialog"><span
+                class="header-section-number">7.1</span> MRS Service
+                Dialog</h2>
+                <h3 data-number="7.1.1"
                 id="rest-service-properties"><span
-                class="header-section-number">4.2.3</span> REST Service
+                class="header-section-number">7.1.1</span> REST Service
                 Properties</h3>
                 <p>Each REST service has a common set of properties.</p>
                 <table>
@@ -986,9 +1998,9 @@ router_id=16</code></pre>
                 </tr>
                 </tbody>
                 </table>
-                <h3 data-number="4.2.4"
+                <h3 data-number="7.1.2"
                 id="rest-service-advanced-options"><span
-                class="header-section-number">4.2.4</span> REST Service
+                class="header-section-number">7.1.2</span> REST Service
                 Advanced Options</h3>
                 <p>The following advanced options can be set in JSON
                 format:</p>
@@ -1028,9 +2040,9 @@ router_id=16</code></pre>
                 sent to the client.</li>
                 </ul></li>
                 </ul>
-                <h4 data-number="4.2.4.1"
+                <h4 data-number="7.1.2.1"
                 id="default-rest-service-options"><span
-                class="header-section-number">4.2.4.1</span> Default
+                class="header-section-number">7.1.2.1</span> Default
                 REST Service Options</h4>
                 <p>The example that follows shows the options that are
                 used as default when deploying a new service.</p>
@@ -1043,29 +2055,29 @@ router_id=16</code></pre>
                 domain that generates the request. This is done to work
                 around Cross-origin resource sharing (CORS) checks of
                 web browsers during development time.</p>
-                <div class="sourceCode" id="cb11"><pre
-                class="sourceCode json"><code class="sourceCode json"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;headers&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;Access-Control-Allow-Credentials&quot;</span><span class="fu">:</span> <span class="st">&quot;true&quot;</span><span class="fu">,</span></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;Access-Control-Allow-Headers&quot;</span><span class="fu">:</span> <span class="st">&quot;Content-Type, Authorization, X-Requested-With, Origin, X-Auth-Token&quot;</span><span class="fu">,</span></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;Access-Control-Allow-Methods&quot;</span><span class="fu">:</span> <span class="st">&quot;GET, POST, PUT, DELETE, OPTIONS&quot;</span></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;http&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;allowedOrigin&quot;</span><span class="fu">:</span> <span class="st">&quot;auto&quot;</span></span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;logging&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;exceptions&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;request&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;body&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
-<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;headers&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
-<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>        <span class="fu">},</span></span>
-<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;response&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;body&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
-<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;headers&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
-<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
-<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
-<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;returnInternalErrorDetails&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
-<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+                <div class="sourceCode" id="cb35"><pre
+                class="sourceCode json"><code class="sourceCode json"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;headers&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;Access-Control-Allow-Credentials&quot;</span><span class="fu">:</span> <span class="st">&quot;true&quot;</span><span class="fu">,</span></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;Access-Control-Allow-Headers&quot;</span><span class="fu">:</span> <span class="st">&quot;Content-Type, Authorization, X-Requested-With, Origin, X-Auth-Token&quot;</span><span class="fu">,</span></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;Access-Control-Allow-Methods&quot;</span><span class="fu">:</span> <span class="st">&quot;GET, POST, PUT, DELETE, OPTIONS&quot;</span></span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;http&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;allowedOrigin&quot;</span><span class="fu">:</span> <span class="st">&quot;auto&quot;</span></span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;logging&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;exceptions&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;request&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;body&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;headers&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
+<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a>        <span class="fu">},</span></span>
+<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;response&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;body&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb35-18"><a href="#cb35-18" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;headers&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
+<span id="cb35-19"><a href="#cb35-19" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb35-20"><a href="#cb35-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb35-21"><a href="#cb35-21" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;returnInternalErrorDetails&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
+<span id="cb35-22"><a href="#cb35-22" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
                 <p>When deploying a REST service in production, the
                 following settings need to be changed:</p>
                 <ol type="1">
@@ -1077,209 +2089,12 @@ router_id=16</code></pre>
                 <code>false</code>.</li>
                 <li>Adjust the logging settings as needed.</li>
                 </ol>
-                <h3 data-number="4.2.5"
-                id="rest-service-definitions"><span
-                class="header-section-number">4.2.5</span> REST Service
-                Definitions</h3>
-                <h4 data-number="4.2.5.1" id="about-mrs-autorest"><span
-                class="header-section-number">4.2.5.1</span> About MRS
-                AutoREST</h4>
-                <p>AutoREST is a quick and easy way to expose database
-                schema tables, views, and procedures as REST
-                resources.</p>
-                <h4 data-number="4.2.5.2" id="rest-apis"><span
-                class="header-section-number">4.2.5.2</span> REST
-                APIs</h4>
-                <p>Representational State Transfer (REST) is a style of
-                software architecture for distributed hypermedia systems
-                such as the World Wide Web. An API is described as
-                RESTful when it conforms to the tenets of REST. Although
-                a full discussion of REST is outside the scope of this
-                document, a REST API has the following
-                characteristics:</p>
-                <ul>
-                <li><p>Data is modelled as a set of resources. Resources
-                are identified by URIs.</p></li>
-                <li><p>A small, uniform set of operations are used to
-                manipulate resources (for example, PUT, POST, GET,
-                DELETE).</p></li>
-                <li><p>A resource can have multiple representations (for
-                example, a blog might have an HTML representation and an
-                RSS representation).</p></li>
-                <li><p>Services are stateless and since it is likely
-                that the client will want to access related resources,
-                these should be identified in the representation
-                returned, typically by providing hypertext
-                links.</p></li>
-                </ul>
-                <h4 data-number="4.2.5.3"
-                id="restful-services-terminology"><span
-                class="header-section-number">4.2.5.3</span> RESTful
-                Services Terminology</h4>
-                <p>This section introduces some common terms that are
-                used throughout this document:</p>
-                <ul>
-                <li><p><strong>RESTful service:</strong> An HTTP web
-                service that conforms to the tenets of the RESTful
-                architectural style.</p></li>
-                <li><p><strong>Resource module:</strong> An
-                organizational unit that is used to group related
-                resource templates.</p></li>
-                <li><p><strong>Resource template:</strong> An individual
-                RESTful service that is able to service requests for
-                some set of URIs (Universal Resource Identifiers). The
-                set of URIs is defined by the URI Pattern of the
-                Resource Template</p></li>
-                <li><p><strong>URI pattern:</strong> A pattern for the
-                resource template. Can be either a route pattern or a
-                URI template, although you are encouraged to use route
-                patterns.</p></li>
-                <li><p><strong>Route pattern:</strong> A pattern that
-                focuses on decomposing the path portion of a URI into
-                its component parts. For example, a pattern of
-                /:object/:id? will match /emp/101 (matches a request for
-                the item in the emp resource with id of 101) and will
-                also match /emp/ (matches a request for the emp
-                resource, because the :id parameter is annotated with
-                the ? modifier, which indicates that the id parameter is
-                optional).</p></li>
-                <li><p><strong>HTTP operation:</strong> HTTP (HyperText
-                Transport Protocol) defines standard methods that can be
-                performed on resources: GET (retrieve the resource
-                contents), POST (store a new resource), PUT (update an
-                existing resource), and DELETE (remove a
-                resource).</p></li>
-                </ul>
-                <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
-
-                This program is free software; you can redistribute it and/or modify
-                it under the terms of the GNU General Public License, version 2.0,
-                as published by the Free Software Foundation.
-
-                This program is also distributed with certain software (including
-                but not limited to OpenSSL) that is licensed under separate terms, as
-                designated in a particular file or component or in included license
-                documentation.  The authors of MySQL hereby grant you an additional
-                permission to link the program and your derivative works with the
-                separately licensed software that they have included with MySQL.
-                This program is distributed in the hope that it will be useful,  but
-                WITHOUT ANY WARRANTY; without even the implied warranty of
-                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
-                the GNU General Public License, version 2.0, for more details.
-
-                You should have received a copy of the GNU General Public License
-                along with this program; if not, write to the Free Software Foundation, Inc.,
-                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
-                <h1 data-number="5"
-                id="adding-database-schemas-and-objects-to-a-rest-service"><span
-                class="header-section-number">5</span> Adding Database
-                Schemas and Objects to a REST Service</h1>
-                <p>Adding database schema objects (tables, views, or
-                procedures) to a MySQL REST Service (MRS) allows them to
-                be accessed through RESTful Web services. Before
-                database schema object can be added, the database schema
-                containing those objects has to be added to the REST
-                service first.</p>
-                <p>The following figure shows the a REST schema and its
-                REST objects.</p>
-                <figure>
-                <img
-                src="sections/../images/vsc-mrs-schema-and-objects.png"
-                title="REST Schema and its Objects"
-                alt="REST Schema and its Objects" />
-                <figcaption aria-hidden="true">REST Schema and its
-                Objects</figcaption>
-                </figure>
-                <p>Note: Adding a database schema is not equivalent to
-                exposing all tables and views in the schema through the
-                RESTful Web service. It just means making the MySQL REST
-                Service aware that the schema exists and that it may
-                have zero or more resources to expose to HTTP/S.</p>
-                <h2 data-number="5.1"
-                id="preconditions-for-adding-database-schemas-and-objects"><span
-                class="header-section-number">5.1</span> Preconditions
-                for Adding Database Schemas and Objects</h2>
-                <p>Before adding REST schemas and objects, ensure that
-                the following preconditions are met:</p>
-                <ul>
-                <li>A REST service must be added first (see <a
-                href="#adding-a-rest-service">Adding a REST
-                Service</a>).</li>
-                <li>The MySQL account used to connect to the targeting
-                MySQL Solution needs to be granted the
-                <code>mysql_rest_service_schema_admin</code> MySQL role
-                or a superset of privileges.</li>
-                </ul>
-                <p>To grant the
-                <code>mysql_rest_service_schema_admin</code> MySQL role,
-                execute the following SQL statement.</p>
-                <div class="sourceCode" id="cb12"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> <span class="st">&#39;mysql_rest_service_schema_admin&#39;</span> <span class="kw">TO</span> <span class="st">&#39;user_account&#39;</span>@<span class="st">&#39;%&#39;</span>;</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co">-- Please ensure to include all roles in the next statement</span></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co">-- that should become active when the user connects</span></span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="kw">ALTER</span> <span class="fu">USER</span> <span class="st">&#39;user_account&#39;</span>@<span class="st">&#39;%&#39;</span> <span class="kw">DEFAULT</span> <span class="kw">ROLE</span> <span class="st">&#39;mysql_rest_service_schema_admin&#39;</span>;</span></code></pre></div>
-                <h2 data-number="5.2"
-                id="adding-a-database-schema"><span
-                class="header-section-number">5.2</span> Adding a
-                Database Schema</h2>
-                <p>It is possible to add MySQL database schemas by using
-                MySQL Shell for VS Code through dialogs, MySQL Shell
-                directly on the command line, or with scripts.</p>
-                <h3 data-number="5.2.1"
-                id="adding-a-schema-with-mysql-shell-for-vs-code"><span
-                class="header-section-number">5.2.1</span> Adding a
-                Schema with MySQL Shell for VS Code</h3>
-                <p>To add a database schema to a REST service:</p>
-                <ol type="1">
-                <li><p>Right-click the schema in the DATABASE
-                CONNECTIONS view and select
-                <code>Add Schema to REST Service</code> to open a dialog
-                from which you set all REST schema parameters.</p></li>
-                <li><p>Click <code>OK</code> to add the schema.</p></li>
-                </ol>
-                <figure>
-                <img src="sections/../images/vsc-mrs-add-schema.png"
-                title="Adding a Database Schema"
-                alt="Adding a Database Schema" />
-                <figcaption aria-hidden="true">Adding a Database
-                Schema</figcaption>
-                </figure>
-                <h3 data-number="5.2.2"
-                id="adding-a-schema-with-mysql-shell"><span
-                class="header-section-number">5.2.2</span> Adding a
-                Schema with MySQL Shell</h3>
-                <p>To add a database schema to a REST service, call the
-                <code>mrs.add.schema()</code> function.</p>
-                <p>When started without parameters, an interactive
-                wizard prompts you for the required parameters.</p>
-                <div class="sourceCode" id="cb13"><pre
-                class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a> <span class="ex">MySQL</span> <span class="op">&gt;</span> localhost:33060+ <span class="op">&gt;</span> JS <span class="op">&gt;</span> mrs.add.schema<span class="er">(</span><span class="kw">)</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>   <span class="ex">1</span> information_schema</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>   <span class="ex">2</span> performance_schema</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>   <span class="ex">3</span> sys</span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>   <span class="ex">4</span> sakila</span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>   <span class="ex">5</span> test</span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>   <span class="ex">6</span> forum</span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>   <span class="ex">7</span> ortho</span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>   <span class="ex">8</span> mrs_notes</span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the name or index of a schema: 4</span>
-<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the request path for this schema [/sakila]: /sakila</span>
-<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a><span class="ex">Should</span> the schema require authentication [y/N]: </span>
-<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a><span class="ex">How</span> many items should be listed per page [Schema Default]: </span>
-<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a><span class="ex">Comments:</span> </span>
-<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a><span class="ex">Options:</span> </span>
-<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a><span class="ex">Service</span> with path /sakila created successfully.</span></code></pre></div>
-                <p>Execute the following command to get detailed help
-                information about the <code>mrs.add.schema()</code>
-                function.</p>
-                <div class="sourceCode" id="cb14"><pre
-                class="sourceCode js"><code class="sourceCode javascript"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>\<span class="op">?</span> mrs<span class="op">.</span><span class="at">add</span><span class="op">.</span><span class="at">schema</span></span></code></pre></div>
-                <h3 data-number="5.2.3"
+                <h2 data-number="7.2" id="mrs-schema-dialog"><span
+                class="header-section-number">7.2</span> MRS Schema
+                Dialog</h2>
+                <h3 data-number="7.2.1"
                 id="rest-schema-properties"><span
-                class="header-section-number">5.2.3</span> REST Schema
+                class="header-section-number">7.2.1</span> REST Schema
                 Properties</h3>
                 <p>Each REST schema has a common set of properties.</p>
                 <table>
@@ -1333,109 +2148,13 @@ router_id=16</code></pre>
                 </tr>
                 </tbody>
                 </table>
-                <h2 data-number="5.3"
-                id="adding-a-database-object"><span
-                class="header-section-number">5.3</span> Adding a
-                Database Object</h2>
-                <p>It is possible to add MySQL database schema objects
-                (tables, views, and stored procedures) by using MySQL
-                Shell for VS Code through dialogs, MySQL Shell directly
-                on the command line, or with scripts.</p>
-                <h3 data-number="5.3.1"
-                id="adding-a-database-object-with-mysql-shell-for-vs-code"><span
-                class="header-section-number">5.3.1</span> Adding a
-                Database Object with MySQL Shell for VS Code</h3>
-                <p>To add a database schema object to a REST schema:</p>
-                <ol type="1">
-                <li><p>Right-click on the database object in the
-                DATABASE CONNECTIONS view and select
-                <code>Add Database Object to REST Service</code>. This
-                will open the <a
-                href="#mysql-rest-object-dialog-reference">MySQL REST
-                Object dialog</a>.</p></li>
-                <li><p>Adjust all REST object settings
-                accordingly.</p></li>
-                <li><p>Press <code>OK</code> to add the database schema
-                object.</p></li>
-                </ol>
-                <figure>
-                <img src="sections/../images/vsc-mrs-add-db-object.png"
-                title="Adding a Database Object"
-                alt="Adding a Database Object" />
-                <figcaption aria-hidden="true">Adding a Database
-                Object</figcaption>
-                </figure>
-                <h3 data-number="5.3.2"
-                id="adding-a-database-object-with-mysql-shell"><span
-                class="header-section-number">5.3.2</span> Adding a
-                Database Object with MySQL Shell</h3>
-                <p>To add a database schema to a REST service call the
-                <code>mrs.add.dbObject()</code> function.</p>
-                <p>When started without parameters, an interactive
-                wizard prompts you for the required parameters.</p>
-                <div class="sourceCode" id="cb15"><pre
-                class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ex">MySQL</span> <span class="op">&gt;</span> localhost:33060+ <span class="op">&gt;</span> JS <span class="op">&gt;</span> mrs.add.dbObject<span class="er">(</span><span class="kw">)</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>   <span class="ex">1</span> mrs_notes</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>   <span class="ex">2</span> sakila</span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the name or index of a schema: 2</span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>   <span class="ex">1</span> TABLE</span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>   <span class="ex">2</span> VIEW</span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>   <span class="ex">3</span> PROCEDURE</span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the name or index of a database object type [TABLE]: </span>
-<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>   <span class="ex">1</span> actor</span>
-<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>   <span class="ex">2</span> address</span>
-<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>   <span class="ex">3</span> category</span>
-<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>   <span class="ex">4</span> city</span>
-<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>   <span class="ex">5</span> country</span>
-<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>   <span class="ex">6</span> customer</span>
-<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>   <span class="ex">7</span> film</span>
-<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>   <span class="ex">8</span> film_actor</span>
-<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>   <span class="ex">9</span> film_category</span>
-<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>  <span class="ex">10</span> film_text</span>
-<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a>  <span class="ex">11</span> inventory</span>
-<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a>  <span class="ex">12</span> language</span>
-<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a>  <span class="ex">13</span> payment</span>
-<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a>  <span class="ex">14</span> rental</span>
-<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a>  <span class="ex">15</span> staff</span>
-<span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a>  <span class="ex">16</span> store</span>
-<span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the name or index of an database object: 4</span>
-<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> enter the request path for this object [/city]: </span>
-<span id="cb15-30"><a href="#cb15-30" aria-hidden="true" tabindex="-1"></a>   <span class="ex">1</span> CREATE</span>
-<span id="cb15-31"><a href="#cb15-31" aria-hidden="true" tabindex="-1"></a>   <span class="ex">2</span> READ</span>
-<span id="cb15-32"><a href="#cb15-32" aria-hidden="true" tabindex="-1"></a>   <span class="ex">3</span> UPDATE</span>
-<span id="cb15-33"><a href="#cb15-33" aria-hidden="true" tabindex="-1"></a>   <span class="ex">4</span> DELETE</span>
-<span id="cb15-34"><a href="#cb15-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-35"><a href="#cb15-35" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> select the CRUD operations that should be supported, <span class="st">&#39;*&#39;</span> for all [READ]: </span>
-<span id="cb15-36"><a href="#cb15-36" aria-hidden="true" tabindex="-1"></a>   <span class="ex">1</span> FEED</span>
-<span id="cb15-37"><a href="#cb15-37" aria-hidden="true" tabindex="-1"></a>   <span class="ex">2</span> ITEM</span>
-<span id="cb15-38"><a href="#cb15-38" aria-hidden="true" tabindex="-1"></a>   <span class="ex">3</span> MEDIA</span>
-<span id="cb15-39"><a href="#cb15-39" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-40"><a href="#cb15-40" aria-hidden="true" tabindex="-1"></a><span class="ex">Please</span> select the CRUD operation format [FEED]: </span>
-<span id="cb15-41"><a href="#cb15-41" aria-hidden="true" tabindex="-1"></a><span class="ex">Should</span> the db_object require authentication [y/N]: </span>
-<span id="cb15-42"><a href="#cb15-42" aria-hidden="true" tabindex="-1"></a><span class="ex">Should</span> row ownership be required when querying the object [y/N]: </span>
-<span id="cb15-43"><a href="#cb15-43" aria-hidden="true" tabindex="-1"></a><span class="ex">How</span> many items should be listed per page [Schema Default]: </span>
-<span id="cb15-44"><a href="#cb15-44" aria-hidden="true" tabindex="-1"></a><span class="ex">Comments:</span> </span>
-<span id="cb15-45"><a href="#cb15-45" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-46"><a href="#cb15-46" aria-hidden="true" tabindex="-1"></a><span class="ex">Object</span> added successfully.</span></code></pre></div>
-                <p>Execute the following command to get detailed help
-                information about the <code>mrs.add.dbObject()</code>
-                function.</p>
-                <div class="sourceCode" id="cb16"><pre
-                class="sourceCode js"><code class="sourceCode javascript"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>\<span class="op">?</span> mrs<span class="op">.</span><span class="at">add</span><span class="op">.</span><span class="at">dbObject</span></span></code></pre></div>
-                <h2 data-number="5.4"
-                id="mysql-rest-object-dialog-reference"><span
-                class="header-section-number">5.4</span> MySQL REST
-                Object Dialog Reference</h2>
-                <p>The MySQL REST Object dialog is used to design the
-                representation of a database schema object on the MySQL
-                REST Service.</p>
+                <h2 data-number="7.3" id="mrs-object-dialog"><span
+                class="header-section-number">7.3</span> MRS Object
+                Dialog</h2>
                 <p>The following aspects can be set through the
                 dialog.</p>
                 <ul>
-                <li>Basic
+                <li>Basic Settings
                 <ul>
                 <li>The database schema object that should be exposed
                 via MRS</li>
@@ -1461,284 +2180,12 @@ router_id=16</code></pre>
                 </ul>
                 <figure>
                 <img
-                src="sections/../images/vsc-mrs-json-relational-editor.png"
+                src="sections/devGuide/../../images/vsc-mrs-object-dialog.svg"
                 title="The MySQL REST Object Dialog"
                 alt="The MySQL REST Object Dialog" />
                 <figcaption aria-hidden="true">The MySQL REST Object
                 Dialog</figcaption>
                 </figure>
-                <h3 data-number="5.4.1"
-                id="building-a-jsonrelational-duality-view"><span
-                class="header-section-number">5.4.1</span> Building a
-                JSON/Relational Duality View</h3>
-                <p>A simple 1:1 mapping between the REST DB Object and
-                the corresponding relational table is automatically
-                created when <a
-                href="#adding-a-database-object-with-mysql-shell">adding
-                a database object</a>.</p>
-                <p>No changes need to be applied on the MySQL REST
-                Object Dialog, except unchecking the
-                <code>Requires Auth</code> checkbox if the REST object
-                should be available without login.</p>
-                <blockquote>
-                <p>Note: If the <code>Requires Auth</code> checkbox has
-                been unchecked, the REST object will be publicly
-                available to anybody who can access the REST URL.</p>
-                </blockquote>
-                <h4 data-number="5.4.1.1"
-                id="enabling-crud-operations"><span
-                class="header-section-number">5.4.1.1</span> Enabling
-                CRUD Operations</h4>
-                <p>Since only the READ CRUD operation is enabled by
-                default (see the <code>R</code> being highlighted next
-                to the relational object), only read commands will be
-                allowed on the REST object. To change this, toggle each
-                letter (<code>R</code> - Read, <code>C</code> - Create,
-                <code>U</code> - Update and <code>D</code> - Delete) to
-                enable or disable the corresponding functionality.</p>
-                <table>
-                <thead>
-                <tr class="header">
-                <th>Letter</th>
-                <th>CRUD Operation</th>
-                <th>SQL Operation</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr class="odd">
-                <td>C</td>
-                <td>CREATE</td>
-                <td>CREATE</td>
-                </tr>
-                <tr class="even">
-                <td>R</td>
-                <td>READ</td>
-                <td>SELECT</td>
-                </tr>
-                <tr class="odd">
-                <td>U</td>
-                <td>UPDATE</td>
-                <td>UPDATE</td>
-                </tr>
-                <tr class="even">
-                <td>D</td>
-                <td>DELETE</td>
-                <td>DELETE</td>
-                </tr>
-                </tbody>
-                </table>
-                <h4 data-number="5.4.1.2"
-                id="interactively-query-the-rest-object"><span
-                class="header-section-number">5.4.1.2</span>
-                Interactively Query the REST Object</h4>
-                <p>After clicking <code>OK</code> to close the MySQL
-                REST Object dialog, the DB Notebook will be visible
-                again.</p>
-                <p>Switch the DB Notebook to TypeScript mode with
-                <code>\ts</code> if it is still in SQL mode. Now it is
-                possible to interactively query the REST object using
-                the <a href="sdk.html">MRS SDK Client API</a>.</p>
-                <div class="sourceCode" id="cb17"><pre
-                class="sourceCode js"><code class="sourceCode javascript"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>\ts</span></code></pre></div>
-                <p>If some of the REST objects require authenticate and
-                a REST Authentication App has been added to the REST
-                service, use the <code>authenticate()</code> function of
-                the REST service Client API object. This will show an
-                login dialog where the credentials of a user account can
-                be specified.</p>
-                <div class="sourceCode" id="cb18"><pre
-                class="sourceCode js"><code class="sourceCode javascript"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="fu">authenticate</span>()<span class="op">;</span></span></code></pre></div>
-                <blockquote>
-                <p>The <code>authenticate()</code> function only works
-                with the built in MRS authentication vendor. Please make
-                sure to set this vendor when adding the REST
-                Authentication App.</p>
-                </blockquote>
-                <p>In the following examples case the
-                <code>sakila.city</code> database table was used, as can
-                be seen in the screenshot above.</p>
-                <div class="sourceCode" id="cb19"><pre
-                class="sourceCode js"><code class="sourceCode javascript"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findFirst</span>()<span class="op">;</span></span></code></pre></div>
-                <div class="sourceCode" id="cb20"><pre
-                class="sourceCode json"><code class="sourceCode json"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>   <span class="dt">&quot;city&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;A Corua (La Corua)&quot;</span><span class="fu">,</span></span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>   <span class="dt">&quot;links&quot;</span><span class="fu">:</span><span class="er"> </span><span class="ot">[</span></span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>      <span class="fu">{</span></span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>         <span class="dt">&quot;rel&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;self&quot;</span><span class="fu">,</span></span>
-<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>         <span class="dt">&quot;href&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;/myService/sakila/city/1&quot;</span></span>
-<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">}</span></span>
-<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>   <span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>   <span class="dt">&quot;cityId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">1</span><span class="fu">,</span></span>
-<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>   <span class="dt">&quot;countryId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">87</span><span class="fu">,</span></span>
-<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>   <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span><span class="fu">,</span></span>
-<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>   <span class="dt">&quot;_metadata&quot;</span><span class="fu">:</span><span class="er"> </span><span class="fu">{</span></span>
-<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;etag&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;EE93452B41984F3F5BBB0395CCB2CED00F5C748FEEA4A36CCD749CC3F85B7CEA&quot;</span></span>
-<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>   <span class="fu">}</span></span>
-<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
-                <p>The fields can be filtered and a conditional where
-                clause can be added. Please refer to the <a
-                href="sdk.html">MRS SDK Client API</a> documentation for
-                more information.</p>
-                <div class="sourceCode" id="cb21"><pre
-                class="sourceCode js"><code class="sourceCode javascript"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findMany</span>({<span class="dt">select</span><span class="op">:</span> [<span class="st">&quot;city&quot;</span><span class="op">,</span> <span class="st">&quot;cityId&quot;</span>]<span class="op">,</span> <span class="dt">where</span><span class="op">:</span> {<span class="dt">city</span><span class="op">:</span> {<span class="dt">$like</span><span class="op">:</span> <span class="st">&quot;NE%&quot;</span>}}})<span class="op">;</span></span></code></pre></div>
-                <div class="sourceCode" id="cb22"><pre
-                class="sourceCode json"><code class="sourceCode json"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;items&quot;</span><span class="fu">:</span><span class="er"> </span><span class="ot">[</span></span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;city&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;Newcastle&quot;</span><span class="fu">,</span></span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;links&quot;</span><span class="fu">:</span><span class="er"> </span><span class="ot">[</span></span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>                <span class="fu">{</span></span>
-<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>                    <span class="dt">&quot;rel&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;self&quot;</span><span class="fu">,</span></span>
-<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>                    <span class="dt">&quot;href&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;/myService/sakila/city/364&quot;</span></span>
-<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>                <span class="fu">}</span></span>
-<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>            <span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;cityId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">364</span><span class="fu">,</span></span>
-<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;_metadata&quot;</span><span class="fu">:</span><span class="er"> </span><span class="fu">{}</span></span>
-<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span><span class="ot">,</span></span>
-<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
-<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;city&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;Nezahualcyotl&quot;</span><span class="fu">,</span></span>
-<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;links&quot;</span><span class="fu">:</span><span class="er"> </span><span class="ot">[</span></span>
-<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>                <span class="fu">{</span></span>
-<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>                    <span class="dt">&quot;rel&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;self&quot;</span><span class="fu">,</span></span>
-<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a>                    <span class="dt">&quot;href&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;/myService/sakila/city/365&quot;</span></span>
-<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a>                <span class="fu">}</span></span>
-<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>            <span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;cityId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">365</span><span class="fu">,</span></span>
-<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;_metadata&quot;</span><span class="fu">:</span><span class="er"> </span><span class="fu">{</span></span>
-<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a>                <span class="dt">&quot;etag&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;681C34301F6ED6FD1200505C9C2CFB90E3367A267B7AADBD85186D781FEC7C19&quot;</span></span>
-<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a>            <span class="fu">}</span></span>
-<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
-<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;limit&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">25</span><span class="fu">,</span></span>
-<span id="cb22-29"><a href="#cb22-29" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;offset&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">0</span><span class="fu">,</span></span>
-<span id="cb22-30"><a href="#cb22-30" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;hasMore&quot;</span><span class="fu">:</span><span class="er"> false</span><span class="fu">,</span></span>
-<span id="cb22-31"><a href="#cb22-31" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;count&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">2</span><span class="fu">,</span></span>
-<span id="cb22-32"><a href="#cb22-32" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;links&quot;</span><span class="fu">:</span><span class="er"> </span><span class="ot">[</span></span>
-<span id="cb22-33"><a href="#cb22-33" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
-<span id="cb22-34"><a href="#cb22-34" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;rel&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;self&quot;</span><span class="fu">,</span></span>
-<span id="cb22-35"><a href="#cb22-35" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;href&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;/myService/sakila/city/&quot;</span></span>
-<span id="cb22-36"><a href="#cb22-36" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
-<span id="cb22-37"><a href="#cb22-37" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span></span>
-<span id="cb22-38"><a href="#cb22-38" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
-                <p>To quickly edit a REST DB Object that has been
-                interactively queried, the <code>edit()</code> function
-                can be used.</p>
-                <div class="sourceCode" id="cb23"><pre
-                class="sourceCode js"><code class="sourceCode javascript"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">edit</span>()</span></code></pre></div>
-                <h3 data-number="5.4.2"
-                id="creating-a-nested-jsonrelational-duality-view"><span
-                class="header-section-number">5.4.2</span> Creating a
-                Nested JSON/Relational Duality View</h3>
-                <p>By enabling a referenced table, the columns of that
-                table are included as a nested entry in the JSON result.
-                Please note that this works with 1:1 and 1:n
-                relationships.</p>
-                <figure>
-                <img
-                src="sections/../images/vsc-mrs-json-relational-editor-2-referenced-table.png"
-                title="Adding a Referenced Table"
-                alt="Adding a Referenced Table" />
-                <figcaption aria-hidden="true">Adding a Referenced
-                Table</figcaption>
-                </figure>
-                <p>This leads to the following result.</p>
-                <div class="sourceCode" id="cb24"><pre
-                class="sourceCode js"><code class="sourceCode javascript"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findFirst</span>()<span class="op">;</span></span></code></pre></div>
-                <div class="sourceCode" id="cb25"><pre
-                class="sourceCode json"><code class="sourceCode json"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;city&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;A Corua (La Corua)&quot;</span><span class="fu">,</span></span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;links&quot;</span><span class="fu">:</span><span class="er"> </span><span class="ot">[</span></span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
-<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;rel&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;self&quot;</span><span class="fu">,</span></span>
-<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;href&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;/myService/sakila/city/1&quot;</span></span>
-<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
-<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;cityId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">1</span><span class="fu">,</span></span>
-<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;country&quot;</span><span class="fu">:</span><span class="er"> </span><span class="fu">{</span></span>
-<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;country&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;Spain&quot;</span><span class="fu">,</span></span>
-<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;countryId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">87</span><span class="fu">,</span></span>
-<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;2006-02-15 04:44:00.000000&quot;</span></span>
-<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
-<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;countryId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">87</span><span class="fu">,</span></span>
-<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span><span class="fu">,</span></span>
-<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;_metadata&quot;</span><span class="fu">:</span><span class="er"> </span><span class="fu">{</span></span>
-<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;etag&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;FFA2187AD4B98DF48EC40B3E807E0561A71D02C2F4F5A3B953AA6CB6E41CAD16&quot;</span></span>
-<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
-<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
-                <h3 data-number="5.4.3"
-                id="creating-a-jsonrelational-duality-view-with-an-unnested-referenced-table"><span
-                class="header-section-number">5.4.3</span> Creating a
-                JSON/Relational Duality View with an Unnested Referenced
-                Table</h3>
-                <p>If the columns of the referenced table should be
-                added to the level above, the <code>Unnest</code> option
-                can be enabled.</p>
-                <figure>
-                <img
-                src="sections/../images/vsc-mrs-json-relational-editor-3-referenced-table-unnested.png"
-                title="Unnest a Referenced Table"
-                alt="Unnest a Referenced Table" />
-                <figcaption aria-hidden="true">Unnest a Referenced
-                Table</figcaption>
-                </figure>
-                <p>This leads to the following result.</p>
-                <div class="sourceCode" id="cb26"><pre
-                class="sourceCode js"><code class="sourceCode javascript"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findFirst</span>()<span class="op">;</span></span></code></pre></div>
-                <div class="sourceCode" id="cb27"><pre
-                class="sourceCode json"><code class="sourceCode json"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;city&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;A Corua (La Corua)&quot;</span><span class="fu">,</span></span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;links&quot;</span><span class="fu">:</span><span class="er"> </span><span class="ot">[</span></span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
-<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;rel&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;self&quot;</span><span class="fu">,</span></span>
-<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;href&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;/myService/sakila/city/1&quot;</span></span>
-<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
-<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;cityId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">1</span><span class="fu">,</span></span>
-<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;country&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;Spain&quot;</span><span class="fu">,</span></span>
-<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;countryId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">87</span><span class="fu">,</span></span>
-<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span><span class="fu">,</span></span>
-<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;_metadata&quot;</span><span class="fu">:</span><span class="er"> </span><span class="fu">{</span></span>
-<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;etag&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;48889BABCBBA1491D25DFE0D7A270FA3FDF8A16DA8E44E42C61759DE1F0D6E35&quot;</span></span>
-<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
-<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
-                <h3 data-number="5.4.4"
-                id="creating-a-jsonrelational-duality-view-with-a-reduced-referenced-table"><span
-                class="header-section-number">5.4.4</span> Creating a
-                JSON/Relational Duality View with a Reduced Referenced
-                Table</h3>
-                <p>Instead of having all columns unnested and disabling
-                all columns that are not wanted, the
-                <code>Reduce to...</code> dropdown can be used to select
-                the column that should be selected for the reduce
-                operation.</p>
-                <figure>
-                <img
-                src="sections/../images/vsc-mrs-json-relational-editor-4-referenced-table-reduced.png"
-                title="A Reduced Referenced Table"
-                alt="A Reduced Referenced Table" />
-                <figcaption aria-hidden="true">A Reduced Referenced
-                Table</figcaption>
-                </figure>
-                <p>This leads to the same result as the query above.</p>
-                <div class="sourceCode" id="cb28"><pre
-                class="sourceCode js"><code class="sourceCode javascript"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findFirst</span>()<span class="op">;</span></span></code></pre></div>
-                <div class="sourceCode" id="cb29"><pre
-                class="sourceCode json"><code class="sourceCode json"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;city&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;A Corua (La Corua)&quot;</span><span class="fu">,</span></span>
-<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;links&quot;</span><span class="fu">:</span><span class="er"> </span><span class="ot">[</span></span>
-<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
-<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;rel&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;self&quot;</span><span class="fu">,</span></span>
-<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;href&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;/myService/sakila/city/1&quot;</span></span>
-<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
-<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;cityId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">1</span><span class="fu">,</span></span>
-<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;country&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;Spain&quot;</span><span class="fu">,</span></span>
-<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;countryId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">87</span><span class="fu">,</span></span>
-<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span><span class="fu">,</span></span>
-<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;_metadata&quot;</span><span class="fu">:</span><span class="er"> </span><span class="fu">{</span></span>
-<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;etag&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;48889BABCBBA1491D25DFE0D7A270FA3FDF8A16DA8E44E42C61759DE1F0D6E35&quot;</span></span>
-<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
-<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
                 <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
@@ -1759,8 +2206,97 @@ router_id=16</code></pre>
                 You should have received a copy of the GNU General Public License
                 along with this program; if not, write to the Free Software Foundation, Inc.,
                 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
-                <h1 data-number="6" id="mrs-examples"><span
-                class="header-section-number">6</span> MRS Examples</h1>
+                <h1 data-number="8"
+                id="authentication-and-authorization"><span
+                class="header-section-number">8</span> Authentication
+                and Authorization</h1>
+                <h2 data-number="8.1"
+                id="authentication-management"><span
+                class="header-section-number">8.1</span> Authentication
+                Management</h2>
+                <p>MRS currently supports the following authentication
+                methods.</p>
+                <h3 data-number="8.1.1"
+                id="mrs-rest-service-specific-authentication"><span
+                class="header-section-number">8.1.1</span> MRS REST
+                Service Specific Authentication</h3>
+                <p>Authentication is handled my MRS against MRS REST
+                Service specific accounts. Applications use SCRAM
+                (Salted Challenge Response Authentication Mechanism) to
+                securely authenticate a user.</p>
+                <h3 data-number="8.1.2"
+                id="mysql-internal-authentication"><span
+                class="header-section-number">8.1.2</span> MySQL
+                Internal Authentication</h3>
+                <p>Authentication is handled my MRS against MySQL server
+                user accounts. Applications use SCRAM (Salted Challenge
+                Response Authentication Mechanism) to securely
+                authenticate a user.</p>
+                <p>This authentication method is suitable for
+                applications that are not exposed publicly.</p>
+                <h3 data-number="8.1.3" id="oauth2-authentication"><span
+                class="header-section-number">8.1.3</span> OAuth2
+                Authentication</h3>
+                <p>Several OAuth2 services from 3rd-party vendors are
+                supported by MRS; for example, sign in with FaceBook,
+                Twitter, and Google. In order for a MRS service to
+                authenticate against those vendors, one needs to be
+                registered as a developer with those vendors and a
+                vendor specific authentication apps need to be created.
+                Then the OAuth2 specific settings - like access_token
+                and app_id - need to be configured on the MRS side.</p>
+                <h2 data-number="8.2"
+                id="authorization-management"><span
+                class="header-section-number">8.2</span> Authorization
+                Management</h2>
+                <p>Access to a given REST resource can have several
+                levels of restrictions when using MRS:</p>
+                <ul>
+                <li>Public access - no authorization is needed to access
+                the REST resource and its data</li>
+                <li>Full access - after authentication the user has full
+                access to all data of the REST resource</li>
+                <li>Limited access - after authentication the user has
+                only access to a subset of the data of the REST
+                resource</li>
+                </ul>
+                <p>MRS has built-in support for several authorization
+                models. These authorization models define which data of
+                a given REST resource that end users can see and
+                manipulate:</p>
+                <ul>
+                <li>User-ownership based - users can see their own
+                data</li>
+                <li>Privilege based, managed using roles</li>
+                <li>User-hierarchy based</li>
+                <li>Group based</li>
+                <li>Group-hierarchy based</li>
+                </ul>
+                <p>If the use case of a given project matches one of the
+                offered authorization models, then a custom
+                authorization does not need to be implemented.</p>
+                <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+
+                This program is free software; you can redistribute it and/or modify
+                it under the terms of the GNU General Public License, version 2.0,
+                as published by the Free Software Foundation.
+
+                This program is also distributed with certain software (including
+                but not limited to OpenSSL) that is licensed under separate terms, as
+                designated in a particular file or component or in included license
+                documentation.  The authors of MySQL hereby grant you an additional
+                permission to link the program and your derivative works with the
+                separately licensed software that they have included with MySQL.
+                This program is distributed in the hope that it will be useful,  but
+                WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+                the GNU General Public License, version 2.0, for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program; if not, write to the Free Software Foundation, Inc.,
+                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+                <h1 data-number="9" id="mrs-examples"><span
+                class="header-section-number">9</span> MRS Examples</h1>
                 <p>The MRS Shell Plugin ships with a set of example
                 projects that showcase the possibilities of the MySQL
                 REST Service.</p>
@@ -1788,8 +2324,8 @@ router_id=16</code></pre>
                 You should have received a copy of the GNU General Public License
                 along with this program; if not, write to the Free Software Foundation, Inc.,
                 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
-                <h2 data-number="6.1" id="mrs-notes-examples"><span
-                class="header-section-number">6.1</span> MRS Notes
+                <h2 data-number="9.1" id="mrs-notes-examples"><span
+                class="header-section-number">9.1</span> MRS Notes
                 Examples</h2>
                 <p>The MRS Notes example implements a simple note taking
                 application as a <a
@@ -1804,9 +2340,9 @@ router_id=16</code></pre>
                 <figcaption aria-hidden="true">mrsNotes App running on a
                 Mobile</figcaption>
                 </figure>
-                <h3 data-number="6.1.1"
+                <h3 data-number="9.1.1"
                 id="mrs-notes-developer-showcase"><span
-                class="header-section-number">6.1.1</span> MRS Notes
+                class="header-section-number">9.1.1</span> MRS Notes
                 Developer Showcase</h3>
                 <p>The following features are showcased in this
                 example.</p>
@@ -1818,8 +2354,8 @@ router_id=16</code></pre>
                 <li>Using <a href="https://jwt.io/">JSON Web Tokens
                 (JWT)</a> to manage user sessions</li>
                 </ul>
-                <h3 data-number="6.1.2" id="mrs-notes-quick-guide"><span
-                class="header-section-number">6.1.2</span> MRS Notes
+                <h3 data-number="9.1.2" id="mrs-notes-quick-guide"><span
+                class="header-section-number">9.1.2</span> MRS Notes
                 Quick Guide</h3>
                 <p>To quickly get the MRS Notes Examples working, please
                 feel free to follow this guide. If you want to learn
@@ -1846,9 +2382,9 @@ router_id=16</code></pre>
                 <li>Build and deploy the app by following the steps
                 below.</li>
                 </ol>
-                <h4 data-number="6.1.2.1"
+                <h4 data-number="9.1.2.1"
                 id="deploying-the-typescript-example"><span
-                class="header-section-number">6.1.2.1</span> Deploying
+                class="header-section-number">9.1.2.1</span> Deploying
                 the TypeScript Example</h4>
                 <p>The MrsNotesTS project implements a full TypeScript
                 demo app that allows sharing of notes between users.</p>
@@ -1876,9 +2412,9 @@ router_id=16</code></pre>
                 specified in the previous step to open the app,
                 e.g. <code>https://localhost:8443/myService/app/index.html</code></li>
                 </ol>
-                <h4 data-number="6.1.2.2"
+                <h4 data-number="9.1.2.2"
                 id="deploying-the-javascript-example"><span
-                class="header-section-number">6.1.2.2</span> Deploying
+                class="header-section-number">9.1.2.2</span> Deploying
                 the JavaScript Example</h4>
                 <p>The MrsNotes project also ships with a minimal
                 JavaScript demo app that allows each user to store his
@@ -1898,17 +2434,17 @@ router_id=16</code></pre>
                 the previous step to open the app,
                 e.g. <code>https://localhost:8443/myService/app_js/index.html</code></li>
                 </ol>
-                <h3 data-number="6.1.3"
+                <h3 data-number="9.1.3"
                 id="mrs-setup-and-configuration-for-the-mrs-notes-examples"><span
-                class="header-section-number">6.1.3</span> MRS Setup and
+                class="header-section-number">9.1.3</span> MRS Setup and
                 Configuration for the MRS Notes Examples</h3>
                 <p>Please refer to the MRS documentation on how to setup
                 and configure a MRS service in detail.</p>
                 <p>If you are using a local MRS deployment deployment
                 you can use these simplified steps.</p>
-                <h3 data-number="6.1.4"
+                <h3 data-number="9.1.4"
                 id="deploy-the-mrsnotes-mysql-database-schema"><span
-                class="header-section-number">6.1.4</span> Deploy the
+                class="header-section-number">9.1.4</span> Deploy the
                 mrsNotes MySQL database schema</h3>
                 <p>The mrsNotes MySQL database schema is the center of
                 the MRS project. It defines the structure of the data
@@ -1928,9 +2464,9 @@ router_id=16</code></pre>
                 <p>mysqlsh dba@localhost –sql -f
                 examples/mrs_notes/db_schema/mrs_notes.sql</p></li>
                 </ul>
-                <h4 data-number="6.1.4.1"
+                <h4 data-number="9.1.4.1"
                 id="mrsnotes-eer-diagram"><span
-                class="header-section-number">6.1.4.1</span> mrsNotes
+                class="header-section-number">9.1.4.1</span> mrsNotes
                 EER Diagram</h4>
                 <p>The following diagram shows all components of the
                 mrsNotes schema.</p>

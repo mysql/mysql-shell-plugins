@@ -62,13 +62,23 @@ declare function print(value: unknown): void;
 declare function runSqlIterative(code: string, callback?: (res: IResultSetData) => void, params?: unknown): void;
 
 /**
- * Executes a query and calls a callback for each answer from the server.
+ * Executes a query and calls a callback with the full reply from the server.
  *
  * @param code The query to run.
  * @param callback A function to call on results.
  * @param params Optional parameters for the query.
  */
-declare function runSql(code: string, callback?: (res: IDataRecord[]) => void, params?: unknown): void;
+declare function runSqlWithCallback(code: string, callback?: (res: IDataRecord[]) => void, params?: unknown): void;
+
+/**
+ * Executes a query and returns the answer from the server in a promise that can be awaited.
+ *
+ * @param code The query to run.
+ * @param params Optional parameters for the query.
+ * @returns A promise
+ */
+declare async function runSql(code: string, params?: unknown): Promise<unknown>;
+
 
 // ---------- Graph Structures ----------
 
@@ -359,25 +369,7 @@ declare class PieGraph {
     public static render(data: IDataRecord[], layout?: PieGraphLayout, keys?: { name: string; value: string; }): void;
 }
 
-/**
- * Triggers the interactive MRS authentication process.
- *
- * @param serviceUrl The URL of the MRS service
- */
-declare function mrsSetServiceUrl(serviceUrl: string): void;
+/** Define the global object that is persisted between code blocks. */
+interface IDictionary { [key: string]: unknown; }
 
-/**
- * Triggers the interactive MRS authentication process.
- *
- * @param serviceUrl The URL of the MRS service
- * @param authApp The name of the authApp to authenticate against
- * @param userName The name of the user
- */
-declare function mrsAuthenticate(serviceUrl: string, authApp?: string, userName?: string): void;
-
-/**
- * Triggers the interactive MRS authentication process.
- *
- * @param dbObjectId The id of the DB Object to edit
- */
-declare function mrsEditDbObject(dbObjectId: string): void;
+declare let $: IDictionary;

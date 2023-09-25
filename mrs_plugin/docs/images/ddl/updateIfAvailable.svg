@@ -1,55 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg class="railroad-diagram" width="356" height="71" viewBox="0 0 356 71" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g transform="translate(.5 .5)">
-<g>
-<path d="M20 30v20m10 -20v20m-10 -10h20"></path>
-</g>
-<path d="M40 40h10"></path>
-<g class="non-terminal ">
-<path d="M50 40h0"></path>
-<path d="M118 40h0"></path>
-<rect x="50" y="29" width="68" height="22"></rect>
-<text x="84" y="44">UPDATE</text>
-</g>
-<path d="M118 40h10"></path>
-<g>
-<path d="M128 40h0"></path>
-<path d="M316 40h0"></path>
-<path d="M128 40a10 10 0 0 0 10 -10v0a10 10 0 0 1 10 -10"></path>
-<g>
-<path d="M148 20h148"></path>
-</g>
-<path d="M296 20a10 10 0 0 1 10 10v0a10 10 0 0 0 10 10"></path>
-<path d="M128 40h20"></path>
-<g>
-<path d="M148 40h0"></path>
-<path d="M296 40h0"></path>
-<g class="non-terminal ">
-<path d="M148 40h0"></path>
-<path d="M184 40h0"></path>
-<rect x="148" y="29" width="36" height="22"></rect>
-<text x="166" y="44">IF</text>
-</g>
-<path d="M184 40h10"></path>
-<path d="M194 40h10"></path>
-<g class="non-terminal ">
-<path d="M204 40h0"></path>
-<path d="M296 40h0"></path>
-<rect x="204" y="29" width="92" height="22"></rect>
-<text x="250" y="44">AVAILABLE</text>
-</g>
-</g>
-<path d="M296 40h20"></path>
-</g>
-<path d="M 316 40 h 20 m -10 -10 v 20 m 10 -20 v 20"></path>
-</g>
-<defs><style type="text/css"><![CDATA[
+<svg class="railroad-diagram" width="474.5" height="78" viewBox="0 0 474.5 78" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g transform="translate(.5 .5)"><g><path d="M20 37v20m0 -10h20"></path></g><g><path d="M40 47h0"></path><path d="M434.5 47h0"></path><path d="M40 47h20"></path><g><path d="M60 47h0"></path><g><path d="M60 47h0"></path><path d="M394.5 47h20"></path><g class="terminal "><path d="M60 47h0"></path><path d="M131 47h0"></path><rect x="60" y="36" width="71" height="22"></rect><text x="95.5" y="51">UPDATE</text></g><path d="M131 47h10"></path><g><path d="M141 47h0"></path><path d="M394.5 47h0"></path><path d="M141 47a10 10 0 0 0 10 -10v-7a10 10 0 0 1 10 -10"></path><g><path d="M161 20h213.5"></path></g><path d="M374.5 20a10 10 0 0 1 10 10v7a10 10 0 0 0 10 10"></path><path d="M141 47h20"></path><g><path d="M161 47h0"></path><path d="M374.5 47h0"></path><path d="M161 47h20"></path><g><path d="M181 47h0"></path><g><path d="M181 47h0"></path><path d="M334.5 47h20"></path><g class="terminal "><path d="M181 47h0"></path><path d="M218 47h0"></path><rect x="181" y="36" width="37" height="22"></rect><text x="199.5" y="51">IF</text></g><path d="M218 47h10"></path><path d="M228 47h10"></path><g class="terminal "><path d="M238 47h0"></path><path d="M334.5 47h0"></path><rect x="238" y="36" width="96.5" height="22"></rect><text x="286.25" y="51">AVAILABLE</text></g></g><path d="M354.5 47h0"></path></g><path d="M354.5 47h20"></path></g><path d="M374.5 47h20"></path></g></g><path d="M414.5 47h0"></path></g><path d="M414.5 47h20"></path></g><path d="M 434.5 47 h 20 m 0 -10 v 20"></path></g><defs><style type="text/css"><![CDATA[
 svg.railroad-diagram path { stroke-width: 2; stroke: darkgray; fill: rgba(0, 0, 0, 0); }
 svg.railroad-diagram text { font: bold 12px Hack, "Source Code Pro", monospace; text-anchor: middle; fill: #404040; }
 svg.railroad-diagram text.comment { font: italic 10px Hack, "Source Code Pro", monospace; fill: #404040; }
-svg.railroad-diagram g.terminal rect { stroke-width: 2; stroke: #404040; fill: rgba(255, 255, 255, 1); }
-svg.railroad-diagram g.non-terminal rect { stroke-width: 2; stroke: #404040; fill: rgba(200, 200, 200, 0.8); }
+svg.railroad-diagram g.terminal rect { stroke-width: 2; stroke: #404040; fill: rgba(200, 200, 200, 0.8); }
+svg.railroad-diagram g.non-terminal rect { stroke-width: 2; stroke: #404040; fill: rgba(255, 255, 255, 1); }
 svg.railroad-diagram text.diagram-text { font-size: 12px Hack, "Source Code Pro", monospace; fill: red; }
 svg.railroad-diagram path.diagram-text { stroke-width: 1; stroke: red; fill: red; cursor: help; }
 svg.railroad-diagram g.diagram-text:hover path.diagram-text { fill: #f00; } ]]></style></defs></svg>

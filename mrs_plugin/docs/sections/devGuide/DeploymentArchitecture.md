@@ -37,4 +37,4 @@ In a production environment, an InnoDB Cluster set up with three or more MySQL R
 
 For cloud-based development in production, a MySQL Database Service instance with the high availability feature enabled and three or more compute instances with MySQL Router deployments should be used. It is recommended to use a load balancer to expose the HTTPS port of the MySQL Routers to the public internet.
 
-![MySQL REST Service Architecture Diagram](../images/mrs-architecture.svg "MySQL REST Service Architecture Diagram")
+![MySQL REST Service Architecture Diagram](../../images/mrs-architecture.svg "MySQL REST Service Architecture Diagram")

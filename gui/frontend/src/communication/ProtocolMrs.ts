@@ -71,6 +71,8 @@ export enum ShellAPIMrs {
     MrsGetSdkServiceClasses = "mrs.get.sdk_service_classes",
     /** Dumps the SDK service files for a REST Service */
     MrsDumpSdkServiceFiles = "mrs.dump.sdk_service_files",
+    /** Returns the SDK service classes source for the given language */
+    MrsGetRuntimeManagementCode = "mrs.get.runtime_management_code",
     /** Add a schema to the given MRS service */
     MrsAddSchema = "mrs.add.schema",
     /** Gets a specific MRS schema */
@@ -411,6 +413,11 @@ export interface IShellMrsDumpSdkServiceFilesKwargs {
     sdkLanguage?: string;
     /** The directory to store the .mrs.sdk folder with the files */
     directory?: string;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsGetRuntimeManagementCodeKwargs {
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
@@ -1108,6 +1115,7 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsGetSdkBaseClasses]: { kwargs?: IShellMrsGetSdkBaseClassesKwargs; };
     [ShellAPIMrs.MrsGetSdkServiceClasses]: { kwargs?: IShellMrsGetSdkServiceClassesKwargs; };
     [ShellAPIMrs.MrsDumpSdkServiceFiles]: { kwargs?: IShellMrsDumpSdkServiceFilesKwargs; };
+    [ShellAPIMrs.MrsGetRuntimeManagementCode]: { kwargs?: IShellMrsGetRuntimeManagementCodeKwargs; };
     [ShellAPIMrs.MrsAddSchema]: { kwargs?: IShellMrsAddSchemaKwargs; };
     [ShellAPIMrs.MrsGetSchema]: { kwargs?: IShellMrsGetSchemaKwargs; };
     [ShellAPIMrs.MrsListSchemas]: { args: { serviceId?: string; }; kwargs?: IShellMrsListSchemasKwargs; };
@@ -1482,7 +1490,7 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsUpdateService]: {};
     [ShellAPIMrs.MrsGetServiceRequestPathAvailability]: { result: boolean; };
     [ShellAPIMrs.MrsAddSchema]: { result: string; };
-    [ShellAPIMrs.MrsGetSchema]: {};
+    [ShellAPIMrs.MrsGetSchema]: { result: IMrsSchemaData; };
     [ShellAPIMrs.MrsListSchemas]: { result: IMrsSchemaData[]; };
     [ShellAPIMrs.MrsEnableSchema]: {};
     [ShellAPIMrs.MrsDisableSchema]: {};
@@ -1542,6 +1550,7 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsGetObjects]: { result: IMrsObject[]; };
     [ShellAPIMrs.MrsGetSdkBaseClasses]: { result: string; };
     [ShellAPIMrs.MrsGetSdkServiceClasses]: { result: string; };
+    [ShellAPIMrs.MrsGetRuntimeManagementCode]: { result: string; };
     [ShellAPIMrs.MrsGetTableColumnsWithReferences]: { result: IMrsTableColumnWithReference[]; };
     [ShellAPIMrs.MrsGetObjectFieldsWithReferences]: { result: IMrsObjectFieldWithReference[]; };
     [ShellAPIMrs.MrsDumpSdkServiceFiles]: { result: boolean; };

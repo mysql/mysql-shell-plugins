@@ -312,7 +312,7 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsUpdateService]: {};
     [ShellAPIMrs.MrsGetServiceRequestPathAvailability]: { result: boolean; };
     [ShellAPIMrs.MrsAddSchema]: { result: string; };
-    [ShellAPIMrs.MrsGetSchema]: {};
+    [ShellAPIMrs.MrsGetSchema]: { result: IMrsSchemaData; };
     [ShellAPIMrs.MrsListSchemas]: { result: IMrsSchemaData[]; };
     [ShellAPIMrs.MrsEnableSchema]: {};
     [ShellAPIMrs.MrsDisableSchema]: {};
@@ -372,6 +372,7 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsGetObjects]: { result: IMrsObject[]; };
     [ShellAPIMrs.MrsGetSdkBaseClasses]: { result: string; };
     [ShellAPIMrs.MrsGetSdkServiceClasses]: { result: string; };
+    [ShellAPIMrs.MrsGetRuntimeManagementCode]: { result: string; };
     [ShellAPIMrs.MrsGetTableColumnsWithReferences]: { result: IMrsTableColumnWithReference[]; };
     [ShellAPIMrs.MrsGetObjectFieldsWithReferences]: { result: IMrsObjectFieldWithReference[]; };
     [ShellAPIMrs.MrsDumpSdkServiceFiles]: { result: boolean; };
