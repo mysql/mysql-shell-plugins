@@ -41,3 +41,18 @@ export const print = (value: unknown): void => {
         value,
     });
 };
+
+/**
+ * Sets properties of the global object that is persisted between code blocks
+ *
+ * @param name The name of the property to set
+ * @param value The value of the property.
+ */
+export const setGlobalScriptingObjectProperty = (name: string, value: unknown): void => {
+    currentWorker.postContextMessage(currentWorker.currentTaskId, {
+        api: ScriptingApi.SetGlobalObjectProperty,
+        contextId: currentWorker.currentContext,
+        name,
+        value,
+    });
+};

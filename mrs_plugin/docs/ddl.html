@@ -21,15 +21,21 @@
                 entries.forEach(entry => {
                     const id = entry.target.getAttribute('id');
                     if (entry.intersectionRatio > 0) {
-                        const e = document.querySelector(`nav li a[href="#` + id + `"]`).parentElement;
-                        e.classList.add('active');
-                        if (e.scrollIntoViewIfNeeded !== undefined) {
-                            e.scrollIntoViewIfNeeded(true);
-                        } else {
-                            e.scrollIntoView(true);
+                        const querySel = document.querySelector(`nav li a[href="#` + id + `"]`);
+                        if (querySel) {
+                            const e = querySel.parentElement;
+                            e.classList.add('active');
+                            if (e.scrollIntoViewIfNeeded !== undefined) {
+                                e.scrollIntoViewIfNeeded(true);
+                            } else {
+                                e.scrollIntoView(true);
+                            }
                         }
                     } else {
-                        document.querySelector(`nav li a[href="#` + id + `"]`).parentElement.classList.remove('active');
+                        const querySel = document.querySelector(`nav li a[href="#` + id + `"]`);
+                        if (querySel) {
+                            querySel.parentElement.classList.remove('active');
+                        }
                     }
                 });
             });
@@ -111,16 +117,14 @@
                 <hr />
                 <h3>MRS DDL Reference</h3>
                                 <ul>
-                                <li><a
-                                href="#introduction-to-the-mrs-ddl---sql-extension"
-                                id="toc-introduction-to-the-mrs-ddl---sql-extension"><span
+                                <li><a href="#introduction"
+                                id="toc-introduction"><span
                                 class="toc-section-number">1</span>
-                                Introduction to the MRS DDL - SQL
-                                Extension</a></li>
-                                <li><a href="#mrs-ddl-reference"
-                                id="toc-mrs-ddl-reference"><span
-                                class="toc-section-number">2</span> MRS
-                                DDL Reference</a>
+                                Introduction</a></li>
+                                <li><a href="#configure-and-create"
+                                id="toc-configure-and-create"><span
+                                class="toc-section-number">2</span>
+                                CONFIGURE and CREATE</a>
                                 <ul>
                                 <li><a href="#configure-rest-metadata"
                                 id="toc-configure-rest-metadata"><span
@@ -130,6 +134,22 @@
                                 id="toc-create-rest-service"><span
                                 class="toc-section-number">2.2</span>
                                 CREATE REST SERVICE</a></li>
+                                <li><a href="#create-rest-schema"
+                                id="toc-create-rest-schema"><span
+                                class="toc-section-number">2.3</span>
+                                CREATE REST SCHEMA</a></li>
+                                <li><a href="#create-rest-duality-view"
+                                id="toc-create-rest-duality-view"><span
+                                class="toc-section-number">2.4</span>
+                                CREATE REST DUALITY VIEW</a></li>
+                                <li><a href="#create-rest-procedure"
+                                id="toc-create-rest-procedure"><span
+                                class="toc-section-number">2.5</span>
+                                CREATE REST PROCEDURE</a></li>
+                                <li><a href="#create-rest-content-set"
+                                id="toc-create-rest-content-set"><span
+                                class="toc-section-number">2.6</span>
+                                CREATE REST CONTENT SET</a></li>
                                 </ul></li>
                                 </ul>
                             </nav>
@@ -191,29 +211,29 @@
                 You should have received a copy of the GNU General Public License
                 along with this program; if not, write to the Free Software Foundation, Inc.,
                 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
-                <h1 data-number="1"
-                id="introduction-to-the-mrs-ddl---sql-extension"><span
-                class="header-section-number">1</span> Introduction to
-                the MRS DDL - SQL Extension</h1>
-                <p>Providing a management interface that feels familiar
-                to MySQL developers and DBAs and integrates well into
-                their existing processes has been an essential part of
-                the MySQL REST Service (MRS) design.</p>
-                <p>The MySQL REST Service Shell plugin registers a SQL
-                rewrite extension that process a set of MRS DDL
-                statements that allows these DDL statements to be used
-                in regular SQL scripts that are processed by the MySQL
-                Shell or <a
+                <h1 data-number="1" id="introduction"><span
+                class="header-section-number">1</span> Introduction</h1>
+                <p>It has been an essential goal of the MySQL REST
+                Service (MRS) to provide a management interface that
+                feels familiar to MySQL developers and DBAs and
+                integrates well into their existing processes.</p>
+                <p>For this purpose the MySQL REST Service plugins
+                directly into the <a
+                href="https://dev.mysql.com/downloads/shell/">MySQL
+                Shell</a> and <a
                 href="https://marketplace.visualstudio.com/items?itemName=Oracle.mysql-shell-for-vs-code">MySQL
-                Shell for VS Code</a>.</p>
-                <p>This makes developing REST services and managing the
-                MySQL REST Service as easy as working with database
-                schemas.</p>
+                Shell for VS Code</a>. It extends the available SQL
+                commands to include DDL (Data Definition Language)
+                statements that allow managing the MySQL REST Service in
+                an easy and seamless way.</p>
+                <p>This makes the process of creating a MySQL REST
+                Service for your application as easy as creating a
+                database schema or table.</p>
                 <p><strong><em>Example</em></strong></p>
-                <p>The following example script configures the MySQL
-                REST Service, creates a new REST service
+                <p>The following script configures the MySQL REST
+                Service, creates a new REST service
                 <code>/myService</code> and adds a REST schema
-                <code>/sakila</code> and a REST DUALITY view
+                <code>/sakila</code> and a REST DUALITY VIEW
                 <code>/actor</code> that lists all actors and their film
                 titles.</p>
                 <div class="sourceCode" id="cb1"><pre
@@ -263,9 +283,9 @@
                 You should have received a copy of the GNU General Public License
                 along with this program; if not, write to the Free Software Foundation, Inc.,
                 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
-                <h1 data-number="2" id="mrs-ddl-reference"><span
-                class="header-section-number">2</span> MRS DDL
-                Reference</h1>
+                <h1 data-number="2" id="configure-and-create"><span
+                class="header-section-number">2</span> CONFIGURE and
+                CREATE</h1>
                 <h2 data-number="2.1" id="configure-rest-metadata"><span
                 class="header-section-number">2.1</span> CONFIGURE REST
                 METADATA</h2>
@@ -280,31 +300,17 @@
                 the statement needs the required privileges to create
                 database schemas.</p>
                 <p><strong><em>Syntax</em></strong></p>
-                <p>configureRestMetadataStatement ::=</p>
-                <figure>
-                <img
-                src="sections/../images/ddl/configureRestMetadataStatement.svg"
+                <p>configureRestMetadataStatement ::= <img
+                src="sections/ddl/../../images/ddl/configureRestMetadataStatement.svg"
                 title="configureRestMetadataStatement"
-                alt="The CONFIGURE REST METADATA Statement" />
-                <figcaption aria-hidden="true">The CONFIGURE REST
-                METADATA Statement</figcaption>
-                </figure>
+                alt="The CONFIGURE REST METADATA Statement" /></p>
                 <p>restMetadataOptions ::= <img
-                src="sections/../images/ddl/restMetadataOptions.svg"
+                src="sections/ddl/../../images/ddl/restMetadataOptions.svg"
                 title="restMetadataOptions"
                 alt="restMetadataOptions" /></p>
-                <p>enabledDisabled ::= <img
-                src="sections/../images/ddl/enabledDisabled.svg"
-                title="enabledDisabled" alt="enabledDisabled" /></p>
-                <p>jsonOptions ::= <img
-                src="sections/../images/ddl/jsonOptions.svg"
-                title="jsonOptions" alt="jsonOptions" /></p>
-                <p>updateIfAvailable ::= <img
-                src="sections/../images/ddl/updateIfAvailable.svg"
-                title="updateIfAvailable" alt="updateIfAvailable" /></p>
                 <p><strong><em>Example</em></strong></p>
                 <div class="sourceCode" id="cb2"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>CONFIGURE REST METADATA <span class="kw">UPDATE</span> <span class="cf">IF</span> AVAILABLE;</span></code></pre></div>
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>CONFIGURE REST METADATA;</span></code></pre></div>
                 <h3 data-number="2.1.1"
                 id="enable-or-disable-the-mysql-rest-service"><span
                 class="header-section-number">2.1.1</span> Enable or
@@ -313,18 +319,30 @@
                 REST Service should be enabled or disabled after the
                 configuration operation. The default is set to enable
                 the MySQL REST Service.</p>
+                <p>enabledDisabled ::= <img
+                src="sections/ddl/../../images/ddl/enabledDisabled.svg"
+                title="enabledDisabled" alt="enabledDisabled" /></p>
+                <p><strong><em>Example</em></strong></p>
+                <p>The following example disables the MySQL REST
+                Service.</p>
+                <div class="sourceCode" id="cb3"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>CONFIGURE REST METADATA DISABLED;</span></code></pre></div>
                 <h3 data-number="2.1.2"
-                id="mysql-rest-service-options"><span
-                class="header-section-number">2.1.2</span> MySQL REST
-                Service Options</h3>
+                id="rest-configuration-json-options"><span
+                class="header-section-number">2.1.2</span> REST
+                Configuration Json Options</h3>
                 <p>The jsonOptions allow to set a number of specific
                 options for the service.</p>
+                <p>jsonOptions ::= <img
+                src="sections/ddl/../../images/ddl/jsonOptions.svg"
+                title="jsonOptions" alt="jsonOptions" /></p>
                 <p>These options can include the following JSON
                 keys.</p>
                 <ul>
-                <li><code>defaultStaticContent</code> - Allows the
-                definition of static content for the root path
-                <code>/</code> that will be returned for file paths
+                <li><code>defaultStaticContent</code>
+                <ul>
+                <li>Allows the definition of static content for the root
+                path <code>/</code> that will be returned for file paths
                 matching the given JSON keys. A JSON key
                 <code>index.html</code> will be served as
                 <code>/index.html</code> by the MySQL Router. The file
@@ -332,24 +350,29 @@
                 is used for <code>defaultStaticContent</code> as well as
                 for <code>defaultRedirects</code>, the redirect is
                 prioritized.</li>
-                <li><code>defaultRedirects</code> - Is used to define
-                internal redirects performed by the MySQL Router. This
-                can be used to expose content of a REST service on the
-                root path <code>/</code>. A JSON key
-                <code>index.html</code> holding the value
+                </ul></li>
+                <li><code>defaultRedirects</code>
+                <ul>
+                <li>Is used to define internal redirects performed by
+                the MySQL Router. This can be used to expose content of
+                a REST service on the root path <code>/</code>. A JSON
+                key <code>index.html</code> holding the value
                 <code>/myService/myContentSet/index.html</code> will
                 exposed the corresponding file from the given path as
                 <code>/index.html</code>.</li>
-                <li><code>directoryIndexDirective</code> - Holds an
-                ordered list of files that should be returned when a
-                directory path has been requested. The first matching
-                file that is available will be returned. The
-                <code>directoryIndexDirective</code> is recursively
+                </ul></li>
+                <li><code>directoryIndexDirective</code>
+                <ul>
+                <li>Holds an ordered list of files that should be
+                returned when a directory path has been requested. The
+                first matching file that is available will be returned.
+                The <code>directoryIndexDirective</code> is recursively
                 applies to all directory paths exposed by the MySQL
                 Router. To change the
                 <code>directoryIndexDirective</code> for a given REST
                 service or REST static content set, the corresponding
                 option needs to be set for those objects.</li>
+                </ul></li>
                 </ul>
                 <p>All other keys will be ignored and can be used to
                 store custom metadata about the service. It is a good
@@ -364,17 +387,17 @@
                 contents of <code>/index.html</code> if the root path
                 <code>/</code> is requested,
                 e.g. <code>https://my.domain.com/</code></p>
-                <div class="sourceCode" id="cb3"><pre
-                class="sourceCode json"><code class="sourceCode json"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;defaultStaticContent&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;index.html&quot;</span><span class="fu">:</span> <span class="st">&quot;PCFET0NUW...&quot;</span><span class="fu">,</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;favicon.ico&quot;</span><span class="fu">:</span> <span class="st">&quot;AAABAAMAM...&quot;</span><span class="fu">,</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;favicon.svg&quot;</span><span class="fu">:</span> <span class="st">&quot;PD94bWwmV...&quot;</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;directoryIndexDirective&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;index.html&quot;</span></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+                <div class="sourceCode" id="cb4"><pre
+                class="sourceCode json"><code class="sourceCode json"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;defaultStaticContent&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;index.html&quot;</span><span class="fu">:</span> <span class="st">&quot;PCFET0NUW...&quot;</span><span class="fu">,</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;favicon.ico&quot;</span><span class="fu">:</span> <span class="st">&quot;AAABAAMAM...&quot;</span><span class="fu">,</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;favicon.svg&quot;</span><span class="fu">:</span> <span class="st">&quot;PD94bWwmV...&quot;</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;directoryIndexDirective&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;index.html&quot;</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
                 <p>In this example an internal redirect of
                 <code>/index.html</code> to
                 <code>/myService/myContentSet/index.html</code> is
@@ -384,20 +407,20 @@
                 <code>defaultStaticContent</code>.</p>
                 <p>This is useful to directly serve a specific app on
                 the root path <code>/</code>.</p>
-                <div class="sourceCode" id="cb4"><pre
-                class="sourceCode json"><code class="sourceCode json"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;defaultStaticContent&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;index.html&quot;</span><span class="fu">:</span> <span class="st">&quot;PCFET0NUW...&quot;</span><span class="fu">,</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;favicon.ico&quot;</span><span class="fu">:</span> <span class="st">&quot;AAABAAMAM...&quot;</span><span class="fu">,</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;favicon.svg&quot;</span><span class="fu">:</span> <span class="st">&quot;PD94bWwmV...&quot;</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;defaultRedirects&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;index.html&quot;</span><span class="fu">:</span> <span class="st">&quot;/myService/myContentSet/index.html&quot;</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;directoryIndexDirective&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;index.html&quot;</span></span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span></span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+                <div class="sourceCode" id="cb5"><pre
+                class="sourceCode json"><code class="sourceCode json"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;defaultStaticContent&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;index.html&quot;</span><span class="fu">:</span> <span class="st">&quot;PCFET0NUW...&quot;</span><span class="fu">,</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;favicon.ico&quot;</span><span class="fu">:</span> <span class="st">&quot;AAABAAMAM...&quot;</span><span class="fu">,</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;favicon.svg&quot;</span><span class="fu">:</span> <span class="st">&quot;PD94bWwmV...&quot;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;defaultRedirects&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;index.html&quot;</span><span class="fu">:</span> <span class="st">&quot;/myService/myContentSet/index.html&quot;</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;directoryIndexDirective&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;index.html&quot;</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
                 <h3 data-number="2.1.3"
                 id="updating-the-mysql-rest-service-metadata-schema"><span
                 class="header-section-number">2.1.3</span> Updating the
@@ -406,101 +429,150 @@
                 operation will include an update of the
                 <code>mysql_rest_service_metadata</code> database
                 schema.</p>
+                <p>updateIfAvailable ::= <img
+                src="sections/ddl/../../images/ddl/updateIfAvailable.svg"
+                title="updateIfAvailable" alt="updateIfAvailable" /></p>
                 <h2 data-number="2.2" id="create-rest-service"><span
                 class="header-section-number">2.2</span> CREATE REST
                 SERVICE</h2>
                 <p>The CREATE REST SERVICE statement is used to create a
                 new or replace an existing REST service.</p>
                 <p>The MySQL REST Service supports the creation of many
-                individual REST services. It is common to create a
-                separate REST service for each REST application.</p>
-                <p>Each service can have its own options, authentication
-                apps and supports a different set of authentication
-                users.</p>
+                individual REST services. It is good practice to create
+                a separate REST service for each REST application.</p>
+                <p>Each REST service can have its own options,
+                authentication apps and supports a different set of
+                authentication users.</p>
                 <p><strong><em>SYNTAX</em></strong></p>
                 <p>createRestServiceStatement ::=</p>
                 <figure>
                 <img
-                src="sections/../images/ddl/createRestServiceStatement.svg"
+                src="sections/ddl/../../images/ddl/createRestServiceStatement.svg"
                 title="CREATE REST SERVICE Statement"
                 alt="CREATE REST SERVICE Statement" />
                 <figcaption aria-hidden="true">CREATE REST SERVICE
                 Statement</figcaption>
                 </figure>
                 <p>restServiceOptions ::= <img
-                src="sections/../images/ddl/restServiceOptions.svg"
+                src="sections/ddl/../../images/ddl/restServiceOptions.svg"
                 title="restServiceOptions"
                 alt="restServiceOptions" /></p>
-                <p>enabledDisabled ::= <img
-                src="sections/../images/ddl/enabledDisabled.svg"
-                title="enabledDisabled" alt="enabledDisabled" /></p>
-                <p>restAuthentication ::= <img
-                src="sections/../images/ddl/restAuthentication.svg"
-                title="restAuthentication"
-                alt="restAuthentication" /></p>
-                <p>jsonOptions ::= <img
-                src="sections/../images/ddl/jsonOptions.svg"
-                title="jsonOptions" alt="jsonOptions" /></p>
-                <p>comments ::= <img
-                src="sections/../images/ddl/comments.svg"
-                title="comments" alt="comments" /></p>
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example creates a REST service
                 <code>/myTestService</code> that can only be accessed
                 from localhost.</p>
-                <div class="sourceCode" id="cb5"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST SERVICE <span class="op">/</span>myService</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    COMMENTS <span class="ot">&quot;A simple REST service&quot;</span>;</span></code></pre></div>
+                <div class="sourceCode" id="cb6"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST SERVICE <span class="op">/</span>myService</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    COMMENTS <span class="ot">&quot;A simple REST service&quot;</span>;</span></code></pre></div>
                 <p>The following example creates a REST service
                 <code>/myTestService</code> that can only be accessed on
                 localhost and is disabled after creation.</p>
-                <div class="sourceCode" id="cb6"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST SERVICE localhost<span class="op">/</span>myTestService</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    DISABLED</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    COMMENTS <span class="ot">&quot;A REST service that can only be accessed on localhost&quot;</span>;</span></code></pre></div>
                 <div class="sourceCode" id="cb7"><pre
                 class="sourceCode sql"><code class="sourceCode sql"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST SERVICE localhost<span class="op">/</span>myTestService</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    COMMENTS <span class="ot">&quot;A simple REST service&quot;</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    AUTHENTICATION</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>        PATH <span class="ot">&quot;/authentication&quot;</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>        REDIRECTION <span class="kw">DEFAULT</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>        <span class="kw">VALIDATION</span> <span class="kw">DEFAULT</span></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>        PAGE CONTENT <span class="kw">DEFAULT</span></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">USER</span> <span class="kw">MANAGEMENT</span> <span class="kw">SCHEMA</span> <span class="kw">DEFAULT</span></span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    OPTIONS {</span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>        <span class="ot">&quot;headers&quot;</span>: {</span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>            <span class="ot">&quot;Access-Control-Allow-Credentials&quot;</span>: <span class="ot">&quot;true&quot;</span>,</span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>            <span class="ot">&quot;Access-Control-Allow-Headers&quot;</span>: <span class="ot">&quot;Content-Type, Authorization, X-Requested-With, Origin, X-Auth-Token&quot;</span>,</span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>            <span class="ot">&quot;Access-Control-Allow-Methods&quot;</span>: <span class="ot">&quot;GET, POST, PUT, DELETE, OPTIONS&quot;</span></span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>        },</span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>        <span class="ot">&quot;http&quot;</span>: {</span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>            <span class="ot">&quot;allowedOrigin&quot;</span>: <span class="ot">&quot;auto&quot;</span></span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>        },</span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>        <span class="ot">&quot;logging&quot;</span>: {</span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>            <span class="ot">&quot;exceptions&quot;</span>: <span class="kw">true</span>,</span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>            <span class="ot">&quot;request&quot;</span>: {</span>
-<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>                <span class="ot">&quot;body&quot;</span>: <span class="kw">true</span>,</span>
-<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>                <span class="ot">&quot;headers&quot;</span>: <span class="kw">true</span></span>
-<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>            },</span>
-<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>            <span class="ot">&quot;response&quot;</span>: {</span>
-<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>                <span class="ot">&quot;body&quot;</span>: <span class="kw">true</span>,</span>
-<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>                <span class="ot">&quot;headers&quot;</span>: <span class="kw">true</span></span>
-<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>            }</span>
-<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>        },</span>
-<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>        <span class="ot">&quot;returnInternalErrorDetails&quot;</span>: <span class="kw">true</span></span>
-<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>    };</span></code></pre></div>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    DISABLED</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    COMMENTS <span class="ot">&quot;A REST service that can only be accessed on localhost&quot;</span>;</span></code></pre></div>
+                <div class="sourceCode" id="cb8"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST SERVICE localhost<span class="op">/</span>myTestService</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    COMMENTS <span class="ot">&quot;A simple REST service&quot;</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    AUTHENTICATION</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>        PATH <span class="ot">&quot;/authentication&quot;</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>        REDIRECTION <span class="kw">DEFAULT</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>        <span class="kw">VALIDATION</span> <span class="kw">DEFAULT</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>        PAGE CONTENT <span class="kw">DEFAULT</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">USER</span> <span class="kw">MANAGEMENT</span> <span class="kw">SCHEMA</span> <span class="kw">DEFAULT</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    OPTIONS {</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>        <span class="ot">&quot;headers&quot;</span>: {</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>            <span class="ot">&quot;Access-Control-Allow-Credentials&quot;</span>: <span class="ot">&quot;true&quot;</span>,</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>            <span class="ot">&quot;Access-Control-Allow-Headers&quot;</span>: <span class="ot">&quot;Content-Type, Authorization, X-Requested-With, Origin, X-Auth-Token&quot;</span>,</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>            <span class="ot">&quot;Access-Control-Allow-Methods&quot;</span>: <span class="ot">&quot;GET, POST, PUT, DELETE, OPTIONS&quot;</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>        },</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>        <span class="ot">&quot;http&quot;</span>: {</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>            <span class="ot">&quot;allowedOrigin&quot;</span>: <span class="ot">&quot;auto&quot;</span></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>        },</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>        <span class="ot">&quot;logging&quot;</span>: {</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>            <span class="ot">&quot;exceptions&quot;</span>: <span class="kw">true</span>,</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>            <span class="ot">&quot;request&quot;</span>: {</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>                <span class="ot">&quot;body&quot;</span>: <span class="kw">true</span>,</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>                <span class="ot">&quot;headers&quot;</span>: <span class="kw">true</span></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>            },</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>            <span class="ot">&quot;response&quot;</span>: {</span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>                <span class="ot">&quot;body&quot;</span>: <span class="kw">true</span>,</span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>                <span class="ot">&quot;headers&quot;</span>: <span class="kw">true</span></span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>            }</span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>        },</span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>        <span class="ot">&quot;returnInternalErrorDetails&quot;</span>: <span class="kw">true</span></span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>    };</span></code></pre></div>
                 <h3 data-number="2.2.1"
                 id="enabling-or-disabling-a-rest-service-at-creation-time"><span
                 class="header-section-number">2.2.1</span> Enabling or
                 Disabling a REST Service at Creation Time</h3>
-                <p>The enabledDisabled option specifies if the REST
-                service should be enabled or disabled after the
-                configuration operation.</p>
-                <h3 data-number="2.2.2" id="rest-service-options"><span
+                <p>The <code>enabledDisabled</code> option specifies
+                whether the REST schema should be enabled or disabled
+                after it has been created.</p>
+                <p>enabledDisabled ::= <img
+                src="sections/ddl/../../images/ddl/enabledDisabled.svg"
+                title="enabledDisabled" alt="enabledDisabled" /></p>
+                <h3 data-number="2.2.2"
+                id="rest-service-authentication-settings"><span
                 class="header-section-number">2.2.2</span> REST Service
-                Options</h3>
+                Authentication Settings</h3>
+                <p>Each REST service requires allows for specific
+                authentication settings.</p>
+                <p>restAuthentication ::= <img
+                src="sections/ddl/../../images/ddl/restAuthentication.svg"
+                title="restAuthentication"
+                alt="restAuthentication" /></p>
+                <ul>
+                <li>AUTHENTICATION PATH
+                <ul>
+                <li>The html path used for authentication handling for
+                this REST service. Specified as a sub-path to the REST
+                service path. If not explicitly set, the default is path
+                is <code>/authentication</code> is used.</li>
+                <li>The following endpoints will be made available for
+                <code>&lt;service_path&gt;/&lt;auth_path&gt;</code>
+                <ul>
+                <li><code>/login</code></li>
+                <li><code>/status</code></li>
+                <li><code>/logout</code></li>
+                <li><code>/completed</code></li>
+                </ul></li>
+                </ul></li>
+                <li>AUTHENTICATION REDIRECTION
+                <ul>
+                <li>The authentication workflow will redirect to this
+                URL after successful- or failed login. Specified as a
+                sub-path to the REST service path. If this option is not
+                set explicitly, the workflow will redirect to
+                <code>&lt;service_path&gt;/&lt;auth_path&gt;/completed</code>
+                if the
+                <code>&lt;service_path&gt;/&lt;auth_path&gt;/login?onCompletionRedirect</code>
+                parameter has not been set.</li>
+                </ul></li>
+                <li>AUTHENTICATION VALIDATION
+                <ul>
+                <li>A regular expression to validate the
+                <code>&lt;service_path&gt;/&lt;auth_path&gt;/login?onCompletionRedirect</code>
+                parameter. If set, this allows to limit the possible
+                URLs an application can specify for this parameter.</li>
+                </ul></li>
+                <li>AUTHENTICATION PAGE CONTENT
+                <ul>
+                <li>If this option is set its content will replace the
+                page content of the
+                <code>&lt;service_path&gt;/&lt;auth_path&gt;/completed</code>
+                page.</li>
+                </ul></li>
+                </ul>
+                <h3 data-number="2.2.3"
+                id="rest-service-json-options"><span
+                class="header-section-number">2.2.3</span> REST Service
+                Json Options</h3>
                 <p>The jsonOptions allow to set a number of specific
                 options for the service.</p>
+                <p>jsonOptions ::= <img
+                src="sections/ddl/../../images/ddl/jsonOptions.svg"
+                title="jsonOptions" alt="jsonOptions" /></p>
                 <p>These options can include the following JSON
                 keys.</p>
                 <ul>
@@ -579,29 +651,298 @@
                 keys to avoid them be overwritten by future MRS
                 options.</p>
                 <p><strong><em>Examples</em></strong></p>
-                <div class="sourceCode" id="cb8"><pre
-                class="sourceCode json"><code class="sourceCode json"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;headers&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;Access-Control-Allow-Credentials&quot;</span><span class="fu">:</span> <span class="st">&quot;true&quot;</span><span class="fu">,</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;Access-Control-Allow-Headers&quot;</span><span class="fu">:</span> <span class="st">&quot;Content-Type, Authorization, X-Requested-With, Origin, X-Auth-Token&quot;</span><span class="fu">,</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;Access-Control-Allow-Methods&quot;</span><span class="fu">:</span> <span class="st">&quot;GET, POST, PUT, DELETE, OPTIONS&quot;</span></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;http&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;allowedOrigin&quot;</span><span class="fu">:</span> <span class="st">&quot;auto&quot;</span></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;logging&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;exceptions&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;request&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;body&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;headers&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
-<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>        <span class="fu">},</span></span>
-<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;response&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;body&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
-<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;headers&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
-<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
-<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
-<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;returnInternalErrorDetails&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
-<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+                <div class="sourceCode" id="cb9"><pre
+                class="sourceCode json"><code class="sourceCode json"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;headers&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;Access-Control-Allow-Credentials&quot;</span><span class="fu">:</span> <span class="st">&quot;true&quot;</span><span class="fu">,</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;Access-Control-Allow-Headers&quot;</span><span class="fu">:</span> <span class="st">&quot;Content-Type, Authorization, X-Requested-With, Origin, X-Auth-Token&quot;</span><span class="fu">,</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;Access-Control-Allow-Methods&quot;</span><span class="fu">:</span> <span class="st">&quot;GET, POST, PUT, DELETE, OPTIONS&quot;</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;http&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;allowedOrigin&quot;</span><span class="fu">:</span> <span class="st">&quot;auto&quot;</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;logging&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;exceptions&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;request&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;body&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;headers&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>        <span class="fu">},</span></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;response&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;body&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;headers&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;returnInternalErrorDetails&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+                <h3 data-number="2.2.4" id="rest-service-comments"><span
+                class="header-section-number">2.2.4</span> REST Service
+                Comments</h3>
+                <p>The comments can hold a description of the REST
+                service. The maximal length is of the comments string is
+                512 characters.</p>
+                <p>comments ::= <img
+                src="sections/ddl/../../images/ddl/comments.svg"
+                title="comments" alt="comments" /></p>
+                <h2 data-number="2.3" id="create-rest-schema"><span
+                class="header-section-number">2.3</span> CREATE REST
+                SCHEMA</h2>
+                <p>The CREATE REST SCHEMA statement is used to create a
+                new or replace an existing REST schema. Each REST schema
+                directly maps to a database schema and allows the
+                database schema objects (tables, views and stored
+                procedures) to be exposed via REST endpoints.</p>
+                <blockquote>
+                <p>Note: Adding a REST schema to a REST service does not
+                automatically expose any database schema objects via
+                REST. The corresponding <code>CREATE REST TABLE</code>,
+                <code>CREATE REST DUALITY VIEW</code>,
+                <code>CREATE REST PROCEDURE</code> ddl commands need to
+                be called to explicitly expose a database schema
+                object.</p>
+                </blockquote>
+                <p>Each REST schema belongs to a REST service, which has
+                to be created first. One REST service can hold many REST
+                schemas.</p>
+                <p>Each REST schema can have its own options,
+                authentication apps and supports a different set of
+                authentication users.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <p>createRestSchemaStatement ::= <img
+                src="sections/ddl/../../images/ddl/createRestSchemaStatement.svg"
+                title="createRestSchemaStatement"
+                alt="createRestSchemaStatement" /></p>
+                <p>restSchemaOptions ::= <img
+                src="sections/ddl/../../images/ddl/restSchemaOptions.svg"
+                title="restSchemaOptions" alt="restSchemaOptions" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example creates a REST schema
+                <code>/sakila</code> on the REST service
+                <code>/myService</code>.</p>
+                <div class="sourceCode" id="cb10"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila <span class="kw">ON</span> SERVICE <span class="op">/</span>myService</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">FROM</span> `sakila`</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    COMMENTS <span class="ot">&quot;The sakila schema&quot;</span>;</span></code></pre></div>
+                <h3 data-number="2.3.1"
+                id="enabling-or-disabling-a-rest-schema-at-creation-time"><span
+                class="header-section-number">2.3.1</span> Enabling or
+                Disabling a REST Schema at Creation Time</h3>
+                <p>The <code>enabledDisabled</code> option specifies
+                whether the REST schema should be enabled or disabled
+                after it has been created.</p>
+                <p>enabledDisabled ::= <img
+                src="sections/ddl/../../images/ddl/enabledDisabled.svg"
+                title="enabledDisabled" alt="enabledDisabled" /></p>
+                <h3 data-number="2.3.2"
+                id="specifying-the-default-page-count"><span
+                class="header-section-number">2.3.2</span> Specifying
+                the Default Page Count</h3>
+                <p>The <code>itemsPerPage</code> option can be used to
+                specify the default number of items returned for queries
+                run against this REST schema.</p>
+                <p>itemsPerPage ::= <img
+                src="sections/ddl/../../images/ddl/itemsPerPage.svg"
+                title="itemsPerPage" alt="itemsPerPage" /></p>
+                <p>The number of items per page can also be specified
+                for each REST object individually.</p>
+                <h3 data-number="2.3.3"
+                id="rest-schema-json-options"><span
+                class="header-section-number">2.3.3</span> REST Schema
+                Json Options</h3>
+                <p>The jsonOptions allow to set a number of specific
+                options for the service.</p>
+                <p>jsonOptions ::= <img
+                src="sections/ddl/../../images/ddl/jsonOptions.svg"
+                title="jsonOptions" alt="jsonOptions" /></p>
+                <p>These options can include the following JSON
+                keys.</p>
+                <ul>
+                <li><code>defaultStaticContent</code> - This option
+                serves the same purpose as described in the <a
+                href="#rest-configuration-json-options">REST
+                Configuration Json Options</a>.</li>
+                <li><code>defaultRedirects</code> - This option serves
+                the same purpose as described in the <a
+                href="#rest-configuration-json-options">REST
+                Configuration Json Options</a>.</li>
+                <li><code>directoryIndexDirective</code> - This option
+                serves the same purpose as described in the <a
+                href="#rest-configuration-json-options">REST
+                Configuration Json Options</a>.</li>
+                </ul>
+                <p>All other keys will be ignored and can be used to
+                store custom metadata about the schema. It is a good
+                practice to include a unique prefix when adding custom
+                keys to avoid them be overwritten by future MRS
+                options.</p>
+                <h3 data-number="2.3.4" id="rest-schema-comments"><span
+                class="header-section-number">2.3.4</span> REST Schema
+                Comments</h3>
+                <p>The comments can hold a description of the REST
+                schema. The maximal length is of the comments string is
+                512 characters.</p>
+                <p>comments ::= <img
+                src="sections/ddl/../../images/ddl/comments.svg"
+                title="comments" alt="comments" /></p>
+                <h2 data-number="2.4"
+                id="create-rest-duality-view"><span
+                class="header-section-number">2.4</span> CREATE REST
+                DUALITY VIEW</h2>
+                <p>The <code>CREATE REST DUALITY VIEW</code> statement
+                is used to add REST endpoints for database schema tables
+                or views. The will be served as JSON duality views.</p>
+                <p>Please see the MRS Developer’s Guide to learn more
+                about <a href="index.html#json-duality-views">JSON
+                duality views</a>.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <p>createRestViewStatement ::= <img
+                src="sections/ddl/../../images/ddl/createRestViewStatement.svg"
+                title="createRestViewStatement"
+                alt="createRestViewStatement" /></p>
+                <p>restDualityViewOptions ::= <img
+                src="sections/ddl/../../images/ddl/restDualityViewOptions.svg"
+                title="restDualityViewOptions"
+                alt="restDualityViewOptions" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example adds a REST duality view for
+                the <code>sakila.city</code> database schema table.</p>
+                <div class="sourceCode" id="cb11"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST DUALITY <span class="kw">VIEW</span> <span class="op">/</span>city</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> `sakila`.`city` <span class="kw">AS</span> MyServiceSakilaCity {</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    cityId: city_id @SORTABLE,</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    city: city,</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    countryId: country_id,</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    lastUpdate: last_update</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>};</span></code></pre></div>
+                <p>Querying the REST endpoint using the TypeScript SDK
+                returns the following JSON document.</p>
+                <div class="sourceCode" id="cb12"><pre
+                class="sourceCode js"><code class="sourceCode javascript"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findFirst</span>()<span class="op">;</span></span></code></pre></div>
+                <div class="sourceCode" id="cb13"><pre
+                class="sourceCode json"><code class="sourceCode json"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>   <span class="dt">&quot;city&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;A Corua (La Corua)&quot;</span><span class="fu">,</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>   <span class="dt">&quot;links&quot;</span><span class="fu">:</span><span class="er"> </span><span class="ot">[</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>      <span class="fu">{</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>         <span class="dt">&quot;rel&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;self&quot;</span><span class="fu">,</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>         <span class="dt">&quot;href&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;/myService/sakila/city/1&quot;</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">}</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>   <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>   <span class="dt">&quot;cityId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>   <span class="dt">&quot;countryId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">87</span><span class="fu">,</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>   <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span><span class="fu">,</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>   <span class="dt">&quot;_metadata&quot;</span><span class="fu">:</span><span class="er"> </span><span class="fu">{</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;etag&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;EE93452B41984F3F5BBB0395CCB2CED00F5C748FEEA4A36CCD749CC3F85B7CEA&quot;</span></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>   <span class="fu">}</span></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+                <p>The next example now adds the referenced table
+                <code>sakila.country</code> to the REST endpoint.</p>
+                <div class="sourceCode" id="cb14"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST DUALITY <span class="kw">VIEW</span> <span class="op">/</span>city</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> `sakila`.`city` <span class="kw">AS</span> MyServiceSakilaCity {</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    cityId: city_id @SORTABLE,</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    city: city,</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    countryId: country_id,</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    lastUpdate: last_update,</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    country: sakila.country {</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>        countryId: country_id @SORTABLE,</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>        country: country,</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>        lastUpdate: last_update</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>};</span></code></pre></div>
+                <p>This is what the REST DUALITY VIEW looks like in the
+                interactive MySQL REST Object Dialog in the MySQL Shell
+                for VS Code extension.</p>
+                <figure>
+                <img
+                src="sections/ddl/../../images/vsc-mrs-json-relational-editor-2-referenced-table.png"
+                title="Adding a Referenced Table"
+                alt="Adding a Referenced Table" />
+                <figcaption aria-hidden="true">Adding a Referenced
+                Table</figcaption>
+                </figure>
+                <p>Running a TypeScript SDK query against this new REST
+                endpoint returns the following JSON Document.</p>
+                <div class="sourceCode" id="cb15"><pre
+                class="sourceCode js"><code class="sourceCode javascript"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findFirst</span>()<span class="op">;</span></span></code></pre></div>
+                <div class="sourceCode" id="cb16"><pre
+                class="sourceCode json"><code class="sourceCode json"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;city&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;A Corua (La Corua)&quot;</span><span class="fu">,</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;links&quot;</span><span class="fu">:</span><span class="er"> </span><span class="ot">[</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;rel&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;self&quot;</span><span class="fu">,</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;href&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;/myService/sakila/city/1&quot;</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;cityId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;country&quot;</span><span class="fu">:</span><span class="er"> </span><span class="fu">{</span></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;country&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;Spain&quot;</span><span class="fu">,</span></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;countryId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">87</span><span class="fu">,</span></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;2006-02-15 04:44:00.000000&quot;</span></span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;countryId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">87</span><span class="fu">,</span></span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span><span class="fu">,</span></span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;_metadata&quot;</span><span class="fu">:</span><span class="er"> </span><span class="fu">{</span></span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;etag&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;FFA2187AD4B98DF48EC40B3E807E0561A71D02C2F4F5A3B953AA6CB6E41CAD16&quot;</span></span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+                <h3 data-number="2.4.1" id="preconditions"><span
+                class="header-section-number">2.4.1</span>
+                Preconditions</h3>
+                <p>You define a REST duality view against a set of
+                tables related by primary key (PK), foreign key (FK) or
+                unique key constraints (UK). The following rules
+                apply:</p>
+                <ul>
+                <li>The constraints must be declared in the
+                database.</li>
+                <li>The relationships type can be 1-to-1, 1-to-N and
+                N-to-M (using a mapping table with two FKs). The N-to-M
+                relationship can be thought of as the combination of
+                1-to-N and 1-to-1 relationship</li>
+                <li>Columns of two or more tables with 1-to-1 or N-to-1
+                relationships can be merged into the same JSON object
+                via UNNEST. Otherwise a nested JSON object is
+                created.</li>
+                <li>Tables with a 1-to-N relationship create a nested
+                JSON array.</li>
+                <li>Each item in the duality view is one JSON object,
+                which is typically a hierarchy of nested objects and
+                arrays.</li>
+                <li>Each application object is built from values
+                originating from one or multiple rows from the
+                underlying tables of that view. Typically, each table
+                contributes to one (nested) JSON object.</li>
+                </ul>
+                <h2 data-number="2.5" id="create-rest-procedure"><span
+                class="header-section-number">2.5</span> CREATE REST
+                PROCEDURE</h2>
+                <p>The <code>CREATE REST PROCEDURE</code> statement is
+                used to add REST endpoints for database schema stored
+                procedures.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <p>createRestProcedureStatement ::= <img
+                src="sections/ddl/../../images/ddl/createRestProcedureStatement.svg"
+                title="createRestProcedureStatement"
+                alt="createRestProcedureStatement" /></p>
+                <p>restProcedureOptions ::= <img
+                src="sections/ddl/../../images/ddl/restProcedureOptions.svg"
+                title="restProcedureOptions"
+                alt="restProcedureOptions" /></p>
+                <h2 data-number="2.6" id="create-rest-content-set"><span
+                class="header-section-number">2.6</span> CREATE REST
+                CONTENT SET</h2>
+                <p>The <code>CREATE REST CONTENT SET</code> statement is
+                used to add REST endpoints for static content.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <p>createRestContentSetStatement ::= <img
+                src="sections/ddl/../../images/ddl/createRestContentSetStatement.svg"
+                title="createRestContentSetStatement"
+                alt="createRestContentSetStatement" /></p>
+                <p>restContentSetOptions ::= <img
+                src="sections/ddl/../../images/ddl/restContentSetOptions.svg"
+                title="restContentSetOptions"
+                alt="restContentSetOptions" /></p>
                 <p>Copyright (c) 2023, Oracle and/or its affiliates.</p>
             </div>
         </div>

@@ -70,13 +70,13 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
         if (closing) {
             const mainSection = values.sections.get("mainSection");
             if (mainSection) {
-                if (!mainSection.values.servicePath.value) {
+                const servicePath = mainSection.values.servicePath.value as string;
+                if (!servicePath) {
                     result.messages.servicePath = "The service name must not be empty.";
-                } else {
-                    const servicePath = mainSection.values.servicePath.value as string;
-                    if (!servicePath.startsWith("/")) {
-                        result.messages.servicePath = "The request path must start with /.";
-                    }
+                } else if (!servicePath.startsWith("/")) {
+                    result.messages.servicePath = "The request path must start with /.";
+                } else if (servicePath.toLowerCase() === "/mrs") {
+                    result.messages.servicePath = `The request path \`${servicePath}\` is reserved and cannot be used.`;
                 }
             }
             const optionsSection = values.sections.get("optionsSection");

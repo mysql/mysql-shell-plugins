@@ -9,5 +9,4 @@ plugin-tests.xml
 package-lock.json
 
 *.interp
-grammar/.antlr
 grammar/antlr-4.13.0-complete.jar

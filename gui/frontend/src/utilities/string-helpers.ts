@@ -433,3 +433,15 @@ export const compareVersionStrings = (baseVersion: string, compareToVersion: str
 
     return v1.length === v2.length ? 0 : (v1.length < v2.length ? -1 : 1);
 };
+
+/**
+ * Formats a text block using a maximal line length
+ *
+ * @param text The text to format
+ * @param maxLineLength The maximal line length
+ * @returns The formatted text
+ */
+export const formatTextBlock = (text: string, maxLineLength: number): string => {
+    return text.match(
+        new RegExp(String.raw`\S(?:.{0,${maxLineLength - 2}}\S)?(?= |$)`, "g"))?.join("\n") ?? "";
+};

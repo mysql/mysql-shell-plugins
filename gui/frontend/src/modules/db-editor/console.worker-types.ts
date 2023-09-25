@@ -59,6 +59,9 @@ export enum ScriptingApi {
     /** To print something from the user. */
     Print,
 
+    /** To set properties of the global object that is persisted between code blocks. */
+    SetGlobalObjectProperty,
+
     /** Determine the type of a query. */
     QueryType,
 
@@ -76,13 +79,25 @@ export enum ScriptingApi {
     /** A graph definition. */
     Graph,
 
+    /** Prints the SDK code */
+    MrsPrintSdkCode,
+
+    /** Sets the current MRS service. */
+    MrsSetCurrentService,
+
+    /** Triggers the MRS service editor. */
+    MrsEditService,
+
     /** Changes the MRS service URL. */
     MrsSetServiceUrl,
 
     /** Triggers a MRS authentication process to get the global MRS JWT. */
     MrsAuthenticate,
 
-    /** Triggers the MRS DB Object editor. */
+    /** Triggers the MRS schema editor. */
+    MrsEditSchema,
+
+    /** Triggers the MRS db object editor. */
     MrsEditDbObject,
 
     /** A special API to denote that everything is done in the console worker and the task can be removed. */
@@ -98,6 +113,8 @@ export interface IConsoleWorkerTaskData {
     params?: unknown;
     result?: unknown;
     final?: boolean;
+
+    globalScriptingObject?: IDictionary;
 }
 
 // TODO: make this union type for different APIs.
@@ -116,11 +133,13 @@ export interface IConsoleWorkerResultData extends IDictionary {
     isError?: boolean;
     content?: unknown;
     value?: unknown;
+    name?: string;
 
     // Graphs
     options?: IGraphOptions;
 
-    // mrsAuthentication
+    // MRS
+    serviceId?: string;
     serviceUrl?: string;
     authPath?: string;
     authApp?: string;

@@ -19,17 +19,17 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
 
-# Introduction to the MRS DDL - SQL Extension
+# Introduction
 
-Providing a management interface that feels familiar to MySQL developers and DBAs and integrates well into their existing processes has been an essential part of the MySQL REST Service (MRS) design.
+It has been an essential goal of the MySQL REST Service (MRS) to provide a management interface that feels familiar to MySQL developers and DBAs and integrates well into their existing processes.
 
-The MySQL REST Service Shell plugin registers a SQL rewrite extension that process a set of MRS DDL statements that allows these DDL statements to be used in regular SQL scripts that are processed by the MySQL Shell or [MySQL Shell for VS Code](https://marketplace.visualstudio.com/items?itemName=Oracle.mysql-shell-for-vs-code).
+For this purpose the MySQL REST Service plugins directly into the [MySQL Shell](https://dev.mysql.com/downloads/shell/) and [MySQL Shell for VS Code](https://marketplace.visualstudio.com/items?itemName=Oracle.mysql-shell-for-vs-code). It extends the available SQL commands to include DDL (Data Definition Language) statements that allow managing the MySQL REST Service in an easy and seamless way.
 
-This makes developing REST services and managing the MySQL REST Service as easy as working with database schemas.
+This makes the process of creating a MySQL REST Service for your application as easy as creating a database schema or table.
 
 **_Example_**
 
-The following example script configures the MySQL REST Service, creates a new REST service `/myService` and adds a REST schema `/sakila` and a REST DUALITY view `/actor` that lists all actors and their film titles.
+The following script configures the MySQL REST Service, creates a new REST service `/myService` and adds a REST schema `/sakila` and a REST DUALITY VIEW `/actor` that lists all actors and their film titles.
 
 ```sql
 CONFIGURE REST METADATA;

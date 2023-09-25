@@ -25,12 +25,12 @@ Please also see
 
 ---
 
-!include sections/RestApiAbout.md
+!include sections/restApi/About.md
 
-!include sections/RestApiQueries.md
+!include sections/restApi/Queries.md
 
-!include sections/RestApiFilterGrammar.md
+!include sections/restApi/FilterGrammar.md
 
-!include sections/RestApiFilterGrammarExamples.md
+!include sections/restApi/FilterGrammarExamples.md
 
 Copyright (c) 2022, 2023, Oracle and/or its affiliates.

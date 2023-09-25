@@ -885,20 +885,18 @@ describe("Notebook", () => {
             await Misc.execCmd(textArea, "\\typescript", undefined, true);
 
             const cmd = `
-                runSql("SELECT Name, Capital FROM world_x_cst.country limit 10",(result) => {
-                    const options: IGraphOptions = {
-                        series: [
-                            {
-                                type: "bar",
-                                yLabel: "Actors",
-                                data: result as IJsonGraphData,
-                            }
-                        ]
-                    }
-                    const i=0;
-                    Graph.render(options);
-                }
-                `;
+const res = await runSql("SELECT Name, Capital FROM world_x_cst.country limit 10");
+const options: IGraphOptions = {
+    series: [
+        {
+            type: "bar",
+            yLabel: "Actors",
+            data: res as IJsonGraphData,
+        }
+    ]
+};
+Graph.render(options);
+`;
 
             await Misc.execCmd(textArea, cmd.trim(), undefined, true, false);
 

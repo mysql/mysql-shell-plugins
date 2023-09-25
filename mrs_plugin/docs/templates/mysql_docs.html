@@ -36,15 +36,21 @@
                 entries.forEach(entry => {
                     const id = entry.target.getAttribute('id');
                     if (entry.intersectionRatio > 0) {
-                        const e = document.querySelector(`nav li a[href="#` + id + `"]`).parentElement;
-                        e.classList.add('active');
-                        if (e.scrollIntoViewIfNeeded !== undefined) {
-                            e.scrollIntoViewIfNeeded(true);
-                        } else {
-                            e.scrollIntoView(true);
+                        const querySel = document.querySelector(`nav li a[href="#` + id + `"]`);
+                        if (querySel) {
+                            const e = querySel.parentElement;
+                            e.classList.add('active');
+                            if (e.scrollIntoViewIfNeeded !== undefined) {
+                                e.scrollIntoViewIfNeeded(true);
+                            } else {
+                                e.scrollIntoView(true);
+                            }
                         }
                     } else {
-                        document.querySelector(`nav li a[href="#` + id + `"]`).parentElement.classList.remove('active');
+                        const querySel = document.querySelector(`nav li a[href="#` + id + `"]`);
+                        if (querySel) {
+                            querySel.parentElement.classList.remove('active');
+                        }
                     }
                 });
             });

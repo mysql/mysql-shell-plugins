@@ -33,6 +33,41 @@ export const webFetch = (input: RequestInfo | URL, init?: RequestInit): Promise<
     return fetch(input, init);
 };
 
+export const mrsPrintSdkCode = (): void => {
+    currentWorker.postMessage({
+        taskId: currentWorker.currentTaskId,
+        data: {
+            api: ScriptingApi.MrsPrintSdkCode,
+            contextId: currentWorker.currentContext,
+            final: true,
+        },
+    });
+};
+
+export const mrsSetCurrentService = (serviceId: string): void => {
+    currentWorker.postMessage({
+        taskId: currentWorker.currentTaskId,
+        data: {
+            api: ScriptingApi.MrsSetCurrentService,
+            serviceId,
+            contextId: currentWorker.currentContext,
+            final: true,
+        },
+    });
+};
+
+export const mrsEditService = (serviceId: string): void => {
+    currentWorker.postMessage({
+        taskId: currentWorker.currentTaskId,
+        data: {
+            api: ScriptingApi.MrsEditService,
+            serviceId,
+            contextId: currentWorker.currentContext,
+            final: true,
+        },
+    });
+};
+
 export const mrsSetServiceUrl = (serviceUrl: string): void => {
     currentWorker.postMessage({
         taskId: currentWorker.currentTaskId,
@@ -56,6 +91,18 @@ export const mrsAuthenticate = (serviceUrl: string, authPath: string, authApp?: 
             authPath,
             authApp,
             userName,
+            contextId: currentWorker.currentContext,
+            final: true,
+        },
+    });
+};
+
+export const mrsEditSchema = (schemaId: string): void => {
+    currentWorker.postMessage({
+        taskId: currentWorker.currentTaskId,
+        data: {
+            api: ScriptingApi.MrsEditSchema,
+            schemaId,
             contextId: currentWorker.currentContext,
             final: true,
         },

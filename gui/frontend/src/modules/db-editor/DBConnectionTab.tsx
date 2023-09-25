@@ -36,7 +36,10 @@ import {
 } from ".";
 import { ScriptEditor } from "./ScriptEditor";
 import { IScriptExecutionOptions } from "../../components/ui/CodeEditor";
-import { IMrsDbObjectEditRequest, appParameters, requisitions } from "../../supplement/Requisitions";
+import {
+    IMrsDbObjectEditRequest, IMrsSchemaEditRequest, appParameters,
+    requisitions,
+} from "../../supplement/Requisitions";
 import { IConsoleWorkerResultData, ScriptingApi } from "./console.worker-types";
 import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool";
 import { ScriptingLanguageServices } from "../../script-execution/ScriptingLanguageServices";
@@ -266,6 +269,9 @@ Execute \\help or \\? for help;`;
 
     private cachedMrsServiceSdk: IMrsServiceSdkMetadata = {};
     private mrsLoginResult?: IMrsLoginResult;
+
+    // The global object that holds the properties which can be accessed across code blocks
+    #globalScriptingObject: IDictionary = {};
 
     public constructor(props: IDBConnectionTabProperties) {
         super(props);
@@ -1408,13 +1414,21 @@ Execute \\help or \\? for help;`;
                         // Fetch new SDK Service Classes and build full code
                         void updateStatusbar(`$(loading~spin) ${firstLoad ? "Loading" : "Refreshing"} MRS SDK for ` +
                             `${serviceMetadata.hostCtx}...`);
-                        const code = this.cachedMrsServiceSdk.baseClasses + "\n" +
+                        let code = this.cachedMrsServiceSdk.baseClasses + "\n" +
                             await backend.mrs.getSdkServiceClasses(
                                 serviceMetadata.id, "TypeScript", true, this.cachedMrsServiceSdk.serviceUrl);
 
+                        // Set the mrsLoginResult constant
+                        if (this.mrsLoginResult && this.mrsLoginResult.authApp && this.mrsLoginResult.jwt) {
+                            code += "\nconst mrsLoginResult = { " +
+                                `authApp: "${this.mrsLoginResult.authApp}", jwt: "${this.mrsLoginResult.jwt}" };\n`;
+                        } else {
+                            code += "\n";
+                        }
+
                         // Update this.cachedMrsServiceSdk
                         this.cachedMrsServiceSdk.code = code;
-                        this.cachedMrsServiceSdk.codeLineCount = (code.match(/\n/gm) ?? []).length;
+                        this.cachedMrsServiceSdk.codeLineCount = (code.match(/\n/gm) ?? []).length + 1;
                         this.cachedMrsServiceSdk.schemaId = serviceMetadata.id;
                         this.cachedMrsServiceSdk.schemaMetadataVersion = serviceMetadata.metadataVersion;
 
@@ -1431,6 +1445,19 @@ Execute \\help or \\? for help;`;
                 } else {
                     // If no current MRS service set, clean the cachedMrsServiceSdk
                     this.cachedMrsServiceSdk = {};
+
+                    void updateStatusbar("$(loading~spin) Loading MRS Management Classes ...");
+
+                    const code = await backend.mrs.getRuntimeManagementCode();
+                    this.cachedMrsServiceSdk.codeLineCount = (code.match(/\n/gm) ?? []).length + 1;
+
+                    this.cachedMrsServiceSdk.code = code;
+
+                    this.notebookRef.current?.addOrUpdateExtraLib(code, `mrsServiceSdk.d.ts`);
+                    this.scriptRef.current?.addOrUpdateExtraLib(code, `mrsServiceSdk.d.ts`);
+
+                    void updateStatusbar(`MRS MRS Management Classes have been loaded.`, 5000);
+
 
                     void updateStatusbar();
                 }
@@ -1513,23 +1540,6 @@ Execute \\help or \\? for help;`;
             case "typescript": {
                 await this.updateMrsServiceSdkCache();
 
-                let mrsServiceSdkCode = "";
-                let libCodeLineNumbers = 0;
-
-                // Set the mrsLoginResult constant
-                if (this.mrsLoginResult && this.mrsLoginResult.authApp && this.mrsLoginResult.jwt) {
-                    mrsServiceSdkCode += "const mrsLoginResult = { " +
-                        `authApp: "${this.mrsLoginResult.authApp}", jwt: "${this.mrsLoginResult.jwt}" };\n`;
-                    libCodeLineNumbers += 1;
-                }
-
-                // Get the mrsServiceSdkCode that needs to be added before the code block
-                if (this.cachedMrsServiceSdk.code !== undefined) {
-                    mrsServiceSdkCode += this.cachedMrsServiceSdk.code + "\n";
-                    libCodeLineNumbers += this.cachedMrsServiceSdk.codeLineCount ?? 0;
-
-                }
-
                 const usesAwait = context.code.includes("await ");
 
                 // Execute the code
@@ -1540,8 +1550,10 @@ Execute \\help or \\? for help;`;
                     // Further, the temporary string "\nexport{}\n" is removed from the code.
                     // Please note that the libCodeLineNumbers need to be adjusted accordingly.
                     // See EmbeddedPresentationInterface.tsx for details.
-                    libCodeLineNumbers: libCodeLineNumbers + (usesAwait ? 1 - 2 + 2 : 0) + 1,
-                    code: ts.transpile(mrsServiceSdkCode +
+                    libCodeLineNumbers: (this.cachedMrsServiceSdk.codeLineCount
+                        ? this.cachedMrsServiceSdk.codeLineCount - 1 : 0)
+                        + (usesAwait ? 1 - 2 + 2 : 0),
+                    code: ts.transpile((this.cachedMrsServiceSdk.code ?? "") +
                         (usesAwait
                             ? "(async () => {\n" + context.code.replace("\nexport{}\n", "") + "})()"
                             : context.code), {
@@ -1550,6 +1562,7 @@ Execute \\help or \\? for help;`;
                         inlineSourceMap: true,
                     }),
                     contextId: context.id,
+                    globalScriptingObject: this.#globalScriptingObject,
                 }).then((taskId: number, data: IConsoleWorkerResultData) => {
                     void this.handleTaskResult(taskId, data);
                 });
@@ -1846,12 +1859,71 @@ Execute \\help or \\? for help;`;
                     break;
                 }
 
+                case ScriptingApi.SetGlobalObjectProperty: {
+                    const context = this.runningContexts.get(data.contextId);
+
+                    if (data.name !== undefined && context) {
+                        this.#globalScriptingObject[data.name] = data.value;
+                    }
+
+                    break;
+                }
+
                 case ScriptingApi.Graph: {
                     const context = this.runningContexts.get(data.contextId);
                     await context?.addResultData({
                         type: "graphData",
                         options: data.options,
                     }, { resultId: "" });
+
+                    break;
+                }
+
+                case ScriptingApi.MrsPrintSdkCode: {
+                    const context = this.runningContexts.get(data.contextId);
+
+                    if (this.cachedMrsServiceSdk.code && context) {
+                        const sdkCode = this.cachedMrsServiceSdk.code;
+                        const codeLines = sdkCode.split("\n");
+                        let formattedSdkCode = "";
+                        let lnCounter = 1;
+                        for (const ln of codeLines) {
+                            formattedSdkCode += `${lnCounter++} `.padStart(5, " ")
+                                + ln.replaceAll("\t", " ".repeat(2)) + "\n";
+                        }
+
+                        await context.addResultData({
+                            type: "text",
+                            text: [{
+                                type: MessageType.Info,
+                                content: formattedSdkCode,
+                            }],
+                        }, { resultId: "" });
+                    }
+
+                    break;
+                }
+
+                case ScriptingApi.MrsSetCurrentService: {
+                    if (backend && data.serviceId && typeof data.serviceId === "string") {
+                        await backend.mrs.setCurrentService(data.serviceId);
+
+                        await this.updateMrsServiceSdkCache();
+
+                        void requisitions.executeRemote("refreshConnections", undefined);
+                    }
+
+                    break;
+                }
+
+                case ScriptingApi.MrsEditService: {
+                    if (backend && data.serviceId && typeof data.serviceId === "string") {
+                        const service = await backend.mrs.getService(data.serviceId, null, null, null, null);
+                        if (service !== undefined) {
+                            void requisitions.execute("showMrsServiceDialog", service);
+                        }
+
+                    }
 
                     break;
                 }
@@ -1878,6 +1950,22 @@ Execute \\help or \\? for help;`;
                         },
                     };
                     void requisitions.execute("requestMrsAuthentication", passwordRequest);
+
+                    break;
+                }
+
+                case ScriptingApi.MrsEditSchema: {
+                    if (backend && data.schemaId && typeof data.schemaId === "string") {
+                        const schema = await backend.mrs.getSchema(data.schemaId);
+                        if (schema !== undefined) {
+                            const editRequest: IMrsSchemaEditRequest = {
+                                schemaName: schema.name,
+                                schema,
+                            };
+                            void requisitions.execute("showMrsSchemaDialog", editRequest);
+                        }
+
+                    }
 
                     break;
                 }

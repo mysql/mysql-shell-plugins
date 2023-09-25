@@ -315,13 +315,13 @@ h2 {
 h3 {
     font-size: 19px;
     font-weight: 400;
-    margin-top: 25px;
+    margin-top: 40px;
 }
 
 h4 {
     font-size: 17px;
     font-weight: 400;
-    margin-top: 20px;
+    margin-top: 30px;
 }
 
 p {
@@ -372,7 +372,6 @@ strong em {
     font-size: 18px;
     font-weight: 600;
     font-style: normal;
-    line-height: 2.8;
     position: relative;
     top: 8px;
 }
@@ -422,13 +421,15 @@ video {
 }
 
 figure {
+    margin-top: 35px;
+    margin-bottom: 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
 img {
-    max-width: 70%;
+    max-width: 95%;
     transform: scale(1);
     box-sizing: border-box;
     border: 0
@@ -445,8 +446,7 @@ svg:not(:root) {
 *+blockquote,
 *+pre,
 *+address,
-*+fieldset,
-*+figure {
+*+fieldset {
     margin-top: 15px
 }
 
@@ -465,9 +465,12 @@ address {
 blockquote {
     padding-left: 15px;
     border-left: 5px solid #ddd;
-    font-size: 13px;
+    font-size: 14px;
+    font-weight: 600;
     line-height: 22px;
-    font-style: italic
+    font-style: italic;
+    margin-top: 20px;
+    margin-bottom: 20px;
 }
 
 pre {
@@ -564,7 +567,7 @@ button {
 
 div .sourceCode {
     padding-top: 20px;
-    padding-bottom: 20px;
+    padding-bottom: 10px;
 }
 
 .icon {
@@ -576,4 +579,52 @@ div .sourceCode {
 .bookIcon {
     -webkit-mask-image: url(../images/book.svg);
     mask-image: url(../images/book.svg);
+}
+
+img[alt="Configure Instance for MySQL REST Service Support"] {
+    max-width: 600px;
+}
+
+img[alt="Bootstrap and Start MySQL Router"] {
+    max-width: 550px;
+}
+
+img[alt="Adding a REST Service"] {
+    max-width: 550px;
+}
+
+img[alt="REST Schema and its Objects"] {
+    max-width: 550px;
+}
+
+img[alt="Adding a Database Schema"] {
+    max-width: 550px;
+}
+
+img[alt="Adding a Database Object"] {
+    max-width: 550px;
+}
+
+img[alt="JSON Relational Duality - Use Cases"] {
+    max-width: 500px;
+}
+
+img[alt="JSON Relational Duality - Update Cycle"] {
+    max-width: 600px;
+}
+
+img[alt="JSON Relational Editor"] {
+    max-width: 800px;
+}
+
+img[alt="The MySQL REST Object Dialog"] {
+    max-width: 800px;
+}
+
+img[alt="DB Notebook - Switch to TS mode"] {
+    max-width: 700px;
+}
+
+img[alt="Setting the Current REST Service"] {
+    max-width: 500px;
 }

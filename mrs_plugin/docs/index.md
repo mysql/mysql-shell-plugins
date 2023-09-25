@@ -24,15 +24,21 @@ Please also see
 
 ---
 
-!include sections/Introduction.md
+!include sections/devGuide/Introduction.md
 
-!include sections/DeploymentArchitecture.md
+!include sections/devGuide/DeploymentArchitecture.md
 
-!include sections/Configuration.md
+!include sections/devGuide/Configuration.md
 
-!include sections/AddingRESTServices.md
+!include sections/devGuide/AddingRESTServices.md
 
-!include sections/AddingRESTSchemasAndObjects.md
+!include sections/devGuide/WorkingInteractively.md
+
+!include sections/devGuide/DualityViews.md
+
+!include sections/devGuide/DialogReference.md
+
+!include sections/devGuide/Auth.md
 
 !include ../examples/readme.md
 

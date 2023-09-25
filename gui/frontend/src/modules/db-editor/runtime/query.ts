@@ -39,7 +39,7 @@ export const runSqlIterative = (sql: string, callback?: (res: unknown) => void,
     });
 };
 
-export const runSql = (sql: string, callback?: (res: unknown) => void,
+export const runSqlWithCallback = (sql: string, callback?: (res: unknown) => void,
     params?: unknown): void => {
     if (callback) {
         currentWorker.pendingRequests.set(currentWorker.currentContext, callback);
@@ -50,5 +50,11 @@ export const runSql = (sql: string, callback?: (res: unknown) => void,
         contextId: currentWorker.currentContext,
         code: sql,
         params,
+    });
+};
+
+export const runSql = async (sql: string, params?: unknown): Promise<unknown> => {
+    return new Promise((resolve) => {
+        runSqlWithCallback(sql, resolve, params);
     });
 };

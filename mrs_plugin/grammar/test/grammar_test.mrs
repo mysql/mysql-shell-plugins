@@ -74,7 +74,6 @@ CREATE REST SCHEMA ON SERVICE localhost/myTestService FROM `sakila`
 
 USE REST SERVICE localhost/myTestService;
 
-/* CREATE OR REPLACE REST SCHEMA /sakila FROM `sakila` */
 CREATE OR REPLACE REST SCHEMA /sakila FROM `sakila`
     DISABLED
     OPTIONS {
@@ -84,14 +83,20 @@ CREATE OR REPLACE REST SCHEMA /sakila FROM `sakila`
         "returnInternalErrorDetails": false
     };
 
-/* ALTER REST SCHEMA /sakila
+ALTER REST SCHEMA /sakila
     NEW REQUEST PATH /sakila2
     DISABLED;
 
 ALTER REST SCHEMA /sakila2
-    NEW REQUEST PATH /sakila; */
+    NEW REQUEST PATH /sakila;
 
 USE REST SCHEMA /sakila;
+
+CREATE OR REPLACE REST DUALITY VIEW /city
+FROM `sakila`.`city`
+AS MyServiceSakilaCity;
+
+SHOW CREATE REST VIEW /city;
 
 CREATE OR REPLACE REST DUALITY VIEW /country
 ON SERVICE localhost/myTestService SCHEMA /sakila

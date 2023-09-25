@@ -19,8 +19,8 @@ Please also see
 
 ---
 
-!include sections/ddlIntroduction.md
+!include sections/ddl/Introduction.md
 
-!include sections/ddlReference.md
+!include sections/ddl/ConfigureAndCreate.md
 
 Copyright (c) 2023, Oracle and/or its affiliates.

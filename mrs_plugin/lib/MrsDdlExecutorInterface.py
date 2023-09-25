@@ -42,6 +42,9 @@ class MrsDdlExecutorInterface():
     def createRestDbObject(self, mrs_object: dict):
         raise NotImplementedError()
 
+    def createRestContentSet(self, mrs_object: dict):
+        raise NotImplementedError()
+
     def alterRestService(self, mrs_object: dict):
         raise NotImplementedError()
 
@@ -58,6 +61,9 @@ class MrsDdlExecutorInterface():
         raise NotImplementedError()
 
     def dropRestDbObject(self, mrs_object: dict):
+        raise NotImplementedError()
+
+    def dropRestContentSet(self, mrs_object: dict):
         raise NotImplementedError()
 
     def use(self, mrs_object):

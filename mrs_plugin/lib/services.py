@@ -102,6 +102,10 @@ def add_service(session, url_host_name, service):
     if "options" in service:
         service["options"] = core.convert_json(service["options"])
 
+    path = service.get("url_context_root").lower()
+    if path == "/mrs":
+        raise Exception(f'The REST service path `{path}` is reserved and cannot be used.')
+
     # Check if another service already uses this request path
     core.check_request_path(session, url_host_name +
                             service.get("url_context_root"))

@@ -54,11 +54,11 @@ class MrsDdlListener(MRSListener):
 
     def enterAuthenticationRequired(self, ctx):
         # If the NOT keyword is present in (AUTHENTICATION NOT? REQUIRED)?
-        # authentication is required
+        # authentication is not required
         if ctx.NOT_SYMBOL() is not None:
-            self.mrs_object["requires_auth"] = True
-        else:
             self.mrs_object["requires_auth"] = False
+        else:
+            self.mrs_object["requires_auth"] = True
 
     def enterItemsPerPage(self, ctx):
         self.mrs_object["items_per_page"] = int(
@@ -162,7 +162,7 @@ class MrsDdlListener(MRSListener):
     # ------------------------------------------------------------------------------------------------------------------
     # CREATE REST VIEW
 
-    def get_db_object_fields(self, object_id, db_schema_name, db_object_name):
+    def get_db_object_fields(self, object_id, db_schema_name, db_object_name, auto_enable_fields=False):
         # Get the actual columns with references
         columns = lib.db_objects.get_table_columns_with_references(
             session=self.session, schema_name=db_schema_name,
@@ -180,6 +180,7 @@ class MrsDdlListener(MRSListener):
         fields = []
         for column in columns:
             db_column = column.get("db_column")
+            ref_mapping = column.get("reference_mapping")
             fields.append({
                 "id": self.get_uuid(),
                 "object_id": object_id,
@@ -187,7 +188,7 @@ class MrsDdlListener(MRSListener):
                 "name": lib.core.convert_snake_to_camel_case(column.get("name")),
                 "position": column.get("position"),
                 "db_column": column.get("db_column"),
-                "enabled": False,
+                "enabled": (auto_enable_fields and ref_mapping is None),
                 "allow_filtering": True,
                 # Only allow sorting for top level fields
                 "allow_sorting": (
@@ -201,7 +202,7 @@ class MrsDdlListener(MRSListener):
                 "no_update": False,
                 "sdk_options": None,
                 "comments": None,
-                "reference_mapping": column.get("reference_mapping")
+                "reference_mapping": ref_mapping
             })
 
         return fields
@@ -326,7 +327,8 @@ class MrsDdlListener(MRSListener):
             "fields": self.get_db_object_fields(
                 object_id=object_id,
                 db_schema_name=self.mrs_object["schema_name"],
-                db_object_name=self.mrs_object["name"])
+                db_object_name=self.mrs_object["name"],
+                auto_enable_fields=(ctx.graphGlObj() is None))
         }]
 
     def enterRestViewMediaType(self, ctx):
@@ -604,6 +606,21 @@ class MrsDdlListener(MRSListener):
     def exitCreateRestProcedureStatement(self, ctx):
         self.mrs_ddl_executor.createRestDbObject(self.mrs_object)
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # CREATE REST CONTENT SET
+
+    def enterCreateRestContentSetStatement(self, ctx):
+        self.mrs_object = {
+            "current_operation": (
+                "CREATE" if ctx.REPLACE_SYMBOL() is None
+                else "CREATE OR REPLACE") + " CONTENT SET",
+            "do_replace": ctx.REPLACE_SYMBOL() is not None,
+            "request_path": ctx.contentSetRequestPath().getText(),
+        }
+
+    def exitCreateRestContentSetStatement(self, ctx):
+        self.mrs_ddl_executor.createRestContentSet(self.mrs_object)
+
     # ==================================================================================================================
     # ALTER REST Statements
 
@@ -766,6 +783,18 @@ class MrsDdlListener(MRSListener):
 
     def exitDropRestProcedureStatement(self, ctx):
         self.mrs_ddl_executor.dropRestDbObject(self.mrs_object)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # DROP REST CONTENT SET
+
+    def enterDropRestContentSetStatement(self, ctx):
+        self.mrs_object = {
+            "current_operation": "DROP REST CONTENT SET",
+            "request_path": ctx.contentSetRequestPath().getText()
+        }
+
+    def exitDropRestContentSetStatement(self, ctx):
+        self.mrs_ddl_executor.dropRestContentSet(self.mrs_object)
 
     # ==================================================================================================================
     # USE REST Statement

@@ -374,6 +374,9 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 })
                 raise
 
+    def createRestContentSet(self, mrs_object: dict):
+        raise NotImplementedError()
+
     def alterRestService(self, mrs_object: dict):
         self.current_operation = mrs_object.pop("current_operation")
         url_host_name = mrs_object.get(
@@ -645,6 +648,9 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     "operation": self.current_operation
                 })
                 raise
+
+    def dropRestContentSet(self, mrs_object: dict):
+        raise NotImplementedError()
 
     def use(self, mrs_object: dict):
         self.current_operation = mrs_object.pop("current_operation")
@@ -989,10 +995,10 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             stmt = (f'CREATE OR REPLACE REST {rest_object_type} {db_object.get("request_path")}\n' +
                     f'    ON SERVICE {mrs_object.get("url_context_root")} SCHEMA {db_object.get("schema_request_path")}\n')
 
-            if not db_object["enabled"]:
+            if db_object["enabled"] is False or db_object["enabled"] == 0:
                 stmt += "    DISABLED\n"
 
-            if db_object["requires_auth"]:
+            if db_object["requires_auth"] is True or db_object["requires_auth"] == 1:
                 stmt += "    AUTHENTICATION REQUIRED\n"
 
             if db_object["items_per_page"] is not None and db_object["items_per_page"] != 25: # 25 is the default value
