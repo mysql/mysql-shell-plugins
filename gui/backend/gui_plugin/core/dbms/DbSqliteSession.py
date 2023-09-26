@@ -157,7 +157,8 @@ class DbSqliteSession(DbSession):
                                         isolation_level=None, check_same_thread=False)
 
             # restrict permissions to the database file
-            os.chmod(self._databases[self._current_schema], stat.S_IRUSR | stat.S_IWUSR)
+            os.chmod(self._databases[self._current_schema],
+                     stat.S_IRUSR | stat.S_IWUSR)
 
             # Cursor to be used for statements from the owner of this instance
             self.cursor = None
@@ -193,7 +194,18 @@ class DbSqliteSession(DbSession):
     def do_execute(self, sql, params=None):
         try:
             self.lock()
-            self.cursor = self.conn.execute(sql, params)
+            # NOTE: theoretically self.conn.execute(sql, params) should work.
+            # Reasoning is that when the connection was created, it used SqliteConnection as factory.
+            # SqliteConnection overrides the cursor() function to produce instances of DbCursor instead
+            # of instances of sqlite3.Cursor when the execute function is called.
+            #
+            # In python 3.11.4 this stopped working, and self.conn.execute() started producing
+            # instances of sqlite3.Cursor, leading to misc errors in our code which expects to be
+            # using instances of DbCursor.
+            #
+            # A backwards compatible solution, is to explicitly create the cursor object (which guarantees =
+            # it is an instance of DbCursor), and then call the execute() function in it.
+            self.cursor = self.conn.cursor().execute(sql, params)
         finally:
             self.release()
 
