@@ -22,6 +22,7 @@
 import mrs_plugin.lib as lib
 from mrs_plugin.lib.MrsDdlExecutorInterface import MrsDdlExecutorInterface
 import json
+from datetime import datetime
 
 
 def cutLastComma(fields):
@@ -102,26 +103,83 @@ def walk(fields, parent_id=None, level=1, add_data_type=False, current_object=No
     return result
 
 
+class Timer(object):
+    def __init__(self) -> None:
+        self.start = datetime.now()
+
+    def elapsed(self):
+        return (datetime.now() - self.start).total_seconds()
+
+
 class MrsDdlExecutor(MrsDdlExecutorInterface):
 
     def __init__(self, session,
                  current_service_id=None, current_service=None,
                  current_service_host=None,
-                 current_schema_id=None, current_schema=None):
+                 current_schema_id=None, current_schema=None,
+                 state_data={}):
+        self.state_data = state_data
         self.session = session
         self.results = []
-        self.current_service_id = current_service_id
-        self.current_service = current_service
-        self.current_service_host = current_service_host
-        self.current_schema_id = current_schema_id
-        self.current_schema = current_schema
+
+        # Updates the values of the provided parameters only if they are not None,
+        # this is done to avoid overriding values that are cached in the Session
+        if current_service_id is not None:
+            self.current_service_id = current_service_id
+
+        if current_service is not None:
+            self.current_service = current_service
+
+        if current_service_host is not None:
+            self.current_service_host = current_service_host
+
+        if current_schema_id is not None:
+            self.current_schema_id = current_schema_id
+
+        if current_schema is not None:
+            self.current_schema = current_schema
+
         self.current_operation = None
 
-    def get_current_service_id(self):
-        return self.current_service_id
+    @property
+    def current_service_id(self):
+        return self.state_data.get('current_service_id')
 
-    def get_current_schema_id(self):
-        return self.current_schema_id
+    @current_service_id.setter
+    def current_service_id(self, value):
+        self.state_data['current_service_id'] = value
+
+    @property
+    def current_schema_id(self):
+        return self.state_data.get('current_schema_id')
+
+    @current_schema_id.setter
+    def current_schema_id(self, value):
+        self.state_data['current_schema_id'] = value
+
+    @property
+    def current_service(self):
+        return self.state_data.get('current_service')
+
+    @current_service.setter
+    def current_service(self, value):
+        self.state_data['current_service'] = value
+
+    @property
+    def current_service_host(self):
+        return self.state_data.get('current_service_host')
+
+    @current_service_host.setter
+    def current_service_host(self, value):
+        self.state_data['current_service_host'] = value
+
+    @property
+    def current_schema(self):
+        return self.state_data.get('current_schema')
+
+    @current_schema.setter
+    def current_schema(self, value):
+        self.state_data['current_schema'] = value
 
     # Check if the current mrs_object includes a services request_path or if a
     # current service has been set via USE REST SERVICE
@@ -179,6 +237,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         return schema_id
 
     def createRestMetadata(self, mrs_object: dict):
+        timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
         try:
             status = lib.general.configure(
@@ -193,7 +252,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 "message": f"REST metadata updated successfully." if (
                     status.get("schema_changed", False) is True
                 ) else f"REST Metadata configured successfully.",
-                "operation": self.current_operation
+                "operation": self.current_operation,
+                "executionTime": timer.elapsed()
             })
         except Exception as e:
             self.results.append({
@@ -205,6 +265,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             raise
 
     def createRestService(self, mrs_object):
+        timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
         do_replace = mrs_object.pop("do_replace")
         url_host_name = mrs_object.pop("url_host_name", "")
@@ -235,7 +296,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     "type": "success",
                     "message": f"REST Service `{full_path}` created successfully.",
                     "operation": self.current_operation,
-                    "id": lib.core.convert_id_to_string(service_id)
+                    "id": lib.core.convert_id_to_string(service_id),
+                    "executionTime": timer.elapsed()
                 })
             except Exception as e:
                 self.results.append({
@@ -247,6 +309,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 raise
 
     def createRestSchema(self, mrs_object: dict):
+        timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
         do_replace = mrs_object.pop("do_replace")
 
@@ -291,7 +354,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     "type": "success",
                     "message": f"REST Schema `{full_path}` created successfully.",
                     "operation": self.current_operation,
-                    "id": lib.core.convert_id_to_string(schema_id)
+                    "id": lib.core.convert_id_to_string(schema_id),
+                    "executionTime": timer.elapsed()
                 })
             except Exception as e:
                 self.results.append({
@@ -303,6 +367,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 raise
 
     def createRestDbObject(self, mrs_object: dict):
+        timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
         do_replace = mrs_object.pop("do_replace")
 
@@ -363,7 +428,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     "type": "success",
                     "message": f"REST {type_caption} `{full_path}` created successfully.",
                     "operation": self.current_operation,
-                    "id": mrs_object.get("id")
+                    "id": mrs_object.get("id"),
+                    "executionTime": timer.elapsed()
                 })
             except Exception as e:
                 self.results.append({
@@ -435,6 +501,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 raise
 
     def alterRestService(self, mrs_object: dict):
+        timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
         url_host_name = mrs_object.get(
             "url_host_name", self.current_service_host)
@@ -464,9 +531,10 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             self.results.append({
                 "statementIndex": len(self.results) + 1,
                 "type": "success",
-                "message": f"OK, 1 record updated.",
+                "affectedItemsCount": 1,
                 "operation": self.current_operation,
-                "id": lib.core.convert_id_to_string(service_id)
+                "id": lib.core.convert_id_to_string(service_id),
+                "executionTime": timer.elapsed()
             })
         except Exception as e:
             self.results.append({
@@ -478,6 +546,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             raise
 
     def alterRestSchema(self, mrs_object: dict):
+        timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
         url_host_name = mrs_object.get(
             "url_host_name", self.current_service_host)
@@ -512,9 +581,10 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             self.results.append({
                 "statementIndex": len(self.results) + 1,
                 "type": "success",
-                "message": f"OK, 1 record updated.",
+                "affectedItemsCount": 1,
                 "operation": self.current_operation,
-                "id": lib.core.convert_id_to_string(service_id)
+                "id": lib.core.convert_id_to_string(service_id),
+                "executionTime": timer.elapsed()
             })
         except Exception as e:
             self.results.append({
@@ -526,6 +596,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             raise
 
     def alterRestDbObject(self, mrs_object: dict):
+        timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
         request_path = mrs_object.pop("request_path")
         rest_object_type = mrs_object.pop("type")
@@ -572,9 +643,10 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             self.results.append({
                 "statementIndex": len(self.results) + 1,
                 "type": "success",
-                "message": "OK, 1 record updated.",
+                "affectedItemsCount": 1,
                 "operation": self.current_operation,
-                "id": lib.core.convert_id_to_string(db_object["id"])
+                "id": lib.core.convert_id_to_string(db_object["id"]),
+                "executionTime": timer.elapsed()
             })
         except Exception as e:
             self.results.append({
@@ -586,6 +658,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             raise
 
     def dropRestService(self, mrs_object: dict):
+        timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
 
         full_path = (
@@ -611,7 +684,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     "type": "success",
                     "message": f'REST Service `{full_path}` dropped successfully.',
                     "operation": self.current_operation,
-                    "id": lib.core.convert_id_to_string(service["id"])
+                    "id": lib.core.convert_id_to_string(service["id"]),
+                    "executionTime": timer.elapsed()
                 })
             except Exception as e:
                 self.results.append({
@@ -623,6 +697,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 raise
 
     def dropRestSchema(self, mrs_object: dict):
+        timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
 
         full_path = (
@@ -652,7 +727,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     "type": "success",
                     "message": f'REST Schema `{full_path}` dropped successfully.',
                     "operation": self.current_operation,
-                    "id": lib.core.convert_id_to_string(schema["id"])
+                    "id": lib.core.convert_id_to_string(schema["id"]),
+                    "executionTime": timer.elapsed()
                 })
             except Exception as e:
                 self.results.append({
@@ -664,6 +740,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 raise
 
     def dropRestDbObject(self, mrs_object: dict):
+        timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
         request_path = mrs_object.pop("request_path")
         rest_object_type = mrs_object.pop("type")
@@ -695,7 +772,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     "type": "success",
                     "message": f'REST {rest_object_type} `{full_path}` dropped successfully.',
                     "operation": self.current_operation,
-                    "id": lib.core.convert_id_to_string(db_object["id"])
+                    "id": lib.core.convert_id_to_string(db_object["id"]),
+                    "executionTime": timer.elapsed()
                 })
             except Exception as e:
                 self.results.append({
@@ -747,6 +825,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 raise
 
     def use(self, mrs_object: dict):
+        timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
 
         try:
@@ -788,7 +867,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     "message": (f'Now using REST Schema `{self.current_schema}` '
                                 f'on REST Service `{self.current_service_host}{self.current_service}`.'),
                     "operation": self.current_operation,
-                    "id": lib.core.convert_id_to_string(self.current_schema_id)
+                    "id": lib.core.convert_id_to_string(self.current_schema_id),
+                    "executionTime": timer.elapsed()
                 })
             else:
                 self.results.append({
@@ -809,6 +889,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             raise
 
     def showRestMetadataStatus(self, mrs_object: dict):
+        timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
 
         try:
@@ -817,9 +898,9 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             self.results.append({
                 "statementIndex": len(self.results) + 1,
                 "type": "success",
-                "message": f'OK, 1 record received.',
                 "operation": self.current_operation,
-                "result": result
+                "result": result,
+                "executionTime": timer.elapsed()
             })
         except Exception as e:
             self.results.append({
@@ -831,6 +912,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             raise
 
     def showRestServices(self, mrs_object: dict):
+        timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
 
         try:
@@ -845,9 +927,11 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             self.results.append({
                 "statementIndex": len(self.results) + 1,
                 "type": "success",
+                # NOTE: this would duplicate the text printed in normal result processing in shell
                 "message": f'OK, {len(services)} record{"s" if len(services) > 1 else ""} received.',
                 "operation": self.current_operation,
-                "result": result
+                "result": result,
+                "executionTime": timer.elapsed()
             })
         except Exception as e:
             self.results.append({
@@ -859,6 +943,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             raise
 
     def showRestSchemas(self, mrs_object: dict):
+        timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
 
         try:
@@ -878,9 +963,11 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             self.results.append({
                 "statementIndex": len(self.results) + 1,
                 "type": "success",
+                # NOTE: this would duplicate the text printed in normal result processing in shell
                 "message": f'OK, {len(schemas)} record{"s" if len(schemas) > 1 else ""} received.',
                 "operation": self.current_operation,
-                "result": result
+                "result": result,
+                "executionTime": timer.elapsed()
             })
         except Exception as e:
             self.results.append({
@@ -892,6 +979,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             raise
 
     def showRestDbObjects(self, mrs_object: dict):
+        timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
         object_types = mrs_object.pop("object_types")
 
@@ -913,9 +1001,11 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             self.results.append({
                 "statementIndex": len(self.results) + 1,
                 "type": "success",
+                # NOTE: this would duplicate the text printed in normal result processing in shell
                 "message": f'OK, {len(items)} record{"s" if len(items) > 1 else ""} received.',
                 "operation": self.current_operation,
-                "result": result
+                "result": result,
+                "executionTime": timer.elapsed()
             })
         except Exception as e:
             self.results.append({
@@ -960,6 +1050,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             raise
 
     def showCreateRestService(self, mrs_object: dict):
+        timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
         url_host_name = mrs_object.get(
             "url_host_name", self.current_service_host)
@@ -1007,10 +1098,10 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             self.results.append({
                 "statementIndex": len(self.results) + 1,
                 "type": "success",
-                "message": "OK, 1 record received.",
                 "operation": self.current_operation,
                 "id": lib.core.convert_id_to_string(service_id),
-                "result": result
+                "result": result,
+                "executionTime": timer.elapsed()
             })
         except Exception as e:
             self.results.append({
@@ -1022,6 +1113,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             raise
 
     def showCreateRestSchema(self, mrs_object: dict):
+        timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
         url_host_name = mrs_object.get(
             "url_host_name", self.current_service_host)
@@ -1064,10 +1156,10 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             self.results.append({
                 "statementIndex": len(self.results) + 1,
                 "type": "success",
-                "message": "OK, 1 record received.",
                 "operation": self.current_operation,
                 "id": lib.core.convert_id_to_string(schema.get("id")),
-                "result": result
+                "result": result,
+                "executionTime": timer.elapsed()
             })
         except Exception as e:
             self.results.append({
@@ -1079,6 +1171,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             raise
 
     def showCreateRestDbObject(self, mrs_object: dict):
+        timer = Timer()
         # Keep in sync with the function buildDualityViewSql implemented in
         # ../../frontend/src/modules/mrs/dialogs/MrsObjectFieldEditor.tsx
 
@@ -1196,10 +1289,10 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             self.results.append({
                 "statementIndex": len(self.results) + 1,
                 "type": "success",
-                "message": "OK, 1 record received.",
                 "operation": self.current_operation,
                 "id": lib.core.convert_id_to_string(db_object["id"]),
-                "result": result
+                "result": result,
+                "executionTime": timer.elapsed()
             })
         except Exception as e:
             self.results.append({
