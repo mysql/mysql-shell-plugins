@@ -25,51 +25,88 @@ import {
     ActivityBar,
     By,
     EditorView,
+    BottomBarPanel,
+    logging,
 } from "vscode-extension-tester";
 import * as constants from "./constants";
 import { Misc, driver } from "./misc";
 
 export let credentialHelperOk = true;
-export class Until {
 
-    public static extensionIsReady = (): Condition<boolean> => {
-        return new Condition("Extension was not ready", async () => {
+export const isNotLoading = (section: string): Condition<boolean> => {
+    return new Condition("Is not loading", async () => {
+        const sec = await Misc.getSection(section);
+        const loading = await sec.findElements(By.css(".monaco-progress-container.active"));
+        const activityBar = new ActivityBar();
+        const icon = await activityBar.getViewControl(constants.extensionName);
+        const progressBadge = await icon.findElements(By.css(".progress-badge"));
 
-            await driver.wait(Until.tabIsOpened("Welcome"), constants.explicitWait * 2, "Welcome tab was not opened");
+        return (loading.length === 0) && (progressBadge.length === 0);
+    });
+};
+
+export const tabIsOpened = (tabName: string): Condition<boolean> => {
+    return new Condition("Is not loading", async () => {
+        return (await new EditorView().getOpenEditorTitles()).includes(tabName);
+    });
+};
+
+export const isFELoaded = (): Condition<boolean> => {
+    return new Condition("Frontend is loaded", async () => {
+        return (await driver.findElements(By.id("-1"))).length > 0;
+    });
+};
+
+export const extensionIsReady = (): Condition<boolean> => {
+    return new Condition("Extension was not ready", async () => {
+        let tryNumber = 1;
+        const feLoadTries = 3;
+        let feWasLoaded = false;
+
+        const loadTry = async (): Promise<void> => {
+            console.log("<<<<Try to load FE>>>>>");
+            await driver.wait(tabIsOpened("Welcome"), constants.explicitWait * 2, "Welcome tab was not opened");
             const activityBare = new ActivityBar();
             await (await activityBare.getViewControl(constants.extensionName))?.openView();
+            await driver.wait(tabIsOpened(constants.dbDefaultEditor), constants.explicitWait * 6,
+                `${constants.dbDefaultEditor} tab was not opened`);
+            await Misc.switchToFrame();
+            await driver.wait(isFELoaded(), constants.explicitWait * 3);
+            console.log("<<<<FE was loaded successfully>>>>>");
+        };
+
+        while (tryNumber <= feLoadTries) {
             try {
-                await driver.wait(Until.tabIsOpened(constants.dbDefaultEditor), constants.explicitWait * 6,
-                    `${constants.dbDefaultEditor} tab was not opened`);
-            } finally {
-                console.log("<<<<<<MysqlSh Logs>>>>>>>");
-                console.log(await Misc.writeMySQLshLogs());
+                await loadTry();
+                feWasLoaded = true;
+                break;
+            } catch (e) {
+                tryNumber++;
+                await Misc.switchBackToTopFrame();
+                await Misc.reloadVSCode();
             }
+        }
 
-            credentialHelperOk = await Misc.findOnMySQLShLog(/Failed to initialize the default helper/);
-            credentialHelperOk = !credentialHelperOk;
-            await Misc.dismissNotifications();
+        if (feWasLoaded === false) {
+            console.log("<<<<MYSQLSH Logs>>>>");
+            await Misc.writeMySQLshLogs();
+            const bottomBar = new BottomBarPanel();
+            await bottomBar.maximize();
+            const output = await (await bottomBar.openOutputView()).getText();
+            console.log("<<<<OUTPUT Tab Logs>>>>");
+            console.log(output);
+            const logs = driver.manage().logs();
+            console.log("<<<<<DEV TOOLS Console log>>>>");
+            console.log(await logs.get(logging.Type.BROWSER));
+            throw new Error(`Extension was not loaded successfully after ${feLoadTries} tries.)}`);
+        }
 
-            return true;
-        });
-    };
+        credentialHelperOk = await Misc.findOnMySQLShLog(/Failed to initialize the default helper/);
+        credentialHelperOk = !credentialHelperOk;
+        await Misc.dismissNotifications();
+        await Misc.switchBackToTopFrame();
 
-    public static isNotLoading = (section: string): Condition<boolean> => {
-        return new Condition("Is not loading", async () => {
-            const sec = await Misc.getSection(section);
-            const loading = await sec.findElements(By.css(".monaco-progress-container.active"));
-            const activityBar = new ActivityBar();
-            const icon = await activityBar.getViewControl(constants.extensionName);
-            const progressBadge = await icon.findElements(By.css(".progress-badge"));
+        return true;
+    });
+};
 
-            return (loading.length === 0) && (progressBadge.length === 0);
-        });
-    };
-
-    public static tabIsOpened = (tabName: string): Condition<boolean> => {
-        return new Condition("Is not loading", async () => {
-            return (await new EditorView().getOpenEditorTitles()).includes(tabName);
-        });
-    };
-
-}

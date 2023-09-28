@@ -31,7 +31,7 @@ import { driver, Misc } from "../lib/misc";
 import { Database } from "../lib/db";
 import { Shell } from "../lib/shell";
 import * as constants from "../lib/constants";
-import { Until } from "../lib/until";
+import * as Until from "../lib/until";
 import * as interfaces from "../lib/interfaces";
 
 describe("MYSQL SHELL CONSOLES", () => {

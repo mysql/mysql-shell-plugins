@@ -34,7 +34,7 @@ import { driver, Misc } from "../lib/misc";
 import { Database } from "../lib/db";
 import { Shell } from "../lib/shell";
 import * as constants from "../lib/constants";
-import { Until } from "../lib/until";
+import * as Until from "../lib/until";
 import * as interfaces from "../lib/interfaces";
 
 if (!process.env.MYSQLSH_OCI_CONFIG_FILE) {
@@ -562,7 +562,6 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 expect(mds).to.exist;
                 await Misc.switchToFrame();
                 await mds.click();
-                let skipThisTest: boolean;
                 await driver.wait(async () => {
                     const fingerprintDialog = await driver.findElements(By.css(".visible.confirmDialog"));
                     let passwordDialog = await driver.findElements(By.css(".visible.passwordDialog"));
@@ -578,10 +577,10 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                         return true;
                     }
                     if (errors.length > 0) {
-                        const errorMsg = await driver.findElement(By.css("#errorMessage > label"));
-                        if ((await errorMsg.getText()).match(/SSH Tunnel/) !== null) {
-                            console.log("SSH Tunnel error, skipping");
-                            skipThisTest = true;
+                        const errorMsg = await errors[0].getAttribute("innerHTML");
+                        if (errorMsg.match(/Tunnel/) !== null) {
+                            console.log("SSH Tunnel error, nothing we can do. Skipping test.");
+                            skip = true;
 
                             return true;
                         }
@@ -590,7 +589,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                     return false;
                 }, 30000, "Dialogs were not displayed");
 
-                if (skipThisTest === true) {
+                if (skip === true) {
+                    await Misc.switchBackToTopFrame();
                     await new EditorView().closeEditor(constants.dbDefaultEditor);
                     this.skip();
                 }

@@ -32,7 +32,7 @@ import {
 import { expect } from "chai";
 import { basename } from "path";
 import { driver, Misc } from "./misc";
-import { credentialHelperOk } from "./until";
+import * as Until from "./until";
 import * as constants from "./constants";
 import * as interfaces from "./interfaces";
 import { keyboard, Key as nutKey } from "@nut-tree/nut-js";
@@ -189,18 +189,40 @@ export class Database {
         await dialog.findElement(By.id("ok")).click();
     };
 
+    public static getPromptLastTextLine = async (): Promise<String> => {
+        const context = await driver.findElement(By.css(".monaco-editor-background"));
+        let tags;
+        let sentence = "";
+        await driver.wait(async () => {
+            try {
+                const lines = await context.findElements(By.css(".view-lines.monaco-mouse-cursor-text .view-line"));
+                if (lines.length > 0) {
+                    tags = await lines[lines.length - 1].findElements(By.css("span > span"));
+                    for (const tag of tags) {
+                        sentence += (await (tag as WebElement).getText()).replace("&nbsp;", " ");
+                    }
+
+                    return true;
+                }
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+        }, constants.explicitWait, "Elements were stale");
+
+        return sentence;
+    };
+
     public static createConnection = async (dbConfig: interfaces.IDBConnection): Promise<void> => {
 
         await Misc.switchBackToTopFrame();
         await Misc.clickSectionToolbarButton(await Misc.getSection(constants.dbTreeSection),
             constants.createDBConnection);
+        await driver.wait(Until.tabIsOpened(constants.dbDefaultEditor), constants.explicitWait,
+            `${constants.dbDefaultEditor} tab was not opened`);
         await Misc.switchToFrame();
-        await driver.wait(until.elementLocated(By.css(".visible.valueEditDialog")),
-            constants.explicitWait, "Connection dialog was not displayed").catch(async () => {
-                const newConn = await driver.wait(until.elementLocated(By.id("-1")), constants.explicitWait * 3,
-                    "New Connection button was not displayed");
-                await driver.executeScript("arguments[0].click()", newConn);
-            });
+        await driver.wait(until.elementLocated(By.css(".visible.valueEditDialog")), constants.explicitWait);
 
         await Database.setConnection(
             dbConfig.dbType,
@@ -1549,7 +1571,7 @@ export class Database {
     public static setDBConnectionCredentials = async (data: interfaces.IDBConnection,
         timeout?: number): Promise<void> => {
         await Database.setPassword(data);
-        if (credentialHelperOk) {
+        if (Until.credentialHelperOk) {
             await Misc.setConfirmDialog(data, "no", timeout);
         }
     };

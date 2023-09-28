@@ -36,7 +36,7 @@ import {
 import { Database } from "./db";
 import * as constants from "./constants";
 import { keyboard, Key as nutKey } from "@nut-tree/nut-js";
-import { Until, credentialHelperOk } from "./until";
+import * as Until from "./until";
 import * as interfaces from "./interfaces";
 export let driver: WebDriver;
 export let browser: VSBrowser;
@@ -123,7 +123,7 @@ export class Misc {
                         }
                     } catch (e) {
                         if (e instanceof Error) {
-                            if (!String(e.message).includes("Could not find a visible iframe div")) {
+                            if (!e.message.includes("Could not find a visible iframe div")) {
                                 throw e;
                             } else {
                                 const activeTab = await (await new EditorView().getActiveTab()).getTitle();
@@ -152,7 +152,7 @@ export class Misc {
                         return true;
                     } catch (e) {
                         if (e instanceof Error) {
-                            if (!String(e.message).includes("Could not find a visible iframe div")) {
+                            if (!e.message.includes("Could not find a visible iframe div")) {
                                 throw e;
                             } else {
                                 const activeTab = await (await new EditorView().getActiveTab()).getTitle();
@@ -392,6 +392,7 @@ export class Misc {
     public static writeCmd = async (cmd: string, slowWriting?: boolean): Promise<void> => {
         const textArea = await driver.wait(until.elementLocated(By.css("textarea")),
             constants.explicitWait, "Could not find the textarea");
+        const txtLength = (await textArea.getAttribute("value")).length;
         await driver.executeScript(
             "arguments[0].click();",
             await driver.findElement(By.css(".current-line")),
@@ -408,7 +409,7 @@ export class Misc {
                     await textArea.sendKeys(cmd);
                 }
 
-                return true;
+                return ((await textArea.getAttribute("value")).length) > txtLength - 1;
             } catch (e) {
                 if (e instanceof error.ElementNotInteractableError) {
                     const editorLines = await driver.findElements(By.css("#appHostPaneHost .view-line"));
@@ -454,8 +455,10 @@ export class Misc {
 
                 return result;
             } catch (e) {
-                if (!(String(e.message).includes("Could not get the result block"))) {
-                    throw e;
+                if (e instanceof Error) {
+                    if (!(e.message.includes("Could not get the result block"))) {
+                        throw e;
+                    }
                 }
             }
         }, constants.explicitWait * 2, `Could not get the result block for ${cmd}`);
@@ -570,11 +573,9 @@ export class Misc {
                 }
 
                 return true;
-            } catch (e) {
-                if (!String(e.message).includes("target frame detached")) {
+            } catch (e: unknown) {
+                if (e instanceof Error && e.message.includes("target frame detached")) {
                     throw e;
-                } else {
-                    console.log(e);
                 }
             }
         }, constants.explicitWait * 2, "target frame detached");
@@ -612,7 +613,7 @@ export class Misc {
 
                 return true;
             } catch (e) {
-                if (!(String(e.message)).includes("target frame detached")) {
+                if (e instanceof Error && !e.message.includes("target frame detached")) {
                     throw e;
                 }
             }
@@ -742,6 +743,27 @@ export class Misc {
         return out.includes("ERR") || out.includes("err");
     };
 
+    public static writeOutputText = async (): Promise<void> => {
+        console.log("<<<<OUTPUT TAB LOGS>>>");
+        await driver.wait(async () => {
+            try {
+                const output = await new OutputView().getText();
+                console.log(output);
+
+                return true;
+            } catch (e) {
+                if (e instanceof Error) {
+                    if (!(e.message.includes("Command failed")) &&
+                        !(e instanceof error.StaleElementReferenceError) &&
+                        !(e instanceof error.ElementNotInteractableError)
+                    ) {
+                        throw e;
+                    }
+                }
+            }
+        }, constants.explicitWait);
+    };
+
     public static findOutputText = async (textToSearch: string | RegExp | RegExp[]): Promise<boolean> => {
         let output: OutputView;
         await new BottomBarPanel().openOutputView();
@@ -797,7 +819,7 @@ export class Misc {
             await inputBox.confirm();
         }
 
-        if (credentialHelperOk) {
+        if (Until.credentialHelperOk) {
             await driver.wait(async () => {
                 inputBox = await InputBox.create();
                 if ((await inputBox.isPassword()) === false) {

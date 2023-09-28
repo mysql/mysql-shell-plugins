@@ -29,7 +29,7 @@ import {
 import { browser, driver, Misc } from "../lib/misc";
 import { Database } from "../lib/db";
 import * as constants from "../lib/constants";
-import { Until } from "../lib/until";
+import * as Until from "../lib/until";
 import * as interfaces from "../lib/interfaces";
 
 describe("NOTEBOOKS", () => {

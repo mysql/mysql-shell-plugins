@@ -84,4 +84,4 @@ $testResources = Join-Path $home "test-resources"
 # EXECUTE TESTS
 $env:NODE_ENV = "test"
 
-npm run e2e-tests -- -s $testResources -e "$testResources/ext" -f -o "vscode_settings.json" "./output/tests/ui-$env:TEST_SUITE.js"
+npm run e2e-tests -- -s $testResources -e "$testResources/ext" -f -o "settings.json" "./output/tests/ui-$env:TEST_SUITE.js"

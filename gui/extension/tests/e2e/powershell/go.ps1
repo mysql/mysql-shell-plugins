@@ -163,15 +163,20 @@ try {
     # EXECUTE TESTS
     writeMsg "Executing GUI tests for $env:TEST_SUITE suite..."
     $env:NODE_ENV = "test"
-    $prcExecTests = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests", "--", "-s $testResources", "-e $extPath", "-f", "-o vscode_settings.json", "./output/tests/ui-$env:TEST_SUITE.js" -Wait -PassThru -RedirectStandardOutput "$workspace\resultsExt-$env:TEST_SUITE.log" -RedirectStandardError "$workspace\resultsExtErr-$env:TEST_SUITE.log"
-    if ($prcExecTests.ExitCode -eq 0) {
-        writeMsg "DONE for $($env:TEST_SUITE.toUpper()) suite. All tests PASSED!"
+    $prc = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests", "--", "-s $testResources", "-e $extPath", "-f", "-o settings.json", "./output/tests/ui-$env:TEST_SUITE.js" -Wait -PassThru -RedirectStandardOutput "$workspace\resultsExt-$env:TEST_SUITE.log" -RedirectStandardError "$workspace\resultsExtErr-$env:TEST_SUITE.log"
+    if (!(Test-Path -Path "$workspace\resultsExt-$env:TEST_SUITE.log")){
+        writeMsg "$workspace\resultsExt-$env:TEST_SUITE.log was not found."
+        exit 1
     } else {
-        writeMsg "DONE for $($env:TEST_SUITE.toUpper()) suite. There are FAILED tests. Check resultsExt-$env:TEST_SUITE.log"
+        $hasFailedTests = $null -ne (Get-Content -Path "$workspace\resultsExt-$env:TEST_SUITE.log" | Select-String -Pattern "(\d+) failing" | % { $_.Matches.Groups[0].Value })
+        if($hasFailedTests -and ([int]$hasFailedTests -gt 0) ){
+            writeMsg "DONE for $($env:TEST_SUITE.toUpper()) suite. There are FAILED tests. Check resultsExt-$env:TEST_SUITE.log."
+            exit 1
+        } else {
+            writeMsg "DONE for $($env:TEST_SUITE.toUpper()) suite. All tests PASSED!"
+        }
     }
-
-    exit $prcExecTests.ExitCode
-
+    
 }
 catch {
     writeMsg $_

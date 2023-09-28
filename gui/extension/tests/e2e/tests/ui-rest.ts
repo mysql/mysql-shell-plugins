@@ -36,7 +36,7 @@ import { driver, Misc } from "../lib/misc";
 import { Database } from "../lib/db";
 import * as constants from "../lib/constants";
 import * as interfaces from "../lib/interfaces";
-import { Until } from "../lib/until";
+import * as Until from "../lib/until";
 import { hostname } from "os";
 
 describe("MySQL REST Service", () => {

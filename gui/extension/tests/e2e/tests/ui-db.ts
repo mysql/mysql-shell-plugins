@@ -34,7 +34,7 @@ import { driver, Misc } from "../lib/misc";
 import { Shell } from "../lib/shell";
 import { Database } from "../lib/db";
 import * as constants from "../lib/constants";
-import { Until } from "../lib/until";
+import * as Until from "../lib/until";
 import * as interfaces from "../lib/interfaces";
 
 describe("DATABASE CONNECTIONS", () => {
@@ -183,12 +183,18 @@ describe("DATABASE CONNECTIONS", () => {
             await fs.truncate(Misc.getMysqlshLog());
             await Misc.restartShell();
 
-            await driver.wait(async () => {
-                const text = await fs.readFile(Misc.getMysqlshLog());
-                if (text.includes("Registering session...")) {
-                    return true;
-                }
-            }, 20000, "Restarting the internal MySQL Shell server went wrong");
+            try {
+                await driver.wait(async () => {
+                    const text = await fs.readFile(Misc.getMysqlshLog());
+                    if (text.includes("Registering session...")) {
+                        return true;
+                    }
+                }, 20000, "Restarting the internal MySQL Shell server went wrong");
+            } finally {
+                console.log("<<<<MySQLSH Logs>>>>");
+                await Misc.writeMySQLshLogs();
+            }
+
         });
 
         it("Relaunch Welcome Wizard", async () => {
