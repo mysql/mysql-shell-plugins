@@ -19,8 +19,9 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from mysqlsh.plugin_manager import plugin_function
+from mysqlsh.plugin_manager import plugin_function, sql_handler
 import mrs_plugin.lib as lib
+import mysqlsh
 
 
 @plugin_function('mrs.run.script', shell=True, cli=True, web=True)
@@ -71,3 +72,65 @@ def run_mrs_script(mrs_script=None, **kwargs):
             raise
         else:
             raise
+
+
+MRS_PREFIXES = [
+    "CONFIGURE REST ",
+    "CREATE REST ",
+    "CREATE OR REPLACE REST ",
+    "ALTER REST ",
+    "DROP REST ",
+    "USE REST ",
+    "SHOW REST ",
+    "SHOW CREATE REST ",
+]
+
+
+def get_shell_result(mrs_result):
+    shell_result = {}
+
+    def set_data(item, target_item=None):
+        if target_item is None:
+            target_item = item
+
+        if item in mrs_result:
+            shell_result[target_item] = mrs_result[item]
+
+    if mrs_result['type'] == 'success':
+        set_data('message', 'info')
+        set_data('result', 'data')
+        set_data('affectedItemsCount')
+        set_data('executionTime')
+        set_data('autoIncrementValue')
+        set_data('warnings')
+    else:
+        set_data('message', 'error')
+        set_data('code')
+        set_data('sqlstate')
+
+    return shell_result
+
+
+@sql_handler(prefixes=MRS_PREFIXES)
+def mrs_sql_handler(session, sql):
+    try:
+        if not session.connection_id in mrs_sql_handler.state:
+            mrs_sql_handler.state[session.connection_id] = {}
+
+        state_data = mrs_sql_handler.state[session.connection_id]
+
+        results = []
+        results = lib.script.run_mrs_script(
+            sql, **{"session": session, "state_data": state_data})
+
+        shell_results = [get_shell_result(result) for result in results]
+
+        return mysqlsh.globals.shell.create_result(shell_results)
+    except Exception as e:
+        # Suppress traceback information to have the shell only print the relevant exception
+        e.with_traceback(None)
+        raise
+
+
+# The sql handler will hold state data across calls
+mrs_sql_handler.state = {}

@@ -56,6 +56,7 @@ def run_mrs_script(mrs_script=None, **kwargs):
     current_service_host = kwargs.get("current_service_host")
     current_schema_id = kwargs.get("current_schema_id")
     current_schema = kwargs.get("current_schema")
+    state_data = kwargs.get("state_data")
 
     if mrs_script is None and path is None:
         raise Exception("No script give.")
@@ -95,11 +96,13 @@ def run_mrs_script(mrs_script=None, **kwargs):
         tree = parser.mrsScript()
 
     if len(syntax_errors) > 0:
+        errors = []
         for e in syntax_errors:
-            print(e.get("fullMessage"))
+            errors.append(e.get("fullMessage"))
 
-        if len(syntax_errors) > 1:
-            print(f"{len(syntax_errors)} Syntax Errors found.")
+        if len(errors) > 0:
+            raise Exception("\n".join(errors))
+
     else:
         with lib.core.MrsDbSession(**kwargs) as session:
             executor = MrsDdlExecutor(
@@ -108,7 +111,8 @@ def run_mrs_script(mrs_script=None, **kwargs):
                 current_service=current_service,
                 current_service_host=current_service_host,
                 current_schema_id=current_schema_id,
-                current_schema=current_schema)
+                current_schema=current_schema,
+                state_data=state_data)
             listener = MrsDdlListener(
                 mrs_ddl_executor=executor,
                 session=session)
