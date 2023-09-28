@@ -47,12 +47,12 @@ export class MySQLTableRefListener extends MySQLParserListener {
 
         if (!this.fromClauseMode || this.level === 0) {
             if (ctx.qualifiedIdentifier()) {
-                let table = unquote(ctx.qualifiedIdentifier().identifier().getText());
+                let table = unquote(ctx.qualifiedIdentifier()!.identifier().getText());
                 let schema = "";
                 if (ctx.qualifiedIdentifier()?.dotIdentifier()) {
                     // Full schema.table reference.
                     schema = table;
-                    table = unquote(ctx.qualifiedIdentifier()!.dotIdentifier().identifier().getText());
+                    table = unquote(ctx.qualifiedIdentifier()!.dotIdentifier()!.identifier().getText());
                 }
                 this.context.pushTableReference({
                     schema,
@@ -63,7 +63,7 @@ export class MySQLTableRefListener extends MySQLParserListener {
                 // No schema reference.
                 this.context.pushTableReference({
                     schema: "",
-                    table: unquote(ctx.dotIdentifier().identifier().getText()),
+                    table: unquote(ctx.dotIdentifier()!.identifier().getText()),
                     alias: "",
                 });
             }

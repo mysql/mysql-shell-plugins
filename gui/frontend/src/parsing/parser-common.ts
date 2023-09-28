@@ -861,7 +861,7 @@ export class Scanner {
      * @returns All the original text from the current token to the end.
      */
     public get tokenSubText(): string {
-        const cs = this.tokens[this.index].tokenSource?.inputStream;
+        const cs = this.tokens[this.index].getTokenSource()?.inputStream;
 
         return cs?.getText(this.tokens[this.index].start, 1e100) ?? "";
     }

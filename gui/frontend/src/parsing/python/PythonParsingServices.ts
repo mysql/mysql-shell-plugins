@@ -182,8 +182,8 @@ export class PythonParsingServices {
         this.parser.buildParseTrees = !fast;
 
         // First parse with the bail error strategy to get quick feedback for correct queries.
-        this.parser._errHandler = new BailErrorStrategy();
-        this.parser._interp.predictionMode = PredictionMode.SLL;
+        this.parser.errorHandler = new BailErrorStrategy();
+        this.parser.interpreter.predictionMode = PredictionMode.SLL;
 
         try {
             this.tree = this.parseUnit(unit);
@@ -199,8 +199,8 @@ export class PythonParsingServices {
                     this.tokenStream.seek(0);
                     this.parser.reset();
                     this.errors = [];
-                    this.parser._errHandler = new DefaultErrorStrategy();
-                    this.parser._interp.predictionMode = PredictionMode.LL;
+                    this.parser.errorHandler = new DefaultErrorStrategy();
+                    this.parser.interpreter.predictionMode = PredictionMode.LL;
                     this.tree = this.parseUnit(unit);
                 }
             } else {

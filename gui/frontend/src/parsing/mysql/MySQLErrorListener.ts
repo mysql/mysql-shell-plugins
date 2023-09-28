@@ -25,7 +25,7 @@
 
 import {
     BaseErrorListener, FailedPredicateException, InputMismatchException, IntervalSet, LexerATNSimulator,
-    NoViableAltException, ParserATNSimulator, ParserRuleContext, RecognitionException, Recognizer, Token, Vocabulary,
+    NoViableAltException, ParserATNSimulator, RecognitionException, Recognizer, Token, Vocabulary,
 } from "antlr4ng";
 
 import { MySQLParser } from "./generated/MySQLParser";
@@ -95,10 +95,10 @@ export class MySQLErrorListener extends BaseErrorListener<LexerATNSimulator | Pa
             let token = offendingSymbol as Token;
 
             const parser = recognizer as MySQLParser;
-            const lexer = parser._input.getTokenSource() as MySQLBaseLexer;
+            const lexer = parser.inputStream.getTokenSource() as MySQLBaseLexer;
             const isEof = token.type === Token.EOF;
             if (isEof) {
-                token = parser._input.get(token.tokenIndex - 1);
+                token = parser.inputStream.get(token.tokenIndex - 1);
             }
 
             const errorLength = token.stop - token.start + 1;
@@ -121,7 +121,7 @@ export class MySQLErrorListener extends BaseErrorListener<LexerATNSimulator | Pa
 
             if (invalidForVersion) {
                 // The expected tokens set is read-only, so make a copy.
-                expected = new IntervalSet(expected.intervals);
+                expected = new IntervalSet(expected);
                 expected.removeOne(tokenType);
             }
 
@@ -131,9 +131,9 @@ export class MySQLErrorListener extends BaseErrorListener<LexerATNSimulator | Pa
             let expectedText = "";
 
             // Walk up from generic rules to reach something that gives us more context, if needed.
-            let context = parser._ctx;
-            while (MySQLErrorListener.simpleRules.has(context.ruleIndex) && context.parentCtx) {
-                context = context.parentCtx as ParserRuleContext;
+            let context = parser.context;
+            while (MySQLErrorListener.simpleRules.has(context.ruleIndex) && context.parent) {
+                context = context.parent;
             }
 
             switch (context.ruleIndex) {
@@ -213,7 +213,7 @@ export class MySQLErrorListener extends BaseErrorListener<LexerATNSimulator | Pa
                     if (expected.contains(MySQLLexer.IDENTIFIER)) {
                         expectedText = "an identifier";
                     } else {
-                        expectedText = this.intervalToString(expected, 6, parser.getVocabulary());
+                        expectedText = this.intervalToString(expected, 6, parser.vocabulary);
                     }
                     break;
                 }
@@ -272,7 +272,7 @@ export class MySQLErrorListener extends BaseErrorListener<LexerATNSimulator | Pa
             // No offending symbol, which indicates this is a lexer error.
             if (e instanceof NoViableAltException) {
                 const lexer = recognizer as MySQLLexer;
-                const input = lexer._input;
+                const input = lexer.inputStream;
                 let text = lexer.getErrorDisplay(input.getText(lexer._tokenStartCharIndex, input.index));
                 if (text === "") {
                     text = " ";  // Should never happen, but we must ensure we have text.

@@ -109,7 +109,7 @@ export const getText = (context: RuleContext, convertEscapes: boolean): string =
         let result = "";
 
         for (let index = 0; index < context.getChildCount(); ++index) {
-            const child = context.textStringLiteral(index);
+            const child = context.textStringLiteral(index)!;
             // eslint-disable-next-line no-underscore-dangle
             const token = child._value;
             if (token.type === MySQLParser.DOUBLE_QUOTED_TEXT || token.type === MySQLParser.SINGLE_QUOTED_TEXT) {
@@ -247,7 +247,7 @@ export const sourceTextForRange = (start: Token | ParseTree, stop: Token | Parse
         stopToken = (stop instanceof TerminalNode) ? stop.symbol : (stop as ParserRuleContext).start!;
     }
 
-    const stream = startToken.tokenSource?.inputStream;
+    const stream = startToken.getTokenSource()?.inputStream;
     const stopIndex = stop ? stopToken.stop : 1e100;
     let result = stream?.getText(startToken.start, stopIndex) ?? "";
     if (keepQuotes || result.length < 2) {
@@ -261,7 +261,7 @@ export const sourceTextForRange = (start: Token | ParseTree, stop: Token | Parse
             result = result.replace(quoteChar.repeat(2), quoteChar);
         }
 
-        return result.substr(1, result.length - 2);
+        return result.substring(1, result.length - 1);
     }
 
     return result;
@@ -288,7 +288,7 @@ export const sourceTextForContext = (ctx: ParserRuleContext, keepQuotes: boolean
  * @returns The node preceding the given node in the same parent or undefined if the given node is the first child.
  */
 export const getPreviousSibling = (tree: RuleContext): RuleContext | null => {
-    const parent = tree.parentCtx;
+    const parent = tree.parent;
     if (!parent) {
         return null;
     }
@@ -329,7 +329,7 @@ export const getPrevious = (tree: RuleContext): RuleContext | null => {
                 return walker;
             }
         } else {
-            walker = walker!.parentCtx;
+            walker = walker!.parent;
         }
     } while (walker);
 
@@ -346,7 +346,7 @@ export const getPrevious = (tree: RuleContext): RuleContext | null => {
  * @returns The node following the given node in the same parent or undefined if the given node is the last child.
  */
 export const getNextSibling = (tree: RuleContext): RuleContext | null => {
-    const parent = tree.parentCtx;
+    const parent = tree.parent;
     if (!parent) {
         return null;
     }
@@ -389,7 +389,7 @@ export const getNext = (tree: RuleContext): RuleContext | null => {
 
             return getNext(sibling);
         }
-        run = run.parentCtx;
+        run = run.parent;
     } while (run);
 
     return null;

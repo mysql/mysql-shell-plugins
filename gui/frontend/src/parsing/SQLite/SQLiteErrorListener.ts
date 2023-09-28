@@ -51,7 +51,7 @@ export class SQLiteErrorListener extends BaseErrorListener<LexerATNSimulator | P
             const parser = recognizer as unknown as SQLiteParser;
             const isEof = token.type === Token.EOF;
             if (isEof) {
-                token = parser._input.get(token.tokenIndex - 1);
+                token = parser.inputStream.get(token.tokenIndex - 1);
             }
 
             const errorLength = token.stop - token.start + 1;
@@ -111,7 +111,7 @@ export class SQLiteErrorListener extends BaseErrorListener<LexerATNSimulator | P
             // No offending symbol, which indicates this is a lexer error.
             if (e instanceof LexerNoViableAltException) {
                 const lexer = recognizer as unknown as SQLiteLexer;
-                const input = lexer._input;
+                const input = lexer.inputStream;
                 let text = lexer.getErrorDisplay(input.getText(lexer._tokenStartCharIndex, input.index));
                 if (text === "") {
                     text = " ";  // Should never happen, but we must ensure we have text.

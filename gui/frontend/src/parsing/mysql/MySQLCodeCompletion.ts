@@ -669,14 +669,14 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
 
     // Also create a separate scanner which allows us to easily navigate the tokens
     // without affecting the token stream used by the parser.
-    const scanner = new Scanner(parser.getInputStream() as BufferedTokenStream);
+    const scanner = new Scanner(parser.inputStream as BufferedTokenStream);
 
     // Move to caret position and store that on the this.scanner stack.
     scanner.advanceToPosition(caretLine, caretOffset);
     scanner.push();
 
     let queryType = QueryType.Unknown;
-    const lexer = parser.getInputStream().getTokenSource() as MySQLLexer;
+    const lexer = parser.inputStream.getTokenSource() as MySQLLexer;
     if (lexer) {
         lexer.reset(); // Set back the input position to the beginning for query type determination.
         queryType = lexer.determineQueryType();
@@ -685,7 +685,7 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
     const context = new AutoCompletionContext(parser, scanner, lexer);
     context.collectCandidates();
 
-    const vocabulary = parser.getVocabulary();
+    const vocabulary = parser.vocabulary;
 
     for (const candidate of context.completionCandidates.tokens) {
         let entry = vocabulary.getDisplayName(candidate[0])!;
