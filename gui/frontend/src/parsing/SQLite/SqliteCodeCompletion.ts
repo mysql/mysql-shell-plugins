@@ -431,7 +431,7 @@ class AutoCompletionContext {
             return true;
         }
 
-        const symbol = this.lexer.getVocabulary().getSymbolicName(type);
+        const symbol = this.lexer.vocabulary.getSymbolicName(type);
         if (symbol && symbol !== "" && !isReservedKeyword(symbol, SQLiteVersion.Standard)) {
             return true;
         }
@@ -602,7 +602,7 @@ class AutoCompletionContext {
 
         fromParser.removeErrorListeners();
         const tree = fromParser.from_clause();
-        tree.table_or_subquery__list().forEach((entry) => {
+        tree.table_or_subquery().forEach((entry) => {
             if (entry.table_name()) {
                 const table = unquote(entry.table_name()!.getText(), "\"`'[(");
 
@@ -670,17 +670,17 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
 
     // Also create a separate this.scanner which allows us to easily navigate the tokens
     // without affecting the token stream used by the parser.
-    const scanner = new Scanner(parser._input as BufferedTokenStream);
+    const scanner = new Scanner(parser.inputStream as BufferedTokenStream);
 
     // Move to caret position and store that on the this.scanner stack.
     scanner.advanceToPosition(caretLine, caretOffset);
     scanner.push();
 
-    const lexer = parser._input.getTokenSource() as SQLiteLexer;
+    const lexer = parser.inputStream.getTokenSource() as SQLiteLexer;
     const context = new AutoCompletionContext(parser, lexer, scanner);
     context.collectCandidates();
 
-    const vocabulary = lexer.getVocabulary();
+    const vocabulary = lexer.vocabulary;
 
     // Note: sorting within the lists is done using the `sortText` field in a completion item.
     for (const candidate of context.completionCandidates.tokens) {

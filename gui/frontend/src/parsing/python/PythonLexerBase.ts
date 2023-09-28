@@ -57,7 +57,7 @@ export abstract class PythonLexerBase extends Lexer {
 
     public nextToken(): Token {
         // Check if the end-of-file is ahead and there are still some indentations left over.
-        if (this._input.LA(1) === PythonLexer.EOF && this.indents.length > 0) {
+        if (this.inputStream.LA(1) === PythonLexer.EOF && this.indents.length > 0) {
             const token = this.buffer[this.buffer.length - 1];
             if (!token || token.type !== PythonLexer.LINE_BREAK) {
                 // First emit an extra line break that serves as the end of the statement.
@@ -107,7 +107,7 @@ export abstract class PythonLexerBase extends Lexer {
     protected handleNewLine(): void {
         this.emitToken(PythonLexer.NEWLINE, PythonLexerBase.HIDDEN, this.text);
 
-        const next = String.fromCharCode(this._input.LA(1));
+        const next = String.fromCharCode(this.inputStream.LA(1));
 
         // Process whitespaces in HandleSpaces
         if (next !== " " && next !== "\t" && this.isNotNewLineOrComment(next)) {
@@ -116,7 +116,7 @@ export abstract class PythonLexerBase extends Lexer {
     }
 
     protected handleSpaces(): void {
-        const next = String.fromCharCode(this._input.LA(1));
+        const next = String.fromCharCode(this.inputStream.LA(1));
 
         if ((!this.lastToken || this.lastToken.type === PythonLexer.NEWLINE)
             && this.isNotNewLineOrComment(next)) {

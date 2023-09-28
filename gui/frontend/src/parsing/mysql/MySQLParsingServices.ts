@@ -684,7 +684,7 @@ export class MySQLParsingServices {
                     break;
                 }
 
-                run = run.getParent();
+                run = run.parent;
             }
 
             if (!invalid && candidate instanceof QueryExpressionContext) {
@@ -704,7 +704,7 @@ export class MySQLParsingServices {
 
             if (specification.size > 0) {
                 const context = specification.values().next().value as QuerySpecificationContext;
-                rewriter.insertAfter(context.SELECT_SYMBOL().symbol, " /*+ SET_VAR(use_secondary_engine = FORCED) */");
+                rewriter.insertAfter(context.SELECT_SYMBOL()!.symbol, " /*+ SET_VAR(use_secondary_engine = FORCED) */");
                 changed = true;
             }
         }
@@ -841,8 +841,8 @@ export class MySQLParsingServices {
         this.parser.buildParseTrees = !fast;
 
         // First parse with the bail error strategy to get quick feedback for correct queries.
-        this.parser._errHandler = new BailErrorStrategy();
-        this.parser._interp.predictionMode = PredictionMode.SLL;
+        this.parser.errorHandler = new BailErrorStrategy();
+        this.parser.interpreter.predictionMode = PredictionMode.SLL;
 
         try {
             this.tree = this.parseUnit(unit);
@@ -858,8 +858,8 @@ export class MySQLParsingServices {
                     this.tokenStream.seek(0);
                     this.parser.reset();
                     this.errors = [];
-                    this.parser._errHandler = new DefaultErrorStrategy();
-                    this.parser._interp.predictionMode = PredictionMode.LL;
+                    this.parser.errorHandler = new DefaultErrorStrategy();
+                    this.parser.interpreter.predictionMode = PredictionMode.LL;
                     this.tree = this.parseUnit(unit);
                 }
             } else {

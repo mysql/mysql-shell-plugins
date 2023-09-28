@@ -148,7 +148,7 @@ export abstract class SQLiteBaseLexer extends Lexer {
             return true;
         }
 
-        const symbol = this.getVocabulary().getSymbolicName(type);
+        const symbol = this.vocabulary.getSymbolicName(type);
         if (symbol && symbol !== "" && !isReservedKeyword(symbol, SQLiteVersion.Standard)) {
             return true;
         }
@@ -186,7 +186,7 @@ export abstract class SQLiteBaseLexer extends Lexer {
      * Creates a DOT token in the token stream.
      */
     protected emitDot(): void {
-        this.pendingTokens.push(this._factory.create([this, this._input], SQLiteLexer.DOT,
+        this.pendingTokens.push(this._factory.create([this, this.inputStream], SQLiteLexer.DOT,
             this.text, this._channel, this._tokenStartCharIndex, this._tokenStartCharIndex, this._tokenStartLine,
             this._tokenStartCharPositionInLine,
         ));
