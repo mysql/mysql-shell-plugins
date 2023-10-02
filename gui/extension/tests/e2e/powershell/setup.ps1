@@ -120,7 +120,7 @@ try {
     # REMOVE INSTALLED EXTENSION
     ForEach ($testSuite in $testSuites) {
         $testResources = Join-Path $env:userprofile "test-resources-$($testSuite)"
-        $extPath = Join-Path $testResources "ext"
+        $extPath = Join-Path $env:WORKSPACE "ext-$($testSuite)"
         if(Test-Path -Path $extPath) {
             writeMsg "Removing VSCode extension from $testSuite ..." "-NoNewLine"
             if ($isLinux) {
@@ -259,7 +259,7 @@ try {
         if ($extension){
             $extension | ForEach-Object { 
                 writeMsg "Downloading the extension ..." "-NoNewline" 
-                $dest = Join-Path $env:WORKSPACE "$env:EXTENSION_BRANCH-$env:EXTENSION_PUSH_ID.vsix"
+                $dest = Join-Path $env:WORKSPACE  "$env:EXTENSION_BRANCH-$env:EXTENSION_PUSH_ID.vsix"
                 Invoke-WebRequest -NoProxy -Uri $_.url -OutFile $dest
                 writeMsg "DONE"
                 }
@@ -292,7 +292,7 @@ try {
     writeMsg "Start installing the extension into vscode instances..." "-NoNewLine"
     ForEach ($testSuite in $testSuites) {
         $testResources = Join-Path $env:userprofile "test-resources-$($testSuite)"
-        $extLocation = Join-Path $testResources "ext"
+        $extLocation = Join-Path $env:WORKSPACE "ext-$testSuite"
         Start-Job -Name "install-vsix" -ScriptBlock { 
             npm run e2e-tests-install-vsix -- -s $using:testResources -e $using:extLocation -f $using:dest
         }

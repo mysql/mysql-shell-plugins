@@ -313,7 +313,7 @@ export class Misc {
 
     public static cleanCredentials = async (): Promise<void> => {
         const params = ["--js", "-e", "shell.deleteAllCredentials()"];
-        let extDir = join(constants.basePath, `test-resources-${String(process.env.TEST_SUITE)}`, "ext");
+        let extDir = join(constants.workspace, `ext-${String(process.env.TEST_SUITE)}`);
         try {
             await fs.access(extDir);
         } catch (e) {
