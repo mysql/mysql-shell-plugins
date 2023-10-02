@@ -90,7 +90,7 @@ try {
     }
 
     $testResources = Join-Path $env:userprofile "test-resources-$env:TEST_SUITE"
-    $extPath = Join-Path $testResources "ext"
+    $extPath = Join-Path $workspace "ext-$env:TEST_SUITE"
     $testFile = "./tests/e2e/output/tests/ui-$env:TEST_SUITE.js"
 
     writeMsg "Using test-resources: $testResources"

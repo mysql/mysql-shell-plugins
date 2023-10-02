@@ -29,7 +29,7 @@ export const extensionName = "MySQL Shell for VS Code";
 // BASE PATH
 export const basePath = process.env.USERPROFILE ?? process.env.HOME;
 
-// WORKSPACE - shell_plufings folder
+// WORKSPACE - shell_plugins folder
 export const workspace = join(process.cwd(), "..", "..", "..", "..");
 
 // TREE SECTIONS
