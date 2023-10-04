@@ -22,8 +22,8 @@
  */
 
 import { AutoCompletionContext } from "./MySQLCodeCompletion";
-import { TableRefContext, TableAliasContext } from "./generated/MySQLParser";
-import { MySQLParserListener } from "./generated/MySQLParserListener";
+import { TableRefContext, TableAliasContext } from "./generated/MySQLMRSParser";
+import { MySQLMRSParserListener } from "./generated/MySQLMRSParserListener";
 
 import { unquote } from "../../utilities/string-helpers";
 
@@ -31,7 +31,7 @@ import { unquote } from "../../utilities/string-helpers";
 // We have two modes here:
 //   fromClauseMode = true: we are not interested in sub queries and don't need to stop at the caret.
 //   otherwise: go down all sub queries and stop when the caret position is reached.
-export class MySQLTableRefListener extends MySQLParserListener {
+export class MySQLTableRefListener extends MySQLMRSParserListener {
 
     private done = false;
     private level = 0;

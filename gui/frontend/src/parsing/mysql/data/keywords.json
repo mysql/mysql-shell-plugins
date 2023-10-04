@@ -3073,6 +3073,198 @@
                 "word": "INTERSECT",
                 "reserved": true
             }
+        ],
+        [
+            {
+                "word": "CONFIGURE",
+                "reserved": false
+            },
+            {
+                "word": "REST",
+                "reserved": false
+            },
+            {
+                "word": "METADATA",
+                "reserved": false
+            },
+            {
+                "word": "SERVICES",
+                "reserved": false
+            },
+            {
+                "word": "SERVICE",
+                "reserved": false
+            },
+            {
+                "word": "RELATIONAL",
+                "reserved": false
+            },
+            {
+                "word": "DUALITY",
+                "reserved": false
+            },
+            {
+                "word": "VIEWS",
+                "reserved": false
+            },
+            {
+                "word": "PROCEDURES",
+                "reserved": false
+            },
+            {
+                "word": "PARAMETERS",
+                "reserved": false
+            },
+            {
+                "word": "RESULT",
+                "reserved": false
+            },
+            {
+                "word": "ENABLED",
+                "reserved": false
+            },
+            {
+                "word": "DISABLED",
+                "reserved": false
+            },
+            {
+                "word": "PROTOCOL",
+                "reserved": false
+            },
+            {
+                "word": "HTTP",
+                "reserved": false
+            },
+            {
+                "word": "HTTPS",
+                "reserved": false
+            },
+            {
+                "word": "COMMENTS",
+                "reserved": false
+            },
+            {
+                "word": "REQUEST",
+                "reserved": false
+            },
+            {
+                "word": "REDIRECTION",
+                "reserved": false
+            },
+            {
+                "word": "MANAGEMENT",
+                "reserved": false
+            },
+            {
+                "word": "AVAILABLE",
+                "reserved": false
+            },
+            {
+                "word": "REQUIRED",
+                "reserved": false
+            },
+            {
+                "word": "ITEMS",
+                "reserved": false
+            },
+            {
+                "word": "PER",
+                "reserved": false
+            },
+            {
+                "word": "CONTENT",
+                "reserved": false
+            },
+            {
+                "word": "MEDIA",
+                "reserved": false
+            },
+            {
+                "word": "AUTODETECT",
+                "reserved": false
+            },
+            {
+                "word": "FEED",
+                "reserved": false
+            },
+            {
+                "word": "ITEM",
+                "reserved": false
+            }
+        ],
+        [
+            {
+                "word": "@INOUT",
+                "reserved": false
+            },
+            {
+                "word": "@IN",
+                "reserved": false
+            },
+            {
+                "word": "@OUT",
+                "reserved": false
+            },
+            {
+                "word": "@NOCHECK",
+                "reserved": false
+            },
+            {
+                "word": "@NOUPDATE",
+                "reserved": false
+            },
+            {
+                "word": "@SORTABLE",
+                "reserved": false
+            },
+            {
+                "word": "@NOFILTERING",
+                "reserved": false
+            },
+            {
+                "word": "@ROWOWNERSHIP",
+                "reserved": false
+            },
+            {
+                "word": "@UNNEST",
+                "reserved": false
+            },
+            {
+                "word": "@REDUCETO",
+                "reserved": false
+            },
+            {
+                "word": "@DATATYPE",
+                "reserved": false
+            },
+            {
+                "word": "@SELECT",
+                "reserved": false
+            },
+            {
+                "word": "@NOSELECT",
+                "reserved": false
+            },
+            {
+                "word": "@INSERT",
+                "reserved": false
+            },
+            {
+                "word": "@NOINSERT",
+                "reserved": false
+            },
+            {
+                "word": "@UPDATE",
+                "reserved": false
+            },
+            {
+                "word": "@DELETE",
+                "reserved": false
+            },
+            {
+                "word": "@NODELETE",
+                "reserved": false
+            }
         ]
     ]
 }

@@ -109,6 +109,7 @@
         "Precaching",
         "REINDEX",
         "RELAYLOG",
+        "SQLMRS",
         "ULONGLONG",
         "WSLENV",
         "amet",

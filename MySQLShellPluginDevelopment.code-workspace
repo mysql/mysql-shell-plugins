@@ -53,7 +53,13 @@
             "MRS Notes Example"
         ],
         "msg.editor.defaultDbConnection": "Localhost 8.0",
-        "git.ignoreLimitWarning": true
+        "git.ignoreLimitWarning": true,
+        "antlr4.generation": {
+            "mode": "internal",
+            "language": "TypeScript",
+            "listeners": true,
+            "visitors": false,
+        }
     },
     "launch": {
         "version": "0.2.0",

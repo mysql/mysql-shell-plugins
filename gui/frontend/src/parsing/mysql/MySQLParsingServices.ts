@@ -30,10 +30,10 @@ import {
     ParseTree, PredictionMode, TokenStreamRewriter, XPath,
 } from "antlr4ng";
 
-import { MySQLLexer } from "./generated/MySQLLexer";
+import { MySQLMRSLexer } from "./generated/MySQLMRSLexer";
 import {
-    MySQLParser, QueryContext, QueryExpressionContext, QuerySpecificationContext, SubqueryContext,
-} from "./generated/MySQLParser";
+    MySQLMRSParser, QueryContext, QueryExpressionContext, QuerySpecificationContext, SubqueryContext,
+} from "./generated/MySQLMRSParser";
 
 import { MySQLErrorListener } from "./MySQLErrorListener";
 import { MySQLParseUnit } from "./MySQLServiceTypes";
@@ -51,9 +51,9 @@ export class MySQLParsingServices {
     private static services?: MySQLParsingServices;
     private static readonly delimiterKeyword = /delimiter /i;
 
-    private lexer = new MySQLLexer(CharStreams.fromString(""));
+    private lexer = new MySQLMRSLexer(CharStreams.fromString(""));
     private tokenStream = new CommonTokenStream(this.lexer);
-    private parser = new MySQLParser(this.tokenStream);
+    private parser = new MySQLMRSParser(this.tokenStream);
     private errors: IParserErrorInfo[] = [];
 
     private tree: ParseTree | undefined;
@@ -134,10 +134,10 @@ export class MySQLParsingServices {
         const tokens = this.tokenStream.getTokens();
         if (tokens.length > 1) { // There's always the EOF token at the end.
             const lastToken = tokens[tokens.length - 2];
-            if (lastToken.type === MySQLLexer.INVALID_BLOCK_COMMENT) {
+            if (lastToken.type === MySQLMRSLexer.INVALID_BLOCK_COMMENT) {
                 this.errors.splice(0, 0, {
                     message: "Unfinished multi line comment",
-                    tokenType: MySQLLexer.INVALID_BLOCK_COMMENT,
+                    tokenType: MySQLMRSLexer.INVALID_BLOCK_COMMENT,
                     charOffset: lastToken.start,
                     line: lastToken.line,
                     offset: lastToken.column,
@@ -187,11 +187,11 @@ export class MySQLParsingServices {
             this.tokenStream.seek(token.tokenIndex);
             const tokenText = (token.text || "").toLowerCase();
             switch (token.type) {
-                case MySQLLexer.IDENTIFIER:
-                case MySQLLexer.BACK_TICK_QUOTED_ID: {
+                case MySQLMRSLexer.IDENTIFIER:
+                case MySQLMRSLexer.BACK_TICK_QUOTED_ID: {
                     const previousToken = this.tokenStream.LT(-1);
                     if (previousToken) {
-                        if (previousToken.type === MySQLLexer.AT_AT_SIGN_SYMBOL) {
+                        if (previousToken.type === MySQLMRSLexer.AT_AT_SIGN_SYMBOL) {
                             // System variables.
                             const info = await this.globalSymbols.getSymbolInfo(unquote(tokenText));
                             if (info) {
@@ -202,12 +202,12 @@ export class MySQLParsingServices {
 
                                 return info;
                             }
-                        } else if (previousToken.type === MySQLLexer.DOT_SYMBOL) {
+                        } else if (previousToken.type === MySQLMRSLexer.DOT_SYMBOL) {
                             // Could be a variable with preceding option type.
                             switch (this.tokenStream.LA(-2)) {
-                                case MySQLLexer.GLOBAL_SYMBOL:
-                                case MySQLLexer.LOCAL_SYMBOL:
-                                case MySQLLexer.SESSION_SYMBOL: {
+                                case MySQLMRSLexer.GLOBAL_SYMBOL:
+                                case MySQLMRSLexer.LOCAL_SYMBOL:
+                                case MySQLMRSLexer.SESSION_SYMBOL: {
                                     const info = await this.globalSymbols.getSymbolInfo(tokenText);
                                     if (info) {
                                         info.definition = {
@@ -774,11 +774,11 @@ export class MySQLParsingServices {
         const tokens = this.tokenStream.getTokens();
         for (const token of tokens) {
             switch (token.type) {
-                case MySQLLexer.POUND_COMMENT:
-                case MySQLLexer.BLOCK_COMMENT: {
+                case MySQLMRSLexer.POUND_COMMENT:
+                case MySQLMRSLexer.BLOCK_COMMENT: {
                     let text = token.text;
                     if (text) {
-                        if (token.type === MySQLLexer.POUND_COMMENT) {
+                        if (token.type === MySQLMRSLexer.POUND_COMMENT) {
                             text = text.substring(1);
                         } else {
                             text = text.substring(2, text.length - 2);
@@ -843,6 +843,12 @@ export class MySQLParsingServices {
         // First parse with the bail error strategy to get quick feedback for correct queries.
         this.parser.errorHandler = new BailErrorStrategy();
         this.parser.interpreter.predictionMode = PredictionMode.SLL;
+
+        /*this.tokenStream.fill();
+        const tokens = this.tokenStream.getTokens();
+        tokens.forEach((token) => {
+            console.log(token.toString());
+        });*/
 
         try {
             this.tree = this.parseUnit(unit);

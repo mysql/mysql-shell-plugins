@@ -31,7 +31,7 @@ if [[ $source -nt $target ]]; then
   printf "\x1b[1m\x1b[34mParser source files changed - regenerating target files..."
   printf "\x1b[0m\n\n"
 
-  antlr4ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o ./src/parsing/mysql/generated src/parsing/mysql/*.g4
+  antlr4ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o ./src/parsing/mysql/generated src/parsing/mysql/MySQLMRS*.g4
   antlr4ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o ./src/parsing/SQLite/generated src/parsing/SQLite/*.g4
   antlr4ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o ./src/parsing/python/generated src/parsing/python/*.g4
 

@@ -1,7 +1,7 @@
-parser grammar MySQLParser;
+parser grammar MySQLMRSParser;
 
 /*
- * Copyright (c) 2012, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,30 +23,14 @@ parser grammar MySQLParser;
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/*
- * Merged in all changes up to mysql-trunk git revision [07f0dc2] (15. July 2022).
- *
- * MySQL grammar for ANTLR 4.5+ with language features from MySQL 8.0 and up.
- * The server version in the generated parser can be switched at runtime, making it so possible
- * to switch the supported feature set dynamically.
- *
- * The coverage of the MySQL language should be 100%, but there might still be bugs or omissions.
- *
- * To use this grammar you will need a few support classes (which should be close to where you found this grammar).
- * These classes implement the target specific action code, so we don't clutter the grammar with that
- * and make it simpler to adjust it for other targets. See the demo/test project for further details.
- *
- * Written by Mike Lischke. Direct all bug reports, omissions etc. to mike.lischke@oracle.com.
- */
-
-//----------------------------------------------------------------------------------------------------------------------
+/* A parser combining rules from the standard MySQL language and the MySQL REST Service. */
 
 // $antlr-format alignTrailingComments on, columnLimit 130, minEmptyLines 1, maxEmptyLinesToKeep 1, reflowComments off
 // $antlr-format useTab off, allowShortRulesOnASingleLine off, allowShortBlocksOnASingleLine on, alignSemicolons ownLine
 
 options {
     superClass = MySQLBaseRecognizer;
-    tokenVocab = MySQLLexer;
+    tokenVocab = MySQLMRSLexer;
 }
 
 @header {/* Copyright (c) 2020, 2023, Oracle and/or its affiliates. */
@@ -62,6 +46,7 @@ import { SqlMode } from "../MySQLRecognizerCommon";
 
 query:
     ((simpleStatement | beginWork) SEMICOLON_SYMBOL?)? EOF
+    | {this.supportMrs}? mrsScript
 ;
 
 simpleStatement:
@@ -1302,18 +1287,6 @@ outerJoinType:
     type = (LEFT_SYMBOL | RIGHT_SYMBOL) OUTER_SYMBOL? JOIN_SYMBOL
 ;
 
-/**
-  MySQL has a syntax extension where a comma-separated list of table
-  references is allowed as a table reference in itself, for instance
-
-    SELECT * FROM (t1, t2) JOIN t3 ON 1
-
-  which is not allowed in standard SQL. The syntax is equivalent to
-
-    SELECT * FROM (t1 CROSS JOIN t2) JOIN t3 ON 1
-
-  We call this rule tableReferenceListParens.
-*/
 tableFactor:
     singleTable
     | singleTableParens
@@ -4665,7 +4638,8 @@ identifierKeywordsUnambiguous:
         | CONSTRAINT_SCHEMA_SYMBOL
         | CONTEXT_SYMBOL
         | CPU_SYMBOL
-        | CURRENT_SYMBOL // not reserved in MySQL per WL#2111 specification
+        | CURRENT_SYMBOL
+        // not reserved in MySQL per WL#2111 specification
         | CURSOR_NAME_SYMBOL
         | DATAFILE_SYMBOL
         | DATA_SYMBOL
@@ -5041,6 +5015,56 @@ identifierKeywordsUnambiguous:
         | TIMESTAMP_SYMBOL
         | TIME_SYMBOL
     )
+    | (
+        // MRS keywords
+        CONFIGURE_SYMBOL
+        | REST_SYMBOL
+        | METADATA_SYMBOL
+        | SERVICES_SYMBOL
+        | SERVICE_SYMBOL
+        | RELATIONAL_SYMBOL
+        | DUALITY_SYMBOL
+        | VIEWS_SYMBOL
+        | PROCEDURES_SYMBOL
+        | PARAMETERS_SYMBOL
+        | RESULT_SYMBOL
+        | ENABLED_SYMBOL
+        | DISABLED_SYMBOL
+        | PROTOCOL_SYMBOL
+        | HTTP_SYMBOL
+        | HTTPS_SYMBOL
+        | COMMENTS_SYMBOL
+        | REQUEST_SYMBOL
+        | REDIRECTION_SYMBOL
+        | MANAGEMENT_SYMBOL
+        | AVAILABLE_SYMBOL
+        | REQUIRED_SYMBOL
+        | ITEMS_SYMBOL
+        | PER_SYMBOL
+        | CONTENT_SYMBOL
+        | MEDIA_SYMBOL
+        | AUTODETECT_SYMBOL
+        | FEED_SYMBOL
+        | ITEM_SYMBOL
+        | AT_INOUT_SYMBOL
+        | AT_IN_SYMBOL
+        | AT_OUT_SYMBOL
+        | AT_NOCHECK_SYMBOL
+        | AT_NOUPDATE_SYMBOL
+        | AT_SORTABLE_SYMBOL
+        | AT_NOFILTERING_SYMBOL
+        | AT_ROWOWNERSHIP_SYMBOL
+        | AT_UNNEST_SYMBOL
+        | AT_REDUCETO_SYMBOL
+        | AT_DATATYPE_SYMBOL
+        | AT_SELECT_SYMBOL
+        | AT_NOSELECT_SYMBOL
+        | AT_INSERT_SYMBOL
+        | AT_NOINSERT_SYMBOL
+        | AT_UPDATE_SYMBOL
+        | AT_DELETE_SYMBOL
+        | AT_NODELETE_SYMBOL
+    )
 ;
 
 // Non-reserved keywords that we allow for unquoted role names:
@@ -5129,13 +5153,15 @@ roleOrIdentifierKeyword:
         | REPAIR_SYMBOL
         | RESET_SYMBOL
         | RESTORE_SYMBOL
-        | ROLE_SYMBOL               // Conditionally set in the lexer.
+        | ROLE_SYMBOL           // Conditionally set in the lexer.
         | ROLLBACK_SYMBOL
         | SAVEPOINT_SYMBOL
-        | SECONDARY_SYMBOL          // Conditionally set in the lexer.
-        | SECONDARY_ENGINE_SYMBOL   // Conditionally set in the lexer.
-        | SECONDARY_LOAD_SYMBOL     // Conditionally set in the lexer.
-        | SECONDARY_UNLOAD_SYMBOL   // Conditionally set in the lexer.
+        | SECONDARY_SYMBOL      // Conditionally set in the lexer.
+        | SECONDARY_ENGINE_SYMBOL
+        // Conditionally set in the lexer.
+        | SECONDARY_LOAD_SYMBOL // Conditionally set in the lexer.
+        | SECONDARY_UNLOAD_SYMBOL
+        // Conditionally set in the lexer.
         | SECURITY_SYMBOL
         | SERVER_SYMBOL
         | SIGNED_SYMBOL
@@ -5157,7 +5183,7 @@ roleOrIdentifierKeyword:
 roleOrLabelKeyword:
     (
         ACTION_SYMBOL
-        | ACTIVE_SYMBOL             // Conditionally set in the lexer.
+        | ACTIVE_SYMBOL         // Conditionally set in the lexer.
         | ADDDATE_SYMBOL
         | AFTER_SYMBOL
         | AGAINST_SYMBOL
@@ -5218,7 +5244,7 @@ roleOrLabelKeyword:
         | DEFAULT_AUTH_SYMBOL
         | DEFINER_SYMBOL
         | DELAY_KEY_WRITE_SYMBOL
-        | DESCRIPTION_SYMBOL        // Conditionally set in the lexer.
+        | DESCRIPTION_SYMBOL    // Conditionally set in the lexer.
         | DIAGNOSTICS_SYMBOL
         | DIRECTORY_SYMBOL
         | DISABLE_SYMBOL
@@ -5270,7 +5296,7 @@ roleOrLabelKeyword:
         | INDEXES_SYMBOL
         | INITIAL_SIZE_SYMBOL
         | INSTANCE_SYMBOL
-        | INACTIVE_SYMBOL           // Conditionally set in the lexer.
+        | INACTIVE_SYMBOL       // Conditionally set in the lexer.
         | IO_SYMBOL
         | IPC_SYMBOL
         | ISOLATION_SYMBOL
@@ -5305,7 +5331,8 @@ roleOrLabelKeyword:
         | MASTER_SSL_SYMBOL
         | MASTER_SSL_CA_SYMBOL
         | MASTER_SSL_CAPATH_SYMBOL
-        | MASTER_TLS_VERSION_SYMBOL // Conditionally deprecated in the lexer.
+        | MASTER_TLS_VERSION_SYMBOL
+        // Conditionally deprecated in the lexer.
         | MASTER_SSL_CERT_SYMBOL
         | MASTER_SSL_CIPHER_SYMBOL
         | MASTER_SSL_CRL_SYMBOL
@@ -5349,11 +5376,11 @@ roleOrLabelKeyword:
         | NUMBER_SYMBOL
         | NVARCHAR_SYMBOL
         | OFFSET_SYMBOL
-        | OLD_SYMBOL                // Conditionally set in the lexer.
+        | OLD_SYMBOL            // Conditionally set in the lexer.
         | ONE_SYMBOL
-        | OPTIONAL_SYMBOL           // Conditionally set in the lexer.
+        | OPTIONAL_SYMBOL       // Conditionally set in the lexer.
         | ORDINALITY_SYMBOL
-        | ORGANIZATION_SYMBOL       // Conditionally set in the lexer.
+        | ORGANIZATION_SYMBOL   // Conditionally set in the lexer.
         | OTHERS_SYMBOL
         | PACK_KEYS_SYMBOL
         | PAGE_SYMBOL
@@ -5389,7 +5416,7 @@ roleOrLabelKeyword:
         | RELAY_LOG_FILE_SYMBOL
         | RELAY_LOG_POS_SYMBOL
         | RELAY_THREAD_SYMBOL
-        | REMOTE_SYMBOL             // Conditionally set in the lexer.
+        | REMOTE_SYMBOL         // Conditionally set in the lexer.
         | REORGANIZE_SYMBOL
         | REPEATABLE_SYMBOL
         | REPLICATE_DO_DB_SYMBOL
@@ -5399,10 +5426,11 @@ roleOrLabelKeyword:
         | REPLICATE_WILD_DO_TABLE_SYMBOL
         | REPLICATE_WILD_IGNORE_TABLE_SYMBOL
         | REPLICATE_REWRITE_DB_SYMBOL
-        | USER_RESOURCES_SYMBOL     // Placed like in the server grammar where it is named just RESOURCES.
+        | USER_RESOURCES_SYMBOL
+        // Placed like in the server grammar where it is named just RESOURCES.
         | RESPECT_SYMBOL
         | RESUME_SYMBOL
-        | RETAIN_SYMBOL             // Conditionally set in the lexer.
+        | RETAIN_SYMBOL         // Conditionally set in the lexer.
         | RETURNED_SQLSTATE_SYMBOL
         | RETURNS_SYMBOL
         | REUSE_SYMBOL
@@ -5494,4 +5522,498 @@ roleOrLabelKeyword:
     // Tokens that entered or left this rule in specific versions and are not automatically
     // handled in the lexer.
     | {this.serverVersion >= 80014}? ADMIN_SYMBOL
+;
+
+mrsScript:
+    (mrsStatement ( SEMICOLON_SYMBOL+ mrsStatement)*)? SEMICOLON_SYMBOL? EOF
+;
+
+mrsStatement:
+    configureRestMetadataStatement
+    | createRestServiceStatement
+    | createRestSchemaStatement
+    | createRestViewStatement
+    | createRestProcedureStatement
+    | createRestContentSetStatement
+    | alterRestServiceStatement
+    | alterRestSchemaStatement
+    | alterRestViewStatement
+    | alterRestProcedureStatement
+    | dropRestServiceStatement
+    | dropRestSchemaStatement
+    | dropRestDualityViewStatement
+    | dropRestProcedureStatement
+    | dropRestContentSetStatement
+    | useStatement
+    | showRestMetadataStatusStatement
+    | showRestServicesStatement
+    | showRestSchemasStatement
+    | showRestViewsStatement
+    | showRestProceduresStatement
+    | showCreateRestServiceStatement
+    | showCreateRestSchemaStatement
+    | showCreateRestViewStatement
+    | showCreateRestProcedureStatement
+;
+
+// Common Definitions =======================================================
+
+enabledDisabled:
+    ENABLED_SYMBOL
+    | DISABLED_SYMBOL
+;
+
+quotedTextOrDefault: (quotedText | DEFAULT_SYMBOL)
+;
+
+jsonOptions:
+    OPTIONS_SYMBOL jsonValue
+;
+
+comments:
+    COMMENTS_SYMBOL quotedText
+;
+
+authenticationRequired:
+    AUTHENTICATION_SYMBOL NOT_SYMBOL? REQUIRED_SYMBOL
+;
+
+itemsPerPage:
+    ITEMS_SYMBOL PER_SYMBOL PAGE_SYMBOL itemsPerPageNumber
+;
+
+itemsPerPageNumber:
+    INT_NUMBER
+;
+
+serviceSchemaSelector:
+    ON_SYMBOL (SERVICE_SYMBOL serviceRequestPath)? DATABASE_SYMBOL schemaRequestPath
+;
+
+// CONFIGURE statements =====================================================
+
+// - CONFIGURE REST METADATA ------------------------------------------------
+
+configureRestMetadataStatement:
+    CONFIGURE_SYMBOL REST_SYMBOL METADATA_SYMBOL restMetadataOptions?
+;
+
+restMetadataOptions: (enabledDisabled | jsonOptions | updateIfAvailable)+
+;
+
+updateIfAvailable:
+    UPDATE_SYMBOL (IF_SYMBOL AVAILABLE_SYMBOL)?
+;
+
+// CREATE statements ========================================================
+
+// - CREATE REST SERVICE ----------------------------------------------------
+
+createRestServiceStatement:
+    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL SERVICE_SYMBOL serviceRequestPath restServiceOptions?
+;
+
+restServiceOptions: (
+        enabledDisabled
+        //		| restProtocol -- not enabled yet
+        | restAuthentication
+        //		| userManagementSchema -- not enabled yet
+        | jsonOptions
+        | comments
+    )+
+;
+
+restProtocol:
+    PROTOCOL_SYMBOL (
+        HTTP_SYMBOL
+        | HTTPS_SYMBOL
+        | HTTP_SYMBOL COMMA_SYMBOL HTTPS_SYMBOL
+        | HTTPS_SYMBOL COMMA_SYMBOL HTTP_SYMBOL
+    )
+;
+
+restAuthentication:
+    AUTHENTICATION_SYMBOL (
+        authPath
+        | authRedirection
+        | authValidation
+        | authPageContent
+    )*
+;
+
+authPath:
+    PATH_SYMBOL quotedTextOrDefault
+;
+
+authRedirection:
+    REDIRECTION_SYMBOL quotedTextOrDefault
+;
+
+authValidation:
+    VALIDATION_SYMBOL quotedTextOrDefault
+;
+
+authPageContent:
+    PAGE_SYMBOL CONTENT_SYMBOL quotedTextOrDefault
+;
+
+userManagementSchema:
+    USER_SYMBOL MANAGEMENT_SYMBOL SCHEMA_SYMBOL (schemaName | DEFAULT_SYMBOL)
+;
+
+// - CREATE REST SCHEMA -----------------------------------------------------
+
+createRestSchemaStatement:
+    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL SCHEMA_SYMBOL schemaRequestPath? (
+        ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
+    )? FROM_SYMBOL schemaName restSchemaOptions?
+;
+
+restSchemaOptions: (
+        enabledDisabled
+        | authenticationRequired
+        | itemsPerPage
+        | jsonOptions
+        | comments
+    )+
+;
+
+// - CREATE REST VIEW -------------------------------------------------------
+
+createRestViewStatement:
+    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL RELATIONAL_SYMBOL? JSON_SYMBOL? DUALITY_SYMBOL? VIEW_SYMBOL
+        viewRequestPath serviceSchemaSelector? FROM_SYMBOL qualifiedIdentifier restDualityViewOptions? AS_SYMBOL restObjectName
+        graphGlCrudOptions? graphGlObj?
+;
+
+restDualityViewOptions: (
+        enabledDisabled
+        | authenticationRequired
+        | itemsPerPage
+        | jsonOptions
+        | comments
+        | restViewMediaType
+        | restViewFormat
+        | restViewAuthenticationProcedure
+    )+
+;
+
+restViewMediaType:
+    MEDIA_SYMBOL TYPE_SYMBOL (quotedText | AUTODETECT_SYMBOL)
+;
+
+restViewFormat:
+    FORMAT_SYMBOL (FEED_SYMBOL | ITEM_SYMBOL | MEDIA_SYMBOL)
+;
+
+restViewAuthenticationProcedure:
+    AUTHENTICATION_SYMBOL PROCEDURE_SYMBOL qualifiedIdentifier
+;
+
+// - CREATE REST PROCEDURE --------------------------------------------------
+
+createRestProcedureStatement:
+    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL PROCEDURE_SYMBOL procedureRequestPath serviceSchemaSelector? FROM_SYMBOL
+        qualifiedIdentifier restProcedureOptions? AS_SYMBOL restObjectName PARAMETERS_SYMBOL graphGlObj restProcedureResult*
+;
+
+restProcedureOptions: (
+        enabledDisabled
+        | authenticationRequired
+        | jsonOptions
+        | comments
+    )+
+;
+
+restProcedureResult:
+    RESULT_SYMBOL restResultName graphGlObj
+;
+
+// - CREATE REST CONTENT SET ------------------------------------------------
+
+createRestContentSetStatement:
+    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL CONTENT_SYMBOL SET_SYMBOL contentSetRequestPath serviceSchemaSelector? (
+        FROM_SYMBOL directoryFilePath
+    )? restContentSetOptions?
+;
+
+directoryFilePath:
+    quotedText
+;
+
+restContentSetOptions: (
+        enabledDisabled
+        | authenticationRequired
+        | jsonOptions
+        | comments
+    )+
+;
+
+// ALTER statements =========================================================
+
+// - ALTER REST SERVICE -----------------------------------------------------
+
+alterRestServiceStatement:
+    ALTER_SYMBOL REST_SYMBOL SERVICE_SYMBOL serviceRequestPath (
+        NEW_SYMBOL REQUEST_SYMBOL PATH_SYMBOL newServiceRequestPath
+    )? restServiceOptions?
+;
+
+// - ALTER REST SERVICE -----------------------------------------------------
+
+alterRestSchemaStatement:
+    ALTER_SYMBOL REST_SYMBOL SCHEMA_SYMBOL schemaRequestPath? (
+        ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
+    )? (NEW_SYMBOL REQUEST_SYMBOL PATH_SYMBOL newSchemaRequestPath)? (
+        FROM_SYMBOL schemaName
+    )? restSchemaOptions?
+;
+
+// - ALTER REST VIEW --------------------------------------------------------
+
+alterRestViewStatement:
+    ALTER_SYMBOL REST_SYMBOL RELATIONAL_SYMBOL? JSON_SYMBOL? DUALITY_SYMBOL? VIEW_SYMBOL viewRequestPath (
+        NEW_SYMBOL REQUEST_SYMBOL PATH_SYMBOL newViewRequestPath
+    )? serviceSchemaSelector? restDualityViewOptions? (
+        AS_SYMBOL restObjectName graphGlCrudOptions? graphGlObj?
+    )?
+;
+
+// - ALTER REST PROCEDURE ---------------------------------------------------
+
+alterRestProcedureStatement:
+    ALTER_SYMBOL REST_SYMBOL PROCEDURE_SYMBOL procedureRequestPath (
+        NEW_SYMBOL REQUEST_SYMBOL PATH_SYMBOL newProcedureRequestPath
+    )? serviceSchemaSelector? restProcedureOptions? (
+        AS_SYMBOL restObjectName (PARAMETERS_SYMBOL graphGlObj)?
+    )? restProcedureResult*
+;
+
+// DROP statements ==========================================================
+
+dropRestServiceStatement:
+    DROP_SYMBOL REST_SYMBOL SERVICE_SYMBOL serviceRequestPath
+;
+
+dropRestSchemaStatement:
+    DROP_SYMBOL REST_SYMBOL SCHEMA_SYMBOL schemaRequestPath (
+        ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
+    )?
+;
+
+dropRestDualityViewStatement:
+    DROP_SYMBOL REST_SYMBOL RELATIONAL_SYMBOL? JSON_SYMBOL? DUALITY_SYMBOL? VIEW_SYMBOL viewRequestPath serviceSchemaSelector?
+;
+
+dropRestProcedureStatement:
+    DROP_SYMBOL REST_SYMBOL PROCEDURE_SYMBOL procedureRequestPath serviceSchemaSelector?
+;
+
+dropRestContentSetStatement:
+    DROP_SYMBOL REST_SYMBOL CONTENT_SYMBOL SET_SYMBOL contentSetRequestPath serviceSchemaSelector?
+;
+
+// USE statements ===========================================================
+
+useStatement:
+    USE_SYMBOL REST_SYMBOL serviceAndSchemaRequestPaths
+;
+
+serviceAndSchemaRequestPaths:
+    SERVICE_SYMBOL serviceRequestPath
+    | (SERVICE_SYMBOL serviceRequestPath)? SCHEMA_SYMBOL schemaRequestPath
+;
+
+// SHOW statements ==========================================================
+
+showRestMetadataStatusStatement:
+    SHOW_SYMBOL REST_SYMBOL METADATA_SYMBOL? STATUS_SYMBOL
+;
+
+showRestServicesStatement:
+    SHOW_SYMBOL REST_SYMBOL SERVICES_SYMBOL
+;
+
+showRestSchemasStatement:
+    SHOW_SYMBOL REST_SYMBOL SCHEMAS_SYMBOL (
+        (IN_SYMBOL | FROM_SYMBOL) SERVICE_SYMBOL? serviceRequestPath
+    )?
+;
+
+showRestViewsStatement:
+    SHOW_SYMBOL REST_SYMBOL RELATIONAL_SYMBOL? JSON_SYMBOL? DUALITY_SYMBOL? VIEWS_SYMBOL (
+        (IN_SYMBOL | FROM_SYMBOL) serviceAndSchemaRequestPaths
+    )?
+;
+
+showRestProceduresStatement:
+    SHOW_SYMBOL REST_SYMBOL PROCEDURES_SYMBOL (
+        (IN_SYMBOL | FROM_SYMBOL) serviceAndSchemaRequestPaths
+    )?
+;
+
+showCreateRestServiceStatement:
+    SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL SERVICE_SYMBOL serviceRequestPath?
+;
+
+showCreateRestSchemaStatement:
+    SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL SCHEMA_SYMBOL schemaRequestPath? (
+        (IN_SYMBOL | FROM_SYMBOL) SERVICE_SYMBOL? serviceRequestPath
+    )?
+;
+
+showCreateRestViewStatement:
+    SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL RELATIONAL_SYMBOL? JSON_SYMBOL? DUALITY_SYMBOL? VIEW_SYMBOL viewRequestPath
+        serviceSchemaSelector?
+;
+
+showCreateRestProcedureStatement:
+    SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL PROCEDURE_SYMBOL procedureRequestPath serviceSchemaSelector?
+;
+
+// Named identifiers ========================================================
+
+serviceRequestPath:
+    hostAndPortIdentifier? requestPathIdentifier
+;
+
+newServiceRequestPath:
+    hostAndPortIdentifier? requestPathIdentifier
+;
+
+schemaRequestPath:
+    requestPathIdentifier
+;
+
+newSchemaRequestPath:
+    requestPathIdentifier
+;
+
+viewRequestPath:
+    requestPathIdentifier
+;
+
+newViewRequestPath:
+    requestPathIdentifier
+;
+
+restObjectName:
+    identifier
+;
+
+restResultName:
+    identifier
+;
+
+procedureRequestPath:
+    requestPathIdentifier
+;
+
+newProcedureRequestPath:
+    requestPathIdentifier
+;
+
+contentSetRequestPath:
+    requestPathIdentifier
+;
+
+//----------------- Common basic rules ---------------------------------------------------------------------------------
+
+dottedIdentifier:
+    simpleIdentifier
+    | identifier dotIdentifier*
+;
+
+hostAndPortIdentifier:
+    dottedIdentifier (COLON_SYMBOL INT_NUMBER)?
+;
+
+requestPathIdentifier:
+    DIV_OPERATOR dottedIdentifier (DIV_OPERATOR dottedIdentifier)?
+;
+
+quotedText:
+    DOUBLE_QUOTED_TEXT
+    | SINGLE_QUOTED_TEXT
+;
+
+//----------------- Json -----------------------------------------------------------------------------------------------
+
+jsonObj:
+    OPEN_CURLY_SYMBOL jsonPair (COMMA_SYMBOL jsonPair)* CLOSE_CURLY_SYMBOL
+    | OPEN_CURLY_SYMBOL CLOSE_CURLY_SYMBOL
+;
+
+jsonPair:
+    DOUBLE_QUOTED_TEXT COLON_SYMBOL jsonValue
+;
+
+jsonArr:
+    OPEN_SQUARE_SYMBOL (jsonValue (COMMA_SYMBOL jsonValue)*)? CLOSE_SQUARE_SYMBOL
+;
+
+jsonValue:
+    DOUBLE_QUOTED_TEXT
+    | FLOAT_NUMBER
+    | (PLUS_OPERATOR | MINUS_OPERATOR)? INT_NUMBER
+    | jsonObj
+    | jsonArr
+    | TRUE_SYMBOL
+    | FALSE_SYMBOL
+    | NULL_SYMBOL
+;
+
+//----------------- GraphGL --------------------------------------------------------------------------------------------
+
+graphGlObj:
+    OPEN_CURLY_SYMBOL graphGlPair (COMMA_SYMBOL graphGlPair)* CLOSE_CURLY_SYMBOL
+    | OPEN_CURLY_SYMBOL CLOSE_CURLY_SYMBOL
+;
+
+graphGlCrudOptions: (
+        AT_SELECT_SYMBOL
+        | AT_NOSELECT_SYMBOL
+        | AT_INSERT_SYMBOL
+        | AT_NOINSERT_SYMBOL
+        | AT_UPDATE_SYMBOL
+        | AT_NOUPDATE_SYMBOL
+        | AT_DELETE_SYMBOL
+        | AT_NODELETE_SYMBOL
+    )+
+;
+
+graphGlPair:
+    graphKeyValue COLON_SYMBOL qualifiedIdentifier (
+        AT_IN_SYMBOL
+        | AT_OUT_SYMBOL
+        | AT_INOUT_SYMBOL
+        | AT_NOCHECK_SYMBOL
+        | AT_SORTABLE_SYMBOL
+        | AT_NOFILTERING_SYMBOL
+        | AT_ROWOWNERSHIP_SYMBOL
+        | AT_UNNEST_SYMBOL
+        | AT_REDUCETO_SYMBOL OPEN_PAR_SYMBOL graphGlReduceToValue CLOSE_PAR_SYMBOL
+        | AT_DATATYPE_SYMBOL OPEN_PAR_SYMBOL graphGlDatatypeValue CLOSE_PAR_SYMBOL
+        | graphGlCrudOptions
+    )? graphGlObj?
+;
+
+graphKeyValue:
+    DOUBLE_QUOTED_TEXT
+    | identifier
+;
+
+graphGlReduceToValue:
+    DOUBLE_QUOTED_TEXT
+    | identifier
+;
+
+graphGlDatatypeValue:
+    DOUBLE_QUOTED_TEXT
+    | identifier
+;
+
+graphGlValue:
+    qualifiedIdentifier
+    | graphGlObj
 ;
