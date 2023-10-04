@@ -26,14 +26,13 @@
 import { CandidatesCollection, CodeCompletionCore } from "antlr4-c3";
 import { BufferedTokenStream, CharStreams, CommonTokenStream, ParseTreeListener, ParseTreeWalker } from "antlr4ng";
 
-import { MySQLLexer } from "./generated/MySQLLexer";
-import { MySQLParser } from "./generated/MySQLParser";
-
 import { Stack } from "../../supplement/Stack";
 import { ICompletionData, LanguageCompletionKind, QueryType, Scanner } from "../parser-common";
 import { MySQLTableRefListener } from "./MySQLTableRefListener";
 
 import { unquote } from "../../utilities/string-helpers";
+import { MySQLMRSParser } from "./generated/MySQLMRSParser";
+import { MySQLMRSLexer } from "./generated/MySQLMRSLexer";
 
 enum ObjectFlags {
     // For 3 part identifiers.
@@ -53,78 +52,78 @@ interface ITableReference {
 }
 
 const synonyms: Map<number, string[]> = new Map([
-    [MySQLLexer.CHAR_SYMBOL, ["CHARACTER"]],
-    [MySQLLexer.NOW_SYMBOL, ["CURRENT_TIMESTAMP", "LOCALTIME", "LOCALTIMESTAMP"]],
-    [MySQLLexer.DAY_SYMBOL, ["DAYOFMONTH"]],
-    [MySQLLexer.DECIMAL_SYMBOL, ["DEC"]],
-    [MySQLLexer.DISTINCT_SYMBOL, ["DISTINCTROW"]],
-    [MySQLLexer.CHAR_SYMBOL, ["CHARACTER"]],
-    [MySQLLexer.COLUMNS_SYMBOL, ["FIELDS"]],
-    [MySQLLexer.FLOAT_SYMBOL, ["FLOAT4"]],
-    [MySQLLexer.DOUBLE_SYMBOL, ["FLOAT8"]],
-    [MySQLLexer.INT_SYMBOL, ["INTEGER", "INT4"]],
-    [MySQLLexer.RELAY_THREAD_SYMBOL, ["IO_THREAD"]],
-    [MySQLLexer.SUBSTRING_SYMBOL, ["MID"]],
-    [MySQLLexer.MID_SYMBOL, ["MEDIUMINT"]],
-    [MySQLLexer.MEDIUMINT_SYMBOL, ["MIDDLEINT"]],
-    [MySQLLexer.NDBCLUSTER_SYMBOL, ["NDB"]],
-    [MySQLLexer.REGEXP_SYMBOL, ["RLIKE"]],
-    [MySQLLexer.DATABASE_SYMBOL, ["SCHEMA"]],
-    [MySQLLexer.DATABASES_SYMBOL, ["SCHEMAS"]],
-    [MySQLLexer.USER_SYMBOL, ["SESSION_USER"]],
-    [MySQLLexer.STD_SYMBOL, ["STDDEV", "STDDEV"]],
-    [MySQLLexer.SUBSTRING_SYMBOL, ["SUBSTR"]],
-    [MySQLLexer.VARCHAR_SYMBOL, ["VARCHARACTER"]],
-    [MySQLLexer.VARIANCE_SYMBOL, ["VAR_POP"]],
-    [MySQLLexer.TINYINT_SYMBOL, ["INT1"]],
-    [MySQLLexer.SMALLINT_SYMBOL, ["INT2"]],
-    [MySQLLexer.MEDIUMINT_SYMBOL, ["INT3"]],
-    [MySQLLexer.BIGINT_SYMBOL, ["INT8"]],
-    [MySQLLexer.SECOND_SYMBOL, ["SQL_TSI_SECOND"]],
-    [MySQLLexer.MINUTE_SYMBOL, ["SQL_TSI_MINUTE"]],
-    [MySQLLexer.HOUR_SYMBOL, ["SQL_TSI_HOUR"]],
-    [MySQLLexer.DAY_SYMBOL, ["SQL_TSI_DAY"]],
-    [MySQLLexer.WEEK_SYMBOL, ["SQL_TSI_WEEK"]],
-    [MySQLLexer.MONTH_SYMBOL, ["SQL_TSI_MONTH"]],
-    [MySQLLexer.QUARTER_SYMBOL, ["SQL_TSI_QUARTER"]],
-    [MySQLLexer.YEAR_SYMBOL, ["SQL_TSI_YEAR"]],
+    [MySQLMRSLexer.CHAR_SYMBOL, ["CHARACTER"]],
+    [MySQLMRSLexer.NOW_SYMBOL, ["CURRENT_TIMESTAMP", "LOCALTIME", "LOCALTIMESTAMP"]],
+    [MySQLMRSLexer.DAY_SYMBOL, ["DAYOFMONTH"]],
+    [MySQLMRSLexer.DECIMAL_SYMBOL, ["DEC"]],
+    [MySQLMRSLexer.DISTINCT_SYMBOL, ["DISTINCTROW"]],
+    [MySQLMRSLexer.CHAR_SYMBOL, ["CHARACTER"]],
+    [MySQLMRSLexer.COLUMNS_SYMBOL, ["FIELDS"]],
+    [MySQLMRSLexer.FLOAT_SYMBOL, ["FLOAT4"]],
+    [MySQLMRSLexer.DOUBLE_SYMBOL, ["FLOAT8"]],
+    [MySQLMRSLexer.INT_SYMBOL, ["INTEGER", "INT4"]],
+    [MySQLMRSLexer.RELAY_THREAD_SYMBOL, ["IO_THREAD"]],
+    [MySQLMRSLexer.SUBSTRING_SYMBOL, ["MID"]],
+    [MySQLMRSLexer.MID_SYMBOL, ["MEDIUMINT"]],
+    [MySQLMRSLexer.MEDIUMINT_SYMBOL, ["MIDDLEINT"]],
+    [MySQLMRSLexer.NDBCLUSTER_SYMBOL, ["NDB"]],
+    [MySQLMRSLexer.REGEXP_SYMBOL, ["RLIKE"]],
+    [MySQLMRSLexer.DATABASE_SYMBOL, ["SCHEMA"]],
+    [MySQLMRSLexer.DATABASES_SYMBOL, ["SCHEMAS"]],
+    [MySQLMRSLexer.USER_SYMBOL, ["SESSION_USER"]],
+    [MySQLMRSLexer.STD_SYMBOL, ["STDDEV", "STDDEV"]],
+    [MySQLMRSLexer.SUBSTRING_SYMBOL, ["SUBSTR"]],
+    [MySQLMRSLexer.VARCHAR_SYMBOL, ["VARCHARACTER"]],
+    [MySQLMRSLexer.VARIANCE_SYMBOL, ["VAR_POP"]],
+    [MySQLMRSLexer.TINYINT_SYMBOL, ["INT1"]],
+    [MySQLMRSLexer.SMALLINT_SYMBOL, ["INT2"]],
+    [MySQLMRSLexer.MEDIUMINT_SYMBOL, ["INT3"]],
+    [MySQLMRSLexer.BIGINT_SYMBOL, ["INT8"]],
+    [MySQLMRSLexer.SECOND_SYMBOL, ["SQL_TSI_SECOND"]],
+    [MySQLMRSLexer.MINUTE_SYMBOL, ["SQL_TSI_MINUTE"]],
+    [MySQLMRSLexer.HOUR_SYMBOL, ["SQL_TSI_HOUR"]],
+    [MySQLMRSLexer.DAY_SYMBOL, ["SQL_TSI_DAY"]],
+    [MySQLMRSLexer.WEEK_SYMBOL, ["SQL_TSI_WEEK"]],
+    [MySQLMRSLexer.MONTH_SYMBOL, ["SQL_TSI_MONTH"]],
+    [MySQLMRSLexer.QUARTER_SYMBOL, ["SQL_TSI_QUARTER"]],
+    [MySQLMRSLexer.YEAR_SYMBOL, ["SQL_TSI_YEAR"]],
 ]);
 
 // Context class for code completion results.
 export class AutoCompletionContext {
     private static noSeparatorRequiredFor: Set<number> = new Set([
-        MySQLLexer.EQUAL_OPERATOR,
-        MySQLLexer.ASSIGN_OPERATOR,
-        MySQLLexer.NULL_SAFE_EQUAL_OPERATOR,
-        MySQLLexer.GREATER_OR_EQUAL_OPERATOR,
-        MySQLLexer.GREATER_THAN_OPERATOR,
-        MySQLLexer.LESS_OR_EQUAL_OPERATOR,
-        MySQLLexer.LESS_THAN_OPERATOR,
-        MySQLLexer.NOT_EQUAL_OPERATOR,
-        MySQLLexer.NOT_EQUAL2_OPERATOR,
-        MySQLLexer.PLUS_OPERATOR,
-        MySQLLexer.MINUS_OPERATOR,
-        MySQLLexer.MULT_OPERATOR,
-        MySQLLexer.DIV_OPERATOR,
-        MySQLLexer.MOD_OPERATOR,
-        MySQLLexer.LOGICAL_NOT_OPERATOR,
-        MySQLLexer.BITWISE_NOT_OPERATOR,
-        MySQLLexer.SHIFT_LEFT_OPERATOR,
-        MySQLLexer.SHIFT_RIGHT_OPERATOR,
-        MySQLLexer.LOGICAL_AND_OPERATOR,
-        MySQLLexer.BITWISE_AND_OPERATOR,
-        MySQLLexer.BITWISE_XOR_OPERATOR,
-        MySQLLexer.LOGICAL_OR_OPERATOR,
-        MySQLLexer.BITWISE_OR_OPERATOR,
-        MySQLLexer.DOT_SYMBOL,
-        MySQLLexer.COMMA_SYMBOL,
-        MySQLLexer.SEMICOLON_SYMBOL,
-        MySQLLexer.COLON_SYMBOL,
-        MySQLLexer.OPEN_PAR_SYMBOL,
-        MySQLLexer.CLOSE_PAR_SYMBOL,
-        MySQLLexer.OPEN_CURLY_SYMBOL,
-        MySQLLexer.CLOSE_CURLY_SYMBOL,
-        MySQLLexer.PARAM_MARKER,
+        MySQLMRSLexer.EQUAL_OPERATOR,
+        MySQLMRSLexer.ASSIGN_OPERATOR,
+        MySQLMRSLexer.NULL_SAFE_EQUAL_OPERATOR,
+        MySQLMRSLexer.GREATER_OR_EQUAL_OPERATOR,
+        MySQLMRSLexer.GREATER_THAN_OPERATOR,
+        MySQLMRSLexer.LESS_OR_EQUAL_OPERATOR,
+        MySQLMRSLexer.LESS_THAN_OPERATOR,
+        MySQLMRSLexer.NOT_EQUAL_OPERATOR,
+        MySQLMRSLexer.NOT_EQUAL2_OPERATOR,
+        MySQLMRSLexer.PLUS_OPERATOR,
+        MySQLMRSLexer.MINUS_OPERATOR,
+        MySQLMRSLexer.MULT_OPERATOR,
+        MySQLMRSLexer.DIV_OPERATOR,
+        MySQLMRSLexer.MOD_OPERATOR,
+        MySQLMRSLexer.LOGICAL_NOT_OPERATOR,
+        MySQLMRSLexer.BITWISE_NOT_OPERATOR,
+        MySQLMRSLexer.SHIFT_LEFT_OPERATOR,
+        MySQLMRSLexer.SHIFT_RIGHT_OPERATOR,
+        MySQLMRSLexer.LOGICAL_AND_OPERATOR,
+        MySQLMRSLexer.BITWISE_AND_OPERATOR,
+        MySQLMRSLexer.BITWISE_XOR_OPERATOR,
+        MySQLMRSLexer.LOGICAL_OR_OPERATOR,
+        MySQLMRSLexer.BITWISE_OR_OPERATOR,
+        MySQLMRSLexer.DOT_SYMBOL,
+        MySQLMRSLexer.COMMA_SYMBOL,
+        MySQLMRSLexer.SEMICOLON_SYMBOL,
+        MySQLMRSLexer.COLON_SYMBOL,
+        MySQLMRSLexer.OPEN_PAR_SYMBOL,
+        MySQLMRSLexer.CLOSE_PAR_SYMBOL,
+        MySQLMRSLexer.OPEN_CURLY_SYMBOL,
+        MySQLMRSLexer.CLOSE_CURLY_SYMBOL,
+        MySQLMRSLexer.PARAM_MARKER,
     ]);
 
     public completionCandidates = new CandidatesCollection();
@@ -139,7 +138,7 @@ export class AutoCompletionContext {
     // Organized as stack to be able to easily remove sets of references when changing nesting level.
     private referencesStack: Stack<ITableReference[]> = new Stack();
 
-    public constructor(private parser: MySQLParser, private scanner: Scanner, private lexer: MySQLLexer) {
+    public constructor(private parser: MySQLMRSParser, private scanner: Scanner, private lexer: MySQLMRSLexer) {
     }
 
     /**
@@ -208,17 +207,18 @@ export class AutoCompletionContext {
             this.scanner.next(); // First skip to the next non-hidden token.
         }
 
-        if (!this.scanner.is(MySQLLexer.DOT_SYMBOL) && !this.lexer.isIdentifier(this.scanner.tokenType)) {
+        if (!this.scanner.is(MySQLMRSLexer.DOT_SYMBOL) && !this.lexer.isIdentifier(this.scanner.tokenType)) {
             // We are at the end of an incomplete identifier spec. Jump back, so that the other tests succeed.
             this.scanner.previous();
         }
 
         // Go left until we find something not related to an id or find at most 1 dot.
         if (position > 0) {
-            if (this.lexer.isIdentifier(this.scanner.tokenType) && this.scanner.lookBack() === MySQLLexer.DOT_SYMBOL) {
+            if (this.lexer.isIdentifier(this.scanner.tokenType) &&
+                this.scanner.lookBack() === MySQLMRSLexer.DOT_SYMBOL) {
                 this.scanner.previous();
             }
-            if (this.scanner.is(MySQLLexer.DOT_SYMBOL) && this.lexer.isIdentifier(this.scanner.lookBack())) {
+            if (this.scanner.is(MySQLMRSLexer.DOT_SYMBOL) && this.lexer.isIdentifier(this.scanner.lookBack())) {
                 this.scanner.previous();
             }
         }
@@ -231,7 +231,7 @@ export class AutoCompletionContext {
         }
 
         // Bail out if there is no more id parts or we are already behind the caret position.
-        if (!this.scanner.is(MySQLLexer.DOT_SYMBOL) || position <= this.scanner.tokenIndex) {
+        if (!this.scanner.is(MySQLMRSLexer.DOT_SYMBOL) || position <= this.scanner.tokenIndex) {
             return { flags: ObjectFlags.ShowFirst | ObjectFlags.ShowSecond, qualifier: "" };
         }
 
@@ -256,7 +256,7 @@ export class AutoCompletionContext {
         }
 
         const tokenType = this.scanner.tokenType;
-        if (tokenType !== MySQLLexer.DOT_SYMBOL && !this.lexer.isIdentifier(this.scanner.tokenType)) {
+        if (tokenType !== MySQLMRSLexer.DOT_SYMBOL && !this.lexer.isIdentifier(this.scanner.tokenType)) {
             // Just like in the simpler function. If we have found no identifier or dot then we are at the
             // end of an incomplete definition. Simply seek back to the previous non-hidden token.
             this.scanner.previous();
@@ -265,15 +265,15 @@ export class AutoCompletionContext {
         // Go left until we find something not related to an id or at most 2 dots.
         if (position > 0) {
             if (this.lexer.isIdentifier(this.scanner.tokenType)
-                && (this.scanner.lookBack() === MySQLLexer.DOT_SYMBOL)) {
+                && (this.scanner.lookBack() === MySQLMRSLexer.DOT_SYMBOL)) {
                 this.scanner.previous();
             }
 
-            if (this.scanner.is(MySQLLexer.DOT_SYMBOL) && this.lexer.isIdentifier(this.scanner.lookBack())) {
+            if (this.scanner.is(MySQLMRSLexer.DOT_SYMBOL) && this.lexer.isIdentifier(this.scanner.lookBack())) {
                 this.scanner.previous();
 
                 // And once more.
-                if (this.scanner.lookBack() === MySQLLexer.DOT_SYMBOL) {
+                if (this.scanner.lookBack() === MySQLMRSLexer.DOT_SYMBOL) {
                     this.scanner.previous();
                     if (this.lexer.isIdentifier(this.scanner.lookBack())) {
                         this.scanner.previous();
@@ -293,7 +293,7 @@ export class AutoCompletionContext {
         }
 
         // Bail out if there is no more id parts or we are already behind the caret position.
-        if (!this.scanner.is(MySQLLexer.DOT_SYMBOL) || position <= this.scanner.tokenIndex) {
+        if (!this.scanner.is(MySQLMRSLexer.DOT_SYMBOL) || position <= this.scanner.tokenIndex) {
             return {
                 flags: ObjectFlags.ShowSchemas | ObjectFlags.ShowTables | ObjectFlags.ShowColumns,
                 schema: "",
@@ -308,7 +308,7 @@ export class AutoCompletionContext {
             temp = unquote(this.scanner.tokenText);
             this.scanner.next();
 
-            if (!this.scanner.is(MySQLLexer.DOT_SYMBOL) || position <= this.scanner.tokenIndex) {
+            if (!this.scanner.is(MySQLMRSLexer.DOT_SYMBOL) || position <= this.scanner.tokenIndex) {
                 // Schema only valid for tables. Columns must use default schema.
                 return {
                     flags: ObjectFlags.ShowTables | ObjectFlags.ShowColumns,
@@ -338,79 +338,79 @@ export class AutoCompletionContext {
         const c3 = new CodeCompletionCore(this.parser);
 
         c3.ignoredTokens = new Set([
-            MySQLLexer.EOF,
-            MySQLLexer.EQUAL_OPERATOR,
-            MySQLLexer.ASSIGN_OPERATOR,
-            MySQLLexer.NULL_SAFE_EQUAL_OPERATOR,
-            MySQLLexer.GREATER_OR_EQUAL_OPERATOR,
-            MySQLLexer.GREATER_THAN_OPERATOR,
-            MySQLLexer.LESS_OR_EQUAL_OPERATOR,
-            MySQLLexer.LESS_THAN_OPERATOR,
-            MySQLLexer.NOT_EQUAL_OPERATOR,
-            MySQLLexer.NOT_EQUAL2_OPERATOR,
-            MySQLLexer.PLUS_OPERATOR,
-            MySQLLexer.MINUS_OPERATOR,
-            MySQLLexer.MULT_OPERATOR,
-            MySQLLexer.DIV_OPERATOR,
-            MySQLLexer.MOD_OPERATOR,
-            MySQLLexer.LOGICAL_NOT_OPERATOR,
-            MySQLLexer.BITWISE_NOT_OPERATOR,
-            MySQLLexer.SHIFT_LEFT_OPERATOR,
-            MySQLLexer.SHIFT_RIGHT_OPERATOR,
-            MySQLLexer.LOGICAL_AND_OPERATOR,
-            MySQLLexer.BITWISE_AND_OPERATOR,
-            MySQLLexer.BITWISE_XOR_OPERATOR,
-            MySQLLexer.LOGICAL_OR_OPERATOR,
-            MySQLLexer.BITWISE_OR_OPERATOR,
-            MySQLLexer.DOT_SYMBOL,
-            MySQLLexer.COMMA_SYMBOL,
-            MySQLLexer.SEMICOLON_SYMBOL,
-            MySQLLexer.COLON_SYMBOL,
-            MySQLLexer.OPEN_PAR_SYMBOL,
-            MySQLLexer.CLOSE_PAR_SYMBOL,
-            MySQLLexer.OPEN_CURLY_SYMBOL,
-            MySQLLexer.CLOSE_CURLY_SYMBOL,
-            MySQLLexer.UNDERLINE_SYMBOL,
-            MySQLLexer.AT_SIGN_SYMBOL,
-            MySQLLexer.AT_AT_SIGN_SYMBOL,
-            MySQLLexer.NULL2_SYMBOL,
-            MySQLLexer.PARAM_MARKER,
-            MySQLLexer.CONCAT_PIPES_SYMBOL,
-            MySQLLexer.AT_TEXT_SUFFIX,
-            MySQLLexer.BACK_TICK_QUOTED_ID,
-            MySQLLexer.SINGLE_QUOTED_TEXT,
-            MySQLLexer.DOUBLE_QUOTED_TEXT,
-            MySQLLexer.NCHAR_TEXT,
-            MySQLLexer.UNDERSCORE_CHARSET,
-            MySQLLexer.IDENTIFIER,
-            MySQLLexer.INT_NUMBER,
-            MySQLLexer.LONG_NUMBER,
-            MySQLLexer.ULONGLONG_NUMBER,
-            MySQLLexer.DECIMAL_NUMBER,
-            MySQLLexer.BIN_NUMBER,
-            MySQLLexer.HEX_NUMBER,
+            MySQLMRSLexer.EOF,
+            MySQLMRSLexer.EQUAL_OPERATOR,
+            MySQLMRSLexer.ASSIGN_OPERATOR,
+            MySQLMRSLexer.NULL_SAFE_EQUAL_OPERATOR,
+            MySQLMRSLexer.GREATER_OR_EQUAL_OPERATOR,
+            MySQLMRSLexer.GREATER_THAN_OPERATOR,
+            MySQLMRSLexer.LESS_OR_EQUAL_OPERATOR,
+            MySQLMRSLexer.LESS_THAN_OPERATOR,
+            MySQLMRSLexer.NOT_EQUAL_OPERATOR,
+            MySQLMRSLexer.NOT_EQUAL2_OPERATOR,
+            MySQLMRSLexer.PLUS_OPERATOR,
+            MySQLMRSLexer.MINUS_OPERATOR,
+            MySQLMRSLexer.MULT_OPERATOR,
+            MySQLMRSLexer.DIV_OPERATOR,
+            MySQLMRSLexer.MOD_OPERATOR,
+            MySQLMRSLexer.LOGICAL_NOT_OPERATOR,
+            MySQLMRSLexer.BITWISE_NOT_OPERATOR,
+            MySQLMRSLexer.SHIFT_LEFT_OPERATOR,
+            MySQLMRSLexer.SHIFT_RIGHT_OPERATOR,
+            MySQLMRSLexer.LOGICAL_AND_OPERATOR,
+            MySQLMRSLexer.BITWISE_AND_OPERATOR,
+            MySQLMRSLexer.BITWISE_XOR_OPERATOR,
+            MySQLMRSLexer.LOGICAL_OR_OPERATOR,
+            MySQLMRSLexer.BITWISE_OR_OPERATOR,
+            MySQLMRSLexer.DOT_SYMBOL,
+            MySQLMRSLexer.COMMA_SYMBOL,
+            MySQLMRSLexer.SEMICOLON_SYMBOL,
+            MySQLMRSLexer.COLON_SYMBOL,
+            MySQLMRSLexer.OPEN_PAR_SYMBOL,
+            MySQLMRSLexer.CLOSE_PAR_SYMBOL,
+            MySQLMRSLexer.OPEN_CURLY_SYMBOL,
+            MySQLMRSLexer.CLOSE_CURLY_SYMBOL,
+            MySQLMRSLexer.UNDERLINE_SYMBOL,
+            MySQLMRSLexer.AT_SIGN_SYMBOL,
+            MySQLMRSLexer.AT_AT_SIGN_SYMBOL,
+            MySQLMRSLexer.NULL2_SYMBOL,
+            MySQLMRSLexer.PARAM_MARKER,
+            MySQLMRSLexer.CONCAT_PIPES_SYMBOL,
+            MySQLMRSLexer.AT_TEXT_SUFFIX,
+            MySQLMRSLexer.BACK_TICK_QUOTED_ID,
+            MySQLMRSLexer.SINGLE_QUOTED_TEXT,
+            MySQLMRSLexer.DOUBLE_QUOTED_TEXT,
+            MySQLMRSLexer.NCHAR_TEXT,
+            MySQLMRSLexer.UNDERSCORE_CHARSET,
+            MySQLMRSLexer.IDENTIFIER,
+            MySQLMRSLexer.INT_NUMBER,
+            MySQLMRSLexer.LONG_NUMBER,
+            MySQLMRSLexer.ULONGLONG_NUMBER,
+            MySQLMRSLexer.DECIMAL_NUMBER,
+            MySQLMRSLexer.BIN_NUMBER,
+            MySQLMRSLexer.HEX_NUMBER,
         ]);
 
         c3.preferredRules = new Set([
-            MySQLParser.RULE_schemaRef,
+            MySQLMRSParser.RULE_schemaRef,
 
-            MySQLParser.RULE_tableRef, MySQLParser.RULE_tableRefWithWildcard, MySQLParser.RULE_filterTableRef,
+            MySQLMRSParser.RULE_tableRef, MySQLMRSParser.RULE_tableRefWithWildcard, MySQLMRSParser.RULE_filterTableRef,
 
-            MySQLParser.RULE_columnRef, MySQLParser.RULE_columnInternalRef, MySQLParser.RULE_tableWild,
+            MySQLMRSParser.RULE_columnRef, MySQLMRSParser.RULE_columnInternalRef, MySQLMRSParser.RULE_tableWild,
 
-            MySQLParser.RULE_functionRef, MySQLParser.RULE_functionCall, MySQLParser.RULE_runtimeFunctionCall,
-            MySQLParser.RULE_triggerRef, MySQLParser.RULE_viewRef, MySQLParser.RULE_procedureRef,
-            MySQLParser.RULE_logfileGroupRef, MySQLParser.RULE_tablespaceRef, MySQLParser.RULE_engineRef,
-            MySQLParser.RULE_collationName, MySQLParser.RULE_charsetName, MySQLParser.RULE_eventRef,
-            MySQLParser.RULE_serverRef, MySQLParser.RULE_user, MySQLParser.RULE_pluginRef,
-            MySQLParser.RULE_componentRef,
+            MySQLMRSParser.RULE_functionRef, MySQLMRSParser.RULE_functionCall, MySQLMRSParser.RULE_runtimeFunctionCall,
+            MySQLMRSParser.RULE_triggerRef, MySQLMRSParser.RULE_viewRef, MySQLMRSParser.RULE_procedureRef,
+            MySQLMRSParser.RULE_logfileGroupRef, MySQLMRSParser.RULE_tablespaceRef, MySQLMRSParser.RULE_engineRef,
+            MySQLMRSParser.RULE_collationName, MySQLMRSParser.RULE_charsetName, MySQLMRSParser.RULE_eventRef,
+            MySQLMRSParser.RULE_serverRef, MySQLMRSParser.RULE_user, MySQLMRSParser.RULE_pluginRef,
+            MySQLMRSParser.RULE_componentRef,
 
-            MySQLParser.RULE_userVariable, MySQLParser.RULE_labelRef,
-            MySQLParser.RULE_setSystemVariable,
+            MySQLMRSParser.RULE_userVariable, MySQLMRSParser.RULE_labelRef,
+            MySQLMRSParser.RULE_setSystemVariable,
 
             // For better handling, but will be ignored.
-            MySQLParser.RULE_parameterName, MySQLParser.RULE_procedureName, MySQLParser.RULE_identifier,
-            MySQLParser.RULE_labelIdentifier,
+            MySQLMRSParser.RULE_parameterName, MySQLMRSParser.RULE_procedureName, MySQLMRSParser.RULE_identifier,
+            MySQLMRSParser.RULE_labelIdentifier,
         ]);
 
         // Certain tokens (like identifiers) must be treated as if the char directly following them still belongs to
@@ -431,23 +431,23 @@ export class AutoCompletionContext {
         this.completionCandidates = c3.collectCandidates(this.caretIndex);
 
         // Post processing some entries.
-        if (this.completionCandidates.tokens.has(MySQLLexer.NOT2_SYMBOL)) {
+        if (this.completionCandidates.tokens.has(MySQLMRSLexer.NOT2_SYMBOL)) {
             // NOT2 is a NOT with special meaning in the operator precedence chain.
             // For code completion it's the same as NOT.
-            this.completionCandidates.tokens.set(MySQLLexer.NOT_SYMBOL,
-                this.completionCandidates.tokens.get(MySQLLexer.NOT2_SYMBOL)!);
-            this.completionCandidates.tokens.delete(MySQLLexer.NOT2_SYMBOL);
+            this.completionCandidates.tokens.set(MySQLMRSLexer.NOT_SYMBOL,
+                this.completionCandidates.tokens.get(MySQLMRSLexer.NOT2_SYMBOL)!);
+            this.completionCandidates.tokens.delete(MySQLMRSLexer.NOT2_SYMBOL);
         }
 
         // If a column reference is required then we have to continue scanning the query for table references.
         for (const ruleEntry of this.completionCandidates.rules) {
-            if (ruleEntry[0] === MySQLParser.RULE_columnRef || ruleEntry[0] === MySQLParser.RULE_tableWild) {
+            if (ruleEntry[0] === MySQLMRSParser.RULE_columnRef || ruleEntry[0] === MySQLMRSParser.RULE_tableWild) {
                 this.collectLeadingTableReferences(false);
                 this.takeReferencesSnapshot();
                 this.collectRemainingTableReferences();
                 this.takeReferencesSnapshot();
                 break;
-            } else if (ruleEntry[0] === MySQLParser.RULE_columnInternalRef) {
+            } else if (ruleEntry[0] === MySQLMRSParser.RULE_columnInternalRef) {
                 // Note: rule columnInternalRef is not only used for ALTER TABLE, but atm. we only support that here.
                 this.collectLeadingTableReferences(true);
                 this.takeReferencesSnapshot();
@@ -469,16 +469,16 @@ export class AutoCompletionContext {
 
         if (forTableAlter) {
             // For ALTER TABLE commands we do a simple back scan (no nesting is allowed) until we find ALTER TABLE.
-            while (this.scanner.previous() && this.scanner.tokenType !== MySQLLexer.ALTER_SYMBOL) {
+            while (this.scanner.previous() && this.scanner.tokenType !== MySQLMRSLexer.ALTER_SYMBOL) {
                 // Just loop.
             }
 
-            if (this.scanner.tokenType === MySQLLexer.ALTER_SYMBOL) {
-                this.scanner.skipTokenSequence(MySQLLexer.ALTER_SYMBOL, MySQLLexer.TABLE_SYMBOL);
+            if (this.scanner.tokenType === MySQLMRSLexer.ALTER_SYMBOL) {
+                this.scanner.skipTokenSequence(MySQLMRSLexer.ALTER_SYMBOL, MySQLMRSLexer.TABLE_SYMBOL);
 
                 let table = unquote(this.scanner.tokenText);
                 let schema = "";
-                if (this.scanner.next() && this.scanner.is(MySQLLexer.DOT_SYMBOL)) {
+                if (this.scanner.next() && this.scanner.is(MySQLMRSLexer.DOT_SYMBOL)) {
                     schema = table;
                     this.scanner.next();
                     this.scanner.next();
@@ -495,18 +495,18 @@ export class AutoCompletionContext {
 
             let level = 0;
             while (true) {
-                let found = this.scanner.tokenType === MySQLLexer.FROM_SYMBOL;
+                let found = this.scanner.tokenType === MySQLMRSLexer.FROM_SYMBOL;
                 while (!found) {
                     if (!this.scanner.next() || this.scanner.tokenIndex >= this.caretIndex) { break; }
 
                     switch (this.scanner.tokenType) {
-                        case MySQLLexer.OPEN_PAR_SYMBOL:
+                        case MySQLMRSLexer.OPEN_PAR_SYMBOL:
                             ++level;
                             this.referencesStack.push();
 
                             break;
 
-                        case MySQLLexer.CLOSE_PAR_SYMBOL:
+                        case MySQLMRSLexer.CLOSE_PAR_SYMBOL:
                             if (level === 0) {
                                 this.scanner.pop();
 
@@ -518,7 +518,7 @@ export class AutoCompletionContext {
 
                             break;
 
-                        case MySQLLexer.FROM_SYMBOL:
+                        case MySQLMRSLexer.FROM_SYMBOL:
                             found = true;
                             break;
 
@@ -534,7 +534,7 @@ export class AutoCompletionContext {
                 }
 
                 this.parseTableReferences(this.scanner.tokenSubText);
-                if (this.scanner.tokenType === MySQLLexer.FROM_SYMBOL) {
+                if (this.scanner.tokenType === MySQLMRSLexer.FROM_SYMBOL) {
                     this.scanner.next();
                 }
             }
@@ -560,26 +560,26 @@ export class AutoCompletionContext {
         // But that is acceptable.
         let level = 0;
         while (true) {
-            let found = this.scanner.tokenType === MySQLLexer.FROM_SYMBOL;
+            let found = this.scanner.tokenType === MySQLMRSLexer.FROM_SYMBOL;
             while (!found) {
                 if (!this.scanner.next()) {
                     break;
                 }
 
                 switch (this.scanner.tokenType) {
-                    case MySQLLexer.OPEN_PAR_SYMBOL: {
+                    case MySQLMRSLexer.OPEN_PAR_SYMBOL: {
                         ++level;
                         break;
                     }
 
-                    case MySQLLexer.CLOSE_PAR_SYMBOL: {
+                    case MySQLMRSLexer.CLOSE_PAR_SYMBOL: {
                         if (level > 0) {
                             --level;
                         }
                         break;
                     }
 
-                    case MySQLLexer.FROM_SYMBOL: {
+                    case MySQLMRSLexer.FROM_SYMBOL: {
                         // Open and close parentheses don't need to match, if we come from within a subquery.
                         if (level === 0) {
                             found = true;
@@ -600,7 +600,7 @@ export class AutoCompletionContext {
             }
 
             this.parseTableReferences(this.scanner.tokenSubText);
-            if (this.scanner.tokenType === MySQLLexer.FROM_SYMBOL) {
+            if (this.scanner.tokenType === MySQLMRSLexer.FROM_SYMBOL) {
                 this.scanner.next();
             }
         }
@@ -615,9 +615,9 @@ export class AutoCompletionContext {
         // We use a local parser just for the FROM clause to avoid messing up tokens on the code completion
         // parser (which would affect the processing of the found candidates).
         const input = CharStreams.fromString(fromClause);
-        const lexer = new MySQLLexer(input);
+        const lexer = new MySQLMRSLexer(input);
         const tokens = new CommonTokenStream(lexer);
-        const fromParser = new MySQLParser(tokens);
+        const fromParser = new MySQLMRSParser(tokens);
 
         this.lexer.serverVersion = this.parser.serverVersion;
         this.lexer.sqlModes = this.parser.sqlModes;
@@ -657,7 +657,7 @@ export class AutoCompletionContext {
  * @returns A list of completion items.
  */
 export const getCodeCompletionItems = (caretLine: number, caretOffset: number, defaultSchema: string,
-    parser: MySQLParser): ICompletionData => {
+    parser: MySQLMRSParser): ICompletionData => {
 
     const result: ICompletionData = {
         isQuoted: false, // This will actually be set by the caller.
@@ -676,7 +676,7 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
     scanner.push();
 
     let queryType = QueryType.Unknown;
-    const lexer = parser.inputStream.getTokenSource() as MySQLLexer;
+    const lexer = parser.inputStream.getTokenSource() as MySQLMRSLexer;
     if (lexer) {
         lexer.reset(); // Set back the input position to the beginning for query type determination.
         queryType = lexer.determineQueryType();
@@ -698,7 +698,7 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
         let isFunction = false;
         if (candidate[1].length > 0) {
             // A function call?
-            if (candidate[1][0] === MySQLLexer.OPEN_PAR_SYMBOL) {
+            if (candidate[1][0] === MySQLMRSLexer.OPEN_PAR_SYMBOL) {
                 isFunction = true;
             } else {
                 for (const token of candidate[1]) {
@@ -734,14 +734,14 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
         scanner.push();
 
         switch (candidate[0]) {
-            case MySQLParser.RULE_runtimeFunctionCall: {
+            case MySQLMRSParser.RULE_runtimeFunctionCall: {
                 result.dbObjects.push({ kind: LanguageCompletionKind.SystemFunction });
 
                 break;
             }
 
-            case MySQLParser.RULE_functionRef:
-            case MySQLParser.RULE_functionCall: {
+            case MySQLMRSParser.RULE_functionRef:
+            case MySQLMRSParser.RULE_functionCall: {
                 const info = context.getQualifierInfo();
 
                 if (info.qualifier.length === 0) {
@@ -767,19 +767,19 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
                 break;
             }
 
-            case MySQLParser.RULE_engineRef: {
+            case MySQLMRSParser.RULE_engineRef: {
                 result.dbObjects.push({ kind: LanguageCompletionKind.Engine });
 
                 break;
             }
 
-            case MySQLParser.RULE_schemaRef: {
+            case MySQLMRSParser.RULE_schemaRef: {
                 result.dbObjects.push({ kind: LanguageCompletionKind.Schema });
 
                 break;
             }
 
-            case MySQLParser.RULE_procedureRef: {
+            case MySQLMRSParser.RULE_procedureRef: {
                 const info = context.getQualifierInfo();
 
                 if ((info.flags & ObjectFlags.ShowFirst) !== 0) {
@@ -800,7 +800,7 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
                 break;
             }
 
-            case MySQLParser.RULE_tableRefWithWildcard: {
+            case MySQLMRSParser.RULE_tableRefWithWildcard: {
                 // A special form of table references (id.id.*) used only in multi-table delete.
                 // Handling is similar as for column references (just that we have table/view objects instead
                 // of column refs).
@@ -819,8 +819,8 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
                 break;
             }
 
-            case MySQLParser.RULE_tableRef:
-            case MySQLParser.RULE_filterTableRef: {
+            case MySQLMRSParser.RULE_tableRef:
+            case MySQLMRSParser.RULE_filterTableRef: {
                 // Tables refs - also allow view refs.
                 const info = context.getQualifierInfo();
 
@@ -838,8 +838,8 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
                 break;
             }
 
-            case MySQLParser.RULE_tableWild:
-            case MySQLParser.RULE_columnRef: {
+            case MySQLMRSParser.RULE_tableWild:
+            case MySQLMRSParser.RULE_columnRef: {
                 // Try limiting what to show to the smallest set possible.
                 // If we have table references show columns only from them.
                 // Show columns from the default schema only if there are no _
@@ -871,7 +871,7 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
                 if ((info.flags & ObjectFlags.ShowTables) !== 0) {
                     // Store a duplicate of the current schema set, as we are going to modify it below.
                     result.dbObjects.push({ kind: LanguageCompletionKind.Table, schemas: new Set(schemas) });
-                    if (candidate[0] === MySQLParser.RULE_columnRef) {
+                    if (candidate[0] === MySQLMRSParser.RULE_columnRef) {
                         // Insert also views.
                         result.dbObjects.push({ kind: LanguageCompletionKind.View, schemas: new Set(schemas) });
 
@@ -913,7 +913,7 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
                                 break;
                             }
                         }
-                    } else if (context.references.length > 0 && candidate[0] === MySQLParser.RULE_columnRef) {
+                    } else if (context.references.length > 0 && candidate[0] === MySQLMRSParser.RULE_columnRef) {
                         for (const reference of context.references) {
                             tables.add(reference.table);
                         }
@@ -936,7 +936,7 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
                 break;
             }
 
-            case MySQLParser.RULE_columnInternalRef: {
+            case MySQLMRSParser.RULE_columnInternalRef: {
                 const schemas = new Set<string>();
                 const tables = new Set<string>();
                 if (context.references.length > 0) {
@@ -956,7 +956,7 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
                 break;
             }
 
-            case MySQLParser.RULE_triggerRef: {
+            case MySQLMRSParser.RULE_triggerRef: {
                 // While triggers are bound to a table they are schema objects and are referenced as "[schema.]trigger"
                 // e.g. in DROP TRIGGER.
                 const info = context.getQualifierInfo();
@@ -971,7 +971,7 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
                 break;
             }
 
-            case MySQLParser.RULE_viewRef: {
+            case MySQLMRSParser.RULE_viewRef: {
                 // View refs only (no table references), e.g. like in DROP VIEW ...
                 const info = context.getQualifierInfo();
 
@@ -987,48 +987,48 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
                 break;
             }
 
-            case MySQLParser.RULE_logfileGroupRef: {
+            case MySQLMRSParser.RULE_logfileGroupRef: {
                 result.dbObjects.push({ kind: LanguageCompletionKind.LogfileGroup });
 
                 break;
             }
 
-            case MySQLParser.RULE_tablespaceRef: {
+            case MySQLMRSParser.RULE_tablespaceRef: {
                 result.dbObjects.push({ kind: LanguageCompletionKind.Tablespace });
 
                 break;
             }
 
-            case MySQLParser.RULE_userVariable: {
+            case MySQLMRSParser.RULE_userVariable: {
                 result.dbObjects.push({ kind: LanguageCompletionKind.UserVariable });
 
                 break;
             }
 
-            case MySQLParser.RULE_labelRef: {
+            case MySQLMRSParser.RULE_labelRef: {
                 result.dbObjects.push({ kind: LanguageCompletionKind.Label });
                 break;
             }
 
-            case MySQLParser.RULE_setSystemVariable: {
+            case MySQLMRSParser.RULE_setSystemVariable: {
                 result.dbObjects.push({ kind: LanguageCompletionKind.SystemVariable });
 
                 break;
             }
 
-            case MySQLParser.RULE_charsetName: {
+            case MySQLMRSParser.RULE_charsetName: {
                 result.dbObjects.push({ kind: LanguageCompletionKind.Charset });
 
                 break;
             }
 
-            case MySQLParser.RULE_collationName: {
+            case MySQLMRSParser.RULE_collationName: {
                 result.dbObjects.push({ kind: LanguageCompletionKind.Collation });
 
                 break;
             }
 
-            case MySQLParser.RULE_eventRef: {
+            case MySQLMRSParser.RULE_eventRef: {
                 const info = context.getQualifierInfo();
 
                 if ((info.flags & ObjectFlags.ShowFirst) !== 0) {
@@ -1046,13 +1046,13 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
                 break;
             }
 
-            case MySQLParser.RULE_user: {
+            case MySQLMRSParser.RULE_user: {
                 result.dbObjects.push({ kind: LanguageCompletionKind.User });
 
                 break;
             }
 
-            case MySQLParser.RULE_pluginRef: {
+            case MySQLMRSParser.RULE_pluginRef: {
                 result.dbObjects.push({ kind: LanguageCompletionKind.Plugin });
 
                 break;

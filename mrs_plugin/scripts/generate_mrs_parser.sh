@@ -25,21 +25,8 @@ echo "Starting MRS parser file generation ..."
 cd grammar
 
 COPYRIGHT="# Copyright (c) 2023, Oracle and\/or its affiliates."
-ANTLR_JAR=./antlr-4.13.0-complete.jar
-ANTLR_JAR_DOWNLOAD_URL=https://www.antlr.org/download/antlr-4.13.0-complete.jar
 
-if [ ! -f "$ANTLR_JAR" ]; then
-    echo "Downloading ANTLR jar file..."
-    curl -L --output $ANTLR_JAR $ANTLR_JAR_DOWNLOAD_URL
-    if [ $? -eq 0 ]; then
-        echo "Download completed."
-    else
-        echo "Failed to download the ANTLR jar file from $ANTLR_JAR_DOWNLOAD_URL"
-        exit 1
-    fi
-fi
-
-java -jar $ANTLR_JAR -Dlanguage=Python3 ./MRS.g4 -o ../lib/mrs_parser
+antlr4ng -Dlanguage=Python3 ./MRSLexer.g4 ./MRSParser.g4 -lib ../../gui/frontend/src/parsing/mysql/ -o ../lib/mrs_parser
 if [ $? -eq 0 ]; then
     sed -i '' "1s/.*/$COPYRIGHT/" ../lib/mrs_parser/MRSParser.py
     sed -i '' "1s/.*/$COPYRIGHT/" ../lib/mrs_parser/MRSLexer.py

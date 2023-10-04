@@ -27,7 +27,7 @@ import { Lexer, Token } from "antlr4ng";
 
 import { QueryType } from "../parser-common";
 
-import { MySQLLexer } from "./generated/MySQLLexer";
+import { MySQLMRSLexer } from "./generated/MySQLMRSLexer";
 import {
     IMySQLRecognizerCommon, SqlMode, isReservedKeyword, numberToVersion, isKeyword,
 } from "./MySQLRecognizerCommon";
@@ -52,39 +52,39 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
      */
     public static isRelation(type: number): boolean {
         switch (type) {
-            case MySQLLexer.EQUAL_OPERATOR:
-            case MySQLLexer.ASSIGN_OPERATOR:
-            case MySQLLexer.NULL_SAFE_EQUAL_OPERATOR:
-            case MySQLLexer.GREATER_OR_EQUAL_OPERATOR:
-            case MySQLLexer.GREATER_THAN_OPERATOR:
-            case MySQLLexer.LESS_OR_EQUAL_OPERATOR:
-            case MySQLLexer.LESS_THAN_OPERATOR:
-            case MySQLLexer.NOT_EQUAL_OPERATOR:
-            case MySQLLexer.NOT_EQUAL2_OPERATOR:
-            case MySQLLexer.PLUS_OPERATOR:
-            case MySQLLexer.MINUS_OPERATOR:
-            case MySQLLexer.MULT_OPERATOR:
-            case MySQLLexer.DIV_OPERATOR:
-            case MySQLLexer.MOD_OPERATOR:
-            case MySQLLexer.LOGICAL_NOT_OPERATOR:
-            case MySQLLexer.BITWISE_NOT_OPERATOR:
-            case MySQLLexer.SHIFT_LEFT_OPERATOR:
-            case MySQLLexer.SHIFT_RIGHT_OPERATOR:
-            case MySQLLexer.LOGICAL_AND_OPERATOR:
-            case MySQLLexer.BITWISE_AND_OPERATOR:
-            case MySQLLexer.BITWISE_XOR_OPERATOR:
-            case MySQLLexer.LOGICAL_OR_OPERATOR:
-            case MySQLLexer.BITWISE_OR_OPERATOR:
-            case MySQLLexer.OR_SYMBOL:
-            case MySQLLexer.XOR_SYMBOL:
-            case MySQLLexer.AND_SYMBOL:
-            case MySQLLexer.IS_SYMBOL:
-            case MySQLLexer.BETWEEN_SYMBOL:
-            case MySQLLexer.LIKE_SYMBOL:
-            case MySQLLexer.REGEXP_SYMBOL:
-            case MySQLLexer.IN_SYMBOL:
-            case MySQLLexer.SOUNDS_SYMBOL:
-            case MySQLLexer.NOT_SYMBOL: {
+            case MySQLMRSLexer.EQUAL_OPERATOR:
+            case MySQLMRSLexer.ASSIGN_OPERATOR:
+            case MySQLMRSLexer.NULL_SAFE_EQUAL_OPERATOR:
+            case MySQLMRSLexer.GREATER_OR_EQUAL_OPERATOR:
+            case MySQLMRSLexer.GREATER_THAN_OPERATOR:
+            case MySQLMRSLexer.LESS_OR_EQUAL_OPERATOR:
+            case MySQLMRSLexer.LESS_THAN_OPERATOR:
+            case MySQLMRSLexer.NOT_EQUAL_OPERATOR:
+            case MySQLMRSLexer.NOT_EQUAL2_OPERATOR:
+            case MySQLMRSLexer.PLUS_OPERATOR:
+            case MySQLMRSLexer.MINUS_OPERATOR:
+            case MySQLMRSLexer.MULT_OPERATOR:
+            case MySQLMRSLexer.DIV_OPERATOR:
+            case MySQLMRSLexer.MOD_OPERATOR:
+            case MySQLMRSLexer.LOGICAL_NOT_OPERATOR:
+            case MySQLMRSLexer.BITWISE_NOT_OPERATOR:
+            case MySQLMRSLexer.SHIFT_LEFT_OPERATOR:
+            case MySQLMRSLexer.SHIFT_RIGHT_OPERATOR:
+            case MySQLMRSLexer.LOGICAL_AND_OPERATOR:
+            case MySQLMRSLexer.BITWISE_AND_OPERATOR:
+            case MySQLMRSLexer.BITWISE_XOR_OPERATOR:
+            case MySQLMRSLexer.LOGICAL_OR_OPERATOR:
+            case MySQLMRSLexer.BITWISE_OR_OPERATOR:
+            case MySQLMRSLexer.OR_SYMBOL:
+            case MySQLMRSLexer.XOR_SYMBOL:
+            case MySQLMRSLexer.AND_SYMBOL:
+            case MySQLMRSLexer.IS_SYMBOL:
+            case MySQLMRSLexer.BETWEEN_SYMBOL:
+            case MySQLMRSLexer.LIKE_SYMBOL:
+            case MySQLMRSLexer.REGEXP_SYMBOL:
+            case MySQLMRSLexer.IN_SYMBOL:
+            case MySQLMRSLexer.SOUNDS_SYMBOL:
+            case MySQLMRSLexer.NOT_SYMBOL: {
                 return true;
             }
 
@@ -103,13 +103,13 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
      */
     public isNumber(type: number): boolean {
         switch (type) {
-            case MySQLLexer.INT_NUMBER:
-            case MySQLLexer.LONG_NUMBER:
-            case MySQLLexer.ULONGLONG_NUMBER:
-            case MySQLLexer.FLOAT_NUMBER:
-            case MySQLLexer.HEX_NUMBER:
-            case MySQLLexer.BIN_NUMBER:
-            case MySQLLexer.DECIMAL_NUMBER: {
+            case MySQLMRSLexer.INT_NUMBER:
+            case MySQLMRSLexer.LONG_NUMBER:
+            case MySQLMRSLexer.ULONGLONG_NUMBER:
+            case MySQLMRSLexer.FLOAT_NUMBER:
+            case MySQLMRSLexer.HEX_NUMBER:
+            case MySQLMRSLexer.BIN_NUMBER:
+            case MySQLMRSLexer.DECIMAL_NUMBER: {
                 return true;
             }
 
@@ -128,38 +128,38 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
      */
     public isOperator(type: number): boolean {
         switch (type) {
-            case MySQLLexer.EQUAL_OPERATOR:
-            case MySQLLexer.ASSIGN_OPERATOR:
-            case MySQLLexer.NULL_SAFE_EQUAL_OPERATOR:
-            case MySQLLexer.GREATER_OR_EQUAL_OPERATOR:
-            case MySQLLexer.GREATER_THAN_OPERATOR:
-            case MySQLLexer.LESS_OR_EQUAL_OPERATOR:
-            case MySQLLexer.LESS_THAN_OPERATOR:
-            case MySQLLexer.NOT_EQUAL_OPERATOR:
-            case MySQLLexer.NOT_EQUAL2_OPERATOR:
-            case MySQLLexer.PLUS_OPERATOR:
-            case MySQLLexer.MINUS_OPERATOR:
-            case MySQLLexer.MULT_OPERATOR:
-            case MySQLLexer.DIV_OPERATOR:
-            case MySQLLexer.MOD_OPERATOR:
-            case MySQLLexer.LOGICAL_NOT_OPERATOR:
-            case MySQLLexer.BITWISE_NOT_OPERATOR:
-            case MySQLLexer.SHIFT_LEFT_OPERATOR:
-            case MySQLLexer.SHIFT_RIGHT_OPERATOR:
-            case MySQLLexer.LOGICAL_AND_OPERATOR:
-            case MySQLLexer.BITWISE_AND_OPERATOR:
-            case MySQLLexer.BITWISE_XOR_OPERATOR:
-            case MySQLLexer.LOGICAL_OR_OPERATOR:
-            case MySQLLexer.BITWISE_OR_OPERATOR:
-            case MySQLLexer.DOT_SYMBOL:
-            case MySQLLexer.COMMA_SYMBOL:
-            case MySQLLexer.SEMICOLON_SYMBOL:
-            case MySQLLexer.COLON_SYMBOL:
-            case MySQLLexer.OPEN_PAR_SYMBOL:
-            case MySQLLexer.CLOSE_PAR_SYMBOL:
-            case MySQLLexer.AT_SIGN_SYMBOL:
-            case MySQLLexer.AT_AT_SIGN_SYMBOL:
-            case MySQLLexer.PARAM_MARKER:
+            case MySQLMRSLexer.EQUAL_OPERATOR:
+            case MySQLMRSLexer.ASSIGN_OPERATOR:
+            case MySQLMRSLexer.NULL_SAFE_EQUAL_OPERATOR:
+            case MySQLMRSLexer.GREATER_OR_EQUAL_OPERATOR:
+            case MySQLMRSLexer.GREATER_THAN_OPERATOR:
+            case MySQLMRSLexer.LESS_OR_EQUAL_OPERATOR:
+            case MySQLMRSLexer.LESS_THAN_OPERATOR:
+            case MySQLMRSLexer.NOT_EQUAL_OPERATOR:
+            case MySQLMRSLexer.NOT_EQUAL2_OPERATOR:
+            case MySQLMRSLexer.PLUS_OPERATOR:
+            case MySQLMRSLexer.MINUS_OPERATOR:
+            case MySQLMRSLexer.MULT_OPERATOR:
+            case MySQLMRSLexer.DIV_OPERATOR:
+            case MySQLMRSLexer.MOD_OPERATOR:
+            case MySQLMRSLexer.LOGICAL_NOT_OPERATOR:
+            case MySQLMRSLexer.BITWISE_NOT_OPERATOR:
+            case MySQLMRSLexer.SHIFT_LEFT_OPERATOR:
+            case MySQLMRSLexer.SHIFT_RIGHT_OPERATOR:
+            case MySQLMRSLexer.LOGICAL_AND_OPERATOR:
+            case MySQLMRSLexer.BITWISE_AND_OPERATOR:
+            case MySQLMRSLexer.BITWISE_XOR_OPERATOR:
+            case MySQLMRSLexer.LOGICAL_OR_OPERATOR:
+            case MySQLMRSLexer.BITWISE_OR_OPERATOR:
+            case MySQLMRSLexer.DOT_SYMBOL:
+            case MySQLMRSLexer.COMMA_SYMBOL:
+            case MySQLMRSLexer.SEMICOLON_SYMBOL:
+            case MySQLMRSLexer.COLON_SYMBOL:
+            case MySQLMRSLexer.OPEN_PAR_SYMBOL:
+            case MySQLMRSLexer.CLOSE_PAR_SYMBOL:
+            case MySQLMRSLexer.AT_SIGN_SYMBOL:
+            case MySQLMRSLexer.AT_AT_SIGN_SYMBOL:
+            case MySQLMRSLexer.PARAM_MARKER:
                 return true;
 
             default:
@@ -222,16 +222,16 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
      * @returns True if the given type is an identifier, which depends also on the current SQL mode.
      */
     public isIdentifier(type: number): boolean {
-        if (type === MySQLLexer.EOF) {
+        if (type === MySQLMRSLexer.EOF) {
             return false;
         }
 
-        if ((type === MySQLLexer.IDENTIFIER) || (type === MySQLLexer.BACK_TICK_QUOTED_ID)) {
+        if ((type === MySQLMRSLexer.IDENTIFIER) || (type === MySQLMRSLexer.BACK_TICK_QUOTED_ID)) {
             return true;
         }
 
         // Double quoted text represents identifiers only if the ANSI QUOTES sql mode is active.
-        if (type === MySQLLexer.DOUBLE_QUOTED_TEXT) {
+        if (type === MySQLMRSLexer.DOUBLE_QUOTED_TEXT) {
             return this.sqlModes.has(SqlMode.AnsiQuotes);
         }
 
@@ -284,65 +284,65 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
         }
 
         switch (token.type) {
-            case MySQLLexer.ALTER_SYMBOL:
+            case MySQLMRSLexer.ALTER_SYMBOL:
                 token = this.nextDefaultChannelToken();
                 if (token.type === Token.EOF) {
                     return QueryType.Ambiguous;
                 }
 
                 switch (token.type) {
-                    case MySQLLexer.DATABASE_SYMBOL: {
+                    case MySQLMRSLexer.DATABASE_SYMBOL: {
                         return QueryType.AlterDatabase;
                     }
 
-                    case MySQLLexer.LOGFILE_SYMBOL: {
+                    case MySQLMRSLexer.LOGFILE_SYMBOL: {
                         return QueryType.AlterLogFileGroup;
                     }
 
-                    case MySQLLexer.FUNCTION_SYMBOL: {
+                    case MySQLMRSLexer.FUNCTION_SYMBOL: {
                         return QueryType.AlterFunction;
                     }
 
-                    case MySQLLexer.PROCEDURE_SYMBOL: {
+                    case MySQLMRSLexer.PROCEDURE_SYMBOL: {
                         return QueryType.AlterProcedure;
                     }
 
-                    case MySQLLexer.SERVER_SYMBOL: {
+                    case MySQLMRSLexer.SERVER_SYMBOL: {
                         return QueryType.AlterServer;
                     }
 
-                    case MySQLLexer.TABLE_SYMBOL:
-                    case MySQLLexer.ONLINE_SYMBOL:  // Optional part of ALTER TABLE.
-                    case MySQLLexer.OFFLINE_SYMBOL: // ditto
-                    case MySQLLexer.IGNORE_SYMBOL: {
+                    case MySQLMRSLexer.TABLE_SYMBOL:
+                    case MySQLMRSLexer.ONLINE_SYMBOL:  // Optional part of ALTER TABLE.
+                    case MySQLMRSLexer.OFFLINE_SYMBOL: // ditto
+                    case MySQLMRSLexer.IGNORE_SYMBOL: {
                         return QueryType.AlterTable;
                     }
 
-                    case MySQLLexer.TABLESPACE_SYMBOL: {
+                    case MySQLMRSLexer.TABLESPACE_SYMBOL: {
                         return QueryType.AlterTableSpace;
                     }
 
-                    case MySQLLexer.EVENT_SYMBOL: {
+                    case MySQLMRSLexer.EVENT_SYMBOL: {
                         return QueryType.AlterEvent;
                     }
 
-                    case MySQLLexer.VIEW_SYMBOL: {
+                    case MySQLMRSLexer.VIEW_SYMBOL: {
                         return QueryType.AlterView;
                     }
 
-                    case MySQLLexer.DEFINER_SYMBOL: { // Can be both event or view.
+                    case MySQLMRSLexer.DEFINER_SYMBOL: { // Can be both event or view.
                         if (!this.skipDefiner()) {
                             return QueryType.Ambiguous;
                         }
                         token = this.nextDefaultChannelToken();
 
                         switch (token.type) {
-                            case MySQLLexer.EVENT_SYMBOL: {
+                            case MySQLMRSLexer.EVENT_SYMBOL: {
                                 return QueryType.AlterEvent;
                             }
 
-                            case MySQLLexer.SQL_SYMBOL:
-                            case MySQLLexer.VIEW_SYMBOL: {
+                            case MySQLMRSLexer.SQL_SYMBOL:
+                            case MySQLMRSLexer.VIEW_SYMBOL: {
                                 return QueryType.AlterView;
                             }
 
@@ -352,11 +352,11 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
                         }
                     }
 
-                    case MySQLLexer.ALGORITHM_SYMBOL: { // Optional part of CREATE VIEW.
+                    case MySQLMRSLexer.ALGORITHM_SYMBOL: { // Optional part of CREATE VIEW.
                         return QueryType.AlterView;
                     }
 
-                    case MySQLLexer.USER_SYMBOL: {
+                    case MySQLMRSLexer.USER_SYMBOL: {
                         return QueryType.AlterUser;
                     }
 
@@ -365,56 +365,56 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
                     }
                 }
 
-            case MySQLLexer.CREATE_SYMBOL: {
+            case MySQLMRSLexer.CREATE_SYMBOL: {
                 token = this.nextDefaultChannelToken();
                 if (token.type === Token.EOF) {
                     return QueryType.Ambiguous;
                 }
 
                 switch (token.type) {
-                    case MySQLLexer.TEMPORARY_SYMBOL: // Optional part of CREATE TABLE.
-                    case MySQLLexer.TABLE_SYMBOL: {
+                    case MySQLMRSLexer.TEMPORARY_SYMBOL: // Optional part of CREATE TABLE.
+                    case MySQLMRSLexer.TABLE_SYMBOL: {
                         return QueryType.CreateTable;
                     }
 
-                    case MySQLLexer.ONLINE_SYMBOL:
-                    case MySQLLexer.OFFLINE_SYMBOL:
-                    case MySQLLexer.INDEX_SYMBOL:
-                    case MySQLLexer.UNIQUE_SYMBOL:
-                    case MySQLLexer.FULLTEXT_SYMBOL:
-                    case MySQLLexer.SPATIAL_SYMBOL: {
+                    case MySQLMRSLexer.ONLINE_SYMBOL:
+                    case MySQLMRSLexer.OFFLINE_SYMBOL:
+                    case MySQLMRSLexer.INDEX_SYMBOL:
+                    case MySQLMRSLexer.UNIQUE_SYMBOL:
+                    case MySQLMRSLexer.FULLTEXT_SYMBOL:
+                    case MySQLMRSLexer.SPATIAL_SYMBOL: {
                         return QueryType.CreateIndex;
                     }
 
-                    case MySQLLexer.DATABASE_SYMBOL: {
+                    case MySQLMRSLexer.DATABASE_SYMBOL: {
                         return QueryType.CreateDatabase;
                     }
 
-                    case MySQLLexer.TRIGGER_SYMBOL: {
+                    case MySQLMRSLexer.TRIGGER_SYMBOL: {
                         return QueryType.CreateTrigger;
                     }
 
-                    case MySQLLexer.DEFINER_SYMBOL: { // Can be event, view, procedure, function, UDF, trigger.
+                    case MySQLMRSLexer.DEFINER_SYMBOL: { // Can be event, view, procedure, function, UDF, trigger.
                         if (!this.skipDefiner()) {
                             return QueryType.Ambiguous;
                         }
 
                         token = this.nextDefaultChannelToken();
                         switch (token.type) {
-                            case MySQLLexer.EVENT_SYMBOL: {
+                            case MySQLMRSLexer.EVENT_SYMBOL: {
                                 return QueryType.CreateEvent;
                             }
 
-                            case MySQLLexer.VIEW_SYMBOL:
-                            case MySQLLexer.SQL_SYMBOL: {
+                            case MySQLMRSLexer.VIEW_SYMBOL:
+                            case MySQLMRSLexer.SQL_SYMBOL: {
                                 return QueryType.CreateView;
                             }
 
-                            case MySQLLexer.PROCEDURE_SYMBOL: {
+                            case MySQLMRSLexer.PROCEDURE_SYMBOL: {
                                 return QueryType.CreateProcedure;
                             }
 
-                            case MySQLLexer.FUNCTION_SYMBOL: {
+                            case MySQLMRSLexer.FUNCTION_SYMBOL: {
                                 token = this.nextDefaultChannelToken();
                                 if (token.type === Token.EOF) {
                                     return QueryType.Ambiguous;
@@ -425,18 +425,18 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
                                 }
 
                                 token = this.nextDefaultChannelToken();
-                                if (token.type === MySQLLexer.RETURNS_SYMBOL) {
+                                if (token.type === MySQLMRSLexer.RETURNS_SYMBOL) {
                                     return QueryType.CreateUdf;
                                 }
 
                                 return QueryType.CreateFunction;
                             }
 
-                            case MySQLLexer.AGGREGATE_SYMBOL: {
+                            case MySQLMRSLexer.AGGREGATE_SYMBOL: {
                                 return QueryType.CreateUdf;
                             }
 
-                            case MySQLLexer.TRIGGER_SYMBOL: {
+                            case MySQLMRSLexer.TRIGGER_SYMBOL: {
                                 return QueryType.CreateTrigger;
                             }
 
@@ -446,41 +446,41 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
                         }
                     }
 
-                    case MySQLLexer.VIEW_SYMBOL:
-                    case MySQLLexer.OR_SYMBOL:        // CREATE OR REPLACE ... VIEW
-                    case MySQLLexer.ALGORITHM_SYMBOL: { // CREATE ALGORITHM ... VIEW
+                    case MySQLMRSLexer.VIEW_SYMBOL:
+                    case MySQLMRSLexer.OR_SYMBOL:        // CREATE OR REPLACE ... VIEW
+                    case MySQLMRSLexer.ALGORITHM_SYMBOL: { // CREATE ALGORITHM ... VIEW
                         return QueryType.CreateView;
                     }
 
-                    case MySQLLexer.EVENT_SYMBOL: {
+                    case MySQLMRSLexer.EVENT_SYMBOL: {
                         return QueryType.CreateEvent;
                     }
 
-                    case MySQLLexer.FUNCTION_SYMBOL: {
+                    case MySQLMRSLexer.FUNCTION_SYMBOL: {
                         return QueryType.CreateFunction;
                     }
 
-                    case MySQLLexer.AGGREGATE_SYMBOL: {
+                    case MySQLMRSLexer.AGGREGATE_SYMBOL: {
                         return QueryType.CreateUdf;
                     }
 
-                    case MySQLLexer.PROCEDURE_SYMBOL: {
+                    case MySQLMRSLexer.PROCEDURE_SYMBOL: {
                         return QueryType.CreateProcedure;
                     }
 
-                    case MySQLLexer.LOGFILE_SYMBOL: {
+                    case MySQLMRSLexer.LOGFILE_SYMBOL: {
                         return QueryType.CreateLogFileGroup;
                     }
 
-                    case MySQLLexer.SERVER_SYMBOL: {
+                    case MySQLMRSLexer.SERVER_SYMBOL: {
                         return QueryType.CreateServer;
                     }
 
-                    case MySQLLexer.TABLESPACE_SYMBOL: {
+                    case MySQLMRSLexer.TABLESPACE_SYMBOL: {
                         return QueryType.CreateTableSpace;
                     }
 
-                    case MySQLLexer.USER_SYMBOL: {
+                    case MySQLMRSLexer.USER_SYMBOL: {
                         return QueryType.CreateUser;
                     }
 
@@ -490,66 +490,66 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
                 }
             }
 
-            case MySQLLexer.DROP_SYMBOL: {
+            case MySQLMRSLexer.DROP_SYMBOL: {
                 token = this.nextDefaultChannelToken();
                 if (token.type === Token.EOF) {
                     return QueryType.Ambiguous;
                 }
 
                 switch (token.type) {
-                    case MySQLLexer.DATABASE_SYMBOL: {
+                    case MySQLMRSLexer.DATABASE_SYMBOL: {
                         return QueryType.DropDatabase;
                     }
 
-                    case MySQLLexer.EVENT_SYMBOL: {
+                    case MySQLMRSLexer.EVENT_SYMBOL: {
                         return QueryType.DropEvent;
                     }
 
-                    case MySQLLexer.PROCEDURE_SYMBOL: {
+                    case MySQLMRSLexer.PROCEDURE_SYMBOL: {
                         return QueryType.DropProcedure;
                     }
 
-                    case MySQLLexer.FUNCTION_SYMBOL: {
+                    case MySQLMRSLexer.FUNCTION_SYMBOL: {
                         return QueryType.DropFunction;
                     }
 
-                    case MySQLLexer.ONLINE_SYMBOL:
-                    case MySQLLexer.OFFLINE_SYMBOL:
-                    case MySQLLexer.INDEX_SYMBOL: {
+                    case MySQLMRSLexer.ONLINE_SYMBOL:
+                    case MySQLMRSLexer.OFFLINE_SYMBOL:
+                    case MySQLMRSLexer.INDEX_SYMBOL: {
                         return QueryType.DropIndex;
                     }
 
-                    case MySQLLexer.LOGFILE_SYMBOL: {
+                    case MySQLMRSLexer.LOGFILE_SYMBOL: {
                         return QueryType.DropLogfileGroup;
                     }
 
-                    case MySQLLexer.SERVER_SYMBOL: {
+                    case MySQLMRSLexer.SERVER_SYMBOL: {
                         return QueryType.DropServer;
                     }
 
-                    case MySQLLexer.TEMPORARY_SYMBOL:
-                    case MySQLLexer.TABLE_SYMBOL:
-                    case MySQLLexer.TABLES_SYMBOL: {
+                    case MySQLMRSLexer.TEMPORARY_SYMBOL:
+                    case MySQLMRSLexer.TABLE_SYMBOL:
+                    case MySQLMRSLexer.TABLES_SYMBOL: {
                         return QueryType.DropTable;
                     }
 
-                    case MySQLLexer.TABLESPACE_SYMBOL: {
+                    case MySQLMRSLexer.TABLESPACE_SYMBOL: {
                         return QueryType.DropTablespace;
                     }
 
-                    case MySQLLexer.TRIGGER_SYMBOL: {
+                    case MySQLMRSLexer.TRIGGER_SYMBOL: {
                         return QueryType.DropTrigger;
                     }
 
-                    case MySQLLexer.VIEW_SYMBOL: {
+                    case MySQLMRSLexer.VIEW_SYMBOL: {
                         return QueryType.DropView;
                     }
 
-                    case MySQLLexer.PREPARE_SYMBOL: {
+                    case MySQLMRSLexer.PREPARE_SYMBOL: {
                         return QueryType.Deallocate;
                     }
 
-                    case MySQLLexer.USER_SYMBOL: {
+                    case MySQLMRSLexer.USER_SYMBOL: {
                         return QueryType.DropUser;
                     }
 
@@ -559,58 +559,58 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
                 }
             }
 
-            case MySQLLexer.TRUNCATE_SYMBOL: {
+            case MySQLMRSLexer.TRUNCATE_SYMBOL: {
                 return QueryType.TruncateTable;
             }
 
-            case MySQLLexer.CALL_SYMBOL: {
+            case MySQLMRSLexer.CALL_SYMBOL: {
                 return QueryType.Call;
             }
 
-            case MySQLLexer.DELETE_SYMBOL: {
+            case MySQLMRSLexer.DELETE_SYMBOL: {
                 return QueryType.Delete;
             }
 
-            case MySQLLexer.DO_SYMBOL: {
+            case MySQLMRSLexer.DO_SYMBOL: {
                 return QueryType.Do;
             }
 
-            case MySQLLexer.HANDLER_SYMBOL: {
+            case MySQLMRSLexer.HANDLER_SYMBOL: {
                 return QueryType.Handler;
             }
 
-            case MySQLLexer.INSERT_SYMBOL: {
+            case MySQLMRSLexer.INSERT_SYMBOL: {
                 return QueryType.Insert;
             }
 
-            case MySQLLexer.LOAD_SYMBOL: {
+            case MySQLMRSLexer.LOAD_SYMBOL: {
                 token = this.nextDefaultChannelToken();
                 if (token.type === Token.EOF) {
                     return QueryType.Ambiguous;
                 }
 
                 switch (token.type) {
-                    case MySQLLexer.DATA_SYMBOL: {
+                    case MySQLMRSLexer.DATA_SYMBOL: {
                         token = this.nextDefaultChannelToken();
                         if (token.type === Token.EOF) {
                             return QueryType.Ambiguous;
                         }
 
-                        if (token.type === MySQLLexer.FROM_SYMBOL) {
+                        if (token.type === MySQLMRSLexer.FROM_SYMBOL) {
                             return QueryType.LoadDataMaster;
                         }
 
                         return QueryType.LoadData;
                     }
-                    case MySQLLexer.XML_SYMBOL: {
+                    case MySQLMRSLexer.XML_SYMBOL: {
                         return QueryType.LoadXML;
                     }
 
-                    case MySQLLexer.TABLE_SYMBOL: {
+                    case MySQLMRSLexer.TABLE_SYMBOL: {
                         return QueryType.LoadTableMaster;
                     }
 
-                    case MySQLLexer.INDEX_SYMBOL: {
+                    case MySQLMRSLexer.INDEX_SYMBOL: {
                         return QueryType.LoadIndex;
                     }
 
@@ -620,95 +620,95 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
                 }
             }
 
-            case MySQLLexer.REPLACE_SYMBOL: {
+            case MySQLMRSLexer.REPLACE_SYMBOL: {
                 return QueryType.Replace;
             }
 
-            case MySQLLexer.SELECT_SYMBOL: {
+            case MySQLMRSLexer.SELECT_SYMBOL: {
                 return QueryType.Select;
             }
 
-            case MySQLLexer.TABLE_SYMBOL: {
+            case MySQLMRSLexer.TABLE_SYMBOL: {
                 return QueryType.Table;
             }
 
-            case MySQLLexer.VALUES_SYMBOL: {
+            case MySQLMRSLexer.VALUES_SYMBOL: {
                 return QueryType.Values;
             }
 
-            case MySQLLexer.UPDATE_SYMBOL: {
+            case MySQLMRSLexer.UPDATE_SYMBOL: {
                 return QueryType.Update;
             }
 
-            case MySQLLexer.OPEN_PAR_SYMBOL: { // (((select ...)))
-                while (token.type === MySQLLexer.OPEN_PAR_SYMBOL) {
+            case MySQLMRSLexer.OPEN_PAR_SYMBOL: { // (((select ...)))
+                while (token.type === MySQLMRSLexer.OPEN_PAR_SYMBOL) {
                     token = this.nextDefaultChannelToken();
                     if (token.type === Token.EOF) {
                         return QueryType.Ambiguous;
                     }
                 }
-                if (token.type === MySQLLexer.SELECT_SYMBOL) {
+                if (token.type === MySQLMRSLexer.SELECT_SYMBOL) {
                     return QueryType.Select;
                 }
 
                 return QueryType.Unknown;
             }
 
-            case MySQLLexer.START_SYMBOL: {
+            case MySQLMRSLexer.START_SYMBOL: {
                 token = this.nextDefaultChannelToken();
                 if (token.type === Token.EOF) {
                     return QueryType.Ambiguous;
                 }
 
-                if (token.type === MySQLLexer.TRANSACTION_SYMBOL) {
+                if (token.type === MySQLMRSLexer.TRANSACTION_SYMBOL) {
                     return QueryType.StartTransaction;
                 }
 
                 return QueryType.StartSlave;
             }
 
-            case MySQLLexer.BEGIN_SYMBOL: { // Begin directly at the start of the query must be a transaction start.
+            case MySQLMRSLexer.BEGIN_SYMBOL: { // Begin directly at the start of the query must be a transaction start.
                 return QueryType.BeginWork;
             }
 
-            case MySQLLexer.COMMIT_SYMBOL: {
+            case MySQLMRSLexer.COMMIT_SYMBOL: {
                 return QueryType.Commit;
             }
 
-            case MySQLLexer.ROLLBACK_SYMBOL: {
+            case MySQLMRSLexer.ROLLBACK_SYMBOL: {
                 // We assume a transaction statement here unless we exactly know it's about a savepoint.
                 token = this.nextDefaultChannelToken();
                 if (token.type === Token.EOF) {
                     return QueryType.RollbackWork;
                 }
-                if (token.type === MySQLLexer.WORK_SYMBOL) {
+                if (token.type === MySQLMRSLexer.WORK_SYMBOL) {
                     token = this.nextDefaultChannelToken();
                     if (token.type === Token.EOF) {
                         return QueryType.RollbackWork;
                     }
                 }
 
-                if (token.type === MySQLLexer.TO_SYMBOL) {
+                if (token.type === MySQLMRSLexer.TO_SYMBOL) {
                     return QueryType.RollbackSavePoint;
                 }
 
                 return QueryType.RollbackWork;
             }
 
-            case MySQLLexer.SET_SYMBOL: {
+            case MySQLMRSLexer.SET_SYMBOL: {
                 token = this.nextDefaultChannelToken();
                 if (token.type === Token.EOF) {
                     return QueryType.Set;
                 }
 
                 switch (token.type) {
-                    case MySQLLexer.PASSWORD_SYMBOL: {
+                    case MySQLMRSLexer.PASSWORD_SYMBOL: {
                         return QueryType.SetPassword;
                     }
 
-                    case MySQLLexer.GLOBAL_SYMBOL:
-                    case MySQLLexer.LOCAL_SYMBOL:
-                    case MySQLLexer.SESSION_SYMBOL: {
+                    case MySQLMRSLexer.GLOBAL_SYMBOL:
+                    case MySQLMRSLexer.LOCAL_SYMBOL:
+                    case MySQLMRSLexer.SESSION_SYMBOL: {
                         token = this.nextDefaultChannelToken();
                         if (token.type === Token.EOF) {
                             return QueryType.Set;
@@ -716,7 +716,7 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
                         break;
                     }
 
-                    case MySQLLexer.IDENTIFIER: {
+                    case MySQLMRSLexer.IDENTIFIER: {
                         const text = (token.text || "").toLowerCase();
                         if (text === "autocommit") {
                             return QueryType.SetAutoCommit;
@@ -724,7 +724,7 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
                         break;
                     }
 
-                    case MySQLLexer.TRANSACTION_SYMBOL: {
+                    case MySQLMRSLexer.TRANSACTION_SYMBOL: {
                         return QueryType.SetTransaction;
                     }
 
@@ -736,45 +736,45 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
                 return QueryType.Set;
             }
 
-            case MySQLLexer.SAVEPOINT_SYMBOL: {
+            case MySQLMRSLexer.SAVEPOINT_SYMBOL: {
                 return QueryType.SavePoint;
             }
 
-            case MySQLLexer.RELEASE_SYMBOL: { // Release at the start of the query, obviously.
+            case MySQLMRSLexer.RELEASE_SYMBOL: { // Release at the start of the query, obviously.
                 return QueryType.ReleaseSavePoint;
             }
 
-            case MySQLLexer.LOCK_SYMBOL: {
+            case MySQLMRSLexer.LOCK_SYMBOL: {
                 return QueryType.Lock;
             }
 
-            case MySQLLexer.UNLOCK_SYMBOL: {
+            case MySQLMRSLexer.UNLOCK_SYMBOL: {
                 return QueryType.Unlock;
             }
 
-            case MySQLLexer.XA_SYMBOL: {
+            case MySQLMRSLexer.XA_SYMBOL: {
                 return QueryType.XA;
             }
 
-            case MySQLLexer.PURGE_SYMBOL: {
+            case MySQLMRSLexer.PURGE_SYMBOL: {
                 return QueryType.Purge;
             }
 
-            case MySQLLexer.CHANGE_SYMBOL: {
+            case MySQLMRSLexer.CHANGE_SYMBOL: {
                 return QueryType.ChangeMaster;
             }
 
-            case MySQLLexer.RESET_SYMBOL: {
+            case MySQLMRSLexer.RESET_SYMBOL: {
                 token = this.nextDefaultChannelToken();
                 if (token.type === Token.EOF) {
                     return QueryType.Reset;
                 }
 
                 switch (token.type) {
-                    case MySQLLexer.MASTER_SYMBOL: {
+                    case MySQLMRSLexer.MASTER_SYMBOL: {
                         return QueryType.ResetMaster;
                     }
-                    case MySQLLexer.SLAVE_SYMBOL: {
+                    case MySQLMRSLexer.SLAVE_SYMBOL: {
                         return QueryType.ResetSlave;
                     }
                     default: {
@@ -783,104 +783,104 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
                 }
             }
 
-            case MySQLLexer.STOP_SYMBOL: {
+            case MySQLMRSLexer.STOP_SYMBOL: {
                 return QueryType.StopSlave;
             }
 
-            case MySQLLexer.PREPARE_SYMBOL: {
+            case MySQLMRSLexer.PREPARE_SYMBOL: {
                 return QueryType.Prepare;
             }
 
-            case MySQLLexer.EXECUTE_SYMBOL: {
+            case MySQLMRSLexer.EXECUTE_SYMBOL: {
                 return QueryType.Execute;
             }
 
-            case MySQLLexer.DEALLOCATE_SYMBOL: {
+            case MySQLMRSLexer.DEALLOCATE_SYMBOL: {
                 return QueryType.Deallocate;
             }
 
-            case MySQLLexer.GRANT_SYMBOL: {
+            case MySQLMRSLexer.GRANT_SYMBOL: {
                 token = this.nextDefaultChannelToken();
                 if (token.type === Token.EOF) {
                     return QueryType.Ambiguous;
                 }
 
-                if (token.type === MySQLLexer.PROXY_SYMBOL) {
+                if (token.type === MySQLMRSLexer.PROXY_SYMBOL) {
                     return QueryType.GrantProxy;
                 }
 
                 return QueryType.Grant;
             }
 
-            case MySQLLexer.RENAME_SYMBOL: {
+            case MySQLMRSLexer.RENAME_SYMBOL: {
                 token = this.nextDefaultChannelToken();
                 if (token.type === Token.EOF) {
                     return QueryType.Ambiguous;
                 }
 
-                if (token.type === MySQLLexer.USER_SYMBOL) {
+                if (token.type === MySQLMRSLexer.USER_SYMBOL) {
                     return QueryType.RenameUser;
                 }
 
                 return QueryType.RenameTable;
             }
 
-            case MySQLLexer.REVOKE_SYMBOL: {
+            case MySQLMRSLexer.REVOKE_SYMBOL: {
                 token = this.nextDefaultChannelToken();
                 if (token.type === Token.EOF) {
                     return QueryType.Ambiguous;
                 }
 
-                if (token.type === MySQLLexer.PROXY_SYMBOL) {
+                if (token.type === MySQLMRSLexer.PROXY_SYMBOL) {
                     return QueryType.RevokeProxy;
                 }
 
                 return QueryType.Revoke;
             }
 
-            case MySQLLexer.ANALYZE_SYMBOL: {
+            case MySQLMRSLexer.ANALYZE_SYMBOL: {
                 return QueryType.AnalyzeTable;
             }
 
-            case MySQLLexer.CHECK_SYMBOL: {
+            case MySQLMRSLexer.CHECK_SYMBOL: {
                 return QueryType.CheckTable;
             }
 
-            case MySQLLexer.CHECKSUM_SYMBOL: {
+            case MySQLMRSLexer.CHECKSUM_SYMBOL: {
                 return QueryType.ChecksumTable;
             }
 
-            case MySQLLexer.OPTIMIZE_SYMBOL: {
+            case MySQLMRSLexer.OPTIMIZE_SYMBOL: {
                 return QueryType.OptimizeTable;
             }
 
-            case MySQLLexer.REPAIR_SYMBOL: {
+            case MySQLMRSLexer.REPAIR_SYMBOL: {
                 return QueryType.RepairTable;
             }
 
-            case MySQLLexer.BACKUP_SYMBOL: {
+            case MySQLMRSLexer.BACKUP_SYMBOL: {
                 return QueryType.BackUpTable;
             }
 
-            case MySQLLexer.RESTORE_SYMBOL: {
+            case MySQLMRSLexer.RESTORE_SYMBOL: {
                 return QueryType.RestoreTable;
             }
 
-            case MySQLLexer.INSTALL_SYMBOL: {
+            case MySQLMRSLexer.INSTALL_SYMBOL: {
                 return QueryType.InstallPlugin;
             }
 
-            case MySQLLexer.UNINSTALL_SYMBOL: {
+            case MySQLMRSLexer.UNINSTALL_SYMBOL: {
                 return QueryType.UninstallPlugin;
             }
 
-            case MySQLLexer.SHOW_SYMBOL: {
+            case MySQLMRSLexer.SHOW_SYMBOL: {
                 token = this.nextDefaultChannelToken();
                 if (token.type === Token.EOF) {
                     return QueryType.Show;
                 }
 
-                if (token.type === MySQLLexer.FULL_SYMBOL) {
+                if (token.type === MySQLMRSLexer.FULL_SYMBOL) {
                     // Not all SHOW cases allow an optional FULL keyword, but this is not about checking for
                     // a valid query but to find the most likely type.
                     token = this.nextDefaultChannelToken();
@@ -890,59 +890,59 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
                 }
 
                 switch (token.type) {
-                    case MySQLLexer.GLOBAL_SYMBOL:
-                    case MySQLLexer.LOCK_SYMBOL:
-                    case MySQLLexer.SESSION_SYMBOL: {
+                    case MySQLMRSLexer.GLOBAL_SYMBOL:
+                    case MySQLMRSLexer.LOCK_SYMBOL:
+                    case MySQLMRSLexer.SESSION_SYMBOL: {
                         token = this.nextDefaultChannelToken();
                         if (token.type === Token.EOF) {
                             return QueryType.Show;
                         }
 
-                        if (token.type === MySQLLexer.STATUS_SYMBOL) {
+                        if (token.type === MySQLMRSLexer.STATUS_SYMBOL) {
                             return QueryType.ShowStatus;
                         }
 
                         return QueryType.ShowVariables;
                     }
 
-                    case MySQLLexer.BINARY_SYMBOL: {
+                    case MySQLMRSLexer.BINARY_SYMBOL: {
                         return QueryType.ShowBinaryLogs;
                     }
 
-                    case MySQLLexer.BINLOG_SYMBOL: {
+                    case MySQLMRSLexer.BINLOG_SYMBOL: {
                         return QueryType.ShowBinLogEvents;
                     }
 
-                    case MySQLLexer.RELAYLOG_SYMBOL: {
+                    case MySQLMRSLexer.RELAYLOG_SYMBOL: {
                         return QueryType.ShowRelayLogEvents;
                     }
 
-                    case MySQLLexer.CHAR_SYMBOL:
-                    case MySQLLexer.CHARSET_SYMBOL: {
+                    case MySQLMRSLexer.CHAR_SYMBOL:
+                    case MySQLMRSLexer.CHARSET_SYMBOL: {
                         return QueryType.ShowCharset;
                     }
 
-                    case MySQLLexer.COLLATION_SYMBOL: {
+                    case MySQLMRSLexer.COLLATION_SYMBOL: {
                         return QueryType.ShowCollation;
                     }
 
-                    case MySQLLexer.COLUMNS_SYMBOL: {
+                    case MySQLMRSLexer.COLUMNS_SYMBOL: {
                         return QueryType.ShowColumns;
                     }
 
-                    case MySQLLexer.COUNT_SYMBOL: {
+                    case MySQLMRSLexer.COUNT_SYMBOL: {
                         token = this.nextDefaultChannelToken();
-                        if (token.type !== MySQLLexer.OPEN_PAR_SYMBOL) {
+                        if (token.type !== MySQLMRSLexer.OPEN_PAR_SYMBOL) {
                             return QueryType.Show;
                         }
 
                         token = this.nextDefaultChannelToken();
-                        if (token.type !== MySQLLexer.MULT_OPERATOR) {
+                        if (token.type !== MySQLMRSLexer.MULT_OPERATOR) {
                             return QueryType.Show;
                         }
 
                         token = this.nextDefaultChannelToken();
-                        if (token.type !== MySQLLexer.CLOSE_PAR_SYMBOL) {
+                        if (token.type !== MySQLMRSLexer.CLOSE_PAR_SYMBOL) {
                             return QueryType.Show;
                         }
 
@@ -952,11 +952,11 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
                         }
 
                         switch (token.type) {
-                            case MySQLLexer.WARNINGS_SYMBOL: {
+                            case MySQLMRSLexer.WARNINGS_SYMBOL: {
                                 return QueryType.ShowWarnings;
                             }
 
-                            case MySQLLexer.ERRORS_SYMBOL: {
+                            case MySQLMRSLexer.ERRORS_SYMBOL: {
                                 return QueryType.ShowErrors;
                             }
 
@@ -966,38 +966,38 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
                         }
                     }
 
-                    case MySQLLexer.CREATE_SYMBOL: {
+                    case MySQLMRSLexer.CREATE_SYMBOL: {
                         token = this.nextDefaultChannelToken();
                         if (token.type === Token.EOF) {
                             return QueryType.Show;
                         }
 
                         switch (token.type) {
-                            case MySQLLexer.DATABASE_SYMBOL: {
+                            case MySQLMRSLexer.DATABASE_SYMBOL: {
                                 return QueryType.ShowCreateDatabase;
                             }
 
-                            case MySQLLexer.EVENT_SYMBOL: {
+                            case MySQLMRSLexer.EVENT_SYMBOL: {
                                 return QueryType.ShowCreateEvent;
                             }
 
-                            case MySQLLexer.FUNCTION_SYMBOL: {
+                            case MySQLMRSLexer.FUNCTION_SYMBOL: {
                                 return QueryType.ShowCreateFunction;
                             }
 
-                            case MySQLLexer.PROCEDURE_SYMBOL: {
+                            case MySQLMRSLexer.PROCEDURE_SYMBOL: {
                                 return QueryType.ShowCreateProcedure;
                             }
 
-                            case MySQLLexer.TABLE_SYMBOL: {
+                            case MySQLMRSLexer.TABLE_SYMBOL: {
                                 return QueryType.ShowCreateTable;
                             }
 
-                            case MySQLLexer.TRIGGER_SYMBOL: {
+                            case MySQLMRSLexer.TRIGGER_SYMBOL: {
                                 return QueryType.ShowCreateTrigger;
                             }
 
-                            case MySQLLexer.VIEW_SYMBOL: {
+                            case MySQLMRSLexer.VIEW_SYMBOL: {
                                 return QueryType.ShowCreateView;
                             }
 
@@ -1007,127 +1007,127 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
                         }
                     }
 
-                    case MySQLLexer.DATABASES_SYMBOL: {
+                    case MySQLMRSLexer.DATABASES_SYMBOL: {
                         return QueryType.ShowDatabases;
                     }
 
-                    case MySQLLexer.ENGINE_SYMBOL: {
+                    case MySQLMRSLexer.ENGINE_SYMBOL: {
                         return QueryType.ShowEngineStatus;
                     }
 
-                    case MySQLLexer.STORAGE_SYMBOL:
-                    case MySQLLexer.ENGINES_SYMBOL: {
+                    case MySQLMRSLexer.STORAGE_SYMBOL:
+                    case MySQLMRSLexer.ENGINES_SYMBOL: {
                         return QueryType.ShowStorageEngines;
                     }
 
-                    case MySQLLexer.ERRORS_SYMBOL: {
+                    case MySQLMRSLexer.ERRORS_SYMBOL: {
                         return QueryType.ShowErrors;
                     }
 
-                    case MySQLLexer.EVENTS_SYMBOL: {
+                    case MySQLMRSLexer.EVENTS_SYMBOL: {
                         return QueryType.ShowEvents;
                     }
 
-                    case MySQLLexer.FUNCTION_SYMBOL: {
+                    case MySQLMRSLexer.FUNCTION_SYMBOL: {
                         token = this.nextDefaultChannelToken();
                         if (token.type === Token.EOF) {
                             return QueryType.Ambiguous;
                         }
 
-                        if (token.type === MySQLLexer.CODE_SYMBOL) {
+                        if (token.type === MySQLMRSLexer.CODE_SYMBOL) {
                             return QueryType.ShowFunctionCode;
                         }
 
                         return QueryType.ShowFunctionStatus;
                     }
 
-                    case MySQLLexer.GRANT_SYMBOL: {
+                    case MySQLMRSLexer.GRANT_SYMBOL: {
                         return QueryType.ShowGrants;
                     }
 
-                    case MySQLLexer.INDEX_SYMBOL:
-                    case MySQLLexer.INDEXES_SYMBOL:
-                    case MySQLLexer.KEY_SYMBOL: {
+                    case MySQLMRSLexer.INDEX_SYMBOL:
+                    case MySQLMRSLexer.INDEXES_SYMBOL:
+                    case MySQLMRSLexer.KEY_SYMBOL: {
                         return QueryType.ShowIndexes;
                     }
 
-                    case MySQLLexer.MASTER_SYMBOL: {
+                    case MySQLMRSLexer.MASTER_SYMBOL: {
                         return QueryType.ShowMasterStatus;
                     }
 
-                    case MySQLLexer.OPEN_SYMBOL: {
+                    case MySQLMRSLexer.OPEN_SYMBOL: {
                         return QueryType.ShowOpenTables;
                     }
 
-                    case MySQLLexer.PLUGIN_SYMBOL:
-                    case MySQLLexer.PLUGINS_SYMBOL: {
+                    case MySQLMRSLexer.PLUGIN_SYMBOL:
+                    case MySQLMRSLexer.PLUGINS_SYMBOL: {
                         return QueryType.ShowPlugins;
                     }
 
-                    case MySQLLexer.PROCEDURE_SYMBOL: {
+                    case MySQLMRSLexer.PROCEDURE_SYMBOL: {
                         token = this.nextDefaultChannelToken();
                         if (token.type === Token.EOF) {
                             return QueryType.Show;
                         }
 
-                        if (token.type === MySQLLexer.STATUS_SYMBOL) {
+                        if (token.type === MySQLMRSLexer.STATUS_SYMBOL) {
                             return QueryType.ShowProcedureStatus;
                         }
 
                         return QueryType.ShowProcedureCode;
                     }
 
-                    case MySQLLexer.PRIVILEGES_SYMBOL: {
+                    case MySQLMRSLexer.PRIVILEGES_SYMBOL: {
                         return QueryType.ShowPrivileges;
                     }
 
-                    case MySQLLexer.FULL_SYMBOL:
-                    case MySQLLexer.PROCESSLIST_SYMBOL: {
+                    case MySQLMRSLexer.FULL_SYMBOL:
+                    case MySQLMRSLexer.PROCESSLIST_SYMBOL: {
                         return QueryType.ShowProcessList;
                     }
 
-                    case MySQLLexer.PROFILE_SYMBOL: {
+                    case MySQLMRSLexer.PROFILE_SYMBOL: {
                         return QueryType.ShowProfile;
                     }
 
-                    case MySQLLexer.PROFILES_SYMBOL: {
+                    case MySQLMRSLexer.PROFILES_SYMBOL: {
                         return QueryType.ShowProfiles;
                     }
 
-                    case MySQLLexer.SLAVE_SYMBOL: {
+                    case MySQLMRSLexer.SLAVE_SYMBOL: {
                         token = this.nextDefaultChannelToken();
                         if (token.type === Token.EOF) {
                             return QueryType.Ambiguous;
                         }
 
-                        if (token.type === MySQLLexer.HOSTS_SYMBOL) {
+                        if (token.type === MySQLMRSLexer.HOSTS_SYMBOL) {
                             return QueryType.ShowSlaveHosts;
                         }
 
                         return QueryType.ShowSlaveStatus;
                     }
 
-                    case MySQLLexer.STATUS_SYMBOL: {
+                    case MySQLMRSLexer.STATUS_SYMBOL: {
                         return QueryType.ShowStatus;
                     }
 
-                    case MySQLLexer.VARIABLES_SYMBOL: {
+                    case MySQLMRSLexer.VARIABLES_SYMBOL: {
                         return QueryType.ShowVariables;
                     }
 
-                    case MySQLLexer.TABLE_SYMBOL: {
+                    case MySQLMRSLexer.TABLE_SYMBOL: {
                         return QueryType.ShowTableStatus;
                     }
 
-                    case MySQLLexer.TABLES_SYMBOL: {
+                    case MySQLMRSLexer.TABLES_SYMBOL: {
                         return QueryType.ShowTables;
                     }
 
-                    case MySQLLexer.TRIGGERS_SYMBOL: {
+                    case MySQLMRSLexer.TRIGGERS_SYMBOL: {
                         return QueryType.ShowTriggers;
                     }
 
-                    case MySQLLexer.WARNINGS_SYMBOL: {
+                    case MySQLMRSLexer.WARNINGS_SYMBOL: {
                         return QueryType.ShowWarnings;
                     }
 
@@ -1137,42 +1137,42 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
                 }
             }
 
-            case MySQLLexer.CACHE_SYMBOL: {
+            case MySQLMRSLexer.CACHE_SYMBOL: {
                 return QueryType.CacheIndex;
             }
 
-            case MySQLLexer.FLUSH_SYMBOL: {
+            case MySQLMRSLexer.FLUSH_SYMBOL: {
                 return QueryType.Flush;
             }
 
-            case MySQLLexer.KILL_SYMBOL: {
+            case MySQLMRSLexer.KILL_SYMBOL: {
                 return QueryType.Kill;
             }
 
-            case MySQLLexer.EXPLAIN_SYMBOL:
-            case MySQLLexer.DESCRIBE_SYMBOL:
-            case MySQLLexer.DESC_SYMBOL: {
+            case MySQLMRSLexer.EXPLAIN_SYMBOL:
+            case MySQLMRSLexer.DESCRIBE_SYMBOL:
+            case MySQLMRSLexer.DESC_SYMBOL: {
                 token = this.nextDefaultChannelToken();
                 if (token.type === Token.EOF) {
                     return QueryType.Ambiguous;
                 }
 
-                if (this.isIdentifier(token.type) || token.type === MySQLLexer.DOT_SYMBOL) {
+                if (this.isIdentifier(token.type) || token.type === MySQLMRSLexer.DOT_SYMBOL) {
                     return QueryType.ExplainTable;
                 }
 
                 // EXTENDED is a bit special as it can be both, a table identifier or the keyword.
-                if (token.type === MySQLLexer.EXTENDED_SYMBOL) {
+                if (token.type === MySQLMRSLexer.EXTENDED_SYMBOL) {
                     token = this.nextDefaultChannelToken();
                     if (token.type === Token.EOF) {
                         return QueryType.ExplainTable;
                     }
 
                     switch (token.type) {
-                        case MySQLLexer.DELETE_SYMBOL:
-                        case MySQLLexer.INSERT_SYMBOL:
-                        case MySQLLexer.REPLACE_SYMBOL:
-                        case MySQLLexer.UPDATE_SYMBOL: {
+                        case MySQLMRSLexer.DELETE_SYMBOL:
+                        case MySQLMRSLexer.INSERT_SYMBOL:
+                        case MySQLMRSLexer.REPLACE_SYMBOL:
+                        case MySQLMRSLexer.UPDATE_SYMBOL: {
                             return QueryType.ExplainStatement;
                         }
                         default: {
@@ -1184,11 +1184,11 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
                 return QueryType.ExplainStatement;
             }
 
-            case MySQLLexer.HELP_SYMBOL: {
+            case MySQLMRSLexer.HELP_SYMBOL: {
                 return QueryType.Help;
             }
 
-            case MySQLLexer.USE_SYMBOL: {
+            case MySQLMRSLexer.USE_SYMBOL: {
                 return QueryType.Use;
             }
 
@@ -1262,12 +1262,12 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
             while (input === " " || input === "\t" || input === "\r" || input === "\n") {
                 this.interpreter.consume(this.inputStream);
                 this._channel = Lexer.HIDDEN;
-                this._type = MySQLLexer.WHITESPACE;
+                this._type = MySQLMRSLexer.WHITESPACE;
                 input = String.fromCharCode(this.inputStream.LA(1));
             }
         }
 
-        return input === "(" ? proposed : MySQLLexer.IDENTIFIER;
+        return input === "(" ? proposed : MySQLMRSLexer.IDENTIFIER;
 
     }
 
@@ -1294,7 +1294,7 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
         // as our rules are defined without signs. But we do it anyway for maximum compatibility.
         let length = text.length - 1;
         if (length < longLength) { // quick normal case
-            return MySQLLexer.INT_NUMBER;
+            return MySQLMRSLexer.INT_NUMBER;
         }
 
         let negative = false;
@@ -1314,7 +1314,7 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
         }
 
         if (length < longLength) {
-            return MySQLLexer.INT_NUMBER;
+            return MySQLMRSLexer.INT_NUMBER;
         }
 
         let smaller: number;
@@ -1323,35 +1323,35 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
         if (negative) {
             if (length === longLength) {
                 cmp = signedLongString.substr(1);
-                smaller = MySQLLexer.INT_NUMBER; // If <= signed_long_str
-                bigger = MySQLLexer.LONG_NUMBER; // If >= signed_long_str
+                smaller = MySQLMRSLexer.INT_NUMBER; // If <= signed_long_str
+                bigger = MySQLMRSLexer.LONG_NUMBER; // If >= signed_long_str
             } else if (length < signedLongLongLength) {
-                return MySQLLexer.LONG_NUMBER;
+                return MySQLMRSLexer.LONG_NUMBER;
             } else if (length > signedLongLongLength) {
-                return MySQLLexer.DECIMAL_NUMBER;
+                return MySQLMRSLexer.DECIMAL_NUMBER;
             } else {
                 cmp = signedLongLongString.substr(1);
-                smaller = MySQLLexer.LONG_NUMBER; // If <= signed_longlong_str
-                bigger = MySQLLexer.DECIMAL_NUMBER;
+                smaller = MySQLMRSLexer.LONG_NUMBER; // If <= signed_longlong_str
+                bigger = MySQLMRSLexer.DECIMAL_NUMBER;
             }
         } else {
             if (length === longLength) {
                 cmp = longString;
-                smaller = MySQLLexer.INT_NUMBER;
-                bigger = MySQLLexer.LONG_NUMBER;
+                smaller = MySQLMRSLexer.INT_NUMBER;
+                bigger = MySQLMRSLexer.LONG_NUMBER;
             } else if (length < longLongLength) {
-                return MySQLLexer.LONG_NUMBER;
+                return MySQLMRSLexer.LONG_NUMBER;
             } else if (length > longLongLength) {
                 if (length > unsignedLongLongLength) {
-                    return MySQLLexer.DECIMAL_NUMBER;
+                    return MySQLMRSLexer.DECIMAL_NUMBER;
                 }
                 cmp = unsignedLongLongString;
-                smaller = MySQLLexer.ULONGLONG_NUMBER;
-                bigger = MySQLLexer.DECIMAL_NUMBER;
+                smaller = MySQLMRSLexer.ULONGLONG_NUMBER;
+                bigger = MySQLMRSLexer.DECIMAL_NUMBER;
             } else {
                 cmp = longLongString;
-                smaller = MySQLLexer.LONG_NUMBER;
-                bigger = MySQLLexer.ULONGLONG_NUMBER;
+                smaller = MySQLMRSLexer.LONG_NUMBER;
+                bigger = MySQLMRSLexer.ULONGLONG_NUMBER;
             }
         }
 
@@ -1371,14 +1371,14 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
      * @returns UNDERSCORE_CHARSET if so, otherwise IDENTIFIER.
      */
     protected checkCharset(text: string): number {
-        return this.charsets.has(text) ? MySQLLexer.UNDERSCORE_CHARSET : MySQLLexer.IDENTIFIER;
+        return this.charsets.has(text) ? MySQLMRSLexer.UNDERSCORE_CHARSET : MySQLMRSLexer.IDENTIFIER;
     }
 
     /**
      * Creates a DOT token in the token stream.
      */
     protected emitDot(): void {
-        this.pendingTokens.push(this._factory.create([this, this.inputStream], MySQLLexer.DOT_SYMBOL,
+        this.pendingTokens.push(this._factory.create([this, this.inputStream], MySQLMRSLexer.DOT_SYMBOL,
             null, this._channel, this._tokenStartCharIndex, this._tokenStartCharIndex, this._tokenStartLine,
             this._tokenStartCharPositionInLine,
         ));
@@ -1409,16 +1409,16 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
      */
     private skipDefiner(): boolean {
         let token = this.nextDefaultChannelToken();
-        if (token.type !== MySQLLexer.EQUAL_OPERATOR) {
+        if (token.type !== MySQLMRSLexer.EQUAL_OPERATOR) {
             return false;
         }
 
         token = this.nextDefaultChannelToken();
-        if (token.type === MySQLLexer.CURRENT_USER_SYMBOL) {
+        if (token.type === MySQLMRSLexer.CURRENT_USER_SYMBOL) {
             token = this.nextDefaultChannelToken();
-            if (token.type === MySQLLexer.OPEN_PAR_SYMBOL) {
+            if (token.type === MySQLMRSLexer.OPEN_PAR_SYMBOL) {
                 token = this.nextDefaultChannelToken();
-                if (token.type !== MySQLLexer.CLOSE_PAR_SYMBOL) { return false; }
+                if (token.type !== MySQLMRSLexer.CLOSE_PAR_SYMBOL) { return false; }
                 token = this.nextDefaultChannelToken();
                 if (token.type === Token.EOF) { return false; }
             }
@@ -1426,15 +1426,15 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
             return true;
         }
 
-        if (token.type === MySQLLexer.SINGLE_QUOTED_TEXT || this.isIdentifier(token.type)) {
+        if (token.type === MySQLMRSLexer.SINGLE_QUOTED_TEXT || this.isIdentifier(token.type)) {
             // First part of the user definition (mandatory).
             token = this.nextDefaultChannelToken();
-            if (token.type === MySQLLexer.AT_SIGN_SYMBOL || token.type === MySQLLexer.AT_TEXT_SUFFIX) {
+            if (token.type === MySQLMRSLexer.AT_SIGN_SYMBOL || token.type === MySQLMRSLexer.AT_TEXT_SUFFIX) {
                 // Second part of the user definition (optional).
-                const needIdentifier = token.type === MySQLLexer.AT_SIGN_SYMBOL;
+                const needIdentifier = token.type === MySQLMRSLexer.AT_SIGN_SYMBOL;
                 token = this.nextDefaultChannelToken();
                 if (needIdentifier) {
-                    if (!this.isIdentifier(token.type) && token.type !== MySQLLexer.SINGLE_QUOTED_TEXT) {
+                    if (!this.isIdentifier(token.type) && token.type !== MySQLMRSLexer.SINGLE_QUOTED_TEXT) {
                         return false;
                     }
 

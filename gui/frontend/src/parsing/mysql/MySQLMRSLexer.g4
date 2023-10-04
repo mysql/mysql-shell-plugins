@@ -1,7 +1,7 @@
-lexer grammar MySQLLexer;
+lexer grammar MySQLMRSLexer;
 
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -106,7 +106,7 @@ BITWISE_AND_OPERATOR: '&';
 BITWISE_XOR_OPERATOR: '^';
 
 LOGICAL_OR_OPERATOR:
-    '||' { this._type = this.isSqlModeActive(SqlMode.PipesAsConcat) ? MySQLLexer.CONCAT_PIPES_SYMBOL : MySQLLexer.LOGICAL_OR_OPERATOR; }
+    '||' { this._type = this.isSqlModeActive(SqlMode.PipesAsConcat) ? MySQLMRSLexer.CONCAT_PIPES_SYMBOL : MySQLMRSLexer.LOGICAL_OR_OPERATOR; }
 ;
 BITWISE_OR_OPERATOR: '|';
 
@@ -120,14 +120,15 @@ OPEN_CURLY_SYMBOL:  '{';
 CLOSE_CURLY_SYMBOL: '}';
 UNDERLINE_SYMBOL:   '_';
 
+OPEN_SQUARE_SYMBOL:  '[';
+CLOSE_SQUARE_SYMBOL: ']';
+
 JSON_SEPARATOR_SYMBOL:          '->';  // MYSQL
 JSON_UNQUOTED_SEPARATOR_SYMBOL: '->>'; // MYSQL
 
 // The MySQL server parser uses custom code in its lexer to allow base alphanum chars (and ._$) as variable name.
 // For this it handles user variables in 2 different ways and we have to model this to match that behavior.
-AT_SIGN_SYMBOL: '@';
-AT_TEXT_SUFFIX: '@' SIMPLE_IDENTIFIER;
-
+AT_SIGN_SYMBOL:    '@';
 AT_AT_SIGN_SYMBOL: '@@';
 
 NULL2_SYMBOL: '\\N';
@@ -182,70 +183,14 @@ DOT_IDENTIFIER:
     DOT_SYMBOL LETTER_WHEN_UNQUOTED_NO_DIGIT LETTER_WHEN_UNQUOTED* { this.emitDot(); } -> type(IDENTIFIER)
 ;
 
-/*
-  The following comment is from the server grammar and gives some information about the source of tokens.
-  Additionally there is a section describing how to handle tokens there, which does not apply to this ANTLR grammar.
-
-   MAINTAINER:
-
-   1) Comments for TOKENS.
-
-   For each token, please include in the same line a comment that contains
-   one of the following tags:
-   SQL-2015-R : Reserved keyword as per SQL-2015 draft
-   SQL-2003-R : Reserved keyword as per SQL-2003
-   SQL-2003-N : Non Reserved keyword as per SQL-2003
-   SQL-1999-R : Reserved keyword as per SQL-1999
-   SQL-1999-N : Non Reserved keyword as per SQL-1999
-   MYSQL      : MySQL extension (unspecified)
-   MYSQL-FUNC : MySQL extension, function
-   INTERNAL   : Not a real token, lex optimization
-   OPERATOR   : SQL operator
-   FUTURE-USE : Reserved for futur use
-
-   This makes the code grep-able, and helps maintenance.
-
-   2) About token values
-
-   Token values are assigned by bison, in order of declaration.
-
-   Token values are used in query DIGESTS.
-   To make DIGESTS stable, it is desirable to avoid changing token values.
-
-   In practice, this means adding new tokens at the end of the list,
-   in the current release section (8.0),
-   instead of adding them in the middle of the list.
-
-   Failing to comply with instructions below will trigger build failure,
-   as this process is enforced by gen_lex_token.
-
-   3) Instructions to add a new token:
-
-   Add the new token at the end of the list,
-   in the MySQL 8.0 section.
-
-   4) Instructions to remove an old token:
-
-   Do not remove the token, rename it as follows:
-   %token OBSOLETE_TOKEN_<NNN> / * was: TOKEN_FOO * /
-   where NNN is the token value (found in sql_yacc.h)
-
-   For example, see OBSOLETE_TOKEN_820
-*/
-
-/*
-   Tokens from MySQL 5.7, keep in alphabetical order.
-*/
-
 // $antlr-format groupedAlignments off, alignTrailers on
 
-//ABORT_SYMBOL: 'ABORT';                     // INTERNAL (used in lex)
 ACCESSIBLE_SYMBOL:                  A C C E S S I B L E;
 ACCOUNT_SYMBOL:                     A C C O U N T;
 ACTION_SYMBOL:                      A C T I O N;                                        // SQL-2003-N
 ADD_SYMBOL:                         A D D;                                              // SQL-2003-R
 ADDDATE_SYMBOL:
-    A D D D A T E                                                                       { this._type = this.determineFunction(MySQLLexer.ADDDATE_SYMBOL); }
+    A D D D A T E                                                                       { this._type = this.determineFunction(MySQLMRSLexer.ADDDATE_SYMBOL); }
 ;                                                                                       // MYSQL-FUNC
 AFTER_SYMBOL:                       A F T E R;                                          // SQL-2003-N
 AGAINST_SYMBOL:                     A G A I N S T;
@@ -274,14 +219,14 @@ BIGINT_SYMBOL:                      B I G I N T;                                
 BINARY_SYMBOL:                      B I N A R Y;                                        // SQL-2003-R
 BINLOG_SYMBOL:                      B I N L O G;
 BIT_AND_SYMBOL:
-    B I T '_' A N D                                                                     { this._type = this.determineFunction(MySQLLexer.BIT_AND_SYMBOL); }
+    B I T '_' A N D                                                                     { this._type = this.determineFunction(MySQLMRSLexer.BIT_AND_SYMBOL); }
 ;                                                                                       // MYSQL-FUNC
 BIT_OR_SYMBOL:
-    B I T '_' O R                                                                       { this._type = this.determineFunction(MySQLLexer.BIT_OR_SYMBOL); }
+    B I T '_' O R                                                                       { this._type = this.determineFunction(MySQLMRSLexer.BIT_OR_SYMBOL); }
 ;                                                                                       // MYSQL-FUNC
 BIT_SYMBOL:                         B I T;                                              // MYSQL-FUNC
 BIT_XOR_SYMBOL:
-    B I T '_' X O R                                                                     { this._type = this.determineFunction(MySQLLexer.BIT_XOR_SYMBOL); }
+    B I T '_' X O R                                                                     { this._type = this.determineFunction(MySQLMRSLexer.BIT_XOR_SYMBOL); }
 ;                                                                                       // MYSQL-FUNC
 BLOB_SYMBOL:                        B L O B;                                            // SQL-2003-R
 BLOCK_SYMBOL:                       B L O C K;
@@ -296,7 +241,9 @@ CALL_SYMBOL:                        C A L L;                                    
 CASCADE_SYMBOL:                     C A S C A D E;                                      // SQL-2003-N
 CASCADED_SYMBOL:                    C A S C A D E D;                                    // SQL-2003-R
 CASE_SYMBOL:                        C A S E;                                            // SQL-2003-R
-CAST_SYMBOL:                        C A S T                                             { this._type = this.determineFunction(MySQLLexer.CAST_SYMBOL); }; // SQL-2003-R
+CAST_SYMBOL:
+    C A S T                                                                             { this._type = this.determineFunction(MySQLMRSLexer.CAST_SYMBOL); }
+;                                                                                       // SQL-2003-R
 CATALOG_NAME_SYMBOL:                C A T A L O G '_' N A M E;                          // SQL-2003-N
 CHAIN_SYMBOL:                       C H A I N;                                          // SQL-2003-N
 CHANGE_SYMBOL:                      C H A N G E;
@@ -339,28 +286,28 @@ CONTEXT_SYMBOL:                     C O N T E X T;
 CONTINUE_SYMBOL:                    C O N T I N U E;                                    // SQL-2003-R
 CONVERT_SYMBOL:                     C O N V E R T;                                      // SQL-2003-N
 COUNT_SYMBOL:
-    C O U N T                                                                           { this._type = this.determineFunction(MySQLLexer.COUNT_SYMBOL); }
+    C O U N T                                                                           { this._type = this.determineFunction(MySQLMRSLexer.COUNT_SYMBOL); }
 ;                                                                                       // SQL-2003-N
 CPU_SYMBOL:                         C P U;
 CREATE_SYMBOL:                      C R E A T E;                                        // SQL-2003-R
 CROSS_SYMBOL:                       C R O S S;                                          // SQL-2003-R
 CUBE_SYMBOL:                        C U B E;                                            // SQL-2003-R
 CURDATE_SYMBOL:
-    C U R D A T E                                                                       { this._type = this.determineFunction(MySQLLexer.CURDATE_SYMBOL); }
+    C U R D A T E                                                                       { this._type = this.determineFunction(MySQLMRSLexer.CURDATE_SYMBOL); }
 ;                                                                                       // MYSQL-FUNC
 CURRENT_SYMBOL:                     C U R R E N T;
 CURRENT_DATE_SYMBOL:
-    C U R R E N T '_' D A T E                                                           { this._type = this.determineFunction(MySQLLexer.CURDATE_SYMBOL); }
+    C U R R E N T '_' D A T E                                                           { this._type = this.determineFunction(MySQLMRSLexer.CURDATE_SYMBOL); }
 ;                                                                                       // Synonym, MYSQL-FUNC
 CURRENT_TIME_SYMBOL:
-    C U R R E N T '_' T I M E                                                           { this._type = this.determineFunction(MySQLLexer.CURTIME_SYMBOL); }
+    C U R R E N T '_' T I M E                                                           { this._type = this.determineFunction(MySQLMRSLexer.CURTIME_SYMBOL); }
 ;                                                                                       // Synonym, MYSQL-FUNC
 CURRENT_TIMESTAMP_SYMBOL:           C U R R E N T '_' T I M E S T A M P                 -> type(NOW_SYMBOL); // Synonym
 CURRENT_USER_SYMBOL:                C U R R E N T '_' U S E R;                          // SQL-2003-R
 CURSOR_SYMBOL:                      C U R S O R;                                        // SQL-2003-R
 CURSOR_NAME_SYMBOL:                 C U R S O R '_' N A M E;                            // SQL-2003-N
 CURTIME_SYMBOL:
-    C U R T I M E                                                                       { this._type = this.determineFunction(MySQLLexer.CURTIME_SYMBOL); }
+    C U R T I M E                                                                       { this._type = this.determineFunction(MySQLMRSLexer.CURTIME_SYMBOL); }
 ;                                                                                       // MYSQL-FUNC
 DATABASE_SYMBOL:                    D A T A B A S E;
 DATABASES_SYMBOL:                   D A T A B A S E S;
@@ -368,10 +315,10 @@ DATAFILE_SYMBOL:                    D A T A F I L E;
 DATA_SYMBOL:                        D A T A;                                            // SQL-2003-N
 DATETIME_SYMBOL:                    D A T E T I M E;                                    // MYSQL
 DATE_ADD_SYMBOL:
-    D A T E '_' A D D                                                                   { this._type = this.determineFunction(MySQLLexer.DATE_ADD_SYMBOL); }
+    D A T E '_' A D D                                                                   { this._type = this.determineFunction(MySQLMRSLexer.DATE_ADD_SYMBOL); }
 ;
 DATE_SUB_SYMBOL:
-    D A T E '_' S U B                                                                   { this._type = this.determineFunction(MySQLLexer.DATE_SUB_SYMBOL); }
+    D A T E '_' S U B                                                                   { this._type = this.determineFunction(MySQLMRSLexer.DATE_SUB_SYMBOL); }
 ;
 DATE_SYMBOL:                        D A T E;                                            // SQL-2003-R
 DAYOFMONTH_SYMBOL:                  D A Y O F M O N T H                                 -> type(DAY_SYMBOL); // Synonym
@@ -437,7 +384,7 @@ EXPORT_SYMBOL:                      E X P O R T;
 EXTENDED_SYMBOL:                    E X T E N D E D;
 EXTENT_SIZE_SYMBOL:                 E X T E N T '_' S I Z E;
 EXTRACT_SYMBOL:
-    E X T R A C T                                                                       { this._type = this.determineFunction(MySQLLexer.EXTRACT_SYMBOL); }
+    E X T R A C T                                                                       { this._type = this.determineFunction(MySQLMRSLexer.EXTRACT_SYMBOL); }
 ;                                                                                       // SQL-2003-N
 FALSE_SYMBOL:                       F A L S E;                                          // SQL-2003-R
 FAST_SYMBOL:                        F A S T;
@@ -475,7 +422,7 @@ GRANT_SYMBOL:                       G R A N T;                                  
 GRANTS_SYMBOL:                      G R A N T S;
 GROUP_SYMBOL:                       G R O U P;                                          // SQL-2003-R
 GROUP_CONCAT_SYMBOL:
-    G R O U P '_' C O N C A T                                                           { this._type = this.determineFunction(MySQLLexer.GROUP_CONCAT_SYMBOL); }
+    G R O U P '_' C O N C A T                                                           { this._type = this.determineFunction(MySQLMRSLexer.GROUP_CONCAT_SYMBOL); }
 ;
 HANDLER_SYMBOL:                     H A N D L E R;
 HASH_SYMBOL:                        H A S H;
@@ -566,7 +513,6 @@ MASTER_LOG_POS_SYMBOL:              M A S T E R '_' L O G '_' P O S             
 MASTER_PASSWORD_SYMBOL:             M A S T E R '_' P A S S W O R D                     {this.serverVersion < 80024}?;
 MASTER_PORT_SYMBOL:                 M A S T E R '_' P O R T                             {this.serverVersion < 80024}?;
 MASTER_RETRY_COUNT_SYMBOL:          M A S T E R '_' R E T R Y '_' C O U N T             {this.serverVersion < 80024}?;
-// MASTER_SERVER_ID_SYMBOL:            M A S T E R '_' S E R V E R '_' I D                 {this.serverVersion < 80024}?;
 MASTER_SSL_CAPATH_SYMBOL:           M A S T E R '_' S S L '_' C A P A T H               {this.serverVersion < 80024}?;
 MASTER_SSL_CA_SYMBOL:               M A S T E R '_' S S L '_' C A                       {this.serverVersion < 80024}?;
 MASTER_SSL_CERT_SYMBOL:             M A S T E R '_' S S L '_' C E R T                   {this.serverVersion < 80024}?;
@@ -589,7 +535,7 @@ MAX_CONNECTIONS_PER_HOUR_SYMBOL:    M A X '_' C O N N E C T I O N S '_' P E R '_
 MAX_QUERIES_PER_HOUR_SYMBOL:        M A X '_' Q U E R I E S '_' P E R '_' H O U R;
 MAX_ROWS_SYMBOL:                    M A X '_' R O W S;
 MAX_SIZE_SYMBOL:                    M A X '_' S I Z E;
-MAX_SYMBOL:                         M A X                                               { this._type = this.determineFunction(MySQLLexer.MAX_SYMBOL); }; // SQL-2003-N
+MAX_SYMBOL:                         M A X                                               { this._type = this.determineFunction(MySQLMRSLexer.MAX_SYMBOL); }; // SQL-2003-N
 MAX_UPDATES_PER_HOUR_SYMBOL:        M A X '_' U P D A T E S '_' P E R '_' H O U R;
 MAX_USER_CONNECTIONS_SYMBOL:        M A X '_' U S E R '_' C O N N E C T I O N S;
 MAXVALUE_SYMBOL:                    M A X V A L U E;                                    // SQL-2003-N
@@ -601,14 +547,16 @@ MEMORY_SYMBOL:                      M E M O R Y;
 MERGE_SYMBOL:                       M E R G E;                                          // SQL-2003-R
 MESSAGE_TEXT_SYMBOL:                M E S S A G E '_' T E X T;                          // SQL-2003-N
 MICROSECOND_SYMBOL:                 M I C R O S E C O N D;                              // MYSQL-FUNC
-MID_SYMBOL:                         M I D                                               { this._type = this.determineFunction(MySQLLexer.SUBSTRING_SYMBOL); }; // Synonym
+MID_SYMBOL:
+    M I D                                                                               { this._type = this.determineFunction(MySQLMRSLexer.SUBSTRING_SYMBOL); }
+;                                                                                       // Synonym
 MIDDLEINT_SYMBOL:                   M I D D L E I N T                                   -> type(MEDIUMINT_SYMBOL); // Synonym (for Powerbuilder)
 MIGRATE_SYMBOL:                     M I G R A T E;
 MINUTE_MICROSECOND_SYMBOL:          M I N U T E '_' M I C R O S E C O N D;
 MINUTE_SECOND_SYMBOL:               M I N U T E '_' S E C O N D;
 MINUTE_SYMBOL:                      M I N U T E;                                        // SQL-2003-R
 MIN_ROWS_SYMBOL:                    M I N '_' R O W S;
-MIN_SYMBOL:                         M I N                                               { this._type = this.determineFunction(MySQLLexer.MIN_SYMBOL); }; // SQL-2003-N
+MIN_SYMBOL:                         M I N                                               { this._type = this.determineFunction(MySQLMRSLexer.MIN_SYMBOL); }; // SQL-2003-N
 MODE_SYMBOL:                        M O D E;
 MODIFIES_SYMBOL:                    M O D I F I E S;                                    // SQL-2003-R
 MODIFY_SYMBOL:                      M O D I F Y;
@@ -632,9 +580,9 @@ NEXT_SYMBOL:                        N E X T;                                    
 NODEGROUP_SYMBOL:                   N O D E G R O U P;
 NONE_SYMBOL:                        N O N E;                                            // SQL-2003-R
 NOT_SYMBOL:
-    N O T                                                                               { this._type = this.isSqlModeActive(SqlMode.HighNotPrecedence) ? MySQLLexer.NOT2_SYMBOL: MySQLLexer.NOT_SYMBOL; }
+    N O T                                                                               { this._type = this.isSqlModeActive(SqlMode.HighNotPrecedence) ? MySQLMRSLexer.NOT2_SYMBOL: MySQLMRSLexer.NOT_SYMBOL; }
 ;                                                                                       // SQL-2003-R
-NOW_SYMBOL:                         N O W                                               { this._type = this.determineFunction(MySQLLexer.NOW_SYMBOL); };
+NOW_SYMBOL:                         N O W                                               { this._type = this.determineFunction(MySQLMRSLexer.NOW_SYMBOL); };
 NO_SYMBOL:                          N O;                                                // SQL-2003-R
 NO_WAIT_SYMBOL:                     N O '_' W A I T;
 NO_WRITE_TO_BINLOG_SYMBOL:          N O '_' W R I T E '_' T O '_' B I N L O G;
@@ -676,7 +624,7 @@ POINT_SYMBOL:                       P O I N T;
 POLYGON_SYMBOL:                     P O L Y G O N;                                      // MYSQL
 PORT_SYMBOL:                        P O R T;
 POSITION_SYMBOL:
-    P O S I T I O N                                                                     { this._type = this.determineFunction(MySQLLexer.POSITION_SYMBOL); }
+    P O S I T I O N                                                                     { this._type = this.determineFunction(MySQLMRSLexer.POSITION_SYMBOL); }
 ;                                                                                       // SQL-2003-N
 PRECEDES_SYMBOL:                    P R E C E D E S;
 PRECISION_SYMBOL:                   P R E C I S I O N;                                  // SQL-2003-R
@@ -767,7 +715,7 @@ SERIAL_SYMBOL:                      S E R I A L;
 SESSION_SYMBOL:                     S E S S I O N;                                      // SQL-2003-N
 SERVER_SYMBOL:                      S E R V E R;
 SESSION_USER_SYMBOL:
-    S E S S I O N '_' U S E R                                                           { this._type = this.determineFunction(MySQLLexer.USER_SYMBOL); }
+    S E S S I O N '_' U S E R                                                           { this._type = this.determineFunction(MySQLMRSLexer.USER_SYMBOL); }
 ;                                                                                       // Synonym
 SET_SYMBOL:                         S E T;                                              // SQL-2003-R
 SHARE_SYMBOL:                       S H A R E;
@@ -810,39 +758,43 @@ STATS_PERSISTENT_SYMBOL:            S T A T S '_' P E R S I S T E N T;
 STATS_SAMPLE_PAGES_SYMBOL:          S T A T S '_' S A M P L E '_' P A G E S;
 STATUS_SYMBOL:                      S T A T U S;
 STDDEV_SAMP_SYMBOL:
-    S T D D E V '_' S A M P                                                             { this._type = this.determineFunction(MySQLLexer.STDDEV_SAMP_SYMBOL); }
+    S T D D E V '_' S A M P                                                             { this._type = this.determineFunction(MySQLMRSLexer.STDDEV_SAMP_SYMBOL); }
 ;                                                                                       // SQL-2003-N
 STDDEV_SYMBOL:
-    S T D D E V                                                                         { this._type = this.determineFunction(MySQLLexer.STD_SYMBOL); }
+    S T D D E V                                                                         { this._type = this.determineFunction(MySQLMRSLexer.STD_SYMBOL); }
 ;                                                                                       // Synonym
 STDDEV_POP_SYMBOL:
-    S T D D E V '_' P O P                                                               { this._type = this.determineFunction(MySQLLexer.STD_SYMBOL); }
+    S T D D E V '_' P O P                                                               { this._type = this.determineFunction(MySQLMRSLexer.STD_SYMBOL); }
 ;                                                                                       // Synonym
-STD_SYMBOL:                         S T D                                               { this._type = this.determineFunction(MySQLLexer.STD_SYMBOL); };
+STD_SYMBOL:                         S T D                                               { this._type = this.determineFunction(MySQLMRSLexer.STD_SYMBOL); };
 STOP_SYMBOL:                        S T O P;
 STORAGE_SYMBOL:                     S T O R A G E;
 STORED_SYMBOL:                      S T O R E D;
 STRAIGHT_JOIN_SYMBOL:               S T R A I G H T '_' J O I N;
 STRING_SYMBOL:                      S T R I N G;
 SUBCLASS_ORIGIN_SYMBOL:             S U B C L A S S '_' O R I G I N;                    // SQL-2003-N
-SUBDATE_SYMBOL:                     S U B D A T E                                       { this._type = this.determineFunction(MySQLLexer.SUBDATE_SYMBOL); };
+SUBDATE_SYMBOL:
+    S U B D A T E                                                                       { this._type = this.determineFunction(MySQLMRSLexer.SUBDATE_SYMBOL); }
+;
 SUBJECT_SYMBOL:                     S U B J E C T;
 SUBPARTITIONS_SYMBOL:               S U B P A R T I T I O N S;
 SUBPARTITION_SYMBOL:                S U B P A R T I T I O N;
 SUBSTR_SYMBOL:
-    S U B S T R                                                                         { this._type = this.determineFunction(MySQLLexer.SUBSTRING_SYMBOL); }
+    S U B S T R                                                                         { this._type = this.determineFunction(MySQLMRSLexer.SUBSTRING_SYMBOL); }
 ;                                                                                       // Synonym
 SUBSTRING_SYMBOL:
-    S U B S T R I N G                                                                   { this._type = this.determineFunction(MySQLLexer.SUBSTRING_SYMBOL); }
+    S U B S T R I N G                                                                   { this._type = this.determineFunction(MySQLMRSLexer.SUBSTRING_SYMBOL); }
 ;                                                                                       // SQL-2003-N
-SUM_SYMBOL:                         S U M                                               { this._type = this.determineFunction(MySQLLexer.SUM_SYMBOL); }; // SQL-2003-N
+SUM_SYMBOL:                         S U M                                               { this._type = this.determineFunction(MySQLMRSLexer.SUM_SYMBOL); }; // SQL-2003-N
 SUPER_SYMBOL:                       S U P E R;
 SUSPEND_SYMBOL:                     S U S P E N D;
 SWAPS_SYMBOL:                       S W A P S;
 SWITCHES_SYMBOL:                    S W I T C H E S;
-SYSDATE_SYMBOL:                     S Y S D A T E                                       { this._type = this.determineFunction(MySQLLexer.SYSDATE_SYMBOL); };
+SYSDATE_SYMBOL:
+    S Y S D A T E                                                                       { this._type = this.determineFunction(MySQLMRSLexer.SYSDATE_SYMBOL); }
+;
 SYSTEM_USER_SYMBOL:
-    S Y S T E M '_' U S E R                                                             { this._type = this.determineFunction(MySQLLexer.USER_SYMBOL); }
+    S Y S T E M '_' U S E R                                                             { this._type = this.determineFunction(MySQLMRSLexer.USER_SYMBOL); }
 ;
 TABLES_SYMBOL:                      T A B L E S;
 TABLESPACE_SYMBOL:                  T A B L E S P A C E;
@@ -867,7 +819,9 @@ TRAILING_SYMBOL:                    T R A I L I N G;                            
 TRANSACTION_SYMBOL:                 T R A N S A C T I O N;
 TRIGGERS_SYMBOL:                    T R I G G E R S;
 TRIGGER_SYMBOL:                     T R I G G E R;                                      // SQL-2003-R
-TRIM_SYMBOL:                        T R I M                                             { this._type = this.determineFunction(MySQLLexer.TRIM_SYMBOL); }; // SQL-2003-N
+TRIM_SYMBOL:
+    T R I M                                                                             { this._type = this.determineFunction(MySQLMRSLexer.TRIM_SYMBOL); }
+;                                                                                       // SQL-2003-N
 TRUE_SYMBOL:                        T R U E;                                            // SQL-2003-R
 TRUNCATE_SYMBOL:                    T R U N C A T E;
 TYPES_SYMBOL:                       T Y P E S;
@@ -907,14 +861,14 @@ VARCHAR_SYMBOL:                     V A R C H A R;                              
 VARCHARACTER_SYMBOL:                V A R C H A R A C T E R                             -> type(VARCHAR_SYMBOL); // Synonym
 VARIABLES_SYMBOL:                   V A R I A B L E S;
 VARIANCE_SYMBOL:
-    V A R I A N C E                                                                     { this._type = this.determineFunction(MySQLLexer.VARIANCE_SYMBOL); }
+    V A R I A N C E                                                                     { this._type = this.determineFunction(MySQLMRSLexer.VARIANCE_SYMBOL); }
 ;
 VARYING_SYMBOL:                     V A R Y I N G;                                      // SQL-2003-R
 VAR_POP_SYMBOL:
-    V A R '_' P O P                                                                     { this._type = this.determineFunction(MySQLLexer.VARIANCE_SYMBOL); }
+    V A R '_' P O P                                                                     { this._type = this.determineFunction(MySQLMRSLexer.VARIANCE_SYMBOL); }
 ;                                                                                       // Synonym
 VAR_SAMP_SYMBOL:
-    V A R '_' S A M P                                                                   { this._type = this.determineFunction(MySQLLexer.VAR_SAMP_SYMBOL); }
+    V A R '_' S A M P                                                                   { this._type = this.determineFunction(MySQLMRSLexer.VAR_SAMP_SYMBOL); }
 ;
 VIEW_SYMBOL:                        V I E W;                                            // SQL-2003-N
 VIRTUAL_SYMBOL:                     V I R T U A L;
@@ -1168,6 +1122,59 @@ SQL_TSI_MONTH_SYMBOL:   S Q L '_' T S I '_' M O N T H     -> type(MONTH_SYMBOL);
 SQL_TSI_QUARTER_SYMBOL: S Q L '_' T S I '_' Q U A R T E R -> type(QUARTER_SYMBOL); // Synonym
 SQL_TSI_YEAR_SYMBOL:    S Q L '_' T S I '_' Y E A R       -> type(YEAR_SYMBOL);    // Synonym
 
+CONFIGURE_SYMBOL:   C O N F I G U R E;
+REST_SYMBOL:        R E S T;
+METADATA_SYMBOL:    M E T A D A T A;
+SERVICES_SYMBOL:    S E R V I C E S;
+SERVICE_SYMBOL:     S E R V I C E;
+RELATIONAL_SYMBOL:  R E L A T I O N A L;
+DUALITY_SYMBOL:     D U A L I T Y;
+VIEWS_SYMBOL:       V I E W S;
+PROCEDURES_SYMBOL:  P R O C E D U R E S;
+PARAMETERS_SYMBOL:  P A R A M E T E R S;
+RESULT_SYMBOL:      R E S U L T;
+ENABLED_SYMBOL:     E N A B L E D;
+DISABLED_SYMBOL:    D I S A B L E D;
+PROTOCOL_SYMBOL:    P R O T O C O L;
+HTTP_SYMBOL:        H T T P;
+HTTPS_SYMBOL:       H T T P S;
+COMMENTS_SYMBOL:    C O M M E N T S;
+REQUEST_SYMBOL:     R E Q U E S T;
+REDIRECTION_SYMBOL: R E D I R E C T I O N;
+MANAGEMENT_SYMBOL:  M A N A G E M E N T;
+AVAILABLE_SYMBOL:   A V A I L A B L E;
+REQUIRED_SYMBOL:    R E Q U I R E D;
+ITEMS_SYMBOL:       I T E M S;
+PER_SYMBOL:         P E R;
+CONTENT_SYMBOL:     C O N T E N T;
+MEDIA_SYMBOL:       M E D I A;
+AUTODETECT_SYMBOL:  A U T O D E T E C T;
+FEED_SYMBOL:        F E E D;
+ITEM_SYMBOL:        I T E M;
+
+//----------------- GraphGL --------------------------------------------------------------------------------------------
+
+AT_INOUT_SYMBOL:        AT_SIGN_SYMBOL I N O U T;
+AT_IN_SYMBOL:           AT_SIGN_SYMBOL I N;
+AT_OUT_SYMBOL:          AT_SIGN_SYMBOL O U T;
+AT_NOCHECK_SYMBOL:      AT_SIGN_SYMBOL N O C H E C K;
+AT_NOUPDATE_SYMBOL:     AT_SIGN_SYMBOL N O U P D A T E;
+AT_SORTABLE_SYMBOL:     AT_SIGN_SYMBOL S O R T A B L E;
+AT_NOFILTERING_SYMBOL:  AT_SIGN_SYMBOL N O F I L T E R I N G;
+AT_ROWOWNERSHIP_SYMBOL: AT_SIGN_SYMBOL R O W O W N E R S H I P;
+AT_UNNEST_SYMBOL:       AT_SIGN_SYMBOL U N N E S T;
+AT_REDUCETO_SYMBOL:     AT_SIGN_SYMBOL R E D U C E T O;
+AT_DATATYPE_SYMBOL:     AT_SIGN_SYMBOL D A T A T Y P E;
+AT_SELECT_SYMBOL:       AT_SIGN_SYMBOL S E L E C T;
+AT_NOSELECT_SYMBOL:     AT_SIGN_SYMBOL N O S E L E C T;
+AT_INSERT_SYMBOL:       AT_SIGN_SYMBOL I N S E R T;
+AT_NOINSERT_SYMBOL:     AT_SIGN_SYMBOL N O I N S E R T;
+AT_UPDATE_SYMBOL:       AT_SIGN_SYMBOL U P D A T E;
+AT_DELETE_SYMBOL:       AT_SIGN_SYMBOL D E L E T E;
+AT_NODELETE_SYMBOL:     AT_SIGN_SYMBOL N O D E L E T E;
+
+AT_TEXT_SUFFIX: '@' SIMPLE_IDENTIFIER;
+
 // White space handling
 WHITESPACE: [ \t\f\r\n]+ -> channel(HIDDEN); // Ignore whitespaces.
 
@@ -1177,8 +1184,6 @@ INVALID_INPUT:
     | '\u000B'        // Line tabulation.
     | '\u000C'        // Form feed.
     | [\u000E-\u001F] // More control codes.
-    | '['
-    | ']'
 ;
 
 // String and text types.

@@ -650,7 +650,7 @@ export class SQLExecutionContext extends ExecutionContext {
                     // Replace the original statement with the list of new statements
                     // and add them all for validation (if there are any new ones).
                     if (next < this.statementDetails.length) {
-                        let newStatements: IStatementDetails[] = [];
+                        const newStatements: IStatementDetails[] = [];
                         let lastDelimiter = ";";
                         ranges.forEach((range: IStatementSpan) => {
                             newStatements.push({
@@ -675,13 +675,8 @@ export class SQLExecutionContext extends ExecutionContext {
                         this.updateLineStartMarkers();
                         this.updateValidationIndices(next, ranges.length);
 
-                        // Add new statements to our validation queue, but put the shortest ones first
-                        // for faster visual response.
-                        newStatements = newStatements.sort((a, b) => {
-                            return a.span.length - b.span.length;
-                        });
-
-                        for (let i = 0, run = next + 1; i < newStatements.length; ++i, ++run) {
+                        // Add new statements to our validation queue.
+                        for (let i = 0, run = next; i < newStatements.length; ++i, ++run) {
                             this.pendingValidations.add(run);
                             this.validationsRunning.delete(run); // Just in case it was already running.
                         }

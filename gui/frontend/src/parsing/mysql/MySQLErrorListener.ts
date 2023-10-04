@@ -28,56 +28,56 @@ import {
     NoViableAltException, ParserATNSimulator, RecognitionException, Recognizer, Token, Vocabulary,
 } from "antlr4ng";
 
-import { MySQLParser } from "./generated/MySQLParser";
-import { MySQLLexer } from "./generated/MySQLLexer";
+import { MySQLMRSParser } from "./generated/MySQLMRSParser";
+import { MySQLMRSLexer } from "./generated/MySQLMRSLexer";
 import { MySQLBaseLexer } from "./MySQLBaseLexer";
 import { ErrorReportCallback } from "../parser-common";
 
 export class MySQLErrorListener extends BaseErrorListener<LexerATNSimulator | ParserATNSimulator> {
 
     private static simpleRules: Set<number> = new Set([
-        MySQLParser.RULE_identifier,
-        MySQLParser.RULE_qualifiedIdentifier,
+        MySQLMRSParser.RULE_identifier,
+        MySQLMRSParser.RULE_qualifiedIdentifier,
     ]);
 
     private static objectNames: Map<number, string> = new Map([
-        [MySQLParser.RULE_columnName, "column"],
-        [MySQLParser.RULE_columnRef, "column"],
-        [MySQLParser.RULE_columnInternalRef, "column"],
-        [MySQLParser.RULE_indexName, "index"],
-        [MySQLParser.RULE_indexRef, "index"],
-        [MySQLParser.RULE_schemaName, "schema"],
-        [MySQLParser.RULE_schemaRef, "schema"],
-        [MySQLParser.RULE_procedureName, "procedure"],
-        [MySQLParser.RULE_procedureRef, "procedure"],
-        [MySQLParser.RULE_functionName, "function"],
-        [MySQLParser.RULE_functionRef, "function"],
-        [MySQLParser.RULE_triggerName, "trigger"],
-        [MySQLParser.RULE_triggerRef, "trigger"],
-        [MySQLParser.RULE_viewName, "view"],
-        [MySQLParser.RULE_viewRef, "view"],
-        [MySQLParser.RULE_tablespaceName, "tablespace"],
-        [MySQLParser.RULE_tablespaceRef, "tablespace"],
-        [MySQLParser.RULE_logfileGroupName, "logfile group"],
-        [MySQLParser.RULE_logfileGroupRef, "logfile group"],
-        [MySQLParser.RULE_eventName, "event"],
-        [MySQLParser.RULE_eventRef, "event"],
-        [MySQLParser.RULE_udfName, "udf"],
-        [MySQLParser.RULE_serverName, "server"],
-        [MySQLParser.RULE_serverRef, "server"],
-        [MySQLParser.RULE_engineRef, "engine"],
-        [MySQLParser.RULE_tableName, "table"],
-        [MySQLParser.RULE_tableRef, "table"],
-        [MySQLParser.RULE_filterTableRef, "table"],
-        [MySQLParser.RULE_tableRefWithWildcard, "table"],
-        [MySQLParser.RULE_parameterName, "parameter"],
-        [MySQLParser.RULE_labelIdentifier, "label"],
-        [MySQLParser.RULE_labelRef, "label"],
-        [MySQLParser.RULE_roleIdentifier, "role"],
-        [MySQLParser.RULE_pluginRef, "plugin"],
-        [MySQLParser.RULE_componentRef, "component"],
-        [MySQLParser.RULE_resourceGroupRef, "resource group"],
-        [MySQLParser.RULE_windowName, "window"],
+        [MySQLMRSParser.RULE_columnName, "column"],
+        [MySQLMRSParser.RULE_columnRef, "column"],
+        [MySQLMRSParser.RULE_columnInternalRef, "column"],
+        [MySQLMRSParser.RULE_indexName, "index"],
+        [MySQLMRSParser.RULE_indexRef, "index"],
+        [MySQLMRSParser.RULE_schemaName, "schema"],
+        [MySQLMRSParser.RULE_schemaRef, "schema"],
+        [MySQLMRSParser.RULE_procedureName, "procedure"],
+        [MySQLMRSParser.RULE_procedureRef, "procedure"],
+        [MySQLMRSParser.RULE_functionName, "function"],
+        [MySQLMRSParser.RULE_functionRef, "function"],
+        [MySQLMRSParser.RULE_triggerName, "trigger"],
+        [MySQLMRSParser.RULE_triggerRef, "trigger"],
+        [MySQLMRSParser.RULE_viewName, "view"],
+        [MySQLMRSParser.RULE_viewRef, "view"],
+        [MySQLMRSParser.RULE_tablespaceName, "tablespace"],
+        [MySQLMRSParser.RULE_tablespaceRef, "tablespace"],
+        [MySQLMRSParser.RULE_logfileGroupName, "logfile group"],
+        [MySQLMRSParser.RULE_logfileGroupRef, "logfile group"],
+        [MySQLMRSParser.RULE_eventName, "event"],
+        [MySQLMRSParser.RULE_eventRef, "event"],
+        [MySQLMRSParser.RULE_udfName, "udf"],
+        [MySQLMRSParser.RULE_serverName, "server"],
+        [MySQLMRSParser.RULE_serverRef, "server"],
+        [MySQLMRSParser.RULE_engineRef, "engine"],
+        [MySQLMRSParser.RULE_tableName, "table"],
+        [MySQLMRSParser.RULE_tableRef, "table"],
+        [MySQLMRSParser.RULE_filterTableRef, "table"],
+        [MySQLMRSParser.RULE_tableRefWithWildcard, "table"],
+        [MySQLMRSParser.RULE_parameterName, "parameter"],
+        [MySQLMRSParser.RULE_labelIdentifier, "label"],
+        [MySQLMRSParser.RULE_labelRef, "label"],
+        [MySQLMRSParser.RULE_roleIdentifier, "role"],
+        [MySQLMRSParser.RULE_pluginRef, "plugin"],
+        [MySQLMRSParser.RULE_componentRef, "component"],
+        [MySQLMRSParser.RULE_resourceGroupRef, "resource group"],
+        [MySQLMRSParser.RULE_windowName, "window"],
     ]);
 
     public constructor(private callback: ErrorReportCallback) {
@@ -94,7 +94,7 @@ export class MySQLErrorListener extends BaseErrorListener<LexerATNSimulator | Pa
         if (offendingSymbol) {
             let token = offendingSymbol as Token;
 
-            const parser = recognizer as MySQLParser;
+            const parser = recognizer as MySQLMRSParser;
             const lexer = parser.inputStream.getTokenSource() as MySQLBaseLexer;
             const isEof = token.type === Token.EOF;
             if (isEof) {
@@ -110,7 +110,7 @@ export class MySQLErrorListener extends BaseErrorListener<LexerATNSimulator | Pa
             let expected = parser.getExpectedTokens();
             let invalidForVersion = false;
             let tokenType = token.type;
-            if (tokenType !== MySQLLexer.IDENTIFIER && expected.contains(tokenType)) {
+            if (tokenType !== MySQLMRSLexer.IDENTIFIER && expected.contains(tokenType)) {
                 invalidForVersion = true;
             } else {
                 tokenType = lexer.keywordFromText(wrongText);
@@ -137,31 +137,31 @@ export class MySQLErrorListener extends BaseErrorListener<LexerATNSimulator | Pa
             }
 
             switch (context.ruleIndex) {
-                case MySQLParser.RULE_functionCall:
+                case MySQLMRSParser.RULE_functionCall:
                     expectedText = "a complete function call or other expression";
                     break;
 
-                case MySQLParser.RULE_expr:
+                case MySQLMRSParser.RULE_expr:
                     expectedText = "an expression";
                     break;
 
-                case MySQLParser.RULE_columnName:
-                case MySQLParser.RULE_indexName:
-                case MySQLParser.RULE_schemaName:
-                case MySQLParser.RULE_procedureName:
-                case MySQLParser.RULE_functionName:
-                case MySQLParser.RULE_triggerName:
-                case MySQLParser.RULE_viewName:
-                case MySQLParser.RULE_tablespaceName:
-                case MySQLParser.RULE_logfileGroupName:
-                case MySQLParser.RULE_eventName:
-                case MySQLParser.RULE_udfName:
-                case MySQLParser.RULE_serverName:
-                case MySQLParser.RULE_tableName:
-                case MySQLParser.RULE_parameterName:
-                case MySQLParser.RULE_labelIdentifier:
-                case MySQLParser.RULE_roleIdentifier:
-                case MySQLParser.RULE_windowName: {
+                case MySQLMRSParser.RULE_columnName:
+                case MySQLMRSParser.RULE_indexName:
+                case MySQLMRSParser.RULE_schemaName:
+                case MySQLMRSParser.RULE_procedureName:
+                case MySQLMRSParser.RULE_functionName:
+                case MySQLMRSParser.RULE_triggerName:
+                case MySQLMRSParser.RULE_viewName:
+                case MySQLMRSParser.RULE_tablespaceName:
+                case MySQLMRSParser.RULE_logfileGroupName:
+                case MySQLMRSParser.RULE_eventName:
+                case MySQLMRSParser.RULE_udfName:
+                case MySQLMRSParser.RULE_serverName:
+                case MySQLMRSParser.RULE_tableName:
+                case MySQLMRSParser.RULE_parameterName:
+                case MySQLMRSParser.RULE_labelIdentifier:
+                case MySQLMRSParser.RULE_roleIdentifier:
+                case MySQLMRSParser.RULE_windowName: {
                     const name = MySQLErrorListener.objectNames.get(context.ruleIndex);
                     if (!name) {
                         expectedText = "a new object name";
@@ -171,25 +171,25 @@ export class MySQLErrorListener extends BaseErrorListener<LexerATNSimulator | Pa
                     break;
                 }
 
-                case MySQLParser.RULE_columnRef:
-                case MySQLParser.RULE_indexRef:
-                case MySQLParser.RULE_schemaRef:
-                case MySQLParser.RULE_procedureRef:
-                case MySQLParser.RULE_functionRef:
-                case MySQLParser.RULE_triggerRef:
-                case MySQLParser.RULE_viewRef:
-                case MySQLParser.RULE_tablespaceRef:
-                case MySQLParser.RULE_logfileGroupRef:
-                case MySQLParser.RULE_eventRef:
-                case MySQLParser.RULE_serverRef:
-                case MySQLParser.RULE_engineRef:
-                case MySQLParser.RULE_tableRef:
-                case MySQLParser.RULE_filterTableRef:
-                case MySQLParser.RULE_tableRefWithWildcard:
-                case MySQLParser.RULE_labelRef:
-                case MySQLParser.RULE_pluginRef:
-                case MySQLParser.RULE_componentRef:
-                case MySQLParser.RULE_resourceGroupRef: {
+                case MySQLMRSParser.RULE_columnRef:
+                case MySQLMRSParser.RULE_indexRef:
+                case MySQLMRSParser.RULE_schemaRef:
+                case MySQLMRSParser.RULE_procedureRef:
+                case MySQLMRSParser.RULE_functionRef:
+                case MySQLMRSParser.RULE_triggerRef:
+                case MySQLMRSParser.RULE_viewRef:
+                case MySQLMRSParser.RULE_tablespaceRef:
+                case MySQLMRSParser.RULE_logfileGroupRef:
+                case MySQLMRSParser.RULE_eventRef:
+                case MySQLMRSParser.RULE_serverRef:
+                case MySQLMRSParser.RULE_engineRef:
+                case MySQLMRSParser.RULE_tableRef:
+                case MySQLMRSParser.RULE_filterTableRef:
+                case MySQLMRSParser.RULE_tableRefWithWildcard:
+                case MySQLMRSParser.RULE_labelRef:
+                case MySQLMRSParser.RULE_pluginRef:
+                case MySQLMRSParser.RULE_componentRef:
+                case MySQLMRSParser.RULE_resourceGroupRef: {
                     const name = MySQLErrorListener.objectNames.get(context.ruleIndex);
                     if (!name) {
                         expectedText = "the name of an existing object";
@@ -199,7 +199,7 @@ export class MySQLErrorListener extends BaseErrorListener<LexerATNSimulator | Pa
                     break;
                 }
 
-                case MySQLParser.RULE_columnInternalRef: {
+                case MySQLMRSParser.RULE_columnInternalRef: {
                     expectedText = "a column name from this table";
                     break;
                 }
@@ -210,7 +210,7 @@ export class MySQLErrorListener extends BaseErrorListener<LexerATNSimulator | Pa
                     // whenever an identifier is actually required, bloating so the expected set with irrelevant
                     // elements. Hence we check for the identifier entry and assume we *only* want an identifier.
                     // This gives an imprecise result if both certain keywords *and* an identifier are expected.
-                    if (expected.contains(MySQLLexer.IDENTIFIER)) {
+                    if (!expected.contains(MySQLMRSLexer.IDENTIFIER)) {
                         expectedText = "an identifier";
                     } else {
                         expectedText = this.intervalToString(expected, 6, parser.vocabulary);
@@ -271,7 +271,7 @@ export class MySQLErrorListener extends BaseErrorListener<LexerATNSimulator | Pa
         } else {
             // No offending symbol, which indicates this is a lexer error.
             if (e instanceof NoViableAltException) {
-                const lexer = recognizer as MySQLLexer;
+                const lexer = recognizer as MySQLMRSLexer;
                 const input = lexer.inputStream;
                 let text = lexer.getErrorDisplay(input.getText(lexer._tokenStartCharIndex, input.index));
                 if (text === "") {

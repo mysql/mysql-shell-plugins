@@ -23,34 +23,34 @@
 
 import { CharStreams } from "antlr4ng";
 
-import { MySQLLexer } from "../../../../parsing/mysql/generated/MySQLLexer";
+import { MySQLMRSLexer } from "../../../../parsing/mysql/generated/MySQLMRSLexer";
 import { SqlMode } from "../../../../parsing/mysql/MySQLRecognizerCommon";
 import { QueryType } from "../../../../parsing/parser-common";
 
 describe("MySQLBaseLexer Tests", (): void => {
-    // Note: do not create a base lexer as such (which is abstract) but instead use the MySQLLexer (for which
+    // Note: do not create a base lexer as such (which is abstract) but instead use the MySQLMRSLexer (for which
     // own tests exist) and test only the features implemented in the base lexer.
     const stream = CharStreams.fromString("select * from sakila.actor");
 
     it("Static Methods", () => {
-        expect(MySQLLexer.isRelation(MySQLLexer.GREATER_THAN_OPERATOR)).toBeTruthy();
-        expect(MySQLLexer.isRelation(MySQLLexer.IDENTIFIER)).toBeFalsy();
+        expect(MySQLMRSLexer.isRelation(MySQLMRSLexer.GREATER_THAN_OPERATOR)).toBeTruthy();
+        expect(MySQLMRSLexer.isRelation(MySQLMRSLexer.IDENTIFIER)).toBeFalsy();
     });
 
     it("Type Checks", () => {
-        const lexer = new MySQLLexer(stream);
+        const lexer = new MySQLMRSLexer(stream);
 
         expect(lexer.serverVersion).toBe(0);
 
-        expect(lexer.isNumber(MySQLLexer.HEX_NUMBER)).toBeTruthy();
-        expect(lexer.isNumber(MySQLLexer.COMMA_SYMBOL)).toBeFalsy();
+        expect(lexer.isNumber(MySQLMRSLexer.HEX_NUMBER)).toBeTruthy();
+        expect(lexer.isNumber(MySQLMRSLexer.COMMA_SYMBOL)).toBeFalsy();
 
-        expect(lexer.isOperator(MySQLLexer.HEX_NUMBER)).toBeFalsy();
-        expect(lexer.isOperator(MySQLLexer.COMMA_SYMBOL)).toBeTruthy();
+        expect(lexer.isOperator(MySQLMRSLexer.HEX_NUMBER)).toBeFalsy();
+        expect(lexer.isOperator(MySQLMRSLexer.COMMA_SYMBOL)).toBeTruthy();
     });
 
     it("SQL Mode", () => {
-        const lexer = new MySQLLexer(stream);
+        const lexer = new MySQLMRSLexer(stream);
 
         expect(lexer.isSqlModeActive(SqlMode.AnsiQuotes)).toBeFalsy();
         lexer.sqlModes.add(SqlMode.AnsiQuotes);
@@ -132,46 +132,46 @@ describe("MySQLBaseLexer Tests", (): void => {
     });
 
     it("Identifier and Keyword Tests", () => {
-        const lexer = new MySQLLexer(stream);
+        const lexer = new MySQLMRSLexer(stream);
         lexer.reset();
 
-        expect(lexer.isIdentifier(MySQLLexer.EOF)).toBeFalsy();
-        expect(lexer.isIdentifier(MySQLLexer.IDENTIFIER)).toBeTruthy();
-        expect(lexer.isIdentifier(MySQLLexer.BACK_TICK_QUOTED_ID)).toBeTruthy();
+        expect(lexer.isIdentifier(MySQLMRSLexer.EOF)).toBeFalsy();
+        expect(lexer.isIdentifier(MySQLMRSLexer.IDENTIFIER)).toBeTruthy();
+        expect(lexer.isIdentifier(MySQLMRSLexer.BACK_TICK_QUOTED_ID)).toBeTruthy();
 
         // Depends on SQL mode.
-        expect(lexer.isIdentifier(MySQLLexer.DOUBLE_QUOTED_TEXT)).toBeFalsy();
+        expect(lexer.isIdentifier(MySQLMRSLexer.DOUBLE_QUOTED_TEXT)).toBeFalsy();
         lexer.sqlModeFromString("ansi_quotes");
-        expect(lexer.isIdentifier(MySQLLexer.DOUBLE_QUOTED_TEXT)).toBeTruthy();
+        expect(lexer.isIdentifier(MySQLMRSLexer.DOUBLE_QUOTED_TEXT)).toBeTruthy();
 
         // Server version 0. All keywords can be identifiers.
-        expect(lexer.isIdentifier(MySQLLexer.ACCESSIBLE_SYMBOL)).toBeTruthy(); // Not a reserved keyword.
-        expect(lexer.isIdentifier(MySQLLexer.SELECT_SYMBOL)).toBeTruthy(); // Reserved keyword.
+        expect(lexer.isIdentifier(MySQLMRSLexer.ACCESSIBLE_SYMBOL)).toBeTruthy(); // Not a reserved keyword.
+        expect(lexer.isIdentifier(MySQLMRSLexer.SELECT_SYMBOL)).toBeTruthy(); // Reserved keyword.
 
         lexer.serverVersion = 80030;
-        expect(lexer.isIdentifier(MySQLLexer.ORDINALITY_SYMBOL)).toBeTruthy(); // Not a reserved keyword.
-        expect(lexer.isIdentifier(MySQLLexer.SELECT_SYMBOL)).toBeFalsy(); // Reserved keyword.
+        expect(lexer.isIdentifier(MySQLMRSLexer.ORDINALITY_SYMBOL)).toBeTruthy(); // Not a reserved keyword.
+        expect(lexer.isIdentifier(MySQLMRSLexer.SELECT_SYMBOL)).toBeFalsy(); // Reserved keyword.
 
-        expect(lexer.isIdentifier(MySQLLexer.MULT_OPERATOR)).toBeFalsy(); // Operator.
+        expect(lexer.isIdentifier(MySQLMRSLexer.MULT_OPERATOR)).toBeFalsy(); // Operator.
     });
 
     it("Identifier and Keyword Tests", () => {
-        const lexer = new MySQLLexer(stream);
+        const lexer = new MySQLMRSLexer(stream);
         lexer.serverVersion = 80030;
 
         expect(lexer.keywordFromText("")).toBe(-2);
         expect(lexer.keywordFromText("EoF")).toBe(-2); // Not a keyword.
 
-        expect(lexer.keywordFromText("selEct")).toBe(MySQLLexer.SELECT_SYMBOL);
+        expect(lexer.keywordFromText("selEct")).toBe(MySQLMRSLexer.SELECT_SYMBOL);
         expect(lexer.keywordFromText("selEct2")).toBe(-2);
-        expect(lexer.keywordFromText("div")).toBe(MySQLLexer.DIV_SYMBOL);
+        expect(lexer.keywordFromText("div")).toBe(MySQLMRSLexer.DIV_SYMBOL);
 
         expect(lexer.keywordFromText("a * b")).toBe(-2);
     });
 
     it("Query Type Tests", () => {
         const checkQueryType = (query: string, expected: number): void => {
-            const lexer = new MySQLLexer(CharStreams.fromString(query));
+            const lexer = new MySQLMRSLexer(CharStreams.fromString(query));
             lexer.serverVersion = 80020;
             expect(lexer.determineQueryType()).toBe(expected);
         };

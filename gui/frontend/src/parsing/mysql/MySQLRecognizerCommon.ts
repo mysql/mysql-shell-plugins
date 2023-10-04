@@ -22,7 +22,7 @@
  */
 
 import { ErrorNode, ParserRuleContext, ParseTree, RuleContext, TerminalNode, Token, Vocabulary } from "antlr4ng";
-import { MySQLParser, TextLiteralContext } from "./generated/MySQLParser";
+import { MySQLMRSParser, TextLiteralContext } from "./generated/MySQLMRSParser";
 import { reservedMySQLKeywords, mysqlKeywords, MySQLVersion } from "./mysql-keywords";
 
 // This interface describes functionality found in both, lexer and parser classes.
@@ -112,7 +112,7 @@ export const getText = (context: RuleContext, convertEscapes: boolean): string =
             const child = context.textStringLiteral(index)!;
             // eslint-disable-next-line no-underscore-dangle
             const token = child._value;
-            if (token.type === MySQLParser.DOUBLE_QUOTED_TEXT || token.type === MySQLParser.SINGLE_QUOTED_TEXT) {
+            if (token.type === MySQLMRSParser.DOUBLE_QUOTED_TEXT || token.type === MySQLMRSParser.SINGLE_QUOTED_TEXT) {
                 let text = token.text || "''";
                 const quoteChar = text[0];
                 const doubledQuoteChar = quoteChar.repeat(2);
