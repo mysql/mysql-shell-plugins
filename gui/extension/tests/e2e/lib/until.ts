@@ -23,23 +23,22 @@
 import {
     Condition,
     ActivityBar,
-    By,
     EditorView,
     BottomBarPanel,
     logging,
 } from "vscode-extension-tester";
 import * as constants from "./constants";
 import { Misc, driver } from "./misc";
-
+import * as locator from "./locators";
 export let credentialHelperOk = true;
 
 export const isNotLoading = (section: string): Condition<boolean> => {
     return new Condition("Is not loading", async () => {
         const sec = await Misc.getSection(section);
-        const loading = await sec.findElements(By.css(".monaco-progress-container.active"));
+        const loading = await sec.findElements(locator.section.loadingBar);
         const activityBar = new ActivityBar();
         const icon = await activityBar.getViewControl(constants.extensionName);
-        const progressBadge = await icon.findElements(By.css(".progress-badge"));
+        const progressBadge = await icon.findElements(locator.shellForVscode.loadingIcon);
 
         return (loading.length === 0) && (progressBadge.length === 0);
     });
@@ -53,7 +52,7 @@ export const tabIsOpened = (tabName: string): Condition<boolean> => {
 
 export const isFELoaded = (): Condition<boolean> => {
     return new Condition("Frontend is loaded", async () => {
-        return (await driver.findElements(By.id("-1"))).length > 0;
+        return (await driver.findElements(locator.dbConnectionOverview.newDBConnection)).length > 0;
     });
 };
 

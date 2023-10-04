@@ -20,16 +20,17 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-import { WebElement, By, until, Condition } from "vscode-extension-tester";
+import { WebElement, until, Condition } from "vscode-extension-tester";
 import { driver } from "./misc";
 import * as constants from "./constants";
+import * as locator from "./locators";
 
 export class Shell {
 
     public static getTech = async (el: WebElement): Promise<string> => {
         const divs = await driver.wait(async () => {
-            return el.findElements(By.css(".margin-view-overlays div div"));
-        }, constants.explicitWait, "'.margin-view-overlays div div' did not find anything");
+            return el.findElements(locator.shellConsole.prompt);
+        }, constants.explicitWait, "No prompts were found");
 
         const lastDiv = divs[divs.length - 1];
         const classes = (await lastDiv.getAttribute("class")).split(" ");
@@ -40,8 +41,8 @@ export class Shell {
     public static isShellLoaded = (): Condition<boolean> => {
         return new Condition("Shell is not loaded",
             async () => {
-                const title = await driver.findElements(By.id("title"));
-                const textarea = await driver.findElements(By.css("textarea"));
+                const title = await driver.findElements(locator.shellConsole.title);
+                const textarea = await driver.findElements(locator.notebook.codeEditor.textArea);
 
                 return title.length > 0 || textarea.length > 0;
             });
@@ -49,7 +50,8 @@ export class Shell {
 
     public static isValueOnJsonResult = (resultHost: WebElement, value: string): Condition<boolean> => {
         return new Condition("Value is not on json result", async () => {
-            const json = await resultHost.findElements(By.css(".jsonView"));
+            console.log(await resultHost.getAttribute("outerHTML"));
+            const json = await resultHost.findElements(locator.notebook.codeEditor.editor.result.json.exists);
             if (json.length > 0) {
                 const jsonString = await json[json.length - 1].getAttribute("innerHTML");
 
@@ -61,7 +63,7 @@ export class Shell {
     public static isValueOnDataSet = (resultHost: WebElement, value: String): Condition<boolean> => {
         return new Condition("Value is not on data set", async () => {
             const cells = await driver.wait(async () => {
-                const cells = await resultHost.findElements(By.css(".zoneHost .tabulator-cell"));
+                const cells = await resultHost.findElements(locator.notebook.codeEditor.editor.result.tableCell);
                 if (cells.length > 0) {
                     return cells;
                 }
@@ -79,21 +81,20 @@ export class Shell {
     };
 
     public static changeSchemaOnTab = async (schema: string): Promise<void> => {
-        const tabSchema = await driver.findElement(By.id("schema"));
+        const tabSchema = await driver.findElement(locator.shellConsole.connectionTab.schema);
         await tabSchema.click();
-        const menu = await driver.wait(until.elementLocated(By.css(".visible.shellPromptSchemaMenu")),
+        const menu = await driver.wait(until.elementLocated(locator.shellConsole.connectionTab.schemaMenu),
             3000, "Schema list was not displayed");
-        const items = await menu.findElements(By.css("div.menuItem"));
+        const items = await menu.findElements(locator.shellConsole.connectionTab.schemaItem);
         for (const item of items) {
-            const label = await item.findElement(By.css("label"));
-            if ((await label.getAttribute("innerHTML")).includes(schema)) {
-                await label.click();
+            if ((await item.getAttribute("innerHTML")).includes(schema)) {
+                await item.click();
                 break;
             }
         }
 
         await driver.wait(async () => {
-            return (await driver.findElement(By.id("schema")).getText()).includes(schema);
+            return (await driver.findElement(locator.shellConsole.connectionTab.schema).getText()).includes(schema);
         }, 3000, `${schema} was not selected`);
     };
 }

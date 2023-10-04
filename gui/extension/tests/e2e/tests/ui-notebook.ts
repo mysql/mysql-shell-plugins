@@ -23,7 +23,7 @@
 import fs from "fs/promises";
 import { expect } from "chai";
 import {
-    ActivityBar, BottomBarPanel, By, Condition, CustomTreeSection, EditorView, InputBox, Key, TreeItem,
+    ActivityBar, BottomBarPanel, Condition, CustomTreeSection, EditorView, InputBox, Key, TreeItem,
     until, WebElement, ModalDialog,
 } from "vscode-extension-tester";
 import { browser, driver, Misc } from "../lib/misc";
@@ -31,6 +31,7 @@ import { Database } from "../lib/db";
 import * as constants from "../lib/constants";
 import * as Until from "../lib/until";
 import * as interfaces from "../lib/interfaces";
+import * as locator from "../lib/locators";
 
 describe("NOTEBOOKS", () => {
 
@@ -61,7 +62,7 @@ describe("NOTEBOOKS", () => {
 
     const globalConn: interfaces.IDBConnection = {
         dbType: "MySQL",
-        caption: "conn",
+        caption: "globalDBConnection",
         description: "Local connection",
         basic: {
             hostname: String(process.env.DBHOSTNAME),
@@ -80,8 +81,6 @@ describe("NOTEBOOKS", () => {
         try {
             await driver.wait(Until.extensionIsReady(), constants.extensionReadyWait, "Extension was not ready");
             await Misc.toggleBottomBar(false);
-            const randomCaption = String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000));
-            globalConn.caption += randomCaption;
             await Database.createConnection(globalConn);
             expect(await Database.getWebViewConnection(globalConn.caption)).to.exist;
             const edView = new EditorView();
@@ -89,6 +88,18 @@ describe("NOTEBOOKS", () => {
             await new BottomBarPanel().toggle(false);
             expect(await Misc.existsTreeElement(constants.openEditorsTreeSection,
                 constants.dbConnectionsLabel)).to.be.true;
+        } catch (e) {
+            await Misc.processFailure(this);
+            throw e;
+        }
+    });
+
+    after(async function () {
+        try {
+            const dbConnections = await Misc.getDBConnections();
+            for (const dbConnection of dbConnections) {
+                await Misc.deleteConnection(dbConnection.name, dbConnection.isMySQL);
+            }
         } catch (e) {
             await Misc.processFailure(this);
             throw e;
@@ -108,7 +119,7 @@ describe("NOTEBOOKS", () => {
                 await driver.wait(Database.isConnectionLoaded(),
                     constants.explicitWait * 3, "DB Connection was not loaded");
                 await Database.setDBConnectionCredentials(globalConn);
-                await driver.wait(until.elementLocated(By.css("textarea")), constants.explicitWait,
+                await driver.wait(until.elementLocated(locator.notebook.codeEditor.textArea), constants.explicitWait,
                     "Db editor text area was not found");
             } catch (e) {
                 await Misc.processFailure(this);
@@ -144,7 +155,7 @@ describe("NOTEBOOKS", () => {
 
         it("Multi-cursor", async () => {
             try {
-                const area = await driver.findElement(By.css("textarea"));
+                const area = await driver.findElement(locator.notebook.codeEditor.textArea);
                 await Misc.writeCmd("select * from sakila.actor;");
                 await area.sendKeys(Key.ENTER);
                 await Misc.writeCmd("select * from sakila.address;");
@@ -152,7 +163,7 @@ describe("NOTEBOOKS", () => {
                 await Misc.writeCmd("select * from sakila.city;");
 
                 const getLines = async (): Promise<WebElement[]> => {
-                    const lines = await driver.findElements(By.css("#contentHost .editorHost .view-line"));
+                    const lines = await driver.findElements(locator.notebook.codeEditor.editor.line);
                     lines.shift();
 
                     return lines;
@@ -160,10 +171,10 @@ describe("NOTEBOOKS", () => {
 
                 await driver.actions().keyDown(Key.ALT).perform();
 
-                let spans = await (await getLines())[0].findElements(By.css("span"));
+                let spans = await (await getLines())[0].findElements(locator.htmlTag.span);
                 await spans[spans.length - 1].click();
 
-                spans = await (await getLines())[1].findElements(By.css("span"));
+                spans = await (await getLines())[1].findElements(locator.htmlTag.span);
                 await spans[spans.length - 1].click();
                 await driver.actions().keyUp(Key.ALT).perform();
 
@@ -173,8 +184,7 @@ describe("NOTEBOOKS", () => {
                 await driver.sleep(500);
                 await area.sendKeys(Key.BACK_SPACE);
 
-                const contentHost = await driver.findElement(By.id("contentHost"));
-                const textArea = await contentHost.findElement(By.css("textarea"));
+                const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
 
                 let items = (await textArea.getAttribute("value")).split("\n");
                 items.shift();
@@ -198,58 +208,65 @@ describe("NOTEBOOKS", () => {
 
             this.retries(1);
 
-            await Misc.cleanEditor();
-            await Misc.writeCmd("DELIMITER $$ ", true);
-            const textArea = await driver.findElement(By.css("textarea"));
-            await textArea.sendKeys(Key.RETURN);
-            await Misc.writeCmd("SELECT actor_id", true);
-            await textArea.sendKeys(Key.RETURN);
-            await Misc.writeCmd("FROM ", true);
-            await textArea.sendKeys(Key.RETURN);
-            await Misc.writeCmd("sakila.actor LIMIT 1 $$", true);
+            try {
+                await Misc.cleanEditor();
+                await Misc.writeCmd("DELIMITER $$ ", true);
+                const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
+                await textArea.sendKeys(Key.RETURN);
+                await Misc.writeCmd("SELECT actor_id", true);
+                await textArea.sendKeys(Key.RETURN);
+                await Misc.writeCmd("FROM ", true);
+                await textArea.sendKeys(Key.RETURN);
+                await Misc.writeCmd("sakila.actor LIMIT 1 $$", true);
 
-            expect(await Database.isStatementStart("DELIMITER $$")).to.be.true;
-            expect(await Database.isStatementStart("SELECT actor_id")).to.be.true;
-            expect(await Database.isStatementStart("FROM")).to.be.false;
-            expect(await Database.isStatementStart("sakila.actor LIMIT 1 $$")).to.be.false;
+                expect(await Database.isStatementStart("DELIMITER $$")).to.be.true;
+                expect(await Database.isStatementStart("SELECT actor_id")).to.be.true;
+                expect(await Database.isStatementStart("FROM")).to.be.false;
+                expect(await Database.isStatementStart("sakila.actor LIMIT 1 $$")).to.be.false;
 
-            await textArea.sendKeys(Key.RETURN);
-            await textArea.sendKeys(Key.RETURN);
-            await textArea.sendKeys(Key.RETURN);
+                await textArea.sendKeys(Key.RETURN);
+                await textArea.sendKeys(Key.RETURN);
+                await textArea.sendKeys(Key.RETURN);
 
-            await Misc.writeCmd("select 1 $$ ");
-            expect(await Database.isStatementStart("select 1 $$")).to.be.true;
+                await Misc.writeCmd("select 1 $$ ");
+                expect(await Database.isStatementStart("select 1 $$")).to.be.true;
 
-            const result = await Misc.execCmd("", constants.execFullBlockSql);
+                const result = await Misc.execCmd("", constants.execFullBlockSql);
 
-            expect(result[0]).to.include("OK");
-            let tabs: WebElement[];
-            await driver.wait(async () => {
-                try {
-                    tabs = await (result[1] as WebElement).findElements(By.css(".tabArea label"));
+                expect(result[0]).to.include("OK");
+                let tabs: WebElement[];
+                await driver.wait(async () => {
+                    try {
+                        tabs = await (result[1] as WebElement)
+                            .findElements(locator.notebook.codeEditor.editor.result.tabSection.tabname);
 
-                    return tabs.length === 2;
-                } catch (e) {
-                    return false;
-                }
-            }, constants.explicitWait, "No result tabs were found on result");
+                        return tabs.length === 2;
+                    } catch (e) {
+                        return false;
+                    }
+                }, constants.explicitWait, "No result tabs were found on result");
 
-            expect(await tabs[0].getAttribute("innerHTML")).to.include("Result");
-            expect(await tabs[1].getAttribute("innerHTML")).to.include("Result");
-
+                expect(await tabs[0].getAttribute("innerHTML")).to.include("Result");
+                expect(await tabs[1].getAttribute("innerHTML")).to.include("Result");
+            } finally {
+                clean = true;
+            }
         });
 
         it("Connection toolbar buttons - Execute selection or full block and create a new block", async () => {
 
+            const prompts = await Database.getPrompts();
             const result = await Misc.execCmd("SELECT * FROM sakila.actor;", constants.execFullBlockSql);
             expect(result[0]).to.match(/(\d+) record/);
-            expect(await Database.hasNewPrompt()).to.be.true;
+            await driver.wait(async () => {
+                return (await Database.getPrompts()) > prompts;
+            }, constants.explicitWait, "A new prompt line should exist");
         });
 
         it("Connection toolbar buttons - Execute statement at the caret position", async () => {
 
             try {
-                const textArea = await driver.findElement(By.css("textarea"));
+                const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
                 await Misc.writeCmd("select * from sakila.actor limit 1;", true);
                 await textArea.sendKeys(Key.RETURN);
                 await Misc.writeCmd("select * from sakila.address limit 2;");
@@ -301,14 +318,15 @@ describe("NOTEBOOKS", () => {
 
             const result = await Misc.execCmd("SELECT SCHEMA();");
             expect(result[0]).to.include("1 record retrieved");
-            expect(await ((result[1] as WebElement).findElement(By.css(".tabulator-cell"))).getText())
+            expect(await ((result[1] as WebElement)
+                .findElement(locator.notebook.codeEditor.editor.result.tableCell)).getText())
                 .to.equals((globalConn.basic as interfaces.IConnBasicMySQL).schema);
         });
 
         it("Connection toolbar buttons - Autocommit DB Changes", async () => {
 
             const autoCommitBtn = await Database.getToolbarButton(constants.autoCommit);
-            const style = await autoCommitBtn.findElement(By.css(".icon")).getAttribute("style");
+            const style = await autoCommitBtn.findElement(locator.notebook.toolbar.button.icon).getAttribute("style");
             if (style.includes("toolbar-auto_commit-active")) {
                 await autoCommitBtn.click();
             }
@@ -363,37 +381,37 @@ describe("NOTEBOOKS", () => {
         it("Connection toolbar buttons - Find and Replace", async () => {
 
             try {
-                const contentHost = await driver.findElement(By.id("contentHost"));
+                const contentHost = await driver.findElement(locator.notebook.exists);
                 await Misc.writeCmd(`import from xpto xpto xpto`);
                 const findBtn = await Database.getToolbarButton("Find");
                 await findBtn.click();
-                const finder = await driver.findElement(By.css(".find-widget"));
+                const finder = await driver.findElement(locator.findWidget.exists);
                 expect(await finder.getAttribute("aria-hidden")).equals("false");
-                await finder.findElement(By.css("textarea")).sendKeys("xpto");
-                await Database.findInSelection(finder, false);
+                await finder.findElement(locator.notebook.codeEditor.textArea).sendKeys("xpto");
+                await Database.findInSelection(false);
                 expect(
-                    await finder.findElement(By.css(".matchesCount")).getText(),
+                    await finder.findElement(locator.findWidget.matchesCount).getText(),
                 ).to.match(/1 of (\d+)/);
                 await driver.wait(
-                    until.elementsLocated(By.css(".cdr.findMatch")),
+                    until.elementsLocated(locator.findWidget.findMatch),
                     2000,
                     "No words found",
                 );
-                await Database.expandFinderReplace(finder, true);
-                const replacer = await finder.findElement(By.css(".replace-part"));
-                await replacer.findElement(By.css("textarea")).sendKeys("tester");
-                await (await Database.replacerGetButton(replacer, "Replace (Enter)")).click();
+                await Database.toggleFinderReplace(true);
+                const replacer = await finder.findElement(locator.findWidget.replacePart);
+                await replacer.findElement(locator.notebook.codeEditor.textArea).sendKeys("tester");
+                await (await Database.replacerGetButton("Replace (Enter)")).click();
                 expect(
-                    await contentHost.findElement(By.css("textarea")).getAttribute("value"),
+                    await contentHost.findElement(locator.notebook.codeEditor.textArea).getAttribute("value"),
                 ).to.include("import from tester xpto xpto");
 
-                await replacer.findElement(By.css("textarea")).clear();
-                await replacer.findElement(By.css("textarea")).sendKeys("testing");
-                await (await Database.replacerGetButton(replacer, "Replace All")).click();
+                await replacer.findElement(locator.notebook.codeEditor.textArea).clear();
+                await replacer.findElement(locator.notebook.codeEditor.textArea).sendKeys("testing");
+                await (await Database.replacerGetButton("Replace All")).click();
                 expect(
-                    await contentHost.findElement(By.css("textarea")).getAttribute("value"),
+                    await contentHost.findElement(locator.notebook.codeEditor.textArea).getAttribute("value"),
                 ).to.include("import from tester testing testing");
-                await Database.closeFinder(finder);
+                await Database.closeFinder();
                 expect(await finder.getAttribute("aria-hidden")).equals("true");
 
             } finally {
@@ -405,7 +423,7 @@ describe("NOTEBOOKS", () => {
         it("Using Math_random on js_py blocks", async () => {
 
             try {
-                const textArea = await driver.findElement(By.css("textarea"));
+                const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
                 const result = await Misc.execCmd("\\js ");
                 expect(result[0]).to.include("Switched to JavaScript mode");
                 const result2 = await Misc.execCmd("Math.random();");
@@ -449,7 +467,8 @@ describe("NOTEBOOKS", () => {
             expect(result[0]).to.include("Switched to MySQL mode");
             result = await Misc.execCmd("select version();");
             expect(result[0]).to.include("1 record retrieved");
-            const txt = await (result[1] as WebElement).findElement(By.css(".tabulator-cell")).getText();
+            const txt = await (result[1] as WebElement)
+                .findElement(locator.notebook.codeEditor.editor.result.tableCell).getText();
             const server = txt.match(/(\d+).(\d+).(\d+)/g)![0];
             const digits = server.split(".");
             let serverVer = digits[0];
@@ -465,14 +484,17 @@ describe("NOTEBOOKS", () => {
 
         it("Context Menu - Execute", async () => {
 
+            let prompts = await Database.getPrompts();
             let result = await Misc.execCmdByContextItem("select * from sakila.actor limit 1;", "Execute Block");
             expect(result[0]).to.match(/OK, (\d+) record retrieved/);
-            expect(await Database.hasNewPrompt()).to.be.false;
+            expect(await Database.getPrompts()).to.equal(prompts);
             await Misc.cleanEditor();
+
+            prompts = await Database.getPrompts();
             result = await Misc
                 .execCmdByContextItem("select * from sakila.actor limit 1;", "Execute Block and Advance");
             expect(result[0]).to.match(/OK, (\d+) record retrieved/);
-            expect(await Database.hasNewPrompt()).to.be.true;
+            expect(await Database.getPrompts()).to.be.greaterThan(prompts);
 
         });
 
@@ -481,7 +503,8 @@ describe("NOTEBOOKS", () => {
             const result = await Misc.execCmd("select * from sakila.actor;");
             expect(result[0]).to.include("OK");
             await driver.sleep(1000);
-            await (result[2] as WebElement).findElement(By.id("toggleStateButton")).click();
+            await (result[2] as WebElement)
+                .findElement(locator.notebook.codeEditor.editor.result.status.maximize).click();
             await driver.wait(new Condition("", async () => {
                 return Database.isResultTabMaximized();
             }), constants.explicitWait, "Result tab was not maxized");
@@ -489,12 +512,12 @@ describe("NOTEBOOKS", () => {
             expect(await Database.getCurrentEditor()).to.equals("Result #1");
             try {
                 expect(await Database.isEditorStretched()).to.be.false;
-                let tabArea = await driver.findElements(By.css("#resultPaneHost .resultTabview .tabArea"));
+                let tabArea = await driver.findElements(locator.notebook.codeEditor.editor.result.tabSection.body);
                 expect(tabArea.length, "Result tab should not be visible").to.equals(0);
-                await driver.findElement(By.id("normalizeResultStateButton")).click();
+                await driver.findElement(locator.notebook.codeEditor.editor.result.status.normalize).click();
                 expect(await Database.isEditorStretched()).to.be.true;
                 expect(await Database.isResultTabMaximized()).to.be.false;
-                tabArea = await driver.findElements(By.css("#resultPaneHost .resultTabview .tabArea"));
+                tabArea = await driver.findElements(locator.notebook.codeEditor.editor.result.tabSection.body);
                 expect(tabArea.length, "Result tab should be visible").to.equals(1);
             } finally {
                 await Database.selectCurrentEditor("DB Notebook", "notebook");
@@ -519,8 +542,10 @@ const options: IGraphOptions = {
 Graph.render(options);
 `);
 
-            const pieChart = await (result[1] as WebElement).findElement(By.css(".graphHost"));
-            const chartColumns = await pieChart.findElements(By.css("rect"));
+            const pieChart = await (result[1] as WebElement)
+                .findElement(locator.notebook.codeEditor.editor.result.graphHost.exists);
+            const chartColumns = await pieChart
+                .findElements(locator.notebook.codeEditor.editor.result.graphHost.column);
             for (const col of chartColumns) {
                 expect(parseInt(await col.getAttribute("width"), 10)).to.be.greaterThan(0);
             }
@@ -529,22 +554,19 @@ Graph.render(options);
 
         it("Schema autocomplete context menu", async () => {
 
-            try {
-                const result = await Misc.execCmd("\\sql ");
-                expect(result[0]).to.include("Switched to MySQL mode");
-                await Misc.writeCmd("select * from ");
-                const textArea = await driver.findElement(By.css("textarea"));
-                await textArea.sendKeys(Key.chord(Key.CONTROL, Key.SPACE));
-                const els = await Database.getAutoCompleteMenuItems();
-                expect(els).to.include("information_schema");
-                expect(els).to.include("mysql");
-                expect(els).to.include("performance_schema");
-                expect(els).to.include("sakila");
-                expect(els).to.include("sys");
-                expect(els).to.include("world_x_cst");
-            } finally {
-                clean = true;
-            }
+            const result = await Misc.execCmd("\\sql ");
+            expect(result[0]).to.include("Switched to MySQL mode");
+            await Misc.writeCmd("select * from ");
+            const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
+            await textArea.sendKeys(Key.chord(Key.CONTROL, Key.SPACE));
+            const els = await Database.getAutoCompleteMenuItems();
+            expect(els).to.include("information_schema");
+            expect(els).to.include("mysql");
+            expect(els).to.include("performance_schema");
+            expect(els).to.include("sakila");
+            expect(els).to.include("sys");
+            expect(els).to.include("world_x_cst");
+
         });
 
     });
@@ -734,7 +756,7 @@ Graph.render(options);
             const file = await section.findItem("test.mysql-notebook", 3);
             await file.click();
 
-            const input = await InputBox.create();
+            const input = await InputBox.create(constants.explicitWait * 2);
             await (await input.findQuickPick(globalConn.caption)).select();
             await new EditorView().openEditor("test.mysql-notebook");
 
@@ -803,10 +825,10 @@ Graph.render(options);
 
         it("Open the Notebook from file with no DB connections", async () => {
 
-            const conns = await Misc.getTreeDBConnections();
+            const conns = await Misc.getDBConnections();
 
             for (const conn of conns) {
-                await Misc.deleteConnection(conn);
+                await Misc.deleteConnection(conn.name, conn.isMySQL);
             }
 
             const activityBar = new ActivityBar();
@@ -823,7 +845,7 @@ Graph.render(options);
             await new EditorView().openEditor("test.mysql-notebook");
             await Misc.getNotification("Please create a MySQL Database Connection first.");
             await Misc.switchToFrame();
-            expect(await driver.findElement(By.css("h2")).getText()).to.equals("No connection selected");
+            expect(await driver.findElement(locator.htmlTag.h2).getText()).to.equals("No connection selected");
 
             await Misc.switchBackToTopFrame();
             await new EditorView().closeAllEditors();

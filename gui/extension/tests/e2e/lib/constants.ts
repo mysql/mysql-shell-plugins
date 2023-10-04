@@ -88,6 +88,7 @@ export const clientConns = "Client Connections";
 export const perfDash = "Performance Dashboard";
 export const mysqlAdmin = "MySQL Administration";
 export const vscodeChannel = "MySQL Shell for VS Code";
+export const collapseAll = "Collapse All";
 
 // CONTEXT MENUS ITEMS
 export const restartInternalShell = "Restart the Internal MySQL Shell Process";
@@ -209,6 +210,14 @@ export const dbConnectionCtxMenu = new Map([
     [openShellConnection, 9],
     [browseRESTDocs, 10],
     [configureREST, 11],
+]);
+
+export const dbConnectionSqliteCtxMenu = new Map([
+    [openNewConnection, 1],
+    [editDBConnection, 2],
+    [duplicateConnection, 3],
+    [deleteDBConnection, 4],
+    [loadScriptFromDisk, 5],
 ]);
 
 export const schemaCtxMenu = new Map([

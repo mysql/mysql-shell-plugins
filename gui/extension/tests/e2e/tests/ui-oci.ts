@@ -23,7 +23,6 @@
 import fs from "fs/promises";
 import { expect } from "chai";
 import {
-    By,
     EditorView,
     until,
     BottomBarPanel,
@@ -36,6 +35,7 @@ import { Shell } from "../lib/shell";
 import * as constants from "../lib/constants";
 import * as Until from "../lib/until";
 import * as interfaces from "../lib/interfaces";
+import * as locator from "../lib/locators";
 
 if (!process.env.MYSQLSH_OCI_CONFIG_FILE) {
     throw new Error("Please define the environment variable MYSQLSH_OCI_CONFIG_FILE");
@@ -68,7 +68,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             }, constants.explicitWait, "config editor was not opened");
 
             const textEditor = new TextEditor();
-            const editor = await driver.findElement(By.css("textarea"));
+            const editor = await driver.findElement(locator.notebook.codeEditor.textArea);
             let config = `[E2ETESTS]\nuser=ocid1.user.oc1..aaaaaaaan67cojwa52khe44xtpqsygzxlk4te6gqs7nkmy`;
             config += `abcju2w5wlxcpq\nfingerprint=15:cd:e2:11:ed:0b:97:c4:e4:41:c5:44:18:66:72:80\n`;
             config += `tenancy=ocid1.tenancy.oc1..aaaaaaaaasur3qcs245czbgrlyshd7u5joblbvmxddigtubzqcfo`;
@@ -91,6 +91,18 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             throw e;
         }
 
+    });
+
+    after(async function () {
+        try {
+            const dbConnections = await Misc.getDBConnections();
+            for (const dbConnection of dbConnections) {
+                await Misc.deleteConnection(dbConnection.name, dbConnection.isMySQL);
+            }
+        } catch (e) {
+            await Misc.processFailure(this);
+            throw e;
+        }
     });
 
     describe("Profile", () => {
@@ -535,44 +547,49 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 await Misc.openContextMenuItem(treeDbSystem, constants.createConnWithBastion,
                     constants.checkNewTabAndWebView);
                 await driver.wait(Database.isConnectionLoaded(), constants.explicitWait, "Connection was not loaded");
-                const newConDialog = await driver.wait(until.elementLocated(By.css(".valueEditDialog")),
+                const newConDialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
                     10000, "Connection dialog was not loaded");
 
-                expect(await newConDialog.findElement(By.id("caption")).getAttribute("value"))
+                expect(await newConDialog.findElement(locator.dbConnectionDialog.caption).getAttribute("value"))
                     .to.equal("MDSforVSCodeExtension");
-                expect(await newConDialog.findElement(By.id("description")).getAttribute("value"))
+                expect(await newConDialog.findElement(locator.dbConnectionDialog.description).getAttribute("value"))
                     .to.equal("DB System used to test the MySQL Shell for VSCode Extension.");
-                mdsEndPoint = await newConDialog.findElement(By.id("hostName")).getAttribute("value");
+                mdsEndPoint = await newConDialog
+                    .findElement(locator.dbConnectionDialog.mysql.basic.hostname).getAttribute("value");
                 expect(mdsEndPoint).to.match(/(\d+).(\d+).(\d+).(\d+)/);
-                await newConDialog.findElement(By.id("userName")).sendKeys("dba");
-                const mdsTab = await newConDialog.findElement(By.id("page3"));
+                await newConDialog.findElement(locator.dbConnectionDialog.mysql.basic.username).sendKeys("dba");
+                const mdsTab = await newConDialog.findElement(locator.dbConnectionDialog.mdsTab);
                 expect(mdsTab).to.exist;
                 await mdsTab.click();
                 await driver.wait(async () => {
-                    return await driver.findElement(By.id("mysqlDbSystemId")).getAttribute("value") !== "";
+                    return await driver
+                        .findElement(locator.dbConnectionDialog.mysql.mds.dbDystemId).getAttribute("value") !== "";
                 }, 3000, "DbSystemID field was not set");
-                dbSystemOCID = await driver.findElement(By.id("mysqlDbSystemId")).getAttribute("value");
+                dbSystemOCID = await driver
+                    .findElement(locator.dbConnectionDialog.mysql.mds.dbDystemId).getAttribute("value");
                 await driver.wait(async () => {
-                    return await driver.findElement(By.id("bastionId")).getAttribute("value") !== "";
+                    return await driver
+                        .findElement(locator.dbConnectionDialog.mysql.mds.bastionId).getAttribute("value") !== "";
                 }, 3000, "BastionID field was not set");
-                bastionOCID = await driver.findElement(By.id("bastionId")).getAttribute("value");
-                await newConDialog.findElement(By.id("ok")).click();
+                bastionOCID = await driver
+                    .findElement(locator.dbConnectionDialog.mysql.mds.bastionId).getAttribute("value");
+                await newConDialog.findElement(locator.dbConnectionDialog.ok).click();
                 await Misc.switchBackToTopFrame();
                 const mds = await Database.getWebViewConnection("MDSforVSCodeExtension");
                 expect(mds).to.exist;
                 await Misc.switchToFrame();
                 await mds.click();
                 await driver.wait(async () => {
-                    const fingerprintDialog = await driver.findElements(By.css(".visible.confirmDialog"));
-                    let passwordDialog = await driver.findElements(By.css(".visible.passwordDialog"));
-                    const errors = await driver.findElements(By.css(".visible.errorPanel"));
+                    const fingerprintDialog = await driver.findElements(locator.confirmDialog.exists);
+                    let passwordDialog = await driver.findElements(locator.passwordDialog.exists);
+                    const errors = await driver.findElements(locator.errorDialog.exists);
                     if (fingerprintDialog.length > 0) {
-                        await fingerprintDialog[0].findElement(By.id("accept")).click();
-                        passwordDialog = await driver.findElements(By.css(".visible.passwordDialog"));
+                        await fingerprintDialog[0].findElement(locator.confirmDialog.accept).click();
+                        passwordDialog = await driver.findElements(locator.passwordDialog.exists);
                     }
                     if (passwordDialog.length > 0) {
-                        await passwordDialog[0].findElement(By.css("input")).sendKeys("MySQLR0cks!");
-                        await passwordDialog[0].findElement(By.id("ok")).click();
+                        await passwordDialog[0].findElement(locator.passwordDialog.password).sendKeys("MySQLR0cks!");
+                        await passwordDialog[0].findElement(locator.passwordDialog.ok).click();
 
                         return true;
                     }
@@ -596,9 +613,9 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 }
 
                 try {
-                    const confirmDialog = await driver.wait(until.elementLocated(By.css(".visible.confirmDialog")),
+                    const confirmDialog = await driver.wait(until.elementLocated(locator.confirmDialog.exists),
                         constants.explicitWait, "Confirm dialog was not displayed");
-                    await confirmDialog.findElement(By.id("refuse")).click();
+                    await confirmDialog.findElement(locator.confirmDialog.refuse).click();
                 } catch (e) {
                     // continue
                 }

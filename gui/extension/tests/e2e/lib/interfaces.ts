@@ -20,6 +20,7 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 export interface IConnBasicMySQL {
     hostname?: string;
     protocol?: string;
@@ -199,4 +200,9 @@ export interface IRestUser {
     permitLogin?: boolean;
     vendorUserId?: string;
     mappedUserId?: string;
+}
+
+export interface ITreeDBConnection {
+    name: string;
+    isMySQL: boolean;
 }
