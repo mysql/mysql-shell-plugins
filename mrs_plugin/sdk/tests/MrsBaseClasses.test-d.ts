@@ -371,13 +371,13 @@ describe("MRS SDK base types", () => {
     describe("Geometry", () => {
         it("accepts a Well-Known Text string representing an object of a single-value spatial datatype", () => {
             let geometry: Geometry = "Point(15 20)";
-            expectTypeOf(geometry).toEqualTypeOf<Point>;
+            expectTypeOf(geometry).toMatchTypeOf<Point>();
 
             geometry = "LineString(0 0, 10 10, 20 25, 50 60)";
-            expectTypeOf(geometry).toEqualTypeOf<LineString>;
+            expectTypeOf(geometry).toMatchTypeOf<LineString>();
 
             geometry = "Polygon((0 0, 10 0, 10 10, 0 10, 0 0), (5 5, 7 5, 7 7, 5 7, 5 5))";
-            expectTypeOf(geometry).toEqualTypeOf<Polygon>;
+            expectTypeOf(geometry).toMatchTypeOf<Polygon>();
 
             // @ts-expect-error
             geometry = "MultiPoint(0 0, 20 20, 60 60)";
@@ -389,16 +389,16 @@ describe("MRS SDK base types", () => {
 
         it("accepts a GeoJSON object representing an object of a single-value spatial datatype", () => {
             let geometry: Geometry = { type: "Point", coordinates: [15, 20] };
-            expectTypeOf(geometry).toEqualTypeOf<Point>;
+            expectTypeOf(geometry).toMatchTypeOf<Point>();
 
             geometry = { type: "LineString", coordinates: [[0, 0], [10, 10], [20, 25], [50, 60]] };
-            expectTypeOf(geometry).toEqualTypeOf<LineString>;
+            expectTypeOf(geometry).toMatchTypeOf<LineString>();
 
             geometry = {
                 type: "Polygon",
                 coordinates: [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]], [[5, 5], [7, 5], [7, 7], [5, 7], [5, 5]]],
             };
-            expectTypeOf(geometry).toEqualTypeOf<Polygon>;
+            expectTypeOf(geometry).toMatchTypeOf<Polygon>();
 
             // @ts-expect-error
             geometry = { type: "MultiPoint", coordinates: [[0, 0], [20, 20], [60, 60]] };
@@ -418,13 +418,13 @@ describe("MRS SDK base types", () => {
     describe("GeometryCollection", () => {
         it("accepts a Well-Known Text string representing a collection of objects of a spatial datatype", () => {
             let geometryCollection: GeometryCollection = "MultiPoint(0 0, 20 20, 60 60)";
-            expectTypeOf(geometryCollection).toEqualTypeOf<MultiPoint>;
+            expectTypeOf(geometryCollection).toMatchTypeOf<MultiPoint>();
 
             geometryCollection = "MultiLineString((10 10, 20 20), (15 15, 30 15))";
-            expectTypeOf(geometryCollection).toEqualTypeOf<MultiLineString>;
+            expectTypeOf(geometryCollection).toMatchTypeOf<MultiLineString>();
 
             geometryCollection = "MultiPolygon(((0 0, 10 0, 10 10, 0 10, 0 0)),((5 5, 7 5, 7 7, 5 7, 5 5)))";
-            expectTypeOf(geometryCollection).toEqualTypeOf<MultiPolygon>;
+            expectTypeOf(geometryCollection).toMatchTypeOf<MultiPolygon>();
 
             // @ts-expect-error
             geometryCollection = "Point(15 20)";
@@ -439,17 +439,17 @@ describe("MRS SDK base types", () => {
                 type: "MultiPoint",
                 coordinates: [[0, 0], [20, 20], [60, 60]],
             };
-            expectTypeOf(geometryCollection).toEqualTypeOf<MultiPoint>;
+            expectTypeOf(geometryCollection).toMatchTypeOf<MultiPoint>();
 
             geometryCollection = { type: "MultiLineString", coordinates: [[[10, 10], [20, 20]], [[15, 15], [30, 15]]] };
-            expectTypeOf(geometryCollection).toEqualTypeOf<MultiLineString>;
+            expectTypeOf(geometryCollection).toMatchTypeOf<MultiLineString>();
 
             geometryCollection = {
                 type: "MultiPolygon",
                 coordinates: [[[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]],
                     [[[5, 5], [7, 5], [7, 7], [5, 7], [5, 5]]]],
             };
-            expectTypeOf(geometryCollection).toEqualTypeOf<MultiPolygon>;
+            expectTypeOf(geometryCollection).toMatchTypeOf<MultiPolygon>();
 
             // @ts-expect-error
             geometryCollection = { type: "Point", coordinates: [15, 20] };
@@ -458,6 +458,7 @@ describe("MRS SDK base types", () => {
             geometryCollection = {
                 // @ts-expect-error
                 type: "Polygon",
+                // @ts-ignore
                 coordinates: [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]], [[5, 5], [7, 5], [7, 7], [5, 7], [5, 5]]],
             };
         });
