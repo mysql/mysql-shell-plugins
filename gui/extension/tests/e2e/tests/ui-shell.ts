@@ -21,7 +21,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 import {
-    By,
     EditorView,
     until,
     WebElement,
@@ -33,6 +32,7 @@ import { Shell } from "../lib/shell";
 import * as constants from "../lib/constants";
 import * as Until from "../lib/until";
 import * as interfaces from "../lib/interfaces";
+import * as locator from "../lib/locators";
 
 describe("MYSQL SHELL CONSOLES", () => {
 
@@ -81,7 +81,8 @@ describe("MYSQL SHELL CONSOLES", () => {
             await driver.wait(Until.extensionIsReady(), constants.extensionReadyWait, "Extension was not ready");
             await Misc.toggleBottomBar(false);
             await Misc.switchToFrame();
-            await driver.wait(until.elementLocated(By.id("newConsoleMenuButton")), constants.explicitWait * 2).click();
+            await driver.wait(until.elementLocated(locator.dbConnectionOverview.newConsoleButton),
+                constants.explicitWait * 2).click();
             await driver.wait(Shell.isShellLoaded(), constants.explicitWait * 3, "Shell Console was not loaded");
         } catch (e) {
             await Misc.processFailure(this);
@@ -173,13 +174,13 @@ describe("MYSQL SHELL CONSOLES", () => {
             await driver.wait(async () => {
                 return (await Misc.getCmdResultMsg())?.match(/Server version: (\d+).(\d+).(\d+)/);
             }, constants.explicitWait, `'/Server version: (\\d+).(\\d+).(\\d+)/' was not matched`);
-
             await driver.wait(async () => {
                 return (await Misc.getCmdResultMsg())?.includes(`Default schema set to \`${schema}\`.`);
             }, constants.explicitWait, `Could not find 'Default schema set to \`${schema}\`.'`);
-
-            const server = await driver.wait(until.elementLocated(By.id("server")), constants.explicitWait);
-            const schemaEl = await driver.wait(until.elementLocated(By.id("schema")), constants.explicitWait);
+            const server = await driver.wait(until
+                .elementLocated(locator.shellConsole.connectionTab.server), constants.explicitWait);
+            const schemaEl = await driver.wait(until.elementLocated(locator.shellConsole.connectionTab.schema),
+                constants.explicitWait);
             await driver.wait(until.elementTextContains(server, `${hostname}:${port}`),
                 constants.explicitWait, `Server tab does not contain '${hostname}:${port}'`);
             await driver.wait(until.elementTextContains(schemaEl, `${schema}`),
@@ -198,14 +199,14 @@ describe("MYSQL SHELL CONSOLES", () => {
 
             let uri = `\\c ${shellUsername}@${hostname}:${port}/${schema}`;
             const nextResultBlock = await Misc.getNextResultBlockId();
-            const textArea = driver.findElement(By.css("textarea"));
+            const textArea = driver.findElement(locator.notebook.codeEditor.textArea);
             await textArea.sendKeys(uri);
             await Misc.execOnEditor();
             await Database.setDBConnectionCredentials(shellConn);
             await driver.wait(async () => {
                 const next = await driver
                     .findElements(
-                        By.xpath(`//div[@class='zoneHost' and @monaco-view-zone='${String(nextResultBlock)}']`));
+                        locator.notebook.codeEditor.editor.result.existsById(nextResultBlock));
 
                 return next.length > 0;
             }, constants.explicitWait, "Could not get the command results");
@@ -223,9 +224,9 @@ describe("MYSQL SHELL CONSOLES", () => {
                 return (await Misc.getCmdResultMsg())?.includes(`Default schema set to \`${schema}\`.`);
             }, constants.explicitWait, `Could not find 'Default schema set to \`${schema}\`.'`);
 
-            const server = await driver.wait(until.elementLocated(By.id("server")),
+            const server = await driver.wait(until.elementLocated(locator.shellConsole.connectionTab.server),
                 constants.explicitWait, "Server tab was not found");
-            const schemaEl = await driver.wait(until.elementLocated(By.id("schema")),
+            const schemaEl = await driver.wait(until.elementLocated(locator.shellConsole.connectionTab.schema),
                 constants.explicitWait, "Schema tab was not found");
             await driver.wait(until.elementTextContains(server, `${hostname}:${port}`),
                 constants.explicitWait, `Server tab does not contain '${hostname}:${port}'`);
@@ -251,8 +252,10 @@ describe("MYSQL SHELL CONSOLES", () => {
                 return (await Misc.getCmdResultMsg())?.includes(`Default schema \`${schema}\``);
             }, constants.explicitWait, `Could not find 'Default schema set to \`${schema}\`.'`);
 
-            const server = await driver.wait(until.elementLocated(By.id("server")), constants.explicitWait);
-            const schemaEl = await driver.wait(until.elementLocated(By.id("schema")), constants.explicitWait);
+            const server = await driver.wait(until
+                .elementLocated(locator.shellConsole.connectionTab.server), constants.explicitWait);
+            const schemaEl = await driver.wait(until.elementLocated(locator.shellConsole.connectionTab.schema),
+                constants.explicitWait);
             await driver.wait(until.elementTextContains(server, `${hostname}:${port}`),
                 constants.explicitWait, `Server tab does not contain '${hostname}:${port}'`);
             await driver.wait(until.elementTextContains(schemaEl, `${schema}`),
@@ -286,11 +289,11 @@ describe("MYSQL SHELL CONSOLES", () => {
                 await Misc.openContextMenuItem(treeDBConnections, constants.openNewShellConsole,
                     constants.checkNewTabAndWebView);
                 await driver.wait(Shell.isShellLoaded(), constants.explicitWait * 3, "Shell Console was not loaded");
-                const editor = await driver.wait(until.elementLocated(By.id("shellEditorHost")),
+                const editor = await driver.wait(until.elementLocated(locator.shellConsole.editor),
                     10000, "Console was not loaded");
                 await driver.executeScript(
                     "arguments[0].click();",
-                    await editor.findElement(By.css(".current-line")),
+                    await editor.findElement(locator.shellConsole.currentLine),
                 );
                 let uri = `\\c ${username}:${password}@${hostname}:${portX}/${schema}`;
                 const result = await Misc.execCmd(uri);
@@ -298,8 +301,10 @@ describe("MYSQL SHELL CONSOLES", () => {
                 expect(result[0]).to.include(uri);
                 uri = `Connection to server ${hostname} at port ${portX},`;
                 uri += ` using the X protocol`;
-                const server = await driver.wait(until.elementLocated(By.id("server")), constants.explicitWait);
-                const schemaEl = await driver.wait(until.elementLocated(By.id("schema")), constants.explicitWait);
+                const server = await driver.wait(until.elementLocated(locator.shellConsole.connectionTab.server),
+                    constants.explicitWait);
+                const schemaEl = await driver.wait(until.elementLocated(locator.shellConsole.connectionTab.schema),
+                    constants.explicitWait);
                 await driver.wait(until.elementTextContains(server,
                     `${hostname}:${String(portX)}`),
                     constants.explicitWait, `Server tab does not contain '${hostname}:${port}'`);
@@ -362,7 +367,7 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         it("Switch session language - javascript python", async () => {
 
-            const editor = await driver.wait(until.elementLocated(By.id("shellEditorHost")),
+            const editor = await driver.wait(until.elementLocated(locator.shellConsole.editor),
                 10000, "Console was not loaded");
             let result = await Misc.execCmd("\\py ");
             expect(result[0]).to.equals("Switching to Python mode...");

@@ -679,34 +679,42 @@ export class DBConnection {
      * @returns A promise resolving with the output
      */
     public static getOutput = async (penultimate?: boolean): Promise<string> => {
-        const zoneHosts = await driver.findElements(By.css(".zoneHost"));
-        let context;
-        if (penultimate) {
-            context = zoneHosts[zoneHosts.length - 2];
-        } else {
-            context = zoneHosts[zoneHosts.length - 1];
-        }
-
-        let items = await context.findElements(By.css("label"));
-        //const otherItems = await context.findElements(By.css(".textHost span"));
-        let text;
-
-        if (items.length > 0) {
-            text = await items[0].getText();
-        } else {
-            items = await context.findElements(By.css(".textHost span"));
-            if (items.length > 0) {
-                text = await items[items.length - 1].getText();
-            } else {
-                items = await context.findElements(By.css(".entry > span"));
-                if (items.length) {
-                    text = await items[items.length - 1].getText();
+        let text = "";
+        await driver.wait(async () => {
+            try {
+                const zoneHosts = await driver.findElements(By.css(".zoneHost"));
+                let context;
+                if (penultimate) {
+                    context = zoneHosts[zoneHosts.length - 2];
                 } else {
-                    items = await context.findElements(By.css(".info"));
+                    context = zoneHosts[zoneHosts.length - 1];
+                }
+
+                let items = await context.findElements(By.css("label"));
+                if (items.length > 0) {
                     text = await items[0].getText();
+                } else {
+                    items = await context.findElements(By.css(".textHost span"));
+                    if (items.length > 0) {
+                        text = await items[items.length - 1].getText();
+                    } else {
+                        items = await context.findElements(By.css(".entry > span"));
+                        if (items.length) {
+                            text = await items[items.length - 1].getText();
+                        } else {
+                            items = await context.findElements(By.css(".info"));
+                            text = await items[0].getText();
+                        }
+                    }
+
+                    return true;
+                }
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
                 }
             }
-        }
+        }, explicitWait, "Could not find the output");
 
         return text;
     };

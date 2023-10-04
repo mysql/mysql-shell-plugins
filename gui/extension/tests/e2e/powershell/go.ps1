@@ -97,15 +97,6 @@ try {
     writeMsg "Using extension: $extPath"
     writeMsg "Using test file: $testFile"
 
-    ## REMOVE EXISTING EXTENSION DATABASES
-    $guiPluginFolder = Join-Path $env:userprofile "mysqlsh-$env:TEST_SUITE" "plugin_data" "gui_plugin"
-    $files = Get-ChildItem -Path $guiPluginFolder -Filter "*mysqlsh_gui*"
-    foreach ($file in $files)     {
-        writeMsg "Removing file $file" "-NoNewLine"
-        Remove-Item $file -Force
-        writeMsg "DONE"
-    }
-
     ## TRUNCATE MYSQLSH FILE
     $msqlsh = Join-Path $env:userprofile "mysqlsh-$env:TEST_SUITE" "mysqlsh.log"
     writeMsg "Truncating $msqlsh ..." "-NoNewLine"

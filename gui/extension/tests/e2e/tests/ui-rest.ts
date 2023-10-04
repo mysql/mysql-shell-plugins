@@ -25,7 +25,6 @@ import { join } from "path";
 import * as fs from "fs/promises";
 import { expect } from "chai";
 import {
-    By,
     Workbench,
     until,
     BottomBarPanel,
@@ -37,6 +36,7 @@ import { Database } from "../lib/db";
 import * as constants from "../lib/constants";
 import * as interfaces from "../lib/interfaces";
 import * as Until from "../lib/until";
+import * as locator from "../lib/locators";
 import { hostname } from "os";
 
 describe("MySQL REST Service", () => {
@@ -59,7 +59,7 @@ describe("MySQL REST Service", () => {
 
     const globalConn: interfaces.IDBConnection = {
         dbType: "MySQL",
-        caption: "conn",
+        caption: "globalConnection",
         description: "Local connection",
         basic: {
             hostname: String(process.env.DBHOSTNAME),
@@ -84,6 +84,8 @@ describe("MySQL REST Service", () => {
             const randomCaption = String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000));
             globalConn.caption += randomCaption;
             await Database.createConnection(globalConn);
+            await Misc.switchBackToTopFrame();
+            let treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
             const conn = await Database.getWebViewConnection(globalConn.caption, true);
             await Misc.switchToFrame();
             await driver.executeScript("arguments[0].click();", conn);
@@ -100,7 +102,7 @@ describe("MySQL REST Service", () => {
             result = await Misc.execCmd(sql);
             expect(result[0]).to.match(/OK/);
             await Misc.switchBackToTopFrame();
-            const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
+            treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
             await Misc.expandDBConnectionTree(treeGlobalConn,
                 (globalConn.basic as interfaces.IConnBasicMySQL).password);
             await Misc.openContextMenuItem(treeGlobalConn, constants.configureREST, constants.checkNotif);
@@ -108,7 +110,7 @@ describe("MySQL REST Service", () => {
                 `Do you want to configure this instance for MySQL REST Service Support?`, false);
             await Misc.clickOnNotificationButton(ntf, "Yes");
             await driver.wait(async () => {
-                const inputWidget = await driver.findElements(By.css(".quick-input-widget"));
+                const inputWidget = await driver.findElements(locator.inputBox.exists);
                 const hasNotifications = (await new Workbench().getNotifications()).length > 0;
                 if (hasNotifications) {
                     return true;
@@ -122,6 +124,18 @@ describe("MySQL REST Service", () => {
             await Misc.getNotification("MySQL REST Service configured successfully.");
             await Misc.openContextMenuItem(treeGlobalConn, constants.showSystemSchemas, undefined);
             expect(await Misc.existsTreeElement(constants.dbTreeSection, "mysql_rest_service_metadata")).to.be.true;
+        } catch (e) {
+            await Misc.processFailure(this);
+            throw e;
+        }
+    });
+
+    after(async function () {
+        try {
+            const dbConnections = await Misc.getDBConnections();
+            for (const dbConnection of dbConnections) {
+                await Misc.deleteConnection(dbConnection.name, dbConnection.isMySQL);
+            }
         } catch (e) {
             await Misc.processFailure(this);
             throw e;
@@ -250,7 +264,7 @@ describe("MySQL REST Service", () => {
                 constants.checkNewTabAndWebView);
             try {
                 await driver.wait(async () => {
-                    const titles = await driver.findElements(By.css("h1"));
+                    const titles = await driver.findElements(locator.mrsDocumentation.title);
                     for (const title of titles) {
                         if (await title.getText() === "MRS Developer's Guide") {
                             return true;
@@ -848,7 +862,8 @@ describe("MySQL REST Service", () => {
                 `${globalService.servicePath} (${globalService.settings.hostNameFilter})`);
             await Misc.openContextMenuItem(treeRandomService, constants.mrsServiceDocs,
                 constants.checkNewTabAndWebView);
-            await driver.wait(until.elementLocated(By.id("rest-service-properties")), constants.explicitWait);
+            await driver.wait(until
+                .elementLocated(locator.mrsDocumentation.restServiceProperties), constants.explicitWait);
             await Misc.switchBackToTopFrame();
             await new EditorView().closeEditor(constants.mrsDocs);
 
