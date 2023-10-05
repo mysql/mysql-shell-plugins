@@ -151,6 +151,104 @@
                                 class="toc-section-number">2.6</span>
                                 CREATE REST CONTENT SET</a></li>
                                 </ul></li>
+                                <li><a href="#alter"
+                                id="toc-alter"><span
+                                class="toc-section-number">3</span>
+                                ALTER</a>
+                                <ul>
+                                <li><a href="#alter-rest-service"
+                                id="toc-alter-rest-service"><span
+                                class="toc-section-number">3.1</span>
+                                ALTER REST SERVICE</a></li>
+                                <li><a href="#alter-rest-schema"
+                                id="toc-alter-rest-schema"><span
+                                class="toc-section-number">3.2</span>
+                                ALTER REST SCHEMA</a></li>
+                                <li><a href="#alter-rest-duality-view"
+                                id="toc-alter-rest-duality-view"><span
+                                class="toc-section-number">3.3</span>
+                                ALTER REST DUALITY VIEW</a></li>
+                                <li><a href="#alter-rest-procedure"
+                                id="toc-alter-rest-procedure"><span
+                                class="toc-section-number">3.4</span>
+                                ALTER REST PROCEDURE</a></li>
+                                </ul></li>
+                                <li><a href="#drop" id="toc-drop"><span
+                                class="toc-section-number">4</span>
+                                DROP</a>
+                                <ul>
+                                <li><a href="#drop-rest-service"
+                                id="toc-drop-rest-service"><span
+                                class="toc-section-number">4.1</span>
+                                DROP REST SERVICE</a></li>
+                                <li><a href="#drop-rest-schema"
+                                id="toc-drop-rest-schema"><span
+                                class="toc-section-number">4.2</span>
+                                DROP REST SCHEMA</a></li>
+                                <li><a href="#drop-rest-duality-view"
+                                id="toc-drop-rest-duality-view"><span
+                                class="toc-section-number">4.3</span>
+                                DROP REST DUALITY VIEW</a></li>
+                                <li><a href="#drop-rest-procedure"
+                                id="toc-drop-rest-procedure"><span
+                                class="toc-section-number">4.4</span>
+                                DROP REST PROCEDURE</a></li>
+                                <li><a href="#drop-rest-content-set"
+                                id="toc-drop-rest-content-set"><span
+                                class="toc-section-number">4.5</span>
+                                DROP REST CONTENT SET</a></li>
+                                </ul></li>
+                                <li><a href="#use-and-show"
+                                id="toc-use-and-show"><span
+                                class="toc-section-number">5</span> USE
+                                and SHOW</a>
+                                <ul>
+                                <li><a href="#use" id="toc-use"><span
+                                class="toc-section-number">5.1</span>
+                                USE</a></li>
+                                <li><a href="#show-rest-status"
+                                id="toc-show-rest-status"><span
+                                class="toc-section-number">5.2</span>
+                                SHOW REST STATUS</a></li>
+                                <li><a href="#show-rest-services"
+                                id="toc-show-rest-services"><span
+                                class="toc-section-number">5.3</span>
+                                SHOW REST SERVICES</a></li>
+                                <li><a href="#show-rest-schemas"
+                                id="toc-show-rest-schemas"><span
+                                class="toc-section-number">5.4</span>
+                                SHOW REST SCHEMAS</a></li>
+                                <li><a href="#show-rest-duality-views"
+                                id="toc-show-rest-duality-views"><span
+                                class="toc-section-number">5.5</span>
+                                SHOW REST DUALITY VIEWS</a></li>
+                                <li><a href="#show-rest-procedures"
+                                id="toc-show-rest-procedures"><span
+                                class="toc-section-number">5.6</span>
+                                SHOW REST PROCEDURES</a></li>
+                                <li><a href="#show-rest-content-sets"
+                                id="toc-show-rest-content-sets"><span
+                                class="toc-section-number">5.7</span>
+                                SHOW REST CONTENT SETS</a></li>
+                                <li><a href="#show-create-rest-service"
+                                id="toc-show-create-rest-service"><span
+                                class="toc-section-number">5.8</span>
+                                SHOW CREATE REST SERVICE</a></li>
+                                <li><a href="#show-create-rest-schema"
+                                id="toc-show-create-rest-schema"><span
+                                class="toc-section-number">5.9</span>
+                                SHOW CREATE REST SCHEMA</a></li>
+                                <li><a
+                                href="#show-create-rest-duality-view"
+                                id="toc-show-create-rest-duality-view"><span
+                                class="toc-section-number">5.10</span>
+                                SHOW CREATE REST DUALITY VIEW</a></li>
+                                <li><a
+                                href="#show-create-rest-procedure"
+                                id="toc-show-create-rest-procedure"><span
+                                class="toc-section-number">5.11</span>
+                                SHOW CREATE REST PROCEDURE</a></li>
+                                </ul></li>
                                 </ul>
                             </nav>
         </div>
@@ -728,13 +826,25 @@
                 Disabling a REST Schema at Creation Time</h3>
                 <p>The <code>enabledDisabled</code> option specifies
                 whether the REST schema should be enabled or disabled
-                after it has been created.</p>
+                what it is created.</p>
                 <p>enabledDisabled ::= <img
                 src="sections/ddl/../../images/ddl/enabledDisabled.svg"
                 title="enabledDisabled" alt="enabledDisabled" /></p>
                 <h3 data-number="2.3.2"
+                id="requiring-authentication-for-rest-schema-access"><span
+                class="header-section-number">2.3.2</span> Requiring
+                Authentication for REST Schema Access</h3>
+                <p>The <code>authenticationRequired</code> option
+                specifies if a REST schema and its objects require
+                authentication before accessing their REST
+                endpoints.</p>
+                <p>authenticationRequired ::= <img
+                src="sections/ddl/../../images/ddl/authenticationRequired.svg"
+                title="authenticationRequired"
+                alt="authenticationRequired" /></p>
+                <h3 data-number="2.3.3"
                 id="specifying-the-default-page-count"><span
-                class="header-section-number">2.3.2</span> Specifying
+                class="header-section-number">2.3.3</span> Specifying
                 the Default Page Count</h3>
                 <p>The <code>itemsPerPage</code> option can be used to
                 specify the default number of items returned for queries
@@ -744,9 +854,9 @@
                 title="itemsPerPage" alt="itemsPerPage" /></p>
                 <p>The number of items per page can also be specified
                 for each REST object individually.</p>
-                <h3 data-number="2.3.3"
+                <h3 data-number="2.3.4"
                 id="rest-schema-json-options"><span
-                class="header-section-number">2.3.3</span> REST Schema
+                class="header-section-number">2.3.4</span> REST Schema
                 Json Options</h3>
                 <p>The jsonOptions allow to set a number of specific
                 options for the service.</p>
@@ -774,8 +884,8 @@
                 practice to include a unique prefix when adding custom
                 keys to avoid them be overwritten by future MRS
                 options.</p>
-                <h3 data-number="2.3.4" id="rest-schema-comments"><span
-                class="header-section-number">2.3.4</span> REST Schema
+                <h3 data-number="2.3.5" id="rest-schema-comments"><span
+                class="header-section-number">2.3.5</span> REST Schema
                 Comments</h3>
                 <p>The comments can hold a description of the REST
                 schema. The maximal length is of the comments string is
@@ -789,7 +899,16 @@
                 DUALITY VIEW</h2>
                 <p>The <code>CREATE REST DUALITY VIEW</code> statement
                 is used to add REST endpoints for database schema tables
-                or views. The will be served as JSON duality views.</p>
+                or views. They will be served as JSON duality views.</p>
+                <p>The structure of the served JSON documents is defined
+                using an <a
+                href="#defining-the-graphql-definition-for-a-rest-duality-view">extended
+                GraphQL syntax</a>. This allows to define even complex
+                REST duality views in a simple and human readable way.
+                Please see the corresponding <a
+                href="#defining-the-graphql-definition-for-a-rest-duality-view">GraphQL
+                section</a> about how to design the GraphQL definition
+                for a REST duality view.</p>
                 <p>Please see the MRS Developer’s Guide to learn more
                 about <a href="index.html#json-duality-views">JSON
                 duality views</a>.</p>
@@ -798,6 +917,10 @@
                 src="sections/ddl/../../images/ddl/createRestViewStatement.svg"
                 title="createRestViewStatement"
                 alt="createRestViewStatement" /></p>
+                <p>serviceSchemaSelector ::= <img
+                src="sections/ddl/../../images/ddl/serviceSchemaSelector.svg"
+                title="serviceSchemaSelector"
+                alt="serviceSchemaSelector" /></p>
                 <p>restDualityViewOptions ::= <img
                 src="sections/ddl/../../images/ddl/restDualityViewOptions.svg"
                 title="restDualityViewOptions"
@@ -814,43 +937,43 @@
 <span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    countryId: country_id,</span>
 <span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    lastUpdate: last_update</span>
 <span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>};</span></code></pre></div>
-                <p>Querying the REST endpoint using the TypeScript SDK
-                returns the following JSON document.</p>
+                <p>Querying the REST duality view using the TypeScript
+                SDK returns the following JSON document.</p>
                 <div class="sourceCode" id="cb12"><pre
-                class="sourceCode js"><code class="sourceCode javascript"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findFirst</span>()<span class="op">;</span></span></code></pre></div>
+                class="sourceCode ts"><code class="sourceCode typescript"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>ts<span class="op">&gt;</span> myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findFirst</span>()<span class="op">;</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;city&quot;</span><span class="op">:</span> <span class="st">&quot;A Corua (La Corua)&quot;</span><span class="op">,</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;links&quot;</span><span class="op">:</span> [</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>      {</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>         <span class="st">&quot;rel&quot;</span><span class="op">:</span> <span class="st">&quot;self&quot;</span><span class="op">,</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>         <span class="st">&quot;href&quot;</span><span class="op">:</span> <span class="st">&quot;/myService/sakila/city/1&quot;</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>   ]<span class="op">,</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;cityId&quot;</span><span class="op">:</span> 1<span class="op">,</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;countryId&quot;</span><span class="op">:</span> 87<span class="op">,</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;lastUpdate&quot;</span><span class="op">:</span> <span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span><span class="op">,</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;_metadata&quot;</span><span class="op">:</span> {</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;etag&quot;</span><span class="op">:</span> <span class="st">&quot;EE93452B41984F3F5BBB0395CCB2CED00F5C748FEEA4A36CCD749CC3F85B7CEA&quot;</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>   }</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <p>The next example adds the referenced table
+                <code>sakila.country</code> to the REST duality
+                view.</p>
                 <div class="sourceCode" id="cb13"><pre
-                class="sourceCode json"><code class="sourceCode json"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>   <span class="dt">&quot;city&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;A Corua (La Corua)&quot;</span><span class="fu">,</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>   <span class="dt">&quot;links&quot;</span><span class="fu">:</span><span class="er"> </span><span class="ot">[</span></span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>      <span class="fu">{</span></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>         <span class="dt">&quot;rel&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;self&quot;</span><span class="fu">,</span></span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>         <span class="dt">&quot;href&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;/myService/sakila/city/1&quot;</span></span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">}</span></span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>   <span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>   <span class="dt">&quot;cityId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">1</span><span class="fu">,</span></span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>   <span class="dt">&quot;countryId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">87</span><span class="fu">,</span></span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>   <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span><span class="fu">,</span></span>
-<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>   <span class="dt">&quot;_metadata&quot;</span><span class="fu">:</span><span class="er"> </span><span class="fu">{</span></span>
-<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;etag&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;EE93452B41984F3F5BBB0395CCB2CED00F5C748FEEA4A36CCD749CC3F85B7CEA&quot;</span></span>
-<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>   <span class="fu">}</span></span>
-<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
-                <p>The next example now adds the referenced table
-                <code>sakila.country</code> to the REST endpoint.</p>
-                <div class="sourceCode" id="cb14"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST DUALITY <span class="kw">VIEW</span> <span class="op">/</span>city</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> `sakila`.`city` <span class="kw">AS</span> MyServiceSakilaCity {</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    cityId: city_id @SORTABLE,</span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    city: city,</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    countryId: country_id,</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    lastUpdate: last_update,</span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    country: sakila.country {</span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>        countryId: country_id @SORTABLE,</span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>        country: country,</span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>        lastUpdate: last_update</span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>};</span></code></pre></div>
-                <p>This is what the REST DUALITY VIEW looks like in the
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST DUALITY <span class="kw">VIEW</span> <span class="op">/</span>city</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> `sakila`.`city` <span class="kw">AS</span> MyServiceSakilaCity {</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    cityId: city_id @SORTABLE,</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    city: city,</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    countryId: country_id,</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    lastUpdate: last_update,</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    country: sakila.country {</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>        countryId: country_id @SORTABLE,</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>        country: country,</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>        lastUpdate: last_update</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>};</span></code></pre></div>
+                <p>This is what the REST duality view looks like in the
                 interactive MySQL REST Object Dialog in the MySQL Shell
                 for VS Code extension.</p>
                 <figure>
@@ -863,29 +986,28 @@
                 </figure>
                 <p>Running a TypeScript SDK query against this new REST
                 endpoint returns the following JSON Document.</p>
-                <div class="sourceCode" id="cb15"><pre
-                class="sourceCode js"><code class="sourceCode javascript"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findFirst</span>()<span class="op">;</span></span></code></pre></div>
-                <div class="sourceCode" id="cb16"><pre
-                class="sourceCode json"><code class="sourceCode json"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;city&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;A Corua (La Corua)&quot;</span><span class="fu">,</span></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;links&quot;</span><span class="fu">:</span><span class="er"> </span><span class="ot">[</span></span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;rel&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;self&quot;</span><span class="fu">,</span></span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;href&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;/myService/sakila/city/1&quot;</span></span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;cityId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">1</span><span class="fu">,</span></span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;country&quot;</span><span class="fu">:</span><span class="er"> </span><span class="fu">{</span></span>
-<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;country&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;Spain&quot;</span><span class="fu">,</span></span>
-<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;countryId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">87</span><span class="fu">,</span></span>
-<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;2006-02-15 04:44:00.000000&quot;</span></span>
-<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
-<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;countryId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">87</span><span class="fu">,</span></span>
-<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span><span class="fu">,</span></span>
-<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;_metadata&quot;</span><span class="fu">:</span><span class="er"> </span><span class="fu">{</span></span>
-<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;etag&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;FFA2187AD4B98DF48EC40B3E807E0561A71D02C2F4F5A3B953AA6CB6E41CAD16&quot;</span></span>
-<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
-<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+                <div class="sourceCode" id="cb14"><pre
+                class="sourceCode ts"><code class="sourceCode typescript"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>ts<span class="op">&gt;</span> myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findFirst</span>()<span class="op">;</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;city&quot;</span><span class="op">:</span> <span class="st">&quot;A Corua (La Corua)&quot;</span><span class="op">,</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;links&quot;</span><span class="op">:</span> [</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>        {</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;rel&quot;</span><span class="op">:</span> <span class="st">&quot;self&quot;</span><span class="op">,</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;href&quot;</span><span class="op">:</span> <span class="st">&quot;/myService/sakila/city/1&quot;</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    ]<span class="op">,</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;cityId&quot;</span><span class="op">:</span> 1<span class="op">,</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;country&quot;</span><span class="op">:</span> {</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;country&quot;</span><span class="op">:</span> <span class="st">&quot;Spain&quot;</span><span class="op">,</span></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;countryId&quot;</span><span class="op">:</span> 87<span class="op">,</span></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;lastUpdate&quot;</span><span class="op">:</span> <span class="st">&quot;2006-02-15 04:44:00.000000&quot;</span></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>    }<span class="op">,</span></span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;countryId&quot;</span><span class="op">:</span> 87<span class="op">,</span></span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;lastUpdate&quot;</span><span class="op">:</span> <span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span><span class="op">,</span></span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;_metadata&quot;</span><span class="op">:</span> {</span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;etag&quot;</span><span class="op">:</span> <span class="st">&quot;FFA2187AD4B98DF48EC40B3E807E0561A71D02C2F4F5A3B953AA6CB6E41CAD16&quot;</span></span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
                 <h3 data-number="2.4.1" id="preconditions"><span
                 class="header-section-number">2.4.1</span>
                 Preconditions</h3>
@@ -914,21 +1036,135 @@
                 underlying tables of that view. Typically, each table
                 contributes to one (nested) JSON object.</li>
                 </ul>
+                <h3 data-number="2.4.2"
+                id="enabling-or-disabling-a-rest-duality-view-at-creation-time"><span
+                class="header-section-number">2.4.2</span> Enabling or
+                Disabling a REST Duality View at Creation Time</h3>
+                <p>The <code>enabledDisabled</code> option specifies
+                whether the REST duality view should be enabled or
+                disabled when it is created.</p>
+                <p>enabledDisabled ::= <img
+                src="sections/ddl/../../images/ddl/enabledDisabled.svg"
+                title="enabledDisabled" alt="enabledDisabled" /></p>
+                <h3 data-number="2.4.3"
+                id="requiring-authentication-for-rest-duality-views"><span
+                class="header-section-number">2.4.3</span> Requiring
+                Authentication for REST Duality Views</h3>
+                <p>The <code>authenticationRequired</code> option
+                specifies if a REST duality view requires authentication
+                before accessing its REST endpoints.</p>
+                <p>authenticationRequired ::= <img
+                src="sections/ddl/../../images/ddl/authenticationRequired.svg"
+                title="authenticationRequired"
+                alt="authenticationRequired" /></p>
+                <h3 data-number="2.4.4"
+                id="specifying-the-page-count-for-rest-duality-views"><span
+                class="header-section-number">2.4.4</span> Specifying
+                the Page Count for REST Duality Views</h3>
+                <p>The <code>itemsPerPage</code> option can be used to
+                specify the number of items returned for queries run
+                against the REST duality view.</p>
+                <p>itemsPerPage ::= <img
+                src="sections/ddl/../../images/ddl/itemsPerPage.svg"
+                title="itemsPerPage" alt="itemsPerPage" /></p>
+                <p>The number of items per page can also be specified
+                for each REST object individually.</p>
+                <h3 data-number="2.4.5"
+                id="setting-the-media-type-for-rest-duality-views"><span
+                class="header-section-number">2.4.5</span> Setting the
+                Media Type for REST Duality Views</h3>
+                <p>If this REST duality view returns a specific MIME
+                type it can be set via the
+                <code>restViewMediaType</code> option. If MRS should try
+                to automatically detect the file type based on the
+                content of the file the <code>AUTODETECT</code> option
+                can be used.</p>
+                <p>restViewMediaType ::= <img
+                src="sections/ddl/../../images/ddl/restViewMediaType.svg"
+                title="restViewMediaType" alt="restViewMediaType" /></p>
+                <h3 data-number="2.4.6"
+                id="setting-the-result-format-for-rest-duality-views"><span
+                class="header-section-number">2.4.6</span> Setting the
+                Result Format for REST Duality Views</h3>
+                <p>A REST duality view can return one of the following
+                formats which can be set with the
+                <code>restViewFormat</code> option.</p>
+                <ul>
+                <li>FEED: A list of result JSON objects</li>
+                <li>ITEM: A single result item</li>
+                <li>MEDIA: A single blob item. The
+                <code>restViewMediaType</code> option is used to set the
+                corresponding MIME type in this case.</li>
+                </ul>
+                <p>restViewFormat ::= <img
+                src="sections/ddl/../../images/ddl/restViewFormat.svg"
+                title="restViewFormat" alt="restViewFormat" /></p>
+                <h3 data-number="2.4.7"
+                id="using-a-custom-authentication-procedure-for-a-rest-duality-view"><span
+                class="header-section-number">2.4.7</span> Using a
+                Custom Authentication Procedure for a REST Duality
+                View</h3>
+                <p>In case the built in authentication handling does not
+                cover the specific use case for a REST duality view, a
+                custom MySQL stored procedure can be used to handle the
+                authentication check for the given user and the
+                requested CRUD operation.</p>
+                <p>The referenced MySQL stored procedure has to be in
+                the same schema as the database schema object and it has
+                to accept the following parameters:
+                <code>(IN user_id BINARY(16), IN schema VARCHAR(255), IN object VARCHAR(255), IN crud_operation VARCHAR(4))</code>.
+                It needs to returns <code>true</code> or
+                <code>false</code>.</p>
+                <p>restViewAuthenticationProcedure ::= <img
+                src="sections/ddl/../../images/ddl/restViewAuthenticationProcedure.svg"
+                title="restViewAuthenticationProcedure"
+                alt="restViewAuthenticationProcedure" /></p>
+                <h3 data-number="2.4.8"
+                id="defining-the-graphql-definition-for-a-rest-duality-view"><span
+                class="header-section-number">2.4.8</span> Defining the
+                GraphQL definition for a REST Duality View</h3>
+                <p>graphGlObj ::= <img
+                src="sections/ddl/../../images/ddl/graphGlObj.svg"
+                title="graphGlObj" alt="graphGlObj" /></p>
+                <p>graphGlCrudOptions ::= <img
+                src="sections/ddl/../../images/ddl/graphGlCrudOptions.svg"
+                title="graphGlCrudOptions"
+                alt="graphGlCrudOptions" /></p>
+                <p>graphGlPair ::= <img
+                src="sections/ddl/../../images/ddl/graphGlPair.svg"
+                title="graphGlPair" alt="graphGlPair" /></p>
+                <p>graphGlValue ::= <img
+                src="sections/ddl/../../images/ddl/graphGlValue.svg"
+                title="graphGlValue" alt="graphGlValue" /></p>
                 <h2 data-number="2.5" id="create-rest-procedure"><span
                 class="header-section-number">2.5</span> CREATE REST
                 PROCEDURE</h2>
                 <p>The <code>CREATE REST PROCEDURE</code> statement is
                 used to add REST endpoints for database schema stored
-                procedures.</p>
+                procedures. It uses the same <a
+                href="#defining-the-graphql-definition-for-a-rest-duality-view">extended
+                GraphQL syntax</a> as defined for REST duality views to
+                describe the REST procedure’s parameters and result
+                sets. Please make sure to study the <a
+                href="#defining-the-graphql-definition-for-a-rest-duality-view">corresponding
+                section</a>.</p>
                 <p><strong><em>SYNTAX</em></strong></p>
                 <p>createRestProcedureStatement ::= <img
                 src="sections/ddl/../../images/ddl/createRestProcedureStatement.svg"
                 title="createRestProcedureStatement"
                 alt="createRestProcedureStatement" /></p>
+                <p>serviceSchemaSelector ::= <img
+                src="sections/ddl/../../images/ddl/serviceSchemaSelector.svg"
+                title="serviceSchemaSelector"
+                alt="serviceSchemaSelector" /></p>
                 <p>restProcedureOptions ::= <img
                 src="sections/ddl/../../images/ddl/restProcedureOptions.svg"
                 title="restProcedureOptions"
                 alt="restProcedureOptions" /></p>
+                <p>restProcedureResult ::= <img
+                src="sections/ddl/../../images/ddl/restProcedureResult.svg"
+                title="restProcedureResult"
+                alt="restProcedureResult" /></p>
                 <h2 data-number="2.6" id="create-rest-content-set"><span
                 class="header-section-number">2.6</span> CREATE REST
                 CONTENT SET</h2>
@@ -939,10 +1175,466 @@
                 src="sections/ddl/../../images/ddl/createRestContentSetStatement.svg"
                 title="createRestContentSetStatement"
                 alt="createRestContentSetStatement" /></p>
+                <p>serviceSchemaSelector ::= <img
+                src="sections/ddl/../../images/ddl/serviceSchemaSelector.svg"
+                title="serviceSchemaSelector"
+                alt="serviceSchemaSelector" /></p>
                 <p>restContentSetOptions ::= <img
                 src="sections/ddl/../../images/ddl/restContentSetOptions.svg"
                 title="restContentSetOptions"
                 alt="restContentSetOptions" /></p>
+                <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+
+                This program is free software; you can redistribute it and/or modify
+                it under the terms of the GNU General Public License, version 2.0,
+                as published by the Free Software Foundation.
+
+                This program is also distributed with certain software (including
+                but not limited to OpenSSL) that is licensed under separate terms, as
+                designated in a particular file or component or in included license
+                documentation.  The authors of MySQL hereby grant you an additional
+                permission to link the program and your derivative works with the
+                separately licensed software that they have included with MySQL.
+                This program is distributed in the hope that it will be useful,  but
+                WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+                the GNU General Public License, version 2.0, for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program; if not, write to the Free Software Foundation, Inc.,
+                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+                <h1 data-number="3" id="alter"><span
+                class="header-section-number">3</span> ALTER</h1>
+                <h2 data-number="3.1" id="alter-rest-service"><span
+                class="header-section-number">3.1</span> ALTER REST
+                SERVICE</h2>
+                <p>An existing REST service can be altered by using the
+                <code>ALTER REST SERVICE</code> statement. It uses the
+                same <code>restServiceOptions</code> as used by the <a
+                href="#create-rest-service"><code>CREATE REST SERVICE</code></a>
+                statement. Please see the discussion of the options <a
+                href="#create-rest-service">there</a>.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <p>alterRestServiceStatement ::= <img
+                src="sections/ddl/../../images/ddl/alterRestServiceStatement.svg"
+                title="alterRestServiceStatement"
+                alt="alterRestServiceStatement" /></p>
+                <p>restServiceOptions ::= <img
+                src="sections/ddl/../../images/ddl/restServiceOptions.svg"
+                title="restServiceOptions"
+                alt="restServiceOptions" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example alters a REST service
+                <code>/myService</code> by setting a new comment.</p>
+                <div class="sourceCode" id="cb15"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">ALTER</span> REST SERVICE <span class="op">/</span>myService</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    COMMENTS <span class="ot">&quot;A simple, improved REST service&quot;</span>;</span></code></pre></div>
+                <h2 data-number="3.2" id="alter-rest-schema"><span
+                class="header-section-number">3.2</span> ALTER REST
+                SCHEMA</h2>
+                <p>An existing REST schema can be altered by using the
+                <code>ALTER REST SCHEMA</code> statement. It uses the
+                same <code>restSchemaOptions</code> as used by the <a
+                href="#create-rest-schema"><code>CREATE REST SCHEMA</code></a>
+                statement. Please see the discussion of the options
+                there.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <p>alterRestSchemaStatement ::= <img
+                src="sections/ddl/../../images/ddl/alterRestSchemaStatement.svg"
+                title="alterRestSchemaStatement"
+                alt="alterRestSchemaStatement" /></p>
+                <p>restSchemaOptions ::= <img
+                src="sections/ddl/../../images/ddl/restSchemaOptions.svg"
+                title="restSchemaOptions" alt="restSchemaOptions" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example alters a REST schema
+                <code>/myService</code> to use a new request path
+                <code>/myPublicService</code>.</p>
+                <div class="sourceCode" id="cb16"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">ALTER</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila <span class="kw">ON</span> SERVICE <span class="op">/</span>myService</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">NEW</span> REQUEST PATH <span class="op">/</span>myPublicService;</span></code></pre></div>
+                <h2 data-number="3.3" id="alter-rest-duality-view"><span
+                class="header-section-number">3.3</span> ALTER REST
+                DUALITY VIEW</h2>
+                <p>The <code>ALTER REST DUALITY VIEW</code> statement is
+                used to alter existing REST duality views.</p>
+                <p>Please see the corresponding <a
+                href="#defining-the-graphql-definition-for-a-rest-duality-view">GraphQL
+                section</a> about how to design the GraphQL definition
+                for a REST duality view.</p>
+                <p>Please see the MRS Developer’s Guide to learn more
+                about <a href="index.html#json-duality-views">JSON
+                duality views</a>.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <p>alterRestViewStatement ::= <img
+                src="sections/ddl/../../images/ddl/alterRestViewStatement.svg"
+                title="alterRestViewStatement"
+                alt="alterRestViewStatement" /></p>
+                <p>serviceSchemaSelector ::= <img
+                src="sections/ddl/../../images/ddl/serviceSchemaSelector.svg"
+                title="serviceSchemaSelector"
+                alt="serviceSchemaSelector" /></p>
+                <p>restDualityViewOptions ::= <img
+                src="sections/ddl/../../images/ddl/restDualityViewOptions.svg"
+                title="restDualityViewOptions"
+                alt="restDualityViewOptions" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example alters a REST duality view for
+                the <code>sakila.city</code> database schema table and
+                sets a new list of fields.</p>
+                <div class="sourceCode" id="cb17"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="kw">ALTER</span> REST DUALITY <span class="kw">VIEW</span> <span class="op">/</span>city</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> `sakila`.`city` <span class="kw">AS</span> MyServiceSakilaCity {</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    cityId: city_id @SORTABLE,</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    city: city</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>};</span></code></pre></div>
+                <h2 data-number="3.4" id="alter-rest-procedure"><span
+                class="header-section-number">3.4</span> ALTER REST
+                PROCEDURE</h2>
+                <p>The <code>ALTER REST PROCEDURE</code> statement is
+                used to alter REST endpoints for database schema stored
+                procedures.</p>
+                <p>It uses the same <a
+                href="#defining-the-graphql-definition-for-a-rest-duality-view">extended
+                GraphQL syntax</a> as defined for REST duality views to
+                describe the REST procedure’s parameters and result
+                sets. Please make sure to study the <a
+                href="#defining-the-graphql-definition-for-a-rest-duality-view">corresponding
+                section</a>.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <p>alterRestProcedureStatement ::= <img
+                src="sections/ddl/../../images/ddl/alterRestProcedureStatement.svg"
+                title="alterRestProcedureStatement"
+                alt="alterRestProcedureStatement" /></p>
+                <p>serviceSchemaSelector ::= <img
+                src="sections/ddl/../../images/ddl/serviceSchemaSelector.svg"
+                title="serviceSchemaSelector"
+                alt="serviceSchemaSelector" /></p>
+                <p>restProcedureOptions ::= <img
+                src="sections/ddl/../../images/ddl/restProcedureOptions.svg"
+                title="restProcedureOptions"
+                alt="restProcedureOptions" /></p>
+                <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+
+                This program is free software; you can redistribute it and/or modify
+                it under the terms of the GNU General Public License, version 2.0,
+                as published by the Free Software Foundation.
+
+                This program is also distributed with certain software (including
+                but not limited to OpenSSL) that is licensed under separate terms, as
+                designated in a particular file or component or in included license
+                documentation.  The authors of MySQL hereby grant you an additional
+                permission to link the program and your derivative works with the
+                separately licensed software that they have included with MySQL.
+                This program is distributed in the hope that it will be useful,  but
+                WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+                the GNU General Public License, version 2.0, for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program; if not, write to the Free Software Foundation, Inc.,
+                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+                <h1 data-number="4" id="drop"><span
+                class="header-section-number">4</span> DROP</h1>
+                <h2 data-number="4.1" id="drop-rest-service"><span
+                class="header-section-number">4.1</span> DROP REST
+                SERVICE</h2>
+                <p>An existing REST service can be dropped by using the
+                <code>DROP REST SERVICE</code> statement.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <p>dropRestServiceStatement ::= <img
+                src="sections/ddl/../../images/ddl/dropRestServiceStatement.svg"
+                title="dropRestServiceStatement"
+                alt="dropRestServiceStatement" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example drops a REST service with the
+                request path <code>/myService</code>.</p>
+                <div class="sourceCode" id="cb18"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">DROP</span> REST SERVICE <span class="op">/</span>myService;</span></code></pre></div>
+                <h2 data-number="4.2" id="drop-rest-schema"><span
+                class="header-section-number">4.2</span> DROP REST
+                SCHEMA</h2>
+                <p>An existing REST schema can be dropped by using the
+                <code>DROP REST SCHEMA</code> statement.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <p>dropRestSchemaStatement ::= <img
+                src="sections/ddl/../../images/ddl/dropRestSchemaStatement.svg"
+                title="dropRestSchemaStatement"
+                alt="dropRestSchemaStatement" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example drops a REST schema using the
+                request path <code>/myService</code>.</p>
+                <div class="sourceCode" id="cb19"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="kw">DROP</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila <span class="kw">FROM</span> SERVICE <span class="op">/</span>myService;</span></code></pre></div>
+                <h2 data-number="4.3" id="drop-rest-duality-view"><span
+                class="header-section-number">4.3</span> DROP REST
+                DUALITY VIEW</h2>
+                <p>The <code>DROP REST DUALITY VIEW</code> statement is
+                used to drop existing REST duality views.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <p>dropRestDualityViewStatement ::= <img
+                src="sections/ddl/../../images/ddl/dropRestDualityViewStatement.svg"
+                title="dropRestDualityViewStatement"
+                alt="dropRestDualityViewStatement" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example drops a REST duality view using
+                the request path <code>/city</code>.</p>
+                <div class="sourceCode" id="cb20"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="kw">DROP</span> REST DUALITY <span class="kw">VIEW</span> <span class="op">/</span>city</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
+                <h2 data-number="4.4" id="drop-rest-procedure"><span
+                class="header-section-number">4.4</span> DROP REST
+                PROCEDURE</h2>
+                <p>The <code>DROP REST PROCEDURE</code> statement is
+                used to drop an existing REST procedures.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <p>dropRestProcedureStatement ::= <img
+                src="sections/ddl/../../images/ddl/dropRestProcedureStatement.svg"
+                title="dropRestProcedureStatement"
+                alt="dropRestProcedureStatement" /></p>
+                <h2 data-number="4.5" id="drop-rest-content-set"><span
+                class="header-section-number">4.5</span> DROP REST
+                CONTENT SET</h2>
+                <p>The <code>DROP REST CONTENT SET</code> statement is
+                used to drop an existing REST static content set.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <p>dropRestContentSetStatement ::= <img
+                src="sections/ddl/../../images/ddl/dropRestContentSetStatement.svg"
+                title="dropRestContentSetStatement"
+                alt="dropRestContentSetStatement" /></p>
+                <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+
+                This program is free software; you can redistribute it and/or modify
+                it under the terms of the GNU General Public License, version 2.0,
+                as published by the Free Software Foundation.
+
+                This program is also distributed with certain software (including
+                but not limited to OpenSSL) that is licensed under separate terms, as
+                designated in a particular file or component or in included license
+                documentation.  The authors of MySQL hereby grant you an additional
+                permission to link the program and your derivative works with the
+                separately licensed software that they have included with MySQL.
+                This program is distributed in the hope that it will be useful,  but
+                WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+                the GNU General Public License, version 2.0, for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program; if not, write to the Free Software Foundation, Inc.,
+                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+                <h1 data-number="5" id="use-and-show"><span
+                class="header-section-number">5</span> USE and SHOW</h1>
+                <h2 data-number="5.1" id="use"><span
+                class="header-section-number">5.1</span> USE</h2>
+                <p>An existing REST service can be dropped by using the
+                <code>DROP REST SERVICE</code> statement.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <p>useStatement ::= <img
+                src="sections/ddl/../../images/ddl/useStatement.svg"
+                title="useStatement" alt="useStatement" /></p>
+                <p>serviceAndSchemaRequestPaths ::= <img
+                src="sections/ddl/../../images/ddl/serviceAndSchemaRequestPaths.svg"
+                title="serviceAndSchemaRequestPaths"
+                alt="serviceAndSchemaRequestPaths" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example makes the REST service with the
+                request path <code>/myService</code> the new default
+                REST service.</p>
+                <div class="sourceCode" id="cb21"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="kw">USE</span> REST SERVICE <span class="op">/</span>myService;</span></code></pre></div>
+                <p>After the default REST service has been set, the
+                following statement can be used to set the default REST
+                schema.</p>
+                <div class="sourceCode" id="cb22"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="kw">USE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
+                <p>The next example shows how to set the default REST
+                service and REST schema in a single statement.</p>
+                <div class="sourceCode" id="cb23"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="kw">USE</span> REST SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
+                <h2 data-number="5.2" id="show-rest-status"><span
+                class="header-section-number">5.2</span> SHOW REST
+                STATUS</h2>
+                <p>The <code>SHOW REST STATUS</code> statement is used
+                to get basic information about the current status of the
+                MySQL REST Service.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <p>showRestMetadataStatusStatement ::= <img
+                src="sections/ddl/../../images/ddl/showRestMetadataStatusStatement.svg"
+                title="showRestMetadataStatusStatement"
+                alt="showRestMetadataStatusStatement" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example drops a REST schema using the
+                request path <code>/myService</code>.</p>
+                <div class="sourceCode" id="cb24"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>SHOW REST STATUS;</span></code></pre></div>
+                <h2 data-number="5.3" id="show-rest-services"><span
+                class="header-section-number">5.3</span> SHOW REST
+                SERVICES</h2>
+                <p>The <code>SHOW REST SERVICES</code> statement lists
+                all available REST services.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <p>showRestServicesStatement ::= <img
+                src="sections/ddl/../../images/ddl/showRestServicesStatement.svg"
+                title="showRestServicesStatement"
+                alt="showRestServicesStatement" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example lists all REST services.</p>
+                <div class="sourceCode" id="cb25"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>SHOW REST SERVICES;</span></code></pre></div>
+                <h2 data-number="5.4" id="show-rest-schemas"><span
+                class="header-section-number">5.4</span> SHOW REST
+                SCHEMAS</h2>
+                <p>The <code>SHOW REST SCHEMAS</code> statement lists
+                all available REST schemas of the given or current REST
+                service.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <p>showRestSchemasStatement ::= <img
+                src="sections/ddl/../../images/ddl/showRestSchemasStatement.svg"
+                title="showRestSchemasStatement"
+                alt="showRestSchemasStatement" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example lists all REST schemas of the
+                REST service using the request path
+                <code>/myService</code>.</p>
+                <div class="sourceCode" id="cb26"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>SHOW REST SERVICES <span class="kw">FROM</span> <span class="op">/</span>myService;</span></code></pre></div>
+                <h2 data-number="5.5" id="show-rest-duality-views"><span
+                class="header-section-number">5.5</span> SHOW REST
+                DUALITY VIEWS</h2>
+                <p>The <code>SHOW REST DUALITY VIEWS</code> statement
+                lists all available REST duality views of the given or
+                current REST schema.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <p>showRestViewsStatement ::= <img
+                src="sections/ddl/../../images/ddl/showRestViewsStatement.svg"
+                title="showRestViewsStatement"
+                alt="showRestViewsStatement" /></p>
+                <p>serviceSchemaSelector ::= <img
+                src="sections/ddl/../../images/ddl/serviceSchemaSelector.svg"
+                title="serviceSchemaSelector"
+                alt="serviceSchemaSelector" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example lists all REST duality views of
+                the given REST schema.</p>
+                <div class="sourceCode" id="cb27"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>SHOW REST DUALITY VIEWS <span class="kw">FROM</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
+                <h2 data-number="5.6" id="show-rest-procedures"><span
+                class="header-section-number">5.6</span> SHOW REST
+                PROCEDURES</h2>
+                <p>The <code>SHOW REST PROCEDURES</code> statement lists
+                all available REST procedures of the given or current
+                REST schema.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <p>showRestProceduresStatement ::= <img
+                src="sections/ddl/../../images/ddl/showRestProceduresStatement.svg"
+                title="showRestProceduresStatement"
+                alt="showRestProceduresStatement" /></p>
+                <p>serviceSchemaSelector ::= <img
+                src="sections/ddl/../../images/ddl/serviceSchemaSelector.svg"
+                title="serviceSchemaSelector"
+                alt="serviceSchemaSelector" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example lists all REST procedures of
+                the given REST schema.</p>
+                <div class="sourceCode" id="cb28"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>SHOW REST PROCEDURES <span class="kw">FROM</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
+                <h2 data-number="5.7" id="show-rest-content-sets"><span
+                class="header-section-number">5.7</span> SHOW REST
+                CONTENT SETS</h2>
+                <p>The <code>SHOW REST CONTENT SETS</code> statement
+                lists all available REST procedures of the given or
+                current REST schema.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <p>showRestContentSetsStatement ::= <img
+                src="sections/ddl/../../images/ddl/showRestContentSetsStatement.svg"
+                title="showRestContentSetsStatement"
+                alt="showRestContentSetsStatement" /></p>
+                <p>serviceSchemaSelector ::= <img
+                src="sections/ddl/../../images/ddl/serviceSchemaSelector.svg"
+                title="serviceSchemaSelector"
+                alt="serviceSchemaSelector" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example lists all REST content sets of
+                the given REST schema.</p>
+                <div class="sourceCode" id="cb29"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>SHOW REST CONTENT SETS <span class="kw">FROM</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
+                <h2 data-number="5.8"
+                id="show-create-rest-service"><span
+                class="header-section-number">5.8</span> SHOW CREATE
+                REST SERVICE</h2>
+                <p>The <code>SHOW CREATE REST SERVICE</code> statement
+                shows the corresponding DDL statement for the given REST
+                service.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <p>showCreateRestServiceStatement ::= <img
+                src="sections/ddl/../../images/ddl/showCreateRestServiceStatement.svg"
+                title="showCreateRestServiceStatement"
+                alt="showCreateRestServiceStatement" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example shows the DDL statement for the
+                REST service with request path
+                <code>/myService</code>.</p>
+                <div class="sourceCode" id="cb30"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST SERVICE <span class="op">/</span>myService;</span></code></pre></div>
+                <h2 data-number="5.9" id="show-create-rest-schema"><span
+                class="header-section-number">5.9</span> SHOW CREATE
+                REST SCHEMA</h2>
+                <p>The <code>SHOW CREATE REST SCHEMA</code> statement
+                shows the corresponding DDL statement for the given REST
+                schema.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <p>showCreateRestSchemaStatement ::= <img
+                src="sections/ddl/../../images/ddl/showCreateRestSchemaStatement.svg"
+                title="showCreateRestSchemaStatement"
+                alt="showCreateRestSchemaStatement" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example shows the DDL statement for the
+                given REST schema.</p>
+                <div class="sourceCode" id="cb31"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila <span class="kw">FROM</span> <span class="op">/</span>myService;</span></code></pre></div>
+                <h2 data-number="5.10"
+                id="show-create-rest-duality-view"><span
+                class="header-section-number">5.10</span> SHOW CREATE
+                REST DUALITY VIEW</h2>
+                <p>The <code>SHOW CREATE REST DUALITY VIEW</code>
+                statement shows the corresponding DDL statement for the
+                given REST duality view.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <p>showCreateRestViewStatement ::= <img
+                src="sections/ddl/../../images/ddl/showCreateRestViewStatement.svg"
+                title="showCreateRestViewStatement"
+                alt="showCreateRestViewStatement" /></p>
+                <p>serviceSchemaSelector ::= <img
+                src="sections/ddl/../../images/ddl/serviceSchemaSelector.svg"
+                title="serviceSchemaSelector"
+                alt="serviceSchemaSelector" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example shows the DDL statement for the
+                given REST duality view.</p>
+                <div class="sourceCode" id="cb32"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST DUALITY <span class="kw">VIEW</span> <span class="op">/</span>city <span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
+                <h2 data-number="5.11"
+                id="show-create-rest-procedure"><span
+                class="header-section-number">5.11</span> SHOW CREATE
+                REST PROCEDURE</h2>
+                <p>The <code>SHOW CREATE REST PROCEDURE</code> statement
+                shows the corresponding DDL statement for the given REST
+                procedure.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <p>showCreateRestProcedureStatement ::= <img
+                src="sections/ddl/../../images/ddl/showCreateRestProcedureStatement.svg"
+                title="showCreateRestProcedureStatement"
+                alt="showCreateRestProcedureStatement" /></p>
+                <p>serviceSchemaSelector ::= <img
+                src="sections/ddl/../../images/ddl/serviceSchemaSelector.svg"
+                title="serviceSchemaSelector"
+                alt="serviceSchemaSelector" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example shows the DDL statement for the
+                given REST procedure.</p>
+                <div class="sourceCode" id="cb33"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST <span class="kw">PROCEDURE</span> <span class="op">/</span>inventory_in_stock <span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
                 <p>Copyright (c) 2023, Oracle and/or its affiliates.</p>
             </div>
         </div>

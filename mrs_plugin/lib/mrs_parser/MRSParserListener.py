@@ -6,7 +6,7 @@ else:
     from MRSParser import MRSParser
 
 # This class defines a complete listener for a parse tree produced by MRSParser.
-class MRSListener(ParseTreeListener):
+class MRSParserListener(ParseTreeListener):
 
     # Enter a parse tree produced by MRSParser#mrsScript.
     def enterMrsScript(self, ctx:MRSParser.MrsScriptContext):
@@ -464,6 +464,15 @@ class MRSListener(ParseTreeListener):
 
     # Exit a parse tree produced by MRSParser#showRestProceduresStatement.
     def exitShowRestProceduresStatement(self, ctx:MRSParser.ShowRestProceduresStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#showRestContentSetsStatement.
+    def enterShowRestContentSetsStatement(self, ctx:MRSParser.ShowRestContentSetsStatementContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#showRestContentSetsStatement.
+    def exitShowRestContentSetsStatement(self, ctx:MRSParser.ShowRestContentSetsStatementContext):
         pass
 
 

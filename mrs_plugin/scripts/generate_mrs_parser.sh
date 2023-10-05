@@ -30,7 +30,7 @@ antlr4ng -Dlanguage=Python3 ./MRSLexer.g4 ./MRSParser.g4 -lib ../../gui/frontend
 if [ $? -eq 0 ]; then
     sed -i '' "1s/.*/$COPYRIGHT/" ../lib/mrs_parser/MRSParser.py
     sed -i '' "1s/.*/$COPYRIGHT/" ../lib/mrs_parser/MRSLexer.py
-    sed -i '' "1s/.*/$COPYRIGHT/" ../lib/mrs_parser/MRSListener.py
+    sed -i '' "1s/.*/$COPYRIGHT/" ../lib/mrs_parser/MRSParserListener.py
 
     echo "MRS parser file generation completed."
 else

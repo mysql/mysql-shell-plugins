@@ -375,7 +375,64 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 raise
 
     def createRestContentSet(self, mrs_object: dict):
-        raise NotImplementedError()
+        self.current_operation = mrs_object.pop("current_operation")
+        do_replace = mrs_object.pop("do_replace")
+
+        request_path = mrs_object.get("request_path")
+        full_path = request_path
+
+        with lib.core.MrsDbTransaction(self.session):
+            try:
+                service_id = self.get_given_or_current_service_id(mrs_object)
+                if service_id is None:
+                    raise Exception("No REST Service specified.")
+
+                full_path = (
+                    mrs_object.get("url_host_name", "") +
+                    mrs_object.get("url_context_root", "") +
+                    request_path)
+
+                # If the OR REPLACE was specified, check if there is an existing content set on the same service
+                # and delete it.
+                if do_replace is not None:
+                    content_set = lib.content_sets.get_content_set(
+                        service_id=service_id,
+                        request_path=mrs_object.get("request_path"),
+                        session=self.session)
+                    if content_set is not None:
+                        lib.content_sets.delete_content_set(
+                            content_set_ids=[content_set.get("id")], session=self.session)
+
+                content_set_id = lib.content_sets.add_content_set(
+                    session=self.session,
+                    service_id=service_id,
+                    request_path=mrs_object.get("request_path"),
+                    requires_auth=mrs_object.get("requires_auth", 1),
+                    comments=mrs_object.get("comments"),
+                    options=mrs_object.get("options"),
+                    enabled=mrs_object.get("enabled", 1)
+                )
+
+                file_list = lib.content_files.add_content_dir(
+                    session=self.session, content_set_id=content_set_id,
+                    content_dir=mrs_object.get("directory_file_path"),
+                    requires_auth=mrs_object.get("requires_auth", True))
+
+                self.results.append({
+                    "statementIndex": len(self.results) + 1,
+                    "type": "success",
+                    "message": f"REST CONTENT SET `{full_path}` created successfully. {len(file_list)} file(s) added.",
+                    "operation": self.current_operation,
+                    "id": mrs_object.get("id")
+                })
+            except Exception as e:
+                self.results.append({
+                    "statementIndex": len(self.results) + 1,
+                    "type": "error",
+                    "message": f"Failed to create the REST CONTENT SET `{full_path}`. {e}",
+                    "operation": self.current_operation
+                })
+                raise
 
     def alterRestService(self, mrs_object: dict):
         self.current_operation = mrs_object.pop("current_operation")
@@ -650,7 +707,44 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 raise
 
     def dropRestContentSet(self, mrs_object: dict):
-        raise NotImplementedError()
+        self.current_operation = mrs_object.pop("current_operation")
+
+        full_path = (
+            mrs_object.get("url_host_name", self.current_service_host) +
+            mrs_object.get("url_context_root", self.current_service) +
+            mrs_object.get("request_path", ""))
+
+        with lib.core.MrsDbTransaction(self.session):
+            try:
+                service_id = self.get_given_or_current_service_id(mrs_object)
+                if service_id is None:
+                    raise Exception("No REST service specified.")
+
+                content_set = lib.content_sets.get_content_set(
+                    service_id=service_id, request_path=mrs_object["request_path"],
+                    session=self.session)
+                if content_set is None:
+                    raise Exception(
+                        f'The given REST content set `{full_path}` could not be found.')
+
+                lib.content_sets.delete_content_set(
+                    content_set_ids=[content_set["id"]], session=self.session)
+
+                self.results.append({
+                    "statementIndex": len(self.results) + 1,
+                    "type": "success",
+                    "message": f'REST content set `{full_path}` dropped successfully.',
+                    "operation": self.current_operation,
+                    "id": lib.core.convert_id_to_string(content_set["id"])
+                })
+            except Exception as e:
+                self.results.append({
+                    "statementIndex": len(self.results) + 1,
+                    "type": "error",
+                    "message": f'Failed to drop the REST content set `{full_path}`. {e}',
+                    "operation": self.current_operation
+                })
+                raise
 
     def use(self, mrs_object: dict):
         self.current_operation = mrs_object.pop("current_operation")
@@ -832,6 +926,39 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             })
             raise
 
+    def showRestContentSets(self, mrs_object: dict):
+        self.current_operation = mrs_object.pop("current_operation")
+
+        try:
+            service_id = self.get_given_or_current_service_id(mrs_object)
+            if service_id is None:
+                raise Exception("No REST Service specified.")
+
+            content_sets = lib.content_sets.get_content_sets(
+                session=self.session, service_id=service_id)
+            result = []
+            for content_set in content_sets:
+                result.append({
+                    "REST content set path": content_set.get("request_path"),
+                    "enabled": content_set.get("enabled") == 1
+                })
+
+            self.results.append({
+                "statementIndex": len(self.results) + 1,
+                "type": "success",
+                "message": f'OK, {len(content_sets)} record{"s" if len(content_sets) > 1 else ""} received.',
+                "operation": self.current_operation,
+                "result": result
+            })
+        except Exception as e:
+            self.results.append({
+                "statementIndex": len(self.results) + 1,
+                "type": "error",
+                "message": f'Cannot SHOW the REST content sets. {e}',
+                "operation": self.current_operation
+            })
+            raise
+
     def showCreateRestService(self, mrs_object: dict):
         self.current_operation = mrs_object.pop("current_operation")
         url_host_name = mrs_object.get(
@@ -1001,7 +1128,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             if db_object["requires_auth"] is True or db_object["requires_auth"] == 1:
                 stmt += "    AUTHENTICATION REQUIRED\n"
 
-            if db_object["items_per_page"] is not None and db_object["items_per_page"] != 25: # 25 is the default value
+            # 25 is the default value
+            if db_object["items_per_page"] is not None and db_object["items_per_page"] != 25:
                 stmt += f'    ITEMS PER PAGE {db_object["items_per_page"]}\n'
 
             if db_object["comments"]:

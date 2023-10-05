@@ -306,10 +306,17 @@ CREATE OR REPLACE REST SCHEMA /sakila ON SERVICE /myService
 
 ### Enabling or Disabling a REST Schema at Creation Time
 
-The `enabledDisabled` option specifies whether the REST schema should be enabled or disabled after it has been created.
+The `enabledDisabled` option specifies whether the REST schema should be enabled or disabled what it is created.
 
 enabledDisabled ::=
 ![enabledDisabled](../../images/ddl/enabledDisabled.svg "enabledDisabled")
+
+### Requiring Authentication for REST Schema Access
+
+The `authenticationRequired` option specifies if a REST schema and its objects require authentication before accessing their REST endpoints.
+
+authenticationRequired ::=
+![authenticationRequired](../../images/ddl/authenticationRequired.svg "authenticationRequired")
 
 ### Specifying the Default Page Count
 
@@ -344,7 +351,9 @@ comments ::=
 
 ## CREATE REST DUALITY VIEW
 
-The `CREATE REST DUALITY VIEW` statement is used to add REST endpoints for database schema tables or views. The will be served as JSON duality views.
+The `CREATE REST DUALITY VIEW` statement is used to add REST endpoints for database schema tables or views. They will be served as JSON duality views.
+
+The structure of the served JSON documents is defined using an [extended GraphQL syntax](#defining-the-graphql-definition-for-a-rest-duality-view). This allows to define even complex REST duality views in a simple and human readable way. Please see the corresponding [GraphQL section](#defining-the-graphql-definition-for-a-rest-duality-view) about how to design the GraphQL definition for a REST duality view.
 
 Please see the MRS Developer's Guide to learn more about [JSON duality views](index.html#json-duality-views).
 
@@ -352,6 +361,9 @@ Please see the MRS Developer's Guide to learn more about [JSON duality views](in
 
 createRestViewStatement ::=
 ![createRestViewStatement](../../images/ddl/createRestViewStatement.svg "createRestViewStatement")
+
+serviceSchemaSelector ::=
+![serviceSchemaSelector](../../images/ddl/serviceSchemaSelector.svg "serviceSchemaSelector")
 
 restDualityViewOptions ::=
 ![restDualityViewOptions](../../images/ddl/restDualityViewOptions.svg "restDualityViewOptions")
@@ -371,13 +383,10 @@ FROM `sakila`.`city` AS MyServiceSakilaCity {
 };
 ```
 
-Querying the REST endpoint using the TypeScript SDK returns the following JSON document.
+Querying the REST duality view using the TypeScript SDK returns the following JSON document.
 
-```js
-myService.sakila.city.findFirst();
-```
-
-```json
+```ts
+ts> myService.sakila.city.findFirst();
 {
    "city": "A Corua (La Corua)",
    "links": [
@@ -395,7 +404,7 @@ myService.sakila.city.findFirst();
 }
 ```
 
-The next example now adds the referenced table `sakila.country` to the REST endpoint.
+The next example adds the referenced table `sakila.country` to the REST duality view.
 
 ```sql
 CREATE OR REPLACE REST DUALITY VIEW /city
@@ -413,17 +422,14 @@ FROM `sakila`.`city` AS MyServiceSakilaCity {
 };
 ```
 
-This is what the REST DUALITY VIEW looks like in the interactive MySQL REST Object Dialog in the MySQL Shell for VS Code extension.
+This is what the REST duality view looks like in the interactive MySQL REST Object Dialog in the MySQL Shell for VS Code extension.
 
 ![Adding a Referenced Table](../../images/vsc-mrs-json-relational-editor-2-referenced-table.png "Adding a Referenced Table")
 
 Running a TypeScript SDK query against this new REST endpoint returns the following JSON Document.
 
-```js
-myService.sakila.city.findFirst();
-```
-
-```json
+```ts
+ts> myService.sakila.city.findFirst();
 {
     "city": "A Corua (La Corua)",
     "links": [
@@ -457,17 +463,87 @@ You define a REST duality view against a set of tables related by primary key (P
 - Each item in the duality view is one JSON object, which is typically a hierarchy of nested objects and arrays.
 - Each application object is built from values originating from one or multiple rows from the underlying tables of that view. Typically, each table contributes to one (nested) JSON object.
 
+### Enabling or Disabling a REST Duality View at Creation Time
+
+The `enabledDisabled` option specifies whether the REST duality view should be enabled or disabled when it is created.
+
+enabledDisabled ::=
+![enabledDisabled](../../images/ddl/enabledDisabled.svg "enabledDisabled")
+
+### Requiring Authentication for REST Duality Views
+
+The `authenticationRequired` option specifies if a REST duality view requires authentication before accessing its REST endpoints.
+
+authenticationRequired ::=
+![authenticationRequired](../../images/ddl/authenticationRequired.svg "authenticationRequired")
+
+### Specifying the Page Count for REST Duality Views
+
+The `itemsPerPage` option can be used to specify the number of items returned for queries run against the REST duality view.
+
+itemsPerPage ::=
+![itemsPerPage](../../images/ddl/itemsPerPage.svg "itemsPerPage")
+
+The number of items per page can also be specified for each REST object individually.
+
+### Setting the Media Type for REST Duality Views
+
+If this REST duality view returns a specific MIME type it can be set via the `restViewMediaType` option. If MRS should try to automatically detect the file type based on the content of the file the `AUTODETECT` option can be used.
+
+restViewMediaType ::=
+![restViewMediaType](../../images/ddl/restViewMediaType.svg "restViewMediaType")
+
+### Setting the Result Format for REST Duality Views
+
+A REST duality view can return one of the following formats which can be set with the `restViewFormat` option.
+
+- FEED: A list of result JSON objects
+- ITEM: A single result item
+- MEDIA: A single blob item. The `restViewMediaType` option is used to set the corresponding MIME type in this case.
+
+restViewFormat ::=
+![restViewFormat](../../images/ddl/restViewFormat.svg "restViewFormat")
+
+### Using a Custom Authentication Procedure for a REST Duality View
+
+In case the built in authentication handling does not cover the specific use case for a REST duality view, a custom MySQL stored procedure can be used to handle the authentication check for the given user and the requested CRUD operation.
+
+The referenced MySQL stored procedure has to be in the same schema as the database schema object and it has to accept the following parameters: `(IN user_id BINARY(16), IN schema VARCHAR(255), IN object VARCHAR(255), IN crud_operation VARCHAR(4))`.  It needs to returns `true` or `false`.
+
+restViewAuthenticationProcedure ::=
+![restViewAuthenticationProcedure](../../images/ddl/restViewAuthenticationProcedure.svg "restViewAuthenticationProcedure")
+
+### Defining the GraphQL definition for a REST Duality View
+
+graphGlObj ::=
+![graphGlObj](../../images/ddl/graphGlObj.svg "graphGlObj")
+
+graphGlCrudOptions ::=
+![graphGlCrudOptions](../../images/ddl/graphGlCrudOptions.svg "graphGlCrudOptions")
+
+graphGlPair ::=
+![graphGlPair](../../images/ddl/graphGlPair.svg "graphGlPair")
+
+graphGlValue ::=
+![graphGlValue](../../images/ddl/graphGlValue.svg "graphGlValue")
+
 ## CREATE REST PROCEDURE
 
-The `CREATE REST PROCEDURE` statement is used to add REST endpoints for database schema stored procedures.
+The `CREATE REST PROCEDURE` statement is used to add REST endpoints for database schema stored procedures. It uses the same [extended GraphQL syntax](#defining-the-graphql-definition-for-a-rest-duality-view) as defined for REST duality views to describe the REST procedure's parameters and result sets. Please make sure to study the [corresponding section](#defining-the-graphql-definition-for-a-rest-duality-view).
 
 **_SYNTAX_**
 
 createRestProcedureStatement ::=
 ![createRestProcedureStatement](../../images/ddl/createRestProcedureStatement.svg "createRestProcedureStatement")
 
+serviceSchemaSelector ::=
+![serviceSchemaSelector](../../images/ddl/serviceSchemaSelector.svg "serviceSchemaSelector")
+
 restProcedureOptions ::=
 ![restProcedureOptions](../../images/ddl/restProcedureOptions.svg "restProcedureOptions")
+
+restProcedureResult ::=
+![restProcedureResult](../../images/ddl/restProcedureResult.svg "restProcedureResult")
 
 ## CREATE REST CONTENT SET
 
@@ -477,6 +553,9 @@ The `CREATE REST CONTENT SET` statement is used to add REST endpoints for static
 
 createRestContentSetStatement ::=
 ![createRestContentSetStatement](../../images/ddl/createRestContentSetStatement.svg "createRestContentSetStatement")
+
+serviceSchemaSelector ::=
+![serviceSchemaSelector](../../images/ddl/serviceSchemaSelector.svg "serviceSchemaSelector")
 
 restContentSetOptions ::=
 ![restContentSetOptions](../../images/ddl/restContentSetOptions.svg "restContentSetOptions")

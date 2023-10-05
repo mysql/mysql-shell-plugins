@@ -1414,17 +1414,9 @@ Execute \\help or \\? for help;`;
                         // Fetch new SDK Service Classes and build full code
                         void updateStatusbar(`$(loading~spin) ${firstLoad ? "Loading" : "Refreshing"} MRS SDK for ` +
                             `${serviceMetadata.hostCtx}...`);
-                        let code = this.cachedMrsServiceSdk.baseClasses + "\n" +
+                        const code = this.cachedMrsServiceSdk.baseClasses + "\n" +
                             await backend.mrs.getSdkServiceClasses(
                                 serviceMetadata.id, "TypeScript", true, this.cachedMrsServiceSdk.serviceUrl);
-
-                        // Set the mrsLoginResult constant
-                        if (this.mrsLoginResult && this.mrsLoginResult.authApp && this.mrsLoginResult.jwt) {
-                            code += "\nconst mrsLoginResult = { " +
-                                `authApp: "${this.mrsLoginResult.authApp}", jwt: "${this.mrsLoginResult.jwt}" };\n`;
-                        } else {
-                            code += "\n";
-                        }
 
                         // Update this.cachedMrsServiceSdk
                         this.cachedMrsServiceSdk.code = code;
@@ -1542,6 +1534,17 @@ Execute \\help or \\? for help;`;
 
                 const usesAwait = context.code.includes("await ");
 
+                let code = this.cachedMrsServiceSdk.code ?? "";
+                let codeLineCount = this.cachedMrsServiceSdk.codeLineCount
+                    ? this.cachedMrsServiceSdk.codeLineCount - 1 : 0;
+
+                // Set the mrsLoginResult constant
+                if (this.mrsLoginResult && this.mrsLoginResult.authApp && this.mrsLoginResult.jwt) {
+                    code = "\nconst mrsLoginResult = { " +
+                        `authApp: "${this.mrsLoginResult.authApp}", jwt: "${this.mrsLoginResult.jwt}" };\n` + code;
+                    codeLineCount += 2;
+                }
+
                 // Execute the code
                 workerPool.runTask({
                     api: ScriptingApi.Request,
@@ -1550,10 +1553,8 @@ Execute \\help or \\? for help;`;
                     // Further, the temporary string "\nexport{}\n" is removed from the code.
                     // Please note that the libCodeLineNumbers need to be adjusted accordingly.
                     // See EmbeddedPresentationInterface.tsx for details.
-                    libCodeLineNumbers: (this.cachedMrsServiceSdk.codeLineCount
-                        ? this.cachedMrsServiceSdk.codeLineCount - 1 : 0)
-                        + (usesAwait ? 1 - 2 + 2 : 0),
-                    code: ts.transpile((this.cachedMrsServiceSdk.code ?? "") +
+                    libCodeLineNumbers: codeLineCount + (usesAwait ? 1 - 2 + 2 : 0),
+                    code: ts.transpile(code +
                         (usesAwait
                             ? "(async () => {\n" + context.code.replace("\nexport{}\n", "") + "})()"
                             : context.code), {

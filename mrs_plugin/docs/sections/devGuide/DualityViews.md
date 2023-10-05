@@ -56,6 +56,68 @@ The next figure shows a typical JSON document update cycle.
 
 The database automatically detects the changes in the new document and modifies the underlying rows, including all nested tables. All duality views that share the same data immediately reflect this change. This drastically simplifies application development since developers no longer have to worry about inconsistencies, compared to using traditional document databases.
 
+## Lock-Free Optimistic Concurrency Control
+
+Duality Views can be safely updated concurrently without the use of locks. Objects fetched from the database have a checksum computed, which is called ETag and is included in the returned object, in the `_metadata.etag` field.
+
+When that object is submitted back to MRS to be updated (via PUT), the ETag of the original object is compared to the current version of the ETag. If the rows corresponding to the object have changed since it was first fetched, the ETag would not match. In that case, the request fails with HTTP status code 412. The client must then fetch the object again and re-submit its update request based on an up-to-date version of the object.
+
+The object checksum includes all fields of the source row as well as any rows joined/included, even filtered fields. Fields can be explicitly excluded using the `@nocheck` attribute.
+
+**_Example_**
+
+If at first, `GET /myService/sakila/city/1` returns the following JSON document to the client.
+
+```json
+{
+    "city": "A Corua (La Corua)",
+    "links": [
+        {
+            "rel": "self",
+            "href": "/myService/sakila/city/1"
+        }
+    ],
+    "cityId": 1,
+    "country": {
+        "country": "Spain",
+        "countryId": 87,
+        "lastUpdate": "2006-02-15 04:44:00.000000"
+    },
+    "countryId": 87,
+    "lastUpdate": "2006-02-15 04:45:25.000000",
+    "_metadata": {
+        "etag": "FFA2187AD4B98DF48EC40B3E807E0561A71D02C2F4F5A3B953AA6CB6E41CAD16"
+    }
+}
+```
+
+Next, the client updates the object and changes the city name to `A Coruña (La Coruña)` and submits it by calling `PUT /myService/sakila/city/1`.
+
+```json
+{
+    "city": "A Coruña (La Coruña)",
+    "links": [
+        {
+            "rel": "self",
+            "href": "/myService/sakila/city/1"
+        }
+    ],
+    "cityId": 1,
+    "country": {
+        "country": "Spain",
+        "countryId": 87,
+        "lastUpdate": "2006-02-15 04:44:00.000000"
+    },
+    "countryId": 87,
+    "lastUpdate": "2006-02-15 04:45:25.000000",
+    "_metadata": {
+        "etag": "FFA2187AD4B98DF48EC40B3E807E0561A71D02C2F4F5A3B953AA6CB6E41CAD16"
+    }
+}
+```
+
+If the target object has been changed (e.g. by another user) between the `GET` and the `PUT` requests, the ETag check would fail and the PUT would result in error `412 Precondition Failed`.
+
 ## Interactive Duality View Design
 
 While REST duality views can be created by manually writing [CREATE REST DUALITY VIEW](ddl.html#create-rest-duality-view) MRS DDL statements, it is often much easier to design REST duality views in a visual editor.

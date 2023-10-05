@@ -208,9 +208,15 @@
                                 class="toc-section-number">6.1</span>
                                 Introduction to Duality Views</a></li>
                                 <li><a
+                                href="#lock-free-optimistic-concurrency-control"
+                                id="toc-lock-free-optimistic-concurrency-control"><span
+                                class="toc-section-number">6.2</span>
+                                Lock-Free Optimistic Concurrency
+                                Control</a></li>
+                                <li><a
                                 href="#interactive-duality-view-design"
                                 id="toc-interactive-duality-view-design"><span
-                                class="toc-section-number">6.2</span>
+                                class="toc-section-number">6.3</span>
                                 Interactive Duality View Design</a></li>
                                 </ul></li>
                                 <li><a href="#mrs-dialog-reference"
@@ -1525,10 +1531,10 @@ router_id=16</code></pre>
 <span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;etag&quot;</span><span class="op">:</span> <span class="st">&quot;EE93452B41984F3F5BBB0395CCB2CED00F5C748FEEA4A36CCD749CC3F85B7CEA&quot;</span></span>
 <span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>   }</span>
 <span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
-                <p>The fields can be filtered and a conditional where
-                clause can be added. Please refer to the <a
-                href="sdk.html">MRS SDK Client API</a> documentation for
-                more information.</p>
+                <p>The fields can be filtered and a conditional
+                <code>where</code> clause can be added. Please refer to
+                the <a href="sdk.html">MRS SDK Client API</a>
+                documentation for more information.</p>
                 <div class="sourceCode" id="cb24"><pre
                 class="sourceCode ts"><code class="sourceCode typescript"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>ts<span class="op">&gt;</span> myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findMany</span>({select<span class="op">:</span> [<span class="st">&quot;city&quot;</span><span class="op">,</span> <span class="st">&quot;cityId&quot;</span>]<span class="op">,</span> where<span class="op">:</span> {city<span class="op">:</span> {$like<span class="op">:</span> <span class="st">&quot;NE%&quot;</span>}}})<span class="op">;</span></span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>{</span>
@@ -1691,8 +1697,85 @@ router_id=16</code></pre>
                 longer have to worry about inconsistencies, compared to
                 using traditional document databases.</p>
                 <h2 data-number="6.2"
+                id="lock-free-optimistic-concurrency-control"><span
+                class="header-section-number">6.2</span> Lock-Free
+                Optimistic Concurrency Control</h2>
+                <p>Duality Views can be safely updated concurrently
+                without the use of locks. Objects fetched from the
+                database have a checksum computed, which is called ETag
+                and is included in the returned object, in the
+                <code>_metadata.etag</code> field.</p>
+                <p>When that object is submitted back to MRS to be
+                updated (via PUT), the ETag of the original object is
+                compared to the current version of the ETag. If the rows
+                corresponding to the object have changed since it was
+                first fetched, the ETag would not match. In that case,
+                the request fails with HTTP status code 412. The client
+                must then fetch the object again and re-submit its
+                update request based on an up-to-date version of the
+                object.</p>
+                <p>The object checksum includes all fields of the source
+                row as well as any rows joined/included, even filtered
+                fields. Fields can be explicitly excluded using the
+                <code>@nocheck</code> attribute.</p>
+                <p><strong><em>Example</em></strong></p>
+                <p>If at first,
+                <code>GET /myService/sakila/city/1</code> returns the
+                following JSON document to the client.</p>
+                <div class="sourceCode" id="cb26"><pre
+                class="sourceCode json"><code class="sourceCode json"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;city&quot;</span><span class="fu">:</span> <span class="st">&quot;A Corua (La Corua)&quot;</span><span class="fu">,</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;links&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;rel&quot;</span><span class="fu">:</span> <span class="st">&quot;self&quot;</span><span class="fu">,</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;href&quot;</span><span class="fu">:</span> <span class="st">&quot;/myService/sakila/city/1&quot;</span></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;cityId&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;country&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;country&quot;</span><span class="fu">:</span> <span class="st">&quot;Spain&quot;</span><span class="fu">,</span></span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;countryId&quot;</span><span class="fu">:</span> <span class="dv">87</span><span class="fu">,</span></span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span> <span class="st">&quot;2006-02-15 04:44:00.000000&quot;</span></span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;countryId&quot;</span><span class="fu">:</span> <span class="dv">87</span><span class="fu">,</span></span>
+<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span> <span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span><span class="fu">,</span></span>
+<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;_metadata&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb26-18"><a href="#cb26-18" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;etag&quot;</span><span class="fu">:</span> <span class="st">&quot;FFA2187AD4B98DF48EC40B3E807E0561A71D02C2F4F5A3B953AA6CB6E41CAD16&quot;</span></span>
+<span id="cb26-19"><a href="#cb26-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb26-20"><a href="#cb26-20" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+                <p>Next, the client updates the object and changes the
+                city name to <code>A Coruña (La Coruña)</code> and
+                submits it by calling
+                <code>PUT /myService/sakila/city/1</code>.</p>
+                <div class="sourceCode" id="cb27"><pre
+                class="sourceCode json"><code class="sourceCode json"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;city&quot;</span><span class="fu">:</span> <span class="st">&quot;A Coruña (La Coruña)&quot;</span><span class="fu">,</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;links&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;rel&quot;</span><span class="fu">:</span> <span class="st">&quot;self&quot;</span><span class="fu">,</span></span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;href&quot;</span><span class="fu">:</span> <span class="st">&quot;/myService/sakila/city/1&quot;</span></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;cityId&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;country&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;country&quot;</span><span class="fu">:</span> <span class="st">&quot;Spain&quot;</span><span class="fu">,</span></span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;countryId&quot;</span><span class="fu">:</span> <span class="dv">87</span><span class="fu">,</span></span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span> <span class="st">&quot;2006-02-15 04:44:00.000000&quot;</span></span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;countryId&quot;</span><span class="fu">:</span> <span class="dv">87</span><span class="fu">,</span></span>
+<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span> <span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span><span class="fu">,</span></span>
+<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;_metadata&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb27-18"><a href="#cb27-18" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;etag&quot;</span><span class="fu">:</span> <span class="st">&quot;FFA2187AD4B98DF48EC40B3E807E0561A71D02C2F4F5A3B953AA6CB6E41CAD16&quot;</span></span>
+<span id="cb27-19"><a href="#cb27-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb27-20"><a href="#cb27-20" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+                <p>If the target object has been changed (e.g. by
+                another user) between the <code>GET</code> and the
+                <code>PUT</code> requests, the ETag check would fail and
+                the PUT would result in error
+                <code>412 Precondition Failed</code>.</p>
+                <h2 data-number="6.3"
                 id="interactive-duality-view-design"><span
-                class="header-section-number">6.2</span> Interactive
+                class="header-section-number">6.3</span> Interactive
                 Duality View Design</h2>
                 <p>While REST duality views can be created by manually
                 writing <a
@@ -1710,9 +1793,9 @@ router_id=16</code></pre>
                 <p>The <code>DDL Preview</code> button allows to preview
                 the corresponding MRS DDL statement while interactively
                 designing the REST duality view.</p>
-                <h3 data-number="6.2.1"
+                <h3 data-number="6.3.1"
                 id="building-a-jsonrelational-duality-view"><span
-                class="header-section-number">6.2.1</span> Building a
+                class="header-section-number">6.3.1</span> Building a
                 JSON/Relational Duality View</h3>
                 <p>Building a REST duality view for a single relational
                 table (or view) is straight forward. Using MySQL Shell
@@ -1736,25 +1819,25 @@ router_id=16</code></pre>
                 <code>graphGlObj</code> definition, which also adds all
                 columns of the table as a <strong>flat</strong> JSON
                 object.</p>
-                <div class="sourceCode" id="cb26"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST DUALITY <span class="kw">VIEW</span> <span class="op">/</span>city</span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> `sakila`.`city` <span class="kw">AS</span> MyServiceSakilaCity;</span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST <span class="kw">VIEW</span> <span class="op">/</span>city;</span></code></pre></div>
-                <div class="sourceCode" id="cb27"><pre
-                class="sourceCode txt"><code class="sourceCode default"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>+-----------------------------------------------+</span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>| CREATE REST DUALITY VIEW                      |</span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>+-----------------------------------------------+</span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>| CREATE OR REPLACE REST DUALITY VIEW /city     |</span>
-<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>|     ON SERVICE /myTestService SCHEMA /sakila  |</span>
-<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>|     AUTHENTICATION REQUIRED                   |</span>
-<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>|     FROM sakila.city AS MyServiceSakilaCity { |</span>
-<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>|         cityId: city_id,                      |</span>
-<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>|         city: city,                           |</span>
-<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>|         countryId: country_id,                |</span>
-<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>|         lastUpdate: last_update               |</span>
-<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>|     };                                        |</span>
-<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>+-----------------------------------------------+</span></code></pre></div>
+                <div class="sourceCode" id="cb28"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST DUALITY <span class="kw">VIEW</span> <span class="op">/</span>city</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> `sakila`.`city` <span class="kw">AS</span> MyServiceSakilaCity;</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST <span class="kw">VIEW</span> <span class="op">/</span>city;</span></code></pre></div>
+                <div class="sourceCode" id="cb29"><pre
+                class="sourceCode txt"><code class="sourceCode default"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>+-----------------------------------------------+</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>| CREATE REST DUALITY VIEW                      |</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>+-----------------------------------------------+</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>| CREATE OR REPLACE REST DUALITY VIEW /city     |</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>|     ON SERVICE /myTestService SCHEMA /sakila  |</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>|     AUTHENTICATION REQUIRED                   |</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>|     FROM sakila.city AS MyServiceSakilaCity { |</span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>|         cityId: city_id,                      |</span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>|         city: city,                           |</span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>|         countryId: country_id,                |</span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>|         lastUpdate: last_update               |</span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>|     };                                        |</span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>+-----------------------------------------------+</span></code></pre></div>
                 <blockquote>
                 <p>Note: In order to be able to access the REST object
                 without authentication, the <code>Requires Auth</code>
@@ -1764,9 +1847,9 @@ router_id=16</code></pre>
                 should only be done during development time or when a
                 REST endpoint should be publicly available.</p>
                 </blockquote>
-                <h4 data-number="6.2.1.1"
+                <h4 data-number="6.3.1.1"
                 id="enabling-crud-operations"><span
-                class="header-section-number">6.2.1.1</span> Enabling
+                class="header-section-number">6.3.1.1</span> Enabling
                 CRUD Operations</h4>
                 <p>Since only the <code>READ</code> CRUD operation is
                 enabled by default (see the <code>R</code> being
@@ -1779,9 +1862,9 @@ router_id=16</code></pre>
                 MySQL REST Object dialog.</p>
                 <p>The same can be achieved by using annotations in the
                 MRS DDL statement.</p>
-                <div class="sourceCode" id="cb28"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST DUALITY <span class="kw">VIEW</span> <span class="op">/</span>city</span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> `sakila`.`city` @INSERT @UPDATE @DELETE <span class="kw">AS</span> MyServiceSakilaCity;</span></code></pre></div>
+                <div class="sourceCode" id="cb30"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST DUALITY <span class="kw">VIEW</span> <span class="op">/</span>city</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> `sakila`.`city` @INSERT @UPDATE @DELETE <span class="kw">AS</span> MyServiceSakilaCity;</span></code></pre></div>
                 <p>The following table shows the mapping between CRUD
                 operations and SQL operations.</p>
                 <table>
@@ -1815,9 +1898,9 @@ router_id=16</code></pre>
                 </tr>
                 </tbody>
                 </table>
-                <h3 data-number="6.2.2"
+                <h3 data-number="6.3.2"
                 id="creating-a-nested-jsonrelational-duality-view"><span
-                class="header-section-number">6.2.2</span> Creating a
+                class="header-section-number">6.3.2</span> Creating a
                 Nested JSON/Relational Duality View</h3>
                 <p>By enabling a referenced table, the columns of that
                 table are included as a nested entry in the JSON result.
@@ -1829,46 +1912,6 @@ router_id=16</code></pre>
                 title="Adding a Referenced Table"
                 alt="Adding a Referenced Table" />
                 <figcaption aria-hidden="true">Adding a Referenced
-                Table</figcaption>
-                </figure>
-                <p>This leads to the following result.</p>
-                <div class="sourceCode" id="cb29"><pre
-                class="sourceCode js"><code class="sourceCode javascript"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findFirst</span>()<span class="op">;</span></span></code></pre></div>
-                <div class="sourceCode" id="cb30"><pre
-                class="sourceCode json"><code class="sourceCode json"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;city&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;A Corua (La Corua)&quot;</span><span class="fu">,</span></span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;links&quot;</span><span class="fu">:</span><span class="er"> </span><span class="ot">[</span></span>
-<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
-<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;rel&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;self&quot;</span><span class="fu">,</span></span>
-<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;href&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;/myService/sakila/city/1&quot;</span></span>
-<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
-<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;cityId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">1</span><span class="fu">,</span></span>
-<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;country&quot;</span><span class="fu">:</span><span class="er"> </span><span class="fu">{</span></span>
-<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;country&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;Spain&quot;</span><span class="fu">,</span></span>
-<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;countryId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">87</span><span class="fu">,</span></span>
-<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;2006-02-15 04:44:00.000000&quot;</span></span>
-<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
-<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;countryId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">87</span><span class="fu">,</span></span>
-<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span><span class="fu">,</span></span>
-<span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;_metadata&quot;</span><span class="fu">:</span><span class="er"> </span><span class="fu">{</span></span>
-<span id="cb30-18"><a href="#cb30-18" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;etag&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;FFA2187AD4B98DF48EC40B3E807E0561A71D02C2F4F5A3B953AA6CB6E41CAD16&quot;</span></span>
-<span id="cb30-19"><a href="#cb30-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
-<span id="cb30-20"><a href="#cb30-20" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
-                <h3 data-number="6.2.3"
-                id="creating-a-jsonrelational-duality-view-with-an-unnested-referenced-table"><span
-                class="header-section-number">6.2.3</span> Creating a
-                JSON/Relational Duality View with an Unnested Referenced
-                Table</h3>
-                <p>If the columns of the referenced table should be
-                added to the level above, the <code>Unnest</code> option
-                can be enabled.</p>
-                <figure>
-                <img
-                src="sections/devGuide/../../images/vsc-mrs-json-relational-editor-3-referenced-table-unnested.png"
-                title="Unnest a Referenced Table"
-                alt="Unnest a Referenced Table" />
-                <figcaption aria-hidden="true">Unnest a Referenced
                 Table</figcaption>
                 </figure>
                 <p>This leads to the following result.</p>
@@ -1884,32 +1927,34 @@ router_id=16</code></pre>
 <span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
 <span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span><span class="fu">,</span></span>
 <span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;cityId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">1</span><span class="fu">,</span></span>
-<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;country&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;Spain&quot;</span><span class="fu">,</span></span>
-<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;countryId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">87</span><span class="fu">,</span></span>
-<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span><span class="fu">,</span></span>
-<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;_metadata&quot;</span><span class="fu">:</span><span class="er"> </span><span class="fu">{</span></span>
-<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;etag&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;48889BABCBBA1491D25DFE0D7A270FA3FDF8A16DA8E44E42C61759DE1F0D6E35&quot;</span></span>
-<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
-<span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
-                <h3 data-number="6.2.4"
-                id="creating-a-jsonrelational-duality-view-with-a-reduced-referenced-table"><span
-                class="header-section-number">6.2.4</span> Creating a
-                JSON/Relational Duality View with a Reduced Referenced
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;country&quot;</span><span class="fu">:</span><span class="er"> </span><span class="fu">{</span></span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;country&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;Spain&quot;</span><span class="fu">,</span></span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;countryId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">87</span><span class="fu">,</span></span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;2006-02-15 04:44:00.000000&quot;</span></span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;countryId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">87</span><span class="fu">,</span></span>
+<span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span><span class="fu">,</span></span>
+<span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;_metadata&quot;</span><span class="fu">:</span><span class="er"> </span><span class="fu">{</span></span>
+<span id="cb32-18"><a href="#cb32-18" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;etag&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;FFA2187AD4B98DF48EC40B3E807E0561A71D02C2F4F5A3B953AA6CB6E41CAD16&quot;</span></span>
+<span id="cb32-19"><a href="#cb32-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb32-20"><a href="#cb32-20" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+                <h3 data-number="6.3.3"
+                id="creating-a-jsonrelational-duality-view-with-an-unnested-referenced-table"><span
+                class="header-section-number">6.3.3</span> Creating a
+                JSON/Relational Duality View with an Unnested Referenced
                 Table</h3>
-                <p>Instead of having all columns unnested and disabling
-                all columns that are not wanted, the
-                <code>Reduce to...</code> dropdown can be used to select
-                the column that should be selected for the reduce
-                operation.</p>
+                <p>If the columns of the referenced table should be
+                added to the level above, the <code>Unnest</code> option
+                can be enabled.</p>
                 <figure>
                 <img
-                src="sections/devGuide/../../images/vsc-mrs-json-relational-editor-4-referenced-table-reduced.png"
-                title="A Reduced Referenced Table"
-                alt="A Reduced Referenced Table" />
-                <figcaption aria-hidden="true">A Reduced Referenced
+                src="sections/devGuide/../../images/vsc-mrs-json-relational-editor-3-referenced-table-unnested.png"
+                title="Unnest a Referenced Table"
+                alt="Unnest a Referenced Table" />
+                <figcaption aria-hidden="true">Unnest a Referenced
                 Table</figcaption>
                 </figure>
-                <p>This leads to the same result as the query above.</p>
+                <p>This leads to the following result.</p>
                 <div class="sourceCode" id="cb33"><pre
                 class="sourceCode js"><code class="sourceCode javascript"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findFirst</span>()<span class="op">;</span></span></code></pre></div>
                 <div class="sourceCode" id="cb34"><pre
@@ -1929,6 +1974,44 @@ router_id=16</code></pre>
 <span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;etag&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;48889BABCBBA1491D25DFE0D7A270FA3FDF8A16DA8E44E42C61759DE1F0D6E35&quot;</span></span>
 <span id="cb34-15"><a href="#cb34-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
 <span id="cb34-16"><a href="#cb34-16" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+                <h3 data-number="6.3.4"
+                id="creating-a-jsonrelational-duality-view-with-a-reduced-referenced-table"><span
+                class="header-section-number">6.3.4</span> Creating a
+                JSON/Relational Duality View with a Reduced Referenced
+                Table</h3>
+                <p>Instead of having all columns unnested and disabling
+                all columns that are not wanted, the
+                <code>Reduce to...</code> dropdown can be used to select
+                the column that should be selected for the reduce
+                operation.</p>
+                <figure>
+                <img
+                src="sections/devGuide/../../images/vsc-mrs-json-relational-editor-4-referenced-table-reduced.png"
+                title="A Reduced Referenced Table"
+                alt="A Reduced Referenced Table" />
+                <figcaption aria-hidden="true">A Reduced Referenced
+                Table</figcaption>
+                </figure>
+                <p>This leads to the same result as the query above.</p>
+                <div class="sourceCode" id="cb35"><pre
+                class="sourceCode js"><code class="sourceCode javascript"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findFirst</span>()<span class="op">;</span></span></code></pre></div>
+                <div class="sourceCode" id="cb36"><pre
+                class="sourceCode json"><code class="sourceCode json"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;city&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;A Corua (La Corua)&quot;</span><span class="fu">,</span></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;links&quot;</span><span class="fu">:</span><span class="er"> </span><span class="ot">[</span></span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;rel&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;self&quot;</span><span class="fu">,</span></span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;href&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;/myService/sakila/city/1&quot;</span></span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;cityId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;country&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;Spain&quot;</span><span class="fu">,</span></span>
+<span id="cb36-11"><a href="#cb36-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;countryId&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">87</span><span class="fu">,</span></span>
+<span id="cb36-12"><a href="#cb36-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span><span class="fu">,</span></span>
+<span id="cb36-13"><a href="#cb36-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;_metadata&quot;</span><span class="fu">:</span><span class="er"> </span><span class="fu">{</span></span>
+<span id="cb36-14"><a href="#cb36-14" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;etag&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;48889BABCBBA1491D25DFE0D7A270FA3FDF8A16DA8E44E42C61759DE1F0D6E35&quot;</span></span>
+<span id="cb36-15"><a href="#cb36-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb36-16"><a href="#cb36-16" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
                 <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
@@ -2055,29 +2138,29 @@ router_id=16</code></pre>
                 domain that generates the request. This is done to work
                 around Cross-origin resource sharing (CORS) checks of
                 web browsers during development time.</p>
-                <div class="sourceCode" id="cb35"><pre
-                class="sourceCode json"><code class="sourceCode json"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;headers&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;Access-Control-Allow-Credentials&quot;</span><span class="fu">:</span> <span class="st">&quot;true&quot;</span><span class="fu">,</span></span>
-<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;Access-Control-Allow-Headers&quot;</span><span class="fu">:</span> <span class="st">&quot;Content-Type, Authorization, X-Requested-With, Origin, X-Auth-Token&quot;</span><span class="fu">,</span></span>
-<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;Access-Control-Allow-Methods&quot;</span><span class="fu">:</span> <span class="st">&quot;GET, POST, PUT, DELETE, OPTIONS&quot;</span></span>
-<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
-<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;http&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;allowedOrigin&quot;</span><span class="fu">:</span> <span class="st">&quot;auto&quot;</span></span>
-<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
-<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;logging&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;exceptions&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
-<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;request&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;body&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
-<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;headers&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
-<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a>        <span class="fu">},</span></span>
-<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;response&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;body&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
-<span id="cb35-18"><a href="#cb35-18" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;headers&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
-<span id="cb35-19"><a href="#cb35-19" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
-<span id="cb35-20"><a href="#cb35-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
-<span id="cb35-21"><a href="#cb35-21" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;returnInternalErrorDetails&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
-<span id="cb35-22"><a href="#cb35-22" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+                <div class="sourceCode" id="cb37"><pre
+                class="sourceCode json"><code class="sourceCode json"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;headers&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;Access-Control-Allow-Credentials&quot;</span><span class="fu">:</span> <span class="st">&quot;true&quot;</span><span class="fu">,</span></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;Access-Control-Allow-Headers&quot;</span><span class="fu">:</span> <span class="st">&quot;Content-Type, Authorization, X-Requested-With, Origin, X-Auth-Token&quot;</span><span class="fu">,</span></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;Access-Control-Allow-Methods&quot;</span><span class="fu">:</span> <span class="st">&quot;GET, POST, PUT, DELETE, OPTIONS&quot;</span></span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;http&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;allowedOrigin&quot;</span><span class="fu">:</span> <span class="st">&quot;auto&quot;</span></span>
+<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;logging&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;exceptions&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb37-12"><a href="#cb37-12" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;request&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb37-13"><a href="#cb37-13" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;body&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb37-14"><a href="#cb37-14" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;headers&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
+<span id="cb37-15"><a href="#cb37-15" aria-hidden="true" tabindex="-1"></a>        <span class="fu">},</span></span>
+<span id="cb37-16"><a href="#cb37-16" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;response&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb37-17"><a href="#cb37-17" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;body&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb37-18"><a href="#cb37-18" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;headers&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
+<span id="cb37-19"><a href="#cb37-19" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb37-20"><a href="#cb37-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb37-21"><a href="#cb37-21" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;returnInternalErrorDetails&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
+<span id="cb37-22"><a href="#cb37-22" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
                 <p>When deploying a REST service in production, the
                 following settings need to be changed:</p>
                 <ol type="1">

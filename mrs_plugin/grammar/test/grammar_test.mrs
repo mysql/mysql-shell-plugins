@@ -240,6 +240,12 @@ SHOW CREATE REST PROCEDURE /filmInStock;
 SHOW CREATE REST VIEW /country;
 SHOW CREATE REST PROCEDURE /filmInStock;
 
+CREATE REST CONTENT SET /testContent
+ON SERVICE localhost/myTestService SCHEMA /sakila
+FROM "./grammar/test";
+
+SHOW REST CONTENT SETS;
+
 SHOW REST METADATA STATUS;
 
 SHOW REST SERVICES;
@@ -261,7 +267,6 @@ ALTER REST SCHEMA /sakila
 ON SERVICE localhost/myTestService
     NEW REQUEST PATH /sakila123;
 
-
 SHOW REST SCHEMAS;
 
 ALTER REST SCHEMA /sakila123
@@ -271,7 +276,7 @@ ON SERVICE localhost/myTestService
 SHOW REST SCHEMAS;
 
 DROP REST DUALITY VIEW /country
-ON SERVICE localhost/myTestService SCHEMA /sakila;
+FROM SERVICE localhost/myTestService SCHEMA /sakila;
 
 DROP REST DUALITY VIEW /actor;
 
@@ -279,6 +284,8 @@ DROP REST DUALITY VIEW /actorInfo;
 
 DROP REST PROCEDURE /filmInStock;
 
-DROP REST SCHEMA /sakila;
+DROP REST CONTENT SET /testContent;
+
+DROP REST SCHEMA /sakila FROM localhost/myTestService;
 
 DROP REST SERVICE localhost/myTestService;

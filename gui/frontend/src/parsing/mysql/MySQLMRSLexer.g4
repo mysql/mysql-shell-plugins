@@ -718,6 +718,7 @@ SESSION_USER_SYMBOL:
     S E S S I O N '_' U S E R                                                           { this._type = this.determineFunction(MySQLMRSLexer.USER_SYMBOL); }
 ;                                                                                       // Synonym
 SET_SYMBOL:                         S E T;                                              // SQL-2003-R
+SETS_SYMBOL:                        S E T S;
 SHARE_SYMBOL:                       S H A R E;
 SHOW_SYMBOL:                        S H O W;
 SHUTDOWN_SYMBOL:                    S H U T D O W N;

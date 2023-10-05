@@ -249,10 +249,7 @@ def add_content_set(service_id=None, content_dir=None, **kwargs):
 
             if interactive:
                 print(f"{len(file_list)} files added.")
-
-            # Enable the content_set after all content has been uploaded
-            lib.content_sets.enable_content_set(session, [content_set_id], enabled)
-
+            
         if lib.core.get_interactive_result():
             return f"\nContent with the id {content_set_id} was added successfully."
         else:

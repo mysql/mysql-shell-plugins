@@ -20,5 +20,5 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 from mrs_plugin.lib.mrs_parser.MRSLexer import MRSLexer
-from mrs_plugin.lib.mrs_parser.MRSListener import MRSListener
+from mrs_plugin.lib.mrs_parser.MRSParserListener import MRSParserListener as MRSListener
 from mrs_plugin.lib.mrs_parser.MRSParser import MRSParser

@@ -85,6 +85,7 @@ NULL_SYMBOL:           N U L L;
 TRUE_SYMBOL:           T R U E;
 FALSE_SYMBOL:          F A L S E;
 SET_SYMBOL:            S E T;
+SETS_SYMBOL:           S E T S;
 
 //----------------- GraphGL --------------------------------------------------------------------------------------------
 
