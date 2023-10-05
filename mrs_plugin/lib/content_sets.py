@@ -177,13 +177,13 @@ def get_content_sets(session, service_id: bytes, include_enable_state=None, requ
         request_path=request_path, include_enable_state=include_enable_state)
 
 
-def add_content_set(session, service_id, request_path, requires_auth=False, comments="", options=None):
+def add_content_set(session, service_id, request_path, requires_auth=False, comments="", options=None, enabled=True):
     values = {
         "id": core.get_sequence_id(session),
         "service_id": service_id,
         "request_path": request_path,
         "requires_auth": int(requires_auth),
-        "enabled": 0,
+        "enabled": int(enabled),
         "comments": comments,
         "options": options
     }

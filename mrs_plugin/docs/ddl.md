@@ -23,4 +23,10 @@ Please also see
 
 !include sections/ddl/ConfigureAndCreate.md
 
+!include sections/ddl/Alter.md
+
+!include sections/ddl/Drop.md
+
+!include sections/ddl/UseAndShow.md
+
 Copyright (c) 2023, Oracle and/or its affiliates.

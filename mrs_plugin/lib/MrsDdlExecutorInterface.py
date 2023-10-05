@@ -81,6 +81,9 @@ class MrsDdlExecutorInterface():
     def showRestDbObjects(self, mrs_object: dict):
         raise NotImplementedError()
 
+    def showRestContentSets(self, mrs_object: dict):
+        raise NotImplementedError()
+
     def showCreateRestService(self, mrs_object: dict):
         raise NotImplementedError()
 

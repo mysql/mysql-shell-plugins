@@ -616,6 +616,7 @@ class MrsDdlListener(MRSListener):
                 else "CREATE OR REPLACE") + " CONTENT SET",
             "do_replace": ctx.REPLACE_SYMBOL() is not None,
             "request_path": ctx.contentSetRequestPath().getText(),
+            "directory_file_path": ctx.directoryFilePath().getText() if ctx.directoryFilePath() is not None else None
         }
 
     def exitCreateRestContentSetStatement(self, ctx):
@@ -804,11 +805,11 @@ class MrsDdlListener(MRSListener):
             "current_operation": (
                 "USE REST " +
                 "SERVICE" if (
-                    ctx.serviceAndSchemaRequestPaths().schemaRequestPath() is None
+                    ctx.serviceAndSchemaRequestPaths().serviceSchemaSelector() is None
                 ) else "SCHEMA"),
             "schema_request_path":
-                ctx.serviceAndSchemaRequestPaths().schemaRequestPath().getText()
-                if (ctx.serviceAndSchemaRequestPaths().schemaRequestPath() is not None)
+                ctx.serviceAndSchemaRequestPaths().serviceSchemaSelector().schemaRequestPath().getText()
+                if (ctx.serviceAndSchemaRequestPaths().serviceSchemaSelector() is not None)
                 else None
         }
 
@@ -874,6 +875,17 @@ class MrsDdlListener(MRSListener):
 
     def exitShowRestProceduresStatement(self, ctx):
         self.mrs_ddl_executor.showRestDbObjects(self.mrs_object)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # SHOW REST CONTENT SETS
+
+    def enterShowRestContentSetsStatement(self, ctx):
+        self.mrs_object = {
+            "current_operation": "SHOW REST CONTENT SETS"
+        }
+
+    def exitShowRestContentSetsStatement(self, ctx):
+        self.mrs_ddl_executor.showRestContentSets(self.mrs_object)
 
     # ------------------------------------------------------------------------------------------------------------------
     # SHOW CREATE REST SERVICE

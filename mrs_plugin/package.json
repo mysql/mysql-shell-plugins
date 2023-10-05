@@ -4,6 +4,7 @@
     "description": "MySQL REST Service plugin for MySQL Shell",
     "scripts": {
         "update-mrs-parser": "scripts/generate_mrs_parser.sh",
+        "fix-rrd-svg-files": "scripts/fix_rrd_svg_files.sh",
         "update-html-docs": "scripts/generate_html_docs.sh",
         "run-grammar-test": "scripts/run_grammar_test.sh"
     },
