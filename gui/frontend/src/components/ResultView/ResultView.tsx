@@ -99,7 +99,6 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                 {
                     !gotError && !gotResponse && <TreeGrid
                         ref={this.gridRef}
-                        style={{ fontSize: "10pt" }}
                         options={options}
                         columns={this.generateColumnDefinitions(resultSet.columns)}
                         tableData={resultSet.data.rows}

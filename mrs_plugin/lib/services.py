@@ -173,7 +173,7 @@ def update_services(session, service_ids, value):
     Returns:
         The result message as string
     """
-    auth_apps = value.pop("auth_apps", [])
+    auth_apps = value.pop("auth_apps", None)
 
     # Update all given services
     for service_id in service_ids:
@@ -207,30 +207,31 @@ def update_services(session, service_ids, value):
                     sets=value,
                     where=["id=?"]).exec(session, [service_id])
 
-        auth_apps_in_db = core.select(table="auth_app",
-                                      where="service_id=?"
-                                      ).exec(session, [service_id]).items
+        if auth_apps is not None:
+            auth_apps_in_db = core.select(table="auth_app",
+                                        where="service_id=?"
+                                        ).exec(session, [service_id]).items
 
-        for auth_app_in_db in auth_apps_in_db:
-            if auth_app_in_db["id"] not in [app["id"] for app in auth_apps]:
-                core.delete(table="auth_app", where="id=?").exec(
-                    session, [auth_app_in_db["id"]])
+            for auth_app_in_db in auth_apps_in_db:
+                if auth_app_in_db["id"] not in [app["id"] for app in auth_apps]:
+                    core.delete(table="auth_app", where="id=?").exec(
+                        session, [auth_app_in_db["id"]])
 
-        for auth_app in auth_apps:
-            id = auth_app.pop("id", None)
-            auth_app.pop("auth_vendor_name", None)
-            auth_app.pop("auth_vendor", None)
-            auth_app.pop("position", None)
+            for auth_app in auth_apps:
+                id = auth_app.pop("id", None)
+                auth_app.pop("auth_vendor_name", None)
+                auth_app.pop("auth_vendor", None)
+                auth_app.pop("position", None)
 
-            # force the current service id (we could also remove it and don't allow to update this)
-            auth_app["service_id"] = service_id
+                # force the current service id (we could also remove it and don't allow to update this)
+                auth_app["service_id"] = service_id
 
-            if id:
-                core.update(table="auth_app", sets=auth_app,
-                            where="id=?").exec(session, [id])
-            else:
-                auth_app["id"] = core.get_sequence_id(session)
-                core.insert(table="auth_app", values=auth_app).exec(session)
+                if id:
+                    core.update(table="auth_app", sets=auth_app,
+                                where="id=?").exec(session, [id])
+                else:
+                    auth_app["id"] = core.get_sequence_id(session)
+                    core.insert(table="auth_app", values=auth_app).exec(session)
 
 
 def query_services(session, service_id: bytes = None, url_context_root=None, url_host_name=None,

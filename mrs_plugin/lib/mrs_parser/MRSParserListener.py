@@ -233,12 +233,12 @@ class MRSParserListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by MRSParser#restDualityViewOptions.
-    def enterRestDualityViewOptions(self, ctx:MRSParser.RestDualityViewOptionsContext):
+    # Enter a parse tree produced by MRSParser#restObjectOptions.
+    def enterRestObjectOptions(self, ctx:MRSParser.RestObjectOptionsContext):
         pass
 
-    # Exit a parse tree produced by MRSParser#restDualityViewOptions.
-    def exitRestDualityViewOptions(self, ctx:MRSParser.RestDualityViewOptionsContext):
+    # Exit a parse tree produced by MRSParser#restObjectOptions.
+    def exitRestObjectOptions(self, ctx:MRSParser.RestObjectOptionsContext):
         pass
 
 
@@ -278,15 +278,6 @@ class MRSParserListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by MRSParser#restProcedureOptions.
-    def enterRestProcedureOptions(self, ctx:MRSParser.RestProcedureOptionsContext):
-        pass
-
-    # Exit a parse tree produced by MRSParser#restProcedureOptions.
-    def exitRestProcedureOptions(self, ctx:MRSParser.RestProcedureOptionsContext):
-        pass
-
-
     # Enter a parse tree produced by MRSParser#restProcedureResult.
     def enterRestProcedureResult(self, ctx:MRSParser.RestProcedureResultContext):
         pass
@@ -320,6 +311,87 @@ class MRSParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by MRSParser#restContentSetOptions.
     def exitRestContentSetOptions(self, ctx:MRSParser.RestContentSetOptionsContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#createRestAuthAppStatement.
+    def enterCreateRestAuthAppStatement(self, ctx:MRSParser.CreateRestAuthAppStatementContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#createRestAuthAppStatement.
+    def exitCreateRestAuthAppStatement(self, ctx:MRSParser.CreateRestAuthAppStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#authAppName.
+    def enterAuthAppName(self, ctx:MRSParser.AuthAppNameContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#authAppName.
+    def exitAuthAppName(self, ctx:MRSParser.AuthAppNameContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#vendorName.
+    def enterVendorName(self, ctx:MRSParser.VendorNameContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#vendorName.
+    def exitVendorName(self, ctx:MRSParser.VendorNameContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#restAuthAppOptions.
+    def enterRestAuthAppOptions(self, ctx:MRSParser.RestAuthAppOptionsContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#restAuthAppOptions.
+    def exitRestAuthAppOptions(self, ctx:MRSParser.RestAuthAppOptionsContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#limitUsers.
+    def enterLimitUsers(self, ctx:MRSParser.LimitUsersContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#limitUsers.
+    def exitLimitUsers(self, ctx:MRSParser.LimitUsersContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#defaultRole.
+    def enterDefaultRole(self, ctx:MRSParser.DefaultRoleContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#defaultRole.
+    def exitDefaultRole(self, ctx:MRSParser.DefaultRoleContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#createRestUserStatement.
+    def enterCreateRestUserStatement(self, ctx:MRSParser.CreateRestUserStatementContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#createRestUserStatement.
+    def exitCreateRestUserStatement(self, ctx:MRSParser.CreateRestUserStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#userName.
+    def enterUserName(self, ctx:MRSParser.UserNameContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#userName.
+    def exitUserName(self, ctx:MRSParser.UserNameContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#userPassword.
+    def enterUserPassword(self, ctx:MRSParser.UserPasswordContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#userPassword.
+    def exitUserPassword(self, ctx:MRSParser.UserPasswordContext):
         pass
 
 
@@ -401,6 +473,24 @@ class MRSParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by MRSParser#dropRestContentSetStatement.
     def exitDropRestContentSetStatement(self, ctx:MRSParser.DropRestContentSetStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#dropRestAuthAppStatement.
+    def enterDropRestAuthAppStatement(self, ctx:MRSParser.DropRestAuthAppStatementContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#dropRestAuthAppStatement.
+    def exitDropRestAuthAppStatement(self, ctx:MRSParser.DropRestAuthAppStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#dropRestUserStatement.
+    def enterDropRestUserStatement(self, ctx:MRSParser.DropRestUserStatementContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#dropRestUserStatement.
+    def exitDropRestUserStatement(self, ctx:MRSParser.DropRestUserStatementContext):
         pass
 
 

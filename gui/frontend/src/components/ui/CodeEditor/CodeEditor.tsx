@@ -926,6 +926,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         this.disposables.push(editor.addAction({
             id: "executeToText",
             label: "Execute and Print as Text",
+            keybindings: [KeyMod.Alt | KeyCode.Enter],
             contextMenuGroupId: "2_execution",
             contextMenuOrder: 4,
             precondition,

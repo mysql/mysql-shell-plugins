@@ -239,7 +239,8 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
                     value: customData,
                     component: <MrsObjectFieldEditor
                         backend={this.backend}
-                        dbObjectChange={this.handleDbObjectChange} />,
+                        dbObjectChange={this.handleDbObjectChange}
+                        getCurrentDbObject={this.handleGetCurrentDbObject} />,
                     horizontalSpan: 8,
                 },
             },
@@ -408,5 +409,16 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
             authorizationSection.values.rowUserOwnershipEnforced.value =
                 this.requestValue.rowUserOwnershipEnforced ?? true;
         }
+    };
+
+    private handleGetCurrentDbObject = (): IMrsDbObjectData => {
+        const mainSection = this.dialogValues?.sections.get("mainSection");
+        if (mainSection) {
+            this.requestValue.requestPath = mainSection.values.requestPath.value as string;
+            this.requestValue.enabled = + (mainSection.values.enabled.value as boolean);
+            this.requestValue.requiresAuth = + (mainSection.values.requiresAuth.value as boolean);
+        }
+
+        return this.requestValue;
     };
 }

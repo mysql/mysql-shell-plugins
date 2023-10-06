@@ -56,7 +56,7 @@ def run_mrs_script(mrs_script=None, **kwargs):
     current_service_host = kwargs.get("current_service_host")
     current_schema_id = kwargs.get("current_schema_id")
     current_schema = kwargs.get("current_schema")
-    state_data = kwargs.get("state_data")
+    state_data = kwargs.get("state_data", {})
 
     if mrs_script is None and path is None:
         raise Exception("No script give.")

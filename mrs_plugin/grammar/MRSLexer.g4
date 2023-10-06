@@ -34,8 +34,10 @@ NEW_SYMBOL:            N E W;
 ON_SYMBOL:             O N;
 FROM_SYMBOL:           F R O M;
 IN_SYMBOL:             I N;
-SCHEMAS_SYMBOL:        S C H E M A S;
-SCHEMA_SYMBOL:         S C H E M A;
+DATABASES_SYMBOL:      D A T A B A S E S;
+DATABASE_SYMBOL:       D A T A B A S E;
+SCHEMAS_SYMBOL:        S C H E M A S -> type(DATABASES_SYMBOL);
+SCHEMA_SYMBOL:         S C H E M A -> type(DATABASE_SYMBOL);
 JSON_SYMBOL:           J S O N;
 RELATIONAL_SYMBOL:     R E L A T I O N A L;
 DUALITY_SYMBOL:        D U A L I T Y;
@@ -86,6 +88,16 @@ TRUE_SYMBOL:           T R U E;
 FALSE_SYMBOL:          F A L S E;
 SET_SYMBOL:            S E T;
 SETS_SYMBOL:           S E T S;
+AUTH_SYMBOL:           A U T H;
+APP_SYMBOL:            A P P;
+VENDOR_SYMBOL:         V E N D O R;
+MRS_SYMBOL:            M R S;
+MYSQL_SYMBOL:          M Y S Q L;
+ROLE_SYMBOL:           R O L E;
+LIMIT_TO_REGISTERED_USERS_SYMBOL: L I M I T WHITESPACE+ T O WHITESPACE+ R E G I S T E R E D WHITESPACE+ U S E R S;
+ALLOW_NEW_USERS_SYMBOL: A L L O W WHITESPACE+ N E W WHITESPACE+ U S E R S;
+IDENTIFIED_SYMBOL:     I D E N T I F I E D;
+BY_SYMBOL:             B Y;
 
 //----------------- GraphGL --------------------------------------------------------------------------------------------
 

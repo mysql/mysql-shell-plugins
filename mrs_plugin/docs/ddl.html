@@ -150,6 +150,14 @@
                                 id="toc-create-rest-content-set"><span
                                 class="toc-section-number">2.6</span>
                                 CREATE REST CONTENT SET</a></li>
+                                <li><a href="#create-rest-auth-app"
+                                id="toc-create-rest-auth-app"><span
+                                class="toc-section-number">2.7</span>
+                                CREATE REST AUTH APP</a></li>
+                                <li><a href="#create-rest-user"
+                                id="toc-create-rest-user"><span
+                                class="toc-section-number">2.8</span>
+                                CREATE REST USER</a></li>
                                 </ul></li>
                                 <li><a href="#alter"
                                 id="toc-alter"><span
@@ -197,6 +205,14 @@
                                 id="toc-drop-rest-content-set"><span
                                 class="toc-section-number">4.5</span>
                                 DROP REST CONTENT SET</a></li>
+                                <li><a href="#drop-rest-auth-app"
+                                id="toc-drop-rest-auth-app"><span
+                                class="toc-section-number">4.6</span>
+                                DROP REST AUTH APP</a></li>
+                                <li><a href="#drop-rest-user"
+                                id="toc-drop-rest-user"><span
+                                class="toc-section-number">4.7</span>
+                                DROP REST USER</a></li>
                                 </ul></li>
                                 <li><a href="#use-and-show"
                                 id="toc-use-and-show"><span
@@ -921,10 +937,9 @@
                 src="sections/ddl/../../images/ddl/serviceSchemaSelector.svg"
                 title="serviceSchemaSelector"
                 alt="serviceSchemaSelector" /></p>
-                <p>restDualityViewOptions ::= <img
-                src="sections/ddl/../../images/ddl/restDualityViewOptions.svg"
-                title="restDualityViewOptions"
-                alt="restDualityViewOptions" /></p>
+                <p>restObjectOptions ::= <img
+                src="sections/ddl/../../images/ddl/restObjectOptions.svg"
+                title="restObjectOptions" alt="restObjectOptions" /></p>
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example adds a REST duality view for
                 the <code>sakila.city</code> database schema table.</p>
@@ -1157,10 +1172,9 @@
                 src="sections/ddl/../../images/ddl/serviceSchemaSelector.svg"
                 title="serviceSchemaSelector"
                 alt="serviceSchemaSelector" /></p>
-                <p>restProcedureOptions ::= <img
-                src="sections/ddl/../../images/ddl/restProcedureOptions.svg"
-                title="restProcedureOptions"
-                alt="restProcedureOptions" /></p>
+                <p>restObjectOptions ::= <img
+                src="sections/ddl/../../images/ddl/restObjectOptions.svg"
+                title="restObjectOptions" alt="restObjectOptions" /></p>
                 <p>restProcedureResult ::= <img
                 src="sections/ddl/../../images/ddl/restProcedureResult.svg"
                 title="restProcedureResult"
@@ -1175,14 +1189,41 @@
                 src="sections/ddl/../../images/ddl/createRestContentSetStatement.svg"
                 title="createRestContentSetStatement"
                 alt="createRestContentSetStatement" /></p>
-                <p>serviceSchemaSelector ::= <img
-                src="sections/ddl/../../images/ddl/serviceSchemaSelector.svg"
-                title="serviceSchemaSelector"
-                alt="serviceSchemaSelector" /></p>
                 <p>restContentSetOptions ::= <img
                 src="sections/ddl/../../images/ddl/restContentSetOptions.svg"
                 title="restContentSetOptions"
                 alt="restContentSetOptions" /></p>
+                <h2 data-number="2.7" id="create-rest-auth-app"><span
+                class="header-section-number">2.7</span> CREATE REST
+                AUTH APP</h2>
+                <p>The <code>CREATE REST AUTH APP</code> statement is
+                used to add REST authentication app to a REST
+                service.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <p>createRestAuthAppStatement ::= <img
+                src="sections/ddl/../../images/ddl/createRestAuthAppStatement.svg"
+                title="createRestAuthAppStatement"
+                alt="createRestAuthAppStatement" /></p>
+                <p>restAuthAppOptions ::= <img
+                src="sections/ddl/../../images/ddl/restAuthAppOptions.svg"
+                title="restAuthAppOptions"
+                alt="restAuthAppOptions" /></p>
+                <p>limitUsers ::= <img
+                src="sections/ddl/../../images/ddl/limitUsers.svg"
+                title="limitUsers" alt="limitUsers" /></p>
+                <p>defaultRole ::= <img
+                src="sections/ddl/../../images/ddl/defaultRole.svg"
+                title="defaultRole" alt="defaultRole" /></p>
+                <h2 data-number="2.8" id="create-rest-user"><span
+                class="header-section-number">2.8</span> CREATE REST
+                USER</h2>
+                <p>The <code>CREATE REST USER</code> statement is used
+                to add REST user to a REST authentication app.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <p>createRestUserStatement ::= <img
+                src="sections/ddl/../../images/ddl/createRestUserStatement.svg"
+                title="createRestUserStatement"
+                alt="createRestUserStatement" /></p>
                 <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
@@ -1274,10 +1315,9 @@
                 src="sections/ddl/../../images/ddl/serviceSchemaSelector.svg"
                 title="serviceSchemaSelector"
                 alt="serviceSchemaSelector" /></p>
-                <p>restDualityViewOptions ::= <img
-                src="sections/ddl/../../images/ddl/restDualityViewOptions.svg"
-                title="restDualityViewOptions"
-                alt="restDualityViewOptions" /></p>
+                <p>restObjectOptions ::= <img
+                src="sections/ddl/../../images/ddl/restObjectOptions.svg"
+                title="restObjectOptions" alt="restObjectOptions" /></p>
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example alters a REST duality view for
                 the <code>sakila.city</code> database schema table and
@@ -1311,10 +1351,9 @@
                 src="sections/ddl/../../images/ddl/serviceSchemaSelector.svg"
                 title="serviceSchemaSelector"
                 alt="serviceSchemaSelector" /></p>
-                <p>restProcedureOptions ::= <img
-                src="sections/ddl/../../images/ddl/restProcedureOptions.svg"
-                title="restProcedureOptions"
-                alt="restProcedureOptions" /></p>
+                <p>restObjectOptions ::= <img
+                src="sections/ddl/../../images/ddl/restObjectOptions.svg"
+                title="restObjectOptions" alt="restObjectOptions" /></p>
                 <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
@@ -1403,6 +1442,27 @@
                 src="sections/ddl/../../images/ddl/dropRestContentSetStatement.svg"
                 title="dropRestContentSetStatement"
                 alt="dropRestContentSetStatement" /></p>
+                <h2 data-number="4.6" id="drop-rest-auth-app"><span
+                class="header-section-number">4.6</span> DROP REST AUTH
+                APP</h2>
+                <p>The <code>DROP REST AUTH APP</code> statement is used
+                to drop an existing REST authentication app from a REST
+                service.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <p>dropRestAuthAppStatement ::= <img
+                src="sections/ddl/../../images/ddl/dropRestAuthAppStatement.svg"
+                title="dropRestAuthAppStatement"
+                alt="dropRestAuthAppStatement" /></p>
+                <h2 data-number="4.7" id="drop-rest-user"><span
+                class="header-section-number">4.7</span> DROP REST
+                USER</h2>
+                <p>The <code>DROP REST USER</code> statement is used to
+                drop an existing REST user from a REST authentication
+                app. <strong><em>SYNTAX</em></strong></p>
+                <p>dropRestUserStatement ::= <img
+                src="sections/ddl/../../images/ddl/dropRestUserStatement.svg"
+                title="dropRestUserStatement"
+                alt="dropRestUserStatement" /></p>
                 <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify

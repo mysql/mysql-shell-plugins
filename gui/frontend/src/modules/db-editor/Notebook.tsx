@@ -62,6 +62,9 @@ interface INotebookProperties extends IComponentProperties {
     /** Extra libraries for the code editor that don't change. */
     extraLibs?: Array<{ code: string, path: string; }>;
 
+    /** Font size to use. */
+    fontSize?: number;
+
     onScriptExecution?: (context: ExecutionContext, options: IScriptExecutionOptions) => Promise<boolean>;
     onHelpCommand?: (command: string, currentLanguage: EditorLanguage) => string | undefined;
 }
@@ -102,7 +105,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
 
     public render(): ComponentChild {
         const {
-            standaloneMode, toolbarItemsTemplate, savedState, backend, dbType, readOnly, extraLibs,
+            standaloneMode, toolbarItemsTemplate, savedState, backend, dbType, readOnly, extraLibs, fontSize,
             onScriptExecution, onHelpCommand,
         } = this.props;
 
@@ -190,7 +193,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
                     }}
                     font={{
                         fontFamily: "SourceCodePro+Powerline+Awesome+MySQL",
-                        fontSize: 15,
+                        fontSize: fontSize ?? 15,
                         lineHeight: 24,
                     }}
                     scrollbar={{

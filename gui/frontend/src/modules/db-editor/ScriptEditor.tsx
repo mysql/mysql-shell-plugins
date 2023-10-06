@@ -59,6 +59,9 @@ interface IScriptEditorProperties extends IComponentProperties {
     /** Extra libraries for the code editor that don't change. */
     extraLibs?: Array<{ code: string, path: string; }>;
 
+    /** Font size to use. */
+    fontSize?: number;
+
     onScriptExecution?: (context: ExecutionContext, options: IScriptExecutionOptions) => Promise<boolean>;
     onEdit?: (id?: string) => void;
 }
@@ -131,7 +134,8 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
     }
 
     public render(): ComponentChild {
-        const { standaloneMode, savedState, toolbarItemsTemplate, backend, extraLibs, onScriptExecution } = this.props;
+        const { standaloneMode, savedState, toolbarItemsTemplate, backend, extraLibs, fontSize,
+            onScriptExecution } = this.props;
         const { showResultPane, maximizeResultPane } = this.state;
 
         const className = this.getEffectiveClassNames(["standaloneScriptHost"]);
@@ -250,7 +254,7 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
                                 autoFocus={true}
                                 font={{
                                     fontFamily: "SourceCodePro+Powerline+Awesome+MySQL",
-                                    fontSize: 15,
+                                    fontSize: fontSize ?? 15,
                                     lineHeight: 24,
                                 }}
                                 scrollbar={{

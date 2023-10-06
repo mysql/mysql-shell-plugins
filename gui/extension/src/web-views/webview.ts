@@ -34,6 +34,10 @@ export const prepareWebviewContent = (panel: WebviewPanel, url: URL): void => {
     // Insert an iframe to load the external URL from the running mysql shell server.
     url.searchParams.set("app", "vscode");
 
+    // Get the VS Code font size
+    const vsCodeFontSize = workspace.getConfiguration(`editor`).get<number>("fontSize", 14);
+    url.searchParams.set("editorFontSize", vsCodeFontSize.toString());
+
     // Define the URL for the test image used to check if the mysql shell server can be reached.
     const testImgUrl = new URL(url.toString());
     testImgUrl.pathname = "/images/no-image.svg";

@@ -23,6 +23,7 @@ from mrs_plugin.lib import core, services, users
 MYSQL_AUTHENTICATION = 1
 DEFAULT_ROLE_ID = bytes.fromhex("31000000000000000000000000000000")
 
+
 def format_auth_app_listing(auth_apps, print_header=False):
     """Formats the listing of auth_apps
 
@@ -47,7 +48,7 @@ def format_auth_app_listing(auth_apps, print_header=False):
     i = 0
     for item in auth_apps:
         i += 1
-        description=item['description'] if item['description'] is not None else ""
+        description = item['description'] if item['description'] is not None else ""
 
         if len(description) > 36:
             description = f"{description[:33]}..."
@@ -74,28 +75,52 @@ def get_auth_vendors(session, enabled=None):
     return core.MrsDbExec(sql, params).exec(session).items
 
 
-def get_auth_vendor(session, vendor_id):
-    sql = """
-        SELECT * FROM `mysql_rest_service_metadata`.`auth_vendor`
-        WHERE id = ?
-    """
-
-    return core.MrsDbExec(sql, [vendor_id]).exec(session).first
-
-
-def get_auth_app(session, app_id):
-    sql = """
-        SELECT a.id, a.auth_vendor_id, a.service_id, a.name,
-            a.description, a.url, a.url_direct_auth, a.access_token, a.app_id, a.enabled,
-            a.limit_to_registered_users, a.default_role_id,
-            v.name as auth_vendor
-        FROM `mysql_rest_service_metadata`.`auth_app` a
-            LEFT OUTER JOIN `mysql_rest_service_metadata`.`auth_vendor` v
-                ON v.id = a.auth_vendor_id
-        WHERE a.id = ?
+def get_auth_vendor(session, vendor_id=None, name=None):
+    if vendor_id is not None:
+        sql = """
+            SELECT * FROM `mysql_rest_service_metadata`.`auth_vendor`
+            WHERE id = ?
         """
 
-    return core.MrsDbExec(sql, [app_id]).exec(session).first
+        return core.MrsDbExec(sql, [vendor_id]).exec(session).first
+
+    if name is not None:
+        sql = """
+            SELECT * FROM `mysql_rest_service_metadata`.`auth_vendor`
+            WHERE name LIKE ?
+        """
+
+        return core.MrsDbExec(sql, [name]).exec(session).first
+
+
+def get_auth_app(session, app_id=None, service_id=None, name=None):
+    if app_id is not None:
+        sql = """
+            SELECT a.id, a.auth_vendor_id, a.service_id, a.name,
+                a.description, a.url, a.url_direct_auth, a.access_token, a.app_id, a.enabled,
+                a.limit_to_registered_users, a.default_role_id,
+                v.name as auth_vendor
+            FROM `mysql_rest_service_metadata`.`auth_app` a
+                LEFT OUTER JOIN `mysql_rest_service_metadata`.`auth_vendor` v
+                    ON v.id = a.auth_vendor_id
+            WHERE a.id = ?
+            """
+
+        return core.MrsDbExec(sql, [app_id]).exec(session).first
+
+    if service_id is not None and name is not None:
+        sql = """
+            SELECT a.id, a.auth_vendor_id, a.service_id, a.name,
+                a.description, a.url, a.url_direct_auth, a.access_token, a.app_id, a.enabled,
+                a.limit_to_registered_users, a.default_role_id,
+                v.name as auth_vendor
+            FROM `mysql_rest_service_metadata`.`auth_app` a
+                LEFT OUTER JOIN `mysql_rest_service_metadata`.`auth_vendor` v
+                    ON v.id = a.auth_vendor_id
+            WHERE a.service_id = ? AND a.name = ?
+            """
+
+        return core.MrsDbExec(sql, [service_id, name]).exec(session).first
 
 
 def get_auth_apps(session, service_id: bytes, include_enable_state=None):
@@ -133,8 +158,8 @@ def get_auth_apps(session, service_id: bytes, include_enable_state=None):
     return core.MrsDbExec(sql).exec(session, [service.get("id")]).items
 
 
-def add_auth_app(session, service_id, auth_vendor_id, app_name, description, url, url_direct_auth
-    , access_token, app_id, limit_to_reg_users, default_role_id):
+def add_auth_app(session, service_id, auth_vendor_id, app_name, description, url, url_direct_auth,
+                 access_token, app_id, limit_to_reg_users, default_role_id, enabled=True):
 
     auth_app_id = core.get_sequence_id(session)
     core.insert(table="auth_app", values=[
@@ -152,8 +177,8 @@ def add_auth_app(session, service_id, auth_vendor_id, app_name, description, url
         url_direct_auth,
         access_token,
         app_id,
-        1,
-        limit_to_reg_users if limit_to_reg_users else 0,
+        int(enabled),
+        int(limit_to_reg_users) if limit_to_reg_users else 0,
         default_role_id
     ])
 
