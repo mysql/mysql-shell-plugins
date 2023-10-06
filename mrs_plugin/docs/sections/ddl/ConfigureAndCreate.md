@@ -365,8 +365,8 @@ createRestViewStatement ::=
 serviceSchemaSelector ::=
 ![serviceSchemaSelector](../../images/ddl/serviceSchemaSelector.svg "serviceSchemaSelector")
 
-restDualityViewOptions ::=
-![restDualityViewOptions](../../images/ddl/restDualityViewOptions.svg "restDualityViewOptions")
+restObjectOptions ::=
+![restObjectOptions](../../images/ddl/restObjectOptions.svg "restObjectOptions")
 
 **_Examples_**
 
@@ -539,8 +539,8 @@ createRestProcedureStatement ::=
 serviceSchemaSelector ::=
 ![serviceSchemaSelector](../../images/ddl/serviceSchemaSelector.svg "serviceSchemaSelector")
 
-restProcedureOptions ::=
-![restProcedureOptions](../../images/ddl/restProcedureOptions.svg "restProcedureOptions")
+restObjectOptions ::=
+![restObjectOptions](../../images/ddl/restObjectOptions.svg "restObjectOptions")
 
 restProcedureResult ::=
 ![restProcedureResult](../../images/ddl/restProcedureResult.svg "restProcedureResult")
@@ -554,8 +554,32 @@ The `CREATE REST CONTENT SET` statement is used to add REST endpoints for static
 createRestContentSetStatement ::=
 ![createRestContentSetStatement](../../images/ddl/createRestContentSetStatement.svg "createRestContentSetStatement")
 
-serviceSchemaSelector ::=
-![serviceSchemaSelector](../../images/ddl/serviceSchemaSelector.svg "serviceSchemaSelector")
-
 restContentSetOptions ::=
 ![restContentSetOptions](../../images/ddl/restContentSetOptions.svg "restContentSetOptions")
+
+## CREATE REST AUTH APP
+
+The `CREATE REST AUTH APP` statement is used to add REST authentication app to a REST service.
+
+**_SYNTAX_**
+
+createRestAuthAppStatement ::=
+![createRestAuthAppStatement](../../images/ddl/createRestAuthAppStatement.svg "createRestAuthAppStatement")
+
+restAuthAppOptions ::=
+![restAuthAppOptions](../../images/ddl/restAuthAppOptions.svg "restAuthAppOptions")
+
+limitUsers ::=
+![limitUsers](../../images/ddl/limitUsers.svg "limitUsers")
+
+defaultRole ::=
+![defaultRole](../../images/ddl/defaultRole.svg "defaultRole")
+
+## CREATE REST USER
+
+The `CREATE REST USER` statement is used to add REST user to a REST authentication app.
+
+**_SYNTAX_**
+
+createRestUserStatement ::=
+![createRestUserStatement](../../images/ddl/createRestUserStatement.svg "createRestUserStatement")

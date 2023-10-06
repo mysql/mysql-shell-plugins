@@ -24,10 +24,12 @@ class MrsDdlExecutorInterface():
     def __init__(self, session):
         raise NotImplementedError()
 
-    def get_current_service_id(self):
+    @property
+    def current_service_id(self):
         raise NotImplementedError()
 
-    def get_current_schema_id(self):
+    @property
+    def current_schema_id(self):
         raise NotImplementedError()
 
     def createRestMetadata(self, mrs_object: dict):
@@ -43,6 +45,12 @@ class MrsDdlExecutorInterface():
         raise NotImplementedError()
 
     def createRestContentSet(self, mrs_object: dict):
+        raise NotImplementedError()
+
+    def createRestAuthApp(self, mrs_object: dict):
+        raise NotImplementedError()
+
+    def createRestUser(self, mrs_object: dict):
         raise NotImplementedError()
 
     def alterRestService(self, mrs_object: dict):
@@ -64,6 +72,12 @@ class MrsDdlExecutorInterface():
         raise NotImplementedError()
 
     def dropRestContentSet(self, mrs_object: dict):
+        raise NotImplementedError()
+
+    def dropRestAuthApp(self, mrs_object: dict):
+        raise NotImplementedError()
+
+    def dropRestUser(self, mrs_object: dict):
         raise NotImplementedError()
 
     def use(self, mrs_object):

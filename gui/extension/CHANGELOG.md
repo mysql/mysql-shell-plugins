@@ -1,5 +1,25 @@
 # MySQL Shell for VS Code Change Log
 
+## Changes in 1.13.0+8.1.1
+
+### Additions
+
+- MySQL HeadWave Service Endpoint Creation
+- Added support for MySQL REST Service (MRS) DDL execution
+- Added support for REST duality views
+- Added new MRS documentation
+- Add MRS SDK types for spatial columns
+- Added support for custom location of MySQL Router directory by setting environment variable MYSQL_ROUTER_CUSTOM_DIR
+- WL#15880 Handle "NOT NULL" constraint in the MRS SDK
+
+### Fixes
+
+- Now the extension uses the proper Editor font size from VS Code
+- Current database schema changes are now synced across VS Code sidebar and the extension
+- Bug#35782639 - Edit Authentication App - Vendor is not updated
+- Bug#35773217 - Change Rest Service Path on schema is not working
+- MRS: Fixed getting grants and removing EXECUTE grant for PROCEDURES
+
 ## Changes in 1.12.1+8.1.1
 
 ### Additions

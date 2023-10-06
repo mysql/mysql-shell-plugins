@@ -141,9 +141,17 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
         self.current_operation = None
 
+    def lookup_current_service(self):
+        if self.state_data.get('current_service_id') is None and self.session is not None:
+            service = lib.services.get_current_service(self.session)
+            if service is not None:
+                self.state_data['current_service_id'] = service.get("id")
+                self.state_data['current_service'] = service.get("host_ctx")
+
     @property
     def current_service_id(self):
-        return self.state_data.get('current_service_id')
+        self.lookup_current_service()
+        return self.state_data['current_service_id']
 
     @current_service_id.setter
     def current_service_id(self, value):
@@ -159,6 +167,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
     @property
     def current_service(self):
+        self.lookup_current_service()
         return self.state_data.get('current_service')
 
     @current_service.setter
@@ -202,7 +211,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 get_default=False)
             if service is None:
                 raise Exception(
-                    f"Could not find the REST Service {url_host_name}{url_context_root}.")
+                    f"Could not find the REST SERVICE {url_host_name}{url_context_root}.")
 
             service_id = service.get("id")
 
@@ -230,11 +239,31 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     mrs_object.get("url_host_name", "") +
                     mrs_object.get("url_context_root", "") +
                     schema_request_path)
-                raise Exception(f"Could not find the REST Schema {full_path}.")
+                raise Exception(f"Could not find the REST SCHEMA {full_path}.")
 
             schema_id = schema.get("id")
 
         return schema_id
+
+    def getFullServicePath(self, mrs_object, request_path=""):
+        return (
+            mrs_object.get("url_host_name",
+                           self.current_service_host if self.current_service_host is not None else "") +
+            mrs_object.get("url_context_root",
+                           self.current_service if self.current_service is not None else "") +
+            request_path
+        )
+
+    def getFullSchemaPath(self, mrs_object, request_path=""):
+        return (
+            mrs_object.get("url_host_name",
+                           self.current_service_host if self.current_service_host is not None else "") +
+            mrs_object.get("url_context_root",
+                           self.current_service if self.current_service is not None else "") +
+            mrs_object.get("schema_request_path",
+                           self.current_schema if self.current_schema is not None else "") +
+            request_path
+        )
 
     def createRestMetadata(self, mrs_object: dict):
         timer = Timer()
@@ -294,7 +323,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 self.results.append({
                     "statementIndex": len(self.results) + 1,
                     "type": "success",
-                    "message": f"REST Service `{full_path}` created successfully.",
+                    "message": f"REST SERVICE `{full_path}` created successfully.",
                     "operation": self.current_operation,
                     "id": lib.core.convert_id_to_string(service_id),
                     "executionTime": timer.elapsed()
@@ -303,7 +332,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 self.results.append({
                     "statementIndex": len(self.results) + 1,
                     "type": "error",
-                    "message": f"Failed to create the REST Service `{full_path}`. {e}",
+                    "message": f"Failed to create the REST SERVICE `{full_path}`. {e}",
                     "operation": self.current_operation
                 })
                 raise
@@ -314,18 +343,13 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         do_replace = mrs_object.pop("do_replace")
 
         schema_request_path = mrs_object.get("schema_request_path")
-        full_path = schema_request_path
+        full_path = self.getFullSchemaPath(mrs_object=mrs_object)
 
         with lib.core.MrsDbTransaction(self.session):
             try:
                 service_id = self.get_given_or_current_service_id(mrs_object)
                 if service_id is None:
-                    raise Exception("No REST Service specified.")
-
-                full_path = (
-                    mrs_object.get("url_host_name", "") +
-                    mrs_object.get("url_context_root", "") +
-                    schema_request_path)
+                    raise Exception("No REST SERVICE specified.")
 
                 # If the OR REPLACE was specified, check if there is an existing schema on the same service
                 # and delete it.
@@ -352,7 +376,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 self.results.append({
                     "statementIndex": len(self.results) + 1,
                     "type": "success",
-                    "message": f"REST Schema `{full_path}` created successfully.",
+                    "message": f"REST SCHEMA `{full_path}` created successfully.",
                     "operation": self.current_operation,
                     "id": lib.core.convert_id_to_string(schema_id),
                     "executionTime": timer.elapsed()
@@ -361,7 +385,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 self.results.append({
                     "statementIndex": len(self.results) + 1,
                     "type": "error",
-                    "message": f"Failed to create the REST Schema `{full_path}`. {e}",
+                    "message": f"Failed to create the REST SCHEMA `{full_path}`. {e}",
                     "operation": self.current_operation
                 })
                 raise
@@ -371,11 +395,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         self.current_operation = mrs_object.pop("current_operation")
         do_replace = mrs_object.pop("do_replace")
 
-        full_path = (
-            mrs_object.get("url_host_name", self.current_service_host) +
-            mrs_object.get("url_context_root", self.current_service) +
-            mrs_object.get("schema_request_path", self.current_schema) +
-            mrs_object.get("request_path"))
+        full_path = self.getFullSchemaPath(
+            mrs_object=mrs_object, request_path=mrs_object.get("request_path"))
 
         type_caption = "DUALITY VIEW" if mrs_object.get(
             "db_object_type") != "PROCEDURE" else "PROCEDURE"
@@ -384,7 +405,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             try:
                 schema_id = self.get_given_or_current_schema_id(mrs_object)
                 if schema_id is None:
-                    raise Exception("No REST Schema specified.")
+                    raise Exception("No REST SCHEMA specified.")
 
                 # If the OR REPLACE was specified, check if there is an existing db_object on the same schema
                 # and delete it.
@@ -441,22 +462,18 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 raise
 
     def createRestContentSet(self, mrs_object: dict):
+        timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
         do_replace = mrs_object.pop("do_replace")
 
-        request_path = mrs_object.get("request_path")
-        full_path = request_path
+        full_path = self.getFullServicePath(
+            mrs_object=mrs_object, request_path=mrs_object.get("request_path"))
 
         with lib.core.MrsDbTransaction(self.session):
             try:
                 service_id = self.get_given_or_current_service_id(mrs_object)
                 if service_id is None:
-                    raise Exception("No REST Service specified.")
-
-                full_path = (
-                    mrs_object.get("url_host_name", "") +
-                    mrs_object.get("url_context_root", "") +
-                    request_path)
+                    raise Exception("No REST SERVICE specified.")
 
                 # If the OR REPLACE was specified, check if there is an existing content set on the same service
                 # and delete it.
@@ -489,7 +506,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     "type": "success",
                     "message": f"REST CONTENT SET `{full_path}` created successfully. {len(file_list)} file(s) added.",
                     "operation": self.current_operation,
-                    "id": mrs_object.get("id")
+                    "id": content_set_id,
+                    "executionTime": timer.elapsed()
                 })
             except Exception as e:
                 self.results.append({
@@ -500,23 +518,160 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 })
                 raise
 
+    def createRestAuthApp(self, mrs_object: dict):
+        timer = Timer()
+        self.current_operation = mrs_object.pop("current_operation")
+        do_replace = mrs_object.pop("do_replace")
+
+        name = mrs_object.get("name")
+        full_path = self.getFullServicePath(
+            mrs_object=mrs_object, request_path=f":{name}")
+
+        with lib.core.MrsDbTransaction(self.session):
+            try:
+                service_id = self.get_given_or_current_service_id(mrs_object)
+                if service_id is None:
+                    raise Exception("No REST SERVICE specified.")
+
+                # If the OR REPLACE was specified, check if there is an existing content set on the same service
+                # and delete it.
+                if do_replace is not None:
+                    auth_app = lib.auth_apps.get_auth_app(
+                        service_id=service_id,
+                        name=name,
+                        session=self.session)
+                    if auth_app is not None:
+                        lib.auth_apps.delete_auth_app(
+                            app_id=auth_app.get("id"), session=self.session)
+
+                # TODO: Lookup default role by name
+                default_role_id = lib.core.id_to_binary(
+                    "0x31000000000000000000000000000000", "")
+
+                auth_vendor = lib.auth_apps.get_auth_vendor(
+                    session=self.session,
+                    name=mrs_object.get("vendor")
+                )
+                if auth_vendor is None:
+                    raise Exception(
+                        f'The vendor `{mrs_object.get("vendor")}` was not found.')
+
+                auth_app_id = lib.auth_apps.add_auth_app(
+                    session=self.session,
+                    service_id=service_id,
+                    auth_vendor_id=auth_vendor["id"],
+                    app_name=name,
+                    description=mrs_object.get("comments"),
+                    url=mrs_object.get("url"),
+                    url_direct_auth=mrs_object.get("url_direct_auth"),
+                    access_token=mrs_object.get("access_token"),
+                    app_id=mrs_object.get("app_id"),
+                    limit_to_reg_users=mrs_object.get(
+                        "limit_to_registered_users", 1),
+                    default_role_id=default_role_id,
+                    enabled=mrs_object.get("enabled", 1)
+                )
+
+                self.results.append({
+                    "statementIndex": len(self.results) + 1,
+                    "type": "success",
+                    "message": f"REST AUTH APP `{full_path}` created successfully.",
+                    "operation": self.current_operation,
+                    "id": lib.core.convert_id_to_string(auth_app_id),
+                    "executionTime": timer.elapsed()
+                })
+            except Exception as e:
+                self.results.append({
+                    "statementIndex": len(self.results) + 1,
+                    "type": "error",
+                    "message": f"Failed to create the REST CONTENT SET `{full_path}`. {e}",
+                    "operation": self.current_operation
+                })
+                raise
+
+    def createRestUser(self, mrs_object: dict):
+        timer = Timer()
+        self.current_operation = mrs_object.pop("current_operation")
+        do_replace = mrs_object.pop("do_replace")
+
+        name = mrs_object.get("name")
+        authAppName = mrs_object.get("authAppName")
+        password = mrs_object.get("password")
+        full_path = self.getFullServicePath(
+            mrs_object=mrs_object, request_path=f':"{name}"@"{authAppName}"')
+
+        with lib.core.MrsDbTransaction(self.session):
+            try:
+                if password == "":
+                    raise Exception("The password must not be empty.")
+
+                service_id = self.get_given_or_current_service_id(mrs_object)
+                if service_id is None:
+                    raise Exception("No REST SERVICE specified.")
+
+                auth_app = lib.auth_apps.get_auth_app(
+                    service_id=service_id,
+                    name=authAppName,
+                    session=self.session)
+                if auth_app is None:
+                    raise Exception(f"The given REST AUTH APP for {full_path} was not found.")
+
+                # If the OR REPLACE was specified, check if there is an existing content set on the same service
+                # and delete it.
+                if do_replace is not None:
+                    users = lib.users.get_users(
+                        auth_app_id=auth_app.get("id"),
+                        user_name=name,
+                        session=self.session)
+                    if len(users) > 0:
+                        lib.users.delete_user_by_id(
+                            user_id=users[0].get("id"), session=self.session)
+
+                user_id = lib.users.add_user(
+                    session=self.session,
+                    auth_app_id=auth_app["id"],
+                    name=name,
+                    email=None,
+                    vendor_user_id=None,
+                    login_permitted=int(True),
+                    mapped_user_id=None,
+                    app_options=None,
+                    auth_string=password
+                )
+
+                self.results.append({
+                    "statementIndex": len(self.results) + 1,
+                    "type": "success",
+                    "message": f"REST USER `{full_path}` created successfully.",
+                    "operation": self.current_operation,
+                    "id": lib.core.convert_id_to_string(user_id),
+                    "executionTime": timer.elapsed()
+                })
+            except Exception as e:
+                self.results.append({
+                    "statementIndex": len(self.results) + 1,
+                    "type": "error",
+                    "message": f"Failed to create the REST USER `{full_path}`. {e}",
+                    "operation": self.current_operation
+                })
+                raise
+
     def alterRestService(self, mrs_object: dict):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
-        url_host_name = mrs_object.get(
-            "url_host_name", self.current_service_host)
-        full_path = f'{url_host_name}{mrs_object.get("url_context_root", self.current_service)}'
+
+        full_path = self.getFullServicePath(mrs_object)
 
         try:
             service_id = self.get_given_or_current_service_id(mrs_object)
             if service_id is None:
-                raise Exception("No REST Service specified.")
+                raise Exception("No REST SERVICE specified.")
 
             # If a new url_context_root / url_host_name was given,
             # overwrite the existing values in the mrs_object
             # so they are set during the update
-            new_url_context_root = mrs_object.pop("new_url_context_root")
-            new_url_host_name = mrs_object.pop("new_url_host_name")
+            new_url_context_root = mrs_object.pop("new_url_context_root", None)
+            new_url_host_name = mrs_object.pop("new_url_host_name", None)
             if new_url_context_root is not None:
                 if new_url_host_name is None:
                     new_url_host_name = ""
@@ -540,7 +695,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             self.results.append({
                 "statementIndex": len(self.results) + 1,
                 "type": "error",
-                "message": f"Failed to update the REST Service `{full_path}`. {e}",
+                "message": f"Failed to update the REST SERVICE `{full_path}`. {e}",
                 "operation": self.current_operation
             })
             raise
@@ -548,14 +703,12 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
     def alterRestSchema(self, mrs_object: dict):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
-        url_host_name = mrs_object.get(
-            "url_host_name", self.current_service_host)
-        full_path = f'{url_host_name}{mrs_object.get("url_context_root", self.current_service)}{mrs_object.get("schema_request_path")}'
+        full_path = self.getFullSchemaPath(mrs_object=mrs_object)
 
         try:
             service_id = self.get_given_or_current_service_id(mrs_object)
             if service_id is None:
-                raise Exception("No REST Service specified.")
+                raise Exception("No REST SERVICE specified.")
 
             schema = lib.schemas.get_schema(
                 service_id=service_id,
@@ -590,7 +743,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             self.results.append({
                 "statementIndex": len(self.results) + 1,
                 "type": "error",
-                "message": f"Failed to update the REST Schema `{full_path}`. {e}",
+                "message": f"Failed to update the REST SCHEMA `{full_path}`. {e}",
                 "operation": self.current_operation
             })
             raise
@@ -600,15 +753,16 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         self.current_operation = mrs_object.pop("current_operation")
         request_path = mrs_object.pop("request_path")
         rest_object_type = mrs_object.pop("type")
-
         db_object_id = mrs_object.pop("id")
-        mrs_object.pop("parent_reference_stack", None)
 
-        full_path = (
-            mrs_object.pop("url_host_name", self.current_service_host) +
-            mrs_object.pop("url_context_root", self.current_service) +
-            mrs_object.pop("schema_request_path", self.current_schema) +
-            request_path)
+        full_path = self.getFullSchemaPath(
+            mrs_object=mrs_object, request_path=request_path)
+
+        # Remove non-standard mrs_object keys so it can be directly passed to the alter function
+        mrs_object.pop("url_host_name", "")
+        mrs_object.pop("parent_reference_stack", "")
+        mrs_object.pop("url_context_root", "")
+        mrs_object.pop("schema_request_path", "")
 
         try:
             db_object = lib.db_objects.get_db_object(
@@ -661,9 +815,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
 
-        full_path = (
-            mrs_object.get("url_host_name", "") +
-            mrs_object.get("url_context_root", ""))
+        full_path = self.getFullServicePath(mrs_object=mrs_object)
 
         with lib.core.MrsDbTransaction(self.session):
             try:
@@ -673,7 +825,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     session=self.session)
                 if service is None:
                     raise Exception(
-                        f'The given REST Service `{full_path}` could not be found.')
+                        f'The given REST SERVICE `{full_path}` could not be found.')
 
                 lib.services.delete_service(
                     service_id=service["id"],
@@ -682,7 +834,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 self.results.append({
                     "statementIndex": len(self.results) + 1,
                     "type": "success",
-                    "message": f'REST Service `{full_path}` dropped successfully.',
+                    "message": f'REST SERVICE `{full_path}` dropped successfully.',
                     "operation": self.current_operation,
                     "id": lib.core.convert_id_to_string(service["id"]),
                     "executionTime": timer.elapsed()
@@ -691,7 +843,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 self.results.append({
                     "statementIndex": len(self.results) + 1,
                     "type": "error",
-                    "message": f'Failed to drop the REST Service `{full_path}`. {e}',
+                    "message": f'Failed to drop the REST SERVICE `{full_path}`. {e}',
                     "operation": self.current_operation
                 })
                 raise
@@ -700,24 +852,22 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
 
-        full_path = (
-            mrs_object.get("url_host_name", self.current_service_host) +
-            mrs_object.get("url_context_root", self.current_service) +
-            mrs_object.get("request_path", ""))
+        full_path = self.getFullServicePath(
+            mrs_object=mrs_object, request_path=mrs_object.get("request_path", ""))
 
         with lib.core.MrsDbTransaction(self.session):
             try:
 
                 service_id = self.get_given_or_current_service_id(mrs_object)
                 if service_id is None:
-                    raise Exception("No REST Service specified.")
+                    raise Exception("No REST SERVICE specified.")
 
                 schema = lib.schemas.get_schema(
                     service_id=service_id, request_path=mrs_object["request_path"],
                     session=self.session)
                 if schema is None:
                     raise Exception(
-                        f'The given REST Schema `{full_path}` could not be found.')
+                        f'The given REST SCHEMA `{full_path}` could not be found.')
 
                 lib.schemas.delete_schema(
                     schema_id=schema["id"], session=self.session)
@@ -725,7 +875,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 self.results.append({
                     "statementIndex": len(self.results) + 1,
                     "type": "success",
-                    "message": f'REST Schema `{full_path}` dropped successfully.',
+                    "message": f'REST SCHEMA `{full_path}` dropped successfully.',
                     "operation": self.current_operation,
                     "id": lib.core.convert_id_to_string(schema["id"]),
                     "executionTime": timer.elapsed()
@@ -734,7 +884,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 self.results.append({
                     "statementIndex": len(self.results) + 1,
                     "type": "error",
-                    "message": f'Failed to drop the REST Schema `{full_path}`. {e}',
+                    "message": f'Failed to drop the REST SCHEMA `{full_path}`. {e}',
                     "operation": self.current_operation
                 })
                 raise
@@ -745,17 +895,14 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         request_path = mrs_object.pop("request_path")
         rest_object_type = mrs_object.pop("type")
 
-        full_path = (
-            mrs_object.get("url_host_name", self.current_service_host) +
-            mrs_object.get("url_context_root", self.current_service) +
-            mrs_object.get("schema_request_path", self.current_schema) +
-            request_path)
+        full_path = self.getFullSchemaPath(
+            mrs_object=mrs_object, request_path=request_path)
 
         with lib.core.MrsDbTransaction(self.session):
             try:
                 schema_id = self.get_given_or_current_schema_id(mrs_object)
                 if schema_id is None:
-                    raise Exception("No REST Schema specified.")
+                    raise Exception("No REST SCHEMA specified.")
 
                 db_object = lib.db_objects.get_db_object(
                     session=self.session, schema_id=schema_id,
@@ -785,12 +932,12 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 raise
 
     def dropRestContentSet(self, mrs_object: dict):
+        timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
+        request_path = mrs_object.get("request_path")
 
-        full_path = (
-            mrs_object.get("url_host_name", self.current_service_host) +
-            mrs_object.get("url_context_root", self.current_service) +
-            mrs_object.get("request_path", ""))
+        full_path = self.getFullServicePath(
+            mrs_object=mrs_object, request_path=request_path)
 
         with lib.core.MrsDbTransaction(self.session):
             try:
@@ -799,11 +946,11 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     raise Exception("No REST service specified.")
 
                 content_set = lib.content_sets.get_content_set(
-                    service_id=service_id, request_path=mrs_object["request_path"],
+                    service_id=service_id, request_path=request_path,
                     session=self.session)
                 if content_set is None:
                     raise Exception(
-                        f'The given REST content set `{full_path}` could not be found.')
+                        f'The given REST CONTENT SET `{full_path}` could not be found.')
 
                 lib.content_sets.delete_content_set(
                     content_set_ids=[content_set["id"]], session=self.session)
@@ -811,15 +958,108 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 self.results.append({
                     "statementIndex": len(self.results) + 1,
                     "type": "success",
-                    "message": f'REST content set `{full_path}` dropped successfully.',
+                    "message": f'REST CONTENT SET `{full_path}` dropped successfully.',
                     "operation": self.current_operation,
-                    "id": lib.core.convert_id_to_string(content_set["id"])
+                    "id": lib.core.convert_id_to_string(content_set["id"]),
+                    "executionTime": timer.elapsed()
                 })
             except Exception as e:
                 self.results.append({
                     "statementIndex": len(self.results) + 1,
                     "type": "error",
-                    "message": f'Failed to drop the REST content set `{full_path}`. {e}',
+                    "message": f'Failed to drop the REST CONTENT SET `{full_path}`. {e}',
+                    "operation": self.current_operation
+                })
+                raise
+
+    def dropRestAuthApp(self, mrs_object: dict):
+        timer = Timer()
+        self.current_operation = mrs_object.pop("current_operation")
+
+        name = mrs_object.get("name")
+
+        full_path = self.getFullServicePath(
+            mrs_object=mrs_object, request_path=f':{name}')
+
+        with lib.core.MrsDbTransaction(self.session):
+            try:
+                service_id = self.get_given_or_current_service_id(mrs_object)
+                if service_id is None:
+                    raise Exception("No REST service specified.")
+
+                auth_app = lib.auth_apps.get_auth_app(
+                    service_id=service_id,
+                    name=name,
+                    session=self.session)
+                if auth_app is None:
+                    raise Exception(
+                        f'The given REST AUTH APP `{full_path}` could not be found.')
+
+                lib.auth_apps.delete_auth_app(
+                    app_id=auth_app.get("id"), session=self.session)
+
+                self.results.append({
+                    "statementIndex": len(self.results) + 1,
+                    "type": "success",
+                    "message": f'REST AUTH APP `{full_path}` dropped successfully.',
+                    "operation": self.current_operation,
+                    "id": lib.core.convert_id_to_string(auth_app["id"]),
+                    "executionTime": timer.elapsed()
+                })
+            except Exception as e:
+                self.results.append({
+                    "statementIndex": len(self.results) + 1,
+                    "type": "error",
+                    "message": f'Failed to drop the REST AUTH APP `{full_path}`. {e}',
+                    "operation": self.current_operation
+                })
+                raise
+
+    def dropRestUser(self, mrs_object: dict):
+        timer = Timer()
+        self.current_operation = mrs_object.pop("current_operation")
+
+        name = mrs_object.get("name")
+        authAppName = mrs_object.get("authAppName")
+        full_path = self.getFullServicePath(
+            mrs_object=mrs_object, request_path=f':"{name}"@"{authAppName}"')
+
+        with lib.core.MrsDbTransaction(self.session):
+            try:
+                service_id = self.get_given_or_current_service_id(mrs_object)
+                if service_id is None:
+                    raise Exception("No REST SERVICE specified.")
+
+                auth_app = lib.auth_apps.get_auth_app(
+                    service_id=service_id,
+                    name=authAppName,
+                    session=self.session)
+                if auth_app is None:
+                    raise Exception(f"The given REST AUTH APP for {full_path} was not found.")
+
+                users = lib.users.get_users(
+                    auth_app_id=auth_app.get("id"),
+                    user_name=name,
+                    session=self.session)
+                if len(users) > 0:
+                    lib.users.delete_user_by_id(
+                        user_id=users[0].get("id"), session=self.session)
+                else:
+                    raise Exception("User was not found.")
+
+                self.results.append({
+                    "statementIndex": len(self.results) + 1,
+                    "type": "success",
+                    "message": f"REST USER `{full_path}` dropped successfully.",
+                    "operation": self.current_operation,
+                    "id": lib.core.convert_id_to_string(users[0].get("id")),
+                    "executionTime": timer.elapsed()
+                })
+            except Exception as e:
+                self.results.append({
+                    "statementIndex": len(self.results) + 1,
+                    "type": "error",
+                    "message": f"Failed to drop the REST USER `{full_path}`. {e}",
                     "operation": self.current_operation
                 })
                 raise
@@ -840,14 +1080,17 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     self.current_service = service.get("url_context_root")
                     self.current_service_host = mrs_object.get(
                         "url_host_name", "")
+                    # Also set the stored current session
+                    lib.services.set_current_service_id(
+                        session=self.session, service_id = self.current_service_id)
                 else:
                     raise Exception(
-                        f"A REST Service with the request path {url_context_root} could not be found.")
+                        f"A REST SERVICE with the request path {url_context_root} could not be found.")
 
             if mrs_object.get("schema_request_path") is not None:
                 if self.current_service_id is None:
                     raise Exception(
-                        f"No current REST Service specified.")
+                        f"No current REST SERVICE specified.")
 
                 request_path = mrs_object.get("schema_request_path")
                 schema = lib.schemas.get_schema(
@@ -859,13 +1102,13 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     self.current_schema = schema.get("request_path")
                 else:
                     raise Exception(
-                        f"A REST Schema with the request path {request_path} could not be found.")
+                        f"A REST SCHEMA with the request path {request_path} could not be found.")
 
                 self.results.append({
                     "statementIndex": len(self.results) + 1,
                     "type": "success",
-                    "message": (f'Now using REST Schema `{self.current_schema}` '
-                                f'on REST Service `{self.current_service_host}{self.current_service}`.'),
+                    "message": (f'Now using REST SCHEMA `{self.current_schema}` '
+                                f'on REST SERVICE `{self.current_service_host}{self.current_service}`.'),
                     "operation": self.current_operation,
                     "id": lib.core.convert_id_to_string(self.current_schema_id),
                     "executionTime": timer.elapsed()
@@ -874,7 +1117,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 self.results.append({
                     "statementIndex": len(self.results) + 1,
                     "type": "success",
-                    "message": f'Now using REST Service `{self.current_service_host}{self.current_service}`.',
+                    "message": f'Now using REST SERVICE `{self.current_service_host}{self.current_service}`.',
                     "operation": self.current_operation,
                     "id": lib.core.convert_id_to_string(self.current_service_id)
                 })
@@ -920,8 +1163,9 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             result = []
             for service in services:
                 result.append({
-                    "REST Service Path": service.get("host_ctx"),
-                    "enabled": service.get("enabled") == 1
+                    "REST SERVICE Path": service.get("host_ctx"),
+                    "enabled": (service.get("enabled") == 1),
+                    "current": (service.get("id") == self.current_service_id)
                 })
 
             self.results.append({
@@ -949,7 +1193,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         try:
             service_id = self.get_given_or_current_service_id(mrs_object)
             if service_id is None:
-                raise Exception("No REST Service specified.")
+                raise Exception("No REST SERVICE specified.")
 
             schemas = lib.schemas.get_schemas(
                 session=self.session, service_id=service_id)
@@ -986,7 +1230,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         try:
             schema_id = self.get_given_or_current_schema_id(mrs_object)
             if schema_id is None:
-                raise Exception("No REST Schema specified.")
+                raise Exception("No REST SCHEMA specified.")
 
             items = lib.db_objects.get_db_objects(
                 session=self.session, schema_id=schema_id,
@@ -1017,19 +1261,20 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             raise
 
     def showRestContentSets(self, mrs_object: dict):
+        timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
 
         try:
             service_id = self.get_given_or_current_service_id(mrs_object)
             if service_id is None:
-                raise Exception("No REST Service specified.")
+                raise Exception("No REST SERVICE specified.")
 
             content_sets = lib.content_sets.get_content_sets(
                 session=self.session, service_id=service_id)
             result = []
             for content_set in content_sets:
                 result.append({
-                    "REST content set path": content_set.get("request_path"),
+                    "REST CONTENT SET path": content_set.get("request_path"),
                     "enabled": content_set.get("enabled") == 1
                 })
 
@@ -1038,13 +1283,14 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 "type": "success",
                 "message": f'OK, {len(content_sets)} record{"s" if len(content_sets) > 1 else ""} received.',
                 "operation": self.current_operation,
-                "result": result
+                "result": result,
+                "executionTime": timer.elapsed()
             })
         except Exception as e:
             self.results.append({
                 "statementIndex": len(self.results) + 1,
                 "type": "error",
-                "message": f'Cannot SHOW the REST content sets. {e}',
+                "message": f'Cannot SHOW the REST CONTENT SETs. {e}',
                 "operation": self.current_operation
             })
             raise
@@ -1052,14 +1298,13 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
     def showCreateRestService(self, mrs_object: dict):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
-        url_host_name = mrs_object.get(
-            "url_host_name", self.current_service_host)
-        full_path = f'{url_host_name}{mrs_object.get("url_context_root", self.current_service)}'
+
+        full_path = self.getFullServicePath(mrs_object=mrs_object)
 
         try:
             service_id = self.get_given_or_current_service_id(mrs_object)
             if service_id is None:
-                raise Exception("No REST Service specified.")
+                raise Exception("No REST SERVICE specified.")
 
             service = lib.services.get_service(
                 session=self.session, service_id=service_id)
@@ -1107,7 +1352,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             self.results.append({
                 "statementIndex": len(self.results) + 1,
                 "type": "error",
-                "message": f"Failed to get the REST Service `{full_path}`. {e}",
+                "message": f"Failed to get the REST SERVICE `{full_path}`. {e}",
                 "operation": self.current_operation
             })
             raise
@@ -1115,13 +1360,13 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
     def showCreateRestSchema(self, mrs_object: dict):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
-        url_host_name = mrs_object.get(
-            "url_host_name", self.current_service_host)
-        full_path = f'{url_host_name}{mrs_object.get("url_context_root", self.current_service)}'
+
+        full_path = self.getFullSchemaPath(mrs_object=mrs_object)
+
         try:
             service_id = self.get_given_or_current_service_id(mrs_object)
             if service_id is None:
-                raise Exception("No REST Service specified.")
+                raise Exception("No REST SERVICE specified.")
 
             service = lib.services.get_service(
                 session=self.session, service_id=service_id)
@@ -1165,7 +1410,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             self.results.append({
                 "statementIndex": len(self.results) + 1,
                 "type": "error",
-                "message": f"Failed to get the REST Service `{full_path}`. {e}",
+                "message": f"Failed to get the REST SCHEMA `{full_path}`. {e}",
                 "operation": self.current_operation
             })
             raise
@@ -1179,16 +1424,13 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         request_path = mrs_object.pop("request_path")
         rest_object_type = mrs_object.pop("type")
 
-        full_path = (
-            mrs_object.get("url_host_name", self.current_service_host) +
-            mrs_object.get("url_context_root", self.current_service) +
-            mrs_object.get("schema_request_path", self.current_schema) +
-            request_path)
+        full_path = self.getFullSchemaPath(
+            mrs_object=mrs_object, request_path=request_path)
 
         try:
             schema_id = self.get_given_or_current_schema_id(mrs_object)
             if schema_id is None:
-                raise Exception("No REST Schema specified.")
+                raise Exception("No REST SCHEMA specified.")
 
             db_object = lib.db_objects.get_db_object(
                 session=self.session, schema_id=schema_id,
@@ -1218,8 +1460,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             if db_object["enabled"] is False or db_object["enabled"] == 0:
                 stmt += "    DISABLED\n"
 
-            if db_object["requires_auth"] is True or db_object["requires_auth"] == 1:
-                stmt += "    AUTHENTICATION REQUIRED\n"
+            if db_object["requires_auth"] is False or db_object["requires_auth"] == 0:
+                stmt += "    AUTHENTICATION NOT REQUIRED\n"
 
             # 25 is the default value
             if db_object["items_per_page"] is not None and db_object["items_per_page"] != 25:

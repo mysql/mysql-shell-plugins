@@ -117,7 +117,7 @@
 }
 
 .msg.browserTile .tileCaption {
-    font-size: 1rem;
+    font-size: 1.15rem;
     font-weight: 600;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -125,7 +125,7 @@
 }
 
 .msg.browserTile .tileDescription {
-    font-size: 0.7rem;
+    font-size: 0.8rem;
 }
 
 .msg.browserTile.secondary .label {

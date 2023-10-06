@@ -248,7 +248,7 @@ interface IMrsServiceSdkMetadata {
 export class DBConnectionTab extends ComponentBase<IDBConnectionTabProperties, IDBConnectionTabState> {
     private static aboutMessage = `Welcome to the MySQL Shell - DB Notebook.
 
-Press %modifier%+Enter to execute the current statement.
+Press %modifier%+Enter to execute the code block.
 
 Execute \\sql to switch to SQL, \\js to JavaScript and \\ts to TypeScript mode.
 Execute \\help or \\? for help;`;
@@ -380,6 +380,7 @@ Execute \\help or \\? for help;`;
                         dbType={dbType}
                         extraLibs={extraLibs}
                         showAbout={showAbout && !this.loadingNotebook}
+                        fontSize={appParameters.editorFontSize}
                         onHelpCommand={onHelpCommand}
                         onScriptExecution={this.handleExecution}
                     />;
@@ -395,6 +396,7 @@ Execute \\help or \\? for help;`;
                         savedState={savedState}
                         toolbarItemsTemplate={toolbarItems}
                         standaloneMode={standaloneMode}
+                        fontSize={appParameters.editorFontSize}
                         onScriptExecution={this.handleExecution}
                         onEdit={this.handleEdit}
                     />;
@@ -1109,7 +1111,7 @@ Execute \\help or \\? for help;`;
                 if (options.showAsText) {
                     let content = "";
                     if (setColumns) {
-                        content += options.query + "\n";
+                        content += `sql> ${options.query.trim()};\n`;
                     }
 
                     content += this.convertResultSetToText(rows, columns, setColumns, resultSummary);
@@ -1170,7 +1172,7 @@ Execute \\help or \\? for help;`;
             });
 
             // Handling of the final response.
-            await this.handleDependentTasks(options.queryType);
+            await this.handleDependentTasks(options);
         } catch (reason) {
             const resultTimer = this.resultTimers.get(resultId);
             if (resultTimer) {
@@ -1191,6 +1193,14 @@ Execute \\help or \\? for help;`;
                     const match = content.match(/MySQL Error \((\d+)\)/);
                     if (match) {
                         code = parseInt(match[1], 10);
+                    }
+
+                    const scriptingErrorPrefix = "ScriptingError: ClassicSession.run_sql: \n";
+                    if (content.startsWith(scriptingErrorPrefix)) {
+                        content = content.substring(scriptingErrorPrefix.length).trim();
+                        if (content.startsWith("Exception: ")) {
+                            content = `ERROR: ${content.substring(11)}`;
+                        }
                     }
                 }
             } else {
@@ -1337,15 +1347,15 @@ Execute \\help or \\? for help;`;
      * Checks if a query affects any of our states used in the UI, like auto commit mode, SQL mode, current schema etc.
      * and triggers actions according to that.
      *
-     * @param type The type of the query that just ran.
+     * @param options The query execution options.
      *
      * @returns A promise which resolves when the post processing is complete.
      */
-    private handleDependentTasks = async (type: QueryType): Promise<void> => {
+    private handleDependentTasks = async (options: IQueryExecutionOptions): Promise<void> => {
         const { id, connectionId } = this.props;
         const { backend } = this.state;
 
-        switch (type) {
+        switch (options.queryType) {
             case QueryType.SetAutoCommit:
             case QueryType.StartTransaction:
             case QueryType.BeginWork:
@@ -1357,12 +1367,21 @@ Execute \\help or \\? for help;`;
             }
 
             case QueryType.Use: {
-                // The user wants to change the current schema.
-                // This may have failed so query the backend for the current schema and then trigger the command.
-                const schema = await backend?.getCurrentSchema();
-                if (schema) {
-                    requisitions.executeRemote("sqlSetCurrentSchema", { id: id ?? "", connectionId, schema });
-                    await requisitions.execute("sqlSetCurrentSchema", { id: id ?? "", connectionId, schema });
+                // Check if this is a USE REST SERVICE statement
+                if (options.query.trim().match(/\s*USE\s+REST\s+SERVICE\.*/gmi)) {
+                    // Enforce a refresh of the MRS Sdk Cache
+                    this.cachedMrsServiceSdk.schemaMetadataVersion = undefined;
+                    await this.updateMrsServiceSdkCache();
+
+                    void requisitions.executeRemote("refreshConnections", undefined);
+                } else {
+                    // The user wants to change the current schema.
+                    // This may have failed so query the backend for the current schema and then trigger the command.
+                    const schema = await backend?.getCurrentSchema();
+                    if (schema) {
+                        requisitions.executeRemote("sqlSetCurrentSchema", { id: id ?? "", connectionId, schema });
+                        await requisitions.execute("sqlSetCurrentSchema", { id: id ?? "", connectionId, schema });
+                    }
                 }
 
                 break;
@@ -2259,14 +2278,26 @@ Execute \\help or \\? for help;`;
                     }
 
                     default: {
-                        value = convertLineBreaks(String(row[column.field]));
+                        //value = convertLineBreaks(String(row[column.field]));
+                        value = String(row[column.field]);
 
                         break;
                     }
                 }
 
                 row[column.field] = value;
-                const length = value.length;
+                let length = value.length;
+                // Check if the value has line breaks, if so, find the longest line
+                if (/\r|\n/.exec(value)) {
+                    let maxLength = 0;
+                    const lines = value.split(/\r|\n/);
+                    for (const ln of lines) {
+                        if (ln.length > maxLength) {
+                            maxLength = ln.length;
+                        }
+                    }
+                    length = maxLength;
+                }
                 if (length > (column.width ?? 0)) {
                     column.width = length;
                 }
@@ -2292,6 +2323,35 @@ Execute \\help or \\? for help;`;
             const line = columns.reduce((previous, current, index) => {
                 if (columns[index].rightAlign) {
                     return previous + " " + String(row[current.field]).padStart(columns[index].width!) + " |";
+                }
+
+                if (/\r|\n/.exec(String(row[current.field]))) {
+                    let multiLineStr = previous;
+                    let pre = "| ";
+                    let post = " ";
+                    columns.forEach((c, i) => {
+                        if (i < index) {
+                            pre += `${" ".repeat(c.width!)} | `;
+                        } else if (i > index) {
+                            post += `${" ".repeat(c.width!)} | `;
+                        }
+                    });
+
+                    pre = pre.slice(0, -1);
+                    post = post.slice(0, -1);
+
+                    const lines = String(row[current.field]).split(/\r|\n/);
+                    lines.forEach((ln, i) => {
+                        if (i > 0) {
+                            multiLineStr += pre;
+                        }
+                        multiLineStr += ` ${ln}${" ".repeat(columns[index].width! - ln.length)} |`;
+                        if (i < lines.length - 1) {
+                            multiLineStr += post + "\n";
+                        }
+                    });
+
+                    return multiLineStr;
                 }
 
                 return previous + " " + String(row[current.field]).padEnd(columns[index].width!) + " |";

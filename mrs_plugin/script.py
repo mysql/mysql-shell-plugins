@@ -56,7 +56,10 @@ def run_mrs_script(mrs_script=None, **kwargs):
                     result = res.get("result")
                     if result and len(result) > 0:
                         print(lib.core.format_result(result))
-                    print(res.get("message"))
+                    if res.get("affectedItemsCount") is None:
+                        print(res.get("message"))
+                    else:
+                        print(f'{res.get("affectedItemsCount")} row(s) affected.')
                 else:
                     print(f'ERROR: {res.get("message")}')
 

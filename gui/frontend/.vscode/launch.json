@@ -54,7 +54,7 @@
             "type": "chrome",
             "request": "launch",
             "name": "Launch MSG on Chrome - Single user",
-            "url": "http://127.0.0.1:3001?token=1234",
+            "url": "http://127.0.0.1:3001?token=1234&fontSize=14&editorFontSize=14",
             "webRoot": "${workspaceFolder}/src",
             "userDataDir": "${workspaceRoot}/.vscode/chrome",
             "preLaunchTask": "tsc: watch",

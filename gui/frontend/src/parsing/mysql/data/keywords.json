@@ -3190,6 +3190,30 @@
             {
                 "word": "ITEM",
                 "reserved": false
+            },
+            {
+                "word": "SETS",
+                "reserved": false
+            },
+            {
+                "word": "AUTH",
+                "reserved": false
+            },
+            {
+                "word": "APP",
+                "reserved": false
+            },
+            {
+                "word": "VENDOR",
+                "reserved": false
+            },
+            {
+                "word": "MRS",
+                "reserved": false
+            },
+            {
+                "word": "MYSQL",
+                "reserved": false
             }
         ],
         [

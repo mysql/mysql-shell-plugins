@@ -90,3 +90,20 @@ The `DROP REST CONTENT SET` statement is used to drop an existing REST static co
 
 dropRestContentSetStatement ::=
 ![dropRestContentSetStatement](../../images/ddl/dropRestContentSetStatement.svg "dropRestContentSetStatement")
+
+## DROP REST AUTH APP
+
+The `DROP REST AUTH APP` statement is used to drop an existing REST authentication app from a REST service.
+
+**_SYNTAX_**
+
+dropRestAuthAppStatement ::=
+![dropRestAuthAppStatement](../../images/ddl/dropRestAuthAppStatement.svg "dropRestAuthAppStatement")
+
+## DROP REST USER
+
+The `DROP REST USER` statement is used to drop an existing REST user from a REST authentication app.
+**_SYNTAX_**
+
+dropRestUserStatement ::=
+![dropRestUserStatement](../../images/ddl/dropRestUserStatement.svg "dropRestUserStatement")

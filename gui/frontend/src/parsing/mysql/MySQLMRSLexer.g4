@@ -718,7 +718,6 @@ SESSION_USER_SYMBOL:
     S E S S I O N '_' U S E R                                                           { this._type = this.determineFunction(MySQLMRSLexer.USER_SYMBOL); }
 ;                                                                                       // Synonym
 SET_SYMBOL:                         S E T;                                              // SQL-2003-R
-SETS_SYMBOL:                        S E T S;
 SHARE_SYMBOL:                       S H A R E;
 SHOW_SYMBOL:                        S H O W;
 SHUTDOWN_SYMBOL:                    S H U T D O W N;
@@ -1152,6 +1151,14 @@ MEDIA_SYMBOL:       M E D I A;
 AUTODETECT_SYMBOL:  A U T O D E T E C T;
 FEED_SYMBOL:        F E E D;
 ITEM_SYMBOL:        I T E M;
+SETS_SYMBOL:        S E T S;
+AUTH_SYMBOL:        A U T H;
+APP_SYMBOL:         A P P;
+VENDOR_SYMBOL:      V E N D O R;
+MRS_SYMBOL:         M R S;
+MYSQL_SYMBOL:       M Y S Q L;
+LIMIT_TO_REGISTERED_USERS_SYMBOL: L I M I T WHITESPACE+ T O WHITESPACE+ R E G I S T E R E D WHITESPACE+ U S E R S;
+ALLOW_NEW_USERS_SYMBOL: A L L O W WHITESPACE+ N E W WHITESPACE+ U S E R S;
 
 //----------------- GraphGL --------------------------------------------------------------------------------------------
 

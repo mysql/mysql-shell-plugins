@@ -56,6 +56,12 @@ interface IAppParameters {
 
     /** The communication debugger is by default off while running tests. This flag allows to switch it on. */
     launchWithDebugger?: boolean;
+
+    /** The application font size as requested */
+    fontSize?: number;
+
+    /** The font size for the code editors */
+    editorFontSize?: number;
 }
 
 /**
@@ -72,6 +78,16 @@ const parseAppParameters = (): void => {
 
                 if (elements[0] === "app") {
                     appParameters.embedded = true;
+                } else if (elements[0] === "fontSize") {
+                    const fontSize = parseInt(elements[1], 10);
+                    if (!isNaN(fontSize)) {
+                        appParameters.fontSize = fontSize;
+                    }
+                } else if (elements[0] === "editorFontSize") {
+                    const fontSize = parseInt(elements[1], 10);
+                    if (!isNaN(fontSize)) {
+                        appParameters.editorFontSize = fontSize;
+                    }
                 }
             }
         });

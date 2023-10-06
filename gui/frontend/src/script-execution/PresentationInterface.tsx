@@ -56,8 +56,8 @@ export class PresentationInterface {
     // The maximum height for the result area.
     protected static maxHeight = 800;
     protected static maxAutoHeight = {
-        text: 292,
-        resultSets: 292,
+        text: 352,
+        resultSets: 352,
         graphData: 300,
     };
 

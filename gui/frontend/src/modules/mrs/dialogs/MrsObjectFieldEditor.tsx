@@ -110,6 +110,7 @@ export interface IMrsObjectFieldEditorData extends IDictionary {
 export interface IMrsObjectFieldEditorProperties extends IValueEditCustomProperties {
     backend: ShellInterfaceSqlEditor;
     dbObjectChange?: () => void;
+    getCurrentDbObject?: () => IMrsDbObjectData;
 }
 
 interface IMrsObjectFieldEditorState extends IComponentState {
@@ -276,6 +277,34 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             return s;
         };
 
+        const addOptions = (dbObject: IMrsDbObjectData) => {
+            let s = "";
+
+            if (!dbObject.enabled) {
+                s += "    DISABLED\n";
+            }
+            if (!dbObject.requiresAuth) {
+                s += "    AUTHENTICATION NOT REQUIRED\n";
+            }
+            if (dbObject.itemsPerPage && dbObject.itemsPerPage !== 25) {
+                s += `    ITEMS PER PAGE ${dbObject.itemsPerPage}\n`;
+            }
+            if (dbObject.comments) {
+                s += `    COMMENTS "${dbObject.comments}"\n`;
+            }
+            if (dbObject.mediaType) {
+                s += `    MEDIA TYPE ${dbObject.mediaType}\n`;
+            }
+            if (dbObject.crudOperationFormat !== "FEED") {
+                s += `    FORMAT ${dbObject.crudOperationFormat}\n`;
+            }
+            if (dbObject.authStoredProcedure) {
+                s += `    AUTHENTICATION PROCEDURE ${dbObject.authStoredProcedure}\n`;
+            }
+
+            return s;
+        };
+
         let view;
         // Handle tables and views
         if (data.dbObject.objectType !== "PROCEDURE") {
@@ -286,7 +315,9 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             if (mrsObject) {
                 view = `CREATE OR REPLACE REST DUALITY VIEW ${data.dbObject.requestPath}\n` +
                     `    ON SERVICE ${data.servicePath} SCHEMA ${data.dbSchemaPath}\n` +
+                    addOptions(data.dbObject) +
                     `    FROM ${data.dbSchemaName}.${data.dbObject.name} AS ${mrsObject.name}`;
+
                 for (const op of data.dbObject.crudOperations) {
                     if (op === "CREATE") {
                         view += ` @INSERT`;
@@ -310,6 +341,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             if (mrsObject) {
                 view = `CREATE OR REPLACE REST PROCEDURE ${data.dbObject.requestPath}\n` +
                     `    ON SERVICE ${data.servicePath} SCHEMA ${data.dbSchemaPath}\n` +
+                    addOptions(data.dbObject) +
                     `    FROM ${data.dbSchemaName}.${data.dbObject.name} AS ${mrsObject.name}\n`;
 
                 if (mrsObject.fields) {
@@ -333,7 +365,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
     };
 
     public render(): ComponentChild {
-        const { values } = this.props;
+        const { values, getCurrentDbObject } = this.props;
         const { sqlPreview } = this.state;
         const data = values as IMrsObjectFieldEditorData;
 
@@ -376,6 +408,10 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
 
         if (sqlPreview === true) {
             MrsObjectFieldEditor.updateMrsObjectFields(data);
+            // Get updated dbObject values
+            if (getCurrentDbObject) {
+                data.dbObject = getCurrentDbObject();
+            }
             sql = MrsObjectFieldEditor.buildDualityViewSql(data) ?? "";
         }
 

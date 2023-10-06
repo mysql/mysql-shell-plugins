@@ -192,6 +192,23 @@ export class App extends Component<{}, IAppState> {
             void MessageScheduler.get.connect({ url: new URL(window.location.href) });
         }
 
+        // Set the default font size by either using the default of 14px or the app parameter fontSize
+        let fontSize = "14px";
+        if (appParameters.fontSize) {
+            fontSize = `${appParameters.fontSize}px`;
+        }
+        window.document.documentElement.style.fontSize = fontSize;
+
+        // Set the default editor font size by either using the default of 14px or the app parameter fontSize
+        let editorFontSize = fontSize;
+        if (appParameters.editorFontSize) {
+            editorFontSize = `${appParameters.editorFontSize}px`;
+        }
+        const style = document.createElement("style");
+        style.innerHTML = `.msg.codeEditor .zoneHost { font-size: ${editorFontSize}; } ` +
+            `.msg.resultHost .resultView .tabulator { font-size: ${editorFontSize}; }`;
+        document.head.appendChild(style);
+
         requisitions.register("statusBarButtonClick", this.statusBarButtonClick);
         requisitions.register("editorInfoUpdated", this.editorInfoUpdated);
         requisitions.register("themeChanged", this.themeChanged);

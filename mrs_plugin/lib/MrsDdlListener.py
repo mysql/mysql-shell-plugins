@@ -225,7 +225,7 @@ class MrsDdlListener(MRSListener):
             url_host_name = self.mrs_object.get("url_host_name")
 
         if schema_request_path is None:
-            schema_id = self.mrs_ddl_executor.get_current_schema_id()
+            schema_id = self.mrs_ddl_executor.current_schema_id
             if schema_id is None:
                 raise Exception("No REST schema given.")
         else:
@@ -622,6 +622,48 @@ class MrsDdlListener(MRSListener):
     def exitCreateRestContentSetStatement(self, ctx):
         self.mrs_ddl_executor.createRestContentSet(self.mrs_object)
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # CREATE REST AUTH APP
+
+    def enterCreateRestAuthAppStatement(self, ctx):
+        self.mrs_object = {
+            "current_operation": (
+                "CREATE" if ctx.REPLACE_SYMBOL() is None
+                else "CREATE OR REPLACE") + " AUTH APP",
+            "do_replace": ctx.REPLACE_SYMBOL() is not None,
+            "name": ctx.authAppName().getText()[1:-1],
+            "vendor": ctx.vendorName().getText() if ctx.vendorName() is not None else
+            ("MySQL Internal" if ctx.MYSQL_SYMBOL() is not None else "MRS")
+        }
+
+        if ctx.restAuthAppOptions() is not None:
+            if ctx.restAuthAppOptions().limitUsers() is not None and len(ctx.restAuthAppOptions().limitUsers()) > 0:
+                self.mrs_object["limit_to_registered_users"] = False if (
+                    ctx.restAuthAppOptions().limitUsers()[0].getText() == "ALLOW NEW USERS") else True
+            if ctx.restAuthAppOptions().defaultRole() is not None and len(ctx.restAuthAppOptions().defaultRole()) > 0:
+                self.mrs_object["default_role"] = ctx.restAuthAppOptions(
+                ).defaultRole()[0].quotedText().getText()
+
+    def exitCreateRestAuthAppStatement(self, ctx):
+        self.mrs_ddl_executor.createRestAuthApp(self.mrs_object)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # CREATE REST USER
+
+    def enterCreateRestUserStatement(self, ctx):
+        self.mrs_object = {
+            "current_operation": (
+                "CREATE" if ctx.REPLACE_SYMBOL() is None
+                else "CREATE OR REPLACE") + " USER",
+            "do_replace": ctx.REPLACE_SYMBOL() is not None,
+            "name": ctx.userName().getText()[1:-1],
+            "authAppName": ctx.authAppName().getText()[1:-1],
+            "password": ctx.userPassword().getText()[1:-1],
+        }
+
+    def exitCreateRestUserStatement(self, ctx):
+        self.mrs_ddl_executor.createRestUser(self.mrs_object)
+
     # ==================================================================================================================
     # ALTER REST Statements
 
@@ -796,6 +838,31 @@ class MrsDdlListener(MRSListener):
 
     def exitDropRestContentSetStatement(self, ctx):
         self.mrs_ddl_executor.dropRestContentSet(self.mrs_object)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # DROP REST AUTH APP
+
+    def enterDropRestAuthAppStatement(self, ctx):
+        self.mrs_object = {
+            "current_operation": "DROP REST AUTH APP",
+            "name": ctx.authAppName().getText()[1:-1],
+        }
+
+    def exitDropRestAuthAppStatement(self, ctx):
+        self.mrs_ddl_executor.dropRestAuthApp(self.mrs_object)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # DROP REST USER
+
+    def enterDropRestUserStatement(self, ctx):
+        self.mrs_object = {
+            "current_operation": "DROP REST USER",
+            "name": ctx.userName().getText()[1:-1],
+            "authAppName": ctx.authAppName().getText()[1:-1],
+        }
+
+    def exitDropRestUserStatement(self, ctx):
+        self.mrs_ddl_executor.dropRestUser(self.mrs_object)
 
     # ==================================================================================================================
     # USE REST Statement

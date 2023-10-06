@@ -22,7 +22,7 @@
 from mrs_plugin import lib
 
 # Define plugin version
-VERSION = "1.12.1"
+VERSION = "1.13.0"
 
 DB_VERSION = [2, 1, 1]
 REQUIRED_ROUTER_VERSION = [8, 0, 33]

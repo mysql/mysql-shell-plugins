@@ -214,6 +214,8 @@
     white-space: pre-wrap;
 }
 
+/* TODO: Temporary fix, since this overwrites error formatting
+
 .msg .resultText.actionLabel,
 .zoneHost .resultText {
     background-color: var(--editorZone-background);
@@ -221,7 +223,7 @@
     white-space: pre-wrap;
     cursor: text;
     user-select: text;
-}
+}*/
 
 .msg .resultText.actionLabel,
 .zoneHost .resultText.text {

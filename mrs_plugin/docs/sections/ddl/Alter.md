@@ -79,8 +79,8 @@ alterRestViewStatement ::=
 serviceSchemaSelector ::=
 ![serviceSchemaSelector](../../images/ddl/serviceSchemaSelector.svg "serviceSchemaSelector")
 
-restDualityViewOptions ::=
-![restDualityViewOptions](../../images/ddl/restDualityViewOptions.svg "restDualityViewOptions")
+restObjectOptions ::=
+![restObjectOptions](../../images/ddl/restObjectOptions.svg "restObjectOptions")
 
 **_Examples_**
 
@@ -109,5 +109,5 @@ alterRestProcedureStatement ::=
 serviceSchemaSelector ::=
 ![serviceSchemaSelector](../../images/ddl/serviceSchemaSelector.svg "serviceSchemaSelector")
 
-restProcedureOptions ::=
-![restProcedureOptions](../../images/ddl/restProcedureOptions.svg "restProcedureOptions")
+restObjectOptions ::=
+![restObjectOptions](../../images/ddl/restObjectOptions.svg "restObjectOptions")

@@ -55,7 +55,7 @@ def cypher_auth_string(auth_string) -> bytes:
 
         return '$' + '$'.join(parts)
 
-def get_users(session, service_id=None, auth_app_id=None, user_id=None, mask_password=True):
+def get_users(session, service_id=None, auth_app_id=None, user_id=None, mask_password=True, user_name=None):
     sql = f"""
         SELECT  user.id, user.auth_app_id, user.name, user.email,
                 user.vendor_user_id, user.login_permitted,
@@ -79,6 +79,9 @@ def get_users(session, service_id=None, auth_app_id=None, user_id=None, mask_pas
     elif service_id:
         wheres.append("service_id = ?")
         params.append(service_id)
+    elif user_name:
+        wheres.append("user.name = ?")
+        params.append(user_name)
     else:
         return []
 

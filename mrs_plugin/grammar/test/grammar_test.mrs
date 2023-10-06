@@ -1,6 +1,8 @@
 /* MRS Grammar Test
 Copyright (c) 2023, Oracle and/or its affiliates. */
 
+SHOW CREATE REST DUALITY VIEW /city FROM SERVICE /myService SCHEMA /sakila;
+
 # cSpell:ignore gtid
 CONFIGURE REST METADATA
     ENABLED
@@ -241,7 +243,7 @@ SHOW CREATE REST VIEW /country;
 SHOW CREATE REST PROCEDURE /filmInStock;
 
 CREATE REST CONTENT SET /testContent
-ON SERVICE localhost/myTestService SCHEMA /sakila
+ON SERVICE localhost/myTestService
 FROM "./grammar/test";
 
 SHOW REST CONTENT SETS;
@@ -274,6 +276,21 @@ ON SERVICE localhost/myTestService
     NEW REQUEST PATH /sakila;
 
 SHOW REST SCHEMAS;
+
+CREATE REST AUTH APP "MRS" ON SERVICE localhost/myTestService VENDOR MRS;
+
+CREATE REST USER "mike"@"MRS" IDENTIFIED BY "1234";
+
+DROP REST USER "mike"@"MRS";
+
+CREATE REST AUTH APP "MySQL" ON SERVICE localhost/myTestService VENDOR MySQL
+ALLOW NEW USERS;
+
+ALTER REST SERVICE /myService DISABLED;
+
+DROP REST AUTH APP "MRS";
+
+DROP REST AUTH APP "MySQL" FROM SERVICE localhost/myTestService;
 
 DROP REST DUALITY VIEW /country
 FROM SERVICE localhost/myTestService SCHEMA /sakila;
