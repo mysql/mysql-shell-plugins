@@ -1,6 +1,6 @@
 # MySQL Shell for VS Code 1.13.1+8.1.1 Preview
 
-This extension enables interactive editing and execution of SQL for MySQL Databases and the MySQL Database Service. It integrates the MySQL Shell directly into VS Code development workflows.
+This extension enables interactive editing and execution of SQL for MySQL Databases and the MySQL HeatWave Service. It integrates the MySQL Shell directly into VS Code development workflows.
 
 __IMPORTANT: Please note that this is a PREVIEW release which is not meant to be used in production.__
 
@@ -46,7 +46,7 @@ How to Create a New Database Connection
 
 ## Feature Highlights
 
-### Full OCI MDS Integration
+### Full OCI MHS Integration
 
 Browse and manage your MySQL DB Systems on the Oracle Cloud Infrastructure.
 
@@ -73,16 +73,16 @@ Takes SQL embedded in your source files and runs it inside the DB Editor. Update
 ### Features Include
 
 - Database Connection Manager:
-  - Management of database connections to MySQL Server and MySQL Database Service (MDS) instances.
+  - Management of database connections to MySQL Server and MySQL Database Service (MHS) instances.
   - Browse through schema catalog
-  - Dump schemas and load schemas with support for MDS instances
+  - Dump schemas and load schemas with support for MHS instances
   - Open DB Editor for a database connection
   - Open MySQL Shell GUI Console for a database connection
 - Oracle Cloud Infrastructure (OCI) Browser
   - Support for standard OCI profile configuration
   - Browse OCI compartments, MySQL DB Systems, Bastions, Compute Instances, and Load Balancers
   - Start/Stop operations for MySQL DB Systems
-  - Creation of OCI Bastions and tunneled connections to MDS instance on private OCI networks
+  - Creation of OCI Bastions and tunneled connections to MHS instance on private OCI networks
 - DB Editor to work with live database connections:
   - Notebook Interface
   - Support for SQL, TypeScript, and JavaScript to work with the database
@@ -99,6 +99,5 @@ Takes SQL embedded in your source files and runs it inside the DB Editor. Update
   - Execute any selected SQL commands from SQL files
   - Execute multi-line SQL blocks from Python files
     - Update original Python files with changes made in DB Editor
-
 
 Copyright &copy; 2022, 2023, Oracle and/or its affiliates.

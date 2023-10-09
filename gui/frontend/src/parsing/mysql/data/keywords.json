@@ -3224,6 +3224,10 @@
                 "reserved": false
             },
             {
+                "word": "APPS",
+                "reserved": false
+            },
+            {
                 "word": "APP",
                 "reserved": false
             },
@@ -3237,6 +3241,18 @@
             },
             {
                 "word": "MYSQL",
+                "reserved": false
+            },
+            {
+                "word": "ALLOW",
+                "reserved": false
+            },
+            {
+                "word": "USERS",
+                "reserved": false
+            },
+            {
+                "word": "REGISTER",
                 "reserved": false
             }
         ],

@@ -26,6 +26,21 @@ from mrs_plugin.lib.mrs_parser import MRSParser
 from mrs_plugin.lib.MrsDdlExecutorInterface import MrsDdlExecutorInterface
 
 
+def get_text_without_quotes(txt):
+    if txt is None:
+        return None
+
+    if len(txt) < 2:
+        return txt
+
+    if ((txt[0] == "`" and txt[len(txt)-1] == "`") or
+        (txt[0] == "'" and txt[len(txt)-1] == "'") or
+            (txt[0] == '"' and txt[len(txt)-1] == '"')):
+        return txt[1:-1]
+
+    return txt
+
+
 class MrsDdlListener(MRSListener):
 
     def __init__(self, mrs_ddl_executor: MrsDdlExecutorInterface, session):
@@ -44,7 +59,8 @@ class MrsDdlListener(MRSListener):
         self.mrs_object["options"] = ctx.jsonValue().getText()
 
     def enterComments(self, ctx):
-        self.mrs_object["comments"] = ctx.quotedText().getText()[1:-1]
+        self.mrs_object["comments"] = get_text_without_quotes(
+            ctx.quotedText().getText())
 
     def enterEnabledDisabled(self, ctx):
         if ctx.ENABLED_SYMBOL() is not None:
@@ -115,22 +131,25 @@ class MrsDdlListener(MRSListener):
     def enterAuthPath(self, ctx):
         val = ctx.quotedTextOrDefault().getText()
         if val != "DEFAULT":
-            self.mrs_object["auth_path"] = val[1:-1]
+            self.mrs_object["auth_path"] = get_text_without_quotes(val)
 
     def enterAuthRedirection(self, ctx):
         val = ctx.quotedTextOrDefault().getText()
         if val != "DEFAULT":
-            self.mrs_object["auth_completed_url"] = val[1:-1]
+            self.mrs_object["auth_completed_url"] = get_text_without_quotes(
+                val)
 
     def enterAuthValidation(self, ctx):
         val = ctx.quotedTextOrDefault().getText()
         if val != "DEFAULT":
-            self.mrs_object["auth_completed_url_validation"] = val[1:-1]
+            self.mrs_object["auth_completed_url_validation"] = get_text_without_quotes(
+                val)
 
     def enterAuthPageContent(self, ctx):
         val = ctx.quotedTextOrDefault().getText()
         if val != "DEFAULT":
-            self.mrs_object["auth_completed_page_content"] = val[1:-1]
+            self.mrs_object["auth_completed_page_content"] = get_text_without_quotes(
+                val)
 
     def enterUserManagementSchema(self, ctx):
         val = ctx.schemaName()
@@ -149,7 +168,7 @@ class MrsDdlListener(MRSListener):
                 "CREATE" if ctx.REPLACE_SYMBOL() is None
                 else "CREATE OR REPLACE") + " REST SCHEMA",
             "do_replace": ctx.REPLACE_SYMBOL() is not None,
-            "schema_name": ctx.schemaName().getText()[1:-1],
+            "schema_name": get_text_without_quotes(ctx.schemaName().getText()),
             "schema_request_path": (
                 ctx.schemaRequestPath().getText()
                 if ctx.schemaRequestPath() is not None
@@ -333,7 +352,8 @@ class MrsDdlListener(MRSListener):
 
     def enterRestViewMediaType(self, ctx):
         if ctx.quotedText() is not None:
-            self.mrs_object["media_type"] = ctx.quotedText().getText()[1:-1]
+            self.mrs_object["media_type"] = get_text_without_quotes(
+                ctx.quotedText().getText())
         elif ctx.AUTODETECT_SYMBOL() is not None:
             self.mrs_object["media_type_autodetect"] = True
 
@@ -631,18 +651,18 @@ class MrsDdlListener(MRSListener):
                 "CREATE" if ctx.REPLACE_SYMBOL() is None
                 else "CREATE OR REPLACE") + " AUTH APP",
             "do_replace": ctx.REPLACE_SYMBOL() is not None,
-            "name": ctx.authAppName().getText()[1:-1],
+            "name": get_text_without_quotes(ctx.authAppName().getText()),
             "vendor": ctx.vendorName().getText() if ctx.vendorName() is not None else
-            ("MySQL Internal" if ctx.MYSQL_SYMBOL() is not None else "MRS")
+            ("MySQL Internal" if ctx.MYSQL_SYMBOL() is not None else "MRS"),
+            "limit_to_registered_users": True
         }
 
         if ctx.restAuthAppOptions() is not None:
-            if ctx.restAuthAppOptions().limitUsers() is not None and len(ctx.restAuthAppOptions().limitUsers()) > 0:
-                self.mrs_object["limit_to_registered_users"] = False if (
-                    ctx.restAuthAppOptions().limitUsers()[0].getText() == "ALLOW NEW USERS") else True
+            if ctx.restAuthAppOptions().allowNewUsersToRegister() is not None:
+                self.mrs_object["limit_to_registered_users"] = False
             if ctx.restAuthAppOptions().defaultRole() is not None and len(ctx.restAuthAppOptions().defaultRole()) > 0:
-                self.mrs_object["default_role"] = ctx.restAuthAppOptions(
-                ).defaultRole()[0].quotedText().getText()
+                self.mrs_object["default_role"] = get_text_without_quotes(ctx.restAuthAppOptions(
+                ).defaultRole()[0].quotedText().getText())
 
     def exitCreateRestAuthAppStatement(self, ctx):
         self.mrs_ddl_executor.createRestAuthApp(self.mrs_object)
@@ -656,9 +676,9 @@ class MrsDdlListener(MRSListener):
                 "CREATE" if ctx.REPLACE_SYMBOL() is None
                 else "CREATE OR REPLACE") + " USER",
             "do_replace": ctx.REPLACE_SYMBOL() is not None,
-            "name": ctx.userName().getText()[1:-1],
-            "authAppName": ctx.authAppName().getText()[1:-1],
-            "password": ctx.userPassword().getText()[1:-1],
+            "name": get_text_without_quotes(ctx.userName().getText()),
+            "authAppName": get_text_without_quotes(ctx.authAppName().getText()),
+            "password": get_text_without_quotes(ctx.userPassword().getText()),
         }
 
     def exitCreateRestUserStatement(self, ctx):
@@ -845,7 +865,7 @@ class MrsDdlListener(MRSListener):
     def enterDropRestAuthAppStatement(self, ctx):
         self.mrs_object = {
             "current_operation": "DROP REST AUTH APP",
-            "name": ctx.authAppName().getText()[1:-1],
+            "name": get_text_without_quotes(ctx.authAppName().getText()),
         }
 
     def exitDropRestAuthAppStatement(self, ctx):
@@ -857,8 +877,8 @@ class MrsDdlListener(MRSListener):
     def enterDropRestUserStatement(self, ctx):
         self.mrs_object = {
             "current_operation": "DROP REST USER",
-            "name": ctx.userName().getText()[1:-1],
-            "authAppName": ctx.authAppName().getText()[1:-1],
+            "name": get_text_without_quotes(ctx.userName().getText()),
+            "authAppName": get_text_without_quotes(ctx.authAppName().getText()),
         }
 
     def exitDropRestUserStatement(self, ctx):
@@ -955,6 +975,17 @@ class MrsDdlListener(MRSListener):
         self.mrs_ddl_executor.showRestContentSets(self.mrs_object)
 
     # ------------------------------------------------------------------------------------------------------------------
+    # SHOW REST AUTH APPS
+
+    def enterShowRestAuthAppsStatement(self, ctx):
+        self.mrs_object = {
+            "current_operation": "SHOW REST AUTH APPS"
+        }
+
+    def exitShowRestAuthAppsStatement(self, ctx):
+        self.mrs_ddl_executor.showRestAuthApps(self.mrs_object)
+
+    # ------------------------------------------------------------------------------------------------------------------
     # SHOW CREATE REST SERVICE
 
     def enterShowCreateRestServiceStatement(self, ctx):
@@ -1005,6 +1036,19 @@ class MrsDdlListener(MRSListener):
 
     def exitShowCreateRestProcedureStatement(self, ctx):
         self.mrs_ddl_executor.showCreateRestDbObject(self.mrs_object)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # SHOW CREATE REST PROCEDURE
+
+    def enterShowCreateRestAuthAppStatement(self, ctx):
+        self.mrs_object = {
+            "current_operation":
+                "SHOW CREATE REST AUTH APP",
+            "name": get_text_without_quotes(ctx.authAppName().getText()),
+        }
+
+    def exitShowCreateRestAuthAppStatement(self, ctx):
+        self.mrs_ddl_executor.showCreateRestAuthApp(self.mrs_object)
 
 
 class MrsDdlErrorListener(antlr4.error.ErrorListener.ErrorListener):

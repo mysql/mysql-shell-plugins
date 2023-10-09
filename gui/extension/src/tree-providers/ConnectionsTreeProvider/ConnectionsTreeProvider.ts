@@ -93,6 +93,9 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
     // When set a timer will be started to remove all current schemas from the tree.
     private clearCurrentSchemas = false;
 
+    // Make sure the same error is not displayed again and again
+    #errorAlreadyDisplayed = false;
+
     public get onDidChangeTreeData(): Event<ConnectionsTreeDataModelEntry | undefined> {
         return this.changeEvent.event;
     }
@@ -633,7 +636,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
                                             "Metadata Schema ...";
                                         statusbarItem.show();
 
-                                        await item.backend.mrs.configure();
+                                        await item.backend.mrs.configure(true, false, true);
 
                                         showMessageWithTimeout(
                                             "The MySQL REST Service Metadata Schema has been updated.");
@@ -916,9 +919,14 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
                             : false),
                 };
             });
+
+            this.#errorAlreadyDisplayed = false;
         } catch (error) {
-            throw new Error("Error during retrieving MRS content. " +
-                `Error: ${error instanceof Error ? error.message : String(error) ?? "<unknown>"}`);
+            if (!this.#errorAlreadyDisplayed) {
+                window.setStatusBarMessage("An error occurred while retrieving MRS content. " +
+                    `Error: ${error instanceof Error ? error.message : String(error) ?? "<unknown>"}`, 10000);
+                this.#errorAlreadyDisplayed = true;
+            }
         }
     }
 
@@ -969,9 +977,14 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
                     users: [],
                 };
             });
+
+            this.#errorAlreadyDisplayed = false;
         } catch (error) {
-            throw new Error("Error during retrieving MRS service content. " +
-                `Error: ${error instanceof Error ? error.message : String(error) ?? "<unknown>"}`);
+            if (!this.#errorAlreadyDisplayed) {
+                window.setStatusBarMessage("An error occurred while retrieving MRS services. " +
+                    `Error: ${error instanceof Error ? error.message : String(error) ?? "<unknown>"}`, 10000);
+                this.#errorAlreadyDisplayed = true;
+            }
         }
     };
 
@@ -994,9 +1007,14 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
                     treeItem: new MrsUserTreeItem(value.name ?? "unknown", value, item.backend, item.connectionId),
                 };
             });
+
+            this.#errorAlreadyDisplayed = false;
         } catch (error) {
-            throw new Error("Error during retrieving MRS users. " +
-                `Error: ${error instanceof Error ? error.message : String(error) ?? "<unknown>"}`);
+            if (!this.#errorAlreadyDisplayed) {
+                window.setStatusBarMessage("An error occurred while retrieving MRS users. " +
+                    `Error: ${error instanceof Error ? error.message : String(error) ?? "<unknown>"}`, 10000);
+                this.#errorAlreadyDisplayed = true;
+            }
         }
     };
 
@@ -1020,9 +1038,14 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
                         item.backend, item.connectionId),
                 };
             });
+
+            this.#errorAlreadyDisplayed = false;
         } catch (error) {
-            throw new Error("Error during retrieving MRS content files. " +
-                `Error: ${error instanceof Error ? error.message : String(error) ?? "<unknown>"}`);
+            if (!this.#errorAlreadyDisplayed) {
+                window.setStatusBarMessage("An error occurred while retrieving MRS content files. " +
+                    `Error: ${error instanceof Error ? error.message : String(error) ?? "<unknown>"}`, 10000);
+                this.#errorAlreadyDisplayed = true;
+            }
         }
     };
 
@@ -1037,15 +1060,25 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
     private async loadMrsDbObjects(entry: ICdmRestSchemaEntry): Promise<void> {
         const item = entry.treeItem;
 
-        const objects = await item.backend.mrs.listDbObjects(item.value.id);
-        entry.dbObjects = objects.map((value) => {
-            return {
-                parent: entry,
-                type: "mrsDbObject",
-                treeItem: new MrsDbObjectTreeItem(`${value.requestPath} (${value.name})`, value, item.backend,
-                    item.connectionId),
-            };
-        });
+        try {
+            const objects = await item.backend.mrs.listDbObjects(item.value.id);
+            entry.dbObjects = objects.map((value) => {
+                return {
+                    parent: entry,
+                    type: "mrsDbObject",
+                    treeItem: new MrsDbObjectTreeItem(`${value.requestPath} (${value.name})`, value, item.backend,
+                        item.connectionId),
+                };
+            });
+
+            this.#errorAlreadyDisplayed = false;
+        } catch (error) {
+            if (!this.#errorAlreadyDisplayed) {
+                window.setStatusBarMessage("An error occurred while retrieving MRS db objects. " +
+                    `Error: ${error instanceof Error ? error.message : String(error) ?? "<unknown>"}`, 10000);
+                this.#errorAlreadyDisplayed = true;
+            }
+        }
     }
 
     private refreshConnections = (data?: IDictionary): Promise<boolean> => {

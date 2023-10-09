@@ -73,16 +73,16 @@ def get_users(session, service_id=None, auth_app_id=None, user_id=None, mask_pas
     if user_id:
         wheres.append("user.id = ?")
         params.append(user_id)
-    elif auth_app_id:
+    if auth_app_id:
         wheres.append("auth_app_id = ?")
         params.append(auth_app_id)
-    elif service_id:
+    if service_id:
         wheres.append("service_id = ?")
         params.append(service_id)
-    elif user_name:
+    if user_name:
         wheres.append("user.name = ?")
         params.append(user_name)
-    else:
+    if len(wheres) == 0:
         return []
 
     sql += core._generate_where(wheres)

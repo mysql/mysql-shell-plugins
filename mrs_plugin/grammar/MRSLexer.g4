@@ -61,6 +61,7 @@ SET_SYMBOL:            S E T;
 IDENTIFIED_SYMBOL:     I D E N T I F I E D;
 BY_SYMBOL:             B Y;
 ROLE_SYMBOL:           R O L E;
+TO_SYMBOL:             T O;
 
 // Used for auto merging this grammar and the standard MySQL grammar.
 /* START OF MERGE PART */
@@ -96,14 +97,14 @@ FEED_SYMBOL:        F E E D;
 ITEM_SYMBOL:        I T E M;
 SETS_SYMBOL:        S E T S;
 AUTH_SYMBOL:        A U T H;
+APPS_SYMBOL:        A P P S;
 APP_SYMBOL:         A P P;
 VENDOR_SYMBOL:      V E N D O R;
 MRS_SYMBOL:         M R S;
 MYSQL_SYMBOL:       M Y S Q L;
-LIMIT_TO_REGISTERED_USERS_SYMBOL:
-    L I M I T WHITESPACE+ T O WHITESPACE+ R E G I S T E R E D WHITESPACE+ U S E R S
-;
-ALLOW_NEW_USERS_SYMBOL: A L L O W WHITESPACE+ N E W WHITESPACE+ U S E R S;
+USERS_SYMBOL:       U S E R S;
+ALLOW_SYMBOL:       A L L O W;
+REGISTER_SYMBOL:    R E G I S T E R;
 
 //----------------- GraphGL --------------------------------------------------------------------------------------------
 

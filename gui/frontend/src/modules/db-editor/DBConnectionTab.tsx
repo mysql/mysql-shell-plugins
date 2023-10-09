@@ -242,6 +242,7 @@ interface IMrsServiceSdkMetadata {
     codeLineCount?: number;
     schemaId?: string,
     schemaMetadataVersion?: string,
+    loginCodeAdded?: boolean;
 }
 
 // A tab page for a single connection (managed by the scripting module).
@@ -1424,7 +1425,8 @@ Execute \\help or \\? for help;`;
                 const serviceMetadata = await backend.mrs.getCurrentServiceMetadata();
 
                 // Check if there is a current MRS service set and if the cached
-                if (serviceMetadata.id !== undefined && serviceMetadata.hostCtx !== undefined &&
+                if (serviceMetadata.id !== undefined && serviceMetadata.id !== null &&
+                    serviceMetadata.hostCtx !== undefined &&
                     serviceMetadata.metadataVersion !== undefined) {
                     if (this.cachedMrsServiceSdk.schemaId !== serviceMetadata.id ||
                         this.cachedMrsServiceSdk.schemaMetadataVersion !== serviceMetadata.metadataVersion) {
@@ -1449,19 +1451,24 @@ Execute \\help or \\? for help;`;
                         this.cachedMrsServiceSdk.codeLineCount = (code.match(/\n/gm) ?? []).length + 1;
                         this.cachedMrsServiceSdk.schemaId = serviceMetadata.id;
                         this.cachedMrsServiceSdk.schemaMetadataVersion = serviceMetadata.metadataVersion;
+                        this.cachedMrsServiceSdk.loginCodeAdded = false;
 
-                        const libVersionNotebook = this.notebookRef.current?.addOrUpdateExtraLib(code,
-                            `mrsServiceSdk.d.ts`) ?? 0;
-                        this.scriptRef.current?.addOrUpdateExtraLib(code,
-                            `mrsServiceSdk.d.ts`);
+                        // Add the mrsLoginResult constant at top
+                        this.addMrsLoginCodeToCachedMrsServiceSdk();
+
+                        const libVersionNotebook = this.notebookRef.current?.addOrUpdateExtraLib(
+                            this.cachedMrsServiceSdk.code, `mrsServiceSdk.d.ts`) ?? 0;
+                        this.scriptRef.current?.addOrUpdateExtraLib(
+                            this.cachedMrsServiceSdk.code, `mrsServiceSdk.d.ts`);
 
                         const action = firstLoad ? "loaded" : ("refreshed (v" + String(libVersionNotebook) + ")");
                         void updateStatusbar(`MRS SDK for ${serviceMetadata.hostCtx} has been ${action}.`, 5000);
                     } else {
                         void updateStatusbar();
                     }
-                } else {
-                    // If no current MRS service set, clean the cachedMrsServiceSdk
+                } else if (serviceMetadata.metadataVersion !== undefined) {
+                    // If no current MRS service set, clean the cachedMrsServiceSdk and just load the MRS runtime
+                    // management code
                     this.cachedMrsServiceSdk = {};
 
                     void updateStatusbar("$(loading~spin) Loading MRS Management Classes ...");
@@ -1475,8 +1482,8 @@ Execute \\help or \\? for help;`;
                     this.scriptRef.current?.addOrUpdateExtraLib(code, `mrsServiceSdk.d.ts`);
 
                     void updateStatusbar(`MRS MRS Management Classes have been loaded.`, 5000);
-
-
+                } else {
+                    // If MRS is not enabled, just clear the statusbar
                     void updateStatusbar();
                 }
 
@@ -1489,6 +1496,20 @@ Execute \\help or \\? for help;`;
             }
         } else {
             return false;
+        }
+    };
+
+    /**
+     * Adds the mrsLoginResult constant at the top of the code, if it has not been added yet
+     */
+    private addMrsLoginCodeToCachedMrsServiceSdk = (): void => {
+        if (this.mrsLoginResult && this.cachedMrsServiceSdk.loginCodeAdded !== true &&
+            this.mrsLoginResult.authApp && this.mrsLoginResult.jwt) {
+            this.cachedMrsServiceSdk.code = "const mrsLoginResult = { " +
+                `authApp: "${this.mrsLoginResult.authApp}", jwt: "${this.mrsLoginResult.jwt}" };\n` +
+                (this.cachedMrsServiceSdk.code ?? "");
+            this.cachedMrsServiceSdk.code += 1;
+            this.cachedMrsServiceSdk.loginCodeAdded = true;
         }
     };
 
@@ -1560,16 +1581,8 @@ Execute \\help or \\? for help;`;
 
                 const usesAwait = context.code.includes("await ");
 
-                let code = this.cachedMrsServiceSdk.code ?? "";
-                let codeLineCount = this.cachedMrsServiceSdk.codeLineCount
-                    ? this.cachedMrsServiceSdk.codeLineCount - 1 : 0;
-
-                // Set the mrsLoginResult constant
-                if (this.mrsLoginResult && this.mrsLoginResult.authApp && this.mrsLoginResult.jwt) {
-                    code = "\nconst mrsLoginResult = { " +
-                        `authApp: "${this.mrsLoginResult.authApp}", jwt: "${this.mrsLoginResult.jwt}" };\n` + code;
-                    codeLineCount += 2;
-                }
+                // Add the mrsLoginResult constant at top, if it has not been added yet
+                this.addMrsLoginCodeToCachedMrsServiceSdk();
 
                 // Execute the code
                 workerPool.runTask({
@@ -1579,8 +1592,10 @@ Execute \\help or \\? for help;`;
                     // Further, the temporary string "\nexport{}\n" is removed from the code.
                     // Please note that the libCodeLineNumbers need to be adjusted accordingly.
                     // See EmbeddedPresentationInterface.tsx for details.
-                    libCodeLineNumbers: codeLineCount + (usesAwait ? 1 - 2 + 2 : 0),
-                    code: ts.transpile(code +
+                    libCodeLineNumbers: (this.cachedMrsServiceSdk.codeLineCount
+                        ? this.cachedMrsServiceSdk.codeLineCount - 1 : 0) +
+                        (usesAwait ? 1 - 2 + 2 : 0),
+                    code: ts.transpile((this.cachedMrsServiceSdk.code ?? "") +
                         (usesAwait
                             ? "(async () => {\n" + context.code.replace("\nexport{}\n", "") + "})()"
                             : context.code), {

@@ -98,6 +98,9 @@ class MrsDdlExecutorInterface():
     def showRestContentSets(self, mrs_object: dict):
         raise NotImplementedError()
 
+    def showRestAuthApps(self, mrs_object: dict):
+        raise NotImplementedError()
+
     def showCreateRestService(self, mrs_object: dict):
         raise NotImplementedError()
 
@@ -105,4 +108,7 @@ class MrsDdlExecutorInterface():
         raise NotImplementedError()
 
     def showCreateRestDbObject(self, mrs_object: dict):
+        raise NotImplementedError()
+
+    def showCreateRestAuthApp(self, mrs_object: dict):
         raise NotImplementedError()

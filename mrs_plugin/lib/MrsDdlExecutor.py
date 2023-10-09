@@ -353,7 +353,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
                 # If the OR REPLACE was specified, check if there is an existing schema on the same service
                 # and delete it.
-                if do_replace is not None:
+                if do_replace == True:
                     schema = lib.schemas.get_schema(
                         service_id=service_id,
                         request_path=mrs_object.get("request_path"),
@@ -477,7 +477,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
                 # If the OR REPLACE was specified, check if there is an existing content set on the same service
                 # and delete it.
-                if do_replace is not None:
+                if do_replace == True:
                     content_set = lib.content_sets.get_content_set(
                         service_id=service_id,
                         request_path=mrs_object.get("request_path"),
@@ -535,7 +535,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
                 # If the OR REPLACE was specified, check if there is an existing content set on the same service
                 # and delete it.
-                if do_replace is not None:
+                if do_replace == True:
                     auth_app = lib.auth_apps.get_auth_app(
                         service_id=service_id,
                         name=name,
@@ -545,8 +545,17 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                             app_id=auth_app.get("id"), session=self.session)
 
                 # TODO: Lookup default role by name
-                default_role_id = lib.core.id_to_binary(
-                    "0x31000000000000000000000000000000", "")
+                if mrs_object.get("default_role"):
+                    role = lib.roles.get_role(
+                        session=self.session,
+                        caption=mrs_object.get("default_role"),
+                        service_id=service_id)
+                    if role is None:
+                        raise Exception(f'Given role "{mrs_object.get("default_role")}" not found.')
+                    default_role_id = role.get("id")
+                else:
+                    default_role_id = lib.core.id_to_binary(
+                        "0x31000000000000000000000000000000", "")
 
                 auth_vendor = lib.auth_apps.get_auth_vendor(
                     session=self.session,
@@ -614,11 +623,12 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     name=authAppName,
                     session=self.session)
                 if auth_app is None:
-                    raise Exception(f"The given REST AUTH APP for {full_path} was not found.")
+                    raise Exception(
+                        f"The given REST AUTH APP for {full_path} was not found.")
 
                 # If the OR REPLACE was specified, check if there is an existing content set on the same service
                 # and delete it.
-                if do_replace is not None:
+                if do_replace == True:
                     users = lib.users.get_users(
                         auth_app_id=auth_app.get("id"),
                         user_name=name,
@@ -1035,7 +1045,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     name=authAppName,
                     session=self.session)
                 if auth_app is None:
-                    raise Exception(f"The given REST AUTH APP for {full_path} was not found.")
+                    raise Exception(
+                        f"The given REST AUTH APP for {full_path} was not found.")
 
                 users = lib.users.get_users(
                     auth_app_id=auth_app.get("id"),
@@ -1082,7 +1093,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                         "url_host_name", "")
                     # Also set the stored current session
                     lib.services.set_current_service_id(
-                        session=self.session, service_id = self.current_service_id)
+                        session=self.session, service_id=self.current_service_id)
                 else:
                     raise Exception(
                         f"A REST SERVICE with the request path {url_context_root} could not be found.")
@@ -1282,6 +1293,43 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 "statementIndex": len(self.results) + 1,
                 "type": "success",
                 "message": f'OK, {len(content_sets)} record{"s" if len(content_sets) > 1 else ""} received.',
+                "operation": self.current_operation,
+                "result": result,
+                "executionTime": timer.elapsed()
+            })
+        except Exception as e:
+            self.results.append({
+                "statementIndex": len(self.results) + 1,
+                "type": "error",
+                "message": f'Cannot SHOW the REST CONTENT SETs. {e}',
+                "operation": self.current_operation
+            })
+            raise
+
+    def showRestAuthApps(self, mrs_object: dict):
+        timer = Timer()
+        self.current_operation = mrs_object.pop("current_operation")
+
+        try:
+            service_id = self.get_given_or_current_service_id(mrs_object)
+            if service_id is None:
+                raise Exception("No REST SERVICE specified.")
+
+            auth_apps = lib.auth_apps.get_auth_apps(
+                session=self.session, service_id=service_id)
+            result = []
+            for auth_app in auth_apps:
+                result.append({
+                    "REST AUTH APP name": auth_app.get("name"),
+                    "vendor": auth_app.get("auth_vendor"),
+                    "comments": auth_app.get("description"),
+                    "enabled": auth_app.get("enabled") == 1
+                })
+
+            self.results.append({
+                "statementIndex": len(self.results) + 1,
+                "type": "success",
+                "message": f'OK, {len(auth_apps)} record{"s" if len(auth_apps) > 1 else ""} received.',
                 "operation": self.current_operation,
                 "result": result,
                 "executionTime": timer.elapsed()
@@ -1541,6 +1589,78 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 "statementIndex": len(self.results) + 1,
                 "type": "error",
                 "message": f'Failed to get the REST {rest_object_type} `{full_path}`. {e}',
+                "operation": self.current_operation
+            })
+            raise
+
+    def showCreateRestAuthApp(self, mrs_object: dict):
+        timer = Timer()
+        self.current_operation = mrs_object.pop("current_operation")
+
+        name = mrs_object.get("name")
+        full_path = self.getFullServicePath(
+            mrs_object=mrs_object, request_path=f':{name}')
+
+        try:
+            service_id = self.get_given_or_current_service_id(mrs_object)
+            if service_id is None:
+                raise Exception("No REST SERVICE specified.")
+
+            service = lib.services.get_service(
+                session=self.session, service_id=service_id)
+
+            auth_app = lib.auth_apps.get_auth_app(
+                service_id=service_id,
+                name=name,
+                session=self.session)
+            if auth_app is None:
+                raise Exception(
+                    f'The given REST AUTH APP `{full_path}` could not be found.')
+
+            if auth_app["auth_vendor"].upper() == "MRS":
+                vendor = "MRS"
+            elif auth_app["auth_vendor"].upper() == "MYSQL INTERNAL":
+                vendor = "MYSQL"
+            else:
+                vendor = auth_app["auth_vendor"]
+
+            stmt = (f'CREATE OR REPLACE REST AUTH APP "{auth_app.get("name")}"\n' +
+                    f'    ON SERVICE {service.get("host_ctx")}\n' +
+                    f'    VENDOR {vendor}\n')
+
+            if auth_app["enabled"] is False or auth_app["enabled"] == 0:
+                stmt += "    DISABLED\n"
+
+            if auth_app["description"]:
+                stmt += f'    COMMENTS "{auth_app["description"]}"\n'
+
+            if auth_app.get("limit_to_registered_users") == 0:
+                stmt += "    ALLOW NEW USERS TO REGISTER\n"
+
+            # Get default role
+            if auth_app.get("default_role_id") is not None:
+                role = lib.roles.get_role(
+                    session=self.session, role_id=auth_app.get("default_role_id"))
+                if role is not None:
+                    stmt += f'    DEFAULT ROLE "{role.get("caption")}"\n'
+
+            result = [{
+                "CREATE REST AUTH APP ": stmt[:-1] + ";"
+            }]
+
+            self.results.append({
+                "statementIndex": len(self.results) + 1,
+                "type": "success",
+                "operation": self.current_operation,
+                "id": lib.core.convert_id_to_string(auth_app.get("id")),
+                "result": result,
+                "executionTime": timer.elapsed()
+            })
+        except Exception as e:
+            self.results.append({
+                "statementIndex": len(self.results) + 1,
+                "type": "error",
+                "message": f"Failed to get the REST AUTH APP `{full_path}`. {e}",
                 "operation": self.current_operation
             })
             raise

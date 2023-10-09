@@ -350,12 +350,12 @@ class MRSParserListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by MRSParser#limitUsers.
-    def enterLimitUsers(self, ctx:MRSParser.LimitUsersContext):
+    # Enter a parse tree produced by MRSParser#allowNewUsersToRegister.
+    def enterAllowNewUsersToRegister(self, ctx:MRSParser.AllowNewUsersToRegisterContext):
         pass
 
-    # Exit a parse tree produced by MRSParser#limitUsers.
-    def exitLimitUsers(self, ctx:MRSParser.LimitUsersContext):
+    # Exit a parse tree produced by MRSParser#allowNewUsersToRegister.
+    def exitAllowNewUsersToRegister(self, ctx:MRSParser.AllowNewUsersToRegisterContext):
         pass
 
 
@@ -566,6 +566,15 @@ class MRSParserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by MRSParser#showRestAuthAppsStatement.
+    def enterShowRestAuthAppsStatement(self, ctx:MRSParser.ShowRestAuthAppsStatementContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#showRestAuthAppsStatement.
+    def exitShowRestAuthAppsStatement(self, ctx:MRSParser.ShowRestAuthAppsStatementContext):
+        pass
+
+
     # Enter a parse tree produced by MRSParser#showCreateRestServiceStatement.
     def enterShowCreateRestServiceStatement(self, ctx:MRSParser.ShowCreateRestServiceStatementContext):
         pass
@@ -599,6 +608,15 @@ class MRSParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by MRSParser#showCreateRestProcedureStatement.
     def exitShowCreateRestProcedureStatement(self, ctx:MRSParser.ShowCreateRestProcedureStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#showCreateRestAuthAppStatement.
+    def enterShowCreateRestAuthAppStatement(self, ctx:MRSParser.ShowCreateRestAuthAppStatementContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#showCreateRestAuthAppStatement.
+    def exitShowCreateRestAuthAppStatement(self, ctx:MRSParser.ShowCreateRestAuthAppStatementContext):
         pass
 
 

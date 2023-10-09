@@ -569,8 +569,8 @@ createRestAuthAppStatement ::=
 restAuthAppOptions ::=
 ![restAuthAppOptions](../../images/ddl/restAuthAppOptions.svg "restAuthAppOptions")
 
-limitUsers ::=
-![limitUsers](../../images/ddl/limitUsers.svg "limitUsers")
+allowNewUsersToRegister ::=
+![allowNewUsersToRegister](../../images/ddl/allowNewUsersToRegister.svg "allowNewUsersToRegister")
 
 defaultRole ::=
 ![defaultRole](../../images/ddl/defaultRole.svg "defaultRole")

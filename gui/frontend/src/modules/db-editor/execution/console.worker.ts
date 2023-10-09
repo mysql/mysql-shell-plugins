@@ -262,7 +262,7 @@ worker.addEventListener("message", (event: MessageEvent) => {
             worker.postContextMessage(worker.currentTaskId, {
                 api: ScriptingApi.Result,
                 contextId: worker.currentContext,
-                result: formatTextBlock(`ERROR: ${String(e.message)} ${lineInfo}`, 80),
+                result: `ERROR: ${String(e.message)} ${lineInfo}`,
                 isError: true,
                 final: true,
             });

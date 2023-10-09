@@ -32,4 +32,6 @@ sed -i '' 's/147"/177"/g' showCreateRestViewStatement.svg
 
 sed -i '' 's/131"/151"/g' showCreateRestProcedureStatement.svg
 
+sed -i '' 's/147"/177"/g' showCreateRestAuthAppStatement.svg
+
 echo "SVG files have been patched."

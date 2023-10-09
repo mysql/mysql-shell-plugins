@@ -2108,7 +2108,7 @@ grantTargetList:
 ;
 
 grantOptions:
-    WITH_SYMBOL grantOption ({this.serverVersion < 80011}? grantOption)*
+    WITH_SYMBOL grantOption
 ;
 
 exceptRoleList:
@@ -5182,12 +5182,14 @@ identifierKeywordsUnambiguous:
         | ITEM_SYMBOL
         | SETS_SYMBOL
         | AUTH_SYMBOL
+        | APPS_SYMBOL
         | APP_SYMBOL
         | VENDOR_SYMBOL
         | MRS_SYMBOL
         | MYSQL_SYMBOL
-        | LIMIT_TO_REGISTERED_USERS_SYMBOL
-        | ALLOW_NEW_USERS_SYMBOL
+        | USERS_SYMBOL
+        | ALLOW_SYMBOL
+        | REGISTER_SYMBOL
         | AT_INOUT_SYMBOL
         | AT_IN_SYMBOL
         | AT_OUT_SYMBOL
@@ -5690,10 +5692,12 @@ mrsStatement:
     | showRestViewsStatement
     | showRestProceduresStatement
     | showRestContentSetsStatement
+    | showRestAuthAppsStatement
     | showCreateRestServiceStatement
     | showCreateRestSchemaStatement
     | showCreateRestViewStatement
     | showCreateRestProcedureStatement
+    | showCreateRestAuthAppStatement
 ;
 
 // Common Definitions =======================================================
@@ -5916,14 +5920,13 @@ vendorName:
 restAuthAppOptions: (
         enabledDisabled
         | comments
-        | limitUsers
+        | allowNewUsersToRegister
         | defaultRole
     )+
 ;
 
-limitUsers:
-    LIMIT_TO_REGISTERED_USERS_SYMBOL
-    | ALLOW_NEW_USERS_SYMBOL
+allowNewUsersToRegister:
+    ALLOW_SYMBOL NEW_SYMBOL USERS_SYMBOL (TO_SYMBOL REGISTER_SYMBOL)?
 ;
 
 defaultRole:
@@ -6070,7 +6073,13 @@ showRestProceduresStatement:
 
 showRestContentSetsStatement:
     SHOW_SYMBOL REST_SYMBOL CONTENT_SYMBOL SETS_SYMBOL (
-        (IN_SYMBOL | FROM_SYMBOL) serviceSchemaSelector
+        (IN_SYMBOL | FROM_SYMBOL) SERVICE_SYMBOL? serviceRequestPath
+    )?
+;
+
+showRestAuthAppsStatement:
+    SHOW_SYMBOL REST_SYMBOL AUTH_SYMBOL APPS_SYMBOL (
+        (IN_SYMBOL | FROM_SYMBOL) SERVICE_SYMBOL? serviceRequestPath
     )?
 ;
 
@@ -6080,7 +6089,7 @@ showCreateRestServiceStatement:
 
 showCreateRestSchemaStatement:
     SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL DATABASE_SYMBOL schemaRequestPath? (
-        (IN_SYMBOL | FROM_SYMBOL) SERVICE_SYMBOL? serviceRequestPath
+        (ON_SYMBOL | FROM_SYMBOL) SERVICE_SYMBOL? serviceRequestPath
     )?
 ;
 
@@ -6094,6 +6103,12 @@ showCreateRestViewStatement:
 showCreateRestProcedureStatement:
     SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL PROCEDURE_SYMBOL procedureRequestPath (
         (ON_SYMBOL | FROM_SYMBOL) serviceSchemaSelector
+    )?
+;
+
+showCreateRestAuthAppStatement:
+    SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL AUTH_SYMBOL APP_SYMBOL authAppName (
+        (ON_SYMBOL | FROM_SYMBOL) SERVICE_SYMBOL? serviceRequestPath
     )?
 ;
 

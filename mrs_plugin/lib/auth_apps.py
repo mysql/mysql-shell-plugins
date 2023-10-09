@@ -117,7 +117,7 @@ def get_auth_app(session, app_id=None, service_id=None, name=None):
             FROM `mysql_rest_service_metadata`.`auth_app` a
                 LEFT OUTER JOIN `mysql_rest_service_metadata`.`auth_vendor` v
                     ON v.id = a.auth_vendor_id
-            WHERE a.service_id = ? AND a.name = ?
+            WHERE a.service_id = ? AND UPPER(a.name) = UPPER(?)
             """
 
         return core.MrsDbExec(sql, [service_id, name]).exec(session).first
