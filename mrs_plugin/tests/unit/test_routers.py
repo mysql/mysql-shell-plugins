@@ -23,10 +23,13 @@ import pytest
 
 from mrs_plugin import lib
 from mrs_plugin import routers
+from tests.unit.helpers import TableContents
 
 def test_add_delete_router(phone_book, table_contents):
     session = phone_book["session"]
-    router_table = table_contents("router")
+    router_table: TableContents = table_contents("router")
+    router_table.take_snapshot()
+    router_table.same_as_snapshot
 
     router_data = {
         "router_name": "test_router_2",

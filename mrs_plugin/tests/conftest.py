@@ -70,17 +70,22 @@ def init_mrs():
         temp_dirs.append(temp_dir)
         PHONE_BOOKS[db] = helpers.create_mrs_phonebook_schema(session, "/test", db, temp_dir)
 
+    lib.services.set_current_service_id(session, PHONE_BOOKS["PhoneBook"]["service_id"])
+
     yield session
 
     for temp_dir in temp_dirs:
         temp_dir.cleanup()
 
     session.close()
-    mysqlsh.globals.dba.stop_sandbox_instance(connection_data["port"], {
-        "password": connection_data["password"],
+    # mysqlsh.globals.dba.stop_sandbox_instance(connection_data["port"], {
+    #     "password": connection_data["password"],
+    #     "sandboxDir": deployment_dir.name
+    # })
+
+    mysqlsh.globals.dba.kill_sandbox_instance(connection_data["port"], {
         "sandboxDir": deployment_dir.name
     })
-
 
 @pytest.fixture(scope="session")
 def phone_book(init_mrs):
@@ -96,8 +101,8 @@ def analog_phone_book(init_mrs):
 
 
 @pytest.fixture(scope="session")
-def table_contents(phone_book) -> helpers.TableContents:
-    def create_table_content_object(table_name, schema=None, take_snapshot=True):
+def table_contents(phone_book):
+    def create_table_content_object(table_name, schema=None, take_snapshot=True) -> helpers.TableContents:
         schema = schema or phone_book
         return helpers.TableContents(schema["session"], table_name, take_snapshot)
     yield create_table_content_object

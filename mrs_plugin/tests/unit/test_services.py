@@ -64,6 +64,7 @@ def test_get_services(phone_book, table_contents):
     }
     services = get_services(**args)
     assert services is not None
+    assert len(services) > 0
     assert services == [{
         'id': services[0]["id"],
         'enabled': 1,
@@ -78,7 +79,7 @@ def test_get_services(phone_book, table_contents):
         'options': None,
         'comments': 'Test service',
         'host_ctx': 'localhost/test',
-        'is_current': 0,
+        'is_current': 1,
     }]
 
 
@@ -105,7 +106,7 @@ def test_get_service(phone_book, table_contents):
         'url_host_id': service["url_host_id"],
         'url_host_name': 'localhost',
         'url_protocol': ['HTTP'],
-        'is_current': 0,
+        'is_current': 1,
     }
     assert service_table.snapshot[0] == {
         'comments': 'Test service',
@@ -147,9 +148,9 @@ def test_get_service(phone_book, table_contents):
 
 
 def test_change_service(phone_book):
-
+    session = phone_book["session"]
     args = {
-        "session": phone_book["session"]
+        "session": session
     }
 
     with ServiceCT(url_host_name="localhost", url_context_root="/service2", **args) as service_id:
@@ -170,7 +171,7 @@ def test_change_service(phone_book):
         assert service2["enabled"]
 
         assert set_current_service(**args) == True
-
+        assert set_current_service(session=session, service_id=phone_book["service_id"]) == True
 
         with pytest.raises(Exception) as exc_info:
             set_url_context_root(**args, value="/test")

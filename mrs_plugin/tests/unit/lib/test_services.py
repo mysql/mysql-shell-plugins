@@ -20,9 +20,9 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 import pytest
-from lib.core import MrsDbSession
 from mrs_plugin import lib
-from ..helpers import ServiceCT
+from mrs_plugin.tests.unit.helpers import ServiceCT
+from lib.core import MrsDbSession
 
 
 def test_get_service(phone_book, table_contents):
@@ -45,7 +45,7 @@ def test_get_service(phone_book, table_contents):
             'auth_completed_url_validation': None,
             'auth_path': '/authentication',
             'options': None,
-            'is_current': 0,
+            'is_current': 1,
         }
 
         with ServiceCT("/service2", "localhost") as service_id:
@@ -91,9 +91,26 @@ def test_get_service(phone_book, table_contents):
                 lib.services.get_service(session=session, url_context_root="service2", url_host_name="localhost")
             assert str(exc_info.value) == "The url_context_root has to start with '/'."
 
+        # Test getting the default service
+        result = lib.services.get_service(session=session, url_context_root="/service2", url_host_name="localhost", get_default=False)
+        assert result is None
 
-            result = lib.services.get_service(session=session, url_context_root="/service2", url_host_name="localhost", get_default=True)
-            assert result is None
+        result = lib.services.get_service(session=session, url_context_root="/service2", url_host_name="localhost", get_default=True)
+        assert result is not None
+
+        with ServiceCT("/service2", "localhost") as service_id:
+            lib.services.set_current_service_id(session, service_id)
+
+        result = lib.services.get_service(session=session, url_context_root="/service2", url_host_name="localhost", get_default=False)
+        assert result is None
+
+        result = lib.services.get_service(session=session, url_context_root="/service2", url_host_name="localhost", get_default=True)
+        assert result is None
+
+        lib.services.set_current_service_id(session, phone_book["service_id"])
+
+        result = lib.services.get_service(session=session, url_context_root="/service2", url_host_name="localhost", get_default=True)
+        assert result is not None
 
 
 

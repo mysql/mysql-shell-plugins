@@ -626,7 +626,6 @@ describe("MySQL REST Service", () => {
             const treeTable = await Misc.getTreeElement(constants.dbTreeSection,
                 `/${tableToDump} (${tableToDump})`);
             const editedObject: interfaces.IRestObject = {
-                //restServicePath: `${serviceToEdit.settings.hostNameFilter}${serviceToEdit.servicePath}`,
                 restServicePath: `${globalService.settings.hostNameFilter}${globalService.servicePath}`,
                 restSchemaPath: sakilaRestSchema.restSchemaPath,
                 restObjectPath: `/editedObject`,
