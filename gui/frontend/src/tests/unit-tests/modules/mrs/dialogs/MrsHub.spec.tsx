@@ -86,7 +86,8 @@ describe("MrsHub Tests", () => {
             "(actor_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci");
 
         await backend.mrs.configure();
-        service = await backend.mrs.addService("/mrs", ["HTTPS"], "", "", true, {}, "/unit-tests", "", "", "", []);
+        service = await backend.mrs.addService("/myService", ["HTTPS"], "", "", true, {}, "/unit-tests", "", "", "",
+            []);
         const schemaId = await backend.mrs.addSchema(service.id, "MRS_TEST", "/mrs-test", false, null, null);
         await backend.mrs.addDbObject("actor", "TABLE", false, "/actor", true, ["READ"], "FEED",
             false, false, false, null, null, undefined, schemaId);

@@ -24,7 +24,7 @@ lexer grammar MySQLLexer;
  */
 
 /*
- * Merged in all changes up to mysql-trunk git revision [07f0dc2] (15. July 2022).
+ * Merged in all changes up to mysql-trunk git revision [fc82a16] (11. June 2023).
  *
  * MySQL grammar for ANTLR 4.5+ with language features from MySQL 8.0 and up.
  * The server version in the generated parser can be switched at runtime, making it so possible
@@ -123,6 +123,8 @@ UNDERLINE_SYMBOL:   '_';
 JSON_SEPARATOR_SYMBOL:          '->';  // MYSQL
 JSON_UNQUOTED_SEPARATOR_SYMBOL: '->>'; // MYSQL
 
+/* INSERT OTHER OPERATORS HERE */
+
 // The MySQL server parser uses custom code in its lexer to allow base alphanum chars (and ._$) as variable name.
 // For this it handles user variables in 2 different ways and we have to model this to match that behavior.
 AT_SIGN_SYMBOL: '@';
@@ -182,64 +184,8 @@ DOT_IDENTIFIER:
     DOT_SYMBOL LETTER_WHEN_UNQUOTED_NO_DIGIT LETTER_WHEN_UNQUOTED* { this.emitDot(); } -> type(IDENTIFIER)
 ;
 
-/*
-  The following comment is from the server grammar and gives some information about the source of tokens.
-  Additionally there is a section describing how to handle tokens there, which does not apply to this ANTLR grammar.
-
-   MAINTAINER:
-
-   1) Comments for TOKENS.
-
-   For each token, please include in the same line a comment that contains
-   one of the following tags:
-   SQL-2015-R : Reserved keyword as per SQL-2015 draft
-   SQL-2003-R : Reserved keyword as per SQL-2003
-   SQL-2003-N : Non Reserved keyword as per SQL-2003
-   SQL-1999-R : Reserved keyword as per SQL-1999
-   SQL-1999-N : Non Reserved keyword as per SQL-1999
-   MYSQL      : MySQL extension (unspecified)
-   MYSQL-FUNC : MySQL extension, function
-   INTERNAL   : Not a real token, lex optimization
-   OPERATOR   : SQL operator
-   FUTURE-USE : Reserved for futur use
-
-   This makes the code grep-able, and helps maintenance.
-
-   2) About token values
-
-   Token values are assigned by bison, in order of declaration.
-
-   Token values are used in query DIGESTS.
-   To make DIGESTS stable, it is desirable to avoid changing token values.
-
-   In practice, this means adding new tokens at the end of the list,
-   in the current release section (8.0),
-   instead of adding them in the middle of the list.
-
-   Failing to comply with instructions below will trigger build failure,
-   as this process is enforced by gen_lex_token.
-
-   3) Instructions to add a new token:
-
-   Add the new token at the end of the list,
-   in the MySQL 8.0 section.
-
-   4) Instructions to remove an old token:
-
-   Do not remove the token, rename it as follows:
-   %token OBSOLETE_TOKEN_<NNN> / * was: TOKEN_FOO * /
-   where NNN is the token value (found in sql_yacc.h)
-
-   For example, see OBSOLETE_TOKEN_820
-*/
-
-/*
-   Tokens from MySQL 5.7, keep in alphabetical order.
-*/
-
 // $antlr-format groupedAlignments off, alignTrailers on
 
-//ABORT_SYMBOL: 'ABORT';                     // INTERNAL (used in lex)
 ACCESSIBLE_SYMBOL:                  A C C E S S I B L E;
 ACCOUNT_SYMBOL:                     A C C O U N T;
 ACTION_SYMBOL:                      A C T I O N;                                        // SQL-2003-N
@@ -566,7 +512,6 @@ MASTER_LOG_POS_SYMBOL:              M A S T E R '_' L O G '_' P O S             
 MASTER_PASSWORD_SYMBOL:             M A S T E R '_' P A S S W O R D                     {this.serverVersion < 80024}?;
 MASTER_PORT_SYMBOL:                 M A S T E R '_' P O R T                             {this.serverVersion < 80024}?;
 MASTER_RETRY_COUNT_SYMBOL:          M A S T E R '_' R E T R Y '_' C O U N T             {this.serverVersion < 80024}?;
-// MASTER_SERVER_ID_SYMBOL:            M A S T E R '_' S E R V E R '_' I D                 {this.serverVersion < 80024}?;
 MASTER_SSL_CAPATH_SYMBOL:           M A S T E R '_' S S L '_' C A P A T H               {this.serverVersion < 80024}?;
 MASTER_SSL_CA_SYMBOL:               M A S T E R '_' S S L '_' C A                       {this.serverVersion < 80024}?;
 MASTER_SSL_CERT_SYMBOL:             M A S T E R '_' S S L '_' C E R T                   {this.serverVersion < 80024}?;
@@ -1150,6 +1095,16 @@ GTID_ONLY_SYMBOL:                   G T I D '_' O N L Y                         
 
 INTERSECT_SYMBOL:                   I N T E R S E C T '_' S Y M B O L                   {this.serverVersion >= 80031}?; // SQL-1992-R
 
+BULK_SYMBOL:                        B U L K                                             {this.serverVersion >= 80200}?; // MYSQL
+URL_SYMBOL:                         U R L                                               {this.serverVersion >= 80200}?; // MYSQL
+GENERATE_SYMBOL:                    G E N E R A T E                                     {this.serverVersion >= 80032}?; // MYSQL
+PARSE_TREE_SYMBOL:                  P A R S E '_' T R E E                               {this.serverVersion >= 80100}?; // MYSQL
+LOG_SYMBOL:                         L O G                                               {this.serverVersion >= 80032}?; // MYSQL
+GTIDS_SYMBOL:                       G T I D S                                           {this.serverVersion >= 80032}?; // MYSQL
+
+PARALLEL_SYMBOL:                    P A R A L L E L                                     {this.serverVersion >= 80200}?; // MYSQL
+S3_SYMBOL:                          S '3'                                               {this.serverVersion >= 80200}?; // MYSQL
+
 // $antlr-format groupedAlignments on, alignTrailers off, alignLexerCommands on
 
 // Additional tokens which are mapped to existing tokens.
@@ -1167,6 +1122,8 @@ SQL_TSI_WEEK_SYMBOL:    S Q L '_' T S I '_' W E E K       -> type(WEEK_SYMBOL); 
 SQL_TSI_MONTH_SYMBOL:   S Q L '_' T S I '_' M O N T H     -> type(MONTH_SYMBOL);   // Synonym
 SQL_TSI_QUARTER_SYMBOL: S Q L '_' T S I '_' Q U A R T E R -> type(QUARTER_SYMBOL); // Synonym
 SQL_TSI_YEAR_SYMBOL:    S Q L '_' T S I '_' Y E A R       -> type(YEAR_SYMBOL);    // Synonym
+
+/* INSERT OTHER KEYWORDS HERE */
 
 // White space handling
 WHITESPACE: [ \t\f\r\n]+ -> channel(HIDDEN); // Ignore whitespaces.
@@ -1219,11 +1176,16 @@ SINGLE_QUOTED_TEXT: (
     )+
 ;
 
+// TODO: check in the semantic phase that starting and ending tags are the same.
+DOLLAR_QUOTED_STRING_TEXT:
+    '$' DOLLAR_QUOTE_TAG_CHAR* '$' .*? '$' DOLLAR_QUOTE_TAG_CHAR* '$' {this.supportMle}?
+;
+
 // There are 3 types of block comments:
 // /* ... */ - The standard multi line comment.
 // /*! ... */ - A comment used to mask code for other clients. In MySQL the content is handled as normal code.
-// /*!12345 ... */ - Same as the previous one except code is only used when the given number is lower
-//                   than the current server version (specifying so the minimum server version the code can run with).
+// /*!12345 ... */ - Same as the previous one except code is only used when the given number is lower than or equal to
+//                   the current server version (specifying so the minimum server version the code can run with).
 VERSION_COMMENT_START: ('/*!' DIGITS) (
         {this.checkMySQLVersion(this.text)}? // Will set this.inVersionComment if the number matches.
         | .*? '*/'
@@ -1255,6 +1217,7 @@ fragment ML_COMMENT_END:  '*/';
 fragment LETTER_WHEN_UNQUOTED: DIGIT | LETTER_WHEN_UNQUOTED_NO_DIGIT;
 
 fragment LETTER_WHEN_UNQUOTED_NO_DIGIT: [a-zA-Z_$\u0080-\uffff];
+fragment DOLLAR_QUOTE_TAG_CHAR:         [0-9a-zA-Z_\u0080-\uffff];
 
 // Any letter but without e/E and digits (which are used to match a decimal number).
 fragment LETTER_WITHOUT_FLOAT_PART: [a-df-zA-DF-Z_$\u0080-\uffff];

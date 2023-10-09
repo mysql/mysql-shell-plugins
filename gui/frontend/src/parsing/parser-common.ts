@@ -524,10 +524,6 @@ export const tokenFromPosition = (stream: CommonTokenStream, offset: number): To
         if (tokens[middle].start > offset) {
             high = middle - 1;
         } else {
-            const end = tokens[low].stop;
-            if (end >= offset) {
-                break;
-            }
             low = middle;
         }
     }
@@ -542,6 +538,7 @@ export const tokenFromPosition = (stream: CommonTokenStream, offset: number): To
         return tokens[low - 1];
     }
 
+    // Happens only for empty input.
     return undefined;
 };
 
@@ -552,12 +549,12 @@ export class Scanner {
     private tokens: Token[] = [];
     private tokenStack: Stack<number> = new Stack();
 
-    public constructor(input: BufferedTokenStream) {
-        input.fill();
+    public constructor(private input: BufferedTokenStream) {
+        this.input.fill();
 
         // The tokens are managed by the token stream, hence this must stay alive
         // at least as long as the scanner class that holds references to the stream's tokens.
-        this.tokens = input.getTokens(0, input.size - 1);
+        this.tokens = input.getTokens();
     }
 
     /**
@@ -597,21 +594,16 @@ export class Scanner {
     }
 
     /**
-     * Advances to the token that covers the given line and char offset. The line number is one-based
-     * while the character offset is zero-based.
+     * Advances to the token that covers the given line and char offset.
      *
      * Note: this function also considers hidden token.
      *
-     * @param line Line number.
-     * @param offset Column number.
+     * @param line One-base line number.
+     * @param offset Zero-based column number.
      *
      * @returns True if such a node exists, false otherwise (no change performed then).
      */
     public advanceToPosition(line: number, offset: number): boolean {
-        if (this.tokens.length === 0) {
-            return false;
-        }
-
         let i = 0;
         for (; i < this.tokens.length; i++) {
             const run = this.tokens[i];
@@ -651,7 +643,7 @@ export class Scanner {
      * @returns True if such a node exists, false otherwise (no change performed then).
      */
     public advanceToType(type: number): boolean {
-        for (let i = this.index; i < this.tokens.length; ++i) {
+        for (let i = this.index + 1; i < this.tokens.length; ++i) {
             if (this.tokens[i].type === type) {
                 this.index = i;
 
@@ -674,10 +666,6 @@ export class Scanner {
      *          token the internal state is undefined.
      */
     public skipTokenSequence(...sequence: number[]): boolean {
-        if (this.index >= this.tokens.length) {
-            return false;
-        }
-
         for (const token of sequence) {
             if (this.tokens[this.index].type !== token) {
                 return false;
@@ -746,12 +734,17 @@ export class Scanner {
     }
 
     /**
-     * Resets the walker to be at the original location.
+     * Resets the walker to position 0 and removes all stacked positions.
+     *
+     * @param reloadInput If true the input is reloaded from the token stream.
      */
-    public reset(): void {
+    public reset(reloadInput = false): void {
         this.index = 0;
-        while (this.tokenStack.length > 0) {
-            this.tokenStack.pop();
+        this.tokenStack = new Stack();
+
+        if (reloadInput) {
+            this.input.reset();
+            this.tokens = this.input.getTokens();
         }
     }
 
@@ -803,7 +796,7 @@ export class Scanner {
      * @returns The text of the current token.
      */
     public get tokenText(): string {
-        return this.tokens[this.index].text || "";
+        return this.tokens[this.index].text ?? "";
     }
 
     /**

@@ -293,7 +293,8 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                 definition.language.start = "sql";
 
                 // Dynamically load the MySQL keywords (modifying the keyword list in the language definition).
-                const keywordSet = mysqlKeywords.get(MySQLVersion.MySQL80);
+                // This is currently static, but will change with the semantic highlighter implementation.
+                const keywordSet = mysqlKeywords.get(MySQLVersion.MySQL83);
                 const keywords = definition.language.mysqlKeywords as string[];
                 if (keywordSet && keywords) {
                     for (const entry of keywordSet.values()) {

@@ -1,7 +1,7 @@
 parser grammar MySQLMRSParser;
 
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2012, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,7 +23,23 @@ parser grammar MySQLMRSParser;
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* A parser combining rules from the standard MySQL language and the MySQL REST Service. */
+/*
+ * Merged in all changes up to mysql-trunk git revision [fc82a16] (11. June 2023).
+ *
+ * MySQL grammar for ANTLR 4.5+ with language features from MySQL 8.0 and up.
+ * The server version in the generated parser can be switched at runtime, making it so possible
+ * to switch the supported feature set dynamically.
+ *
+ * The coverage of the MySQL language should be 100%, but there might still be bugs or omissions.
+ *
+ * To use this grammar you will need a few support classes (which should be close to where you found this grammar).
+ * These classes implement the target specific action code, so we don't clutter the grammar with that
+ * and make it simpler to adjust it for other targets. See the demo/test project for further details.
+ *
+ * Written by Mike Lischke. Direct all bug reports, omissions etc. to mike.lischke@oracle.com.
+ */
+
+//----------------------------------------------------------------------------------------------------------------------
 
 // $antlr-format alignTrailingComments on, columnLimit 130, minEmptyLines 1, maxEmptyLinesToKeep 1, reflowComments off
 // $antlr-format useTab off, allowShortRulesOnASingleLine off, allowShortBlocksOnASingleLine on, alignSemicolons ownLine
@@ -78,7 +94,8 @@ simpleStatement:
     // Database administration
     | accountManagementStatement
     | tableAdministrationStatement
-    | installUninstallStatement
+    | uninstallStatement
+    | installStatement
     | setStatement // SET PASSWORD is handled in accountManagementStatement.
     | showDatabasesStatement
     | showTablesStatement
@@ -86,12 +103,14 @@ simpleStatement:
     | showEventsStatement
     | showTableStatusStatement
     | showOpenTablesStatement
+    | showParseTreeStatement
     | showPluginsStatement
     | showEngineLogsStatement
     | showEngineMutexStatement
     | showEngineStatusStatement
     | showColumnsStatement
     | showBinaryLogsStatement
+    | showBinaryLogStatusStatement
     | showReplicasStatement
     | showBinlogEventsStatement
     | showRelaylogEventsStatement
@@ -471,7 +490,7 @@ asCreateQueryExpression:
 ;
 
 queryExpressionOrParens:
-    queryExpression ({this.serverVersion >= 80031}? lockingClauseList)?
+    queryExpression lockingClauseList?
     | queryExpressionParens
 ;
 
@@ -486,7 +505,17 @@ createRoutine: // Rule for external use only.
 createProcedure:
     definerClause? PROCEDURE_SYMBOL ifNotExists? procedureName OPEN_PAR_SYMBOL (
         procedureParameter (COMMA_SYMBOL procedureParameter)*
-    )? CLOSE_PAR_SYMBOL routineCreateOption* compoundStatement
+    )? CLOSE_PAR_SYMBOL routineCreateOption* storedRoutineBody
+;
+
+routineString:
+    textStringLiteral
+    | DOLLAR_QUOTED_STRING_TEXT
+;
+
+storedRoutineBody:
+    compoundStatement
+    | {this.serverVersion >= 80032 && this.supportMle}? AS_SYMBOL routineString
 ;
 
 createFunction:
@@ -504,18 +533,24 @@ createUdf:
     ) SONAME_SYMBOL textLiteral
 ;
 
+// sp_c_chistic in the server grammar.
 routineCreateOption:
     routineOption
     | NOT_SYMBOL? DETERMINISTIC_SYMBOL
 ;
 
+// sp_a_chistics in the server grammar.
 routineAlterOptions:
     routineCreateOption+
 ;
 
+// sp_chistic in the server grammar.
 routineOption:
     option = COMMENT_SYMBOL textLiteral
-    | option = LANGUAGE_SYMBOL SQL_SYMBOL
+    | option = LANGUAGE_SYMBOL (
+        SQL_SYMBOL
+        | {this.serverVersion >= 80032}? identifier
+    )
     | option = NO_SYMBOL SQL_SYMBOL
     | option = CONTAINS_SYMBOL SQL_SYMBOL
     | option = READS_SYMBOL SQL_SYMBOL DATA_SYMBOL
@@ -534,23 +569,6 @@ createIndex:
     ) indexLockAndAlgorithm?
 ;
 
-/*
-  The syntax for defining an index is:
-
-    ... INDEX [index_name] [USING|TYPE] <index_type> ...
-
-  The problem is that whereas USING is a reserved word, TYPE is not. We can
-  still handle it if an index name is supplied, i.e.:
-
-    ... INDEX type TYPE <index_type> ...
-
-  here the index's name is unmbiguously 'type', but for this:
-
-    ... INDEX TYPE <index_type> ...
-
-  it's impossible to know what this actually mean - is 'type' the name or the
-  type? For this reason we accept the TYPE syntax only if a name is supplied.
-*/
 indexNameAndType:
     indexName
     | indexName? USING_SYMBOL indexType
@@ -910,8 +928,8 @@ handlerReadOrScan:
 
 insertStatement:
     INSERT_SYMBOL insertLockOption? IGNORE_SYMBOL? INTO_SYMBOL? tableRef usePartition? (
-        insertFromConstructor ({ this.serverVersion >= 80018}? valuesReference)?
-        | SET_SYMBOL updateList ({ this.serverVersion >= 80018}? valuesReference)?
+        insertFromConstructor valuesReference?
+        | SET_SYMBOL updateList valuesReference?
         | insertQueryExpression
     ) insertUpdateList?
 ;
@@ -951,7 +969,7 @@ values:
 ;
 
 valuesReference:
-    AS_SYMBOL identifier columnInternalRefList?
+    { this.serverVersion >= 80018}? AS_SYMBOL identifier columnInternalRefList?
 ;
 
 insertUpdateList:
@@ -961,16 +979,41 @@ insertUpdateList:
 //----------------------------------------------------------------------------------------------------------------------
 
 loadStatement:
-    LOAD_SYMBOL dataOrXml (LOW_PRIORITY_SYMBOL | CONCURRENT_SYMBOL)? LOCAL_SYMBOL? INFILE_SYMBOL textLiteral (
+    LOAD_SYMBOL dataOrXml loadDataLock? loadFrom? LOCAL_SYMBOL? loadSourceType? textStringLiteral sourceCount? sourceOrder? (
         REPLACE_SYMBOL
         | IGNORE_SYMBOL
     )? INTO_SYMBOL TABLE_SYMBOL tableRef usePartition? charsetClause? xmlRowsIdentifiedBy? fieldsClause? linesClause?
-        loadDataFileTail
+        loadDataFileTail loadParallel? loadMemory? loadAlgorithm?
 ;
 
 dataOrXml:
     DATA_SYMBOL
     | XML_SYMBOL
+;
+
+loadDataLock:
+    LOW_PRIORITY_SYMBOL
+    | CONCURRENT_SYMBOL
+;
+
+loadFrom:
+    {this.serverVersion >= 80200}? FROM_SYMBOL
+;
+
+loadSourceType:
+    INFILE_SYMBOL
+    | {this.serverVersion >= 80200}? (URL_SYMBOL | S3_SYMBOL)
+;
+
+sourceCount:
+    {this.serverVersion >= 80200}? (
+        COUNT_SYMBOL INT_NUMBER
+        | pureIdentifier INT_NUMBER
+    )
+;
+
+sourceOrder:
+    {this.serverVersion >= 80200}? IN_SYMBOL PRIMARY_SYMBOL KEY_SYMBOL ORDER_SYMBOL
 ;
 
 xmlRowsIdentifiedBy:
@@ -996,6 +1039,18 @@ fieldOrVariableList:
             | AT_AT_SIGN_SYMBOL
         )
     )*
+;
+
+loadAlgorithm:
+    {this.serverVersion >= 80200}? ALGORITHM_SYMBOL EQUAL_OPERATOR BULK_SYMBOL
+;
+
+loadParallel:
+    {this.serverVersion >= 80200}? PARALLEL_SYMBOL EQUAL_OPERATOR INT_NUMBER
+;
+
+loadMemory:
+    {this.serverVersion >= 80200}? MEMORY_SYMBOL EQUAL_OPERATOR sizeNumber
 ;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -1174,6 +1229,10 @@ commonTableExpression:
 
 groupByClause:
     GROUP_SYMBOL BY_SYMBOL orderList olapOption?
+    | {this.serverVersion >= 80032}? GROUP_SYMBOL BY_SYMBOL (
+        ROLLUP_SYMBOL
+        | CUBE_SYMBOL
+    ) OPEN_PAR_SYMBOL groupList CLOSE_PAR_SYMBOL
 ;
 
 olapOption:
@@ -1215,7 +1274,7 @@ selectOption:
 ;
 
 lockingClauseList:
-    lockingClause+
+    {this.serverVersion >= 80031}? lockingClause+
 ;
 
 lockingClause:
@@ -1480,13 +1539,10 @@ xid:
 //----------------------------------------------------------------------------------------------------------------------
 
 replicationStatement:
-    PURGE_SYMBOL (BINARY_SYMBOL | MASTER_SYMBOL) LOGS_SYMBOL (
-        TO_SYMBOL textLiteral
-        | BEFORE_SYMBOL expr
-    )
+    PURGE_SYMBOL purgeOptions
     | changeSource
     | RESET_SYMBOL resetOption (COMMA_SYMBOL resetOption)*
-    | RESET_SYMBOL PERSIST_SYMBOL (ifExists identifier)?
+    | RESET_SYMBOL PERSIST_SYMBOL ifExistsIdentifier?
     | startReplicaStatement
     | stopReplicaStatement
     | changeReplication
@@ -1494,9 +1550,21 @@ replicationStatement:
     | groupReplication
 ;
 
+purgeOptions:
+    (BINARY_SYMBOL | MASTER_SYMBOL) LOGS_SYMBOL (
+        TO_SYMBOL textLiteral
+        | BEFORE_SYMBOL expr
+    )
+;
+
 resetOption:
-    MASTER_SYMBOL sourceResetOptions?
+    masterOrBinaryLogsAndGtids sourceResetOptions?
     | replica ALL_SYMBOL? channel?
+;
+
+masterOrBinaryLogsAndGtids:
+    MASTER_SYMBOL
+    | {this.serverVersion >= 80032}? BINARY_SYMBOL LOGS_SYMBOL AND_SYMBOL GTIDS_SYMBOL
 ;
 
 sourceResetOptions:
@@ -1541,8 +1609,8 @@ sourceDefinition: // source_def in sql_yacc.yy
     | changeReplicationSourceSSLVerifyServerCert EQUAL_OPERATOR ulong_number
     | changeReplicationSourceSSLCLR EQUAL_OPERATOR textLiteral
     | changeReplicationSourceSSLCLRpath EQUAL_OPERATOR textStringNoLinebreak
-    | changeReplicationSourcePublicKey EQUAL_OPERATOR textStringNoLinebreak // Conditionally set in the lexer.
-    | changeReplicationSourceGetSourcePublicKey EQUAL_OPERATOR ulong_number // Conditionally set in the lexer.
+    | changeReplicationSourcePublicKey EQUAL_OPERATOR textStringNoLinebreak
+    | changeReplicationSourceGetSourcePublicKey EQUAL_OPERATOR ulong_number
     | changeReplicationSourceHeartbeatPeriod EQUAL_OPERATOR ulong_number
     | IGNORE_SERVER_IDS_SYMBOL EQUAL_OPERATOR serverIdList
     | changeReplicationSourceCompressionAlgorithm EQUAL_OPERATOR textStringLiteral
@@ -1692,6 +1760,7 @@ tablePrimaryKeyCheckDef:
     STREAM_SYMBOL
     | ON_SYMBOL
     | OFF_SYMBOL
+    | GENERATE_SYMBOL
 ;
 
 assignGtidsToAnonymousTransactionsDefinition:
@@ -2199,12 +2268,37 @@ repairType:
 
 //----------------------------------------------------------------------------------------------------------------------
 
-installUninstallStatement:
-    action = INSTALL_SYMBOL type = PLUGIN_SYMBOL identifier SONAME_SYMBOL textStringLiteral
-    | action = INSTALL_SYMBOL type = COMPONENT_SYMBOL textStringLiteralList
-    | action = UNINSTALL_SYMBOL type = PLUGIN_SYMBOL pluginRef
-    | action = UNINSTALL_SYMBOL type = COMPONENT_SYMBOL componentRef (
-        COMMA_SYMBOL componentRef
+uninstallStatement:
+    UNINSTALL_SYMBOL (
+        PLUGIN_SYMBOL pluginRef
+        | COMPONENT_SYMBOL componentRef (COMMA_SYMBOL componentRef)*
+    )
+;
+
+installStatement:
+    INSTALL_SYMBOL (
+        PLUGIN_SYMBOL identifier SONAME_SYMBOL textStringLiteral
+        | COMPONENT_SYMBOL textStringLiteralList installSetValueList?
+    )
+;
+
+installOptionType:
+    GLOBAL_SYMBOL
+    | PERSIST_SYMBOL
+;
+
+installSetRvalue:
+    expr
+    | ON_SYMBOL
+;
+
+installSetValue:
+    installOptionType lvalueVariable equal installSetRvalue
+;
+
+installSetValueList:
+    {this.serverVersion >= 80032}? SET_SYMBOL installSetValue (
+        COMMA_SYMBOL installSetValue
     )*
 ;
 
@@ -2314,6 +2408,10 @@ showOpenTablesStatement:
     SHOW_SYMBOL OPEN_SYMBOL TABLES_SYMBOL inDb? likeOrWhere?
 ;
 
+showParseTreeStatement:
+    {this.serverVersion >= 80100}? SHOW_SYMBOL PARSE_TREE_SYMBOL simpleStatement
+;
+
 showPluginsStatement:
     SHOW_SYMBOL PLUGINS_SYMBOL
 ;
@@ -2336,6 +2434,10 @@ showColumnsStatement:
 
 showBinaryLogsStatement:
     SHOW_SYMBOL (BINARY_SYMBOL | MASTER_SYMBOL) value = LOGS_SYMBOL
+;
+
+showBinaryLogStatusStatement:
+    SHOW_SYMBOL BINARY_SYMBOL LOG_SYMBOL STATUS_SYMBOL
 ;
 
 showReplicasStatement:
@@ -2673,12 +2775,18 @@ describeStatement:
 ;
 
 explainStatement:
-    (EXPLAIN_SYMBOL | DESCRIBE_SYMBOL | DESC_SYMBOL) (
-        EXTENDED_SYMBOL
-        | FORMAT_SYMBOL EQUAL_OPERATOR textOrIdentifier
-        | {this.serverVersion >= 80018}? ANALYZE_SYMBOL
-        | {this.serverVersion >= 80019}? ANALYZE_SYMBOL FORMAT_SYMBOL EQUAL_OPERATOR textOrIdentifier
+    (EXPLAIN_SYMBOL | DESCRIBE_SYMBOL | DESC_SYMBOL) explainOptions? (
+        {this.serverVersion >= 80032}? FOR_SYMBOL DATABASE_SYMBOL textOrIdentifier
     )? explainableStatement
+;
+
+explainOptions:
+    FORMAT_SYMBOL EQUAL_OPERATOR textOrIdentifier (
+        {this.serverVersion >= 80032}? explainInto
+    )?
+    | {this.serverVersion < 80012}? EXTENDED_SYMBOL
+    | {this.serverVersion >= 80018}? ANALYZE_SYMBOL
+    | {this.serverVersion >= 80019}? ANALYZE_SYMBOL FORMAT_SYMBOL EQUAL_OPERATOR textOrIdentifier
 ;
 
 explainableStatement:
@@ -2688,6 +2796,10 @@ explainableStatement:
     | replaceStatement
     | updateStatement
     | FOR_SYMBOL CONNECTION_SYMBOL real_ulong_number
+;
+
+explainInto:
+    INTO_SYMBOL AT_SIGN_SYMBOL textOrIdentifier
 ;
 
 helpCommand:
@@ -2938,6 +3050,9 @@ runtimeFunctionCall:
     | (DATE_ADD_SYMBOL | DATE_SUB_SYMBOL) OPEN_PAR_SYMBOL expr COMMA_SYMBOL INTERVAL_SYMBOL expr interval CLOSE_PAR_SYMBOL
     | EXTRACT_SYMBOL OPEN_PAR_SYMBOL interval FROM_SYMBOL expr CLOSE_PAR_SYMBOL
     | GET_FORMAT_SYMBOL OPEN_PAR_SYMBOL dateTimeTtype COMMA_SYMBOL expr CLOSE_PAR_SYMBOL
+    | {this.serverVersion >= 80032}? LOG_SYMBOL OPEN_PAR_SYMBOL expr (
+        COMMA_SYMBOL expr
+    )? CLOSE_PAR_SYMBOL
     | NOW_SYMBOL timeFunctionParameters?
     | POSITION_SYMBOL OPEN_PAR_SYMBOL bitExpr IN_SYMBOL expr CLOSE_PAR_SYMBOL
     | substringFunction
@@ -3423,7 +3538,7 @@ checkConstraint:
 ;
 
 constraintEnforcement:
-    NOT_SYMBOL? ENFORCED_SYMBOL
+    { this.serverVersion >= 80017}? NOT_SYMBOL? ENFORCED_SYMBOL
 ;
 
 tableConstraintDef:
@@ -3433,7 +3548,7 @@ tableConstraintDef:
     | constraintName? (
         (type = PRIMARY_SYMBOL KEY_SYMBOL | type = UNIQUE_SYMBOL keyOrIndex?) indexNameAndType? keyListWithExpression indexOption*
         | type = FOREIGN_SYMBOL KEY_SYMBOL indexName? keyList references
-        | checkConstraint ({this.serverVersion >= 80017}? constraintEnforcement)?
+        | checkConstraint constraintEnforcement?
     )
 ;
 
@@ -3855,6 +3970,18 @@ definerClause:
 
 ifExists:
     IF_SYMBOL EXISTS_SYMBOL
+;
+
+ifExistsIdentifier:
+    ifExists persistedVariableIdentifier
+;
+
+persistedVariableIdentifier:
+    identifier
+    | {this.serverVersion >= 80032}? (
+        qualifiedIdentifier
+        | DEFAULT_SYMBOL dotIdentifier
+    )
 ;
 
 ifNotExists:
@@ -4639,7 +4766,6 @@ identifierKeywordsUnambiguous:
         | CONTEXT_SYMBOL
         | CPU_SYMBOL
         | CURRENT_SYMBOL
-        // not reserved in MySQL per WL#2111 specification
         | CURSOR_NAME_SYMBOL
         | DATAFILE_SYMBOL
         | DATA_SYMBOL
@@ -5015,6 +5141,14 @@ identifierKeywordsUnambiguous:
         | TIMESTAMP_SYMBOL
         | TIME_SYMBOL
     )
+    | {this.serverVersion >= 80200}? (
+        BULK_SYMBOL
+        | GENERATE_SYMBOL
+        | GTIDS_SYMBOL
+        | LOG_SYMBOL
+        | PARSE_TREE_SYMBOL
+        | S3_SYMBOL
+    )
     | (
         // MRS keywords
         CONFIGURE_SYMBOL
@@ -5022,8 +5156,6 @@ identifierKeywordsUnambiguous:
         | METADATA_SYMBOL
         | SERVICES_SYMBOL
         | SERVICE_SYMBOL
-        | DATABASES_SYMBOL
-        | DATABASE_SYMBOL
         | RELATIONAL_SYMBOL
         | DUALITY_SYMBOL
         | VIEWS_SYMBOL
@@ -5050,17 +5182,12 @@ identifierKeywordsUnambiguous:
         | ITEM_SYMBOL
         | SETS_SYMBOL
         | AUTH_SYMBOL
-        | AUTHENTICATION_SYMBOL
         | APP_SYMBOL
         | VENDOR_SYMBOL
         | MRS_SYMBOL
         | MYSQL_SYMBOL
         | LIMIT_TO_REGISTERED_USERS_SYMBOL
         | ALLOW_NEW_USERS_SYMBOL
-        | USER_SYMBOL
-        | AT_SIGN_SYMBOL
-        | IDENTIFIED_SYMBOL
-        | BY_SYMBOL
         | AT_INOUT_SYMBOL
         | AT_IN_SYMBOL
         | AT_OUT_SYMBOL
@@ -5168,15 +5295,13 @@ roleOrIdentifierKeyword:
         | REPAIR_SYMBOL
         | RESET_SYMBOL
         | RESTORE_SYMBOL
-        | ROLE_SYMBOL           // Conditionally set in the lexer.
+        | ROLE_SYMBOL
         | ROLLBACK_SYMBOL
         | SAVEPOINT_SYMBOL
-        | SECONDARY_SYMBOL      // Conditionally set in the lexer.
+        | SECONDARY_SYMBOL
         | SECONDARY_ENGINE_SYMBOL
-        // Conditionally set in the lexer.
-        | SECONDARY_LOAD_SYMBOL // Conditionally set in the lexer.
+        | SECONDARY_LOAD_SYMBOL
         | SECONDARY_UNLOAD_SYMBOL
-        // Conditionally set in the lexer.
         | SECURITY_SYMBOL
         | SERVER_SYMBOL
         | SIGNED_SYMBOL
@@ -5198,7 +5323,7 @@ roleOrIdentifierKeyword:
 roleOrLabelKeyword:
     (
         ACTION_SYMBOL
-        | ACTIVE_SYMBOL         // Conditionally set in the lexer.
+        | ACTIVE_SYMBOL
         | ADDDATE_SYMBOL
         | AFTER_SYMBOL
         | AGAINST_SYMBOL
@@ -5245,10 +5370,6 @@ roleOrLabelKeyword:
         | CONSTRAINT_NAME_SYMBOL
         | CONTEXT_SYMBOL
         | CPU_SYMBOL
-        /*
-          Although a reserved keyword in SQL:2003 (and :2008),
-          not reserved in MySQL per WL#2111 specification.
-        */
         | CURRENT_SYMBOL
         | CURSOR_NAME_SYMBOL
         | DATA_SYMBOL
@@ -5259,7 +5380,7 @@ roleOrLabelKeyword:
         | DEFAULT_AUTH_SYMBOL
         | DEFINER_SYMBOL
         | DELAY_KEY_WRITE_SYMBOL
-        | DESCRIPTION_SYMBOL    // Conditionally set in the lexer.
+        | DESCRIPTION_SYMBOL
         | DIAGNOSTICS_SYMBOL
         | DIRECTORY_SYMBOL
         | DISABLE_SYMBOL
@@ -5311,7 +5432,7 @@ roleOrLabelKeyword:
         | INDEXES_SYMBOL
         | INITIAL_SIZE_SYMBOL
         | INSTANCE_SYMBOL
-        | INACTIVE_SYMBOL       // Conditionally set in the lexer.
+        | INACTIVE_SYMBOL
         | IO_SYMBOL
         | IPC_SYMBOL
         | ISOLATION_SYMBOL
@@ -5347,7 +5468,6 @@ roleOrLabelKeyword:
         | MASTER_SSL_CA_SYMBOL
         | MASTER_SSL_CAPATH_SYMBOL
         | MASTER_TLS_VERSION_SYMBOL
-        // Conditionally deprecated in the lexer.
         | MASTER_SSL_CERT_SYMBOL
         | MASTER_SSL_CIPHER_SYMBOL
         | MASTER_SSL_CRL_SYMBOL
@@ -5391,11 +5511,11 @@ roleOrLabelKeyword:
         | NUMBER_SYMBOL
         | NVARCHAR_SYMBOL
         | OFFSET_SYMBOL
-        | OLD_SYMBOL            // Conditionally set in the lexer.
+        | OLD_SYMBOL
         | ONE_SYMBOL
-        | OPTIONAL_SYMBOL       // Conditionally set in the lexer.
+        | OPTIONAL_SYMBOL
         | ORDINALITY_SYMBOL
-        | ORGANIZATION_SYMBOL   // Conditionally set in the lexer.
+        | ORGANIZATION_SYMBOL
         | OTHERS_SYMBOL
         | PACK_KEYS_SYMBOL
         | PAGE_SYMBOL
@@ -5431,7 +5551,7 @@ roleOrLabelKeyword:
         | RELAY_LOG_FILE_SYMBOL
         | RELAY_LOG_POS_SYMBOL
         | RELAY_THREAD_SYMBOL
-        | REMOTE_SYMBOL         // Conditionally set in the lexer.
+        | REMOTE_SYMBOL
         | REORGANIZE_SYMBOL
         | REPEATABLE_SYMBOL
         | REPLICATE_DO_DB_SYMBOL
@@ -5442,10 +5562,9 @@ roleOrLabelKeyword:
         | REPLICATE_WILD_IGNORE_TABLE_SYMBOL
         | REPLICATE_REWRITE_DB_SYMBOL
         | USER_RESOURCES_SYMBOL
-        // Placed like in the server grammar where it is named just RESOURCES.
         | RESPECT_SYMBOL
         | RESUME_SYMBOL
-        | RETAIN_SYMBOL         // Conditionally set in the lexer.
+        | RETAIN_SYMBOL
         | RETURNED_SQLSTATE_SYMBOL
         | RETURNS_SYMBOL
         | REUSE_SYMBOL
@@ -5539,8 +5658,9 @@ roleOrLabelKeyword:
     | {this.serverVersion >= 80014}? ADMIN_SYMBOL
 ;
 
+
 mrsScript:
-    (mrsStatement ( SEMICOLON_SYMBOL+ mrsStatement)*)? SEMICOLON_SYMBOL? EOF
+    (mrsStatement (SEMICOLON_SYMBOL+ mrsStatement)*)? SEMICOLON_SYMBOL? EOF
 ;
 
 mrsStatement:
@@ -5618,7 +5738,11 @@ configureRestMetadataStatement:
     CONFIGURE_SYMBOL REST_SYMBOL METADATA_SYMBOL restMetadataOptions?
 ;
 
-restMetadataOptions: (enabledDisabled | jsonOptions | updateIfAvailable)+
+restMetadataOptions: (
+        enabledDisabled
+        | jsonOptions
+        | updateIfAvailable
+    )+
 ;
 
 updateIfAvailable:
@@ -5630,14 +5754,15 @@ updateIfAvailable:
 // - CREATE REST SERVICE ----------------------------------------------------
 
 createRestServiceStatement:
-    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL SERVICE_SYMBOL serviceRequestPath restServiceOptions?
+    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL SERVICE_SYMBOL serviceRequestPath
+        restServiceOptions?
 ;
 
 restServiceOptions: (
         enabledDisabled
-        //		| restProtocol -- not enabled yet
+        // | restProtocol -- not enabled yet
         | restAuthentication
-        //		| userManagementSchema -- not enabled yet
+        // | userManagementSchema -- not enabled yet
         | jsonOptions
         | comments
     )+
@@ -5678,7 +5803,10 @@ authPageContent:
 ;
 
 userManagementSchema:
-    USER_SYMBOL MANAGEMENT_SYMBOL DATABASE_SYMBOL (schemaName | DEFAULT_SYMBOL)
+    USER_SYMBOL MANAGEMENT_SYMBOL DATABASE_SYMBOL (
+        schemaName
+        | DEFAULT_SYMBOL
+    )
 ;
 
 // - CREATE REST SCHEMA -----------------------------------------------------
@@ -5701,8 +5829,10 @@ restSchemaOptions: (
 // - CREATE REST VIEW -------------------------------------------------------
 
 createRestViewStatement:
-    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL RELATIONAL_SYMBOL? JSON_SYMBOL? DUALITY_SYMBOL? VIEW_SYMBOL
-        viewRequestPath (ON_SYMBOL serviceSchemaSelector)? FROM_SYMBOL qualifiedIdentifier restObjectOptions? AS_SYMBOL restObjectName
+    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL RELATIONAL_SYMBOL? JSON_SYMBOL?
+        DUALITY_SYMBOL? VIEW_SYMBOL viewRequestPath (
+        ON_SYMBOL serviceSchemaSelector
+    )? FROM_SYMBOL qualifiedIdentifier restObjectOptions? AS_SYMBOL restObjectName
         graphGlCrudOptions? graphGlObj?
 ;
 
@@ -5733,8 +5863,10 @@ restViewAuthenticationProcedure:
 // - CREATE REST PROCEDURE --------------------------------------------------
 
 createRestProcedureStatement:
-    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL PROCEDURE_SYMBOL procedureRequestPath (ON_SYMBOL serviceSchemaSelector)? FROM_SYMBOL
-        qualifiedIdentifier restObjectOptions? AS_SYMBOL restObjectName PARAMETERS_SYMBOL graphGlObj restProcedureResult*
+    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL PROCEDURE_SYMBOL procedureRequestPath (
+        ON_SYMBOL serviceSchemaSelector
+    )? FROM_SYMBOL qualifiedIdentifier restObjectOptions? AS_SYMBOL restObjectName PARAMETERS_SYMBOL
+        graphGlObj restProcedureResult*
 ;
 
 restProcedureResult:
@@ -5762,7 +5894,7 @@ restContentSetOptions: (
     )+
 ;
 
-/* - CREATE REST AUTH APP --------------------------------------------------- */
+// - CREATE REST AUTH APP ---------------------------------------------------
 
 createRestAuthAppStatement:
     CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL (
@@ -5798,10 +5930,11 @@ defaultRole:
     DEFAULT_SYMBOL ROLE_SYMBOL quotedText
 ;
 
-/* - CREATE REST USER ------------------------------------------------------- */
+// - CREATE REST USER -------------------------------------------------------
 
 createRestUserStatement:
-    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL USER_SYMBOL userName AT_SIGN_SYMBOL authAppName (
+    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL USER_SYMBOL userName AT_SIGN_SYMBOL
+        authAppName (
         ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
     )? IDENTIFIED_SYMBOL BY_SYMBOL userPassword
 ;
@@ -5829,15 +5962,16 @@ alterRestServiceStatement:
 alterRestSchemaStatement:
     ALTER_SYMBOL REST_SYMBOL DATABASE_SYMBOL schemaRequestPath? (
         ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
-    )? (NEW_SYMBOL REQUEST_SYMBOL PATH_SYMBOL newSchemaRequestPath)? (
-        FROM_SYMBOL schemaName
-    )? restSchemaOptions?
+    )? (
+        NEW_SYMBOL REQUEST_SYMBOL PATH_SYMBOL newSchemaRequestPath
+    )? (FROM_SYMBOL schemaName)? restSchemaOptions?
 ;
 
 // - ALTER REST VIEW --------------------------------------------------------
 
 alterRestViewStatement:
-    ALTER_SYMBOL REST_SYMBOL RELATIONAL_SYMBOL? JSON_SYMBOL? DUALITY_SYMBOL? VIEW_SYMBOL viewRequestPath (
+    ALTER_SYMBOL REST_SYMBOL RELATIONAL_SYMBOL? JSON_SYMBOL? DUALITY_SYMBOL? VIEW_SYMBOL
+        viewRequestPath (
         NEW_SYMBOL REQUEST_SYMBOL PATH_SYMBOL newViewRequestPath
     )? (ON_SYMBOL serviceSchemaSelector)? restObjectOptions? (
         AS_SYMBOL restObjectName graphGlCrudOptions? graphGlObj?
@@ -5867,11 +6001,14 @@ dropRestSchemaStatement:
 ;
 
 dropRestDualityViewStatement:
-    DROP_SYMBOL REST_SYMBOL RELATIONAL_SYMBOL? JSON_SYMBOL? DUALITY_SYMBOL? VIEW_SYMBOL viewRequestPath (FROM_SYMBOL serviceSchemaSelector)?
+    DROP_SYMBOL REST_SYMBOL RELATIONAL_SYMBOL? JSON_SYMBOL? DUALITY_SYMBOL? VIEW_SYMBOL
+        viewRequestPath (FROM_SYMBOL serviceSchemaSelector)?
 ;
 
 dropRestProcedureStatement:
-    DROP_SYMBOL REST_SYMBOL PROCEDURE_SYMBOL procedureRequestPath (FROM_SYMBOL serviceSchemaSelector)?
+    DROP_SYMBOL REST_SYMBOL PROCEDURE_SYMBOL procedureRequestPath (
+        FROM_SYMBOL serviceSchemaSelector
+    )?
 ;
 
 dropRestContentSetStatement:
@@ -5948,12 +6085,16 @@ showCreateRestSchemaStatement:
 ;
 
 showCreateRestViewStatement:
-    SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL RELATIONAL_SYMBOL? JSON_SYMBOL? DUALITY_SYMBOL? VIEW_SYMBOL viewRequestPath
-        ((ON_SYMBOL | FROM_SYMBOL) serviceSchemaSelector)?
+    SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL RELATIONAL_SYMBOL? JSON_SYMBOL? DUALITY_SYMBOL?
+        VIEW_SYMBOL viewRequestPath (
+        (ON_SYMBOL | FROM_SYMBOL) serviceSchemaSelector
+    )?
 ;
 
 showCreateRestProcedureStatement:
-    SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL PROCEDURE_SYMBOL procedureRequestPath ((ON_SYMBOL | FROM_SYMBOL) serviceSchemaSelector)?
+    SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL PROCEDURE_SYMBOL procedureRequestPath (
+        (ON_SYMBOL | FROM_SYMBOL) serviceSchemaSelector
+    )?
 ;
 
 // Named identifiers ========================================================
@@ -6009,8 +6150,9 @@ dottedIdentifier:
     | identifier dotIdentifier*
 ;
 
-hostAndPortIdentifier:
-    dottedIdentifier (COLON_SYMBOL INT_NUMBER)?
+hostAndPortIdentifier: (
+        dottedIdentifier (COLON_SYMBOL INT_NUMBER)?
+    )
 ;
 
 requestPathIdentifier:
@@ -6039,8 +6181,8 @@ jsonArr:
 
 jsonValue:
     DOUBLE_QUOTED_TEXT
-    | FLOAT_NUMBER
-    | (PLUS_OPERATOR | MINUS_OPERATOR)? INT_NUMBER
+    | (MINUS_OPERATOR | PLUS_OPERATOR)? JSON_NUMBER
+    | INT_NUMBER
     | jsonObj
     | jsonArr
     | TRUE_SYMBOL
@@ -6102,3 +6244,4 @@ graphGlValue:
     qualifiedIdentifier
     | graphGlObj
 ;
+

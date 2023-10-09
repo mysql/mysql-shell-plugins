@@ -41,7 +41,7 @@ export class ExecutionContexts implements IContextProvider {
 
     public constructor(
         private store: StoreType = StoreType.Unused,
-        private dbVersion: number,
+        public dbVersion: number,
         private sqlMode: string,
         private defaultSchema: string) {
     }

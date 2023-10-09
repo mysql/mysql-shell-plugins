@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -26,11 +26,16 @@ import { IDictionary } from "../../app-logic/Types";
 export enum MySQLVersion {
     Unknown = "Unknown",
     MySQL80 = "MySQL80",
+    MySQL81 = "MySQL81",
+    MySQL82 = "MySQL82",
+    MySQL83 = "MySQL83",
 }
 
 export const mysqlKeywords = new Map<MySQLVersion, Set<string>>();
 export const reservedMySQLKeywords = new Map<MySQLVersion, Set<string>>();
 
+// TODO: change implementation to use keyword diffs instead of full lists.
+// TODO: separate non-standard keywords (MHS, MRS, etc.) from standard keywords. They might also be version-specific.
 void import("./data/keywords.json").then((keywords) => {
     const content: IDictionary = keywords.default ?? keywords;
     Object.keys(content).forEach((versionKey: string) => {
@@ -38,7 +43,7 @@ void import("./data/keywords.json").then((keywords) => {
         const set = new Set<string>();
         const set2 = new Set<string>();
 
-        const dict = content[versionKey] as Array<Array<{ word: string; reserved: boolean }>>;
+        const dict = content[versionKey] as Array<Array<{ word: string; reserved: boolean; }>>;
         dict.forEach((list) => {
             if (Array.isArray(list)) {
                 list.forEach((value) => {

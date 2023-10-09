@@ -448,7 +448,7 @@ exports[`MrsHub Tests Show MRS Content Set Dialog (snapshot) 1`] = `
               class="msg label ellipsis"
               data-tooltip="expand"
             >
-              /mrs
+              /myService
             </label>
           </div>
           <label
@@ -664,7 +664,7 @@ exports[`MrsHub Tests Show MRS DB Object Dialog (snapshot) 1`] = `
               class="msg label ellipsis"
               data-tooltip="expand"
             >
-              /mrs
+              /myService
             </label>
           </div>
           <label
@@ -1142,7 +1142,7 @@ exports[`MrsHub Tests Show MRS Schema Dialog (snapshot) 1`] = `
               class="msg label ellipsis"
               data-tooltip="expand"
             >
-              /mrs
+              /myService
             </label>
           </div>
           <label

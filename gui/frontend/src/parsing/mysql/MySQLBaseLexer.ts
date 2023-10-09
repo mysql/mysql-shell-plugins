@@ -37,6 +37,12 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
     public serverVersion = 0;
     public sqlModes = new Set<SqlMode>();
 
+    /** Enable MRS specific language parts. */
+    public supportMrs = true;
+
+    /** Enable Multi Language Extension support. */
+    public supportMle = false;
+
     public readonly charsets: Set<string> = new Set(); // Used to check repertoires.
     protected inVersionComment = false;
 
@@ -1380,9 +1386,10 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
     protected emitDot(): void {
         this.pendingTokens.push(this._factory.create([this, this.inputStream], MySQLMRSLexer.DOT_SYMBOL,
             null, this._channel, this._tokenStartCharIndex, this._tokenStartCharIndex, this._tokenStartLine,
-            this._tokenStartCharPositionInLine,
+            this._tokenStartColumn,
         ));
 
+        ++this._tokenStartColumn;
         ++this._tokenStartCharIndex;
     }
 
