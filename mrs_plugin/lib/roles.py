@@ -38,13 +38,26 @@ def get_roles(session, service_id=None):
     return core.MrsDbExec(sql, params).exec(session).items
 
 
-def get_role(session, role_id):
-    sql = """
-    SELECT * FROM `mysql_rest_service_metadata`.mrs_role
-    WHERE id = ?
-    """
+def get_role(session, role_id=None, service_id=None, caption=None):
+    # If a role_id is given, look that one up
+    if role_id is not None:
+        sql = """
+            SELECT * FROM `mysql_rest_service_metadata`.mrs_role
+            WHERE id = ?
+        """
 
-    return core.MrsDbExec(sql, [role_id]).exec(session).first
+        return core.MrsDbExec(sql, [role_id]).exec(session).first
+
+    if service_id is not None and caption is not None:
+        sql = """
+            SELECT * FROM `mysql_rest_service_metadata`.mrs_role
+            WHERE caption = ? AND
+                (specific_to_service_id IS NULL OR specific_to_service_id = ?)
+        """
+
+        return core.MrsDbExec(sql, [caption, service_id]).exec(session).first
+
+    return None
 
 
 def add_role(session, derived_from_role_id, specific_to_service_id, caption, description):

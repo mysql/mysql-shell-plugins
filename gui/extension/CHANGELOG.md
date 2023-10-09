@@ -4,11 +4,12 @@
 
 ### Additions
 
-- 
+- Added more MRS DDL commands.
 
 ### Fixes
 
-- 
+- Fixed MRS DDL railroad diagram error for SCHEMAs vs. SCHEMA.
+- Prompt to restart VS Code after MySQL Router installation
 
 ## Changes in 1.13.0+8.1.1
 

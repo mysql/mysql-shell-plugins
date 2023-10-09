@@ -77,7 +77,7 @@ declare function runSqlWithCallback(code: string, callback?: (res: IDataRecord[]
  * @param params Optional parameters for the query.
  * @returns A promise
  */
-declare async function runSql(code: string, params?: unknown): Promise<unknown>;
+declare async function runSql(code: string, params?: unknown): Promise<IDataRecord[]>;
 
 
 // ---------- Graph Structures ----------

@@ -24,8 +24,8 @@ from mrs_plugin import lib
 # Define plugin version
 VERSION = "1.13.1"
 
-DB_VERSION = [2, 1, 1]
-REQUIRED_ROUTER_VERSION = [8, 0, 33]
+DB_VERSION = [2, 1, 2]
+REQUIRED_ROUTER_VERSION = [8, 1, 0]
 
 DB_VERSION_STR = '%d.%d.%d' % tuple(DB_VERSION)
 DB_VERSION_NUM = DB_VERSION[0] * 100000 + DB_VERSION[1] * 1000 + DB_VERSION[2]

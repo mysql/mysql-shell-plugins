@@ -738,11 +738,6 @@ def get_current_service_metadata(**kwargs):
             return {}
 
         service_id = lib.services.get_current_service_id(session)
-        if not service_id:
-            if lib.core.get_interactive_result():
-                return "The specified service was not found."
-            else:
-                return {}
 
         service = lib.services.get_service(
             session=session, service_id=service_id)

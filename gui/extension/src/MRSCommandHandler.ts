@@ -960,40 +960,48 @@ export class MRSCommandHandler {
                 }
             } else {
                 const answer = await window.showInformationMessage(
-                    `The mysqlrouter_bootstrap executable could not be found. `
-                    + "Do you want to download and install the MySQL Router now?",
+                    "The mysqlrouter_bootstrap executable could not be found in any directory listed in the " +
+                    "PATH environment variable. This seems to indicate that MySQL Router has not been installed. " +
+                    "Do you want to download and install the MySQL Router now?",
                     "Yes", "No");
                 if (answer === "Yes") {
                     const labsUrl = "https://downloads.mysql.com/snapshots/pb/mysql-router-8.1.0-labs-mrs-preview-4/";
+                    let fileUrl: string;
 
                     switch (os.platform()) {
                         case "darwin": {
                             switch (os.arch()) {
                                 case "arm":
                                 case "arm64": {
-                                    void env.openExternal(Uri.parse(
-                                        `${labsUrl}mysql-router-8.1.0-labs-mrs-4-macos13-arm64.dmg
-                                        `));
+                                    fileUrl = `${labsUrl}mysql-router-8.1.0-labs-mrs-4-macos13-arm64.dmg`;
                                     break;
                                 }
                                 default: {
-                                    void env.openExternal(Uri.parse(
-                                        `${labsUrl}mysql-router-8.1.0-labs-mrs-4-macos13-x86_64.dmg`));
+                                    fileUrl = `${labsUrl}mysql-router-8.1.0-labs-mrs-4-macos13-x86_64.dmg`;
                                     break;
                                 }
                             }
                             break;
                         }
                         case "win32": {
-                            void env.openExternal(Uri.parse(
-                                `${labsUrl}mysql-router-8.1.0-labs-mrs-4-winx64.msi`));
+                            fileUrl = `${labsUrl}mysql-router-8.1.0-labs-mrs-4-winx64.msi`;
                             break;
                         }
                         default: {
-                            // Default to Linux
-                            void env.openExternal(Uri.parse("https://labs.mysql.com"));
+                            // Default to generic URL
+                            fileUrl = "https://labs.mysql.com";
                             break;
                         }
+                    }
+
+                    await env.openExternal(Uri.parse(fileUrl));
+
+                    const answer = await window.showInformationMessage(
+                        "After installing MySQL Router, VS Code needs to be restarted to read " +
+                        "the updated PATH environment variable. Do you want to restart VS Code now?",
+                        "Yes", "No");
+                    if (answer === "Yes") {
+                        void commands.executeCommand("workbench.action.reloadWindow");
                     }
                 }
             }

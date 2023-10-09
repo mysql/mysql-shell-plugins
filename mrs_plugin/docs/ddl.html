@@ -246,24 +246,32 @@
                                 id="toc-show-rest-content-sets"><span
                                 class="toc-section-number">5.7</span>
                                 SHOW REST CONTENT SETS</a></li>
+                                <li><a href="#show-rest-auth-apps"
+                                id="toc-show-rest-auth-apps"><span
+                                class="toc-section-number">5.8</span>
+                                SHOW REST AUTH APPS</a></li>
                                 <li><a href="#show-create-rest-service"
                                 id="toc-show-create-rest-service"><span
-                                class="toc-section-number">5.8</span>
+                                class="toc-section-number">5.9</span>
                                 SHOW CREATE REST SERVICE</a></li>
                                 <li><a href="#show-create-rest-schema"
                                 id="toc-show-create-rest-schema"><span
-                                class="toc-section-number">5.9</span>
+                                class="toc-section-number">5.10</span>
                                 SHOW CREATE REST SCHEMA</a></li>
                                 <li><a
                                 href="#show-create-rest-duality-view"
                                 id="toc-show-create-rest-duality-view"><span
-                                class="toc-section-number">5.10</span>
+                                class="toc-section-number">5.11</span>
                                 SHOW CREATE REST DUALITY VIEW</a></li>
                                 <li><a
                                 href="#show-create-rest-procedure"
                                 id="toc-show-create-rest-procedure"><span
-                                class="toc-section-number">5.11</span>
+                                class="toc-section-number">5.12</span>
                                 SHOW CREATE REST PROCEDURE</a></li>
+                                <li><a href="#show-create-auth-app"
+                                id="toc-show-create-auth-app"><span
+                                class="toc-section-number">5.13</span>
+                                SHOW CREATE AUTH APP</a></li>
                                 </ul></li>
                                 </ul>
                             </nav>
@@ -1208,9 +1216,10 @@
                 src="sections/ddl/../../images/ddl/restAuthAppOptions.svg"
                 title="restAuthAppOptions"
                 alt="restAuthAppOptions" /></p>
-                <p>limitUsers ::= <img
-                src="sections/ddl/../../images/ddl/limitUsers.svg"
-                title="limitUsers" alt="limitUsers" /></p>
+                <p>allowNewUsersToRegister ::= <img
+                src="sections/ddl/../../images/ddl/allowNewUsersToRegister.svg"
+                title="allowNewUsersToRegister"
+                alt="allowNewUsersToRegister" /></p>
                 <p>defaultRole ::= <img
                 src="sections/ddl/../../images/ddl/defaultRole.svg"
                 title="defaultRole" alt="defaultRole" /></p>
@@ -1603,25 +1612,37 @@
                 class="header-section-number">5.7</span> SHOW REST
                 CONTENT SETS</h2>
                 <p>The <code>SHOW REST CONTENT SETS</code> statement
-                lists all available REST procedures of the given or
-                current REST schema.</p>
+                lists all available REST content sets of the given or
+                current REST service.</p>
                 <p><strong><em>SYNTAX</em></strong></p>
                 <p>showRestContentSetsStatement ::= <img
                 src="sections/ddl/../../images/ddl/showRestContentSetsStatement.svg"
                 title="showRestContentSetsStatement"
                 alt="showRestContentSetsStatement" /></p>
-                <p>serviceSchemaSelector ::= <img
-                src="sections/ddl/../../images/ddl/serviceSchemaSelector.svg"
-                title="serviceSchemaSelector"
-                alt="serviceSchemaSelector" /></p>
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example lists all REST content sets of
-                the given REST schema.</p>
+                the given REST service.</p>
                 <div class="sourceCode" id="cb29"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>SHOW REST CONTENT SETS <span class="kw">FROM</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
-                <h2 data-number="5.8"
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>SHOW REST CONTENT SETS <span class="kw">FROM</span> SERVICE <span class="op">/</span>myService;</span></code></pre></div>
+                <h2 data-number="5.8" id="show-rest-auth-apps"><span
+                class="header-section-number">5.8</span> SHOW REST AUTH
+                APPS</h2>
+                <p>The <code>SHOW REST AUTH APPS</code> statement lists
+                all available REST auth apps of the given or current
+                REST service.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <p>showRestAuthAppsStatement ::= <img
+                src="sections/ddl/../../images/ddl/showRestAuthAppsStatement.svg"
+                title="showRestAuthAppsStatement"
+                alt="showRestAuthAppsStatement" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example lists all REST auth apps of the
+                given REST service.</p>
+                <div class="sourceCode" id="cb30"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>SHOW REST AUTH APPS <span class="kw">FROM</span> SERVICE <span class="op">/</span>myService;</span></code></pre></div>
+                <h2 data-number="5.9"
                 id="show-create-rest-service"><span
-                class="header-section-number">5.8</span> SHOW CREATE
+                class="header-section-number">5.9</span> SHOW CREATE
                 REST SERVICE</h2>
                 <p>The <code>SHOW CREATE REST SERVICE</code> statement
                 shows the corresponding DDL statement for the given REST
@@ -1635,10 +1656,11 @@
                 <p>The following example shows the DDL statement for the
                 REST service with request path
                 <code>/myService</code>.</p>
-                <div class="sourceCode" id="cb30"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST SERVICE <span class="op">/</span>myService;</span></code></pre></div>
-                <h2 data-number="5.9" id="show-create-rest-schema"><span
-                class="header-section-number">5.9</span> SHOW CREATE
+                <div class="sourceCode" id="cb31"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST SERVICE <span class="op">/</span>myService;</span></code></pre></div>
+                <h2 data-number="5.10"
+                id="show-create-rest-schema"><span
+                class="header-section-number">5.10</span> SHOW CREATE
                 REST SCHEMA</h2>
                 <p>The <code>SHOW CREATE REST SCHEMA</code> statement
                 shows the corresponding DDL statement for the given REST
@@ -1651,11 +1673,11 @@
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example shows the DDL statement for the
                 given REST schema.</p>
-                <div class="sourceCode" id="cb31"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila <span class="kw">FROM</span> <span class="op">/</span>myService;</span></code></pre></div>
-                <h2 data-number="5.10"
+                <div class="sourceCode" id="cb32"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila <span class="kw">FROM</span> <span class="op">/</span>myService;</span></code></pre></div>
+                <h2 data-number="5.11"
                 id="show-create-rest-duality-view"><span
-                class="header-section-number">5.10</span> SHOW CREATE
+                class="header-section-number">5.11</span> SHOW CREATE
                 REST DUALITY VIEW</h2>
                 <p>The <code>SHOW CREATE REST DUALITY VIEW</code>
                 statement shows the corresponding DDL statement for the
@@ -1672,11 +1694,11 @@
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example shows the DDL statement for the
                 given REST duality view.</p>
-                <div class="sourceCode" id="cb32"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST DUALITY <span class="kw">VIEW</span> <span class="op">/</span>city <span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
-                <h2 data-number="5.11"
+                <div class="sourceCode" id="cb33"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST DUALITY <span class="kw">VIEW</span> <span class="op">/</span>city <span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
+                <h2 data-number="5.12"
                 id="show-create-rest-procedure"><span
-                class="header-section-number">5.11</span> SHOW CREATE
+                class="header-section-number">5.12</span> SHOW CREATE
                 REST PROCEDURE</h2>
                 <p>The <code>SHOW CREATE REST PROCEDURE</code> statement
                 shows the corresponding DDL statement for the given REST
@@ -1693,8 +1715,24 @@
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example shows the DDL statement for the
                 given REST procedure.</p>
-                <div class="sourceCode" id="cb33"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST <span class="kw">PROCEDURE</span> <span class="op">/</span>inventory_in_stock <span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
+                <div class="sourceCode" id="cb34"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST <span class="kw">PROCEDURE</span> <span class="op">/</span>inventory_in_stock <span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
+                <h2 data-number="5.13" id="show-create-auth-app"><span
+                class="header-section-number">5.13</span> SHOW CREATE
+                AUTH APP</h2>
+                <p>The <code>SHOW CREATE AUTH APP</code> statement shows
+                the corresponding DDL statement for the given REST auth
+                app.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <p>showCreateRestAuthAppStatement ::= <img
+                src="sections/ddl/../../images/ddl/showCreateRestAuthAppStatement.svg"
+                title="showCreateRestAuthAppStatement"
+                alt="showCreateRestAuthAppStatement" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example shows the DDL statement for the
+                given REST auth app.</p>
+                <div class="sourceCode" id="cb35"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST AUTH APP <span class="ot">&quot;MRS&quot;</span> <span class="kw">FROM</span> SERVICE localhost<span class="op">/</span>myTestService;</span></code></pre></div>
                 <p>Copyright (c) 2023, Oracle and/or its affiliates.</p>
             </div>
         </div>

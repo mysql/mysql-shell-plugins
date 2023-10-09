@@ -146,22 +146,36 @@ SHOW REST PROCEDURES FROM SERVICE /myService SCHEMA /sakila;
 
 ## SHOW REST CONTENT SETS
 
-The `SHOW REST CONTENT SETS` statement lists all available REST procedures of the given or current REST schema.
+The `SHOW REST CONTENT SETS` statement lists all available REST content sets of the given or current REST service.
 
 **_SYNTAX_**
 
 showRestContentSetsStatement ::=
 ![showRestContentSetsStatement](../../images/ddl/showRestContentSetsStatement.svg "showRestContentSetsStatement")
 
-serviceSchemaSelector ::=
-![serviceSchemaSelector](../../images/ddl/serviceSchemaSelector.svg "serviceSchemaSelector")
+**_Examples_**
+
+The following example lists all REST content sets of the given REST service.
+
+```sql
+SHOW REST CONTENT SETS FROM SERVICE /myService;
+```
+
+## SHOW REST AUTH APPS
+
+The `SHOW REST AUTH APPS` statement lists all available REST auth apps of the given or current REST service.
+
+**_SYNTAX_**
+
+showRestAuthAppsStatement ::=
+![showRestAuthAppsStatement](../../images/ddl/showRestAuthAppsStatement.svg "showRestAuthAppsStatement")
 
 **_Examples_**
 
-The following example lists all REST content sets of the given REST schema.
+The following example lists all REST auth apps of the given REST service.
 
 ```sql
-SHOW REST CONTENT SETS FROM SERVICE /myService SCHEMA /sakila;
+SHOW REST AUTH APPS FROM SERVICE /myService;
 ```
 
 ## SHOW CREATE REST SERVICE
@@ -236,4 +250,21 @@ The following example shows the DDL statement for the given REST procedure.
 
 ```sql
 SHOW CREATE REST PROCEDURE /inventory_in_stock ON SERVICE /myService SCHEMA /sakila;
+```
+
+## SHOW CREATE AUTH APP
+
+The `SHOW CREATE AUTH APP` statement shows the corresponding DDL statement for the given REST auth app.
+
+**_SYNTAX_**
+
+showCreateRestAuthAppStatement ::=
+![showCreateRestAuthAppStatement](../../images/ddl/showCreateRestAuthAppStatement.svg "showCreateRestAuthAppStatement")
+
+**_Examples_**
+
+The following example shows the DDL statement for the given REST auth app.
+
+```sql
+SHOW CREATE REST AUTH APP "MRS" FROM SERVICE localhost/myTestService;
 ```
