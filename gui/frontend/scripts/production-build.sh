@@ -22,6 +22,7 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 node scripts/copy-oci-typings.js
+node --no-warnings --loader ts-node/esm scripts/generate-mrs-grammar.ts
 
 # Generate parsers only if something in the source folder changed.
 source=`ls -t src/parsing/mysql/MySQL* | head -1`

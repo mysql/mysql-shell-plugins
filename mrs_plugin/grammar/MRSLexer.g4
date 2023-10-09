@@ -19,17 +19,12 @@
 
 lexer grammar MRSLexer; // MySQL REST Service (MRS) Grammar Definition
 
-CONFIGURE_SYMBOL:      C O N F I G U R E;
 CREATE_SYMBOL:         C R E A T E;
 OR_SYMBOL:             O R;
 REPLACE_SYMBOL:        R E P L A C E;
 ALTER_SYMBOL:          A L T E R;
 SHOW_SYMBOL:           S H O W;
-REST_SYMBOL:           R E S T;
-METADATA_SYMBOL:       M E T A D A T A;
 STATUS_SYMBOL:         S T A T U S;
-SERVICES_SYMBOL:       S E R V I C E S;
-SERVICE_SYMBOL:        S E R V I C E;
 NEW_SYMBOL:            N E W;
 ON_SYMBOL:             O N;
 FROM_SYMBOL:           F R O M;
@@ -39,65 +34,76 @@ DATABASE_SYMBOL:       D A T A B A S E;
 SCHEMAS_SYMBOL:        S C H E M A S -> type(DATABASES_SYMBOL);
 SCHEMA_SYMBOL:         S C H E M A -> type(DATABASE_SYMBOL);
 JSON_SYMBOL:           J S O N;
-RELATIONAL_SYMBOL:     R E L A T I O N A L;
-DUALITY_SYMBOL:        D U A L I T Y;
-VIEWS_SYMBOL:          V I E W S;
 VIEW_SYMBOL:           V I E W;
-PROCEDURES_SYMBOL:     P R O C E D U R E S;
 PROCEDURE_SYMBOL:      P R O C E D U R E;
-PARAMETERS_SYMBOL:     P A R A M E T E R S;
-RESULT_SYMBOL:         R E S U L T;
 DROP_SYMBOL:           D R O P;
 USE_SYMBOL:            U S E;
 AS_SYMBOL:             A S;
-ENABLED_SYMBOL:        E N A B L E D;
-DISABLED_SYMBOL:       D I S A B L E D;
-PROTOCOL_SYMBOL:       P R O T O C O L;
-HTTP_SYMBOL:           H T T P;
-HTTPS_SYMBOL:          H T T P S;
 FILTER_SYMBOL:         F I L T E R;
-COMMENTS_SYMBOL:       C O M M E N T S;
 AUTHENTICATION_SYMBOL: A U T H E N T I C A T I O N;
-REQUEST_SYMBOL:        R E Q U E S T;
 PATH_SYMBOL:           P A T H;
-REDIRECTION_SYMBOL:    R E D I R E C T I O N;
 VALIDATION_SYMBOL:     V A L I D A T I O N;
 DEFAULT_SYMBOL:        D E F A U L T;
 USER_SYMBOL:           U S E R;
-MANAGEMENT_SYMBOL:     M A N A G E M E N T;
 OPTIONS_SYMBOL:        O P T I O N S;
 IF_SYMBOL:             I F;
-AVAILABLE_SYMBOL:      A V A I L A B L E;
 NOT_SYMBOL:            N O T;
 EXISTS_SYMBOL:         E X I S T S;
-REQUIRED_SYMBOL:       R E Q U I R E D;
-ITEMS_SYMBOL:          I T E M S;
-PER_SYMBOL:            P E R;
 PAGE_SYMBOL:           P A G E;
-CONTENT_SYMBOL:        C O N T E N T;
 HOST_SYMBOL:           H O S T;
-MEDIA_SYMBOL:          M E D I A;
 TYPE_SYMBOL:           T Y P E;
-AUTODETECT_SYMBOL:     A U T O D E T E C T;
 FORMAT_SYMBOL:         F O R M A T;
-FEED_SYMBOL:           F E E D;
-ITEM_SYMBOL:           I T E M;
 UPDATE_SYMBOL:         U P D A T E;
 NULL_SYMBOL:           N U L L;
 TRUE_SYMBOL:           T R U E;
 FALSE_SYMBOL:          F A L S E;
 SET_SYMBOL:            S E T;
-SETS_SYMBOL:           S E T S;
-AUTH_SYMBOL:           A U T H;
-APP_SYMBOL:            A P P;
-VENDOR_SYMBOL:         V E N D O R;
-MRS_SYMBOL:            M R S;
-MYSQL_SYMBOL:          M Y S Q L;
-ROLE_SYMBOL:           R O L E;
-LIMIT_TO_REGISTERED_USERS_SYMBOL: L I M I T WHITESPACE+ T O WHITESPACE+ R E G I S T E R E D WHITESPACE+ U S E R S;
-ALLOW_NEW_USERS_SYMBOL: A L L O W WHITESPACE+ N E W WHITESPACE+ U S E R S;
 IDENTIFIED_SYMBOL:     I D E N T I F I E D;
 BY_SYMBOL:             B Y;
+ROLE_SYMBOL:           R O L E;
+
+// Used for auto merging this grammar and the standard MySQL grammar.
+/* START OF MERGE PART */
+
+CONFIGURE_SYMBOL:   C O N F I G U R E;
+REST_SYMBOL:        R E S T;
+METADATA_SYMBOL:    M E T A D A T A;
+SERVICES_SYMBOL:    S E R V I C E S;
+SERVICE_SYMBOL:     S E R V I C E;
+RELATIONAL_SYMBOL:  R E L A T I O N A L;
+DUALITY_SYMBOL:     D U A L I T Y;
+VIEWS_SYMBOL:       V I E W S;
+PROCEDURES_SYMBOL:  P R O C E D U R E S;
+PARAMETERS_SYMBOL:  P A R A M E T E R S;
+RESULT_SYMBOL:      R E S U L T;
+ENABLED_SYMBOL:     E N A B L E D;
+DISABLED_SYMBOL:    D I S A B L E D;
+PROTOCOL_SYMBOL:    P R O T O C O L;
+HTTP_SYMBOL:        H T T P;
+HTTPS_SYMBOL:       H T T P S;
+COMMENTS_SYMBOL:    C O M M E N T S;
+REQUEST_SYMBOL:     R E Q U E S T;
+REDIRECTION_SYMBOL: R E D I R E C T I O N;
+MANAGEMENT_SYMBOL:  M A N A G E M E N T;
+AVAILABLE_SYMBOL:   A V A I L A B L E;
+REQUIRED_SYMBOL:    R E Q U I R E D;
+ITEMS_SYMBOL:       I T E M S;
+PER_SYMBOL:         P E R;
+CONTENT_SYMBOL:     C O N T E N T;
+MEDIA_SYMBOL:       M E D I A;
+AUTODETECT_SYMBOL:  A U T O D E T E C T;
+FEED_SYMBOL:        F E E D;
+ITEM_SYMBOL:        I T E M;
+SETS_SYMBOL:        S E T S;
+AUTH_SYMBOL:        A U T H;
+APP_SYMBOL:         A P P;
+VENDOR_SYMBOL:      V E N D O R;
+MRS_SYMBOL:         M R S;
+MYSQL_SYMBOL:       M Y S Q L;
+LIMIT_TO_REGISTERED_USERS_SYMBOL:
+    L I M I T WHITESPACE+ T O WHITESPACE+ R E G I S T E R E D WHITESPACE+ U S E R S
+;
+ALLOW_NEW_USERS_SYMBOL: A L L O W WHITESPACE+ N E W WHITESPACE+ U S E R S;
 
 //----------------- GraphGL --------------------------------------------------------------------------------------------
 
@@ -121,6 +127,11 @@ AT_DELETE_SYMBOL:       AT_SIGN_SYMBOL D E L E T E;
 AT_NODELETE_SYMBOL:     AT_SIGN_SYMBOL N O D E L E T E;
 
 //-------------------------------------------------------------------------------------------------
+
+// Numbers in JSON may not have leading zeros.
+JSON_NUMBER: ('0' | [1-9] DIGIT*) ('.' [0-9]+)? ([Ee] [+\-]? [0-9]+)?;
+
+/* END OF MERGE PART */
 
 // Operators
 EQUAL_OPERATOR:            '='; // Also assign.
@@ -281,32 +292,5 @@ fragment LETTER_WHEN_UNQUOTED_NO_DIGIT: [a-zA-Z_$\u0080-\uffff];
 
 // Any letter but without e/E and digits (which are used to match a decimal number).
 fragment LETTER_WITHOUT_FLOAT_PART: [a-df-zA-DF-Z_$\u0080-\uffff];
-
-//----------------- Json -----------------------------------------------------------------------------------------------
-
-JSON_STRING: DOUBLE_QUOTE (JSON_ESC | JSON_SAFECODEPOINT)* DOUBLE_QUOTE;
-
-fragment JSON_ESC: '\\' (["\\/bfnrt] | JSON_UNICODE);
-
-fragment JSON_UNICODE: 'u' JSON_HEX JSON_HEX JSON_HEX JSON_HEX;
-
-fragment JSON_HEX: [0-9a-fA-F];
-
-fragment JSON_SAFECODEPOINT: ~ ["\\\u0000-\u001F];
-
-JSON_NUMBER: '-'? JSON_INT ('.' [0-9]+)? JSON_EXP?;
-
-fragment JSON_INT: // integer part forbis leading 0s (e.g. `01`)
-    '0'
-    | [1-9] [0-9]*
-;
-
-// no leading zeros
-
-fragment JSON_EXP: // exponent number permits leading 0s (e.g. `1e01`)
-    [Ee] [+\-]? [0-9]+
-;
-
-// \- since - means "range" inside [...]
 
 WS: [ \t\n\r]+ -> skip;

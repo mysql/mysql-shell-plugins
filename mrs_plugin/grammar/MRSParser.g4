@@ -27,6 +27,9 @@ options {
     tokenVocab = MRSLexer;
 }
 
+// Used for auto merging this grammar and the standard MySQL grammar.
+/* START OF MERGE PART */
+
 mrsScript:
     (mrsStatement (SEMICOLON_SYMBOL+ mrsStatement)*)? SEMICOLON_SYMBOL? EOF
 ;
@@ -64,7 +67,7 @@ mrsStatement:
     | showCreateRestProcedureStatement
 ;
 
-/* Common Definitions ======================================================= */
+// Common Definitions =======================================================
 
 enabledDisabled:
     ENABLED_SYMBOL
@@ -98,9 +101,9 @@ serviceSchemaSelector:
     (SERVICE_SYMBOL serviceRequestPath)? DATABASE_SYMBOL schemaRequestPath
 ;
 
-/* CONFIGURE statements ===================================================== */
+// CONFIGURE statements =====================================================
 
-/* - CONFIGURE REST METADATA ------------------------------------------------ */
+// - CONFIGURE REST METADATA ------------------------------------------------
 
 configureRestMetadataStatement:
     CONFIGURE_SYMBOL REST_SYMBOL METADATA_SYMBOL restMetadataOptions?
@@ -117,9 +120,9 @@ updateIfAvailable:
     UPDATE_SYMBOL (IF_SYMBOL AVAILABLE_SYMBOL)?
 ;
 
-/* CREATE statements ======================================================== */
+// CREATE statements ========================================================
 
-/* - CREATE REST SERVICE ---------------------------------------------------- */
+// - CREATE REST SERVICE ----------------------------------------------------
 
 createRestServiceStatement:
     CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL SERVICE_SYMBOL serviceRequestPath
@@ -128,9 +131,9 @@ createRestServiceStatement:
 
 restServiceOptions: (
         enabledDisabled
-        /*		| restProtocol -- not enabled yet */
+        // | restProtocol -- not enabled yet
         | restAuthentication
-        /*		| userManagementSchema -- not enabled yet */
+        // | userManagementSchema -- not enabled yet
         | jsonOptions
         | comments
     )+
@@ -177,7 +180,7 @@ userManagementSchema:
     )
 ;
 
-/* - CREATE REST SCHEMA ----------------------------------------------------- */
+// - CREATE REST SCHEMA -----------------------------------------------------
 
 createRestSchemaStatement:
     CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL DATABASE_SYMBOL schemaRequestPath? (
@@ -194,7 +197,7 @@ restSchemaOptions: (
     )+
 ;
 
-/* - CREATE REST VIEW ------------------------------------------------------- */
+// - CREATE REST VIEW -------------------------------------------------------
 
 createRestViewStatement:
     CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL RELATIONAL_SYMBOL? JSON_SYMBOL?
@@ -228,20 +231,20 @@ restViewAuthenticationProcedure:
     AUTHENTICATION_SYMBOL PROCEDURE_SYMBOL qualifiedIdentifier
 ;
 
-/* - CREATE REST PROCEDURE -------------------------------------------------- */
+// - CREATE REST PROCEDURE --------------------------------------------------
 
 createRestProcedureStatement:
     CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL PROCEDURE_SYMBOL procedureRequestPath (
         ON_SYMBOL serviceSchemaSelector
-    )? FROM_SYMBOL qualifiedIdentifier restObjectOptions? AS_SYMBOL restObjectName
-        PARAMETERS_SYMBOL graphGlObj restProcedureResult*
+    )? FROM_SYMBOL qualifiedIdentifier restObjectOptions? AS_SYMBOL restObjectName PARAMETERS_SYMBOL
+        graphGlObj restProcedureResult*
 ;
 
 restProcedureResult:
     RESULT_SYMBOL restResultName graphGlObj
 ;
 
-/* - CREATE REST CONTENT SET ------------------------------------------------ */
+// - CREATE REST CONTENT SET ------------------------------------------------
 
 createRestContentSetStatement:
     CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL CONTENT_SYMBOL SET_SYMBOL
@@ -262,7 +265,7 @@ restContentSetOptions: (
     )+
 ;
 
-/* - CREATE REST AUTH APP --------------------------------------------------- */
+// - CREATE REST AUTH APP ---------------------------------------------------
 
 createRestAuthAppStatement:
     CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL (
@@ -298,10 +301,11 @@ defaultRole:
     DEFAULT_SYMBOL ROLE_SYMBOL quotedText
 ;
 
-/* - CREATE REST USER ------------------------------------------------------- */
+// - CREATE REST USER -------------------------------------------------------
 
 createRestUserStatement:
-    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL USER_SYMBOL userName AT_SIGN_SYMBOL authAppName (
+    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL USER_SYMBOL userName AT_SIGN_SYMBOL
+        authAppName (
         ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
     )? IDENTIFIED_SYMBOL BY_SYMBOL userPassword
 ;
@@ -314,9 +318,9 @@ userPassword:
     quotedText
 ;
 
-/* ALTER statements ========================================================= */
+// ALTER statements =========================================================
 
-/* - ALTER REST SERVICE ----------------------------------------------------- */
+// - ALTER REST SERVICE -----------------------------------------------------
 
 alterRestServiceStatement:
     ALTER_SYMBOL REST_SYMBOL SERVICE_SYMBOL serviceRequestPath (
@@ -324,7 +328,7 @@ alterRestServiceStatement:
     )? restServiceOptions?
 ;
 
-/* - ALTER REST SERVICE ----------------------------------------------------- */
+// - ALTER REST SERVICE -----------------------------------------------------
 
 alterRestSchemaStatement:
     ALTER_SYMBOL REST_SYMBOL DATABASE_SYMBOL schemaRequestPath? (
@@ -334,7 +338,7 @@ alterRestSchemaStatement:
     )? (FROM_SYMBOL schemaName)? restSchemaOptions?
 ;
 
-/* - ALTER REST VIEW -------------------------------------------------------- */
+// - ALTER REST VIEW --------------------------------------------------------
 
 alterRestViewStatement:
     ALTER_SYMBOL REST_SYMBOL RELATIONAL_SYMBOL? JSON_SYMBOL? DUALITY_SYMBOL? VIEW_SYMBOL
@@ -345,7 +349,7 @@ alterRestViewStatement:
     )?
 ;
 
-/* - ALTER REST PROCEDURE --------------------------------------------------- */
+// - ALTER REST PROCEDURE ---------------------------------------------------
 
 alterRestProcedureStatement:
     ALTER_SYMBOL REST_SYMBOL PROCEDURE_SYMBOL procedureRequestPath (
@@ -355,7 +359,7 @@ alterRestProcedureStatement:
     )? restProcedureResult*
 ;
 
-/* DROP statements ========================================================== */
+// DROP statements ==========================================================
 
 dropRestServiceStatement:
     DROP_SYMBOL REST_SYMBOL SERVICE_SYMBOL serviceRequestPath
@@ -396,7 +400,7 @@ dropRestUserStatement:
     )?
 ;
 
-/* USE statements =========================================================== */
+// USE statements ===========================================================
 
 useStatement:
     USE_SYMBOL REST_SYMBOL serviceAndSchemaRequestPaths
@@ -407,7 +411,7 @@ serviceAndSchemaRequestPaths:
     | serviceSchemaSelector
 ;
 
-/* SHOW statements ========================================================== */
+// SHOW statements ==========================================================
 
 showRestMetadataStatusStatement:
     SHOW_SYMBOL REST_SYMBOL METADATA_SYMBOL? STATUS_SYMBOL
@@ -464,7 +468,7 @@ showCreateRestProcedureStatement:
     )?
 ;
 
-/* Named identifiers ======================================================== */
+// Named identifiers ========================================================
 
 serviceRequestPath:
     hostAndPortIdentifier? requestPathIdentifier
@@ -474,20 +478,12 @@ newServiceRequestPath:
     hostAndPortIdentifier? requestPathIdentifier
 ;
 
-schemaName:
-    identifier
-;
-
 schemaRequestPath:
     requestPathIdentifier
 ;
 
 newSchemaRequestPath:
     requestPathIdentifier
-;
-
-viewName:
-    identifier
 ;
 
 viewRequestPath:
@@ -506,10 +502,6 @@ restResultName:
     identifier
 ;
 
-procedureName:
-    identifier
-;
-
 procedureRequestPath:
     requestPathIdentifier
 ;
@@ -523,38 +515,6 @@ contentSetRequestPath:
 ;
 
 //----------------- Common basic rules ---------------------------------------------------------------------------------
-
-// Identifiers excluding keywords (except if they are quoted). IDENT_sys in sql_yacc.yy.
-pureIdentifier: (IDENTIFIER | BACK_TICK_QUOTED_ID)
-;
-
-// Identifiers including a certain set of keywords, which are allowed also if not quoted. ident in
-// sql_yacc.yy
-identifier:
-    pureIdentifier
-;
-
-identifierList: // ident_string_list in sql_yacc.yy.
-    identifier (COMMA_SYMBOL identifier)*
-;
-
-identifierListWithParentheses:
-    OPEN_PAR_SYMBOL identifierList CLOSE_PAR_SYMBOL
-;
-
-qualifiedIdentifier:
-    identifier dotIdentifier?
-;
-
-simpleIdentifier: // simple_ident + simple_ident_q
-    identifier (dotIdentifier dotIdentifier?)?
-;
-
-// This rule encapsulates the frequently used dot + identifier sequence, which also requires a
-// special treatment in the lexer. See there in the DOT_IDENTIFIER rule.
-dotIdentifier:
-    DOT_SYMBOL identifier
-;
 
 dottedIdentifier:
     simpleIdentifier
@@ -582,7 +542,8 @@ jsonObj:
     | OPEN_CURLY_SYMBOL CLOSE_CURLY_SYMBOL
 ;
 
-jsonPair: (JSON_STRING | DOUBLE_QUOTED_TEXT) COLON_SYMBOL jsonValue
+jsonPair:
+    DOUBLE_QUOTED_TEXT COLON_SYMBOL jsonValue
 ;
 
 jsonArr:
@@ -590,9 +551,8 @@ jsonArr:
 ;
 
 jsonValue:
-    JSON_STRING
-    | DOUBLE_QUOTED_TEXT
-    | JSON_NUMBER
+    DOUBLE_QUOTED_TEXT
+    | (MINUS_OPERATOR | PLUS_OPERATOR)? JSON_NUMBER
     | INT_NUMBER
     | jsonObj
     | jsonArr
@@ -637,24 +597,68 @@ graphGlPair:
 ;
 
 graphKeyValue:
-    JSON_STRING
-    | DOUBLE_QUOTED_TEXT
+    DOUBLE_QUOTED_TEXT
     | identifier
 ;
 
 graphGlReduceToValue:
-    JSON_STRING
-    | DOUBLE_QUOTED_TEXT
+    DOUBLE_QUOTED_TEXT
     | identifier
 ;
 
 graphGlDatatypeValue:
-    JSON_STRING
-    | DOUBLE_QUOTED_TEXT
+    DOUBLE_QUOTED_TEXT
     | identifier
 ;
 
 graphGlValue:
     qualifiedIdentifier
     | graphGlObj
+;
+
+/* END OF MERGE PART */
+
+schemaName:
+    identifier
+;
+
+viewName:
+    identifier
+;
+
+procedureName:
+    identifier
+;
+
+// Identifiers excluding keywords (except if they are quoted). IDENT_sys in sql_yacc.yy.
+pureIdentifier:
+    (IDENTIFIER | BACK_TICK_QUOTED_ID)
+;
+
+// Identifiers including a certain set of keywords, which are allowed also if not quoted. ident in
+// sql_yacc.yy
+identifier:
+    pureIdentifier
+;
+
+identifierList: // ident_string_list in sql_yacc.yy.
+    identifier (COMMA_SYMBOL identifier)*
+;
+
+identifierListWithParentheses:
+    OPEN_PAR_SYMBOL identifierList CLOSE_PAR_SYMBOL
+;
+
+qualifiedIdentifier:
+    identifier dotIdentifier?
+;
+
+simpleIdentifier: // simple_ident + simple_ident_q
+    identifier (dotIdentifier dotIdentifier?)?
+;
+
+// This rule encapsulates the frequently used dot + identifier sequence, which also requires a
+// special treatment in the lexer. See there in the DOT_IDENTIFIER rule.
+dotIdentifier:
+    DOT_SYMBOL identifier
 ;

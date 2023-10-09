@@ -1,7 +1,7 @@
 lexer grammar MySQLMRSLexer;
 
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,7 +24,7 @@ lexer grammar MySQLMRSLexer;
  */
 
 /*
- * Merged in all changes up to mysql-trunk git revision [07f0dc2] (15. July 2022).
+ * Merged in all changes up to mysql-trunk git revision [fc82a16] (11. June 2023).
  *
  * MySQL grammar for ANTLR 4.5+ with language features from MySQL 8.0 and up.
  * The server version in the generated parser can be switched at runtime, making it so possible
@@ -120,15 +120,16 @@ OPEN_CURLY_SYMBOL:  '{';
 CLOSE_CURLY_SYMBOL: '}';
 UNDERLINE_SYMBOL:   '_';
 
-OPEN_SQUARE_SYMBOL:  '[';
-CLOSE_SQUARE_SYMBOL: ']';
-
 JSON_SEPARATOR_SYMBOL:          '->';  // MYSQL
 JSON_UNQUOTED_SEPARATOR_SYMBOL: '->>'; // MYSQL
 
+OPEN_SQUARE_SYMBOL:  '[';
+CLOSE_SQUARE_SYMBOL: ']'; 
+
 // The MySQL server parser uses custom code in its lexer to allow base alphanum chars (and ._$) as variable name.
 // For this it handles user variables in 2 different ways and we have to model this to match that behavior.
-AT_SIGN_SYMBOL:    '@';
+AT_SIGN_SYMBOL: '@';
+
 AT_AT_SIGN_SYMBOL: '@@';
 
 NULL2_SYMBOL: '\\N';
@@ -241,9 +242,7 @@ CALL_SYMBOL:                        C A L L;                                    
 CASCADE_SYMBOL:                     C A S C A D E;                                      // SQL-2003-N
 CASCADED_SYMBOL:                    C A S C A D E D;                                    // SQL-2003-R
 CASE_SYMBOL:                        C A S E;                                            // SQL-2003-R
-CAST_SYMBOL:
-    C A S T                                                                             { this._type = this.determineFunction(MySQLMRSLexer.CAST_SYMBOL); }
-;                                                                                       // SQL-2003-R
+CAST_SYMBOL:                        C A S T                                             { this._type = this.determineFunction(MySQLMRSLexer.CAST_SYMBOL); }; // SQL-2003-R
 CATALOG_NAME_SYMBOL:                C A T A L O G '_' N A M E;                          // SQL-2003-N
 CHAIN_SYMBOL:                       C H A I N;                                          // SQL-2003-N
 CHANGE_SYMBOL:                      C H A N G E;
@@ -547,9 +546,7 @@ MEMORY_SYMBOL:                      M E M O R Y;
 MERGE_SYMBOL:                       M E R G E;                                          // SQL-2003-R
 MESSAGE_TEXT_SYMBOL:                M E S S A G E '_' T E X T;                          // SQL-2003-N
 MICROSECOND_SYMBOL:                 M I C R O S E C O N D;                              // MYSQL-FUNC
-MID_SYMBOL:
-    M I D                                                                               { this._type = this.determineFunction(MySQLMRSLexer.SUBSTRING_SYMBOL); }
-;                                                                                       // Synonym
+MID_SYMBOL:                         M I D                                               { this._type = this.determineFunction(MySQLMRSLexer.SUBSTRING_SYMBOL); }; // Synonym
 MIDDLEINT_SYMBOL:                   M I D D L E I N T                                   -> type(MEDIUMINT_SYMBOL); // Synonym (for Powerbuilder)
 MIGRATE_SYMBOL:                     M I G R A T E;
 MINUTE_MICROSECOND_SYMBOL:          M I N U T E '_' M I C R O S E C O N D;
@@ -773,9 +770,7 @@ STORED_SYMBOL:                      S T O R E D;
 STRAIGHT_JOIN_SYMBOL:               S T R A I G H T '_' J O I N;
 STRING_SYMBOL:                      S T R I N G;
 SUBCLASS_ORIGIN_SYMBOL:             S U B C L A S S '_' O R I G I N;                    // SQL-2003-N
-SUBDATE_SYMBOL:
-    S U B D A T E                                                                       { this._type = this.determineFunction(MySQLMRSLexer.SUBDATE_SYMBOL); }
-;
+SUBDATE_SYMBOL:                     S U B D A T E                                       { this._type = this.determineFunction(MySQLMRSLexer.SUBDATE_SYMBOL); };
 SUBJECT_SYMBOL:                     S U B J E C T;
 SUBPARTITIONS_SYMBOL:               S U B P A R T I T I O N S;
 SUBPARTITION_SYMBOL:                S U B P A R T I T I O N;
@@ -790,9 +785,7 @@ SUPER_SYMBOL:                       S U P E R;
 SUSPEND_SYMBOL:                     S U S P E N D;
 SWAPS_SYMBOL:                       S W A P S;
 SWITCHES_SYMBOL:                    S W I T C H E S;
-SYSDATE_SYMBOL:
-    S Y S D A T E                                                                       { this._type = this.determineFunction(MySQLMRSLexer.SYSDATE_SYMBOL); }
-;
+SYSDATE_SYMBOL:                     S Y S D A T E                                       { this._type = this.determineFunction(MySQLMRSLexer.SYSDATE_SYMBOL); };
 SYSTEM_USER_SYMBOL:
     S Y S T E M '_' U S E R                                                             { this._type = this.determineFunction(MySQLMRSLexer.USER_SYMBOL); }
 ;
@@ -819,9 +812,7 @@ TRAILING_SYMBOL:                    T R A I L I N G;                            
 TRANSACTION_SYMBOL:                 T R A N S A C T I O N;
 TRIGGERS_SYMBOL:                    T R I G G E R S;
 TRIGGER_SYMBOL:                     T R I G G E R;                                      // SQL-2003-R
-TRIM_SYMBOL:
-    T R I M                                                                             { this._type = this.determineFunction(MySQLMRSLexer.TRIM_SYMBOL); }
-;                                                                                       // SQL-2003-N
+TRIM_SYMBOL:                        T R I M                                             { this._type = this.determineFunction(MySQLMRSLexer.TRIM_SYMBOL); }; // SQL-2003-N
 TRUE_SYMBOL:                        T R U E;                                            // SQL-2003-R
 TRUNCATE_SYMBOL:                    T R U N C A T E;
 TYPES_SYMBOL:                       T Y P E S;
@@ -1104,6 +1095,16 @@ GTID_ONLY_SYMBOL:                   G T I D '_' O N L Y                         
 
 INTERSECT_SYMBOL:                   I N T E R S E C T '_' S Y M B O L                   {this.serverVersion >= 80031}?; // SQL-1992-R
 
+BULK_SYMBOL:                        B U L K                                             {this.serverVersion >= 80200}?; // MYSQL
+URL_SYMBOL:                         U R L                                               {this.serverVersion >= 80200}?; // MYSQL
+GENERATE_SYMBOL:                    G E N E R A T E                                     {this.serverVersion >= 80032}?; // MYSQL
+PARSE_TREE_SYMBOL:                  P A R S E '_' T R E E                               {this.serverVersion >= 80100}?; // MYSQL
+LOG_SYMBOL:                         L O G                                               {this.serverVersion >= 80032}?; // MYSQL
+GTIDS_SYMBOL:                       G T I D S                                           {this.serverVersion >= 80032}?; // MYSQL
+
+PARALLEL_SYMBOL:                    P A R A L L E L                                     {this.serverVersion >= 80200}?; // MYSQL
+S3_SYMBOL:                          S '3'                                               {this.serverVersion >= 80200}?; // MYSQL
+
 // $antlr-format groupedAlignments on, alignTrailers off, alignLexerCommands on
 
 // Additional tokens which are mapped to existing tokens.
@@ -1121,6 +1122,8 @@ SQL_TSI_WEEK_SYMBOL:    S Q L '_' T S I '_' W E E K       -> type(WEEK_SYMBOL); 
 SQL_TSI_MONTH_SYMBOL:   S Q L '_' T S I '_' M O N T H     -> type(MONTH_SYMBOL);   // Synonym
 SQL_TSI_QUARTER_SYMBOL: S Q L '_' T S I '_' Q U A R T E R -> type(QUARTER_SYMBOL); // Synonym
 SQL_TSI_YEAR_SYMBOL:    S Q L '_' T S I '_' Y E A R       -> type(YEAR_SYMBOL);    // Synonym
+
+
 
 CONFIGURE_SYMBOL:   C O N F I G U R E;
 REST_SYMBOL:        R E S T;
@@ -1157,7 +1160,9 @@ APP_SYMBOL:         A P P;
 VENDOR_SYMBOL:      V E N D O R;
 MRS_SYMBOL:         M R S;
 MYSQL_SYMBOL:       M Y S Q L;
-LIMIT_TO_REGISTERED_USERS_SYMBOL: L I M I T WHITESPACE+ T O WHITESPACE+ R E G I S T E R E D WHITESPACE+ U S E R S;
+LIMIT_TO_REGISTERED_USERS_SYMBOL:
+    L I M I T WHITESPACE+ T O WHITESPACE+ R E G I S T E R E D WHITESPACE+ U S E R S
+;
 ALLOW_NEW_USERS_SYMBOL: A L L O W WHITESPACE+ N E W WHITESPACE+ U S E R S;
 
 //----------------- GraphGL --------------------------------------------------------------------------------------------
@@ -1181,6 +1186,11 @@ AT_UPDATE_SYMBOL:       AT_SIGN_SYMBOL U P D A T E;
 AT_DELETE_SYMBOL:       AT_SIGN_SYMBOL D E L E T E;
 AT_NODELETE_SYMBOL:     AT_SIGN_SYMBOL N O D E L E T E;
 
+//-------------------------------------------------------------------------------------------------
+
+// Numbers in JSON may not have leading zeros.
+JSON_NUMBER: ('0' | [1-9] DIGIT*) ('.' [0-9]+)? ([Ee] [+\-]? [0-9]+)?;
+
 AT_TEXT_SUFFIX: '@' SIMPLE_IDENTIFIER;
 
 // White space handling
@@ -1192,6 +1202,8 @@ INVALID_INPUT:
     | '\u000B'        // Line tabulation.
     | '\u000C'        // Form feed.
     | [\u000E-\u001F] // More control codes.
+    
+    
 ;
 
 // String and text types.
@@ -1232,11 +1244,16 @@ SINGLE_QUOTED_TEXT: (
     )+
 ;
 
+// TODO: check in the semantic phase that starting and ending tags are the same.
+DOLLAR_QUOTED_STRING_TEXT:
+    '$' DOLLAR_QUOTE_TAG_CHAR* '$' .*? '$' DOLLAR_QUOTE_TAG_CHAR* '$' {this.supportMle}?
+;
+
 // There are 3 types of block comments:
 // /* ... */ - The standard multi line comment.
 // /*! ... */ - A comment used to mask code for other clients. In MySQL the content is handled as normal code.
-// /*!12345 ... */ - Same as the previous one except code is only used when the given number is lower
-//                   than the current server version (specifying so the minimum server version the code can run with).
+// /*!12345 ... */ - Same as the previous one except code is only used when the given number is lower than or equal to
+//                   the current server version (specifying so the minimum server version the code can run with).
 VERSION_COMMENT_START: ('/*!' DIGITS) (
         {this.checkMySQLVersion(this.text)}? // Will set this.inVersionComment if the number matches.
         | .*? '*/'
@@ -1268,6 +1285,7 @@ fragment ML_COMMENT_END:  '*/';
 fragment LETTER_WHEN_UNQUOTED: DIGIT | LETTER_WHEN_UNQUOTED_NO_DIGIT;
 
 fragment LETTER_WHEN_UNQUOTED_NO_DIGIT: [a-zA-Z_$\u0080-\uffff];
+fragment DOLLAR_QUOTE_TAG_CHAR:         [0-9a-zA-Z_\u0080-\uffff];
 
 // Any letter but without e/E and digits (which are used to match a decimal number).
 fragment LETTER_WITHOUT_FLOAT_PART: [a-df-zA-DF-Z_$\u0080-\uffff];

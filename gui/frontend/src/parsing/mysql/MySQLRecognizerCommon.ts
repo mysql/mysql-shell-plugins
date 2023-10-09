@@ -82,12 +82,28 @@ export const isKeyword = (identifier: string, version: MySQLVersion): boolean =>
  * @returns The determined MySQL version enum.
  */
 export const numberToVersion = (version: number): MySQLVersion => {
-    //const build = version % 100;
-    //const minor = Math.floor(version / 100) % 100;
+    // const build = version % 100;
+    const minor = Math.floor(version / 100) % 100;
     const major = Math.floor(version / 10000);
 
     if (major >= 8) {
-        return MySQLVersion.MySQL80;
+        switch (minor) {
+            case 1: {
+                return MySQLVersion.MySQL81;
+            }
+
+            case 2: {
+                return MySQLVersion.MySQL82;
+            }
+
+            case 3: {
+                return MySQLVersion.MySQL83;
+            }
+
+            default: {
+                return MySQLVersion.MySQL80;
+            }
+        }
     }
 
     return MySQLVersion.Unknown;
