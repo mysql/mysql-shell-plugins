@@ -28,11 +28,11 @@ def test_add_db_object(phone_book, table_contents):
     db_object_table = table_contents("db_object")
     session = phone_book["session"]
     schema_id = phone_book["schema_id"]
-    db_object_init = get_default_db_object_init(schema_id)
+    db_object_init = get_default_db_object_init(session, schema_id)
 
     with DbObjectCT(session, **db_object_init) as db_object_id:
         assert db_object_table.get("id", db_object_id) == {
-            'auth_stored_procedure': '0',
+            'auth_stored_procedure': None,
             'auto_detect_media_type': 1,
             'comments': 'Object that will be removed',
             'crud_operations': ['CREATE', 'READ', 'UPDATE'],
@@ -56,6 +56,126 @@ def test_add_db_object(phone_book, table_contents):
         }
 
     assert db_object_table.same_as_snapshot
+
+def test_update_db_object(phone_book, table_contents):
+    db_object_table: TableContents = table_contents("db_object")
+
+    with lib.core.MrsDbSession(session=phone_book["session"]) as session:
+        db_object = get_default_db_object_init(session, phone_book["schema_id"])
+
+        with DbObjectCT(session, **db_object) as db_object_id:
+            expected = {
+                "id": db_object_id,
+                "auth_stored_procedure": db_object["auth_stored_procedure"],
+                "auto_detect_media_type": int(db_object["auto_detect_media_type"]),
+                "comments": db_object["comments"],
+                "crud_operation_format": db_object["crud_operation_format"],
+                "crud_operations": db_object["crud_operations"],
+                "db_schema_id": phone_book["schema_id"],
+                "enabled": int(db_object["enabled"]),
+                "host_ctx": "localhost/test",
+                "items_per_page": db_object["items_per_page"],
+                "media_type": db_object["media_type"],
+                "name": db_object["db_object_name"],
+                "object_type": db_object["db_object_type"],
+                "options": db_object["options"],
+                "qualified_name": f'PhoneBook.{db_object["db_object_name"]}',
+                "request_path": db_object["request_path"],
+                "requires_auth": int(db_object["requires_auth"]),
+                "row_user_ownership_column": db_object["row_user_ownership_column"],
+                "row_user_ownership_enforced": int(db_object["row_user_ownership_enforced"]),
+                "schema_name": "PhoneBook",
+                "schema_request_path": "/PhoneBook",
+                "service_id": phone_book["service_id"],
+
+            }
+
+            result = lib.db_objects.get_db_object(session, db_object_id)
+            assert result is not None
+            expected["changed_at"] = result["changed_at"]
+
+            assert result == expected
+
+            final = {
+                "auth_stored_procedure": "<stored procedure text>",
+                "auto_detect_media_type": True,
+                "comments": "Comments updated",
+                "crud_operation_format": "ITEM",
+                "crud_operations": ["CREATE", "READ", "UPDATE", "DELETE"],
+                "enabled": False,
+                "items_per_page": 30,
+                "media_type": "media type updated",
+                "name": "ContactBasicInfoUpdated",
+                "object_type": "TABLE",
+                "options": {
+                    "bbb": "val bbb updated",
+                    "ccc": "val ccc inserted"
+                },
+            }
+
+
+            for key, value in final.items():
+                lib.db_objects.update_db_objects(session, [db_object_id], { key: value })
+                expected[key] = int(value) if isinstance(value, bool) else value
+
+                if key == "name":
+                    expected["qualified_name"] = f'PhoneBook.{final[key]}'
+
+                result = lib.db_objects.get_db_object(session, db_object_id)
+                assert result is not None
+                expected["changed_at"] = result["changed_at"]
+
+                assert result == expected
+
+            expected_object = {
+                'comments': 'Comment for object',
+                'db_object_id': db_object_id,
+                'id': db_object["objects"][0]["id"],
+                'kind': 'RESULT',
+                'name': 'MyServicePhoneBookContactsWithEmail',
+                'position': 0,
+                'sdk_options': {
+                    'option1': 'value 1',
+                    'option2': 'value 2'
+                }
+            }
+            objects = lib.db_objects.get_objects(session, db_object_id)
+            for object in objects:
+                expected_field = {
+                    'allow_filtering': True,
+                    'allow_sorting': False,
+                    'caption': '- id',
+                    'comments': None,
+                    'db_column': {
+                        'comment': '',
+                        'datatype': 'int',
+                        'id_generation': None,
+                        'is_generated': False,
+                        'is_primary': False,
+                        'is_unique': False,
+                        'name': 'id',
+                        'not_null': True,
+                        'srid': None
+                    },
+                    'enabled': True,
+                    'id': db_object["objects"][0]["fields"][0]["id"],
+                    'lev': 1,
+                    'name': 'id',
+                    'no_check': False,
+                    'no_update': False,
+                    'object_id': db_object["objects"][0]["id"],
+                    'object_reference': None,
+                    'parent_reference_id': None,
+                    'position': 1,
+                    'represents_reference_id': None,
+                    'sdk_options': None
+                }
+                fields = lib.db_objects.get_object_fields_with_references(session, object["id"])
+
+                assert fields == [expected_field]
+
+            assert objects == [expected_object]
+
 
 def test_get_db_object(phone_book, mobile_phone_book):
 
@@ -84,7 +204,7 @@ def test_set_crud_operations(phone_book, mobile_phone_book, table_contents):
     with lib.core.MrsDbSession(session=phone_book["session"]) as session:
         db_object_table: TableContents = table_contents("db_object")
 
-        db_object = get_default_db_object_init(phone_book["schema_id"])
+        db_object = get_default_db_object_init(session, phone_book["schema_id"])
 
         with DbObjectCT(session, **db_object) as db_object_id:
             assert db_object_table.count == db_object_table.snapshot.count + 1
@@ -93,8 +213,9 @@ def test_set_crud_operations(phone_book, mobile_phone_book, table_contents):
             assert db_object_table.same_as_snapshot
 
             result = lib.db_objects.get_db_object(session, db_object_id=db_object_id)
+            assert result is not None
             assert result == {
-                'auth_stored_procedure': '0',
+                'auth_stored_procedure': None,
                 'auto_detect_media_type': int(db_object["auto_detect_media_type"]),
                 'crud_operations': ["CREATE", "READ", "UPDATE"],
                 'comments': db_object["comments"],
@@ -124,6 +245,7 @@ def test_set_crud_operations(phone_book, mobile_phone_book, table_contents):
 
             assert sorted(grants) == sorted(lib.db_objects.map_crud_operations(result["crud_operations"]))
             db_object_table_data = db_object_table.get("id", db_object_id)
+            assert db_object_table_data is not None
             assert db_object_table_data["crud_operations"] == ["CREATE", "READ", "UPDATE"]
             assert db_object_table.same_as_snapshot
 
@@ -138,8 +260,9 @@ def test_set_crud_operations(phone_book, mobile_phone_book, table_contents):
             assert not db_object_table.same_as_snapshot
 
             result = lib.db_objects.get_db_object(session, db_object_id=db_object_id)
+            assert result is not None
             assert result == {
-                'auth_stored_procedure': '0',
+                'auth_stored_procedure': None,
                 'auto_detect_media_type': int(db_object["auto_detect_media_type"]),
                 'crud_operations': new_crud_ops,
                 'comments': db_object["comments"],
@@ -179,8 +302,9 @@ def test_set_crud_operations(phone_book, mobile_phone_book, table_contents):
                 crud_operation_format="FEED")
 
             result = lib.db_objects.get_db_object(session, db_object_id=db_object_id)
+            assert result is not None
             assert result == {
-                'auth_stored_procedure': '0',
+                'auth_stored_procedure': None,
                 'auto_detect_media_type': int(db_object["auto_detect_media_type"]),
                 'crud_operations': new_crud_ops,
                 'comments': db_object["comments"],
@@ -206,6 +330,7 @@ def test_set_crud_operations(phone_book, mobile_phone_book, table_contents):
             }
 
             db_object_table_data = db_object_table.get("id", db_object_id)
+            assert db_object_table_data is not None
             assert db_object_table_data["crud_operations"] == new_crud_ops
 
             grants = get_db_object_privileges(session,
@@ -218,17 +343,17 @@ def test_db_object_update(phone_book, table_contents):
 
     with lib.core.MrsDbSession(session=phone_book["session"]) as session:
         db_object_table: TableContents = table_contents("db_object")
-        db_object_init = get_default_db_object_init(phone_book["schema_id"])
+        db_object_init = get_default_db_object_init(session, phone_book["schema_id"])
 
         with DbObjectCT(session, **db_object_init) as db_object_id:
-            db_object_table.count == db_object_table.snapshot.count + 1
+            assert db_object_table.count == db_object_table.snapshot.count + 1
             db_object_table.take_snapshot()
 
             db_object = lib.db_objects.get_db_object(session, db_object_id)
             assert db_object is not None
 
             value = {
-                'auth_stored_procedure': '0',
+                'auth_stored_procedure': None,
                 'auto_detect_media_type': 1,
                 'comments': 'Test table',
                 'crud_operation_format': 'ITEM',
@@ -271,6 +396,7 @@ def test_db_object_update(phone_book, table_contents):
             assert db_object_table.same_as_snapshot
 
             result = lib.db_objects.get_db_object(session, db_object_id=db_object_id)
+            assert result is not None
 
             grants = get_db_object_privileges(session,
                 result['schema_name'], result['name'])

@@ -142,6 +142,11 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
             return request.values?.dbSchemaId === schema.id;
         });
 
+        let updateDisabled;
+        if (!this.createDbObject) {
+            updateDisabled = [CommonDialogValueOption.Disabled];
+        }
+
         const mainSection: IDialogSection = {
             caption: title,
             values: {
@@ -152,6 +157,7 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
                     choices: services.map((service) => { return service.hostCtx; }),
                     horizontalSpan: 2,
                     description: "The path of the REST Service",
+                    options: updateDisabled,
                 },
                 schema: {
                     type: "choice",
@@ -162,6 +168,7 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
                     }),
                     horizontalSpan: 2,
                     description: "The path of the REST Schema",
+                    options: updateDisabled,
                 },
                 requestPath: {
                     type: "text",

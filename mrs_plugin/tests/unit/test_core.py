@@ -54,7 +54,7 @@ def test_get_current_service(phone_book):
         'options': None,
         'comments': 'Test service',
         'host_ctx': 'localhost/test',
-        'is_current': 0,
+        'is_current': 1,
     }
 
 def test_get_current_content_set():
@@ -134,7 +134,7 @@ def test_validate_service_path(phone_book):
             'options': None,
             'comments': 'Test service',
             'host_ctx': 'localhost/test',
-            'is_current': 0,
+            'is_current': 1,
         }
 
         assert schema is not None

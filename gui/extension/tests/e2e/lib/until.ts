@@ -270,12 +270,14 @@ export const extensionIsReady = (): Condition<boolean> => {
             console.log("<<<<<DEV TOOLS Console log>>>>");
             console.log(await logs.get(logging.Type.BROWSER));
 
-            let text = `Extension was not loaded successfully after ${feLoadTries} tries. Check the logs. `;
+            const text = `Extension was not loaded successfully after ${feLoadTries} tries. Check the logs.`;
             // one last try to recover
             const path = join(await Misc.getExtentionOutputLogsFolder(), constants.feLogFile);
             const output = (await fs.readFile(path)).toString();
-
-            if (output.match(/(ERROR|error)/) !== null) {
+            console.log("-----OUTPUT LOGS------");
+            console.log(output);
+            throw new Error(text);
+            /*if (output.match(/(ERROR|error)/) !== null) {
                 console.log("An error was found on the OUTPUT tab, removing Internal DB");
                 await Misc.removeInternalDB();
                 text += `Internal DB was removed. Please re-run the tests`;
@@ -287,7 +289,7 @@ export const extensionIsReady = (): Condition<boolean> => {
                 }
             } else {
                 throw new Error(text);
-            }
+            }*/
         }
 
         credentialHelperOk = await Misc.findOnMySQLShLog(/Failed to initialize the default helper/);

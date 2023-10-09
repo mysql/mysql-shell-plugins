@@ -742,6 +742,8 @@ def set_crud_operations(db_object_id=None, crud_operations=None,
         current_crud, current_format = lib.db_objects.get_crud_operations(session, db_object_id)
 
         objects = lib.db_objects.get_objects(session=session, db_object_id=db_object_id)
+        for object in objects:
+            object["fields"] = lib.db_objects.get_object_fields_with_references(session, object["id"])
 
         try:
             lib.database.grant_db_object(

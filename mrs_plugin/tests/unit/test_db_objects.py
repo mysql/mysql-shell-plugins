@@ -20,9 +20,9 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 import pytest
-from ... db_objects import *
-from ... lib.services import get_current_service_id, set_current_service_id
-from ... import lib
+from mrs_plugin.db_objects import *
+from mrs_plugin.lib.services import get_current_service_id, set_current_service_id
+from mrs_plugin import lib
 from .helpers import get_db_object_privileges, TableContents, DbObjectCT, get_default_db_object_init
 
 
@@ -30,9 +30,10 @@ def test_add_delete_db_object(phone_book, table_contents):
     session = phone_book["session"]
     schema_id = phone_book["schema_id"]
     schema = lib.schemas.get_schema(session, schema_id)
-    db_objects_table = table_contents("db_object")
+    assert schema is not None
+    db_objects_table: TableContents = table_contents("db_object")
 
-    db_object_init1 = get_default_db_object_init(schema_id, "ContactsWithEmail", "/view_contects_wit_email")
+    db_object_init1 = get_default_db_object_init(session, schema_id, "ContactsWithEmail", "/view_contects_wit_email")
     db_object_id1 = add_db_object(**db_object_init1)
     assert db_object_id1 is not None
     assert db_objects_table.count == db_objects_table.snapshot.count + 1
@@ -51,7 +52,7 @@ def test_add_delete_db_object(phone_book, table_contents):
         "comments": db_object_init1["comments"],
         "media_type": db_object_init1["media_type"],
         "auto_detect_media_type": int(db_object_init1["auto_detect_media_type"]),
-        "auth_stored_procedure": '1' if db_object_init1["auth_stored_procedure"] else '0',
+        "auth_stored_procedure": '1' if db_object_init1["auth_stored_procedure"] else None,
         "options": db_object_init1["options"],
         "enabled": 1,
         "format": db_object_init1["crud_operation_format"],
@@ -61,7 +62,7 @@ def test_add_delete_db_object(phone_book, table_contents):
     grants = get_db_object_privileges(session, schema["name"], db_object_init1["db_object_name"])
     assert grants == ['SELECT', 'INSERT', 'UPDATE']
 
-    db_object_init2 = get_default_db_object_init(schema_id, "GetAllContacts", "/procedure_get_all_contacts")
+    db_object_init2 = get_default_db_object_init(session, schema_id, "GetAllContacts", "/procedure_get_all_contacts")
     db_object_init2["db_object_type"] = "PROCEDURE"
 
     db_object_id2 = add_db_object(**db_object_init2)
@@ -72,7 +73,7 @@ def test_add_delete_db_object(phone_book, table_contents):
     grants = get_db_object_privileges(session, schema["name"], db_object_init2["db_object_name"])
     assert grants == ['EXECUTE']
 
-    db_object_init3 = get_default_db_object_init(schema_id)
+    db_object_init3 = get_default_db_object_init(session, schema_id)
     db_object_init3["crud_operations"] = ""
     with pytest.raises(ValueError) as exc_info:
         add_db_object(**db_object_init3)
@@ -164,25 +165,30 @@ def test_set_request_path(phone_book, table_contents):
     session = phone_book["session"]
     db_object_table: TableContents = table_contents("db_object")
 
-    db_object = get_default_db_object_init(phone_book["schema_id"])
+    db_object = get_default_db_object_init(session, phone_book["schema_id"])
 
     with DbObjectCT(session, **db_object) as db_object_id:
-        db_object_table.get("id", db_object_id)["request_path"] == "/view_contact_basic_info"
+        record = db_object_table.get("id", db_object_id)
+        assert record is not None
+        assert record["request_path"] == "/view_contact_basic_info"
 
         result = set_request_path(db_object_id=db_object_id, request_path="/db_table", session=session)
         assert result is True
+        record = db_object_table.get("id", db_object_id)
+        assert record is not None
 
-        db_object_table.get("id", db_object_id)["request_path"] == "/db_table"
+        assert record["request_path"] == "/db_table"
 
 
 def test_set_crud_operations(phone_book, table_contents):
     session = phone_book["session"]
     db_object_table: TableContents = table_contents("db_object")
 
-    db_object = get_default_db_object_init(phone_book["schema_id"])
+    db_object = get_default_db_object_init(session, phone_book["schema_id"])
 
     with DbObjectCT(session, **db_object) as db_object_id:
         result = lib.db_objects.get_db_object(session, db_object_id)
+        assert result is not None
         set_crud_operations(db_object_id, crud_operations=result.get("crud_operations"),
                 crud_operation_format="FEED")
         assert db_object_table.assert_same
@@ -217,7 +223,7 @@ def test_disable_enable(phone_book, table_contents):
     schema_id = phone_book["schema_id"]
     db_object_table = table_contents("db_object")
 
-    db_object_init = get_default_db_object_init(schema_id)
+    db_object_init = get_default_db_object_init(session, schema_id)
 
     with DbObjectCT(session, **db_object_init) as db_object_id:
         assert db_object_table.count == db_object_table.snapshot.count + 1
@@ -241,11 +247,12 @@ def test_db_object_update(phone_book):
     session = phone_book["session"]
     schema_id = phone_book["schema_id"]
 
-    db_object_init = get_default_db_object_init(schema_id)
+    db_object_init = get_default_db_object_init(session, schema_id)
 
     with DbObjectCT(session, **db_object_init) as db_object_id:
 
         original_db_object = get_db_object(session=session, db_object_id=db_object_id)
+        assert original_db_object is not None
 
         args ={
             "db_object_id": db_object_id,
@@ -304,6 +311,7 @@ def test_db_object_update(phone_book):
 
         update_db_object(**args)
         db_object = get_db_object(**args)
+        assert db_object is not None
 
         assert db_object.get("name") == args["value"]["name"]
         assert db_object.get("request_path") == args["value"]["request_path"]
@@ -326,6 +334,7 @@ def test_db_object_update(phone_book):
         }
         update_db_object(**args)
         db_object = get_db_object(**args)
+        assert db_object is not None
         db_object["items_per_page"] = None
 
         args["value"] = {
@@ -333,6 +342,7 @@ def test_db_object_update(phone_book):
         }
         update_db_object(**args)
         db_object = get_db_object(**args)
+        assert db_object is not None
         db_object["items_per_page"] = 50
 
         args["value"] = {
@@ -340,6 +350,7 @@ def test_db_object_update(phone_book):
         }
         update_db_object(**args)
         db_object = get_db_object(**args)
+        assert db_object is not None
         db_object["items_per_page"] = None
 
 
@@ -348,7 +359,7 @@ def test_move_db_object(phone_book, mobile_phone_book, table_contents):
     schema_id1 = phone_book["schema_id"]
     schema_id2 = mobile_phone_book["schema_id"]
 
-    db_object_init1 = get_default_db_object_init(schema_id1)
+    db_object_init1 = get_default_db_object_init(session, schema_id1)
 
     with DbObjectCT(session, **db_object_init1) as db_object_id1:
 
@@ -378,7 +389,7 @@ def test_move_db_object(phone_book, mobile_phone_book, table_contents):
             update_db_object(**args)
         assert str(exp.value) == "The VIEW named 'new_name' does not exists in database schema 'PhoneBook'."
 
-        db_object_init2 = get_default_db_object_init(schema_id2)
+        db_object_init2 = get_default_db_object_init(session, schema_id2)
         with DbObjectCT(session, **db_object_init2) as db_object_id2:
             args ={
                 "db_object_id": db_object_id1,
@@ -434,7 +445,8 @@ def test_add_db_object_auto_add_schema(phone_book, table_contents):
     db_objects_table = table_contents("db_object")
 
     service_id = get_current_service_id(session)
-    set_current_service_id(session, "no_service")
+    assert service_id is not None
+    set_current_service_id(session, b"no_service")
 
     db_object_init = {
         "session": session,
@@ -457,6 +469,7 @@ def test_add_db_object_auto_add_schema(phone_book, table_contents):
     assert str(exc_info.value) == "Operation cancelled. The service was not found."
 
     set_current_service_id(session, service_id)
+
     db_object_init["request_path"] = "/view_contacts_with"
 
     schema = lib.schemas.get_schema(session, schema_name=db_object_init["schema_name"])

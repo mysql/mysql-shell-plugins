@@ -261,9 +261,6 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
                   crud_operation_format, comments, media_type, auto_detect_media_type, auth_stored_procedure,
                   options, objects, db_object_id=None, reuse_ids=False):
 
-    options = core.convert_json(options)
-    objects = core.convert_json(objects)
-
     if not isinstance(db_object_name, str):
         raise Exception('Invalid object name.')
 
@@ -297,8 +294,6 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
 
     core.check_request_path(
         session, schema["host_ctx"] + schema["request_path"] + request_path)
-
-    core.check_mrs_object_names(session=session, db_schema_id=schema_id, objects=objects)
 
     if db_object_type == "PROCEDURE" or db_object_type == "FUNCTION":
         crud_operations = ["UPDATE"]
@@ -575,6 +570,7 @@ def set_object_fields_with_references(session, db_object_id, obj):
                 "allow_filtering": field.get("allow_filtering"),
                 "allow_sorting": field.get("allow_sorting", 0),
                 "no_check": field.get("no_check"),
+                "no_update": field.get("no_update"),
                 "sdk_options": core.convert_dict_to_json_string(field.get("sdk_options")),
                 "comments": field.get("comments"),
             }).exec(session)

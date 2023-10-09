@@ -1161,17 +1161,25 @@ export class Database {
 
         if (restObject.restServicePath) {
             const inService = await dialog.findElement(locator.mrsDbObjectDialog.service);
-            await inService.click();
-            const popup = await driver.wait(until.elementLocated(locator.mrsDbObjectDialog.serviceList),
-                constants.wait5seconds, "Service list was not found");
-            await popup.findElement(By.id(restObject.restServicePath)).click();
+            const isDisabled = await inService.getAttribute("disabled")
+                .then(() => { return true; }).catch(() => { return false; });
+            if (!isDisabled) {
+                await inService.click();
+                const popup = await driver.wait(until.elementLocated(locator.mrsDbObjectDialog.serviceList),
+                    constants.wait5seconds, "Service list was not found");
+                await popup.findElement(By.id(restObject.restServicePath)).click();
+            }
         }
         if (restObject.restSchemaPath) {
             const inSchema = await dialog.findElement(locator.mrsDbObjectDialog.schema);
-            await inSchema.click();
-            const popup = await driver.wait(until.elementLocated(locator.mrsDbObjectDialog.schemaList),
-                constants.wait5seconds, "Schema drop down list was not found");
-            await popup.findElement(By.id(restObject.restSchemaPath)).click();
+            const isDisabled = await inSchema.getAttribute("disabled")
+                .then(() => { return true; }).catch(() => { return false; });
+            if (!isDisabled) {
+                await inSchema.click();
+                const popup = await driver.wait(until.elementLocated(locator.mrsDbObjectDialog.schemaList),
+                    constants.wait5seconds, "Schema drop down list was not found");
+                await popup.findElement(By.id(restObject.restSchemaPath)).click();
+            }
         }
         if (restObject.restObjectPath) {
             const inObjPath = await dialog.findElement(locator.mrsDbObjectDialog.requestPath);

@@ -24,11 +24,12 @@ import os
 
 import mysqlsh
 from mrs_plugin import lib
-from ... schemas import add_schema, delete_schema
-from ... services import add_service, delete_service, get_service
-from ... db_objects import add_db_object, delete_db_object
+from mrs_plugin.schemas import add_schema, delete_schema
+from mrs_plugin.services import add_service, delete_service, get_service
+from mrs_plugin.db_objects import add_db_object, delete_db_object
 
-def get_default_db_object_init(schema_id, name=None, request_path=None):
+def get_default_db_object_init(session, schema_id, name=None, request_path=None):
+    object_id = lib.core.get_sequence_id(session)
     return {
         "schema_id": schema_id,
         "db_object_name": name or "ContactBasicInfo",
@@ -44,12 +45,48 @@ def get_default_db_object_init(schema_id, name=None, request_path=None):
         "enabled": True,
         "media_type": "media type",
         "auto_detect_media_type": True,
-        "auth_stored_procedure": False,
+        "auth_stored_procedure": None,
         "options": {
             "aaa": "val aaa",
             "bbb": "val bbb"
         },
-        "objects": [],
+        "objects": [
+            {
+                "id": object_id,
+                "name":"MyServicePhoneBookContactsWithEmail",
+                "position":0,
+                "kind":"RESULT",
+                "comments": "Comment for object",
+                "sdk_options": {
+                    "option1": "value 1",
+                    "option2": "value 2",
+                },
+                "fields":[
+                    {
+                        "id": lib.core.get_sequence_id(session),
+                        "object_id": object_id,
+                        "name":"id",
+                        "position":1,
+                        "db_column":{
+                            "comment":"",
+                            "datatype":"int",
+                            "id_generation":None,
+                            "is_generated":False,
+                            "is_primary":False,
+                            "is_unique":False,
+                            "name":"id",
+                            "not_null":True,
+                            "srid":None
+                        },
+                        "enabled":True,
+                        "allow_filtering":True,
+                        "allow_sorting":False,
+                        "no_check":False,
+                        "no_update":False
+                    }
+                ]
+            }
+        ],
     }
 
 def get_default_user_init(auth_app_id,
@@ -265,11 +302,14 @@ class TableContents(object):
         self._snapshot = TableContents.TableSnapshot(lib.core.select(table=self._table_name).exec(self._session).items)
 
     @property
-    def snapshot(self):
+    def snapshot(self) -> TableSnapshot:
+        assert self._snapshot is not None
         return self._snapshot
 
     @property
     def same_as_snapshot(self):
+        assert self._snapshot is not None
+
         current = lib.core.select(table=self._table_name).exec(self._session).items
         if len(current) != len(self._snapshot):
             return False
@@ -281,6 +321,8 @@ class TableContents(object):
         return True
 
     def assert_same(self):
+        assert self._snapshot is not None
+
         current = lib.core.select(table=self._table_name).exec(self._session).items
         if len(current) != len(self._snapshot):
             return False
@@ -290,6 +332,8 @@ class TableContents(object):
 
     @property
     def diff_text(self):
+        assert self._snapshot is not None
+
         current = lib.core.select(table=self._table_name).exec(self._session).items
         if len(self._snapshot._data) != len(current):
             return f"\nCurrent:\n  {current}\nExpected:\n  {self._snapshot._data}"
@@ -444,7 +488,7 @@ def create_mrs_phonebook_schema(session, service_context_root, schema_name, temp
     }
     from ... schemas import add_schema
     schema_id = add_schema(**schema_data)
-    schema = lib.schemas.get_schema(session, schema_id=schema_id)
+    schema = lib.schemas.get_schema(session, schema_id=lib.core.id_to_binary(schema_id, "schema_id"))
 
     content_set = lib.content_sets.get_content_set(session, service_id=service["id"], request_path="/test_content_set")
 
