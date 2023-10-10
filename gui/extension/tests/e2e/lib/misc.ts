@@ -1248,7 +1248,7 @@ export class Misc {
         }, constants.explicitWait * 2, `Could not set ${path} on input box`);
     };
 
-    public static deleteConnection = async (dbName: string, isMySQL = true): Promise<void> => {
+    public static deleteConnection = async (dbName: string, isMySQL = true, verifyDelete = true): Promise<void> => {
 
         const treeItem = await Misc.getTreeElement(constants.dbTreeSection, dbName);
         if (isMySQL === true) {
@@ -1271,6 +1271,18 @@ export class Misc {
 
         await dialog.findElement(locator.confirmDialog.accept).click();
         await Misc.switchBackToTopFrame();
+        if (verifyDelete === true) {
+            await driver.wait(async () => {
+                try {
+                    const treeSection = await Misc.getSection(constants.dbTreeSection);
+                    await Misc.clickSectionToolbarButton(treeSection, constants.reloadConnections);
+
+                    return (await treeSection.findItem(dbName)) === undefined;
+                } catch (e) {
+                    return false;
+                }
+            }, constants.explicitWait, `${dbName} was not deleted`);
+        }
     };
 
     public static loadDriver = async (): Promise<void> => {

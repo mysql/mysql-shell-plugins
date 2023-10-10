@@ -1092,10 +1092,17 @@ Execute \\help or \\? for help;`;
                         }
                     }
 
-                    status = {
-                        text: `OK, ${formatWithNumber("record", rowCount)} retrieved in ` +
-                            `${formatTime(data.result.executionTime)}`,
-                    };
+                    if (data.result.rowsAffected) {
+                        status = {
+                            text: `OK, ${formatWithNumber("row", data.result.rowsAffected)} affected in ` +
+                                `${formatTime(data.result.executionTime)}`,
+                        };
+                    } else {
+                        status = {
+                            text: `OK, ${formatWithNumber("record", rowCount)} retrieved in ` +
+                                `${formatTime(data.result.executionTime)}`,
+                        };
+                    }
 
                     if (rowCount === 0) {
                         status.type = MessageType.Response;

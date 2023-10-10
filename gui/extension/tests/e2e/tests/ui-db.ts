@@ -106,7 +106,7 @@ describe("DATABASE CONNECTIONS", () => {
         try {
             const dbConnections = await Misc.getDBConnections();
             for (const dbConnection of dbConnections) {
-                await Misc.deleteConnection(dbConnection.name, dbConnection.isMySQL);
+                await Misc.deleteConnection(dbConnection.name, dbConnection.isMySQL, false);
             }
         } catch (e) {
             await Misc.processFailure(this);
