@@ -259,9 +259,10 @@ class DbSession(threading.Thread):
         self._rows_affected = 0
         self._last_insert_id = 0
 
-    def update_stats(self, execution_time):
+    def update_stats(self, execution_time, final_update=False):
         stats = self._get_stats(self.cursor)
-        self._rows_affected = stats['rows_affected']
+        if not (final_update and stats['rows_affected'] <= 0 and self._rows_affected > 0):
+            self._rows_affected = stats['rows_affected']
         self._last_insert_id = stats['last_insert_id']
         self._last_execution_time = execution_time
 

@@ -197,7 +197,7 @@ class DbSqlTask(DbQueryTask):
     """
 
     def final_dispatch_result(self, data=None):
-        self.session.update_stats(self._execution_time)
+        self.session.update_stats(self._execution_time, True)
         self._rows_affected = self.session.rows_affected
         self._last_insert_id = self.session.last_insert_id
 
