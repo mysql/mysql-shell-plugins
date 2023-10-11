@@ -725,9 +725,9 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
                 };
 
                 try {
-                    let names = await item.backend.getSchemaObjects(item.schema, "routine", "function");
+                    let names = await item.backend.getSchemaObjects(item.schema, "Routine", "function");
                     createItems("function", names);
-                    names = await item.backend.getSchemaObjects(item.schema, "routine", "procedure");
+                    names = await item.backend.getSchemaObjects(item.schema, "Routine", "procedure");
                     createItems("procedure", names);
                 } catch (error) {
                     void window.showErrorMessage("Error while retrieving schema objects: " + String(error));
