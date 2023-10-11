@@ -28,33 +28,18 @@ import NoteList from "./NotesList";
 import Share from "./Share";
 import styles from "./NotesPage.module.css";
 import { IFetchInput } from "../../app";
-
-export interface INote {
-    contentBeginning: string,
-    createDate: string,
-    id: number,
-    lastUpdate: string,
-    lockedDown: number,
-    ownNote: number,
-    pinned: number,
-    shared: number,
-    tags?: object
-    title: string,
-    viewOnly: number,
-    content: string,
-}
+import type { IMyServiceMrsNotesNotesAll, MyService } from "../../myService.mrs.sdk/myService";
 
 interface INotesPageProps {
-    doFetch: (input: string | IFetchInput, errorMsg?: string,
-        method?: string, body?: object) => Promise<Response>;
     showPage: (page: string, forcedUpdate?: boolean) => void;
     showError: (error: unknown) => void;
+    myService: MyService;
 }
 
 interface INotesPageState {
-    notes: INote[];
+    notes: IMyServiceMrsNotesNotesAll[];
     noteSearchText?: string;
-    activeNote?: INote;
+    activeNote?: IMyServiceMrsNotesNotesAll;
     pendingInvitation: boolean;
     infoMessage?: string;
     forceNoteListDisplay?: boolean;
@@ -126,16 +111,11 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
      * @param selectText If true, the full note text is selected
      */
     public refreshNotes = async (activeNoteId?: number, selectText?: boolean): Promise<void> => {
-        const { doFetch, showError } = this.props;
+        const { showError, myService } = this.props;
         const { notes, activeNote, noteSearchText } = this.state;
 
-        // Build the query string based on the given searchText
-        const q = (noteSearchText !== undefined) ? `&q={"title":{"$like":"${noteSearchText}%"}}` : "";
-
         try {
-            const newNotes: INote[] = [];
-            let hasMore = true;
-            let offset = 0;
+            const newNotes: IMyServiceMrsNotesNotesAll[] = [];
 
             // If an activeNoteId was given and there was non before, set it right away to prevent flickering
             // when loading the notes list
@@ -143,26 +123,22 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
                 await this.setActiveNoteById(activeNoteId);
             }
 
-            // Fetch pages of 10 notes until all notes have been fetched
-            while (hasMore) {
-                // Await the fetch call and get back the response object
-                const response = await doFetch({
-                    input: `/mrsNotes/notesAll?f=!content&offset=${offset}&limit=10${q}`,
-                    errorMsg: "Failed to fetch notes.",
-                });
+            const take = 10;
+            let page, skip = 0;
 
-                // Await the JSON parsing of the response body
-                const responseBody = await response.json();
+            do {
+                // Proof that we do not need more than "take" and "skip" for pagination.
+                // Ultimately, this can be simplified if findMany() returns an instance of IMyServiceMrsNotesNotesAll[].
+                page = await myService.mrsNotes.notesAll.findMany({ take, skip, select: { content: false }, where: {
+                    title: { $like: `${noteSearchText ? noteSearchText : ""}%` } } });
 
-                // Add items to the newNotes list
-                newNotes.push(...responseBody?.items as INote[]);
-                hasMore = responseBody?.hasMore;
-
+                newNotes.push(...page.items);
                 // Set a new state of the newNotes to trigger a re-render
                 this.setState({ notes: newNotes });
 
-                offset += 10;
-            }
+                skip = page.items.length;
+
+            } while (page.items.length === take);
 
             if (newNotes.length === 0) {
                 this.setState({ forceNoteListDisplay: undefined });
@@ -213,23 +189,14 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
      * @param selectText If the full text of the note should be selected so it can be easily overwritten
      */
     private readonly addNote = async (content = "New Note", selectText = true): Promise<void> => {
-        const { doFetch, showError } = this.props;
+        const { showError, myService } = this.props;
 
         this.addingNote = true;
         this.setInfoMessage("Adding note...");
 
         try {
-            const newNote: INote = await (await doFetch({
-                input: `/mrsNotes/note`,
-                errorMsg: "Failed to added a new note.",
-                method: "POST",
-                body: {
-                    title: content.split("\n")[0],
-                    content,
-                    pinned: 0,
-                    lockedDown: 0,
-                },
-            })).json();
+            const newNote = await myService.mrsNotes.note.create({
+                data: { title: content.split("\n")[0], content, pinned: false, lockedDown: false } })
 
             this.setInfoMessage("Note added.");
 
@@ -248,17 +215,12 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
      *
      * @param note The note to delete
      */
-    private readonly deleteNote = async (note: INote): Promise<void> => {
-        const { doFetch } = this.props;
+    private readonly deleteNote = async (note: IMyServiceMrsNotesNotesAll): Promise<void> => {
+        const { myService } = this.props;
 
         this.setInfoMessage("Deleting note...");
 
-        await doFetch({
-            input: `/mrsNotes/noteDelete`,
-            errorMsg: "Failed to delete the note.",
-            method: "PUT",
-            body: { noteId: note.id },
-        });
+        await myService.mrsNotes.note.delete({ where: { id: note.id }});
 
         this.setInfoMessage("Note deleted.");
     };
@@ -268,23 +230,18 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
      *
      * @param note The note to update
      */
-    private readonly updateNote = async (note: INote): Promise<void> => {
-        const { doFetch, showError } = this.props;
+    private readonly updateNote = async (note: IMyServiceMrsNotesNotesAll): Promise<void> => {
+        const { myService } = this.props;
 
         this.setInfoMessage("Updating note...");
 
-        await doFetch({
-            input: `/mrsNotes/noteUpdate`,
-            errorMsg: "Failed to update the note.",
-            method: "PUT",
-            body: {
-                noteId: note.id,
-                title: note.title,
-                pinned: note.pinned,
-                lockedDown: note.lockedDown,
-                content: note.content,
-                tags: note.tags,
-            },
+        await myService.mrsNotes.noteUpdate.call({
+            noteId: note.id,
+            title: note.title,
+            pinned: note.pinned,
+            lockedDown: note.lockedDown,
+            content: note.content as string,
+            tags: note.tags
         });
 
         this.setInfoMessage("Note updated.");
@@ -300,7 +257,7 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
     private readonly setActiveNoteById = async (noteId?: number, setFocus?: boolean,
         selectText?: boolean): Promise<void> => {
         const { activeNote, forceNoteListDisplay } = this.state;
-        const { doFetch, showError } = this.props;
+        const { showError, myService } = this.props;
 
         if (noteId !== undefined) {
             try {
@@ -312,15 +269,11 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
                     await this.updateNote(activeNote);
                 }
 
-                // Try to get the note with the given noteId
-                const notes = await (await doFetch({
-                    input: `/mrsNotes/notesAll?q={"id": {"$eq": ${noteId}}}`,
-                    errorMsg: "Failed to fetch the note.",
-                })).json();
+                const note = await myService.mrsNotes.notesAll.findFirst({ where: { id: noteId } });
 
                 // If the note was found, set it as new note
                 this.setState({
-                    activeNote: (notes.items.length > 0) ? notes.items[0] : undefined,
+                    activeNote: note,
                     forceNoteListDisplay: (setFocus !== undefined && setFocus) ? undefined : forceNoteListDisplay,
                 }, () => {
                     // If there was text entered while the activeNote was being set, update the textArea with
@@ -460,17 +413,23 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
      * Checks if a new shared note is available for the user every 10 seconds
      */
     private readonly checkPendingInvitation = async (): Promise<void> => {
-        const { doFetch, showError } = this.props;
+        const { showError, myService } = this.props;
 
         try {
-            // cSpell:ignore notnull
-            const pendingNotes = await (await doFetch({
-                input: `/mrsNotes/userHasNote?q={"invitationKey":{"$notnull":null},` +
-                    `"invitationAccepted":{"$eq": 0}}`,
-                errorMsg: "Failed to  query invitations.",
-            })).json();
+            const pendingInvitation = await myService.mrsNotes.userHasNote.findFirst({
+                where: {
+                    // BUG#35899729 prevents us from sending a boolean value for invitationAccepted, so we
+                    // should coerce `false` to `0` and `true` to `1` in the meantime, and the type-checker
+                    // does not like it.
+                    // According to Lukasz, we decided that boolean values would map to BIT(1) only. So, we
+                    // need to change the sample app schema before changing this.
+                    // @ts-ignore
+                    invitationAccepted: 0,
+                    invitationKey: { not: null }
+                }
+            });
 
-            this.setState({ pendingInvitation: pendingNotes?.items?.length > 0 });
+            this.setState({ pendingInvitation: typeof pendingInvitation === "undefined" ? false : true });
         } catch (e) {
             showError(e as Error);
         }
@@ -514,7 +473,7 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
      * @returns The rendered ComponentChild
      */
     public render = (props: INotesPageProps, state: INotesPageState): ComponentChild => {
-        const { doFetch, showError, showPage } = props;
+        const { showError, showPage, myService } = props;
         const { notes, activeNote, noteSearchText, pendingInvitation, infoMessage, forceNoteListDisplay } = state;
         const page = window.location.hash;
 
@@ -557,12 +516,12 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
                             <div className={styles.noteContent}>
                                 <div className={styles.noteDate} onClick={() => { this.setTextAreaFocus(); }}>
                                     {activeNote !== undefined
-                                        ? (new Date(activeNote.lastUpdate)).toLocaleString(
+                                        ? (new Date(String(activeNote.lastUpdate))).toLocaleString(
                                             undefined, { dateStyle: "long", timeStyle: "short" })
                                         : ""}</div>
                                 <textarea ref={this.noteInputRef}
                                     value={activeNote !== undefined
-                                        ? activeNote.content
+                                        ? String(activeNote.content)
                                         : (this.addingNote ? undefined : "")}
                                     onInput={(e) => {
                                         void this.onActiveNoteContentInput((e.target as HTMLInputElement).value);
@@ -572,12 +531,12 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
                     </div>
                 }
                 {page === "#notesShare" &&
-                    <Share doFetch={doFetch} showError={showError} activeNote={activeNote}
-                        showPage={async (page: string) => { await this.refreshNotes(); showPage(page); }} />
+                    <Share showError={showError} activeNote={activeNote}
+                        showPage={async (page: string) => { await this.refreshNotes(); showPage(page); }} myService={myService} />
                 }
                 {page === "#notesAcceptShare" &&
-                    <AcceptShare doFetch={doFetch} showError={showError}
-                        showPage={async (page: string) => { await this.refreshNotes(); showPage(page); }} />
+                    <AcceptShare showError={showError}
+                        showPage={async (page: string) => { await this.refreshNotes(); showPage(page); }} myService={myService} />
                 }
             </>);
     };

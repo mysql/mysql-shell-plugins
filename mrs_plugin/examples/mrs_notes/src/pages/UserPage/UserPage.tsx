@@ -22,17 +22,16 @@
  */
 
 import { Component, ComponentChild } from "preact";
-import { IFetchInput, IUser } from "../../app";
 import InputForm from "../../components/InputForm";
 import style from "../../components/InputForm.module.css";
+import type { IMyServiceMrsNotesUser, MyService } from "../../myService.mrs.sdk/myService";
 
 interface IUserPageProps {
-    user?: IUser;
-    doFetch: (input: string | IFetchInput, errorMsg?: string,
-        method?: string, body?: object) => Promise<Response>,
+    user?: IMyServiceMrsNotesUser;
     showPage: (page: string, forcedUpdate?: boolean) => void;
-    showError: (error: unknown) => void,
-    updateUser: (user: IUser) => void,
+    showError: (error: unknown) => void;
+    updateUser: (user: IMyServiceMrsNotesUser) => void;
+    myService: MyService;
 }
 
 interface IUserPageState {
@@ -52,7 +51,7 @@ export default class UserPage extends Component<IUserPageProps, IUserPageState> 
         this.state = {
             success: false,
             nickname: props.user?.nickname,
-            email: props.user?.email,
+            email: props.user?.email as string,
         };
     }
 
@@ -60,33 +59,27 @@ export default class UserPage extends Component<IUserPageProps, IUserPageState> 
      * Updates the user
      */
     private readonly submitUserUpdate = async (): Promise<void> => {
-        const { doFetch, showError, updateUser } = this.props;
+        const { showError, updateUser, myService } = this.props;
         const { nickname, email } = this.state;
 
         try {
-            // Fetch the current user info from the database
-            const user: IUser = await (await doFetch({
-                input: `/mrsNotes/user`,
-                errorMsg: "Failed to fetch the user data.",
-            })).json();
+            // This is weird.
+            const user = await myService.mrsNotes.user.findFirst();
 
-            // Check if name or email have changed, if so, update database
-            if (nickname !== user.nickname || email !== user.email) {
-                await doFetch({
-                    input: `/mrsNotes/user`,
-                    errorMsg: "Failed to update the user data.",
-                    method: "PUT",
-                    body: { nickname, email },
-                });
-
-                // Update the app user
-                user.nickname = nickname ?? "";
-                user.email = email ?? "";
-                updateUser(user);
-
-                // Indicate that the user info has been updated
-                this.setState({ success: true, error: undefined });
+            if (typeof user === "undefined" || nickname === user.nickname && email === user.email) {
+                return;
             }
+
+            // if a user instance exists, it contains an id, so we can safely cast
+            await myService.mrsNotes.user.update({ where: { id: user.id as string }, data: { email, nickname } });
+
+            // Update the app user
+            user.nickname = nickname ?? "";
+            user.email = email ?? "";
+            updateUser(user);
+
+            // Indicate that the user info has been updated
+            this.setState({ success: true, error: undefined });
         } catch (e) {
             this.setState({
                 success: false,

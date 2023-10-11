@@ -28,19 +28,19 @@ import UserPage from "./pages/UserPage/UserPage";
 import ModalError from "./components/ModalError";
 import Header from "./components/Header";
 import Notes from "./pages/NotesPage/NotesPage";
+import { IMyServiceMrsNotesUser, MyService } from "./myService.mrs.sdk/myService";
 
 // Defines the MySQL REST Service URL of the MRS Notes service
 export const serviceUrl = "https://localhost:8443/myService";
 
-export interface IUser {
+interface IAuthUser {
     name: string;
-    nickname: string;
     email: string;
 }
 
 interface IAuthStatus {
     status: string;
-    user?: IUser;
+    user?: IAuthUser;
 }
 
 interface IAppState {
@@ -48,7 +48,7 @@ interface IAppState {
     accessToken?: string;
     authenticating: boolean;
     restarting: boolean;
-    user?: IUser;
+    user?: IMyServiceMrsNotesUser;
     error?: Error,
 }
 
@@ -60,6 +60,8 @@ export interface IFetchInput {
 }
 
 export class App extends Component<{}, IAppState> {
+    #myService: MyService;
+
     public constructor() {
         super();
 
@@ -68,6 +70,8 @@ export class App extends Component<{}, IAppState> {
             authenticating: false,
             restarting: false,
         };
+
+        this.#myService = new MyService();
 
         this.handleLogin();
     }
@@ -177,6 +181,12 @@ export class App extends Component<{}, IAppState> {
      * @param mrsBuiltInAuth Set to true when the built in MRS Auth should be used
      */
     public handleLogin = (authApp?: string, accessToken?: string, mrsBuiltInAuth = false): void => {
+        // We need to associate the credentials to the MRS service session somehow.
+        // From what I could tell, this seemed to be the better place to do it.
+        // However, I think the verifyUserName() and verifyPassword() SDK methods should handle this.
+        this.#myService.session.accessToken = accessToken;
+        this.#myService.session.authApp = authApp;
+
         // Fetch URL parameters
         const urlParams = new URLSearchParams(window.location.search);
 
@@ -227,11 +237,11 @@ export class App extends Component<{}, IAppState> {
                 void this.getAuthenticationStatus().then((status) => {
                     if (status?.status === "authorized") {
                         // Make sure the user table has an entry for this user
-                        this.ensureUserAccount(status?.user as IUser).then(() => {
+                        this.ensureUserAccount(status?.user as IAuthUser).then(user => {
                             // Update the URL
                             this.showPage("notes", false);
                             // End the authenticating status and set the user info
-                            this.setState({ authenticating: false, user: status.user });
+                            this.setState({ authenticating: false, user });
                         }).catch((e) => {
                             this.setState({ error: e });
                         });
@@ -269,35 +279,16 @@ export class App extends Component<{}, IAppState> {
         }
     };
 
-    private readonly ensureUserAccount = async (user: IUser): Promise<void> => {
-        // Try to get the current user
-        let userExists = false;
-        try {
-            const existingUser = await (await this.doFetch({ input: "/mrsNotes/user" })).json();
+    private readonly ensureUserAccount = async (user: IAuthUser): Promise<IMyServiceMrsNotesUser> => {
+        const existingUser = await this.#myService.mrsNotes.user.findFirst();
 
-            if (existingUser?.items?.length === 1) {
-                user.nickname = existingUser.items[0].nickname;
-                user.email = existingUser.items[0].email;
-                userExists = true;
-            }
-        } catch {
-            //
+        // If a user account already exists, return it.
+        if (existingUser) {
+            return existingUser;
         }
 
-        // If the user is not registered yet, add a row to the user table
-        if (!userExists) {
-            await this.doFetch({
-                input: "/mrsNotes/user",
-                errorMsg: "Failed to create user account.",
-                method: "POST",
-                body: {
-                    nickname: user?.name,
-                    email: user?.email,
-                },
-            });
-
-            user.nickname = user?.name;
-        }
+        // Otherwise, create one.
+        return await this.#myService.mrsNotes.user.create({ data: { email: user.email, nickname: user.name } });
     };
 
     /**
@@ -305,7 +296,7 @@ export class App extends Component<{}, IAppState> {
      *
      * @param user The new user settings
      */
-    public updateUser = (user: IUser): void => {
+    public updateUser = (user: IMyServiceMrsNotesUser): void => {
         this.setState({ user });
     };
 
@@ -374,11 +365,11 @@ export class App extends Component<{}, IAppState> {
                     <div className="page">
                         <Header userNick={user?.nickname} showPage={this.showPage} logout={this.logout} />
                         {page === "#user" &&
-                            <UserPage doFetch={this.doFetch} showError={this.showError} showPage={this.showPage}
-                                user={user} updateUser={this.updateUser} />
+                            <UserPage showError={this.showError} showPage={this.showPage}
+                                user={user} updateUser={this.updateUser} myService={this.#myService} />
                         }
                         {page.startsWith("#notes") &&
-                            <Notes doFetch={this.doFetch} showError={this.showError} showPage={this.showPage} />
+                            <Notes showError={this.showError} showPage={this.showPage} myService={this.#myService} />
                         }
                     </div>
                 </>
@@ -386,7 +377,7 @@ export class App extends Component<{}, IAppState> {
         }
 
         return (
-            <WelcomePage startLogin={this.startLogin} doFetch={this.doFetch} handleLogin={this.handleLogin}/>
+            <WelcomePage startLogin={this.startLogin} handleLogin={this.handleLogin} myService={this.#myService} />
         );
     };
 }

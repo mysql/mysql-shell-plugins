@@ -11,13 +11,20 @@
 /* eslint-disable @typescript-eslint/promise-function-async */
 /* eslint-disable no-multiple-empty-lines */
 import {
+    Geometry,
+    GeometryCollection,
     IMrsBaseObject,
     IMrsFetchData,
+    JsonValue,
+    LineString,
     MaybeNull,
     MrsBaseService,
     MrsBaseSchema,
-    JsonObject,
-    JsonValue,
+    MultiLineString,
+    MultiPoint,
+    MultiPolygon,
+    Point,
+    Polygon,
     IFindFirstOptions,
     IFindManyOptions,
     IFindUniqueOptions,
@@ -35,7 +42,6 @@ import {
     IDeleteOptions,
     MrsBaseObjectDelete,
 } from "./MrsBaseClasses";
-
 /* =============================================================================
  * MRS Service https://localhost:8443/myService
  */
@@ -72,6 +78,7 @@ export class MyServiceMrsNotes extends MrsBaseSchema {
     public get noteDelete(): MyServiceMrsNotesNoteDeleteParamsRequest { if (this.#noteDelete === undefined) { this.#noteDelete = new MyServiceMrsNotesNoteDeleteParamsRequest(this); } return this.#noteDelete; }
     public get noteShare(): MyServiceMrsNotesNoteShareRequest { if (this.#noteShare === undefined) { this.#noteShare = new MyServiceMrsNotesNoteShareRequest(this); } return this.#noteShare; }
     public get noteUpdate(): MyServiceMrsNotesNoteUpdateParamsRequest { if (this.#noteUpdate === undefined) { this.#noteUpdate = new MyServiceMrsNotesNoteUpdateParamsRequest(this); } return this.#noteUpdate; }
+
 }
 
 export class MyServiceMrsNotesObjectRequest {
