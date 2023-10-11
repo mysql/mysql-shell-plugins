@@ -708,7 +708,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                             });
                         }
                     }
-                }, 20, resultId),
+                }, 50, resultId),
 
                 results: [data],
             };

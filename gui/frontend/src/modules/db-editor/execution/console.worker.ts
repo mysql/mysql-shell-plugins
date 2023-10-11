@@ -178,8 +178,13 @@ const getErrorLineInfo = (lineno: number, colno: number) => {
     // Construct line info only for the passed-in code.
     const line = lineno - 1;
 
+    if (worker.sourceMap.length === 0) {
+        // No source map (e.g. for JS code).
+        return `(Ln ${lineno}, Col ${colno + 1})`;
+    }
+
     const mappings = extractSourceMappings(worker.sourceMap);
-    if (mappings.length >= line) {
+    if (mappings.length >= line + 1) {
         const lineMapping = mappings[line];
         const column = colno - 1;
         const position = lineMapping.find((candidate) => {
@@ -245,11 +250,12 @@ worker.addEventListener("message", (event: MessageEvent) => {
         }).catch((e) => {
             let lineInfo = "";
             // Extract lineInfo from exception stack
-            const stack = String((e as IDictionary).stack);
-            if (stack !== "undefined") {
-                const groups = [...stack.matchAll(/<anonymous>:(\d*?):(\d*?)\)/gm)][0];
-                if (groups?.length === 3) {
-                  lineInfo = getErrorLineInfo(parseInt(groups[1], 10), parseInt(groups[2], 10));
+            if (e instanceof Error) {
+                if (e.stack) {
+                    const groups = [...e.stack.matchAll(/<anonymous>:(\d*?):(\d*?)\)/gm)][0];
+                    if (groups?.length === 3) {
+                        lineInfo = getErrorLineInfo(parseInt(groups[1], 10), parseInt(groups[2], 10));
+                    }
                 }
             }
 

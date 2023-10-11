@@ -22,7 +22,6 @@
  */
 
 import { Buffer } from "buffer";
-import Anser from "anser";
 import { deepMapKeys } from "./helpers";
 
 // A web worker friendly module for specific string handling.
@@ -407,10 +406,6 @@ export const convertSnakeToCamelCase = (o: object, options?: IConversionOptions)
             return match.toUpperCase();
         });
     });
-};
-
-export const stripAnsiCode = (s: string): string => {
-    return Anser.ansiToText(s);
 };
 
 /**

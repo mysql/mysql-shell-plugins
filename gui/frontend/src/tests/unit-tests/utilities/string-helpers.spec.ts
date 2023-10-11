@@ -23,7 +23,7 @@
 
 import {
     convertCamelToSnakeCase, convertCamelToTitleCase, convertPropValue, convertSnakeToCamelCase,
-    convertTitleToCamelCase, filterInt, formatTime, formatWithNumber, isWhitespaceOnly, quote, stripAnsiCode, unquote,
+    convertTitleToCamelCase, filterInt, formatTime, formatWithNumber, isWhitespaceOnly, quote, unquote,
 } from "../../../utilities/string-helpers";
 import { loremIpsum } from "../test-helpers";
 
@@ -359,12 +359,5 @@ describe("String Helpers Tests", () => {
         expect(isWhitespaceOnly("   ")).toBe(true);
         expect(isWhitespaceOnly("\n\n\n")).toBe(true);
         expect(isWhitespaceOnly(loremIpsum)).toBe(false);
-
-        expect(stripAnsiCode("")).toBe("");
-        expect(stripAnsiCode(loremIpsum)).toBe(loremIpsum);
-
-        const tail = "And another text";
-        expect(stripAnsiCode(`\u001b[0;90m${loremIpsum}\u001b[0m${tail}`)).toBe(`${loremIpsum}${tail}`);
-        expect(stripAnsiCode(`\u001b[?109h\u001b🖖NO-CODE\u001b[38;2;10;20;30m`)).toBe("\u001b🖖NO-CODE");
     });
 });
