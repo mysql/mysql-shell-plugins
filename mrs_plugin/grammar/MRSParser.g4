@@ -552,7 +552,7 @@ jsonArr:
 
 jsonValue:
     DOUBLE_QUOTED_TEXT
-    | (MINUS_OPERATOR | PLUS_OPERATOR)? JSON_NUMBER
+    | (MINUS_OPERATOR | PLUS_OPERATOR)? FLOAT_NUMBER
     | INT_NUMBER
     | jsonObj
     | jsonArr

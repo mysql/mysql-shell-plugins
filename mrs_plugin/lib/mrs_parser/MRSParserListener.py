@@ -620,15 +620,6 @@ class MRSParserListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by MRSParser#schemaName.
-    def enterSchemaName(self, ctx:MRSParser.SchemaNameContext):
-        pass
-
-    # Exit a parse tree produced by MRSParser#schemaName.
-    def exitSchemaName(self, ctx:MRSParser.SchemaNameContext):
-        pass
-
-
     # Enter a parse tree produced by MRSParser#schemaRequestPath.
     def enterSchemaRequestPath(self, ctx:MRSParser.SchemaRequestPathContext):
         pass
@@ -644,15 +635,6 @@ class MRSParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by MRSParser#newSchemaRequestPath.
     def exitNewSchemaRequestPath(self, ctx:MRSParser.NewSchemaRequestPathContext):
-        pass
-
-
-    # Enter a parse tree produced by MRSParser#viewName.
-    def enterViewName(self, ctx:MRSParser.ViewNameContext):
-        pass
-
-    # Exit a parse tree produced by MRSParser#viewName.
-    def exitViewName(self, ctx:MRSParser.ViewNameContext):
         pass
 
 
@@ -692,15 +674,6 @@ class MRSParserListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by MRSParser#procedureName.
-    def enterProcedureName(self, ctx:MRSParser.ProcedureNameContext):
-        pass
-
-    # Exit a parse tree produced by MRSParser#procedureName.
-    def exitProcedureName(self, ctx:MRSParser.ProcedureNameContext):
-        pass
-
-
     # Enter a parse tree produced by MRSParser#procedureRequestPath.
     def enterProcedureRequestPath(self, ctx:MRSParser.ProcedureRequestPathContext):
         pass
@@ -725,69 +698,6 @@ class MRSParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by MRSParser#contentSetRequestPath.
     def exitContentSetRequestPath(self, ctx:MRSParser.ContentSetRequestPathContext):
-        pass
-
-
-    # Enter a parse tree produced by MRSParser#pureIdentifier.
-    def enterPureIdentifier(self, ctx:MRSParser.PureIdentifierContext):
-        pass
-
-    # Exit a parse tree produced by MRSParser#pureIdentifier.
-    def exitPureIdentifier(self, ctx:MRSParser.PureIdentifierContext):
-        pass
-
-
-    # Enter a parse tree produced by MRSParser#identifier.
-    def enterIdentifier(self, ctx:MRSParser.IdentifierContext):
-        pass
-
-    # Exit a parse tree produced by MRSParser#identifier.
-    def exitIdentifier(self, ctx:MRSParser.IdentifierContext):
-        pass
-
-
-    # Enter a parse tree produced by MRSParser#identifierList.
-    def enterIdentifierList(self, ctx:MRSParser.IdentifierListContext):
-        pass
-
-    # Exit a parse tree produced by MRSParser#identifierList.
-    def exitIdentifierList(self, ctx:MRSParser.IdentifierListContext):
-        pass
-
-
-    # Enter a parse tree produced by MRSParser#identifierListWithParentheses.
-    def enterIdentifierListWithParentheses(self, ctx:MRSParser.IdentifierListWithParenthesesContext):
-        pass
-
-    # Exit a parse tree produced by MRSParser#identifierListWithParentheses.
-    def exitIdentifierListWithParentheses(self, ctx:MRSParser.IdentifierListWithParenthesesContext):
-        pass
-
-
-    # Enter a parse tree produced by MRSParser#qualifiedIdentifier.
-    def enterQualifiedIdentifier(self, ctx:MRSParser.QualifiedIdentifierContext):
-        pass
-
-    # Exit a parse tree produced by MRSParser#qualifiedIdentifier.
-    def exitQualifiedIdentifier(self, ctx:MRSParser.QualifiedIdentifierContext):
-        pass
-
-
-    # Enter a parse tree produced by MRSParser#simpleIdentifier.
-    def enterSimpleIdentifier(self, ctx:MRSParser.SimpleIdentifierContext):
-        pass
-
-    # Exit a parse tree produced by MRSParser#simpleIdentifier.
-    def exitSimpleIdentifier(self, ctx:MRSParser.SimpleIdentifierContext):
-        pass
-
-
-    # Enter a parse tree produced by MRSParser#dotIdentifier.
-    def enterDotIdentifier(self, ctx:MRSParser.DotIdentifierContext):
-        pass
-
-    # Exit a parse tree produced by MRSParser#dotIdentifier.
-    def exitDotIdentifier(self, ctx:MRSParser.DotIdentifierContext):
         pass
 
 
@@ -923,6 +833,96 @@ class MRSParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by MRSParser#graphGlValue.
     def exitGraphGlValue(self, ctx:MRSParser.GraphGlValueContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#schemaName.
+    def enterSchemaName(self, ctx:MRSParser.SchemaNameContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#schemaName.
+    def exitSchemaName(self, ctx:MRSParser.SchemaNameContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#viewName.
+    def enterViewName(self, ctx:MRSParser.ViewNameContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#viewName.
+    def exitViewName(self, ctx:MRSParser.ViewNameContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#procedureName.
+    def enterProcedureName(self, ctx:MRSParser.ProcedureNameContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#procedureName.
+    def exitProcedureName(self, ctx:MRSParser.ProcedureNameContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#pureIdentifier.
+    def enterPureIdentifier(self, ctx:MRSParser.PureIdentifierContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#pureIdentifier.
+    def exitPureIdentifier(self, ctx:MRSParser.PureIdentifierContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#identifier.
+    def enterIdentifier(self, ctx:MRSParser.IdentifierContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#identifier.
+    def exitIdentifier(self, ctx:MRSParser.IdentifierContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#identifierList.
+    def enterIdentifierList(self, ctx:MRSParser.IdentifierListContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#identifierList.
+    def exitIdentifierList(self, ctx:MRSParser.IdentifierListContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#identifierListWithParentheses.
+    def enterIdentifierListWithParentheses(self, ctx:MRSParser.IdentifierListWithParenthesesContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#identifierListWithParentheses.
+    def exitIdentifierListWithParentheses(self, ctx:MRSParser.IdentifierListWithParenthesesContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#qualifiedIdentifier.
+    def enterQualifiedIdentifier(self, ctx:MRSParser.QualifiedIdentifierContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#qualifiedIdentifier.
+    def exitQualifiedIdentifier(self, ctx:MRSParser.QualifiedIdentifierContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#simpleIdentifier.
+    def enterSimpleIdentifier(self, ctx:MRSParser.SimpleIdentifierContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#simpleIdentifier.
+    def exitSimpleIdentifier(self, ctx:MRSParser.SimpleIdentifierContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#dotIdentifier.
+    def enterDotIdentifier(self, ctx:MRSParser.DotIdentifierContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#dotIdentifier.
+    def exitDotIdentifier(self, ctx:MRSParser.DotIdentifierContext):
         pass
 
 
