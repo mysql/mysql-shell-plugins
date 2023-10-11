@@ -887,20 +887,9 @@ describe("DATABASE CONNECTIONS", () => {
 
             await dialog.findElement(locator.confirmDialog.accept).click();
             await Misc.switchBackToTopFrame();
-            await driver.wait(Until.isNotLoading(constants.dbTreeSection), constants.ociExplicitWait * 2,
-                `${constants.dbTreeSection} is still loading`);
-
             await driver.wait(async () => {
-                let treeDBSection = await Misc.getSection(constants.dbTreeSection);
-                await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
-                treeDBSection = await Misc.getSection(constants.dbTreeSection);
-                await driver.wait(Until.isNotLoading(constants.dbTreeSection), constants.ociExplicitWait * 2,
-                    `${constants.dbTreeSection} is still loading`);
-                await treeDBSection.findItem(dup);
-
-                return (await treeDBSection.findItem(dup)) === undefined;
-            }, constants.explicitWait * 3, `${dup} was not deleted`);
-
+                return (await Misc.existsTreeElement(constants.dbTreeSection, dup)) === false;
+            }, constants.explicitWait, `${dup} was not deleted`);
         });
 
         it("Load SQL Script from Disk", async () => {

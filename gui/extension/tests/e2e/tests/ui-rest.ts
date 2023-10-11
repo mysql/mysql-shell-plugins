@@ -38,6 +38,7 @@ import * as interfaces from "../lib/interfaces";
 import * as Until from "../lib/until";
 import * as locator from "../lib/locators";
 import { hostname } from "os";
+import clipboard from "clipboardy";
 
 describe("MySQL REST Service", () => {
 
@@ -73,6 +74,7 @@ describe("MySQL REST Service", () => {
 
     const schemaToDump = "dummyschema";
     const tableToDump = "abc";
+    const actorTable = "actor";
 
     before(async function () {
         await Misc.loadDriver();
@@ -666,6 +668,19 @@ describe("MySQL REST Service", () => {
             const thisObject = await Database.getRestObject();
             expect(thisObject).to.deep.equal(editedObject);
             tableToEdit = editedObject;
+        });
+
+        it("Copy REST Object Request Path to Clipboard", async () => {
+            const actorTree = await Misc.getTreeElement(constants.dbTreeSection,
+                `/${actorTable} (${actorTable})`);
+
+            await Misc.openContextMenuItem(actorTree, constants.copyRESTObjReqPath, constants.checkNotif);
+            expect(await Misc.getNotification("The DB Object was copied to the system clipboard")).to.exist;
+            const expected = `${sakilaRestSchema.restServicePath}${sakilaRestSchema.restSchemaPath}/${actorTable}`;
+            await driver.wait(() => {
+                return clipboard.readSync() === expected;
+            }, constants.explicitWait, `${expected} was not found on the clipboard`);
+
         });
 
         it("Delete REST Object", async () => {
