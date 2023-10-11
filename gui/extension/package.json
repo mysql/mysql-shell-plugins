@@ -750,7 +750,7 @@
             },
             {
                 "command": "msg.mrs.copyDbObjectRequestPath",
-                "title": "Copy REST Object Request Path"
+                "title": "Copy REST Object Request Path to Clipboard"
             },
             {
                 "command": "msg.mrs.openDbObjectRequestPath",
