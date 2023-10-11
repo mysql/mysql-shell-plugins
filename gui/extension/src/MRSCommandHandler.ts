@@ -302,6 +302,7 @@ export class MRSCommandHandler {
                     if (item.value) {
                         const o = item.value;
                         await env.clipboard.writeText((o.hostCtx ?? "") + (o.schemaRequestPath ?? "") + o.requestPath);
+                        showMessageWithTimeout("The DB Object was copied to the system clipboard");
                     }
                 }
             }));
