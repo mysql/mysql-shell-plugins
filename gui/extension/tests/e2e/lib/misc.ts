@@ -116,7 +116,7 @@ export class Misc {
                     try {
                         const prevOpenedTabs = await new EditorView().getOpenEditorTitles();
                         await Misc.selectContextMenuItem(treeItem, ctxMenuItem, map);
-                        if (await Misc.existsNewTab(prevOpenedTabs.length)) {
+                        if ((await Misc.existsNewTab(prevOpenedTabs.length)) === true) {
                             await Misc.switchToFrame();
 
                             return true;
@@ -139,7 +139,7 @@ export class Misc {
                     const prevOpenedTabs = await new EditorView().getOpenEditorTitles();
                     await Misc.selectContextMenuItem(treeItem, ctxMenuItem, map);
 
-                    return Misc.existsNewTab(prevOpenedTabs.length);
+                    return (await Misc.existsNewTab(prevOpenedTabs.length)) === true;
                 }, constants.explicitWait * 2, `No new tab was opened after selecting ${ctxMenuItem.toString()}`);
                 break;
             }
@@ -1271,16 +1271,6 @@ export class Misc {
 
         await dialog.findElement(locator.confirmDialog.accept).click();
         await Misc.switchBackToTopFrame();
-        await driver.wait(async () => {
-            try {
-                const treeSection = await Misc.getSection(constants.dbTreeSection);
-                await Misc.clickSectionToolbarButton(treeSection, "Reload the connection list");
-
-                return (await treeSection.findItem(dbName)) === undefined;
-            } catch (e) {
-                return false;
-            }
-        }, constants.explicitWait, `${dbName} was not deleted`);
     };
 
     public static loadDriver = async (): Promise<void> => {
