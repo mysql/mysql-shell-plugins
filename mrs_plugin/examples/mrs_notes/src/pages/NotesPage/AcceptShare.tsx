@@ -22,15 +22,14 @@
  */
 
 import { Component, ComponentChild } from "preact";
-import { IFetchInput } from "../../app";
 import InputForm from "../../components/InputForm";
 import style from "../../components/InputForm.module.css";
+import type { MyService } from "../../myService.mrs.sdk/myService";
 
 interface IAcceptShareProps {
-    doFetch: (input: string | IFetchInput, errorMsg?: string,
-        method?: string, body?: object) => Promise<Response>,
     showPage: (page: string) => Promise<void>;
-    showError: (error: unknown) => void,
+    showError: (error: unknown) => void;
+    myService: MyService;
 }
 
 interface IAcceptShareState {
@@ -55,20 +54,13 @@ export default class AcceptShare extends Component<IAcceptShareProps, IAcceptSha
      * Accepts a shared note
      */
     private readonly acceptSharedNote = async (): Promise<void> => {
-        const { doFetch, showError } = this.props;
+        const { showError, myService } = this.props;
         const { invitationKey } = this.state;
 
         try {
             // Share the note with the given user
             if (invitationKey !== undefined) {
-                await (await doFetch({
-                    input: `/mrsNotes/noteAcceptShare`,
-                    errorMsg: "Failed to accept the shared note.",
-                    method: "PUT",
-                    body: {
-                        invitationKey,
-                    },
-                }));
+                await myService.mrsNotes.noteAcceptShare.call({ invitationKey });
 
                 // Indicate that the note has been shared
                 this.setState({ success: true, error: undefined });

@@ -23,16 +23,14 @@
 
 import { Component, ComponentChild } from "preact";
 import InputForm from "../../components/InputForm";
-import { INote } from "./NotesPage";
 import style from "../../components/InputForm.module.css";
-import { IFetchInput } from "../../app";
+import type { IMyServiceMrsNotesNote, MyService } from "../../myService.mrs.sdk/myService";
 
 interface IShareProps {
-    doFetch: (input: string | IFetchInput, errorMsg?: string,
-        method?: string, body?: object) => Promise<Response>,
     showPage: (page: string) => Promise<void>;
-    showError: (error: unknown) => void,
-    activeNote?: INote,
+    showError: (error: unknown) => void;
+    activeNote?: IMyServiceMrsNotesNote;
+    myService: MyService;
 }
 
 interface IShareState {
@@ -60,28 +58,21 @@ export default class Share extends Component<IShareProps, IShareState> {
     }
 
     private readonly shareNote = async (): Promise<void> => {
-        const { doFetch, activeNote } = this.props;
+        const { activeNote, myService } = this.props;
         const { email, viewOnly, canShare } = this.state;
 
         try {
             // Share the note with the given user
             if (email !== "") {
-                const response = await (await doFetch({
-                    input: `/mrsNotes/noteShare`,
-                    errorMsg: "Failed to share the note.",
-                    method: "PUT",
-                    body: {
-                        noteId: activeNote?.id,
-                        email,
-                        viewOnly: viewOnly ? 1 : 0,
-                        canShare: canShare ? 1 : 0,
-                    },
-                })).json();
+                const response = await myService.mrsNotes.noteShare.call({ noteId: activeNote?.id, email, viewOnly, canShare });
 
                 if (response.items?.length > 0) {
                     // Indicate that the note has been shared
                     this.setState({
-                        success: true, invitationKey: response.items[0].invitationKey, error: undefined,
+                        success: true,
+                        // This is weird. Do we really need the extra response wrapper?
+                        invitationKey: response.items[0].items[0].invitationKey as string,
+                        error: undefined,
                     });
                 }
             }

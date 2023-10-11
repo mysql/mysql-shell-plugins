@@ -22,25 +22,21 @@
  */
 
 import { Component, ComponentChild } from "preact";
-import { IFetchInput, serviceUrl } from "../../app";
+import { serviceUrl } from "../../app";
 import MrsLogin from "../../components/MrsLogin";
 import styles from "./WelcomePage.module.css";
-
-interface IAuthApp {
-    name: string;
-    vendorId: string;
-}
+import type { MyService } from "../../myService.mrs.sdk/myService";
+import { IMrsAuthApp } from "../../myService.mrs.sdk/MrsBaseClasses";
 
 interface IWelcomePageProps {
     startLogin: (authApp: string) => void;
-    doFetch: (input: string | IFetchInput, errorMsg?: string,
-        method?: string, body?: object) => Promise<Response>,
-    handleLogin: (authApp?: string, accessToken?: string) => void,
+    handleLogin: (authApp?: string, accessToken?: string) => void;
+    myService: MyService;
 }
 
 interface IWelcomePageState {
     notesServed: number;
-    authApps?: IAuthApp[];
+    authApps?: IMrsAuthApp[];
     error?: string;
 }
 
@@ -70,17 +66,16 @@ export default class WelcomePage extends Component<IWelcomePageProps, IWelcomePa
      * @returns The number of served notes or undefined, if there are none or an error occurred
      */
     private readonly getNotesServed = async (): Promise<number | undefined> => {
-        try {
-            const response = await fetch(`${serviceUrl}/mrsNotes/notesServed`);
+        const { myService } = this.props;
 
-            if (response.ok) {
-                const result = await response.json();
-                if (result.items !== undefined && result.items.length > 0) {
-                    return result.items[0].notesServed as number ?? 0;
-                } else {
-                    return undefined;
-                }
+        try {
+            const response = await myService.mrsNotes.notesServed.findFirst();
+
+            if (typeof response === "undefined") {
+                return undefined;
             }
+
+            return response.notesServed ?? 0;
         } catch (e) {
             const errStr = (typeof e === "string") ? e : (e instanceof Error) ? e.message : "";
             this.setState({
@@ -94,19 +89,13 @@ export default class WelcomePage extends Component<IWelcomePageProps, IWelcomePa
      *
      * @returns The list of enabled authApps
      */
-    private readonly getAuthApps = async (): Promise<IAuthApp[] | undefined> => {
+    private readonly getAuthApps = async (): Promise<IMrsAuthApp[] | undefined> => {
+        const { myService } = this.props;
+
         try {
-            const response = await fetch(`${serviceUrl}/authentication/authApps`);
-
-            if (response.ok) {
-                const result = await response.json();
-
-                return result as IAuthApp[];
-            } else {
-                return [] as IAuthApp[];
-            }
+            return await myService.getAuthApps();
         } catch (e) {
-            return [] as IAuthApp[];
+            return [];
         }
     };
 
@@ -119,7 +108,7 @@ export default class WelcomePage extends Component<IWelcomePageProps, IWelcomePa
      * @returns The rendered ComponentChild
      */
     public render = (props: IWelcomePageProps, state: IWelcomePageState): ComponentChild => {
-        const { startLogin, doFetch, handleLogin } = props;
+        const { startLogin, handleLogin, myService } = props;
         const { notesServed, authApps, error } = state;
         // Build a human readable string of there are notesServed > 0
         const notesManaged = (notesServed > 0)
@@ -136,7 +125,7 @@ export default class WelcomePage extends Component<IWelcomePageProps, IWelcomePa
                 ? <p>No Authentication Apps setup for this MRS Service yet.</p>
                 : <>
                     {(mrsAuthApp !== undefined)
-                        ? <MrsLogin authApp={mrsAuthApp.name} doFetch={doFetch} handleLogin={handleLogin} />
+                        ? <MrsLogin authApp={mrsAuthApp.name} handleLogin={handleLogin} myService={myService} />
                         : undefined
                     }
                     <div className={styles.loginButtons}>

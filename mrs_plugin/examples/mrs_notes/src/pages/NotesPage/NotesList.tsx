@@ -23,13 +23,13 @@
 
 import { Component, ComponentChild } from "preact";
 import Icon from "../../components/Icon";
-import { INote } from "./NotesPage";
 import styles from "./NotesList.module.css";
+import { IMyServiceMrsNotesNote, IMyServiceMrsNotesNotesAll } from "../../myService.mrs.sdk/myService";
 
 interface INotesListProps {
     style?: {};
-    notes: INote[];
-    activeNote?: INote;
+    notes: IMyServiceMrsNotesNotesAll[];
+    activeNote?: IMyServiceMrsNotesNote;
     noteSearchText?: string;
     searchNotes: (noteSearchText: string) => void;
     setActiveNoteById: (noteId?: number, setFocus?: boolean) => Promise<void>;
@@ -59,14 +59,14 @@ export default class NoteList extends Component<INotesListProps> {
                             `${style === undefined && activeNote !== undefined && activeNote.id === note.id
                                 ? styles.selected
                                 : ""}`;
-                        const noteDate = (new Date(note.lastUpdate)).toLocaleDateString(
+                        const noteDate = (new Date(note.lastUpdate as string)).toLocaleDateString(
                             undefined, { dateStyle: "short" });
 
                         return (
                             <div className={noteStyle}
                                 key={note.id} onClick={() => { void setActiveNoteById(note.id, true); }} tabIndex={0}>
                                 <div className={styles.notesListItemGutter}>
-                                    {note.shared === 1 &&
+                                    {note.shared === true &&
                                         <Icon name="userIcon" styleClass={styles.userIconStyle} />
                                     }
                                 </div>
