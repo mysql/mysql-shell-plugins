@@ -126,12 +126,9 @@ AT_UPDATE_SYMBOL:       AT_SIGN_SYMBOL U P D A T E;
 AT_DELETE_SYMBOL:       AT_SIGN_SYMBOL D E L E T E;
 AT_NODELETE_SYMBOL:     AT_SIGN_SYMBOL N O D E L E T E;
 
-//-------------------------------------------------------------------------------------------------
-
-// Numbers in JSON may not have leading zeros.
-JSON_NUMBER: ('0' | [1-9] DIGIT*) ('.' [0-9]+)? ([Ee] [+\-]? [0-9]+)?;
-
 /* END OF MERGE PART */
+
+//-------------------------------------------------------------------------------------------------
 
 // Operators
 EQUAL_OPERATOR:            '='; // Also assign.

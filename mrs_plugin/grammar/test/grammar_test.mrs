@@ -1,8 +1,6 @@
 /* MRS Grammar Test
 Copyright (c) 2023, Oracle and/or its affiliates. */
 
-SHOW CREATE REST DUALITY VIEW /city FROM SERVICE /myService SCHEMA /sakila;
-
 # cSpell:ignore gtid
 CONFIGURE REST METADATA
     ENABLED
