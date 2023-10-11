@@ -21,13 +21,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import Anser from "anser";
 import { window } from "vscode";
 
 import { IGenericResponse, ShellPromptResponseType } from "../../frontend/src/communication/Protocol";
 import { IShellFeedbackRequest } from "../../frontend/src/communication/ProtocolGui";
 import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
-
-import { stripAnsiCode } from "../../frontend/src/utilities/string-helpers";
 
 const isShellPromptResult = (response?: unknown): response is IShellFeedbackRequest => {
     const candidate = response as IShellFeedbackRequest;
@@ -57,7 +56,7 @@ export const openSqlEditorConnection = async (sqlEditor: ShellInterfaceSqlEditor
                     }
                 });
             } else if (result.prompt) {
-                void window.showInputBox({ title: stripAnsiCode(result.prompt), password: false, value: "N" })
+                void window.showInputBox({ title: Anser.ansiToText(result.prompt), password: false, value: "N" })
                     .then((value) => {
                         if (value) {
                             void sqlEditor.sendReply(requestId, ShellPromptResponseType.Ok, value);

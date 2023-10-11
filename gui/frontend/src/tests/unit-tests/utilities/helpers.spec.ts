@@ -26,10 +26,7 @@
 import {
     binarySearch, clampValue, flattenObject, selectFile, sleep, strictEval, uuid, waitFor, deepEqual,
 } from "../../../utilities/helpers";
-import {
-    convertCamelToSnakeCase, convertSnakeToCamelCase, convertCamelToTitleCase, convertTitleToCamelCase, stripAnsiCode,
-} from "../../../utilities/string-helpers";
-import { loremIpsum, nextProcessTick, uuidPattern } from "../test-helpers";
+import { nextProcessTick, uuidPattern } from "../test-helpers";
 
 describe("Utilities Tests", (): void => {
     it("flattenObject", (): void => {

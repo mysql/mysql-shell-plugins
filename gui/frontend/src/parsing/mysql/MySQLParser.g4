@@ -2107,7 +2107,7 @@ grantTargetList:
 ;
 
 grantOptions:
-    WITH_SYMBOL grantOption ({this.serverVersion < 80011}? grantOption)*
+    WITH_SYMBOL grantOption
 ;
 
 exceptRoleList:

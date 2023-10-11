@@ -25,7 +25,7 @@ import loadNotebookIcon from "../../assets/images/toolbar/toolbar-load-editor.sv
 import saveNotebookIcon from "../../assets/images/toolbar/toolbar-save-editor.svg";
 
 import { Position } from "monaco-editor";
-import { ComponentChild, createRef, VNode } from "preact";
+import { ComponentChild, createRef } from "preact";
 
 import { IEditorStatusInfo, ISchemaTreeEntry, IToolbarItems } from ".";
 import { Button } from "../../components/ui/Button/Button";
