@@ -194,6 +194,7 @@
         "src/parsing/mysql/data",
         "src/parsing/SQLite/data",
         "src/components/Theming/Preview/assets",
-        "src/components/Theming/assets"
+        "src/components/Theming/assets",
+        "src/app-wrapper"
     ]
 }

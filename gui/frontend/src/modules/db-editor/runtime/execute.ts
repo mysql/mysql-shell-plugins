@@ -82,6 +82,7 @@ export const execute = async (worker: PrivateWorker, code: string,
                 return obj[name];
             }
         },
+
         set: (obj, name, value): boolean => {
             if (typeof name === "string") {
                 obj[name] = value;
@@ -96,7 +97,6 @@ export const execute = async (worker: PrivateWorker, code: string,
     /* eslint-enable @typescript-eslint/no-unused-vars */
 
     try {
-
         // eslint-disable-next-line no-eval
         const res = eval(code);
 

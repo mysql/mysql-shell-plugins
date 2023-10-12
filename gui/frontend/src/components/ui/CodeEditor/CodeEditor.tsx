@@ -331,13 +331,21 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             const compilerOptions: languages.typescript.CompilerOptions = {
                 allowNonTsExtensions: true,
                 target: languages.typescript.ScriptTarget.ESNext,
-                lib: ["es2020"],
+                lib: ["es2022"],
                 module: languages.typescript.ModuleKind.ESNext,
                 strictNullChecks: true,
             };
 
             languages.typescript.javascriptDefaults.setCompilerOptions(compilerOptions);
             languages.typescript.typescriptDefaults.setCompilerOptions(compilerOptions);
+
+            // Disable the error about "top level await". This is handled manually.
+            languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+                diagnosticCodesToIgnore: [1375],
+            });
+            languages.typescript.javascriptDefaults.setDiagnosticsOptions({
+                diagnosticCodesToIgnore: [1375],
+            });
         }
     }
 
