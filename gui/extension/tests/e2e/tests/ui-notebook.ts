@@ -756,7 +756,7 @@ Graph.render(options);
             const file = await section.findItem("test.mysql-notebook", 3);
             await file.click();
 
-            const input = await InputBox.create(constants.explicitWait * 2);
+            const input = await InputBox.create(constants.explicitWait * 4);
             await (await input.findQuickPick(globalConn.caption)).select();
             await new EditorView().openEditor("test.mysql-notebook");
 

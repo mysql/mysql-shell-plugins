@@ -116,7 +116,7 @@ export class Misc {
                     try {
                         const prevOpenedTabs = await new EditorView().getOpenEditorTitles();
                         await Misc.selectContextMenuItem(treeItem, ctxMenuItem, map);
-                        if ((await Misc.existsNewTab(prevOpenedTabs.length)) === true) {
+                        if (await Misc.existsNewTab(prevOpenedTabs.length)) {
                             await Misc.switchToFrame();
 
                             return true;
@@ -139,7 +139,7 @@ export class Misc {
                     const prevOpenedTabs = await new EditorView().getOpenEditorTitles();
                     await Misc.selectContextMenuItem(treeItem, ctxMenuItem, map);
 
-                    return (await Misc.existsNewTab(prevOpenedTabs.length)) === true;
+                    return Misc.existsNewTab(prevOpenedTabs.length);
                 }, constants.explicitWait * 2, `No new tab was opened after selecting ${ctxMenuItem.toString()}`);
                 break;
             }
@@ -1215,7 +1215,7 @@ export class Misc {
         for (const item of treeItems) {
             const icon = await item.findElement(locator.section.itemIcon);
             const backgroundImage = await icon.getCssValue("background-image");
-            if (backgroundImage.match(/connection/) !== null) {
+            if (backgroundImage.match(/connection/) !== null || backgroundImage.match(/ociDbSystem/) !== null) {
                 const itemName = await (await item.findElement(locator.section.itemName)).getText();
                 let mysql = false;
                 if (backgroundImage.match(/Sqlite/) === null) {

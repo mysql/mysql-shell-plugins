@@ -83,8 +83,6 @@ describe("MySQL REST Service", () => {
             await driver.wait(Until.extensionIsReady(), constants.extensionReadyWait, "Extension was not ready");
             await Misc.toggleBottomBar(false);
             await Misc.sectionFocus(constants.dbTreeSection);
-            const randomCaption = String(Math.floor(Math.random() * (9000 - 2000 + 1) + 2000));
-            globalConn.caption += randomCaption;
             await Database.createConnection(globalConn);
             await Misc.switchBackToTopFrame();
             let treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
@@ -427,6 +425,16 @@ describe("MySQL REST Service", () => {
             }
         });
 
+        beforeEach(async function () {
+            try {
+                await driver.wait(Until.isNotLoading(constants.dbTreeSection), constants.explicitWait * 2,
+                    `${constants.dbTreeSection} is still loading`);
+                await Misc.dismissNotifications();
+            } catch (e) {
+                await Misc.processFailure(this);
+            }
+        });
+
         afterEach(async function () {
             await Misc.switchBackToTopFrame();
             if (this.currentTest.state === "failed") {
@@ -673,7 +681,6 @@ describe("MySQL REST Service", () => {
         it("Copy REST Object Request Path to Clipboard", async () => {
             const actorTree = await Misc.getTreeElement(constants.dbTreeSection,
                 `/${actorTable} (${actorTable})`);
-
             await Misc.openContextMenuItem(actorTree, constants.copyRESTObjReqPath, constants.checkNotif);
             expect(await Misc.getNotification("The DB Object was copied to the system clipboard")).to.exist;
             const expected = `${sakilaRestSchema.restServicePath}${sakilaRestSchema.restSchemaPath}/${actorTable}`;
