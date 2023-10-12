@@ -1,3 +1,4 @@
+src/app-wrapper/
 scripts/copy-oci-typings.js
 src/oci-typings/
 unit-tests.jest.config.ts

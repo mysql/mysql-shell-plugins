@@ -1848,7 +1848,7 @@ Execute \\help or \\? for help;`;
                         workerPool.retainTask(taskId);
 
                         try {
-                            const finalData = backend.execute(data.code!, data.params as string[], undefined,
+                            const finalData = await backend.execute(data.code!, data.params as string[], undefined,
                                 (intermediateData) => {
                                     // Send back the result data to the worker to allow the user to act on that in
                                     // their JS code. If the `final` member of the data is set to true, the task is

@@ -24,7 +24,6 @@
 /* eslint-disable no-restricted-globals */
 
 import { IDictionary } from "../../../app-logic/Types";
-import { formatTextBlock } from "../../../utilities/string-helpers";
 import {
     PrivateWorker, ScriptingApi, IConsoleWorkerResultData, IConsoleWorkerTaskData,
 } from "../console.worker-types";
