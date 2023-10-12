@@ -132,42 +132,6 @@ try {
         }
     }
 
-    #CHECK TEST RESOURCES 
-    writeMsg "Checking config folders..." "-NoNewLine"
-    if($isWindows){
-        $targetWebCerts = Join-Path $env:APPDATA "MySQL" "mysqlsh-gui" "plugin_data" "gui_plugin" "web_certs"
-    } elseif($isLinux){
-        $targetWebCerts = Join-Path $env:userprofile ".mysqlsh-gui" "plugin_data" "gui_plugin" "web_certs"
-    }
-
-    ForEach ($testSuite in $testSuites) {
-        $config = Join-Path $env:userprofile "mysqlsh-$testSuite"
-        if (!(Test-Path $config)) {
-            New-Item -ItemType "directory" -Path $config
-            writeMsg "Created $config"
-            $mysqlsh = Join-Path $config "mysqlsh.log"  
-            New-Item -ItemType "file" -Path $mysqlsh
-            writeMsg "Created $mysqlsh"
-            $guiPlugin = Join-Path $config "plugin_data" "gui_plugin"
-            New-Item -ItemType "directory" -Path $guiPlugin
-            writeMsg "Created $guiPlugin"
-            writeMsg "Creating symlink for web certificates for $config ..." "-NoNewLine"
-            $link = Join-Path $config "plugin_data" "gui_plugin" "web_certs"
-            if ($isWindows){
-                New-Item -ItemType Junction -Path $link -Target $targetWebCerts
-            } else {
-                New-Item -ItemType SymbolicLink -Path $link -Target $targetWebCerts
-            }
-            writeMsg "DONE"
-        } else {
-            $guiPlugin = Join-Path $config "plugin_data" "gui_plugin" "mysqlsh_*"
-            writeMsg "Cleaning config folder for $testSuite" "-NoNewLine"
-            Remove-Item -Path $guiPlugin -Force
-            writeMsg "DONE"
-        } 
-    } 
-    writeMsg "DONE"
-
     if ($env:USE_PROXY) {
         writeMsg "Using PROXY $env:USE_PROXY"
         $env:HTTP_PROXY=$env:USE_PROXY
@@ -259,7 +223,7 @@ try {
         if ($extension){
             $extension | ForEach-Object { 
                 writeMsg "Downloading the extension ..." "-NoNewline" 
-                $dest = Join-Path $env:WORKSPACE  "$env:EXTENSION_BRANCH-$env:EXTENSION_PUSH_ID.vsix"
+                $dest = Join-Path $env:WORKSPACE "$env:EXTENSION_BRANCH-$env:EXTENSION_PUSH_ID.vsix"
                 Invoke-WebRequest -NoProxy -Uri $_.url -OutFile $dest
                 writeMsg "DONE"
                 }
@@ -300,6 +264,61 @@ try {
 
     Get-Job | Wait-Job
     writeMsg "DONE installing the extension!"
+
+
+    # CHECK WEB CERTIFICATES
+    if ($isLinux) {
+        $refExt = Join-Path $env:WORKSPACE "ext-$($testSuites[0])"
+        $extFolder = Get-ChildItem -Path $refExt -Filter "*oracle*"
+        $shell = Join-Path $extFolder "shell" "bin" "mysqlsh"
+
+        # RE INSTALL WEB CERTIFICATES
+        writeMsg "Re-installing web certificates..." "-NoNewLine"
+        $removeWebCerts = "$shell --js -e `"gui.core.removeShellWebCertificate()`""
+        Invoke-Expression $removeWebCerts
+        $installWebCerts = "$shell --js -e `"gui.core.installShellWebCertificate()`""
+        Invoke-Expression $installWebCerts
+        writeMsg "DONE"
+    }
+
+    # CHECK CONFIG FOLDERS AND WEB CERTIFICATES 
+    writeMsg "Checking config folders..." "-NoNewLine"
+    if($isWindows){
+        $targetWebCerts = Join-Path $env:APPDATA "MySQL" "mysqlsh-gui" "plugin_data" "gui_plugin" "web_certs"
+    } elseif($isLinux){
+        $targetWebCerts = Join-Path $env:userprofile ".mysqlsh" "plugin_data" "gui_plugin" "web_certs"
+    }
+
+    ForEach ($testSuite in $testSuites) {
+        $config = Join-Path $env:userprofile "mysqlsh-$testSuite"
+        if (!(Test-Path $config)) {
+            New-Item -ItemType "directory" -Path $config
+            writeMsg "Created $config"
+            $mysqlsh = Join-Path $config "mysqlsh.log"  
+            New-Item -ItemType "file" -Path $mysqlsh
+            writeMsg "Created $mysqlsh"
+            $guiPlugin = Join-Path $config "plugin_data" "gui_plugin"
+            New-Item -ItemType "directory" -Path $guiPlugin
+            writeMsg "Created $guiPlugin"
+            writeMsg "Creating symlink for web certificates for $config ..." "-NoNewLine"
+            $link = Join-Path $config "plugin_data" "gui_plugin" "web_certs"
+            if ($isWindows){
+                New-Item -ItemType Junction -Path $link -Target $targetWebCerts
+            } else {
+                New-Item -ItemType SymbolicLink -Path $link -Target $targetWebCerts
+            }
+            writeMsg "DONE"
+        } else {
+            if ($isLinux) {
+                $link = Join-Path $config "plugin_data" "gui_plugin" "web_certs"
+                writeMsg "Re-creating the symbolic link for $link ..." "-NoNewLine"
+                Remove-Item -Path $link -Force
+                New-Item -ItemType SymbolicLink -Path $link -Target $targetWebCerts
+                writeMsg "DONE"
+            }
+        }
+    } 
+    writeMsg "DONE"
 
     # TSC TO TEST FILES
     writeMsg "TSC..." "-NoNewLine"

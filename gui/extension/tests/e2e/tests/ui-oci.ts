@@ -93,18 +93,6 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
     });
 
-    after(async function () {
-        try {
-            const dbConnections = await Misc.getDBConnections();
-            for (const dbConnection of dbConnections) {
-                await Misc.deleteConnection(dbConnection.name, dbConnection.isMySQL);
-            }
-        } catch (e) {
-            await Misc.processFailure(this);
-            throw e;
-        }
-    });
-
     describe("Profile", () => {
 
         beforeEach(async function () {
@@ -452,6 +440,21 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             const treeTasksSection = await Misc.getSection(constants.tasksTreeSection);
             await treeTasksSection?.collapse();
 
+        });
+
+        after(async function () {
+            try {
+                await Misc.switchBackToTopFrame();
+                await new EditorView().closeAllEditors();
+                await Misc.sectionFocus(constants.dbTreeSection);
+                const dbConnections = await Misc.getDBConnections();
+                for (const dbConnection of dbConnections) {
+                    await Misc.deleteConnection(dbConnection.name, dbConnection.isMySQL, true);
+                }
+            } catch (e) {
+                await Misc.processFailure(this);
+                throw e;
+            }
         });
 
         it("Get Bastion Information and set it as current", async () => {
