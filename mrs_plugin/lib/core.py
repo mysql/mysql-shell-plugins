@@ -716,6 +716,26 @@ def check_request_path(session, request_path):
                         "in use.")
 
 
+def check_mrs_object_names(session, db_schema_id, objects):
+    """Checks if the given mrs object name is valid and unique
+    """
+    for obj in objects:
+        res = session.run_sql("""
+                SELECT o.name
+                FROM mysql_rest_service_metadata.object o LEFT JOIN
+                    mysql_rest_service_metadata.db_object dbo ON
+                    o.db_object_id = dbo.id
+                WHERE dbo.db_schema_id = ? AND UPPER(o.name) = UPPER(?) AND o.id <> ?
+            """, [id_to_binary(db_schema_id, "db_schema_id"), obj.get("name"),
+                  id_to_binary(obj.get("id"), "object.id")])
+
+        row = res.fetch_one()
+
+        if row and row.get_field("name") != "":
+            raise Exception(f'The object name {obj.get("name")} is already '
+                            "in use on this REST schema.")
+
+
 def convert_json(value) -> dict:
     try:
         value_str = json.dumps(value)
@@ -1101,6 +1121,7 @@ def convert_snake_to_camel_case(snake_str):
     snake_str = "".join(x.capitalize() for x in snake_str.lower().split("_"))
 
     return snake_str[0].lower() + snake_str[1:]
+
 
 def unquote(name):
     if name.startswith("`"):

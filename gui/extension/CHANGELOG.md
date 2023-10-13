@@ -2,13 +2,12 @@
 
 ## Changes in 1.13.2+8.1.1
 
-### Additions
-
-- 
-
 ### Fixes
 
-- 
+- Fixed MRS TS/JS code execution on DB Notebooks
+- Prevent from using duplicated MRS object names on the same REST schema
+- Fixed error formatting on DB Notebooks
+- Added a forgotten `await` expression in DBConnectionTab when retrieving SQL data as part of a JS/TS script call on DB Notebooks.
 
 ## Changes in 1.13.1+8.1.1
 

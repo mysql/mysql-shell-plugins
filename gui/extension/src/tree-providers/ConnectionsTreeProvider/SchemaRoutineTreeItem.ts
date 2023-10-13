@@ -38,7 +38,8 @@ export class SchemaRoutineTreeItem extends ConnectionsTreeBaseItem {
         connectionId: number,
         hasChildren: boolean,
         command?: Command) {
-        super(name, schema, backend, connectionId, "schemaRoutine.svg", hasChildren, command);
+        super(name, schema, backend, connectionId,
+            type === "procedure" ? "schemaRoutine.svg" : "schemaFunction.svg", hasChildren, command);
     }
 
     public get qualifiedName(): string {

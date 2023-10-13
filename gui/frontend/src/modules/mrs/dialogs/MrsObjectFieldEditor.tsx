@@ -109,8 +109,8 @@ export interface IMrsObjectFieldEditorData extends IDictionary {
 
 export interface IMrsObjectFieldEditorProperties extends IValueEditCustomProperties {
     backend: ShellInterfaceSqlEditor;
-    dbObjectChange?: () => void;
-    getCurrentDbObject?: () => IMrsDbObjectData;
+    dbObjectChange: () => void;
+    getCurrentDbObject: () => IMrsDbObjectData;
 }
 
 interface IMrsObjectFieldEditorState extends IComponentState {
@@ -408,10 +408,10 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
 
         if (sqlPreview === true) {
             MrsObjectFieldEditor.updateMrsObjectFields(data);
-            // Get updated dbObject values
-            if (getCurrentDbObject) {
-                data.dbObject = getCurrentDbObject();
-            }
+
+            // Update the local DB Object reference if the DB Object has been updated by the main editor
+            data.dbObject = getCurrentDbObject();
+            // Build the SQL DDL statement
             sql = MrsObjectFieldEditor.buildDualityViewSql(data) ?? "";
         }
 

@@ -98,6 +98,10 @@ AS MyServiceSakilaCity;
 
 SHOW CREATE REST VIEW /city;
 
+ALTER REST VIEW /city AS MyServiceSakilaCity2;
+
+SHOW CREATE REST VIEW /city;
+
 CREATE OR REPLACE REST DUALITY VIEW /country
 ON SERVICE localhost/myTestService SCHEMA /sakila
 FROM sakila.country
@@ -173,6 +177,7 @@ ALTER REST DUALITY VIEW /actorInfo
     firstName: first_name
 };
 
+SHOW CREATE REST VIEW /actorInfo;
 
 CREATE OR REPLACE REST PROCEDURE /filmInStock
 FROM sakila.film_in_stock AS MyServiceSakilaFilmInStock

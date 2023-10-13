@@ -53,14 +53,31 @@ export class ConnectionsTreeBaseItem extends TreeItem {
         });
     }
 
-    public copyCreateScriptToClipboard(): void {
+    public copyCreateScriptToClipboard(withDelimiter = false, withDrop = false): void {
         this.backend.execute(`show create ${this.dbType} ${this.qualifiedName}`).then((data) => {
             if (data) {
                 if (data.rows && data.rows.length > 0) {
                     const firstRow = data.rows[0] as string[];
                     const index = this.createScriptResultIndex;
                     if (firstRow.length > index) {
-                        void env.clipboard.writeText(firstRow[index]).then(() => {
+                        let stmt = firstRow[index];
+                        if (withDelimiter) {
+                            if (withDrop) {
+                                // The SHOW CREATE PROCEDURE / FUNCTION statements do not return the fully qualified
+                                // name including the schema, just the name of the procedure / functions with backticks
+                                let name = Array.from(stmt.matchAll(/PROCEDURE `(.*?)`/gm), (m) => { return m[1]; });
+                                if (name.length > 0) {
+                                    stmt = `DROP PROCEDURE \`${name[0]}\`$$\n${stmt}`;
+                                } else {
+                                    name = Array.from(stmt.matchAll(/FUNCTION `(.*?)`/gm), (m) => { return m[1]; });
+                                    if (name.length) {
+                                        stmt = `DROP FUNCTION \`${name[0]}\`$$\n${stmt}`;
+                                    }
+                                }
+                            }
+                            stmt = `DELIMITER $$\n${stmt}$$\nDELIMITER ;`;
+                        }
+                        void env.clipboard.writeText(stmt).then(() => {
                             showMessageWithTimeout("The create script was copied to the system clipboard");
                         });
                     }

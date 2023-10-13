@@ -298,6 +298,8 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
     core.check_request_path(
         session, schema["host_ctx"] + schema["request_path"] + request_path)
 
+    core.check_mrs_object_names(session=session, db_schema_id=schema_id, objects=objects)
+
     if db_object_type == "PROCEDURE":
         crud_operations = ["UPDATE"]
 
@@ -387,6 +389,10 @@ def update_db_objects(session, db_object_ids, value):
 
     for db_object_id in db_object_ids:
         objects = value.pop("objects", None)
+        db_object = get_db_object(session, db_object_id)
+
+        if objects is not None:
+            core.check_mrs_object_names(session=session, db_schema_id=db_object["db_schema_id"], objects=objects)
 
         core.update("db_object",
                     sets=value,
@@ -395,7 +401,6 @@ def update_db_objects(session, db_object_ids, value):
         grant_privileges = map_crud_operations(
             value.get("crud_operations", []))
 
-        db_object = get_db_object(session, db_object_id)
         schema = schemas.get_schema(session, db_object["db_schema_id"])
 
         # Revoke all grants before granting the necessary ones

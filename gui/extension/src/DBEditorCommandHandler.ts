@@ -386,6 +386,20 @@ export class DBEditorCommandHandler {
                 }
             }));
 
+        context.subscriptions.push(commands.registerCommand("msg.copyCreateScriptWithDelimitersToClipboard",
+        (entry?: ConnectionsTreeDataModelEntry) => {
+            if (entry && entry.treeItem instanceof ConnectionsTreeBaseItem) {
+                entry.treeItem.copyCreateScriptToClipboard(true);
+            }
+        }));
+
+        context.subscriptions.push(commands.registerCommand("msg.copyDropCreateScriptWithDelimitersToClipboard",
+        (entry?: ConnectionsTreeDataModelEntry) => {
+            if (entry && entry.treeItem instanceof ConnectionsTreeBaseItem) {
+                entry.treeItem.copyCreateScriptToClipboard(true, true);
+            }
+        }));
+
         context.subscriptions.push(commands.registerCommand("msg.editInScriptEditor", async (uri?: Uri) => {
             if (uri?.scheme === "file") {
                 if (!fs.existsSync(uri.fsPath)) {

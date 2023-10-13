@@ -289,7 +289,8 @@ def add_service(**kwargs):
                 },
                 "exceptions": True
             },
-            "returnInternalErrorDetails": True
+            "returnInternalErrorDetails": True,
+            "includeLinksInResults": False
         }
 
         options = resolve_options(options, defaultOptions)
