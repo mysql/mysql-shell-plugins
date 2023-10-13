@@ -63,9 +63,7 @@ exports[`Action Output Tests Action Full Rendering 1`] = `
               style="grid-column: span 2;"
               tabindex="-1"
             >
-              <span
-                class=""
-              >
+              <span>
                 Lorem ipsum dolor sit amet
               </span>
             </label>
@@ -126,7 +124,6 @@ exports[`Action Output Tests Action Full Rendering 1`] = `
             tabIndex={-1}
           >
             <span
-              className=""
               style={
                 {
                   "backgroundColor": undefined,

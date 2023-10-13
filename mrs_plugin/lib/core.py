@@ -719,6 +719,9 @@ def check_request_path(session, request_path):
 def check_mrs_object_names(session, db_schema_id, objects):
     """Checks if the given mrs object name is valid and unique
     """
+    if objects is None:
+        return
+    
     for obj in objects:
         res = session.run_sql("""
                 SELECT o.name
