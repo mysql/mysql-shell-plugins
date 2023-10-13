@@ -622,8 +622,9 @@
 <span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>                <span class="ot">&quot;headers&quot;</span>: <span class="kw">true</span></span>
 <span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>            }</span>
 <span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>        },</span>
-<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>        <span class="ot">&quot;returnInternalErrorDetails&quot;</span>: <span class="kw">true</span></span>
-<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>    };</span></code></pre></div>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>        <span class="ot">&quot;returnInternalErrorDetails&quot;</span>: <span class="kw">true</span>,</span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>        <span class="ot">&quot;includeLinksInResults&quot;</span>: <span class="kw">false</span></span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>    };</span></code></pre></div>
                 <h3 data-number="2.2.1"
                 id="enabling-or-disabling-a-rest-service-at-creation-time"><span
                 class="header-section-number">2.2.1</span> Enabling or
@@ -734,6 +735,8 @@
                 internal errors should be returned. This is useful for
                 application development but should be turned off for
                 production deployments.</li>
+                <li><code>includeLinksInResults</code> - If set to
+                false, the results do not include navigation links.</li>
                 <li><code>defaultStaticContent</code> - Allows the
                 definition of static content for
                 <code>request path</code> of the REST service that will
@@ -794,8 +797,9 @@
 <span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;headers&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
 <span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
 <span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
-<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;returnInternalErrorDetails&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
-<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;returnInternalErrorDetails&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;includeLinksInResults&quot;</span><span class="fu">:</span> <span class="kw">false</span></span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
                 <h3 data-number="2.2.4" id="rest-service-comments"><span
                 class="header-section-number">2.2.4</span> REST Service
                 Comments</h3>

@@ -1508,7 +1508,7 @@ Execute \\help or \\? for help;`;
             this.cachedMrsServiceSdk.code = "const mrsLoginResult = { " +
                 `authApp: "${this.mrsLoginResult.authApp}", jwt: "${this.mrsLoginResult.jwt}" };\n` +
                 (this.cachedMrsServiceSdk.code ?? "");
-            this.cachedMrsServiceSdk.code += 1;
+            this.cachedMrsServiceSdk.codeLineCount = this.cachedMrsServiceSdk.codeLineCount ?? 0 + 1;
             this.cachedMrsServiceSdk.loginCodeAdded = true;
         }
     };

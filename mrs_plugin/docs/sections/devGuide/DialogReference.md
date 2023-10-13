@@ -54,6 +54,7 @@ The following advanced options can be set in JSON format:
     - body: If set to `true`, the full body of all responses are logged.
     - headers: If set to `true`, only the headers of all responses are logged.
   - returnInternalErrorDetails: If set to `true`, the cause errors with code 500 are sent to the client.
+  - includeLinksInResults: If set to `false``, the results do not include navigation links.
 
 #### Default REST Service Options
 

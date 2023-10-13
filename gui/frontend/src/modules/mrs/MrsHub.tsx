@@ -181,6 +181,7 @@ export class MrsHub extends ComponentBase {
                 },
             },
             returnInternalErrorDetails: true,
+            includeLinksInResults: false,
         };
 
         let serviceOptions = "";

@@ -550,7 +550,15 @@
             },
             {
                 "command": "msg.copyCreateScriptToClipboard",
-                "title": "Create Statement"
+                "title": "CREATE Statement"
+            },
+            {
+                "command": "msg.copyCreateScriptWithDelimitersToClipboard",
+                "title": "CREATE Statement with DELIMITERs"
+            },
+            {
+                "command": "msg.copyDropCreateScriptWithDelimitersToClipboard",
+                "title": "DROP & CREATE Statement with DELIMITERs"
             },
             {
                 "command": "msg.editInScriptEditor",
@@ -949,6 +957,16 @@
                 {
                     "command": "msg.copyCreateScriptToClipboard",
                     "group": "1_msg@2"
+                },
+                {
+                    "command": "msg.copyCreateScriptWithDelimitersToClipboard",
+                    "when": "view == msg.connections && viewItem =~ /^schemaRoutineItem.*/",
+                    "group": "1_msg@3"
+                },
+                {
+                    "command": "msg.copyDropCreateScriptWithDelimitersToClipboard",
+                    "when": "view == msg.connections && viewItem =~ /^schemaRoutineItem.*/",
+                    "group": "1_msg@4"
                 }
             ],
             "explorer/context": [

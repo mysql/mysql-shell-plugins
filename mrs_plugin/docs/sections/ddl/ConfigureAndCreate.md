@@ -183,7 +183,8 @@ CREATE OR REPLACE REST SERVICE localhost/myTestService
                 "headers": true
             }
         },
-        "returnInternalErrorDetails": true
+        "returnInternalErrorDetails": true,
+        "includeLinksInResults": false
     };
 ```
 
@@ -236,6 +237,7 @@ These options can include the following JSON keys.
     - `body` - If the content of response bodies should be logged.
     - `headers` - If the content of response headers should be logged.
 - `returnInternalErrorDetails` - If internal errors should be returned. This is useful for application development but should be turned off for production deployments.
+- `includeLinksInResults` - If set to false, the results do not include navigation links.
 - `defaultStaticContent` - Allows the definition of static content for `request path` of the REST service that will be returned for file paths matching the given JSON keys. A JSON key `index.html` will be served as `/myService/index.html` by the MySQL Router if the `request path` of the REST service has been set to `/myService`. The file content needs to be Base64 encoded. If the same JSON key is used for `defaultStaticContent` as well as for `defaultRedirects`, the redirect is prioritized.
 - `defaultRedirects` - Is used to define internal redirects performed by the MySQL Router. This can be used to expose content on the `request path` of the of a REST service. A JSON key `index.html` holding the value `/myService/myContentSet/index.html` will exposed the corresponding file from the given path as `/myService/index.html` if the `request path` of the REST service has been set to `/myService`.
 - `directoryIndexDirective` - Holds an ordered list of files that should be returned when a directory path has been requested. The first matching file that is available will be returned. The `directoryIndexDirective` is recursively applies to all directory paths exposed by the MySQL Router. To change the `directoryIndexDirective` for a given REST object, the corresponding option needs to be set for that object.
@@ -265,7 +267,8 @@ All other keys will be ignored and can be used to store custom metadata about th
             "headers": true
         }
     },
-    "returnInternalErrorDetails": true
+    "returnInternalErrorDetails": true,
+    "includeLinksInResults": false
 }
 ```
 
