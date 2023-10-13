@@ -79,19 +79,20 @@ describe("MySQL REST Service", () => {
     before(async function () {
         await Misc.loadDriver();
         try {
-            await Misc.cleanCredentials();
             await driver.wait(Until.extensionIsReady(), constants.extensionReadyWait, "Extension was not ready");
             await Misc.toggleBottomBar(false);
             await Misc.sectionFocus(constants.dbTreeSection);
             await Database.createConnection(globalConn);
-            await Misc.switchBackToTopFrame();
-            let treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
-            const conn = await Database.getWebViewConnection(globalConn.caption, true);
-            await Misc.switchToFrame();
-            await driver.executeScript("arguments[0].click();", conn);
-            await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
+            await new EditorView().closeAllEditors();
+            expect(await Misc.existsTreeElement(constants.dbTreeSection, globalConn.caption)).to.be.true;
+            await Misc.cleanCredentials();
+            await Misc.openContextMenuItem(await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption),
+                constants.openNewConnection, constants.checkNewTabAndWebView);
+            await driver.wait(Until.dbConnectionIsOpened(), constants.explicitWait * 3,
                 "DB Connection was not loaded");
             await Database.setDBConnectionCredentials(globalConn);
+            await driver.wait(Until.dbConnectionIsSuccessful(), constants.explicitWait * 3,
+                "DB Connection was not successful");
             let result = await Misc.execCmd("DROP SCHEMA IF EXISTS `mysql_rest_service_metadata`;",
                 undefined, constants.explicitWait * 2);
             expect(result[0]).to.match(/OK/);
@@ -102,9 +103,10 @@ describe("MySQL REST Service", () => {
             result = await Misc.execCmd(sql);
             expect(result[0]).to.match(/OK/);
             await Misc.switchBackToTopFrame();
-            treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
-            await Misc.expandDBConnectionTree(treeGlobalConn,
-                (globalConn.basic as interfaces.IConnBasicMySQL).password);
+            if (await Misc.requiresMRSMetadataUpgrade(globalConn)) {
+                await Misc.upgradeMRSMetadata();
+            }
+            const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
             await Misc.openContextMenuItem(treeGlobalConn, constants.configureREST, constants.checkNotif);
             const ntf = await Misc.getNotification(
                 `Do you want to configure this instance for MySQL REST Service Support?`, false);
@@ -232,7 +234,8 @@ describe("MySQL REST Service", () => {
             await Misc.waitForTerminalText("Once the MySQL Router is started", constants.explicitWait * 2);
             expect(await Misc.terminalHasErrors()).to.be.false;
             expect(await Misc.existsTreeElement(constants.dbTreeSection, new RegExp(hostname()))).to.be.true;
-
+            const router = await Misc.getTreeElement(constants.dbTreeSection, new RegExp(hostname()));
+            expect(await Misc.routerHasError(router), "Please update Router").to.be.false;
         });
 
         it("Start Local MySQL Router Instance", async () => {
@@ -1032,21 +1035,35 @@ describe("MySQL REST Service", () => {
             response = undefined;
         });
 
-        after(async () => {
-            const treeMySQLRESTService = await Misc.getTreeElement(constants.dbTreeSection, "MySQL REST Service");
-            await Misc.openContextMenuItem(treeMySQLRESTService, constants.stopRouter, constants.checkTerminal);
-            await Misc.waitForTerminalText(["mysqlrouter\\stop", "Unloading all plugins"], constants.explicitWait * 2);
-            await driver.wait(async () => {
-                const treeRouter = await Misc.getTreeElement(constants.dbTreeSection, new RegExp(hostname()));
-                await Misc.clickSectionToolbarButton(await Misc.getSection(constants.dbTreeSection),
-                    constants.reloadConnections);
-                await driver.wait(Until.isNotLoading(constants.dbTreeSection), constants.explicitWait * 2,
-                    `${constants.dbTreeSection} is still loading`);
+        after(async function () {
+            try {
+                const treeMySQLRESTService = await Misc.getTreeElement(constants.dbTreeSection, "MySQL REST Service");
+                await Misc.openContextMenuItem(treeMySQLRESTService, constants.stopRouter, constants.checkTerminal);
+                await Misc.waitForTerminalText(["mysqlrouter\\stop", "Unloading all plugins"],
+                    constants.explicitWait * 2);
+                await driver.wait(async () => {
+                    const treeRouter = await Misc.getTreeElement(constants.dbTreeSection, new RegExp(hostname()));
+                    await Misc.clickSectionToolbarButton(await Misc.getSection(constants.dbTreeSection),
+                        constants.reloadConnections);
+                    await driver.wait(Until.isNotLoading(constants.dbTreeSection), constants.explicitWait * 2,
+                        `${constants.dbTreeSection} is still loading`);
 
-                return (await Misc.isRouterActive(treeRouter)) === false;
-            }, constants.explicitWait * 3, `Router did not became inactive`);
+                    return (await Misc.isRouterActive(treeRouter)) === false;
+                }, constants.explicitWait * 3, `Router did not became inactive`);
 
-            await Misc.openContextMenuItem(treeMySQLRESTService, constants.killRouters, undefined);
+                await Misc.openContextMenuItem(treeMySQLRESTService, constants.killRouters, undefined);
+                const router = await Misc.getTreeElement(constants.dbTreeSection, new RegExp(hostname()));
+                const routerName = await router.getLabel();
+                await Misc.openContextMenuItem(router, constants.deleteRouter, undefined);
+                const ntf = await Misc.getNotification(`Are you sure the MRS router ${routerName} should be deleted?`,
+                    false);
+                await Misc.clickOnNotificationButton(ntf, "Yes");
+                expect(await Misc.existsTreeElement(constants.dbTreeSection, routerName)).to.be.false;
+
+            } catch (e) {
+                await Misc.processFailure(this);
+                throw e;
+            }
         });
 
         it("Get schema metadata", async () => {

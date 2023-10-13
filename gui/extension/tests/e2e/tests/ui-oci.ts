@@ -449,7 +449,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 await Misc.sectionFocus(constants.dbTreeSection);
                 const dbConnections = await Misc.getDBConnections();
                 for (const dbConnection of dbConnections) {
-                    await Misc.deleteConnection(dbConnection.name, dbConnection.isMySQL, true);
+                    await Misc.deleteConnection(dbConnection.name, dbConnection.isMySQL, false);
                 }
             } catch (e) {
                 await Misc.processFailure(this);
@@ -549,7 +549,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             if (!await Misc.isDBSystemStopped(treeDbSystem)) {
                 await Misc.openContextMenuItem(treeDbSystem, constants.createConnWithBastion,
                     constants.checkNewTabAndWebView);
-                await driver.wait(Database.isConnectionLoaded(), constants.explicitWait, "Connection was not loaded");
+                await driver.wait(Until.dbConnectionIsOpened(), constants.explicitWait, "Connection was not opened");
                 const newConDialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
                     10000, "Connection dialog was not loaded");
 
@@ -623,8 +623,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                     // continue
                 }
 
-                await driver.wait(Database.isConnectionLoaded(),
-                    constants.ociExplicitWait, "Connection was not loaded");
+                await driver.wait(Until.dbConnectionIsOpened(), constants.explicitWait, "Connection was not opened");
                 const result = await Misc.execCmd("select version();", undefined, 10000);
                 expect(result[0]).to.include("OK");
                 await Misc.switchBackToTopFrame();
@@ -710,8 +709,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             const treeLocalConn = await Misc.getTreeElement(constants.dbTreeSection, localConn.caption);
             await new EditorView().closeAllEditors();
             await (await Misc.getActionButton(treeLocalConn, constants.openNewConnection)).click();
-            await driver.wait(Database.isConnectionLoaded(), constants.explicitWait * 3,
-                "DB Connection was not loaded");
+            await driver.wait(Until.dbConnectionIsOpened(), constants.explicitWait, "Connection was not opened");
             await Database.setDBConnectionCredentials(localConn, 30000);
             const result = await Misc.execCmd("select version();", undefined, 10000);
             expect(result[0]).to.include("OK");

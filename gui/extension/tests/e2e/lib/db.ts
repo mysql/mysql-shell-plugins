@@ -273,19 +273,6 @@ export class Database {
         await dialog.findElement(locator.passwordDialog.ok).click();
     };
 
-    public static isConnectionLoaded = (): Condition<boolean> => {
-        return new Condition("DB is not loaded", async () => {
-            await Misc.switchBackToTopFrame();
-            await Misc.switchToFrame();
-            const st1 = await driver.findElements(locator.passwordDialog.exists);
-            const st2 = await driver.findElements(locator.notebook.codeEditor.textArea);
-            const st3 = await driver.findElements(locator.shellConsole.title);
-            //const st4 = await driver.findElements(locator.generic.resultPaneHost);
-
-            return st1.length > 0 || st2.length > 0 || st3.length > 0;
-        });
-    };
-
     public static requiresCredentials = async (): Promise<boolean> => {
         return (await driver.findElements(locator.passwordDialog.exists)).length > 0;
     };

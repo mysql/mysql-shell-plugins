@@ -56,6 +56,27 @@ export const isFELoaded = (): Condition<boolean> => {
     });
 };
 
+export const dbConnectionIsOpened = (): Condition<boolean> => {
+    return new Condition("DB loaded", async () => {
+        await Misc.switchBackToTopFrame();
+        await Misc.switchToFrame();
+        const st1 = await driver.findElements(locator.passwordDialog.exists);
+        const st2 = await driver.findElements(locator.notebook.codeEditor.textArea);
+        const st3 = await driver.findElements(locator.shellConsole.title);
+
+        return st1.length > 0 || st2.length > 0 || st3.length > 0;
+    });
+};
+
+export const dbConnectionIsSuccessful = (): Condition<boolean> => {
+    return new Condition("DB Connection is successful", async () => {
+        await Misc.switchBackToTopFrame();
+        await Misc.switchToFrame();
+
+        return (await driver.findElements(locator.notebook.codeEditor.textArea)).length > 0;
+    });
+};
+
 export const extensionIsReady = (): Condition<boolean> => {
     return new Condition("Extension was not ready", async () => {
         let tryNumber = 1;

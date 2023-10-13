@@ -27,7 +27,7 @@ $basePath = Get-Location
 $env:WORKSPACE = Resolve-Path(Join-Path $basePath ".." ".." ".." "..")
 
 if (!$env:TEST_SUITE){
-    Throw "Please define the TEST_SUITE (db, notebook, oci, shell, rest)"
+    Throw "Please define the TEST_SUITE (db, notebook, oci, shell, rest, open-editors)"
 }
 
 $env:MYSQLSH_GUI_CUSTOM_CONFIG_DIR = Join-Path $home "mysqlsh-$env:TEST_SUITE"

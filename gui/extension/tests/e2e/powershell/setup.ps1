@@ -26,7 +26,7 @@ $basePath = Join-Path $PSScriptRoot ".."
 Set-Location $basePath
 $basePath = Get-Location
 $env:WORKSPACE = Resolve-Path(Join-Path $basePath ".." ".." ".." "..")
-$testSuites = @("db", "notebook", "oci", "shell", "rest")
+$testSuites = @("db", "notebook", "oci", "shell", "rest", "open-editors")
 
 try {
     $err = 0
@@ -46,11 +46,6 @@ try {
     if (!$env:VSCODE_VERSION){
         Throw "Please define 'VSCODE_VERSION' env variable"
     }
-
-    $aux_proxy = $env:HTTP_PROXY
-    $aux_http_proxy = $env:HTTPS_PROXY
-    $env:HTTP_PROXY = ""
-    $env:HTTPS_PROXY = ""
 
     function installChromedriver($location, $vscodeVersion) {
         Start-Job -Name "get-chromedriver-$testSuite" -ScriptBlock { 
@@ -116,6 +111,7 @@ try {
     writeMsg "VSIX_PATH: $env:VSIX_PATH"
     writeMsg "USER PROFILE: $env:USERPROFILE"
     writeMsg "BASE PATH: $basePath"
+    writeMsg "PROXY: $env:HTTPS_PROXY"
 
     # REMOVE INSTALLED EXTENSION
     ForEach ($testSuite in $testSuites) {
@@ -130,12 +126,6 @@ try {
             }
             writeMsg "DONE"
         }
-    }
-
-    if ($env:USE_PROXY) {
-        writeMsg "Using PROXY $env:USE_PROXY"
-        $env:HTTP_PROXY=$env:USE_PROXY
-        $env:HTTPS_PROXY=$env:USE_PROXY
     }
 
     # CHECK IF VSCODE EXISTS

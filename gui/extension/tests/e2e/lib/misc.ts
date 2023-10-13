@@ -37,7 +37,7 @@ import * as constants from "./constants";
 import { keyboard, Key as nutKey } from "@nut-tree/nut-js";
 import * as Until from "./until";
 import * as locator from "./locators";
-import { ITreeDBConnection } from "./interfaces";
+import * as interfaces from "./interfaces";
 export let driver: WebDriver;
 export let browser: VSBrowser;
 
@@ -168,7 +168,8 @@ export class Misc {
                     await Misc.selectContextMenuItem(treeItem, ctxMenuItem, map);
 
                     return Misc.existsNotifications();
-                }, constants.explicitWait * 2, `No new tab was opened after selecting ${ctxMenuItem.toString()}`);
+                }, constants.explicitWait * 2,
+                    `No notification was displayed after selecting ${ctxMenuItem.toString()}`);
                 break;
             }
             case constants.checkInput: {
@@ -587,7 +588,6 @@ export class Misc {
     };
 
     public static getNotification = async (text: string, dismiss = true): Promise<Notification> => {
-
         let notif: Notification;
         await driver.wait(async () => {
             try {
@@ -1014,6 +1014,13 @@ export class Misc {
         return !style.includes("routerNotActive");
     };
 
+    public static routerHasError = async (treeItem: TreeItem): Promise<boolean> => {
+        const icon = await treeItem.findElement(locator.section.itemIcon);
+        const style = await icon.getAttribute("style");
+
+        return style.includes("routerError");
+    };
+
     public static sectionFocus = async (section: string): Promise<void> => {
         const treeDBSection = await Misc.getSection(constants.dbTreeSection);
         const treeOCISection = await Misc.getSection(constants.ociTreeSection);
@@ -1206,8 +1213,8 @@ export class Misc {
         }
     };
 
-    public static getDBConnections = async (): Promise<ITreeDBConnection[]> => {
-        const dbConnections: ITreeDBConnection[] = [];
+    public static getDBConnections = async (): Promise<interfaces.ITreeDBConnection[]> => {
+        const dbConnections: interfaces.ITreeDBConnection[] = [];
         await Misc.switchBackToTopFrame();
         await Misc.sectionFocus(constants.dbTreeSection);
         await Misc.clickSectionToolbarButton(await Misc.getSection(constants.dbTreeSection), constants.collapseAll);
@@ -1274,12 +1281,11 @@ export class Misc {
         if (verifyDelete === true) {
             await driver.wait(async () => {
                 try {
-                    const treeSection = await Misc.getSection(constants.dbTreeSection);
-                    await Misc.clickSectionToolbarButton(treeSection, constants.reloadConnections);
-
-                    return (await treeSection.findItem(dbName)) === undefined;
+                    return !(await Misc.existsTreeElement(constants.dbTreeSection, dbName));
                 } catch (e) {
-                    return false;
+                    if (!(e instanceof error.StaleElementReferenceError)) {
+                        throw e;
+                    }
                 }
             }, constants.explicitWait, `${dbName} was not deleted`);
         }
@@ -1386,6 +1392,22 @@ export class Misc {
         }
     };
 
+    public static requiresMRSMetadataUpgrade = async (dbConnection: interfaces.IDBConnection): Promise<boolean> => {
+        const dbTreeConnection = await Misc.getTreeElement(constants.dbTreeSection, dbConnection.caption);
+        await Misc.cleanCredentials();
+        await Misc.expandDBConnectionTree(dbTreeConnection,
+            (dbConnection.basic as interfaces.IConnBasicMySQL).password);
+        if ((await Misc.existsNotifications(2000)) === true) {
+            return (await Misc.getNotification("This MySQL Shell version requires a new minor version")) !== undefined;
+        }
+    };
+
+    public static upgradeMRSMetadata = async (): Promise<void> => {
+        const notification = await Misc.getNotification("This MySQL Shell version requires a new minor version");
+        await Misc.clickOnNotificationButton(notification, "Yes");
+        await Misc.getNotification("The MySQL REST Service Metadata Schema has been updated");
+    };
+
     public static selectContextMenuItem = async (
         treeItem: TreeItem,
         ctxMenuItem: string | string[],
@@ -1490,10 +1512,10 @@ export class Misc {
 
     };
 
-    private static existsNotifications = async (): Promise<boolean> => {
+    private static existsNotifications = async (timeout = constants.explicitWait): Promise<boolean> => {
         return driver.wait(async () => {
             return (await new Workbench().getNotifications()).length > 0;
-        }, constants.explicitWait).catch(() => {
+        }, timeout).catch(() => {
             return false;
         });
     };
