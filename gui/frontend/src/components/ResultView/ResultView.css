@@ -214,20 +214,26 @@
     white-space: pre-wrap;
 }
 
-/* TODO: Temporary fix, since this overwrites error formatting
-
-.msg .resultText.actionLabel,
-.zoneHost .resultText {
+.msg .resultText.actionLabel:not(.error, .warning),
+.zoneHost .resultText:not(.error, .warning) {
     background-color: var(--editorZone-background);
     color: var(--resultZone-foreground);
     white-space: pre-wrap;
     cursor: text;
     user-select: text;
-}*/
+}
 
 .msg .resultText.actionLabel,
 .zoneHost .resultText.text {
     white-space: pre;
+    flex: 1;
+}
+
+.msg .resultText.actionLabel.error,
+.zoneHost .resultText.text.error,
+.msg .resultText.actionLabel.warning,
+.zoneHost .resultText.text.warning {
+    white-space: pre-wrap;
     flex: 1;
 }
 

@@ -228,7 +228,7 @@ export class Label extends ComponentBase<ILabelProperties, ILabelState> {
                 return (
                     <span
                         key={index}
-                        className={className}
+                        className={className ? className : undefined}
                         style={style}
                     >
                         {value.content}
