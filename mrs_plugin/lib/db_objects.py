@@ -389,10 +389,9 @@ def update_db_objects(session, db_object_ids, value):
 
     for db_object_id in db_object_ids:
         objects = value.pop("objects", None)
-        db_object = get_db_object(session, db_object_id)
 
         if objects is not None:
-            core.check_mrs_object_names(session=session, db_schema_id=db_object["db_schema_id"], objects=objects)
+            core.check_mrs_object_names(session=session, db_schema_id=value["db_schema_id"], objects=objects)
 
         core.update("db_object",
                     sets=value,
@@ -400,6 +399,8 @@ def update_db_objects(session, db_object_ids, value):
 
         grant_privileges = map_crud_operations(
             value.get("crud_operations", []))
+        
+        db_object = get_db_object(session, db_object_id)
 
         schema = schemas.get_schema(session, db_object["db_schema_id"])
 
