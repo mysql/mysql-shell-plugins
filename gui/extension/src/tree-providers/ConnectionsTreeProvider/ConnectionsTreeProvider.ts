@@ -1151,6 +1151,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
                     };
 
                     this.connections.push(connection);
+                    this.refresh(); // Refresh the parent of the new connection (which is the root).
                 }
 
                 break;
@@ -1191,6 +1192,8 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
                     await connection.treeItem.backend.closeSession();
                     this.connections.splice(this.connections.indexOf(connection), 1);
                 }
+
+                this.refresh();
 
                 break;
             }
