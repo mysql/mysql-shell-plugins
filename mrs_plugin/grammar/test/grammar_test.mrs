@@ -4,15 +4,6 @@ Copyright (c) 2023, Oracle and/or its affiliates. */
 # cSpell:ignore gtid
 CONFIGURE REST METADATA
     ENABLED
-    OPTIONS {
-        "gtid": {
-            "cache": {
-                "enable": true,
-                "refresh_rate": 5,
-                "refresh_when_increases_by": 500
-            }
-        }
-    }
     UPDATE IF AVAILABLE;
 
 CREATE OR REPLACE REST SERVICE localhost/myTestService;

@@ -242,7 +242,6 @@ interface IMrsServiceSdkMetadata {
     codeLineCount?: number;
     schemaId?: string,
     schemaMetadataVersion?: string,
-    loginCodeAdded?: boolean;
 }
 
 // A tab page for a single connection (managed by the scripting module).
@@ -674,11 +673,15 @@ Execute \\help or \\? for help;`;
         }
     };
 
-    private cancelMrsAuthentication = (request: IServicePasswordRequest): Promise<boolean> => {
+    private cancelMrsAuthentication = async (request: IServicePasswordRequest): Promise<boolean> => {
         this.notebookRef.current?.focus();
 
         // Clear mrsLoginResult
         this.mrsLoginResult = undefined;
+
+        // Manually trigger a refresh of the cached
+        this.cachedMrsServiceSdk.schemaMetadataVersion = undefined;
+        await this.updateMrsServiceSdkCache();
 
         // Get payload
         const payload: IMrsAuthRequestPayload = request.payload as IMrsAuthRequestPayload;
@@ -691,7 +694,7 @@ Execute \\help or \\? for help;`;
         }
     };
 
-    private acceptMrsAuthentication = (
+    private acceptMrsAuthentication = async (
         data: { request: IServicePasswordRequest; password: string; }): Promise<boolean> => {
 
         this.notebookRef.current?.focus();
@@ -701,8 +704,12 @@ Execute \\help or \\? for help;`;
             const payload: IMrsAuthRequestPayload = data.request.payload as IMrsAuthRequestPayload;
 
             if (data.request.service && payload.loginResult) {
-                // Set mrsLoginResult so it can be appended to each following execution context
+                // Set mrsLoginResult so it can be added to each following execution context
                 this.mrsLoginResult = payload.loginResult;
+
+                // Manually trigger a refresh of the cached
+                this.cachedMrsServiceSdk.schemaMetadataVersion = undefined;
+                await this.updateMrsServiceSdkCache();
 
                 if (payload.contextId && data.request.user) {
                     this.addContextResultMessage(payload.contextId,
@@ -1431,6 +1438,16 @@ Execute \\help or \\? for help;`;
                     if (this.cachedMrsServiceSdk.schemaId !== serviceMetadata.id ||
                         this.cachedMrsServiceSdk.schemaMetadataVersion !== serviceMetadata.metadataVersion) {
                         let firstLoad = false;
+                        let authenticated = false;
+                        let code = "";
+
+                        // Add the mrsLoginResult constant at top, if defined
+                        if (this.mrsLoginResult && this.mrsLoginResult.authApp && this.mrsLoginResult.jwt) {
+                            code = "const mrsLoginResult = { " +
+                                `authApp: "${this.mrsLoginResult.authApp}", jwt: "${this.mrsLoginResult.jwt}" };\n`;
+                            authenticated = true;
+                        }
+
                         // Fetch SDK BaseClasses only once
                         if (this.cachedMrsServiceSdk.baseClasses === undefined) {
                             void updateStatusbar("$(loading~spin) Loading MRS SDK Base Classes ...");
@@ -1442,7 +1459,7 @@ Execute \\help or \\? for help;`;
                         // Fetch new SDK Service Classes and build full code
                         void updateStatusbar(`$(loading~spin) ${firstLoad ? "Loading" : "Refreshing"} MRS SDK for ` +
                             `${serviceMetadata.hostCtx}...`);
-                        const code = this.cachedMrsServiceSdk.baseClasses + "\n" +
+                        code += this.cachedMrsServiceSdk.baseClasses + "\n" +
                             await backend.mrs.getSdkServiceClasses(
                                 serviceMetadata.id, "TypeScript", true, this.cachedMrsServiceSdk.serviceUrl);
 
@@ -1451,10 +1468,6 @@ Execute \\help or \\? for help;`;
                         this.cachedMrsServiceSdk.codeLineCount = (code.match(/\n/gm) ?? []).length + 1;
                         this.cachedMrsServiceSdk.schemaId = serviceMetadata.id;
                         this.cachedMrsServiceSdk.schemaMetadataVersion = serviceMetadata.metadataVersion;
-                        this.cachedMrsServiceSdk.loginCodeAdded = false;
-
-                        // Add the mrsLoginResult constant at top
-                        this.addMrsLoginCodeToCachedMrsServiceSdk();
 
                         const libVersionNotebook = this.notebookRef.current?.addOrUpdateExtraLib(
                             this.cachedMrsServiceSdk.code, `mrsServiceSdk.d.ts`) ?? 0;
@@ -1462,7 +1475,9 @@ Execute \\help or \\? for help;`;
                             this.cachedMrsServiceSdk.code, `mrsServiceSdk.d.ts`);
 
                         const action = firstLoad ? "loaded" : ("refreshed (v" + String(libVersionNotebook) + ")");
-                        void updateStatusbar(`MRS SDK for ${serviceMetadata.hostCtx} has been ${action}.`, 5000);
+                        const authInfo = authenticated ? " User authenticated." : "";
+                        void updateStatusbar(
+                            `MRS SDK for ${serviceMetadata.hostCtx} has been ${action}.${authInfo}`, 5000);
                     } else {
                         void updateStatusbar();
                     }
@@ -1496,20 +1511,6 @@ Execute \\help or \\? for help;`;
             }
         } else {
             return false;
-        }
-    };
-
-    /**
-     * Adds the mrsLoginResult constant at the top of the code, if it has not been added yet
-     */
-    private addMrsLoginCodeToCachedMrsServiceSdk = (): void => {
-        if (this.mrsLoginResult && this.cachedMrsServiceSdk.loginCodeAdded !== true &&
-            this.mrsLoginResult.authApp && this.mrsLoginResult.jwt) {
-            this.cachedMrsServiceSdk.code = "const mrsLoginResult = { " +
-                `authApp: "${this.mrsLoginResult.authApp}", jwt: "${this.mrsLoginResult.jwt}" };\n` +
-                (this.cachedMrsServiceSdk.code ?? "");
-            this.cachedMrsServiceSdk.codeLineCount = this.cachedMrsServiceSdk.codeLineCount ?? 0 + 1;
-            this.cachedMrsServiceSdk.loginCodeAdded = true;
         }
     };
 
@@ -1580,9 +1581,6 @@ Execute \\help or \\? for help;`;
                 await this.updateMrsServiceSdkCache();
 
                 const usesAwait = context.code.includes("await ");
-
-                // Add the mrsLoginResult constant at top, if it has not been added yet
-                this.addMrsLoginCodeToCachedMrsServiceSdk();
 
                 // Execute the code
                 workerPool.runTask({

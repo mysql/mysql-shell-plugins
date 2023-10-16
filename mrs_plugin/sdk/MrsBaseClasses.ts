@@ -927,6 +927,18 @@ export class MrsBaseObjectQuery<C, P> {
 
         const responseBody = await res.json();
 
+        // Remove links from response and response items
+        if ("links" in responseBody) {
+            responseBody.links = undefined;
+        }
+        if (responseBody.items) {
+            for (const item of responseBody.items) {
+                if ("links" in item) {
+                    item.links = undefined;
+                }
+            }
+        }
+
         return responseBody as IMrsResultList<C>;
     };
 
@@ -982,6 +994,8 @@ export class MrsBaseObjectQuery<C, P> {
     };
 
     public fetchOne = async (): Promise<C | undefined> => {
+        this.limitCondition = 1;
+
         const resultList = await this.fetch();
 
         if (resultList.items.length >= 1) {
