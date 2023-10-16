@@ -440,6 +440,7 @@ export const setupShellForTests = (showOutput: boolean, handleEvents = true,
 
             appParameters.set("shellUserConfigDir", path.resolve(targetDir));
         } catch (error) {
+            fs.rmdirSync(targetDir, { recursive: true });
             reject(error);
 
             return;
