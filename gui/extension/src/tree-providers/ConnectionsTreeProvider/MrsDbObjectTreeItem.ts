@@ -38,7 +38,7 @@ export class MrsDbObjectTreeItem extends MrsTreeBaseItem {
     }
 
     private static getIconName = (value: IMrsDbObjectData): string => {
-        let iconName = "mrsDbObject" + convertToPascalCase(value.objectType);
+        let iconName = "mrsDbObject" + convertToPascalCase(value.objectType.toLowerCase());
         iconName += value.requiresAuth === 1 ? "Locked" : "";
         iconName += value.enabled !== 1 ? "Disabled" : "";
 

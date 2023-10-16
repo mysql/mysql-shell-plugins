@@ -2,13 +2,10 @@
 
 ## Changes in 1.13.3+8.1.1
 
-### Additions
-
-- 
-
 ### Fixes
 
-- 
+- Updated download links for MySQL Router 8.1 MRS Preview 5
+- Fixed wrong MRS db object icons on case sensitive file systems
 
 ## Changes in 1.13.2+8.1.1
 

@@ -23,8 +23,8 @@
 
 body,
 body.vscode-high-contrast.vscode-high-contrast-light {
-    --background-color-main: #fcfbfa;
-    --background-color-toc: #fff;
+    --background-color-toc: #fcfbfa;
+    --background-color-main: #fff;
     --text-color-primary: #333333;
     --text-color-toc: rgb(40, 40, 40);
     --text-color-toc-active: rgb(0, 0, 0);
@@ -39,12 +39,13 @@ body.vscode-high-contrast.vscode-high-contrast-light {
     --text-color-code: rgb(26, 24, 22);
     --font-weight: 400;
     --font-weight-toc: 600;
+    --title-gradient: linear-gradient(#475150,#2c2e2e);
 }
 
 body.vscode-high-contrast,
 body.vscode-dark {
-    --background-color-main: rgb(35, 28, 21);
-    --background-color-toc: rgb(24, 26, 27);
+    --background-color-toc: rgb(35, 28, 21);
+    --background-color-main: rgb(24, 26, 27);
     --text-color-primary: rgb(217, 214, 209);
     --text-color-toc: rgb(162, 160, 157);
     --text-color-toc-active: rgb(232, 230, 227);
@@ -59,13 +60,14 @@ body.vscode-dark {
     --text-color-code: rgb(217, 214, 209);
     --font-weight: 300;
     --font-weight-toc: 500;
+    --title-gradient: linear-gradient(#292f2e,#323a39);
 }
 
 @media (prefers-color-scheme: dark) {
 
     body:not(.vscode-light):not(.vscode-high-contrast-light) {
-        --background-color-main: rgb(35, 28, 21);
-        --background-color-toc: rgb(24, 26, 27);
+        --background-color-toc: rgb(35, 28, 21);
+        --background-color-main: rgb(24, 26, 27);
         --text-color-primary: rgb(217, 214, 209);
         --text-color-toc: rgb(162, 160, 157);
         --text-color-toc-active: rgb(232, 230, 227);
@@ -80,6 +82,7 @@ body.vscode-dark {
         --text-color-code: rgb(217, 214, 209);
         --font-weight: 300;
         --font-weight-toc: 500;
+        --title-gradient: linear-gradient(#292f2e,#323a39);
     }
 }
 
@@ -109,17 +112,24 @@ body {
 }
 
 .header {
-    background: url(../images/banner-abstract-blue.jpg), #36677D;
-    background-repeat: no-repeat;
-    background-size: 1600px auto;
-    padding-top: 9px;
-    padding-bottom: 10px;
+    background: var(--title-gradient);
+
+    padding-top: 24px;
+    padding-bottom: 24px;
     padding-left: 25px;
 }
 
+.content .header:not(tr) {
+    background: url(../images/stripe-slate.png), var(--title-gradient);
+    background-repeat: no-repeat;
+    background-size: 1600px auto;
+    background-position-y: bottom;
+}
+
 .header h1 {
-    font-size: 28px;
-    font-weight: 700;
+    font-family: "Georgia", "Times New Roman", "Times", "Garamond", "Noto Sans Arabic", "Noto Sans Arabic UI", "Noto Sans Hebrew", sans-serif;
+    font-size: 36px;
+    font-weight: 400;
     font-style: normal;
     font-stretch: normal;
     line-height: 1.25;
@@ -168,7 +178,7 @@ td {
 .sidebar {
     width: 280px;
     background-color: var(--background-color-toc);
-    border-right: 2px solid var(--splitter-color);
+    border-right: 1px solid var(--splitter-color);
     overflow-y: overlay;
 }
 

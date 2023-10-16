@@ -50,12 +50,30 @@ The enabledDisabled option specifies if the MySQL REST Service should be enabled
 enabledDisabled ::=
 ![enabledDisabled](../../images/ddl/enabledDisabled.svg "enabledDisabled")
 
-**_Example_**
+**_Examples_**
 
-The following example disables the MySQL REST Service.
+The following example configures the MySQL REST Service and enables it and updates the metadata schema, if possible.
 
 ```sql
-CONFIGURE REST METADATA DISABLED;
+CONFIGURE REST METADATA
+    ENABLED
+    UPDATE IF AVAILABLE;
+```
+
+The following example configures the MySQL REST Service and enables the GTID cache.
+
+```sql
+CONFIGURE REST METADATA
+    ENABLED
+    OPTIONS {
+        "gtid": {
+            "cache": {
+                "enable": true,
+                "refresh_rate": 5,
+                "refresh_when_increases_by": 500
+            }
+        }
+    };
 ```
 
 ### REST Configuration Json Options
@@ -67,6 +85,16 @@ jsonOptions ::=
 
 These options can include the following JSON keys.
 
+- `gtid`
+  - Defines global settings for the MySQL GTID handling, using the following fields.
+  - `cache`
+    - Is used to configure the MySQL Router's GTID cache.
+    - `enable`
+      - If set to `true` GTIDs will be cached by the MySQL Router.
+    - `refresh_rate`
+      - Defines how often the GTID cache will be refreshed. Set seconds, e.g. 5.
+    - `refresh_when_increases_by`
+      - In addition to the time based refresh, the GTID cache can also be refreshed based on the number of transactions that happened since the last refresh. Set in number of transactions, e.g. 500.
 - `defaultStaticContent`
   - Allows the definition of static content for the root path `/` that will be returned for file paths matching the given JSON keys. A JSON key `index.html` will be  served as `/index.html` by the MySQL Router. The file content needs to be Base64 encoded. If the same JSON key is used for `defaultStaticContent` as well as for `defaultRedirects`, the redirect is prioritized.
 - `defaultRedirects`
