@@ -273,7 +273,7 @@ def get_current_session(session=None):
 
     # Check if the user provided a session or there is an active global session
     session = mysqlsh.globals.shell.get_session()
-    if session is None:
+    if session is None or not session.is_open():
         raise Exception(
             "MySQL session not specified. Please either pass a session "
             "object when calling the function or open a database "
