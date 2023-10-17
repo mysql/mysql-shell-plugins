@@ -272,6 +272,8 @@ def configure(session=None, enable_mrs=None, options=None,
         print("MySQL Rest Data Service configuration.\n\n"
               "Checking MRS metadata schema and version...")
 
+    session = lib.core.get_current_session(session)
+
     if lib.core.mrs_metadata_schema_exists(session) and interactive:
         current_db_version = lib.core.get_mrs_schema_version(session)
 
