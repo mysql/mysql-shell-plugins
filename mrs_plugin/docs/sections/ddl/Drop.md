@@ -27,6 +27,12 @@ An existing REST service can be dropped by using the `DROP REST SERVICE` stateme
 
 **_SYNTAX_**
 
+```antlr
+dropRestServiceStatement:
+    DROP REST SERVICE serviceRequestPath
+;
+```
+
 dropRestServiceStatement ::=
 ![dropRestServiceStatement](../../images/ddl/dropRestServiceStatement.svg "dropRestServiceStatement")
 
@@ -44,6 +50,14 @@ An existing REST schema can be dropped by using the `DROP REST SCHEMA` statement
 
 **_SYNTAX_**
 
+```antlr
+dropRestSchemaStatement:
+    DROP REST DATABASE schemaRequestPath (
+        FROM SERVICE? serviceRequestPath
+    )?
+;
+```
+
 dropRestSchemaStatement ::=
 ![dropRestSchemaStatement](../../images/ddl/dropRestSchemaStatement.svg "dropRestSchemaStatement")
 
@@ -60,6 +74,13 @@ DROP REST SCHEMA /sakila FROM SERVICE /myService;
 The `DROP REST DUALITY VIEW` statement is used to drop existing REST duality views.
 
 **_SYNTAX_**
+
+```antlr
+dropRestDualityViewStatement:
+    DROP REST RELATIONAL? JSON? DUALITY? VIEW
+        viewRequestPath (FROM serviceSchemaSelector)?
+;
+```
 
 dropRestDualityViewStatement ::=
 ![dropRestDualityViewStatement](../../images/ddl/dropRestDualityViewStatement.svg "dropRestDualityViewStatement")
@@ -79,6 +100,14 @@ The `DROP REST PROCEDURE` statement is used to drop an existing REST procedures.
 
 **_SYNTAX_**
 
+```antlr
+dropRestProcedureStatement:
+    DROP REST PROCEDURE procedureRequestPath (
+        FROM serviceSchemaSelector
+    )?
+;
+```
+
 dropRestProcedureStatement ::=
 ![dropRestProcedureStatement](../../images/ddl/dropRestProcedureStatement.svg "dropRestProcedureStatement")
 
@@ -87,6 +116,14 @@ dropRestProcedureStatement ::=
 The `DROP REST CONTENT SET` statement is used to drop an existing REST static content set.
 
 **_SYNTAX_**
+
+```antlr
+dropRestContentSetStatement:
+    DROP REST CONTENT SET contentSetRequestPath (
+        FROM SERVICE? serviceRequestPath
+    )?
+;
+```
 
 dropRestContentSetStatement ::=
 ![dropRestContentSetStatement](../../images/ddl/dropRestContentSetStatement.svg "dropRestContentSetStatement")
@@ -97,13 +134,30 @@ The `DROP REST AUTH APP` statement is used to drop an existing REST authenticati
 
 **_SYNTAX_**
 
+```antlr
+dropRestAuthAppStatement:
+    DROP REST (AUTH | AUTHENTICATION) APP authAppName (
+        FROM SERVICE? serviceRequestPath
+    )?
+;
+```
+
 dropRestAuthAppStatement ::=
 ![dropRestAuthAppStatement](../../images/ddl/dropRestAuthAppStatement.svg "dropRestAuthAppStatement")
 
 ## DROP REST USER
 
 The `DROP REST USER` statement is used to drop an existing REST user from a REST authentication app.
+
 **_SYNTAX_**
+
+```antlr
+dropRestUserStatement:
+    DROP REST USER userName AT_SIGN authAppName (
+        ON SERVICE? serviceRequestPath
+    )?
+;
+```
 
 dropRestUserStatement ::=
 ![dropRestUserStatement](../../images/ddl/dropRestUserStatement.svg "dropRestUserStatement")

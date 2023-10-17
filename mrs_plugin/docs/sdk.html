@@ -17,31 +17,67 @@
     </style>
         <script>
         window.addEventListener('DOMContentLoaded', () => {
-            const observer = new IntersectionObserver(entries => {
-                entries.forEach(entry => {
+            window.visibleItems = [];
+            window.lastVisible = null;
+            const observer = new IntersectionObserver((entries) => {
+                console.log("IntersectionObserver - after enter");
+                console.log(window.visibleItems);
+                console.log(window.lastVisible);
+                // Add active css class to first match
+                entries.forEach((entry) => {
                     const id = entry.target.getAttribute('id');
-                    if (entry.intersectionRatio > 0) {
-                        const querySel = document.querySelector(`nav li a[href="#` + id + `"]`);
-                        if (querySel) {
-                            const e = querySel.parentElement;
-                            e.classList.add('active');
-                            if (e.scrollIntoViewIfNeeded !== undefined) {
-                                e.scrollIntoViewIfNeeded(true);
-                            } else {
-                                e.scrollIntoView(true);
+                    const querySel = document.querySelector(`nav li a[href="#` + id + `"]`);
+                    if (querySel) {
+                        const el = querySel.parentElement;
+                        if (entry.isIntersecting) {
+                            if (!window.visibleItems.includes(el)) {
+                                if (window.visibleItems.length === 0 && window.lastVisible !== null) {
+                                    window.lastVisible.classList.remove('active');
+                                    window.lastVisible = el;
+                                }
+                                if (window.lastVisible === null) {
+                                    window.lastVisible = el;
+                                }
+                                window.visibleItems.push(el);
                             }
-                        }
-                    } else {
-                        const querySel = document.querySelector(`nav li a[href="#` + id + `"]`);
-                        if (querySel) {
-                            querySel.parentElement.classList.remove('active');
+                            if (!el.classList.contains('active')) {
+                                el.classList.add('active');
+                            }
+                        } else {
+                            if (window.visibleItems.includes(el)) {
+                                if (window.visibleItems.length === 1) {
+                                    window.lastVisible = el;
+                                } else {
+                                    el.classList.remove('active');
+                                }
+                                const index = window.visibleItems.indexOf(el);
+                                if (index > -1) {
+                                    window.visibleItems.splice(index, 1);
+                                }
+                                if (window.lastVisible === el && window.visibleItems.length > 0) {
+                                    window.lastVisible === window.visibleItems[0];
+                                }
+                            }
                         }
                     }
                 });
-            });
+                console.log("IntersectionObserver - before exit");
+                console.log(window.visibleItems);
+                console.log(window.lastVisible);
+            }/*, { threshold: 0.1, rootMargin: '0px 0px -100% 0px', root: document.body }*/);
             // Track all h that have an `id` applied
-            document.querySelectorAll('.content h1[id],h2[id],h3[id]').forEach((section) => {
+            document.querySelectorAll('.content h1[id],h2[id]').forEach((section) => {
                 observer.observe(section);
+            });
+
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
             });
 
             if (typeof acquireVsCodeApi === "function") {
@@ -100,103 +136,123 @@
 <body>
     <div class="page">
         <div class="sidebar">
-            <nav class="section-nav">
-                <h1>MRS Documentation</h1>
+            <div class="bookOverview">
+                <h1>MySQL REST Service</h1>
                 <h2>
-                    <div class="icon bookIcon"></div> <a href="index.html#document-top">Developer's Guide</a>
+                    <div class="icon bookIcon"></div>&nbsp;<a href="index.html#document-top">Developer's Guide</a>
                 </h2>
                 <h2>
-                    <div class="icon bookIcon"></div> <a href="ddl.html#document-top">DDL Reference</a>
+                    <div class="icon bookIcon"></div>&nbsp;<a href="ddl.html#document-top">DDL Reference</a>
                 </h2>
                 <h2>
-                    <div class="icon bookIcon"></div> <a href="restApi.html#document-top">Core REST APIs</a>
+                    <div class="icon bookIcon"></div>&nbsp;<a href="restApi.html#document-top">Core REST APIs</a>
                 </h2>
                 <h2>
-                    <div class="icon bookIcon"></div> <a href="sdk.html#document-top">SDK Reference</a>
+                    <div class="icon bookIcon"></div>&nbsp;<a href="sdk.html#document-top">SDK Reference</a>
                 </h2>
-                <hr />
-                <h3>MRS SDK Reference</h3>
-                                <ul>
-                                <li><a
-                                href="#introduction-to-the-mrs-sdk"
-                                id="toc-introduction-to-the-mrs-sdk"><span
-                                class="toc-section-number">1</span>
-                                Introduction to the MRS SDK</a>
-                                <ul>
-                                <li><a href="#generation-of-sdk-files"
-                                id="toc-generation-of-sdk-files"><span
-                                class="toc-section-number">1.1</span>
-                                Generation of SDK Files</a></li>
-                                </ul></li>
-                                <li><a
-                                href="#querying-data-across-tables"
-                                id="toc-querying-data-across-tables"><span
-                                class="toc-section-number">2</span>
-                                Querying Data Across Tables</a></li>
-                                <li><a
-                                href="#checking-for-null-column-values"
-                                id="toc-checking-for-null-column-values"><span
-                                class="toc-section-number">3</span>
-                                Checking for NULL Column Values</a></li>
-                                <li><a
-                                href="#working-with-spatial-data-types"
-                                id="toc-working-with-spatial-data-types"><span
-                                class="toc-section-number">4</span>
-                                Working with Spatial Data Types</a></li>
-                                <li><a
-                                href="#typescript-client-api-reference"
-                                id="toc-typescript-client-api-reference"><span
-                                class="toc-section-number">5</span>
-                                TypeScript Client API Reference</a>
-                                <ul>
-                                <li><a href="#create"
-                                id="toc-create"><span
-                                class="toc-section-number">5.1</span>
-                                create</a></li>
-                                <li><a href="#createmany"
-                                id="toc-createmany"><span
-                                class="toc-section-number">5.2</span>
-                                createMany</a></li>
-                                <li><a href="#findfirst"
-                                id="toc-findfirst"><span
-                                class="toc-section-number">5.3</span>
-                                findFirst</a></li>
-                                <li><a href="#findunique"
-                                id="toc-findunique"><span
-                                class="toc-section-number">5.4</span>
-                                findUnique</a></li>
-                                <li><a href="#finduniqueorthrow"
-                                id="toc-finduniqueorthrow"><span
-                                class="toc-section-number">5.5</span>
-                                findUniqueOrThrow</a></li>
-                                <li><a href="#findmany"
-                                id="toc-findmany"><span
-                                class="toc-section-number">5.6</span>
-                                findMany</a></li>
-                                <li><a href="#delete"
-                                id="toc-delete"><span
-                                class="toc-section-number">5.7</span>
-                                delete</a></li>
-                                <li><a href="#deletemany"
-                                id="toc-deletemany"><span
-                                class="toc-section-number">5.8</span>
-                                deleteMany</a></li>
-                                <li><a href="#update"
-                                id="toc-update"><span
-                                class="toc-section-number">5.9</span>
-                                update</a></li>
-                                <li><a href="#updatemany"
-                                id="toc-updatemany"><span
-                                class="toc-section-number">5.10</span>
-                                updateMany</a></li>
-                                </ul></li>
-                                </ul>
-                            </nav>
+            </div>
+            <div class="sidebarContent">
+                <nav class="section-nav">
+                    <div class="bookToc">
+                        <br>
+                        <h3>MRS SDK Reference</h3>
+                                                <ul>
+                                                <li><a
+                                                href="#introduction-to-the-mrs-sdk"
+                                                id="toc-introduction-to-the-mrs-sdk"><span
+                                                class="toc-section-number">1</span>
+                                                Introduction to the MRS
+                                                SDK</a>
+                                                <ul>
+                                                <li><a
+                                                href="#generation-of-sdk-files"
+                                                id="toc-generation-of-sdk-files"><span
+                                                class="toc-section-number">1.1</span>
+                                                Generation of SDK
+                                                Files</a></li>
+                                                </ul></li>
+                                                <li><a
+                                                href="#querying-data-across-tables"
+                                                id="toc-querying-data-across-tables"><span
+                                                class="toc-section-number">2</span>
+                                                Querying Data Across
+                                                Tables</a></li>
+                                                <li><a
+                                                href="#checking-for-null-column-values"
+                                                id="toc-checking-for-null-column-values"><span
+                                                class="toc-section-number">3</span>
+                                                Checking for NULL Column
+                                                Values</a></li>
+                                                <li><a
+                                                href="#working-with-spatial-data-types"
+                                                id="toc-working-with-spatial-data-types"><span
+                                                class="toc-section-number">4</span>
+                                                Working with Spatial
+                                                Data Types</a></li>
+                                                <li><a
+                                                href="#typescript-client-api-reference"
+                                                id="toc-typescript-client-api-reference"><span
+                                                class="toc-section-number">5</span>
+                                                TypeScript Client API
+                                                Reference</a>
+                                                <ul>
+                                                <li><a href="#create"
+                                                id="toc-create"><span
+                                                class="toc-section-number">5.1</span>
+                                                create</a></li>
+                                                <li><a
+                                                href="#createmany"
+                                                id="toc-createmany"><span
+                                                class="toc-section-number">5.2</span>
+                                                createMany</a></li>
+                                                <li><a href="#findfirst"
+                                                id="toc-findfirst"><span
+                                                class="toc-section-number">5.3</span>
+                                                findFirst</a></li>
+                                                <li><a
+                                                href="#findunique"
+                                                id="toc-findunique"><span
+                                                class="toc-section-number">5.4</span>
+                                                findUnique</a></li>
+                                                <li><a
+                                                href="#finduniqueorthrow"
+                                                id="toc-finduniqueorthrow"><span
+                                                class="toc-section-number">5.5</span>
+                                                findUniqueOrThrow</a></li>
+                                                <li><a href="#findmany"
+                                                id="toc-findmany"><span
+                                                class="toc-section-number">5.6</span>
+                                                findMany</a></li>
+                                                <li><a href="#delete"
+                                                id="toc-delete"><span
+                                                class="toc-section-number">5.7</span>
+                                                delete</a></li>
+                                                <li><a
+                                                href="#deletemany"
+                                                id="toc-deletemany"><span
+                                                class="toc-section-number">5.8</span>
+                                                deleteMany</a></li>
+                                                <li><a href="#update"
+                                                id="toc-update"><span
+                                                class="toc-section-number">5.9</span>
+                                                update</a></li>
+                                                <li><a
+                                                href="#updatemany"
+                                                id="toc-updatemany"><span
+                                                class="toc-section-number">5.10</span>
+                                                updateMany</a></li>
+                                                </ul></li>
+                                                </ul>
+                                            </div>
+                </nav>
+            </div>
         </div>
         <div class="content">
             <div class="header" id="document-top">
-                <p>MySQL REST Service - PREVIEW</p>
-                <h1>MRS SDK Reference</h1>
+                <h1>
+                    <div class="iconBig bookIcon"></div>&nbsp;MRS SDK
+Reference
+                </h1>
             </div>
             <div class="main">
                 <p>This document explains how to work with the MRS

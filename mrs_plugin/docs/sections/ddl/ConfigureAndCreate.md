@@ -31,8 +31,21 @@ Please note that the MySQL account used to execute the statement needs the requi
 
 **_Syntax_**
 
+```antlr
+configureRestMetadataStatement:
+    CONFIGURE REST METADATA restMetadataOptions?
+;
+
+restMetadataOptions: (
+        enabledDisabled
+        | jsonOptions
+        | updateIfAvailable
+    )+
+;
+```
+
 configureRestMetadataStatement ::=
-![The CONFIGURE REST METADATA Statement](../../images/ddl/configureRestMetadataStatement.svg "configureRestMetadataStatement")
+![configureRestMetadataStatement](../../images/ddl/configureRestMetadataStatement.svg "configureRestMetadataStatement")
 
 restMetadataOptions ::=
 ![restMetadataOptions](../../images/ddl/restMetadataOptions.svg "restMetadataOptions")
@@ -46,6 +59,13 @@ CONFIGURE REST METADATA;
 ### Enable or Disable the MySQL REST Service
 
 The enabledDisabled option specifies if the MySQL REST Service should be enabled or disabled after the configuration operation. The default is set to enable the MySQL REST Service.
+
+```antlr
+enabledDisabled:
+    ENABLED
+    | DISABLED
+;
+```
 
 enabledDisabled ::=
 ![enabledDisabled](../../images/ddl/enabledDisabled.svg "enabledDisabled")
@@ -79,6 +99,12 @@ CONFIGURE REST METADATA
 ### REST Configuration Json Options
 
 The jsonOptions allow to set a number of specific options for the service.
+
+```antlr
+jsonOptions:
+    OPTIONS jsonValue
+;
+```
 
 jsonOptions ::=
 ![jsonOptions](../../images/ddl/jsonOptions.svg "jsonOptions")
@@ -145,6 +171,12 @@ This is useful to directly serve a specific app on the root path `/`.
 
 If the updateIfAvailable is defined, the configure operation will include an update of the `mysql_rest_service_metadata` database schema.
 
+```antlr
+updateIfAvailable:
+    UPDATE (IF AVAILABLE)?
+;
+```
+
 updateIfAvailable ::=
 ![updateIfAvailable](../../images/ddl/updateIfAvailable.svg "updateIfAvailable")
 
@@ -158,8 +190,22 @@ Each REST service can have its own options, authentication apps and supports a d
 
 **_SYNTAX_**
 
-createRestServiceStatement ::=
+```antlr
+createRestServiceStatement:
+    CREATE (OR REPLACE)? REST SERVICE serviceRequestPath
+        restServiceOptions?
+;
 
+restServiceOptions: (
+        enabledDisabled
+        | restAuthentication
+        | jsonOptions
+        | comments
+    )+
+;
+```
+
+createRestServiceStatement ::=
 ![CREATE REST SERVICE Statement](../../images/ddl/createRestServiceStatement.svg "CREATE REST SERVICE Statement")
 
 restServiceOptions ::=
@@ -220,6 +266,13 @@ CREATE OR REPLACE REST SERVICE localhost/myTestService
 
 The `enabledDisabled` option specifies whether the REST schema should be enabled or disabled after it has been created.
 
+```antlr
+enabledDisabled:
+    ENABLED
+    | DISABLED
+;
+```
+
 enabledDisabled ::=
 ![enabledDisabled](../../images/ddl/enabledDisabled.svg "enabledDisabled")
 
@@ -247,6 +300,12 @@ restAuthentication ::=
 ### REST Service Json Options
 
 The jsonOptions allow to set a number of specific options for the service.
+
+```antlr
+jsonOptions:
+    OPTIONS jsonValue
+;
+```
 
 jsonOptions ::=
 ![jsonOptions](../../images/ddl/jsonOptions.svg "jsonOptions")
@@ -304,6 +363,12 @@ All other keys will be ignored and can be used to store custom metadata about th
 
 The comments can hold a description of the REST service. The maximal length is of the comments string is 512 characters.
 
+```antlr
+comments:
+    COMMENTS quotedText
+;
+```
+
 comments ::=
 ![comments](../../images/ddl/comments.svg "comments")
 
@@ -318,6 +383,23 @@ Each REST schema belongs to a REST service, which has to be created first. One R
 Each REST schema can have its own options, authentication apps and supports a different set of authentication users.
 
 **_SYNTAX_**
+
+```antlr
+createRestSchemaStatement:
+    CREATE (OR REPLACE)? REST DATABASE schemaRequestPath? (
+        ON SERVICE? serviceRequestPath
+    )? FROM schemaName restSchemaOptions?
+;
+
+restSchemaOptions: (
+        enabledDisabled
+        | authenticationRequired
+        | itemsPerPage
+        | jsonOptions
+        | comments
+    )+
+;
+```
 
 createRestSchemaStatement ::=
 ![createRestSchemaStatement](../../images/ddl/createRestSchemaStatement.svg "createRestSchemaStatement")
@@ -339,6 +421,13 @@ CREATE OR REPLACE REST SCHEMA /sakila ON SERVICE /myService
 
 The `enabledDisabled` option specifies whether the REST schema should be enabled or disabled what it is created.
 
+```antlr
+enabledDisabled:
+    ENABLED
+    | DISABLED
+;
+```
+
 enabledDisabled ::=
 ![enabledDisabled](../../images/ddl/enabledDisabled.svg "enabledDisabled")
 
@@ -346,12 +435,24 @@ enabledDisabled ::=
 
 The `authenticationRequired` option specifies if a REST schema and its objects require authentication before accessing their REST endpoints.
 
+```antlr
+authenticationRequired:
+    AUTHENTICATION NOT? REQUIRED
+;
+```
+
 authenticationRequired ::=
 ![authenticationRequired](../../images/ddl/authenticationRequired.svg "authenticationRequired")
 
 ### Specifying the Default Page Count
 
 The `itemsPerPage` option can be used to specify the default number of items returned for queries run against this REST schema.
+
+```antlr
+itemsPerPage:
+    ITEMS PER PAGE itemsPerPageNumber
+;
+```
 
 itemsPerPage ::=
 ![itemsPerPage](../../images/ddl/itemsPerPage.svg "itemsPerPage")
@@ -361,6 +462,12 @@ The number of items per page can also be specified for each REST object individu
 ### REST Schema Json Options
 
 The jsonOptions allow to set a number of specific options for the service.
+
+```antlr
+jsonOptions:
+    OPTIONS jsonValue
+;
+```
 
 jsonOptions ::=
 ![jsonOptions](../../images/ddl/jsonOptions.svg "jsonOptions")
@@ -377,6 +484,12 @@ All other keys will be ignored and can be used to store custom metadata about th
 
 The comments can hold a description of the REST schema. The maximal length is of the comments string is 512 characters.
 
+```antlr
+comments:
+    COMMENTS quotedText
+;
+```
+
 comments ::=
 ![comments](../../images/ddl/comments.svg "comments")
 
@@ -389,6 +502,32 @@ The structure of the served JSON documents is defined using an [extended GraphQL
 Please see the MRS Developer's Guide to learn more about [JSON duality views](index.html#json-duality-views).
 
 **_SYNTAX_**
+
+```antlr
+createRestViewStatement:
+    CREATE (OR REPLACE)? REST RELATIONAL? JSON?
+        DUALITY? VIEW viewRequestPath (
+        ON serviceSchemaSelector
+    )? FROM qualifiedIdentifier restObjectOptions? AS restObjectName
+        graphGlCrudOptions? graphGlObj?
+;
+
+serviceSchemaSelector:
+    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
+;
+
+restObjectOptions: (
+        enabledDisabled
+        | authenticationRequired
+        | itemsPerPage
+        | jsonOptions
+        | comments
+        | restViewMediaType
+        | restViewFormat
+        | restViewAuthenticationProcedure
+    )+
+;
+```
 
 createRestViewStatement ::=
 ![createRestViewStatement](../../images/ddl/createRestViewStatement.svg "createRestViewStatement")
@@ -498,6 +637,13 @@ You define a REST duality view against a set of tables related by primary key (P
 
 The `enabledDisabled` option specifies whether the REST duality view should be enabled or disabled when it is created.
 
+```antlr
+enabledDisabled:
+    ENABLED
+    | DISABLED
+;
+```
+
 enabledDisabled ::=
 ![enabledDisabled](../../images/ddl/enabledDisabled.svg "enabledDisabled")
 
@@ -505,12 +651,24 @@ enabledDisabled ::=
 
 The `authenticationRequired` option specifies if a REST duality view requires authentication before accessing its REST endpoints.
 
+```antlr
+authenticationRequired:
+    AUTHENTICATION NOT? REQUIRED
+;
+```
+
 authenticationRequired ::=
 ![authenticationRequired](../../images/ddl/authenticationRequired.svg "authenticationRequired")
 
 ### Specifying the Page Count for REST Duality Views
 
 The `itemsPerPage` option can be used to specify the number of items returned for queries run against the REST duality view.
+
+```antlr
+itemsPerPage:
+    ITEMS PER PAGE itemsPerPageNumber
+;
+```
 
 itemsPerPage ::=
 ![itemsPerPage](../../images/ddl/itemsPerPage.svg "itemsPerPage")
@@ -520,6 +678,12 @@ The number of items per page can also be specified for each REST object individu
 ### Setting the Media Type for REST Duality Views
 
 If this REST duality view returns a specific MIME type it can be set via the `restViewMediaType` option. If MRS should try to automatically detect the file type based on the content of the file the `AUTODETECT` option can be used.
+
+```antlr
+restViewMediaType:
+    MEDIA TYPE (quotedText | AUTODETECT)
+;
+```
 
 restViewMediaType ::=
 ![restViewMediaType](../../images/ddl/restViewMediaType.svg "restViewMediaType")
@@ -531,6 +695,12 @@ A REST duality view can return one of the following formats which can be set wit
 - FEED: A list of result JSON objects
 - ITEM: A single result item
 - MEDIA: A single blob item. The `restViewMediaType` option is used to set the corresponding MIME type in this case.
+
+```antlr
+restViewFormat:
+    FORMAT (FEED | ITEM | MEDIA)
+;
+```
 
 restViewFormat ::=
 ![restViewFormat](../../images/ddl/restViewFormat.svg "restViewFormat")
@@ -545,6 +715,46 @@ restViewAuthenticationProcedure ::=
 ![restViewAuthenticationProcedure](../../images/ddl/restViewAuthenticationProcedure.svg "restViewAuthenticationProcedure")
 
 ### Defining the GraphQL definition for a REST Duality View
+
+```antlr
+graphGlObj:
+    OPEN_CURLY graphGlPair (COMMA graphGlPair)* CLOSE_CURLY
+    | OPEN_CURLY CLOSE_CURLY
+;
+
+graphGlCrudOptions: (
+        AT_SELECT
+        | AT_NOSELECT
+        | AT_INSERT
+        | AT_NOINSERT
+        | AT_UPDATE
+        | AT_NOUPDATE
+        | AT_DELETE
+        | AT_NODELETE
+    )+
+;
+
+graphGlPair:
+    graphKeyValue COLON qualifiedIdentifier (
+        AT_IN
+        | AT_OUT
+        | AT_INOUT
+        | AT_NOCHECK
+        | AT_SORTABLE
+        | AT_NOFILTERING
+        | AT_ROWOWNERSHIP
+        | AT_UNNEST
+        | AT_REDUCETO OPEN_PAR graphGlReduceToValue CLOSE_PAR
+        | AT_DATATYPE OPEN_PAR graphGlDatatypeValue CLOSE_PAR
+        | graphGlCrudOptions
+    )? graphGlObj?
+;
+
+graphGlValue:
+    qualifiedIdentifier
+    | graphGlObj
+;
+```
 
 graphGlObj ::=
 ![graphGlObj](../../images/ddl/graphGlObj.svg "graphGlObj")
@@ -564,6 +774,35 @@ The `CREATE REST PROCEDURE` statement is used to add REST endpoints for database
 
 **_SYNTAX_**
 
+```antlr
+createRestProcedureStatement:
+    CREATE (OR REPLACE)? REST PROCEDURE procedureRequestPath (
+        ON serviceSchemaSelector
+    )? FROM qualifiedIdentifier restObjectOptions? AS restObjectName PARAMETERS
+        graphGlObj restProcedureResult*
+;
+
+serviceSchemaSelector:
+    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
+;
+
+restObjectOptions: (
+        enabledDisabled
+        | authenticationRequired
+        | itemsPerPage
+        | jsonOptions
+        | comments
+        | restViewMediaType
+        | restViewFormat
+        | restViewAuthenticationProcedure
+    )+
+;
+
+restProcedureResult:
+    RESULT restResultName graphGlObj
+;
+```
+
 createRestProcedureStatement ::=
 ![createRestProcedureStatement](../../images/ddl/createRestProcedureStatement.svg "createRestProcedureStatement")
 
@@ -582,6 +821,23 @@ The `CREATE REST CONTENT SET` statement is used to add REST endpoints for static
 
 **_SYNTAX_**
 
+```antlr
+createRestContentSetStatement:
+    CREATE (OR REPLACE)? REST CONTENT SET
+        contentSetRequestPath (
+        ON SERVICE? serviceRequestPath
+    )? (FROM directoryFilePath)? restContentSetOptions?
+;
+
+restContentSetOptions: (
+        enabledDisabled
+        | authenticationRequired
+        | jsonOptions
+        | comments
+    )+
+;
+```
+
 createRestContentSetStatement ::=
 ![createRestContentSetStatement](../../images/ddl/createRestContentSetStatement.svg "createRestContentSetStatement")
 
@@ -593,6 +849,33 @@ restContentSetOptions ::=
 The `CREATE REST AUTH APP` statement is used to add REST authentication app to a REST service.
 
 **_SYNTAX_**
+
+```antlr
+createRestAuthAppStatement:
+    CREATE (OR REPLACE)? REST (
+        AUTH
+        | AUTHENTICATION
+    ) APP authAppName (
+        ON SERVICE? serviceRequestPath
+    )? VENDOR (MRS | MYSQL | vendorName) restAuthAppOptions?
+;
+
+restAuthAppOptions: (
+        enabledDisabled
+        | comments
+        | allowNewUsersToRegister
+        | defaultRole
+    )+
+;
+
+allowNewUsersToRegister:
+    ALLOW NEW USERS (TO REGISTER)?
+;
+
+defaultRole:
+    DEFAULT ROLE quotedText
+;
+```
 
 createRestAuthAppStatement ::=
 ![createRestAuthAppStatement](../../images/ddl/createRestAuthAppStatement.svg "createRestAuthAppStatement")
@@ -611,6 +894,15 @@ defaultRole ::=
 The `CREATE REST USER` statement is used to add REST user to a REST authentication app.
 
 **_SYNTAX_**
+
+```antlr
+createRestUserStatement:
+    CREATE (OR REPLACE)? REST USER userName AT_SIGN
+        authAppName (
+        ON SERVICE? serviceRequestPath
+    )? IDENTIFIED BY userPassword
+;
+```
 
 createRestUserStatement ::=
 ![createRestUserStatement](../../images/ddl/createRestUserStatement.svg "createRestUserStatement")

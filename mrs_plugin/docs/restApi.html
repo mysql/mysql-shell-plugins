@@ -17,31 +17,67 @@
     </style>
         <script>
         window.addEventListener('DOMContentLoaded', () => {
-            const observer = new IntersectionObserver(entries => {
-                entries.forEach(entry => {
+            window.visibleItems = [];
+            window.lastVisible = null;
+            const observer = new IntersectionObserver((entries) => {
+                console.log("IntersectionObserver - after enter");
+                console.log(window.visibleItems);
+                console.log(window.lastVisible);
+                // Add active css class to first match
+                entries.forEach((entry) => {
                     const id = entry.target.getAttribute('id');
-                    if (entry.intersectionRatio > 0) {
-                        const querySel = document.querySelector(`nav li a[href="#` + id + `"]`);
-                        if (querySel) {
-                            const e = querySel.parentElement;
-                            e.classList.add('active');
-                            if (e.scrollIntoViewIfNeeded !== undefined) {
-                                e.scrollIntoViewIfNeeded(true);
-                            } else {
-                                e.scrollIntoView(true);
+                    const querySel = document.querySelector(`nav li a[href="#` + id + `"]`);
+                    if (querySel) {
+                        const el = querySel.parentElement;
+                        if (entry.isIntersecting) {
+                            if (!window.visibleItems.includes(el)) {
+                                if (window.visibleItems.length === 0 && window.lastVisible !== null) {
+                                    window.lastVisible.classList.remove('active');
+                                    window.lastVisible = el;
+                                }
+                                if (window.lastVisible === null) {
+                                    window.lastVisible = el;
+                                }
+                                window.visibleItems.push(el);
                             }
-                        }
-                    } else {
-                        const querySel = document.querySelector(`nav li a[href="#` + id + `"]`);
-                        if (querySel) {
-                            querySel.parentElement.classList.remove('active');
+                            if (!el.classList.contains('active')) {
+                                el.classList.add('active');
+                            }
+                        } else {
+                            if (window.visibleItems.includes(el)) {
+                                if (window.visibleItems.length === 1) {
+                                    window.lastVisible = el;
+                                } else {
+                                    el.classList.remove('active');
+                                }
+                                const index = window.visibleItems.indexOf(el);
+                                if (index > -1) {
+                                    window.visibleItems.splice(index, 1);
+                                }
+                                if (window.lastVisible === el && window.visibleItems.length > 0) {
+                                    window.lastVisible === window.visibleItems[0];
+                                }
+                            }
                         }
                     }
                 });
-            });
+                console.log("IntersectionObserver - before exit");
+                console.log(window.visibleItems);
+                console.log(window.lastVisible);
+            }/*, { threshold: 0.1, rootMargin: '0px 0px -100% 0px', root: document.body }*/);
             // Track all h that have an `id` applied
-            document.querySelectorAll('.content h1[id],h2[id],h3[id]').forEach((section) => {
+            document.querySelectorAll('.content h1[id],h2[id]').forEach((section) => {
                 observer.observe(section);
+            });
+
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
             });
 
             if (typeof acquireVsCodeApi === "function") {
@@ -100,168 +136,222 @@
 <body>
     <div class="page">
         <div class="sidebar">
-            <nav class="section-nav">
-                <h1>MRS Documentation</h1>
+            <div class="bookOverview">
+                <h1>MySQL REST Service</h1>
                 <h2>
-                    <div class="icon bookIcon"></div> <a href="index.html#document-top">Developer's Guide</a>
+                    <div class="icon bookIcon"></div>&nbsp;<a href="index.html#document-top">Developer's Guide</a>
                 </h2>
                 <h2>
-                    <div class="icon bookIcon"></div> <a href="ddl.html#document-top">DDL Reference</a>
+                    <div class="icon bookIcon"></div>&nbsp;<a href="ddl.html#document-top">DDL Reference</a>
                 </h2>
                 <h2>
-                    <div class="icon bookIcon"></div> <a href="restApi.html#document-top">Core REST APIs</a>
+                    <div class="icon bookIcon"></div>&nbsp;<a href="restApi.html#document-top">Core REST APIs</a>
                 </h2>
                 <h2>
-                    <div class="icon bookIcon"></div> <a href="sdk.html#document-top">SDK Reference</a>
+                    <div class="icon bookIcon"></div>&nbsp;<a href="sdk.html#document-top">SDK Reference</a>
                 </h2>
-                <hr />
-                <h3>MRS Core REST APIs</h3>
-                                <ul>
-                                <li><a href="#mrs-core-rest-apis"
-                                id="toc-mrs-core-rest-apis"><span
-                                class="toc-section-number">1</span> MRS
-                                Core REST APIs</a>
-                                <ul>
-                                <li><a
-                                href="#about-mrs-restful-web-services"
-                                id="toc-about-mrs-restful-web-services"><span
-                                class="toc-section-number">1.1</span>
-                                About MRS RESTful Web Services</a></li>
-                                <li><a
-                                href="#about-request-path-syntax-requirements"
-                                id="toc-about-request-path-syntax-requirements"><span
-                                class="toc-section-number">1.2</span>
-                                About Request Path Syntax
-                                Requirements</a></li>
-                                <li><a
-                                href="#about-curl-and-testing-restful-services"
-                                id="toc-about-curl-and-testing-restful-services"><span
-                                class="toc-section-number">1.3</span>
-                                About cURL and Testing RESTful
-                                Services</a></li>
-                                </ul></li>
-                                <li><a href="#mrs-rest-queries"
-                                id="toc-mrs-rest-queries"><span
-                                class="toc-section-number">2</span> MRS
-                                REST Queries</a>
-                                <ul>
-                                <li><a href="#get-schema-metadata"
-                                id="toc-get-schema-metadata"><span
-                                class="toc-section-number">2.1</span>
-                                Get Schema Metadata</a></li>
-                                <li><a href="#get-object-metadata"
-                                id="toc-get-object-metadata"><span
-                                class="toc-section-number">2.2</span>
-                                Get Object Metadata</a></li>
-                                <li><a href="#get-object-data"
-                                id="toc-get-object-data"><span
-                                class="toc-section-number">2.3</span>
-                                Get Object Data</a></li>
-                                <li><a href="#insert-table-row"
-                                id="toc-insert-table-row"><span
-                                class="toc-section-number">2.4</span>
-                                Insert Table Row</a></li>
-                                <li><a href="#updateinsert-table-row"
-                                id="toc-updateinsert-table-row"><span
-                                class="toc-section-number">2.5</span>
-                                Update/Insert Table Row</a></li>
-                                <li><a href="#delete-using-filter"
-                                id="toc-delete-using-filter"><span
-                                class="toc-section-number">2.6</span>
-                                Delete Using Filter</a></li>
-                                </ul></li>
-                                <li><a href="#filterobject-grammar"
-                                id="toc-filterobject-grammar"><span
-                                class="toc-section-number">3</span>
-                                FilterObject Grammar</a></li>
-                                <li><a
-                                href="#filterobject-grammar-examples"
-                                id="toc-filterobject-grammar-examples"><span
-                                class="toc-section-number">4</span>
-                                FilterObject Grammar Examples</a>
-                                <ul>
-                                <li><a href="#order-by-property-orderby"
-                                id="toc-order-by-property-orderby"><span
-                                class="toc-section-number">4.1</span>
-                                ORDER BY property ($orderby)</a></li>
-                                <li><a href="#asof-property-asof"
-                                id="toc-asof-property-asof"><span
-                                class="toc-section-number">4.2</span>
-                                ASOF property ($asof)</a></li>
-                                <li><a href="#equals-operator-eq"
-                                id="toc-equals-operator-eq"><span
-                                class="toc-section-number">4.3</span>
-                                EQUALS operator ($eq)</a></li>
-                                <li><a href="#not-equals-operator-ne"
-                                id="toc-not-equals-operator-ne"><span
-                                class="toc-section-number">4.4</span>
-                                NOT EQUALS operator ($ne)</a></li>
-                                <li><a href="#less-than-operator-lt"
-                                id="toc-less-than-operator-lt"><span
-                                class="toc-section-number">4.5</span>
-                                LESS THAN operator ($lt)</a></li>
-                                <li><a
-                                href="#less-than-or-equals-operator-lte"
-                                id="toc-less-than-or-equals-operator-lte"><span
-                                class="toc-section-number">4.6</span>
-                                LESS THAN OR EQUALS operator
-                                ($lte)</a></li>
-                                <li><a href="#greater-than-operator-gt"
-                                id="toc-greater-than-operator-gt"><span
-                                class="toc-section-number">4.7</span>
-                                GREATER THAN operator ($gt)</a></li>
-                                <li><a
-                                href="#greater-than-or-equals-operator-gte"
-                                id="toc-greater-than-or-equals-operator-gte"><span
-                                class="toc-section-number">4.8</span>
-                                GREATER THAN OR EQUALS operator
-                                ($gte)</a></li>
-                                <li><a href="#in-string-operator-instr"
-                                id="toc-in-string-operator-instr"><span
-                                class="toc-section-number">4.9</span> In
-                                string operator ($instr)</a></li>
-                                <li><a
-                                href="#not-in-string-operator-ninstr"
-                                id="toc-not-in-string-operator-ninstr"><span
-                                class="toc-section-number">4.10</span>
-                                Not in string operator
-                                ($ninstr)</a></li>
-                                <li><a href="#like-operator-like"
-                                id="toc-like-operator-like"><span
-                                class="toc-section-number">4.11</span>
-                                LIKE operator ($like)</a></li>
-                                <li><a href="#between-operator-between"
-                                id="toc-between-operator-between"><span
-                                class="toc-section-number">4.12</span>
-                                BETWEEN operator ($between)</a></li>
-                                <li><a href="#null-operator-null"
-                                id="toc-null-operator-null"><span
-                                class="toc-section-number">4.13</span>
-                                NULL operator ($null)</a></li>
-                                <li><a href="#not-null-operator-notnull"
-                                id="toc-not-null-operator-notnull"><span
-                                class="toc-section-number">4.14</span>
-                                NOT NULL operator ($notnull)</a></li>
-                                <li><a href="#and-operator-and"
-                                id="toc-and-operator-and"><span
-                                class="toc-section-number">4.15</span>
-                                AND operator ($and)</a></li>
-                                <li><a href="#high-order-and"
-                                id="toc-high-order-and"><span
-                                class="toc-section-number">4.16</span>
-                                High order AND</a></li>
-                                <li><a href="#or-operator-or"
-                                id="toc-or-operator-or"><span
-                                class="toc-section-number">4.17</span>
-                                OR operator ($or)</a></li>
-                                </ul></li>
-                                </ul>
-                            </nav>
+            </div>
+            <div class="sidebarContent">
+                <nav class="section-nav">
+                    <div class="bookToc">
+                        <br>
+                        <h3>MRS Core REST APIs</h3>
+                                                <ul>
+                                                <li><a
+                                                href="#mrs-core-rest-apis"
+                                                id="toc-mrs-core-rest-apis"><span
+                                                class="toc-section-number">1</span>
+                                                MRS Core REST APIs</a>
+                                                <ul>
+                                                <li><a
+                                                href="#about-mrs-restful-web-services"
+                                                id="toc-about-mrs-restful-web-services"><span
+                                                class="toc-section-number">1.1</span>
+                                                About MRS RESTful Web
+                                                Services</a></li>
+                                                <li><a
+                                                href="#about-request-path-syntax-requirements"
+                                                id="toc-about-request-path-syntax-requirements"><span
+                                                class="toc-section-number">1.2</span>
+                                                About Request Path
+                                                Syntax
+                                                Requirements</a></li>
+                                                <li><a
+                                                href="#about-curl-and-testing-restful-services"
+                                                id="toc-about-curl-and-testing-restful-services"><span
+                                                class="toc-section-number">1.3</span>
+                                                About cURL and Testing
+                                                RESTful
+                                                Services</a></li>
+                                                </ul></li>
+                                                <li><a
+                                                href="#mrs-rest-queries"
+                                                id="toc-mrs-rest-queries"><span
+                                                class="toc-section-number">2</span>
+                                                MRS REST Queries</a>
+                                                <ul>
+                                                <li><a
+                                                href="#get-schema-metadata"
+                                                id="toc-get-schema-metadata"><span
+                                                class="toc-section-number">2.1</span>
+                                                Get Schema
+                                                Metadata</a></li>
+                                                <li><a
+                                                href="#get-object-metadata"
+                                                id="toc-get-object-metadata"><span
+                                                class="toc-section-number">2.2</span>
+                                                Get Object
+                                                Metadata</a></li>
+                                                <li><a
+                                                href="#get-object-data"
+                                                id="toc-get-object-data"><span
+                                                class="toc-section-number">2.3</span>
+                                                Get Object Data</a></li>
+                                                <li><a
+                                                href="#insert-table-row"
+                                                id="toc-insert-table-row"><span
+                                                class="toc-section-number">2.4</span>
+                                                Insert Table
+                                                Row</a></li>
+                                                <li><a
+                                                href="#updateinsert-table-row"
+                                                id="toc-updateinsert-table-row"><span
+                                                class="toc-section-number">2.5</span>
+                                                Update/Insert Table
+                                                Row</a></li>
+                                                <li><a
+                                                href="#delete-using-filter"
+                                                id="toc-delete-using-filter"><span
+                                                class="toc-section-number">2.6</span>
+                                                Delete Using
+                                                Filter</a></li>
+                                                </ul></li>
+                                                <li><a
+                                                href="#filterobject-grammar"
+                                                id="toc-filterobject-grammar"><span
+                                                class="toc-section-number">3</span>
+                                                FilterObject
+                                                Grammar</a></li>
+                                                <li><a
+                                                href="#filterobject-grammar-examples"
+                                                id="toc-filterobject-grammar-examples"><span
+                                                class="toc-section-number">4</span>
+                                                FilterObject Grammar
+                                                Examples</a>
+                                                <ul>
+                                                <li><a
+                                                href="#order-by-property-orderby"
+                                                id="toc-order-by-property-orderby"><span
+                                                class="toc-section-number">4.1</span>
+                                                ORDER BY property
+                                                ($orderby)</a></li>
+                                                <li><a
+                                                href="#asof-property-asof"
+                                                id="toc-asof-property-asof"><span
+                                                class="toc-section-number">4.2</span>
+                                                ASOF property
+                                                ($asof)</a></li>
+                                                <li><a
+                                                href="#equals-operator-eq"
+                                                id="toc-equals-operator-eq"><span
+                                                class="toc-section-number">4.3</span>
+                                                EQUALS operator
+                                                ($eq)</a></li>
+                                                <li><a
+                                                href="#not-equals-operator-ne"
+                                                id="toc-not-equals-operator-ne"><span
+                                                class="toc-section-number">4.4</span>
+                                                NOT EQUALS operator
+                                                ($ne)</a></li>
+                                                <li><a
+                                                href="#less-than-operator-lt"
+                                                id="toc-less-than-operator-lt"><span
+                                                class="toc-section-number">4.5</span>
+                                                LESS THAN operator
+                                                ($lt)</a></li>
+                                                <li><a
+                                                href="#less-than-or-equals-operator-lte"
+                                                id="toc-less-than-or-equals-operator-lte"><span
+                                                class="toc-section-number">4.6</span>
+                                                LESS THAN OR EQUALS
+                                                operator ($lte)</a></li>
+                                                <li><a
+                                                href="#greater-than-operator-gt"
+                                                id="toc-greater-than-operator-gt"><span
+                                                class="toc-section-number">4.7</span>
+                                                GREATER THAN operator
+                                                ($gt)</a></li>
+                                                <li><a
+                                                href="#greater-than-or-equals-operator-gte"
+                                                id="toc-greater-than-or-equals-operator-gte"><span
+                                                class="toc-section-number">4.8</span>
+                                                GREATER THAN OR EQUALS
+                                                operator ($gte)</a></li>
+                                                <li><a
+                                                href="#in-string-operator-instr"
+                                                id="toc-in-string-operator-instr"><span
+                                                class="toc-section-number">4.9</span>
+                                                In string operator
+                                                ($instr)</a></li>
+                                                <li><a
+                                                href="#not-in-string-operator-ninstr"
+                                                id="toc-not-in-string-operator-ninstr"><span
+                                                class="toc-section-number">4.10</span>
+                                                Not in string operator
+                                                ($ninstr)</a></li>
+                                                <li><a
+                                                href="#like-operator-like"
+                                                id="toc-like-operator-like"><span
+                                                class="toc-section-number">4.11</span>
+                                                LIKE operator
+                                                ($like)</a></li>
+                                                <li><a
+                                                href="#between-operator-between"
+                                                id="toc-between-operator-between"><span
+                                                class="toc-section-number">4.12</span>
+                                                BETWEEN operator
+                                                ($between)</a></li>
+                                                <li><a
+                                                href="#null-operator-null"
+                                                id="toc-null-operator-null"><span
+                                                class="toc-section-number">4.13</span>
+                                                NULL operator
+                                                ($null)</a></li>
+                                                <li><a
+                                                href="#not-null-operator-notnull"
+                                                id="toc-not-null-operator-notnull"><span
+                                                class="toc-section-number">4.14</span>
+                                                NOT NULL operator
+                                                ($notnull)</a></li>
+                                                <li><a
+                                                href="#and-operator-and"
+                                                id="toc-and-operator-and"><span
+                                                class="toc-section-number">4.15</span>
+                                                AND operator
+                                                ($and)</a></li>
+                                                <li><a
+                                                href="#high-order-and"
+                                                id="toc-high-order-and"><span
+                                                class="toc-section-number">4.16</span>
+                                                High order AND</a></li>
+                                                <li><a
+                                                href="#or-operator-or"
+                                                id="toc-or-operator-or"><span
+                                                class="toc-section-number">4.17</span>
+                                                OR operator
+                                                ($or)</a></li>
+                                                </ul></li>
+                                                </ul>
+                                            </div>
+                </nav>
+            </div>
         </div>
         <div class="content">
             <div class="header" id="document-top">
-                <p>MySQL REST Service - PREVIEW</p>
-                <h1>MRS Core REST APIs</h1>
+                <h1>
+                    <div class="iconBig bookIcon"></div>&nbsp;MRS Core
+REST APIs
+                </h1>
             </div>
             <div class="main">
                 <p>This book provides examples of using the MySQL REST
