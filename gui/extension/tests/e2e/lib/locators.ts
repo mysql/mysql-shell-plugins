@@ -32,6 +32,8 @@ export const dbConnectionDialog = {
     caption: By.id("caption"),
     description: By.id("description"),
     databaseTypeList: By.id("databaseTypePopup"),
+    databaseTypeMysql: By.id("MySQL"),
+    databaseTypeSqlite: By.id("Sqlite"),
     mysql: {
         basic: {
             hostname: By.id("hostName"),
@@ -86,6 +88,7 @@ export const notebook = {
             sentence: By.css(".view-lines.monaco-mouse-cursor-text > div > span"),
             wordInSentence: By.css(".view-lines.monaco-mouse-cursor-text > div > span span"),
             line: By.css("#contentHost .editorHost .view-line"),
+            lineNumber: By.css(".margin-view-overlays .line-numbers"),
             currentLine: By.className("current-line"),
             statementStart: By.className("statementStart"),
             autoCompleteListItem: By.css(".monaco-list .monaco-highlighted-label span"),
@@ -318,7 +321,7 @@ export const section = {
     itemAction: (name: string): By => {
         return By.xpath(`.//a[contains(@class, 'action-label') and @role='button' and @aria-label='${name}']`);
     },
-    loadingBar: By.css(".monaco-progress-container.active"),
+    loadingBar: By.css(".monaco-progress-container.active.infinite"),
 };
 
 export const bottomBarPanel = {
@@ -387,6 +390,9 @@ export const shellConsole = {
 export const terminal = {
     exists: By.id("terminal"),
     textArea: By.css("#terminal textarea"),
+    moreActions: By.xpath(".//a[contains(@title, 'Views and More Actions...')]"),
+    moreActionsMenu: By.css(".monaco-menu-container.bottom.right"),
+    moreActionsMenuItem: By.css("span.codicon-menu-selection > span.action-label"),
 };
 
 export const contextMenu = {

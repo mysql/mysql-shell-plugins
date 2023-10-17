@@ -27,6 +27,8 @@ import {
     BottomBarPanel,
     logging,
 } from "vscode-extension-tester";
+import { execSync } from "child_process";
+import fs from "fs/promises";
 import * as constants from "./constants";
 import { Misc, driver } from "./misc";
 import * as locator from "./locators";
@@ -77,6 +79,55 @@ export const dbConnectionIsSuccessful = (): Condition<boolean> => {
     });
 };
 
+export const dbSectionHasConnections = (): Condition<boolean> => {
+    return new Condition("DB Connections exists", async () => {
+        return (await Misc.getDBConnections()).length > 0;
+    });
+};
+
+export const existsOnRouterLog = (text: string | RegExp): Condition<boolean> => {
+    return new Condition("Exists on Router log", async () => {
+        const routerLogFile = await Misc.getRouterLogFile();
+        await driver.wait(async () => {
+            try {
+                await fs.access(routerLogFile);
+
+                return true;
+            } catch (e) {
+                // continue
+            }
+        }, constants.wait10seconds, `Could not find '${routerLogFile}'`);
+        const logFileContent = (await fs.readFile(routerLogFile)).toString();
+        if (text instanceof RegExp) {
+            return logFileContent.match(text) !== null;
+        } else {
+            return logFileContent.match(new RegExp(text)) !== null;
+        }
+    });
+};
+
+export const routerIsRunning = (): Condition<boolean> => {
+    return new Condition("Exists on Router log", () => {
+        if (Misc.isWindows()) {
+            const cmdResult = execSync(`tasklist /fi "IMAGENAME eq mysqlrouter.exe"`);
+            const resultLines = cmdResult.toString().split("\n");
+            for (const line of resultLines) {
+                if (line.match(/mysqlrouter.exe/) !== null) {
+                    return true;
+                }
+            }
+        } else {
+            const cmdResult = execSync("ps aux | grep mysqlrouter");
+            const resultLines = cmdResult.toString().split("\n");
+            for (const line of resultLines) {
+                if (line.match(/\/usr\/.*\/.*router/) !== null) {
+                    return true;
+                }
+            }
+        }
+    });
+};
+
 export const extensionIsReady = (): Condition<boolean> => {
     return new Condition("Extension was not ready", async () => {
         let tryNumber = 1;
@@ -85,13 +136,13 @@ export const extensionIsReady = (): Condition<boolean> => {
 
         const loadTry = async (): Promise<void> => {
             console.log("<<<<Try to load FE>>>>>");
-            await driver.wait(tabIsOpened("Welcome"), constants.explicitWait * 2, "Welcome tab was not opened");
+            await driver.wait(tabIsOpened("Welcome"), constants.wait10seconds, "Welcome tab was not opened");
             const activityBare = new ActivityBar();
             await (await activityBare.getViewControl(constants.extensionName))?.openView();
-            await driver.wait(tabIsOpened(constants.dbDefaultEditor), constants.explicitWait * 6,
+            await driver.wait(tabIsOpened(constants.dbDefaultEditor), constants.wait25seconds,
                 `${constants.dbDefaultEditor} tab was not opened`);
             await Misc.switchToFrame();
-            await driver.wait(isFELoaded(), constants.explicitWait * 3);
+            await driver.wait(isFELoaded(), constants.wait15seconds);
             console.log("<<<<FE was loaded successfully>>>>>");
         };
 

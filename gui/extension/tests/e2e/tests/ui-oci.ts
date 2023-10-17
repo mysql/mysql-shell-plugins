@@ -51,10 +51,10 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         await Misc.loadDriver();
 
         try {
-            await driver.wait(Until.extensionIsReady(), constants.extensionReadyWait, "Extension was not ready");
+            await driver.wait(Until.extensionIsReady(), constants.wait2minutes, "Extension was not ready");
             await Misc.toggleBottomBar(false);
             await Misc.sectionFocus(constants.ociTreeSection);
-            await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 2,
+            await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.wait20seconds,
                 `${constants.ociTreeSection} is still loading`);
 
             await fs.writeFile(process.env.MYSQLSH_OCI_CONFIG_FILE, "");
@@ -65,7 +65,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             await driver.wait(async () => {
                 return (await new EditorView().getOpenEditorTitles()).includes("config");
-            }, constants.explicitWait, "config editor was not opened");
+            }, constants.wait5seconds, "config editor was not opened");
 
             const textEditor = new TextEditor();
             const editor = await driver.findElement(locator.notebook.codeEditor.textArea);
@@ -83,7 +83,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
                     return true;
                 }
-            }, constants.explicitWait, "Could no set the config file");
+            }, constants.wait5seconds, "Could no set the config file");
 
             await Misc.clickSectionToolbarButton(treeOCISection, "Reload the OCI Profile list");
         } catch (e) {
@@ -97,7 +97,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         beforeEach(async function () {
             try {
-                await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 3,
+                await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.wait25seconds,
                     `${constants.ociTreeSection} is still loading`);
             } catch (e) {
                 await Misc.processFailure(this);
@@ -133,7 +133,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             const textEditor = new TextEditor();
             await driver.wait(async () => {
                 return Misc.isJson(await textEditor.getText());
-            }, constants.ociExplicitWait, "No text was found on file");
+            }, constants.wait10seconds, "No text was found on file");
 
         });
 
@@ -141,11 +141,11 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             const treeE2eTests = await Misc.getTreeElement(constants.ociTreeSection, "E2ETESTS (us-ashburn-1)");
             await Misc.openContextMenuItem(treeE2eTests, constants.setDefaultConfigProfile, undefined);
-            await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 3,
+            await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.wait25seconds,
                 `${constants.ociTreeSection} is still loading`);
             await driver.wait(async () => {
                 return Misc.isDefaultItem(constants.ociTreeSection, "E2ETESTS (us-ashburn-1)", "profile");
-            }, constants.explicitWait * 2, "E2e tests is not the deault item");
+            }, constants.wait5seconds * 2, "E2e tests is not the deault item");
 
         });
     });
@@ -161,7 +161,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                     /(Root Compartment)/,
                     /QA/,
                     "MySQLShellTesting",
-                ], constants.explicitWait * 5);
+                ], constants.wait5seconds * 5);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -206,7 +206,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 const editors = await new EditorView().getOpenEditorTitles();
 
                 return editors.includes("QA Info.json");
-            }, constants.explicitWait, "'QA Info.json' was not opened");
+            }, constants.wait5seconds, "'QA Info.json' was not opened");
 
             const textEditor = new TextEditor();
             let json = "";
@@ -214,7 +214,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 json = await textEditor.getText();
 
                 return Misc.isJson(json);
-            }, constants.explicitWait * 2, "No text was found inside QA Info.json");
+            }, constants.wait5seconds * 2, "No text was found inside QA Info.json");
 
             const parsed = JSON.parse(json);
             compartmentId = parsed.id;
@@ -225,18 +225,18 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             let treeQA = await Misc.getTreeElement(constants.ociTreeSection, /QA/);
             await Misc.openContextMenuItem(treeQA, constants.setCurrentCompartment, undefined);
-            await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 3,
+            await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.wait25seconds,
                 `${constants.ociTreeSection} is still loading`);
             const treeOCISection = await Misc.getSection(constants.ociTreeSection);
             treeQA = await treeOCISection.findItem("QA (Default)", constants.ociMaxLevel);
             expect(await Misc.isDefaultItem(constants.ociTreeSection,
                 "QA (Default)", "compartment")).to.be.true;
             await treeQA.expand();
-            await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 20,
+            await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.wait20seconds,
                 `${constants.ociTreeSection} is still loading`);
             const treeShellTesting = await Misc.getTreeElement(constants.ociTreeSection, "MySQLShellTesting");
             await treeShellTesting.expand();
-            await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 20,
+            await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.wait20seconds,
                 `${constants.ociTreeSection} is still loading`);
             const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
             await treeOpenEditorsSection.expand();
@@ -244,7 +244,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 constants.dbConnectionsLabel);
             await Misc.openContextMenuItem(treeDBConnections, constants.openNewShellConsole,
                 constants.checkNewTabAndWebView);
-            await driver.wait(Shell.isShellLoaded(), constants.explicitWait * 3, "Shell Console was not loaded");
+            await driver.wait(Shell.isShellLoaded(), constants.wait5seconds * 3, "Shell Console was not loaded");
             const result = await Misc.execCmd("mds.get.currentCompartmentId()", undefined, 60000);
             expect(result[0]).to.equal(compartmentId);
 
@@ -261,7 +261,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                     /(Root Compartment)/,
                     /QA/,
                     "MySQLShellTesting",
-                ], constants.explicitWait * 5);
+                ], constants.wait5seconds * 5);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -271,7 +271,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         beforeEach(async function () {
             try {
                 await Misc.sectionFocus(constants.ociTreeSection);
-                await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 3,
+                await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.wait25seconds,
                     `${constants.ociTreeSection} is still loading`);
             } catch (e) {
                 await Misc.processFailure(this);
@@ -306,12 +306,12 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 const editors = await new EditorView().getOpenEditorTitles();
 
                 return editors.includes("MDSforVSCodeExtension Info.json");
-            }, constants.explicitWait, "MDSforVSCodeExtension Info.json was not opened");
+            }, constants.wait5seconds, "MDSforVSCodeExtension Info.json was not opened");
 
             const textEditor = new TextEditor();
             await driver.wait(async () => {
                 return Misc.isJson(await textEditor.getText());
-            }, constants.explicitWait, "No text was found inside MDSforVSCodeExtension Info.json");
+            }, constants.wait5seconds, "No text was found inside MDSforVSCodeExtension Info.json");
         });
 
         it("Start a DB System (and cancel)", async () => {
@@ -326,7 +326,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 await Misc.clickOnNotificationButton(ntf, "NO");
                 await driver.wait(async () => {
                     return (Misc.existsTreeElement(constants.tasksTreeSection, "Start DB System (done)"));
-                }, constants.ociExplicitWait, "Start DB System (done) was not displayed");
+                }, constants.wait10seconds, "Start DB System (done) was not displayed");
             } finally {
                 await Misc.collapseTreeSection(constants.tasksTreeSection);
             }
@@ -345,7 +345,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 await Misc.clickOnNotificationButton(ntf, "NO");
                 await driver.wait(async () => {
                     return (Misc.existsTreeElement(constants.tasksTreeSection, "Restart DB System (done)"));
-                }, constants.ociExplicitWait, "Restart DB System (done) was not displayed");
+                }, constants.wait10seconds, "Restart DB System (done) was not displayed");
             } finally {
                 await Misc.collapseTreeSection(constants.tasksTreeSection);
             }
@@ -363,7 +363,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 await Misc.clickOnNotificationButton(ntf, "NO");
                 await driver.wait(async () => {
                     return (Misc.existsTreeElement(constants.tasksTreeSection, "Stop DB System (done)"));
-                }, constants.ociExplicitWait, "Stop DB System (done) was not displayed");
+                }, constants.wait10seconds, "Stop DB System (done) was not displayed");
             } finally {
                 await Misc.collapseTreeSection(constants.tasksTreeSection);
             }
@@ -382,7 +382,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 await Misc.clickOnNotificationButton(ntf, "NO");
                 await driver.wait(async () => {
                     return (Misc.existsTreeElement(constants.tasksTreeSection, "Delete DB System (done)"));
-                }, constants.ociExplicitWait, "Delete DB System (done) was not displayed");
+                }, constants.wait10seconds, "Delete DB System (done) was not displayed");
             } finally {
                 await Misc.collapseTreeSection(constants.tasksTreeSection);
             }
@@ -408,7 +408,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                             /(Root Compartment)/,
                             /QA/,
                             "MySQLShellTesting",
-                        ], constants.explicitWait * 5);
+                        ], constants.wait5seconds * 5);
                     } catch (e) {
                         await Misc.processFailure(this);
                         throw e;
@@ -423,7 +423,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         beforeEach(async function () {
             try {
                 await Misc.sectionFocus(constants.ociTreeSection);
-                await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 3,
+                await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.wait25seconds,
                     `${constants.ociTreeSection} is still loading`);
             } catch (e) {
                 await Misc.processFailure(this);
@@ -466,21 +466,21 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 const editors = await new EditorView().getOpenEditorTitles();
 
                 return editors.includes("Bastion4PrivateSubnetStandardVnc Info.json");
-            }, constants.explicitWait, "Bastion4PrivateSubnetStandardVnc Info.json was not opened");
+            }, constants.wait5seconds, "Bastion4PrivateSubnetStandardVnc Info.json was not opened");
 
             const textEditor = new TextEditor();
             await driver.wait(async () => {
                 const text = await textEditor.getText();
 
                 return text.indexOf("{") !== -1;
-            }, constants.explicitWait, "No text was found inside Bastion4PrivateSubnetStandardVnc Info.json");
+            }, constants.wait5seconds, "No text was found inside Bastion4PrivateSubnetStandardVnc Info.json");
 
             let json: string;
             await driver.wait(async () => {
                 json = await textEditor.getText();
 
                 return Misc.isJson(json);
-            }, constants.explicitWait, "Bastion4PrivateSubnetStandardVnc Info.json content is not json");
+            }, constants.wait5seconds, "Bastion4PrivateSubnetStandardVnc Info.json content is not json");
 
             const parsed = JSON.parse(json);
             const bastionId = parsed.id;
@@ -489,12 +489,12 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await new ModalDialog().pushButton("Don't Save");
 
             await Misc.openContextMenuItem(treeBastion, constants.setAsCurrentBastion, undefined);
-            await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.ociExplicitWait * 3,
+            await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.wait25seconds,
                 `${constants.ociTreeSection} is still loading`);
 
             await driver.wait(async () => {
                 return Misc.isDefaultItem(constants.ociTreeSection, "Bastion4PrivateSubnetStandardVnc", "bastion");
-            }, constants.explicitWait * 2, "Bastion is not the deault item");
+            }, constants.wait5seconds * 2, "Bastion is not the deault item");
 
             const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
             await treeOpenEditorsSection.expand();
@@ -503,7 +503,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             await Misc.openContextMenuItem(treeDBConnections, constants.openNewShellConsole,
                 constants.checkNewTabAndWebView);
-            await driver.wait(Shell.isShellLoaded(), constants.explicitWait * 3, "Shell Console was not loaded");
+            await driver.wait(Shell.isShellLoaded(), constants.wait5seconds * 3, "Shell Console was not loaded");
             const result = await Misc.execCmd("mds.get.currentBastionId()", undefined, 60000);
             expect(result[0]).to.equal(bastionId);
 
@@ -533,10 +533,10 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             const treeTasksSection = await Misc.getSection(constants.tasksTreeSection);
             await treeTasksSection.expand();
             expect(await Misc.existsTreeElement(constants.tasksTreeSection, "Delete Bastion (running)")).to.be.true;
-            await Misc.waitForOutputText("OCI profile 'E2ETESTS' loaded.", constants.ociTasksExplicitWait);
+            await Misc.waitForOutputText("OCI profile 'E2ETESTS' loaded.", constants.wait25seconds);
             const ntf = await Misc.getNotification("Are you sure you want to delete", false);
             await Misc.clickOnNotificationButton(ntf, "NO");
-            await Misc.waitForOutputText("Deletion aborted", constants.explicitWait);
+            await Misc.waitForOutputText("Deletion aborted", constants.wait5seconds);
             expect(await Misc.existsTreeElement(constants.tasksTreeSection, "Delete Bastion (error)")).to.be.true;
             await outputView.clearText();
             await bottomBar.toggle(false);
@@ -549,7 +549,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             if (!await Misc.isDBSystemStopped(treeDbSystem)) {
                 await Misc.openContextMenuItem(treeDbSystem, constants.createConnWithBastion,
                     constants.checkNewTabAndWebView);
-                await driver.wait(Until.dbConnectionIsOpened(), constants.explicitWait, "Connection was not opened");
+                await driver.wait(Until.dbConnectionIsOpened(), constants.wait5seconds, "Connection was not opened");
                 const newConDialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
                     10000, "Connection dialog was not loaded");
 
@@ -617,13 +617,13 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
                 try {
                     const confirmDialog = await driver.wait(until.elementLocated(locator.confirmDialog.exists),
-                        constants.explicitWait, "Confirm dialog was not displayed");
+                        constants.wait5seconds, "Confirm dialog was not displayed");
                     await confirmDialog.findElement(locator.confirmDialog.refuse).click();
                 } catch (e) {
                     // continue
                 }
 
-                await driver.wait(Until.dbConnectionIsOpened(), constants.explicitWait, "Connection was not opened");
+                await driver.wait(Until.dbConnectionIsOpened(), constants.wait5seconds, "Connection was not opened");
                 const result = await Misc.execCmd("select version();", undefined, 10000);
                 expect(result[0]).to.include("OK");
                 await Misc.switchBackToTopFrame();
@@ -709,7 +709,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             const treeLocalConn = await Misc.getTreeElement(constants.dbTreeSection, localConn.caption);
             await new EditorView().closeAllEditors();
             await (await Misc.getActionButton(treeLocalConn, constants.openNewConnection)).click();
-            await driver.wait(Until.dbConnectionIsOpened(), constants.explicitWait, "Connection was not opened");
+            await driver.wait(Until.dbConnectionIsOpened(), constants.wait5seconds, "Connection was not opened");
             await Database.setDBConnectionCredentials(localConn, 30000);
             const result = await Misc.execCmd("select version();", undefined, 10000);
             expect(result[0]).to.include("OK");
