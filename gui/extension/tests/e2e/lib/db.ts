@@ -49,13 +49,13 @@ export class Database {
     ): Promise<void> => {
 
         const dialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
-            constants.explicitWait * 5, "Connection dialog was not displayed");
+            constants.wait25seconds, "Connection dialog was not displayed");
 
         if (dbType) {
             const inDBType = await dialog.findElement(locator.dbConnectionDialog.databaseType);
             await inDBType.click();
             const popup = await driver.wait(until.elementLocated(locator.dbConnectionDialog.databaseTypeList),
-                constants.explicitWait, "Database type popup was not found");
+                constants.wait5seconds, "Database type popup was not found");
             await popup.findElement(By.id(dbType)).click();
         }
 
@@ -131,8 +131,8 @@ export class Database {
                     const inProfile = await dialog.findElement(locator.dbConnectionDialog.mysql.mds.profileName);
                     await inProfile.click();
                     await driver.wait(until
-                        .elementLocated(locator.dbConnectionDialog.mysql.mds.profileNameList), constants.explicitWait);
-                    await driver.wait(until.elementLocated(By.id(mds.profile)), constants.explicitWait).click();
+                        .elementLocated(locator.dbConnectionDialog.mysql.mds.profileNameList), constants.wait5seconds);
+                    await driver.wait(until.elementLocated(By.id(mds.profile)), constants.wait5seconds).click();
                 }
                 if (mds.dbSystemOCID) {
                     const inDBSystem = await dialog.findElement(locator.dbConnectionDialog.mysql.mds.dbDystemId);
@@ -143,7 +143,7 @@ export class Database {
                     const dbSystemName = dialog.findElement(locator.dbConnectionDialog.mysql.mds.dbDystemName);
                     await driver.wait(new Condition("", async () => {
                         return !(await dbSystemName.getAttribute("value")).includes("Loading");
-                    }), constants.ociExplicitWait, "DB System name is still loading");
+                    }), constants.wait10seconds, "DB System name is still loading");
                 }
                 if (mds.bastionOCID) {
                     const inDBSystem = await dialog.findElement(locator.dbConnectionDialog.mysql.mds.bastionId);
@@ -154,7 +154,7 @@ export class Database {
                     const bastionName = dialog.findElement(locator.dbConnectionDialog.mysql.mds.bastionName);
                     await driver.wait(new Condition("", async () => {
                         return !(await bastionName.getAttribute("value")).includes("Loading");
-                    }), constants.ociExplicitWait, "Bastion name is still loading");
+                    }), constants.wait10seconds, "Bastion name is still loading");
                 }
             }
 
@@ -207,7 +207,7 @@ export class Database {
                     throw e;
                 }
             }
-        }, constants.explicitWait, "Elements were stale");
+        }, constants.wait5seconds, "Elements were stale");
 
         return sentence;
     };
@@ -217,10 +217,10 @@ export class Database {
         await Misc.switchBackToTopFrame();
         await Misc.clickSectionToolbarButton(await Misc.getSection(constants.dbTreeSection),
             constants.createDBConnection);
-        await driver.wait(Until.tabIsOpened(constants.dbDefaultEditor), constants.explicitWait,
+        await driver.wait(Until.tabIsOpened(constants.dbDefaultEditor), constants.wait5seconds,
             `${constants.dbDefaultEditor} tab was not opened`);
         await Misc.switchToFrame();
-        await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists), constants.explicitWait * 2);
+        await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists), constants.wait10seconds);
 
         await Database.setConnection(
             dbConfig.dbType,
@@ -256,7 +256,7 @@ export class Database {
             }
 
             return undefined;
-        }, constants.explicitWait, "No DB was found");
+        }, constants.wait5seconds, "No DB was found");
 
         if (useFrame) {
             await Misc.switchBackToTopFrame();
@@ -267,7 +267,7 @@ export class Database {
 
     public static setPassword = async (dbConfig: interfaces.IDBConnection): Promise<void> => {
         const dialog = await driver.wait(until.elementLocated((locator.passwordDialog.exists)),
-            constants.explicitWait, "No password dialog was found");
+            constants.wait5seconds, "No password dialog was found");
         await dialog.findElement(locator.passwordDialog.password)
             .sendKeys((dbConfig.basic as interfaces.IConnBasicMySQL).password);
         await dialog.findElement(locator.passwordDialog.ok).click();
@@ -279,7 +279,7 @@ export class Database {
 
     public static getToolbarButton = async (button: string): Promise<WebElement | undefined> => {
         const toolbar = await driver.wait(until.elementLocated(locator.notebook.toolbar.exists),
-            constants.explicitWait, "Toolbar was not found");
+            constants.wait5seconds, "Toolbar was not found");
         const buttons = await toolbar.findElements(locator.notebook.toolbar.button.exists);
         for (const btn of buttons) {
             if ((await btn.getAttribute("data-tooltip")) === button) {
@@ -288,6 +288,31 @@ export class Database {
         }
 
         throw new Error(`Could not find '${button}' button`);
+    };
+
+    public static setNewLineOnEditor = async (): Promise<void> => {
+        const getLastLineNumber = async (): Promise<number> => {
+            const lineNumbers = await driver.findElements(locator.notebook.codeEditor.editor.lineNumber);
+            if (lineNumbers.length === 0) {
+                return 0;
+            } else {
+                return parseInt((await lineNumbers[lineNumbers.length - 1].getText()), 10);
+            }
+        };
+
+        await driver.wait(async () => {
+            try {
+                const lastLineNumber = await getLastLineNumber();
+                const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
+                await textArea.sendKeys(Key.RETURN);
+
+                return (await getLastLineNumber()) > lastLineNumber;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+        }, constants.wait5seconds, "Could not set a new line on the editor");
     };
 
     public static isStatementStart = async (statement: string): Promise<boolean | undefined> => {
@@ -333,13 +358,13 @@ export class Database {
                     throw e;
                 }
             }
-        }, constants.explicitWait, "Lines were stale");
+        }, constants.wait5seconds, "Lines were stale");
 
         return flag;
     };
 
     public static findInSelection = async (flag: boolean): Promise<void> => {
-        const findWidget = await driver.wait(until.elementLocated(locator.findWidget.exists), constants.explicitWait);
+        const findWidget = await driver.wait(until.elementLocated(locator.findWidget.exists), constants.wait5seconds);
         const actions = await findWidget.findElements(locator.findWidget.actions);
         for (const action of actions) {
             if ((await action.getAttribute("title")).includes("Find in selection")) {
@@ -360,7 +385,7 @@ export class Database {
     };
 
     public static toggleFinderReplace = async (expand: boolean): Promise<void> => {
-        const findWidget = await driver.wait(until.elementLocated(locator.findWidget.exists), constants.explicitWait);
+        const findWidget = await driver.wait(until.elementLocated(locator.findWidget.exists), constants.wait5seconds);
         const toggleReplace = await findWidget.findElement(locator.findWidget.toggleReplace);
         const isExpanded = (await findWidget.findElements(locator.findWidget.toggleReplaceExpanded)).length > 0;
         if (expand) {
@@ -375,7 +400,7 @@ export class Database {
     };
 
     public static replacerGetButton = async (button: string): Promise<WebElement | undefined> => {
-        const findWidget = await driver.wait(until.elementLocated(locator.findWidget.exists), constants.explicitWait);
+        const findWidget = await driver.wait(until.elementLocated(locator.findWidget.exists), constants.wait5seconds);
         const replaceActions = await findWidget.findElements(locator.findWidget.replaceActions);
         for (const action of replaceActions) {
             if ((await action.getAttribute("title")).indexOf(button) !== -1) {
@@ -385,7 +410,7 @@ export class Database {
     };
 
     public static closeFinder = async (): Promise<void> => {
-        const findWidget = await driver.wait(until.elementLocated(locator.findWidget.exists), constants.explicitWait);
+        const findWidget = await driver.wait(until.elementLocated(locator.findWidget.exists), constants.wait5seconds);
         const actions = await findWidget.findElements(locator.findWidget.actions);
         for (const action of actions) {
             if ((await action.getAttribute("title")).indexOf("Close") !== -1) {
@@ -409,7 +434,7 @@ export class Database {
 
             return isCtxMenuDisplayed();
 
-        }, constants.explicitWait, "Context menu was not displayed");
+        }, constants.wait5seconds, "Context menu was not displayed");
 
         await driver.wait(async () => {
             try {
@@ -423,7 +448,7 @@ export class Database {
                     return true;
                 }
             }
-        }, constants.explicitWait, "Context menu is still displayed");
+        }, constants.wait5seconds, "Context menu is still displayed");
     };
 
     public static getPrompts = async (): Promise<number> => {
@@ -432,7 +457,7 @@ export class Database {
 
     public static setRestService = async (restService: interfaces.IRestService): Promise<void> => {
         const dialog = await driver.wait(until.elementLocated(locator.mrsServiceDialog.exists),
-            constants.explicitWait, "MRS Service dialog was not displayed");
+            constants.wait5seconds, "MRS Service dialog was not displayed");
 
         // Main settings
         const inputServPath = await dialog.findElement(locator.mrsServiceDialog.servicePath);
@@ -503,7 +528,7 @@ export class Database {
 
                     return (await driver.findElements(locator.mrsServiceDialog.authenticationApps.vendorNameList))
                         .length > 0;
-                }, constants.explicitWait, "Vendor drop down list was not displayed");
+                }, constants.wait5seconds, "Vendor drop down list was not displayed");
 
                 const popup = await driver.findElement(locator.mrsServiceDialog.authenticationApps.vendorNameList);
                 await popup.findElement(By.id(restService.authenticationApps.vendor)).click();
@@ -555,12 +580,12 @@ export class Database {
             await dialog.findElement(locator.mrsServiceDialog.ok).click();
 
             return (await Misc.existsWebViewDialog()) === false;
-        }, constants.explicitWait * 2, "The MRS Service dialog was not closed");
+        }, constants.wait10seconds, "The MRS Service dialog was not closed");
     };
 
     public static getRestService = async (): Promise<interfaces.IRestService> => {
         const dialog = await driver.wait(until.elementLocated(locator.mrsServiceDialog.exists),
-            constants.explicitWait, "MRS Service dialog was not displayed");
+            constants.wait5seconds, "MRS Service dialog was not displayed");
 
         // Main settings
         const restService: interfaces.IRestService = {
@@ -627,7 +652,7 @@ export class Database {
             await dialog.findElement(locator.mrsServiceDialog.cancel).click();
 
             return (await Misc.existsWebViewDialog()) === false;
-        }, constants.explicitWait * 2, "The MRS Service dialog was not closed");
+        }, constants.wait10seconds, "The MRS Service dialog was not closed");
 
         return restService;
     };
@@ -635,7 +660,7 @@ export class Database {
     public static setRestSchema = async (restSchema: interfaces.IRestSchema): Promise<void> => {
 
         const dialog = await driver.wait(until.elementLocated(locator.mrsSchemaDialog.exists),
-            constants.explicitWait, "MRS Schema dialog was not displayed");
+            constants.wait5seconds, "MRS Schema dialog was not displayed");
 
         if (restSchema.restServicePath) {
             await driver.wait(async () => {
@@ -649,7 +674,7 @@ export class Database {
 
                 return (await driver.findElements(locator.mrsSchemaDialog.serviceList))
                     .length > 0;
-            }, constants.explicitWait, "Service drop down list was not displayed");
+            }, constants.wait5seconds, "Service drop down list was not displayed");
             const popup = await driver.findElement(locator.mrsSchemaDialog.serviceList);
             await popup.findElement(By.id(restSchema.restServicePath)).click();
         }
@@ -699,13 +724,13 @@ export class Database {
             await dialog.findElement(locator.mrsSchemaDialog.ok).click();
 
             return (await Misc.existsWebViewDialog()) === false;
-        }, constants.explicitWait * 2, "The REST Schema Dialog was not closed");
+        }, constants.wait10seconds, "The REST Schema Dialog was not closed");
 
     };
 
     public static getRestSchema = async (): Promise<interfaces.IRestSchema> => {
         const dialog = await driver.wait(until.elementLocated(locator.mrsSchemaDialog.exists),
-            constants.explicitWait, "MRS Schema dialog was not displayed");
+            constants.wait5seconds, "MRS Schema dialog was not displayed");
 
         // Main settings
         const restShema: interfaces.IRestSchema = {
@@ -735,7 +760,7 @@ export class Database {
             await dialog.findElement(locator.mrsSchemaDialog.cancel).click();
 
             return (await Misc.existsWebViewDialog()) === false;
-        }, constants.explicitWait * 2, "The MRS Service dialog was not closed");
+        }, constants.wait10seconds, "The MRS Service dialog was not closed");
 
         return restShema;
     };
@@ -757,12 +782,12 @@ export class Database {
 
     public static setRestAuthenticationApp = async (authApp: interfaces.IRestAuthenticationApp): Promise<void> => {
         const dialog = await driver.wait(until.elementLocated(locator.mrsAuthenticationAppDialog.exists),
-            constants.explicitWait * 2, "Authentication app dialog was not displayed");
+            constants.wait10seconds, "Authentication app dialog was not displayed");
 
         if (authApp.vendor) {
             await dialog.findElement(locator.mrsAuthenticationAppDialog.authVendorName).click();
             const popup = await driver.wait(until.elementLocated(locator.mrsAuthenticationAppDialog.authVendorNameList),
-                constants.explicitWait, "Auth vendor drop down list was not displayed");
+                constants.wait5seconds, "Auth vendor drop down list was not displayed");
 
             await popup.findElement(By.id(authApp.vendor)).click();
         }
@@ -801,7 +826,7 @@ export class Database {
         if (authApp.defaultRole) {
             await dialog.findElement(locator.mrsAuthenticationAppDialog.defaultRoleName).click();
             const popup = await driver.wait(until.elementLocated(locator.mrsAuthenticationAppDialog.defaultRoleList),
-                constants.explicitWait, "Auth vendor drop down list was not displayed");
+                constants.wait5seconds, "Auth vendor drop down list was not displayed");
 
             await popup.findElement(By.id(authApp.defaultRole)).click();
         }
@@ -820,13 +845,13 @@ export class Database {
             await dialog.findElement(locator.mrsAuthenticationAppDialog.ok).click();
 
             return (await Misc.existsWebViewDialog()) === false;
-        }, constants.explicitWait * 2, "The Authentication App Dialog was not closed");
+        }, constants.wait10seconds, "The Authentication App Dialog was not closed");
 
     };
 
     public static getAuthenticationApp = async (): Promise<interfaces.IRestAuthenticationApp> => {
         const dialog = await driver.wait(until.elementLocated(locator.mrsAuthenticationAppDialog.exists),
-            constants.explicitWait * 2, "Authentication app dialog was not displayed");
+            constants.wait10seconds, "Authentication app dialog was not displayed");
 
         const authenticationApp: interfaces.IRestAuthenticationApp = {
             vendor: await dialog.findElement(locator.mrsAuthenticationAppDialog.authVendorNameLabel).getText(),
@@ -847,7 +872,7 @@ export class Database {
             await dialog.findElement(locator.mrsAuthenticationAppDialog.ok).click();
 
             return (await Misc.existsWebViewDialog()) === false;
-        }, constants.explicitWait * 2, "The Authentication App Dialog was not closed");
+        }, constants.wait10seconds, "The Authentication App Dialog was not closed");
 
         return authenticationApp;
     };
@@ -855,7 +880,7 @@ export class Database {
     public static setRestUser = async (restUser: interfaces.IRestUser): Promise<void> => {
 
         const dialog = await driver.wait(until.elementLocated(locator.mrsUserDialog.exists),
-            constants.explicitWait * 2, "User dialog was not displayed");
+            constants.wait10seconds, "User dialog was not displayed");
 
         const nameInput = await dialog.findElement(locator.mrsUserDialog.username);
         const passwordInput = await dialog.findElement(locator.mrsUserDialog.password);
@@ -869,9 +894,9 @@ export class Database {
         if (restUser.authenticationApp) {
             await dialog.findElement(locator.mrsUserDialog.authApp).click();
             await driver.wait(until.elementLocated(locator.mrsUserDialog.authAppList),
-                constants.explicitWait, "Auth app drop down list was not displayed");
+                constants.wait5seconds, "Auth app drop down list was not displayed");
 
-            await driver.wait(until.elementLocated(By.id(restUser.authenticationApp)), constants.explicitWait).click();
+            await driver.wait(until.elementLocated(By.id(restUser.authenticationApp)), constants.wait5seconds).click();
         }
 
         if (restUser.email) {
@@ -883,7 +908,7 @@ export class Database {
         if (restUser.assignedRoles) {
             await dialog.findElement(locator.mrsUserDialog.roles).click();
             await driver.wait(until.elementLocated(locator.mrsUserDialog.rolesList),
-                constants.explicitWait, "Roles drop down list was not displayed");
+                constants.wait5seconds, "Roles drop down list was not displayed");
 
             const roles = await driver.findElement(By.id(restUser.assignedRoles));
             const rolesLabel = await roles.findElement(locator.htmlTag.label);
@@ -895,7 +920,7 @@ export class Database {
                     await keyboard.type(nutKey.Escape);
 
                     return (await driver.findElements(locator.mrsUserDialog.rolesList)).length === 0;
-                }, constants.explicitWait, "Roles drop down list was not closed");
+                }, constants.wait5seconds, "Roles drop down list was not closed");
             }
         }
 
@@ -925,14 +950,14 @@ export class Database {
             await dialog.findElement(locator.mrsUserDialog.ok).click();
 
             return (await Misc.existsWebViewDialog()) === false;
-        }, constants.explicitWait * 2, "The MRS User dialog was not closed");
+        }, constants.wait10seconds, "The MRS User dialog was not closed");
 
     };
 
     public static getRestUser = async (): Promise<interfaces.IRestUser> => {
 
         const dialog = await driver.wait(until.elementLocated(locator.mrsUserDialog.exists),
-            constants.explicitWait * 2, "User dialog was not displayed");
+            constants.wait10seconds, "User dialog was not displayed");
 
         const restUser: interfaces.IRestUser = {
             username: await dialog.findElement(locator.mrsUserDialog.username).getAttribute("value"),
@@ -952,7 +977,7 @@ export class Database {
             await dialog.findElement(locator.mrsUserDialog.ok).click();
 
             return (await Misc.existsWebViewDialog()) === false;
-        }, constants.explicitWait * 2, "The MRS User dialog was not closed");
+        }, constants.wait10seconds, "The MRS User dialog was not closed");
 
         return restUser;
 
@@ -961,12 +986,12 @@ export class Database {
     public static setRestObject = async (restObject: interfaces.IRestObject): Promise<void> => {
 
         const dialog = await driver.wait(until.elementLocated(locator.mrsDbObjectDialog.exists),
-            constants.explicitWait * 2, "Edit REST Object dialog was not displayed");
+            constants.wait10seconds, "Edit REST Object dialog was not displayed");
 
         const processColumnActivation = async (colOption: interfaces.IRestObjectColumn): Promise<void> => {
             const inColumns = await driver.wait(until
                 .elementsLocated(locator.mrsDbObjectDialog.jsonDuality.dbObjJsonField),
-                constants.explicitWait);
+                constants.wait5seconds);
             for (const col of inColumns) {
                 if ((await col.findElement(locator.htmlTag.labelClass).getText()) === colOption.name) {
                     const isNotSelected = (await col.findElements(locator.checkBox.unchecked)).length > 0;
@@ -990,7 +1015,7 @@ export class Database {
         const processColumnOption = async (colName: string, colOption: string, wantedValue: boolean): Promise<void> => {
             const inColumns = await driver.wait(until
                 .elementsLocated(locator.mrsDbObjectDialog.jsonDuality.dbObjJsonField),
-                constants.explicitWait);
+                constants.wait5seconds);
             for (const col of inColumns) {
                 if ((await col.findElement(locator.htmlTag.labelClass).getText()) === colName) {
                     const fieldOptions = await col.findElements(locator.mrsDbObjectDialog.jsonDuality.fieldOptionIcon);
@@ -1100,14 +1125,14 @@ export class Database {
             const inService = await dialog.findElement(locator.mrsDbObjectDialog.service);
             await inService.click();
             const popup = await driver.wait(until.elementLocated(locator.mrsDbObjectDialog.serviceList),
-                constants.explicitWait, "Service list was not found");
+                constants.wait5seconds, "Service list was not found");
             await popup.findElement(By.id(restObject.restServicePath)).click();
         }
         if (restObject.restSchemaPath) {
             const inSchema = await dialog.findElement(locator.mrsDbObjectDialog.schema);
             await inSchema.click();
             const popup = await driver.wait(until.elementLocated(locator.mrsDbObjectDialog.schemaList),
-                constants.explicitWait, "Schema drop down list was not found");
+                constants.wait5seconds, "Schema drop down list was not found");
             await popup.findElement(By.id(restObject.restSchemaPath)).click();
         }
         if (restObject.restObjectPath) {
@@ -1133,7 +1158,7 @@ export class Database {
                     await inSdk.click();
                     const popup = await driver.wait(until
                         .elementLocated(locator.mrsDbObjectDialog.jsonDuality.sdkLanguageList),
-                        constants.explicitWait, "SDK Language drop down list was not found");
+                        constants.wait5seconds, "SDK Language drop down list was not found");
                     await popup.findElement(By.id(restObject.jsonRelDuality.sdkLanguage)).click();
                 }
             }
@@ -1189,14 +1214,14 @@ export class Database {
 
                 return (await dialog.findElement(locator.mrsDbObjectDialog.settingsTab)
                     .getAttribute("class")).includes("selected");
-            }, constants.explicitWait, "Settings tab was not selected");
+            }, constants.wait5seconds, "Settings tab was not selected");
             if (restObject.settings.resultFormat) {
                 const inResultFormat = await dialog
                     .findElement(locator.mrsDbObjectDialog.settings.resultFormat);
                 await inResultFormat.click();
                 const popup = await driver.wait(until
                     .elementLocated(locator.mrsDbObjectDialog.settings.resultFormatList),
-                    constants.explicitWait, "#crudOperationFormatPopup not found");
+                    constants.wait5seconds, "#crudOperationFormatPopup not found");
                 await popup.findElement(By.id(restObject.settings.resultFormat)).click();
             }
             if (restObject.settings.itemsPerPage) {
@@ -1224,7 +1249,7 @@ export class Database {
 
                 return (await dialog.findElement(locator.mrsDbObjectDialog.authorizationTab)
                     .getAttribute("class")).includes("selected");
-            }, constants.explicitWait, "Authorization tab was not selected");
+            }, constants.wait5seconds, "Authorization tab was not selected");
             if (restObject.authorization.enforceRowUserOwner !== undefined) {
                 await Database.toggleCheckBox("rowUserOwnershipEnforced", restObject.authorization.enforceRowUserOwner);
             }
@@ -1234,7 +1259,7 @@ export class Database {
                 await inOwner.click();
                 const popup = await driver.wait(until
                     .elementLocated(locator.mrsDbObjectDialog.authorization.rowUserOwnershipFieldList),
-                    constants.explicitWait, "#rowUserOwnershipColumnPopup not found");
+                    constants.wait5seconds, "#rowUserOwnershipColumnPopup not found");
                 await popup.findElement(By.id(restObject.authorization.rowOwnerShipField)).click();
             }
             if (restObject.authorization.customStoredProcedure) {
@@ -1250,7 +1275,7 @@ export class Database {
 
                 return (await dialog.findElement(locator.mrsDbObjectDialog.optionsTab)
                     .getAttribute("class")).includes("selected");
-            }, constants.explicitWait, "Options tab was not selected");
+            }, constants.wait5seconds, "Options tab was not selected");
             const inputOptions = await dialog.findElement(locator.mrsDbObjectDialog.options.options);
             await inputOptions.clear();
             await inputOptions.sendKeys(restObject.options);
@@ -1260,13 +1285,13 @@ export class Database {
             await dialog.findElement(locator.mrsDbObjectDialog.ok).click();
 
             return (await Misc.existsWebViewDialog()) === false;
-        }, constants.explicitWait * 2, "The MRS Object dialog was not closed");
+        }, constants.wait10seconds, "The MRS Object dialog was not closed");
     };
 
     public static getRestObject = async (): Promise<interfaces.IRestObject> => {
 
         const dialog = await driver.wait(until.elementLocated(locator.mrsDbObjectDialog.exists),
-            constants.explicitWait * 2, "Edit REST Object dialog was not displayed");
+            constants.wait10seconds, "Edit REST Object dialog was not displayed");
 
         const restObject: interfaces.IRestObject = {
             restServicePath: await dialog.findElement(locator.mrsDbObjectDialog.serviceLabel).getText(),
@@ -1283,7 +1308,7 @@ export class Database {
         restObject.requiresAuth = await Database.getCheckBoxValue("requiresAuth");
 
         const inColumns = await driver.wait(until.elementsLocated(locator.mrsDbObjectDialog.jsonDuality.dbObjJsonField),
-            constants.explicitWait);
+            constants.wait5seconds);
         const restColumns: interfaces.IRestObjectColumn[] = [];
         for (const col of inColumns) {
             const restObjectColumn: interfaces.IRestObjectColumn = {
@@ -1326,7 +1351,7 @@ export class Database {
             delete: undefined,
         };
         const crudDivs = await driver.wait(until.elementsLocated(locator.mrsDbObjectDialog.jsonDuality.crud),
-            constants.explicitWait);
+            constants.wait5seconds);
         const crudKeys = Object.keys(restObjectCrud);
         for (const crudDiv of crudDivs) {
             const isInactive = (await crudDiv.getAttribute("class")).includes("deactivated");
@@ -1344,7 +1369,7 @@ export class Database {
 
             return (await dialog.findElement(locator.mrsDbObjectDialog.settingsTab)
                 .getAttribute("class")).includes("selected");
-        }, constants.explicitWait, "Settings tab was not selected");
+        }, constants.wait5seconds, "Settings tab was not selected");
         restObject.settings = {
             resultFormat: await dialog.findElement(locator.mrsDbObjectDialog.settings.resultFormat).getText(),
             itemsPerPage: await dialog
@@ -1360,7 +1385,7 @@ export class Database {
 
             return (await dialog.findElement(locator.mrsDbObjectDialog.authorizationTab)
                 .getAttribute("class")).includes("selected");
-        }, constants.explicitWait, "Authorization tab was not selected");
+        }, constants.wait5seconds, "Authorization tab was not selected");
         restObject.authorization = {};
 
         restObject.authorization.enforceRowUserOwner = await Database.getCheckBoxValue("rowUserOwnershipEnforced");
@@ -1377,7 +1402,7 @@ export class Database {
 
             return (await dialog.findElement(locator.mrsDbObjectDialog.optionsTab)
                 .getAttribute("class")).includes("selected");
-        }, constants.explicitWait, "Options tab was not selected");
+        }, constants.wait5seconds, "Options tab was not selected");
         restObject.options = (await dialog.findElement(locator.mrsDbObjectDialog.options.options).getAttribute("value"))
             .replace(/\r?\n|\r|\s+/gm, "").trim();
 
@@ -1385,7 +1410,7 @@ export class Database {
             await dialog.findElement(locator.mrsDbObjectDialog.ok).click();
 
             return (await Misc.existsWebViewDialog()) === false;
-        }, constants.explicitWait * 2, "The MRS Object dialog was not closed");
+        }, constants.wait10seconds, "The MRS Object dialog was not closed");
 
         return restObject;
     };
@@ -1393,7 +1418,7 @@ export class Database {
     public static getCurrentEditor = async (): Promise<string> => {
         const getData = async (): Promise<string> => {
             const selector = await driver.wait(until.elementLocated(locator.notebook.toolbar.editorSelector.exists),
-                constants.explicitWait, "Document selector was not found");
+                constants.wait5seconds, "Document selector was not found");
             const label = await selector.findElement(locator.htmlTag.label);
 
             return label.getText();
@@ -1426,7 +1451,7 @@ export class Database {
     public static getAutoCompleteMenuItems = async (): Promise<string[]> => {
         const els = [];
         let items = await driver.wait(until.elementsLocated(locator.notebook.codeEditor.editor.autoCompleteListItem),
-            constants.explicitWait, "Auto complete items were not displayed");
+            constants.wait5seconds, "Auto complete items were not displayed");
 
         for (const item of items) {
             els.push(await item.getText());
@@ -1435,7 +1460,7 @@ export class Database {
         await driver.findElement(locator.notebook.codeEditor.textArea).sendKeys(Key.ARROW_UP);
 
         items = await driver.wait(until.elementsLocated(locator.notebook.codeEditor.editor.autoCompleteListItem),
-            constants.explicitWait, "Auto complete items were not displayed");
+            constants.wait5seconds, "Auto complete items were not displayed");
 
         for (const item of items) {
             els.push(await item.getText());
@@ -1453,7 +1478,7 @@ export class Database {
         return height > 0;
     };
 
-    public static getScriptResult = async (timeout = constants.explicitWait): Promise<string> => {
+    public static getScriptResult = async (timeout = constants.wait5seconds): Promise<string> => {
         let toReturn = "";
         await driver.wait(async () => {
             const resultHost = await driver.findElements(locator.notebook.codeEditor.editor.result.host);
@@ -1475,6 +1500,21 @@ export class Database {
         return toReturn;
     };
 
+    public static clearInputField = async (el: WebElement): Promise<void> => {
+        await driver.wait(async () => {
+            await el.click();
+            if (Misc.isMacOs()) {
+                await el.sendKeys(Key.chord(Key.COMMAND, "a"));
+            } else {
+                await el.sendKeys(Key.chord(Key.CONTROL, "a"));
+            }
+            await el.sendKeys(Key.BACK_SPACE);
+
+            return (await el.getAttribute("value")).length === 0;
+        }, constants.wait5seconds);
+
+    };
+
     public static isResultTabMaximized = async (): Promise<boolean> => {
         return (await driver.findElements(locator.notebook.codeEditor.editor.result.status.normalize)).length > 0;
     };
@@ -1484,7 +1524,7 @@ export class Database {
         await driver.executeScript("arguments[0].click()", selector);
 
         await driver.wait(async () => {
-            return (await driver.findElements(locator.notebook.toolbar.editorSelector.item)).length > 1;
+            return (await driver.findElements(locator.notebook.toolbar.editorSelector.item)).length >= 1;
         }, 2000, "No elements located on dropdown");
 
         const dropDownItems = await driver.findElements(locator.notebook.toolbar.editorSelector.item);
@@ -1508,7 +1548,7 @@ export class Database {
                         const selected = await selector.findElement(locator.htmlTag.label).getText();
 
                         return selected === editorName;
-                    }, constants.explicitWait, `${editorName} with type ${editorType} was not properly selected`);
+                    }, constants.wait5seconds, `${editorName} with type ${editorType} was not properly selected`);
 
                     await driver.wait(
                         async () => {
@@ -1546,7 +1586,7 @@ export class Database {
             try {
                 const cmds = await driver.wait(
                     until.elementsLocated(locator.notebook.codeEditor.editor.sentence),
-                    constants.explicitWait, "No lines were found");
+                    constants.wait5seconds, "No lines were found");
                 for (const cmd of cmds) {
                     const spans = await cmd.findElements(locator.htmlTag.span);
                     let sentence = "";
@@ -1562,7 +1602,7 @@ export class Database {
                     throw e;
                 }
             }
-        }, constants.explicitWait, "No SQL commands were found on the notebook");
+        }, constants.wait5seconds, "No SQL commands were found on the notebook");
 
 
         if (!commands.includes(sql)) {
@@ -1597,7 +1637,7 @@ export class Database {
     ): Promise<void> => {
 
         const dialog = await driver.wait(until.elementLocated(locator.hwDialog.exists),
-            constants.explicitWait, "MDS dialog was not found");
+            constants.wait5seconds, "MDS dialog was not found");
         if (schemas) {
             const schemaInput = await dialog.findElement(locator.hwDialog.schemas);
             await schemaInput.click();

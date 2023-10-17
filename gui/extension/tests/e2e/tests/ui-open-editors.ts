@@ -74,7 +74,7 @@ describe("OPEN EDITORS", () => {
 
         await Misc.loadDriver();
         try {
-            await driver.wait(Until.extensionIsReady(), constants.extensionReadyWait, "Extension was not ready");
+            await driver.wait(Until.extensionIsReady(), constants.wait2minutes, "Extension was not ready");
             const activityBare = new ActivityBar();
             await (await activityBare.getViewControl(constants.extensionName))?.openView();
             await Misc.dismissNotifications();
@@ -118,7 +118,7 @@ describe("OPEN EDITORS", () => {
             constants.dbConnectionsLabel);
         await Misc.openContextMenuItem(treeDBConnections, constants.openNewShellConsole,
             constants.checkNewTabAndWebView);
-        await driver.wait(Shell.isShellLoaded(), constants.explicitWait * 3, "Shell Console was not loaded");
+        await driver.wait(Shell.isShellLoaded(), constants.wait15seconds, "Shell Console was not loaded");
         await Misc.switchBackToTopFrame();
         const treeOEShellConsoles = await Misc.getTreeElement(constants.openEditorsTreeSection,
             constants.mysqlShellConsoles);
@@ -132,7 +132,7 @@ describe("OPEN EDITORS", () => {
         await Misc.sectionFocus(constants.dbTreeSection);
         const treeLocalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
         await (await Misc.getActionButton(treeLocalConn, constants.openNewConnection)).click();
-        await driver.wait(Until.dbConnectionIsOpened(), constants.explicitWait, "Connection was not opened");
+        await driver.wait(Until.dbConnectionIsOpened(), constants.wait5seconds, "Connection was not opened");
         await Database.setDBConnectionCredentials(globalConn);
         await Misc.switchBackToTopFrame();
         const treeOEGlobalConn = await Misc.getTreeElement(constants.openEditorsTreeSection,
@@ -158,7 +158,7 @@ describe("OPEN EDITORS", () => {
         await Misc.openContextMenuItem(item, constants.newMySQLScript, constants.checkNewTabAndWebView);
         await driver.wait(async () => {
             return (await Database.getCurrentEditor()).match(/Untitled-(\d+)/);
-        }, constants.explicitWait, "Current editor is not Untitled-(*)");
+        }, constants.wait5seconds, "Current editor is not Untitled-(*)");
         expect(await Database.getCurrentEditorType()).to.include("Mysql");
         await Misc.switchBackToTopFrame();
         const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
@@ -174,7 +174,7 @@ describe("OPEN EDITORS", () => {
         await Misc.openContextMenuItem(item, constants.newJS, constants.checkNewTabAndWebView);
         await driver.wait(async () => {
             return (await Database.getCurrentEditor()).match(/Untitled-(\d+)/);
-        }, constants.explicitWait, "Current editor is not Untitled-(*)");
+        }, constants.wait5seconds, "Current editor is not Untitled-(*)");
         expect(await Database.getCurrentEditorType()).to.include("scriptJs");
         await Misc.switchBackToTopFrame();
         const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
@@ -190,7 +190,7 @@ describe("OPEN EDITORS", () => {
         await Misc.openContextMenuItem(item, constants.newTS, constants.checkNewTabAndWebView);
         await driver.wait(async () => {
             return (await Database.getCurrentEditor()).match(/Untitled-(\d+)/);
-        }, constants.explicitWait, "Current editor is not Untitled-(*)");
+        }, constants.wait5seconds, "Current editor is not Untitled-(*)");
         expect(await Database.getCurrentEditorType()).to.include("scriptTs");
         await Misc.switchBackToTopFrame();
         const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
@@ -215,7 +215,7 @@ describe("OPEN EDITORS", () => {
     it("Open DB Connection Overview", async () => {
 
         await (await Misc.getTreeElement(constants.openEditorsTreeSection, constants.dbConnectionsLabel)).click();
-        await driver.wait(Until.dbConnectionIsOpened(), constants.explicitWait, "Connection was not opened");
+        await driver.wait(Until.dbConnectionIsOpened(), constants.wait5seconds, "Connection was not opened");
 
     });
 
@@ -225,7 +225,7 @@ describe("OPEN EDITORS", () => {
         await item.expand();
         await (await Misc.getTreeElement(constants.openEditorsTreeSection,
             constants.openEditorsDBNotebook)).click();
-        await driver.wait(Until.dbConnectionIsOpened(), constants.explicitWait, "Connection was not opened");
+        await driver.wait(Until.dbConnectionIsOpened(), constants.wait5seconds, "Connection was not opened");
 
     });
 
@@ -235,7 +235,7 @@ describe("OPEN EDITORS", () => {
         await item.expand();
         await (await Misc.getTreeElement(constants.openEditorsTreeSection, "Session 1")).click();
         await Misc.switchToFrame();
-        await driver.wait(Shell.isShellLoaded(), constants.explicitWait * 3, "Shell Console was not loaded");
+        await driver.wait(Shell.isShellLoaded(), constants.wait15seconds, "Shell Console was not loaded");
 
     });
 

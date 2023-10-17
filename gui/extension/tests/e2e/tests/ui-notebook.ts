@@ -79,7 +79,7 @@ describe("NOTEBOOKS", () => {
         await Misc.loadDriver();
 
         try {
-            await driver.wait(Until.extensionIsReady(), constants.extensionReadyWait, "Extension was not ready");
+            await driver.wait(Until.extensionIsReady(), constants.wait2minutes, "Extension was not ready");
             await Misc.toggleBottomBar(false);
             await Database.createConnection(globalConn);
             await new EditorView().closeAllEditors();
@@ -116,10 +116,10 @@ describe("NOTEBOOKS", () => {
                 await Misc.cleanCredentials();
                 await Misc.openContextMenuItem(await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption),
                     constants.openNewConnection, constants.checkNewTabAndWebView);
-                await driver.wait(Until.dbConnectionIsOpened(), constants.explicitWait * 3,
+                await driver.wait(Until.dbConnectionIsOpened(), constants.wait15seconds,
                     "DB Connection was not opened");
                 await Database.setDBConnectionCredentials(globalConn);
-                await driver.wait(Until.dbConnectionIsSuccessful(), constants.explicitWait * 3,
+                await driver.wait(Until.dbConnectionIsSuccessful(), constants.wait15seconds,
                     "DB Connection was not successful");
             } catch (e) {
                 await Misc.processFailure(this);
@@ -211,12 +211,11 @@ describe("NOTEBOOKS", () => {
             try {
                 await Misc.cleanEditor();
                 await Misc.writeCmd("DELIMITER $$ ", true);
-                const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
-                await textArea.sendKeys(Key.RETURN);
+                await Database.setNewLineOnEditor();
                 await Misc.writeCmd("SELECT actor_id", true);
-                await textArea.sendKeys(Key.RETURN);
+                await Database.setNewLineOnEditor();
                 await Misc.writeCmd("FROM ", true);
-                await textArea.sendKeys(Key.RETURN);
+                await Database.setNewLineOnEditor();
                 await Misc.writeCmd("sakila.actor LIMIT 1 $$", true);
 
                 expect(await Database.isStatementStart("DELIMITER $$")).to.be.true;
@@ -224,15 +223,14 @@ describe("NOTEBOOKS", () => {
                 expect(await Database.isStatementStart("FROM")).to.be.false;
                 expect(await Database.isStatementStart("sakila.actor LIMIT 1 $$")).to.be.false;
 
-                await textArea.sendKeys(Key.RETURN);
-                await textArea.sendKeys(Key.RETURN);
-                await textArea.sendKeys(Key.RETURN);
+                await Database.setNewLineOnEditor();
+                await Database.setNewLineOnEditor();
+                await Database.setNewLineOnEditor();
 
                 await Misc.writeCmd("select 1 $$ ");
                 expect(await Database.isStatementStart("select 1 $$")).to.be.true;
 
                 const result = await Misc.execCmd("", constants.execFullBlockSql);
-
                 expect(result[0]).to.include("OK");
                 let tabs: WebElement[];
                 await driver.wait(async () => {
@@ -244,7 +242,7 @@ describe("NOTEBOOKS", () => {
                     } catch (e) {
                         return false;
                     }
-                }, constants.explicitWait, "No result tabs were found on result");
+                }, constants.wait5seconds, "No result tabs were found on result");
 
                 expect(await tabs[0].getAttribute("innerHTML")).to.include("Result");
                 expect(await tabs[1].getAttribute("innerHTML")).to.include("Result");
@@ -260,7 +258,7 @@ describe("NOTEBOOKS", () => {
             expect(result[0]).to.match(/(\d+) record/);
             await driver.wait(async () => {
                 return (await Database.getPrompts()) > prompts;
-            }, constants.explicitWait, "A new prompt line should exist");
+            }, constants.wait5seconds, "A new prompt line should exist");
         });
 
         it("Connection toolbar buttons - Execute statement at the caret position", async () => {
@@ -280,7 +278,7 @@ describe("NOTEBOOKS", () => {
                     } catch (e) {
                         return false;
                     }
-                }, constants.explicitWait, "actor_id was not found");
+                }, constants.wait5seconds, "actor_id was not found");
                 await textArea.sendKeys(Key.ARROW_DOWN);
                 await driver.sleep(500);
                 result = await Misc.execCmd("", "Execute the statement at the caret position");
@@ -290,7 +288,7 @@ describe("NOTEBOOKS", () => {
                     } catch (e) {
                         return false;
                     }
-                }, constants.explicitWait, "address_id was not found");
+                }, constants.wait5seconds, "address_id was not found");
             } finally {
                 clean = true;
             }
@@ -370,7 +368,7 @@ describe("NOTEBOOKS", () => {
                         (await rollBackBtn?.getAttribute("class"))?.includes("disabled");
 
                 },
-                constants.explicitWait,
+                constants.wait5seconds,
                 "Commit/Rollback DB changes button is still enabled ",
             );
 
@@ -453,7 +451,7 @@ describe("NOTEBOOKS", () => {
                     } catch (e) {
                         return false;
                     }
-                }, constants.explicitWait, `Results should be different`);
+                }, constants.wait5seconds, `Results should be different`);
             } finally {
                 clean = true;
             }
@@ -507,7 +505,7 @@ describe("NOTEBOOKS", () => {
                 .findElement(locator.notebook.codeEditor.editor.result.status.maximize).click();
             await driver.wait(new Condition("", async () => {
                 return Database.isResultTabMaximized();
-            }), constants.explicitWait, "Result tab was not maxized");
+            }), constants.wait5seconds, "Result tab was not maxized");
 
             expect(await Database.getCurrentEditor()).to.equals("Result #1");
             try {
@@ -581,7 +579,7 @@ Graph.render(options);
                 await Misc.sectionFocus(constants.dbTreeSection);
                 const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
                 await (await Misc.getActionButton(treeGlobalConn, constants.openNewConnection)).click();
-                await driver.wait(Until.dbConnectionIsOpened(), constants.explicitWait * 3,
+                await driver.wait(Until.dbConnectionIsOpened(), constants.wait15seconds,
                     "DB Connection was not opened");
                 await Database.setDBConnectionCredentials(globalConn);
                 await Misc.switchBackToTopFrame();
@@ -620,7 +618,7 @@ Graph.render(options);
             await Misc.openContextMenuItem(treeGlobalConn, constants.newMySQLScript, constants.checkNewTabAndWebView);
             await driver.wait(async () => {
                 return (await Database.getCurrentEditor()).match(/Untitled-(\d+)/);
-            }, constants.explicitWait, "Current editor is not Untitled-(*)");
+            }, constants.wait5seconds, "Current editor is not Untitled-(*)");
             expect(await Database.getCurrentEditorType()).to.include("Mysql");
             const result = await Database.execScript("select * from sakila.actor limit 1;");
             expect(result).to.match(/OK, (\d+) record/);
@@ -635,7 +633,7 @@ Graph.render(options);
             await Misc.openContextMenuItem(treeGlobalConn, constants.newTS, constants.checkNewTabAndWebView);
             await driver.wait(async () => {
                 return (await Database.getCurrentEditor()).match(/Untitled-(\d+)/);
-            }, constants.explicitWait, "Current editor is not Untitled-(*)");
+            }, constants.wait5seconds, "Current editor is not Untitled-(*)");
             expect(await Database.getCurrentEditorType()).to.include("scriptTs");
             const result = await Database.execScript("Math.random()");
             expect(result).to.match(/(\d+).(\d+)/);
@@ -651,7 +649,7 @@ Graph.render(options);
             await Misc.openContextMenuItem(treeGlobalConn, constants.newJS, constants.checkNewTabAndWebView);
             await driver.wait(async () => {
                 return (await Database.getCurrentEditor()).match(/Untitled-(\d+)/);
-            }, constants.explicitWait, "Current editor is not Untitled-(*)");
+            }, constants.wait5seconds, "Current editor is not Untitled-(*)");
             expect(await Database.getCurrentEditorType()).to.include("scriptJs");
             const result = await Database.execScript("Math.random()");
             expect(result).to.match(/(\d+).(\d+)/);
@@ -680,7 +678,7 @@ Graph.render(options);
                 await Misc.sectionFocus(constants.dbTreeSection);
                 const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
                 await (await Misc.getActionButton(treeGlobalConn, constants.openNewConnection)).click();
-                await driver.wait(Until.dbConnectionIsOpened(), constants.explicitWait * 3,
+                await driver.wait(Until.dbConnectionIsOpened(), constants.wait15seconds,
                     "DB Connection was not opened");
                 await Database.setDBConnectionCredentials(globalConn);
             } catch (e) {
@@ -711,7 +709,7 @@ Graph.render(options);
 
         it("Save Notebook", async () => {
 
-            const result = await Misc.execCmd("SELECT VERSION();", undefined, constants.explicitWait * 2);
+            const result = await Misc.execCmd("SELECT VERSION();", undefined, constants.wait5seconds * 2);
             expect(result[0]).to.include("1 record retrieved");
             await (await Database.getToolbarButton(constants.saveNotebook)).click();
             await Misc.switchBackToTopFrame();
@@ -724,7 +722,7 @@ Graph.render(options);
                 } catch (e) {
                     return false;
                 }
-            }), constants.explicitWait, `File was not saved to ${process.cwd()}`);
+            }), constants.wait5seconds, `File was not saved to ${process.cwd()}`);
         });
 
         it("Replace this Notebook with content from a file", async () => {
@@ -750,17 +748,17 @@ Graph.render(options);
                 section = await Misc.getSection("e2e");
 
                 return section !== undefined;
-            }, constants.explicitWait, "E2E section was not found");
+            }, constants.wait5seconds, "E2E section was not found");
 
 
             const file = await section.findItem("test.mysql-notebook", 3);
             await file.click();
 
-            const input = await InputBox.create(constants.explicitWait * 4);
+            const input = await InputBox.create(constants.wait5seconds * 4);
             await (await input.findQuickPick(globalConn.caption)).select();
             await new EditorView().openEditor("test.mysql-notebook");
 
-            await driver.wait(Until.dbConnectionIsOpened(), constants.explicitWait * 3,
+            await driver.wait(Until.dbConnectionIsOpened(), constants.wait15seconds,
                 "DB Connection was not opened");
             await Database.setDBConnectionCredentials(globalConn);
             await Database.verifyNotebook("SELECT VERSION();", "1 record retrieved");
@@ -777,13 +775,13 @@ Graph.render(options);
                 section = await Misc.getSection("e2e");
 
                 return section !== undefined;
-            }, constants.explicitWait, "E2E section was not found");
+            }, constants.wait5seconds, "E2E section was not found");
             const file = await section.findItem("test.mysql-notebook", 3);
             await Misc.openContextMenuItem(file, constants.openNotebookWithConn, constants.checkInput);
             const input = await InputBox.create();
             await (await input.findQuickPick(globalConn.caption)).select();
             await new EditorView().openEditor("test.mysql-notebook");
-            await driver.wait(Until.dbConnectionIsOpened(), constants.explicitWait * 3,
+            await driver.wait(Until.dbConnectionIsOpened(), constants.wait15seconds,
                 "DB Connection was not opened");
             await Database.setDBConnectionCredentials(globalConn);
             await Database.verifyNotebook("SELECT VERSION();", "1 record retrieved");
@@ -808,10 +806,10 @@ Graph.render(options);
                 section = await Misc.getSection("e2e");
 
                 return section !== undefined;
-            }, constants.explicitWait, "E2E section was not found");
+            }, constants.wait5seconds, "E2E section was not found");
             const file = await section.findItem("test.mysql-notebook", 3);
             await file.click();
-            await driver.wait(Until.dbConnectionIsOpened(), constants.explicitWait * 3,
+            await driver.wait(Until.dbConnectionIsOpened(), constants.wait15seconds,
                 "DB Connection was not opened");
             await Database.setDBConnectionCredentials(globalConn);
             await Misc.switchBackToTopFrame();
@@ -839,7 +837,7 @@ Graph.render(options);
                 section = await Misc.getSection("e2e");
 
                 return section !== undefined;
-            }, constants.explicitWait, "E2E section was not found");
+            }, constants.wait5seconds, "E2E section was not found");
             const file = await section.findItem("test.mysql-notebook", 3);
             await file.click();
             await new EditorView().openEditor("test.mysql-notebook");

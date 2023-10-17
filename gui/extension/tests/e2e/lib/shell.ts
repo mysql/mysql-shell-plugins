@@ -30,7 +30,7 @@ export class Shell {
     public static getTech = async (el: WebElement): Promise<string> => {
         const divs = await driver.wait(async () => {
             return el.findElements(locator.shellConsole.prompt);
-        }, constants.explicitWait, "No prompts were found");
+        }, constants.wait5seconds, "No prompts were found");
 
         const lastDiv = divs[divs.length - 1];
         const classes = (await lastDiv.getAttribute("class")).split(" ");
@@ -67,7 +67,7 @@ export class Shell {
                 if (cells.length > 0) {
                     return cells;
                 }
-            }, constants.explicitWait, "No cells were found");
+            }, constants.wait5seconds, "No cells were found");
 
             for (const cell of cells) {
                 const text = await cell.getText();

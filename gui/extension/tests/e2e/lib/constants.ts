@@ -39,12 +39,13 @@ export const openEditorsTreeSection = "OPEN EDITORS";
 export const tasksTreeSection = "MYSQL SHELL TASKS";
 
 // TIMEOUTS
-export const explicitWait = 5000;
-export const ociExplicitWait = explicitWait * 2;
-export const loadingBarWait = explicitWait * 4;
-export const ociTasksExplicitWait = explicitWait * 5;
-export const extensionReadyWait = 120000;
-export const queryWaits = explicitWait * 3;
+export const wait5seconds = 5000;
+export const wait10seconds = 10000;
+export const wait15seconds = 15000; //queryWaits
+export const wait20seconds = 20000; //loadingBarWait
+export const wait25seconds = 25000; //ociTasksExplicitWait
+export const wait2minutes = 120000; //extensionReadyWait
+
 
 // TREE SEARCH LEVELS
 export const dbMaxLevel = 5;
@@ -89,18 +90,20 @@ export const perfDash = "Performance Dashboard";
 export const mysqlAdmin = "MySQL Administration";
 export const vscodeChannel = "MySQL Shell for VS Code";
 export const collapseAll = "Collapse All";
+export const mysqlRestService = "MySQL REST Service";
 
 // CONTEXT MENUS ITEMS
 export const restartInternalShell = "Restart the Internal MySQL Shell Process";
 export const connectToExternalShell = "Connect to External MySQL Shell Process";
 export const relaunchWelcomeWizard = "Relaunch Welcome Wizard";
 export const resetExtension = "Reset MySQL Shell for VS Code Extension";
-
+export const dropStoredRoutine = "Drop Stored Routine...";
 export const openNewConnection = "Open New Database Connection";
 export const connectToDB = "Connect to Database";
 export const connectToDBNewTab = "Connect to Database on New Tab";
 export const setDBConnDefault = "Set this DB Connection as Default";
 export const editDBConnection = "Edit DB Connection";
+export const dropEvent = "Drop Event...";
 export const duplicateConnection = "Duplicate this DB Connection";
 export const deleteDBConnection = "Delete DB Connection";
 export const showSystemSchemas = "Show MySQL System Schemas";
@@ -115,6 +118,8 @@ export const dumpSchemaToDiskToServ = "Dump Schema to Disk for MySQL Database Se
 export const copyToClipboard = "Copy To Clipboard";
 export const copyToClipboardName = "Name";
 export const copyToClipboardStat = "CREATE Statement";
+export const copyToClipboardStatDel = "CREATE Statement with DELIMITERs";
+export const copyToClipboardDropStatDel = "DROP & CREATE Statement with DELIMITERs";
 export const loadDataToHW = "Load Data to HeatWave Cluster";
 export const addSchemaToREST = "Add Schema to REST Service";
 export const dropSchema = "Drop Schema...";
@@ -241,6 +246,20 @@ export const dbObjectCtxMenu = new Map([
     [addDBObjToREST, 4],
     [dropTable, 5],
     [dropView, 5],
+]);
+
+export const routinesCtxMenu = new Map([
+    [copyToClipboard, 1],
+    [copyToClipboardName, 0],
+    [copyToClipboardStat, 1],
+    [copyToClipboardStatDel, 2],
+    [copyToClipboardDropStatDel, 3],
+    [addDBObjToREST, 2],
+    [dropStoredRoutine, 3],
+]);
+
+export const eventsCtxMenu = new Map([
+    [dropEvent, 1],
 ]);
 
 export const restMainCtxMenu = new Map([
