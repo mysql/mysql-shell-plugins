@@ -27,6 +27,22 @@ An existing REST service can be altered by using the `ALTER REST SERVICE` statem
 
 **_SYNTAX_**
 
+```antlr
+alterRestServiceStatement:
+    ALTER REST SERVICE serviceRequestPath (
+        NEW REQUEST PATH newServiceRequestPath
+    )? restServiceOptions?
+;
+
+restServiceOptions: (
+        enabledDisabled
+        | restAuthentication
+        | jsonOptions
+        | comments
+    )+
+;
+```
+
 alterRestServiceStatement ::=
 ![alterRestServiceStatement](../../images/ddl/alterRestServiceStatement.svg "alterRestServiceStatement")
 
@@ -47,6 +63,25 @@ ALTER REST SERVICE /myService
 An existing REST schema can be altered by using the `ALTER REST SCHEMA` statement. It uses the same `restSchemaOptions` as used by the [`CREATE REST SCHEMA`](#create-rest-schema) statement. Please see the discussion of the options there.
 
 **_SYNTAX_**
+
+```antlr
+alterRestSchemaStatement:
+    ALTER REST DATABASE schemaRequestPath? (
+        ON SERVICE? serviceRequestPath
+    )? (
+        NEW REQUEST PATH newSchemaRequestPath
+    )? (FROM schemaName)? restSchemaOptions?
+;
+
+restSchemaOptions: (
+        enabledDisabled
+        | authenticationRequired
+        | itemsPerPage
+        | jsonOptions
+        | comments
+    )+
+;
+```
 
 alterRestSchemaStatement ::=
 ![alterRestSchemaStatement](../../images/ddl/alterRestSchemaStatement.svg "alterRestSchemaStatement")
@@ -72,6 +107,33 @@ Please see the corresponding [GraphQL section](#defining-the-graphql-definition-
 Please see the MRS Developer's Guide to learn more about [JSON duality views](index.html#json-duality-views).
 
 **_SYNTAX_**
+
+```antlr
+alterRestViewStatement:
+    ALTER REST RELATIONAL? JSON? DUALITY? VIEW
+        viewRequestPath (
+        NEW REQUEST PATH newViewRequestPath
+    )? (ON serviceSchemaSelector)? restObjectOptions? (
+        AS restObjectName graphGlCrudOptions? graphGlObj?
+    )?
+;
+
+serviceSchemaSelector:
+    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
+;
+
+restObjectOptions: (
+        enabledDisabled
+        | authenticationRequired
+        | itemsPerPage
+        | jsonOptions
+        | comments
+        | restViewMediaType
+        | restViewFormat
+        | restViewAuthenticationProcedure
+    )+
+;
+```
 
 alterRestViewStatement ::=
 ![alterRestViewStatement](../../images/ddl/alterRestViewStatement.svg "alterRestViewStatement")
@@ -102,6 +164,32 @@ The `ALTER REST PROCEDURE` statement is used to alter REST endpoints for databas
 It uses the same [extended GraphQL syntax](#defining-the-graphql-definition-for-a-rest-duality-view) as defined for REST duality views to describe the REST procedure's parameters and result sets. Please make sure to study the [corresponding section](#defining-the-graphql-definition-for-a-rest-duality-view).
 
 **_SYNTAX_**
+
+```antlr
+alterRestProcedureStatement:
+    ALTER REST PROCEDURE procedureRequestPath (
+        NEW REQUEST PATH newProcedureRequestPath
+    )? (ON serviceSchemaSelector)? restObjectOptions? (
+        AS restObjectName (PARAMETERS graphGlObj)?
+    )? restProcedureResult*
+;
+
+serviceSchemaSelector:
+    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
+;
+
+restObjectOptions: (
+        enabledDisabled
+        | authenticationRequired
+        | itemsPerPage
+        | jsonOptions
+        | comments
+        | restViewMediaType
+        | restViewFormat
+        | restViewAuthenticationProcedure
+    )+
+;
+```
 
 alterRestProcedureStatement ::=
 ![alterRestProcedureStatement](../../images/ddl/alterRestProcedureStatement.svg "alterRestProcedureStatement")

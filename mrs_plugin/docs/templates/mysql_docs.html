@@ -32,31 +32,67 @@
     $endif$
     <script>
         window.addEventListener('DOMContentLoaded', () => {
-            const observer = new IntersectionObserver(entries => {
-                entries.forEach(entry => {
+            window.visibleItems = [];
+            window.lastVisible = null;
+            const observer = new IntersectionObserver((entries) => {
+                console.log("IntersectionObserver - after enter");
+                console.log(window.visibleItems);
+                console.log(window.lastVisible);
+                // Add active css class to first match
+                entries.forEach((entry) => {
                     const id = entry.target.getAttribute('id');
-                    if (entry.intersectionRatio > 0) {
-                        const querySel = document.querySelector(`nav li a[href="#` + id + `"]`);
-                        if (querySel) {
-                            const e = querySel.parentElement;
-                            e.classList.add('active');
-                            if (e.scrollIntoViewIfNeeded !== undefined) {
-                                e.scrollIntoViewIfNeeded(true);
-                            } else {
-                                e.scrollIntoView(true);
+                    const querySel = document.querySelector(`nav li a[href="#` + id + `"]`);
+                    if (querySel) {
+                        const el = querySel.parentElement;
+                        if (entry.isIntersecting) {
+                            if (!window.visibleItems.includes(el)) {
+                                if (window.visibleItems.length === 0 && window.lastVisible !== null) {
+                                    window.lastVisible.classList.remove('active');
+                                    window.lastVisible = el;
+                                }
+                                if (window.lastVisible === null) {
+                                    window.lastVisible = el;
+                                }
+                                window.visibleItems.push(el);
                             }
-                        }
-                    } else {
-                        const querySel = document.querySelector(`nav li a[href="#` + id + `"]`);
-                        if (querySel) {
-                            querySel.parentElement.classList.remove('active');
+                            if (!el.classList.contains('active')) {
+                                el.classList.add('active');
+                            }
+                        } else {
+                            if (window.visibleItems.includes(el)) {
+                                if (window.visibleItems.length === 1) {
+                                    window.lastVisible = el;
+                                } else {
+                                    el.classList.remove('active');
+                                }
+                                const index = window.visibleItems.indexOf(el);
+                                if (index > -1) {
+                                    window.visibleItems.splice(index, 1);
+                                }
+                                if (window.lastVisible === el && window.visibleItems.length > 0) {
+                                    window.lastVisible === window.visibleItems[0];
+                                }
+                            }
                         }
                     }
                 });
-            });
+                console.log("IntersectionObserver - before exit");
+                console.log(window.visibleItems);
+                console.log(window.lastVisible);
+            }/*, { threshold: 0.1, rootMargin: '0px 0px -100% 0px', root: document.body }*/);
             // Track all h that have an `id` applied
-            document.querySelectorAll('.content h1[id],h2[id],h3[id]').forEach((section) => {
+            document.querySelectorAll('.content h1[id],h2[id]').forEach((section) => {
                 observer.observe(section);
+            });
+
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
             });
 
             if (typeof acquireVsCodeApi === "function") {
@@ -115,31 +151,38 @@
 <body>
     <div class="page">
         <div class="sidebar">
-            <nav class="section-nav">
-                <h1>MRS Documentation</h1>
+            <div class="bookOverview">
+                <h1>MySQL REST Service</h1>
                 <h2>
-                    <div class="icon bookIcon"></div> <a href="index.html#document-top">Developer's Guide</a>
+                    <div class="icon bookIcon"></div>&nbsp;<a href="index.html#document-top">Developer's Guide</a>
                 </h2>
                 <h2>
-                    <div class="icon bookIcon"></div> <a href="ddl.html#document-top">DDL Reference</a>
+                    <div class="icon bookIcon"></div>&nbsp;<a href="ddl.html#document-top">DDL Reference</a>
                 </h2>
                 <h2>
-                    <div class="icon bookIcon"></div> <a href="restApi.html#document-top">Core REST APIs</a>
+                    <div class="icon bookIcon"></div>&nbsp;<a href="restApi.html#document-top">Core REST APIs</a>
                 </h2>
                 <h2>
-                    <div class="icon bookIcon"></div> <a href="sdk.html#document-top">SDK Reference</a>
+                    <div class="icon bookIcon"></div>&nbsp;<a href="sdk.html#document-top">SDK Reference</a>
                 </h2>
-                <hr />
-                <h3>$if(title)$$title$$endif$</h3>
-                $if(toc)$
-                $toc$
-                $endif$
-            </nav>
+            </div>
+            <div class="sidebarContent">
+                <nav class="section-nav">
+                    <div class="bookToc">
+                        <br>
+                        <h3>$if(title)$$title$$endif$</h3>
+                        $if(toc)$
+                        $toc$
+                        $endif$
+                    </div>
+                </nav>
+            </div>
         </div>
         <div class="content">
             <div class="header" id="document-top">
-                <p>MySQL REST Service - PREVIEW</p>
-                <h1>$if(title)$$title$$endif$</h1>
+                <h1>
+                    <div class="iconBig bookIcon"></div>&nbsp;$if(title)$$title$$endif$
+                </h1>
             </div>
             <div class="main">
                 $body$

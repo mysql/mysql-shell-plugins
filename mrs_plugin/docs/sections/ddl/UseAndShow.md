@@ -27,6 +27,17 @@ An existing REST service can be dropped by using the `DROP REST SERVICE` stateme
 
 **_SYNTAX_**
 
+```antlr
+useStatement:
+    USE REST serviceAndSchemaRequestPaths
+;
+
+serviceAndSchemaRequestPaths:
+    SERVICE serviceRequestPath
+    | serviceSchemaSelector
+;
+```
+
 useStatement ::=
 ![useStatement](../../images/ddl/useStatement.svg "useStatement")
 
@@ -59,6 +70,12 @@ The `SHOW REST STATUS` statement is used to get basic information about the curr
 
 **_SYNTAX_**
 
+```antlr
+showRestMetadataStatusStatement:
+    SHOW REST METADATA? STATUS
+;
+```
+
 showRestMetadataStatusStatement ::=
 ![showRestMetadataStatusStatement](../../images/ddl/showRestMetadataStatusStatement.svg "showRestMetadataStatusStatement")
 
@@ -75,6 +92,12 @@ SHOW REST STATUS;
 The `SHOW REST SERVICES` statement lists all available REST services.
 
 **_SYNTAX_**
+
+```antlr
+showRestServicesStatement:
+    SHOW REST SERVICES
+;
+```
 
 showRestServicesStatement ::=
 ![showRestServicesStatement](../../images/ddl/showRestServicesStatement.svg "showRestServicesStatement")
@@ -93,6 +116,14 @@ The `SHOW REST SCHEMAS` statement lists all available REST schemas of the given 
 
 **_SYNTAX_**
 
+```antlr
+showRestSchemasStatement:
+    SHOW REST DATABASES (
+        (IN | FROM) SERVICE? serviceRequestPath
+    )?
+;
+```
+
 showRestSchemasStatement ::=
 ![showRestSchemasStatement](../../images/ddl/showRestSchemasStatement.svg "showRestSchemasStatement")
 
@@ -109,6 +140,18 @@ SHOW REST SERVICES FROM /myService;
 The `SHOW REST DUALITY VIEWS` statement lists all available REST duality views of the given or current REST schema.
 
 **_SYNTAX_**
+
+```antlr
+showRestViewsStatement:
+    SHOW REST RELATIONAL? JSON? DUALITY? VIEWS (
+        (IN | FROM) serviceSchemaSelector
+    )?
+;
+
+serviceSchemaSelector:
+    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
+;
+```
 
 showRestViewsStatement ::=
 ![showRestViewsStatement](../../images/ddl/showRestViewsStatement.svg "showRestViewsStatement")
@@ -130,6 +173,18 @@ The `SHOW REST PROCEDURES` statement lists all available REST procedures of the 
 
 **_SYNTAX_**
 
+```antlr
+showRestProceduresStatement:
+    SHOW REST PROCEDURES (
+        (IN | FROM) serviceSchemaSelector
+    )?
+;
+
+serviceSchemaSelector:
+    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
+;
+```
+
 showRestProceduresStatement ::=
 ![showRestProceduresStatement](../../images/ddl/showRestProceduresStatement.svg "showRestProceduresStatement")
 
@@ -150,6 +205,14 @@ The `SHOW REST CONTENT SETS` statement lists all available REST content sets of 
 
 **_SYNTAX_**
 
+```antlr
+showRestContentSetsStatement:
+    SHOW REST CONTENT SETS (
+        (IN | FROM) SERVICE? serviceRequestPath
+    )?
+;
+```
+
 showRestContentSetsStatement ::=
 ![showRestContentSetsStatement](../../images/ddl/showRestContentSetsStatement.svg "showRestContentSetsStatement")
 
@@ -166,6 +229,14 @@ SHOW REST CONTENT SETS FROM SERVICE /myService;
 The `SHOW REST AUTH APPS` statement lists all available REST auth apps of the given or current REST service.
 
 **_SYNTAX_**
+
+```antlr
+showRestAuthAppsStatement:
+    SHOW REST AUTH APPS (
+        (IN | FROM) SERVICE? serviceRequestPath
+    )?
+;
+```
 
 showRestAuthAppsStatement ::=
 ![showRestAuthAppsStatement](../../images/ddl/showRestAuthAppsStatement.svg "showRestAuthAppsStatement")
@@ -184,6 +255,12 @@ The `SHOW CREATE REST SERVICE` statement shows the corresponding DDL statement f
 
 **_SYNTAX_**
 
+```antlr
+showCreateRestServiceStatement:
+    SHOW CREATE REST SERVICE serviceRequestPath?
+;
+```
+
 showCreateRestServiceStatement ::=
 ![showCreateRestServiceStatement](../../images/ddl/showCreateRestServiceStatement.svg "showCreateRestServiceStatement")
 
@@ -201,6 +278,14 @@ The `SHOW CREATE REST SCHEMA` statement shows the corresponding DDL statement fo
 
 **_SYNTAX_**
 
+```antlr
+showCreateRestSchemaStatement:
+    SHOW CREATE REST DATABASE schemaRequestPath? (
+        (ON | FROM) SERVICE? serviceRequestPath
+    )?
+;
+```
+
 showCreateRestSchemaStatement ::=
 ![showCreateRestSchemaStatement](../../images/ddl/showCreateRestSchemaStatement.svg "showCreateRestSchemaStatement")
 
@@ -217,6 +302,19 @@ SHOW CREATE REST SCHEMA /sakila FROM /myService;
 The `SHOW CREATE REST DUALITY VIEW` statement shows the corresponding DDL statement for the given REST duality view.
 
 **_SYNTAX_**
+
+```antlr
+showCreateRestViewStatement:
+    SHOW CREATE REST RELATIONAL? JSON? DUALITY?
+        VIEW viewRequestPath (
+        (ON | FROM) serviceSchemaSelector
+    )?
+;
+
+serviceSchemaSelector:
+    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
+;
+```
 
 showCreateRestViewStatement ::=
 ![showCreateRestViewStatement](../../images/ddl/showCreateRestViewStatement.svg "showCreateRestViewStatement")
@@ -238,6 +336,18 @@ The `SHOW CREATE REST PROCEDURE` statement shows the corresponding DDL statement
 
 **_SYNTAX_**
 
+```antlr
+showCreateRestProcedureStatement:
+    SHOW CREATE REST PROCEDURE procedureRequestPath (
+        (ON | FROM) serviceSchemaSelector
+    )?
+;
+
+serviceSchemaSelector:
+    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
+;
+```
+
 showCreateRestProcedureStatement ::=
 ![showCreateRestProcedureStatement](../../images/ddl/showCreateRestProcedureStatement.svg "showCreateRestProcedureStatement")
 
@@ -257,6 +367,14 @@ SHOW CREATE REST PROCEDURE /inventory_in_stock ON SERVICE /myService SCHEMA /sak
 The `SHOW CREATE AUTH APP` statement shows the corresponding DDL statement for the given REST auth app.
 
 **_SYNTAX_**
+
+```antlr
+showCreateRestAuthAppStatement:
+    SHOW CREATE REST AUTH APP authAppName (
+        (ON | FROM) SERVICE? serviceRequestPath
+    )?
+;
+```
 
 showCreateRestAuthAppStatement ::=
 ![showCreateRestAuthAppStatement](../../images/ddl/showCreateRestAuthAppStatement.svg "showCreateRestAuthAppStatement")

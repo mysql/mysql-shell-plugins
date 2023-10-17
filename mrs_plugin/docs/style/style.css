@@ -28,18 +28,20 @@ body.vscode-high-contrast.vscode-high-contrast-light {
     --text-color-primary: #333333;
     --text-color-toc: rgb(40, 40, 40);
     --text-color-toc-active: rgb(0, 0, 0);
+    --border-color-selected: rgb(87, 115, 70);
+    --bg-color-selected: rgb(229, 244, 220);
     --text-color-toc-title: #57504a;
     --text-color-link: #00688C;
-    --text-color-title: #fff;
+    --text-color-title: #333;
     --text-color-button: #ffffff;
     --splitter-color: #eceae5;
     --border-color-code: rgb(222, 218, 214);
-    --background-color-code: rgb(255, 255, 255);
+    --background-color-code: rgb(250, 250, 250);
     --background-color-button: #4c825c;
     --text-color-code: rgb(26, 24, 22);
     --font-weight: 400;
-    --font-weight-toc: 600;
-    --title-gradient: linear-gradient(#475150,#2c2e2e);
+    --font-weight-toc: 400;
+    --title-gradient: linear-gradient(#F1EFED, #e6e4e3);
 }
 
 body.vscode-high-contrast,
@@ -49,6 +51,8 @@ body.vscode-dark {
     --text-color-primary: rgb(217, 214, 209);
     --text-color-toc: rgb(162, 160, 157);
     --text-color-toc-active: rgb(232, 230, 227);
+    --border-color-selected: rgb(90, 75, 42);
+    --bg-color-selected: rgb(60, 45, 3);
     --text-color-toc-title: rgb(181, 175, 165);
     --text-color-link: rgb(106, 217, 255);
     --text-color-title: rgb(232, 230, 227);
@@ -59,8 +63,8 @@ body.vscode-dark {
     --background-color-button: rgb(61, 104, 74);
     --text-color-code: rgb(217, 214, 209);
     --font-weight: 300;
-    --font-weight-toc: 500;
-    --title-gradient: linear-gradient(#292f2e,#323a39);
+    --font-weight-toc: 400;
+    --title-gradient: linear-gradient(#292f2e, #323a39);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -71,6 +75,8 @@ body.vscode-dark {
         --text-color-primary: rgb(217, 214, 209);
         --text-color-toc: rgb(162, 160, 157);
         --text-color-toc-active: rgb(232, 230, 227);
+        --border-color-selected: rgb(90, 75, 42);
+        --bg-color-selected: rgb(60, 45, 3);
         --text-color-toc-title: rgb(181, 175, 165);
         --text-color-link: rgb(106, 217, 255);
         --text-color-title: rgb(232, 230, 227);
@@ -81,8 +87,8 @@ body.vscode-dark {
         --background-color-button: rgb(61, 104, 74);
         --text-color-code: rgb(217, 214, 209);
         --font-weight: 300;
-        --font-weight-toc: 500;
-        --title-gradient: linear-gradient(#292f2e,#323a39);
+        --font-weight-toc: 400;
+        --title-gradient: linear-gradient(#292f2e, #323a39);
     }
 }
 
@@ -102,7 +108,7 @@ body {
     font-family: "Oracle Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     background-color: var(--background-color-main);
     color: var(--text-color-primary);
-    font-size: 14px;
+    font-size: 15px;
     font-weight: var(--font-weight);
     width: 100%;
     height: 100%;
@@ -112,27 +118,26 @@ body {
 }
 
 .header {
-    background: var(--title-gradient);
+    /* background: var(--title-gradient); */
 
-    padding-top: 24px;
-    padding-bottom: 24px;
+    padding-top: 44px;
+    padding-bottom: 4px;
     padding-left: 25px;
 }
 
-.content .header:not(tr) {
+/*.content .header:not(tr) {
     background: url(../images/stripe-slate.png), var(--title-gradient);
     background-repeat: no-repeat;
     background-size: 1600px auto;
     background-position-y: bottom;
-}
+}*/
 
 .header h1 {
-    font-family: "Georgia", "Times New Roman", "Times", "Garamond", "Noto Sans Arabic", "Noto Sans Arabic UI", "Noto Sans Hebrew", sans-serif;
     font-size: 36px;
     font-weight: 400;
     font-style: normal;
     font-stretch: normal;
-    line-height: 1.25;
+    line-height: 1.05;
     letter-spacing: normal;
     text-align: left;
     color: var(--text-color-title);
@@ -141,11 +146,13 @@ body {
     max-width: 1296px;
     margin-top: 0px;
     margin-bottom: 0px;
+    display: flex;
 }
 
 .header p {
     font-size: 13px;
     color: var(--text-color-title);
+    padding-left: 51px;
 }
 
 .header th {
@@ -175,10 +182,30 @@ td {
     overflow: hidden;
 }
 
+body.vscode-high-contrast .page,
+body.vscode-dark .page,
+body.vscode-light .page,
+body.vscode-high-contrast-light .page {
+    flex-direction: row-reverse;
+}
+
 .sidebar {
-    width: 280px;
+    display: flex;
+    flex-direction: column;
     background-color: var(--background-color-toc);
     border-right: 1px solid var(--splitter-color);
+}
+
+body.vscode-high-contrast .sidebar,
+body.vscode-dark .sidebar,
+body.vscode-light .sidebar,
+body.vscode-high-contrast-light .sidebar {
+    border-left: 1px solid var(--splitter-color);
+    border-right: none;
+}
+
+.sidebarContent {
+    width: 280px;
     overflow-y: overlay;
 }
 
@@ -195,6 +222,53 @@ td {
     padding-bottom: 35px;
 }
 
+.bookOverview {
+    background: var(--title-gradient);
+    background: url(../images/stripe-slate.png), var(--title-gradient);
+    background-repeat: no-repeat;
+    background-size: 1600px auto;
+    background-position-y: bottom;
+
+    padding: 15px 15px 25px 15px;
+    box-shadow: 0px 3px 3px 0px rgba(0, 0, 0, 0.1);
+}
+
+.bookOverview h1 {
+    font-size: 25px;
+    font-weight: 200;
+    font-style: normal;
+    font-stretch: normal;
+    color: var(--text-color-title);
+    padding-bottom: 10px;
+    margin-bottom: 0px;
+    margin-top: 0px;
+}
+
+.bookOverview h2 {
+    font-size: 14px;
+    margin-bottom: 0px;
+    margin-top: 0;
+    padding-top: 0px;
+    padding-bottom: 4px;
+    display: flex;
+    line-height: 1;
+}
+
+.bookOverview a {
+    color: var(--text-color-title);
+}
+
+.bookOverview a:hover,
+.bookOverview a:focus {
+    color: var(--text-color-title);
+}
+
+.bookOverview p {
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--text-color-title);
+}
+
 
 .section-nav {
     padding-right: 10px;
@@ -205,10 +279,13 @@ td {
 .section-nav h1 {
     color: var(--text-color-toc-title);
     font-size: 16px;
-    font-weight: 700;
     padding-bottom: 10px;
     margin-bottom: 0px;
     margin-top: 10px;
+}
+
+.section-nav h1 {
+    font-weight: 700;
 }
 
 .section-nav h2 {
@@ -238,6 +315,11 @@ td {
 
 .section-nav li.active>a {
     color: var(--text-color-toc-active);
+    box-shadow: 0 0 0 1px var(--border-color-selected);
+    background-color: var(--bg-color-selected);
+    border-radius: 3px;
+    margin-left: -4px;
+    padding-left: 4px;
 }
 
 .section-nav li>a {
@@ -272,7 +354,7 @@ td {
     height: 0;
     width: 0;
     left: -1em;
-    top: 1.0em;
+    top: 1.1em;
     position: relative;
 }
 
@@ -583,12 +665,18 @@ div .sourceCode {
 .icon {
     width: 16px;
     height: 16px;
-    background-color: var(--text-color-link);
+    background-color: var(--text-color-toc);
+}
+
+.iconBig {
+    width: 42px;
+    height: 42px;
+    background-color: var(--text-color-toc);
 }
 
 .bookIcon {
-    -webkit-mask-image: url(../images/book.svg);
-    mask-image: url(../images/book.svg);
+    -webkit-mask-image: url("data:image/svg+xml,%3C%3Fxml version='1.0' encoding='UTF-8' standalone='no'%3F%3E%3C!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 1.1//EN' 'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3E%3Csvg width='100%25' height='100%25' viewBox='0 0 16 16' version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' xml:space='preserve' xmlns:serif='http://www.serif.com/' style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3E%3Cg id='book'%3E%3Cpath d='M14.5,2L9,2L8.65,2.15L8,2.79L7.35,2.15L7,2L1.5,2L1,2.5L1,12.5L1.5,13L6.79,13L7.65,13.85L8.35,13.85L9.21,13L14.5,13L15,12.5L15,2.5L14.5,2ZM7.5,12.32L7.32,12.15L7,12L2,12L2,3L6.79,3L7.53,3.74L7.5,12.32ZM14,12L9,12L8.65,12.15L8.51,12.28L8.51,3.7L9.21,3L14,3L14,12ZM6,5L3,5L3,6L6,6L6,5ZM6,9L3,9L3,10L6,10L6,9ZM3,7L6,7L6,8L3,8L3,7ZM13,5L10,5L10,6L13,6L13,5ZM10,7L13,7L13,8L10,8L10,7ZM10,9L13,9L13,10L10,10L10,9Z'/%3E%3C/g%3E%3C/svg%3E%0A");
+    mask-image: url("data:image/svg+xml,%3C%3Fxml version='1.0' encoding='UTF-8' standalone='no'%3F%3E%3C!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 1.1//EN' 'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3E%3Csvg width='100%25' height='100%25' viewBox='0 0 16 16' version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' xml:space='preserve' xmlns:serif='http://www.serif.com/' style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3E%3Cg id='book'%3E%3Cpath d='M14.5,2L9,2L8.65,2.15L8,2.79L7.35,2.15L7,2L1.5,2L1,2.5L1,12.5L1.5,13L6.79,13L7.65,13.85L8.35,13.85L9.21,13L14.5,13L15,12.5L15,2.5L14.5,2ZM7.5,12.32L7.32,12.15L7,12L2,12L2,3L6.79,3L7.53,3.74L7.5,12.32ZM14,12L9,12L8.65,12.15L8.51,12.28L8.51,3.7L9.21,3L14,3L14,12ZM6,5L3,5L3,6L6,6L6,5ZM6,9L3,9L3,10L6,10L6,9ZM3,7L6,7L6,8L3,8L3,7ZM13,5L10,5L10,6L13,6L13,5ZM10,7L13,7L13,8L10,8L10,7ZM10,9L13,9L13,10L10,10L10,9Z'/%3E%3C/g%3E%3C/svg%3E%0A");
 }
 
 img[alt="Configure Instance for MySQL REST Service Support"] {

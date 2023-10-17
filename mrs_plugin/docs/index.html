@@ -17,31 +17,67 @@
     </style>
         <script>
         window.addEventListener('DOMContentLoaded', () => {
-            const observer = new IntersectionObserver(entries => {
-                entries.forEach(entry => {
+            window.visibleItems = [];
+            window.lastVisible = null;
+            const observer = new IntersectionObserver((entries) => {
+                console.log("IntersectionObserver - after enter");
+                console.log(window.visibleItems);
+                console.log(window.lastVisible);
+                // Add active css class to first match
+                entries.forEach((entry) => {
                     const id = entry.target.getAttribute('id');
-                    if (entry.intersectionRatio > 0) {
-                        const querySel = document.querySelector(`nav li a[href="#` + id + `"]`);
-                        if (querySel) {
-                            const e = querySel.parentElement;
-                            e.classList.add('active');
-                            if (e.scrollIntoViewIfNeeded !== undefined) {
-                                e.scrollIntoViewIfNeeded(true);
-                            } else {
-                                e.scrollIntoView(true);
+                    const querySel = document.querySelector(`nav li a[href="#` + id + `"]`);
+                    if (querySel) {
+                        const el = querySel.parentElement;
+                        if (entry.isIntersecting) {
+                            if (!window.visibleItems.includes(el)) {
+                                if (window.visibleItems.length === 0 && window.lastVisible !== null) {
+                                    window.lastVisible.classList.remove('active');
+                                    window.lastVisible = el;
+                                }
+                                if (window.lastVisible === null) {
+                                    window.lastVisible = el;
+                                }
+                                window.visibleItems.push(el);
                             }
-                        }
-                    } else {
-                        const querySel = document.querySelector(`nav li a[href="#` + id + `"]`);
-                        if (querySel) {
-                            querySel.parentElement.classList.remove('active');
+                            if (!el.classList.contains('active')) {
+                                el.classList.add('active');
+                            }
+                        } else {
+                            if (window.visibleItems.includes(el)) {
+                                if (window.visibleItems.length === 1) {
+                                    window.lastVisible = el;
+                                } else {
+                                    el.classList.remove('active');
+                                }
+                                const index = window.visibleItems.indexOf(el);
+                                if (index > -1) {
+                                    window.visibleItems.splice(index, 1);
+                                }
+                                if (window.lastVisible === el && window.visibleItems.length > 0) {
+                                    window.lastVisible === window.visibleItems[0];
+                                }
+                            }
                         }
                     }
                 });
-            });
+                console.log("IntersectionObserver - before exit");
+                console.log(window.visibleItems);
+                console.log(window.lastVisible);
+            }/*, { threshold: 0.1, rootMargin: '0px 0px -100% 0px', root: document.body }*/);
             // Track all h that have an `id` applied
-            document.querySelectorAll('.content h1[id],h2[id],h3[id]').forEach((section) => {
+            document.querySelectorAll('.content h1[id],h2[id]').forEach((section) => {
                 observer.observe(section);
+            });
+
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
             });
 
             if (typeof acquireVsCodeApi === "function") {
@@ -100,175 +136,217 @@
 <body>
     <div class="page">
         <div class="sidebar">
-            <nav class="section-nav">
-                <h1>MRS Documentation</h1>
+            <div class="bookOverview">
+                <h1>MySQL REST Service</h1>
                 <h2>
-                    <div class="icon bookIcon"></div> <a href="index.html#document-top">Developer's Guide</a>
+                    <div class="icon bookIcon"></div>&nbsp;<a href="index.html#document-top">Developer's Guide</a>
                 </h2>
                 <h2>
-                    <div class="icon bookIcon"></div> <a href="ddl.html#document-top">DDL Reference</a>
+                    <div class="icon bookIcon"></div>&nbsp;<a href="ddl.html#document-top">DDL Reference</a>
                 </h2>
                 <h2>
-                    <div class="icon bookIcon"></div> <a href="restApi.html#document-top">Core REST APIs</a>
+                    <div class="icon bookIcon"></div>&nbsp;<a href="restApi.html#document-top">Core REST APIs</a>
                 </h2>
                 <h2>
-                    <div class="icon bookIcon"></div> <a href="sdk.html#document-top">SDK Reference</a>
+                    <div class="icon bookIcon"></div>&nbsp;<a href="sdk.html#document-top">SDK Reference</a>
                 </h2>
-                <hr />
-                <h3>MRS Developer's Guide</h3>
-                                <ul>
-                                <li><a
-                                href="#introduction-to-the-mysql-rest-service"
-                                id="toc-introduction-to-the-mysql-rest-service"><span
-                                class="toc-section-number">1</span>
-                                Introduction to the MySQL REST
-                                Service</a></li>
-                                <li><a href="#deployment-architecture"
-                                id="toc-deployment-architecture"><span
-                                class="toc-section-number">2</span>
-                                Deployment Architecture</a></li>
-                                <li><a
-                                href="#configuring-mysql-rest-service"
-                                id="toc-configuring-mysql-rest-service"><span
-                                class="toc-section-number">3</span>
-                                Configuring MySQL REST Service</a>
-                                <ul>
-                                <li><a
-                                href="#configuring-the-mrs-metadata-schema"
-                                id="toc-configuring-the-mrs-metadata-schema"><span
-                                class="toc-section-number">3.1</span>
-                                Configuring the MRS Metadata
-                                Schema</a></li>
-                                <li><a
-                                href="#bootstrapping-and-running-mysql-routers-with-mrs-support"
-                                id="toc-bootstrapping-and-running-mysql-routers-with-mrs-support"><span
-                                class="toc-section-number">3.2</span>
-                                Bootstrapping and Running MySQL Routers
-                                with MRS Support</a></li>
-                                </ul></li>
-                                <li><a
-                                href="#adding-rest-services-and-database-objects"
-                                id="toc-adding-rest-services-and-database-objects"><span
-                                class="toc-section-number">4</span>
-                                Adding REST Services and Database
-                                Objects</a>
-                                <ul>
-                                <li><a
-                                href="#setting-up-a-new-rest-service"
-                                id="toc-setting-up-a-new-rest-service"><span
-                                class="toc-section-number">4.1</span>
-                                Setting Up a New REST Service</a></li>
-                                <li><a
-                                href="#adding-a-database-schemas-to-a-rest-service"
-                                id="toc-adding-a-database-schemas-to-a-rest-service"><span
-                                class="toc-section-number">4.2</span>
-                                Adding a Database Schemas to a REST
-                                Service</a></li>
-                                <li><a
-                                href="#adding-a-schema-table-view-or-procedure"
-                                id="toc-adding-a-schema-table-view-or-procedure"><span
-                                class="toc-section-number">4.3</span>
-                                Adding a Schema Table, View or
-                                Procedure</a></li>
-                                </ul></li>
-                                <li><a
-                                href="#working-interactively-with-rest-services"
-                                id="toc-working-interactively-with-rest-services"><span
-                                class="toc-section-number">5</span>
-                                Working Interactively with REST
-                                Services</a>
-                                <ul>
-                                <li><a
-                                href="#switching-to-typescript-mode"
-                                id="toc-switching-to-typescript-mode"><span
-                                class="toc-section-number">5.1</span>
-                                Switching to TypeScript Mode</a></li>
-                                <li><a href="#choosing-a-rest-service"
-                                id="toc-choosing-a-rest-service"><span
-                                class="toc-section-number">5.2</span>
-                                Choosing a REST Service</a></li>
-                                <li><a href="#authentication"
-                                id="toc-authentication"><span
-                                class="toc-section-number">5.3</span>
-                                Authentication</a></li>
-                                <li><a href="#querying-a-rest-object"
-                                id="toc-querying-a-rest-object"><span
-                                class="toc-section-number">5.4</span>
-                                Querying a REST Object</a></li>
-                                </ul></li>
-                                <li><a
-                                href="#json-relational-duality-views"
-                                id="toc-json-relational-duality-views"><span
-                                class="toc-section-number">6</span>
-                                JSON-Relational Duality Views</a>
-                                <ul>
-                                <li><a
-                                href="#introduction-to-duality-views"
-                                id="toc-introduction-to-duality-views"><span
-                                class="toc-section-number">6.1</span>
-                                Introduction to Duality Views</a></li>
-                                <li><a
-                                href="#lock-free-optimistic-concurrency-control"
-                                id="toc-lock-free-optimistic-concurrency-control"><span
-                                class="toc-section-number">6.2</span>
-                                Lock-Free Optimistic Concurrency
-                                Control</a></li>
-                                <li><a
-                                href="#interactive-duality-view-design"
-                                id="toc-interactive-duality-view-design"><span
-                                class="toc-section-number">6.3</span>
-                                Interactive Duality View Design</a></li>
-                                </ul></li>
-                                <li><a href="#mrs-dialog-reference"
-                                id="toc-mrs-dialog-reference"><span
-                                class="toc-section-number">7</span> MRS
-                                Dialog Reference</a>
-                                <ul>
-                                <li><a href="#mrs-service-dialog"
-                                id="toc-mrs-service-dialog"><span
-                                class="toc-section-number">7.1</span>
-                                MRS Service Dialog</a></li>
-                                <li><a href="#mrs-schema-dialog"
-                                id="toc-mrs-schema-dialog"><span
-                                class="toc-section-number">7.2</span>
-                                MRS Schema Dialog</a></li>
-                                <li><a href="#mrs-object-dialog"
-                                id="toc-mrs-object-dialog"><span
-                                class="toc-section-number">7.3</span>
-                                MRS Object Dialog</a></li>
-                                </ul></li>
-                                <li><a
-                                href="#authentication-and-authorization"
-                                id="toc-authentication-and-authorization"><span
-                                class="toc-section-number">8</span>
-                                Authentication and Authorization</a>
-                                <ul>
-                                <li><a href="#authentication-management"
-                                id="toc-authentication-management"><span
-                                class="toc-section-number">8.1</span>
-                                Authentication Management</a></li>
-                                <li><a href="#authorization-management"
-                                id="toc-authorization-management"><span
-                                class="toc-section-number">8.2</span>
-                                Authorization Management</a></li>
-                                </ul></li>
-                                <li><a href="#mrs-examples"
-                                id="toc-mrs-examples"><span
-                                class="toc-section-number">9</span> MRS
-                                Examples</a>
-                                <ul>
-                                <li><a href="#mrs-notes-examples"
-                                id="toc-mrs-notes-examples"><span
-                                class="toc-section-number">9.1</span>
-                                MRS Notes Examples</a></li>
-                                </ul></li>
-                                </ul>
-                            </nav>
+            </div>
+            <div class="sidebarContent">
+                <nav class="section-nav">
+                    <div class="bookToc">
+                        <br>
+                        <h3>MRS Developer's Guide</h3>
+                                                <ul>
+                                                <li><a
+                                                href="#introduction-to-the-mysql-rest-service"
+                                                id="toc-introduction-to-the-mysql-rest-service"><span
+                                                class="toc-section-number">1</span>
+                                                Introduction to the
+                                                MySQL REST
+                                                Service</a></li>
+                                                <li><a
+                                                href="#deployment-architecture"
+                                                id="toc-deployment-architecture"><span
+                                                class="toc-section-number">2</span>
+                                                Deployment
+                                                Architecture</a></li>
+                                                <li><a
+                                                href="#configuring-mysql-rest-service"
+                                                id="toc-configuring-mysql-rest-service"><span
+                                                class="toc-section-number">3</span>
+                                                Configuring MySQL REST
+                                                Service</a>
+                                                <ul>
+                                                <li><a
+                                                href="#configuring-the-mrs-metadata-schema"
+                                                id="toc-configuring-the-mrs-metadata-schema"><span
+                                                class="toc-section-number">3.1</span>
+                                                Configuring the MRS
+                                                Metadata Schema</a></li>
+                                                <li><a
+                                                href="#bootstrapping-and-running-mysql-routers-with-mrs-support"
+                                                id="toc-bootstrapping-and-running-mysql-routers-with-mrs-support"><span
+                                                class="toc-section-number">3.2</span>
+                                                Bootstrapping and
+                                                Running MySQL Routers
+                                                with MRS
+                                                Support</a></li>
+                                                </ul></li>
+                                                <li><a
+                                                href="#adding-rest-services-and-database-objects"
+                                                id="toc-adding-rest-services-and-database-objects"><span
+                                                class="toc-section-number">4</span>
+                                                Adding REST Services and
+                                                Database Objects</a>
+                                                <ul>
+                                                <li><a
+                                                href="#setting-up-a-new-rest-service"
+                                                id="toc-setting-up-a-new-rest-service"><span
+                                                class="toc-section-number">4.1</span>
+                                                Setting Up a New REST
+                                                Service</a></li>
+                                                <li><a
+                                                href="#adding-a-database-schemas-to-a-rest-service"
+                                                id="toc-adding-a-database-schemas-to-a-rest-service"><span
+                                                class="toc-section-number">4.2</span>
+                                                Adding a Database
+                                                Schemas to a REST
+                                                Service</a></li>
+                                                <li><a
+                                                href="#adding-a-schema-table-view-or-procedure"
+                                                id="toc-adding-a-schema-table-view-or-procedure"><span
+                                                class="toc-section-number">4.3</span>
+                                                Adding a Schema Table,
+                                                View or
+                                                Procedure</a></li>
+                                                </ul></li>
+                                                <li><a
+                                                href="#working-interactively-with-rest-services"
+                                                id="toc-working-interactively-with-rest-services"><span
+                                                class="toc-section-number">5</span>
+                                                Working Interactively
+                                                with REST Services</a>
+                                                <ul>
+                                                <li><a
+                                                href="#switching-to-typescript-mode"
+                                                id="toc-switching-to-typescript-mode"><span
+                                                class="toc-section-number">5.1</span>
+                                                Switching to TypeScript
+                                                Mode</a></li>
+                                                <li><a
+                                                href="#choosing-a-rest-service"
+                                                id="toc-choosing-a-rest-service"><span
+                                                class="toc-section-number">5.2</span>
+                                                Choosing a REST
+                                                Service</a></li>
+                                                <li><a
+                                                href="#authentication"
+                                                id="toc-authentication"><span
+                                                class="toc-section-number">5.3</span>
+                                                Authentication</a></li>
+                                                <li><a
+                                                href="#querying-a-rest-object"
+                                                id="toc-querying-a-rest-object"><span
+                                                class="toc-section-number">5.4</span>
+                                                Querying a REST
+                                                Object</a></li>
+                                                </ul></li>
+                                                <li><a
+                                                href="#json-relational-duality-views"
+                                                id="toc-json-relational-duality-views"><span
+                                                class="toc-section-number">6</span>
+                                                JSON-Relational Duality
+                                                Views</a>
+                                                <ul>
+                                                <li><a
+                                                href="#introduction-to-duality-views"
+                                                id="toc-introduction-to-duality-views"><span
+                                                class="toc-section-number">6.1</span>
+                                                Introduction to Duality
+                                                Views</a></li>
+                                                <li><a
+                                                href="#lock-free-optimistic-concurrency-control"
+                                                id="toc-lock-free-optimistic-concurrency-control"><span
+                                                class="toc-section-number">6.2</span>
+                                                Lock-Free Optimistic
+                                                Concurrency
+                                                Control</a></li>
+                                                <li><a
+                                                href="#interactive-duality-view-design"
+                                                id="toc-interactive-duality-view-design"><span
+                                                class="toc-section-number">6.3</span>
+                                                Interactive Duality View
+                                                Design</a></li>
+                                                </ul></li>
+                                                <li><a
+                                                href="#mrs-dialog-reference"
+                                                id="toc-mrs-dialog-reference"><span
+                                                class="toc-section-number">7</span>
+                                                MRS Dialog Reference</a>
+                                                <ul>
+                                                <li><a
+                                                href="#mrs-service-dialog"
+                                                id="toc-mrs-service-dialog"><span
+                                                class="toc-section-number">7.1</span>
+                                                MRS Service
+                                                Dialog</a></li>
+                                                <li><a
+                                                href="#mrs-schema-dialog"
+                                                id="toc-mrs-schema-dialog"><span
+                                                class="toc-section-number">7.2</span>
+                                                MRS Schema
+                                                Dialog</a></li>
+                                                <li><a
+                                                href="#mrs-object-dialog"
+                                                id="toc-mrs-object-dialog"><span
+                                                class="toc-section-number">7.3</span>
+                                                MRS Object
+                                                Dialog</a></li>
+                                                </ul></li>
+                                                <li><a
+                                                href="#authentication-and-authorization"
+                                                id="toc-authentication-and-authorization"><span
+                                                class="toc-section-number">8</span>
+                                                Authentication and
+                                                Authorization</a>
+                                                <ul>
+                                                <li><a
+                                                href="#authentication-management"
+                                                id="toc-authentication-management"><span
+                                                class="toc-section-number">8.1</span>
+                                                Authentication
+                                                Management</a></li>
+                                                <li><a
+                                                href="#authorization-management"
+                                                id="toc-authorization-management"><span
+                                                class="toc-section-number">8.2</span>
+                                                Authorization
+                                                Management</a></li>
+                                                </ul></li>
+                                                <li><a
+                                                href="#mrs-examples"
+                                                id="toc-mrs-examples"><span
+                                                class="toc-section-number">9</span>
+                                                MRS Examples</a>
+                                                <ul>
+                                                <li><a
+                                                href="#mrs-notes-examples"
+                                                id="toc-mrs-notes-examples"><span
+                                                class="toc-section-number">9.1</span>
+                                                MRS Notes
+                                                Examples</a></li>
+                                                </ul></li>
+                                                </ul>
+                                            </div>
+                </nav>
+            </div>
         </div>
         <div class="content">
             <div class="header" id="document-top">
-                <p>MySQL REST Service - PREVIEW</p>
-                <h1>MRS Developer's Guide</h1>
+                <h1>
+                    <div class="iconBig bookIcon"></div>&nbsp;MRS
+Developer's Guide
+                </h1>
             </div>
             <div class="main">
                 <p>This book explains how to install and configure the
