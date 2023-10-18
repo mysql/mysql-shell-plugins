@@ -59,7 +59,7 @@ ALTER REST SERVICE localhost/myAlteredTestService
 
 CREATE REST SCHEMA ON SERVICE localhost/myTestService FROM `sakila`
     ENABLED
-    AUTHENTICATION NOT REQUIRED
+    AUTHENTICATION REQUIRED
     ITEMS PER PAGE 25
     COMMENTS "The sakila schema";
 
@@ -97,7 +97,7 @@ CREATE OR REPLACE REST DUALITY VIEW /country
 ON SERVICE localhost/myTestService SCHEMA /sakila
 FROM sakila.country
     ENABLED
-    AUTHENTICATION NOT REQUIRED
+    AUTHENTICATION REQUIRED
     ITEMS PER PAGE 25
     COMMENTS "The sakila.country table"
     MEDIA TYPE "Test"

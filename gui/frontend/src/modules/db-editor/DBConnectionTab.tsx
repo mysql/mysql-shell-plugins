@@ -1402,6 +1402,19 @@ Execute \\help or \\? for help;`;
                 break;
             }
 
+            case QueryType.Unknown: {
+                // Check if REST is in the query, but not SHOW
+                if (options.query.trim().match(/^(?!.*show).*rest.*$/gmi)) {
+                    // Enforce a refresh of the MRS Sdk Cache
+                    this.cachedMrsServiceSdk.schemaMetadataVersion = undefined;
+                    await this.updateMrsServiceSdkCache();
+
+                    void requisitions.executeRemote("refreshConnections", undefined);
+                }
+
+                break;
+            }
+
             default: {
                 break;
             }

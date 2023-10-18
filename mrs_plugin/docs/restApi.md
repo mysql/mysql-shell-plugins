@@ -21,7 +21,7 @@ Please also see
 
 - __[MySQL REST Service - Developer's Guide](index.html)__ - This book explains how to install and configure the MySQL REST Service (MRS) as well as how to access the data through REST calls.
 - __[MySQL REST Service - SDK Reference](sdk.html)__ - This book explains how to work with the MRS Software Development Kit and discusses the Client APIs.
-- __[MySQL REST Service - DDL Reference](ddl.html)__ - This book discusses the MySQL REST Service (MRS) DDL SQL Extension.
+- __[MySQL REST Service - SQL Reference](sql.html)__ - This book discusses the MySQL REST Service SQL Extension.
 
 ---
 

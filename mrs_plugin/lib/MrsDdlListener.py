@@ -296,12 +296,12 @@ class MrsDdlListener(MRSListener):
         elif ctx.qualifiedIdentifier().dotIdentifier() is None:
             self.mrs_object["name"] = ctx.qualifiedIdentifier().getText()
 
-            if self.current_schema_id is None:
+            if self.mrs_ddl_executor.current_schema_id is None:
                 raise Exception(
-                    f'The database schema was not given for `{self.mrs_object["name"]}`')
+                    f'The database schema for `{self.mrs_object["name"]}` was not given.')
 
             schema = lib.schemas.get_schema(
-                session=self.session, schema_id=self.current_schema_id)
+                session=self.session, schema_id=self.mrs_ddl_executor.current_schema_id)
             if schema is not None:
                 self.mrs_object["schema_name"] = schema.get("name")
             else:

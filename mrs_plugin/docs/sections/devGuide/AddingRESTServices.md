@@ -153,7 +153,7 @@ ALTER USER 'user_account'@'%' DEFAULT ROLE 'mysql_rest_service_schema_admin';
 
 ### Adding a Schema via MRS DDL
 
-On an active MySQL Shell connection execute the [CREATE REST SCHEMA](ddl.html#create-rest-schema) DDL statement referencing the corresponding MySQL database schema in the FROM clause. Please see the MRS DDL Reference for more details.
+On an active MySQL Shell connection execute the [CREATE REST SCHEMA](sql.html#create-rest-schema) DDL statement referencing the corresponding MySQL database schema in the FROM clause. Please see the MRS SQL Reference for more details.
 
 **_Example_**
 
@@ -224,9 +224,9 @@ The MySQL database schema objects can be added by using MySQL Shell for VS Code 
 
 ### Adding a Schema Object via MRS DDL
 
-On an active MySQL Shell connection execute the [CREATE REST DUALITY VIEW](ddl.html#create-rest-duality-view) DDL statement to add a database schema table or view as REST object. Please see the [MRS DDL Reference](ddl.html#create-rest-duality-view) for more details.
+On an active MySQL Shell connection execute the [CREATE REST DUALITY VIEW](sql.html#create-rest-duality-view) DDL statement to add a database schema table or view as REST object. Please see the [MRS SQL Reference](sql.html#create-rest-duality-view) for more details.
 
-To add a stored procedure the [CREATE REST PROCEDURE](ddl.html#create-rest-procedure) DDL statement can be used.
+To add a stored procedure the [CREATE REST PROCEDURE](sql.html#create-rest-procedure) DDL statement can be used.
 
 **_Examples_**
 

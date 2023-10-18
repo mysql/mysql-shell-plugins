@@ -22,7 +22,7 @@
 
 echo "Starting the fix of Railroad Diagram height issues ..."
 
-cd docs/images/ddl
+cd docs/images/sql
 
 sed -i '' 's/147"/177"/g' showRestViewsStatement.svg
 

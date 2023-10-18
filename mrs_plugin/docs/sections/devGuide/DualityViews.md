@@ -42,9 +42,9 @@ The following figure visualizes these two use cases.
 
 ### REST Duality View Workflow
 
-In the scope of the MySQL REST Service, JSON-Relational duality views are exposed as REST duality views. These can be created using the [CREATE REST DUALITY VIEW](ddl.html#create-rest-duality-view) MRS DDL statement or [interactively using the MRS Object Dialog](#interactive-duality-view-design) of the MySQL Shell for VS Code extension.
+In the scope of the MySQL REST Service, JSON-Relational duality views are exposed as REST duality views. These can be created using the [CREATE REST DUALITY VIEW](sql.html#create-rest-duality-view) MRS DDL statement or [interactively using the MRS Object Dialog](#interactive-duality-view-design) of the MySQL Shell for VS Code extension.
 
-Once a REST duality views has been created, it is extremely simple to access it using REST. The following workflow applies.
+Once a REST duality view has been created, it is extremely simple to access it using REST. The following workflow applies.
 
 - GET a document from the REST duality view
 - Make any changes needed to the document, including changes to the nested JSON objects
@@ -120,7 +120,7 @@ If the target object has been changed (e.g. by another user) between the `GET` a
 
 ## Interactive Duality View Design
 
-While REST duality views can be created by manually writing [CREATE REST DUALITY VIEW](ddl.html#create-rest-duality-view) MRS DDL statements, it is often much easier to design REST duality views in a visual editor.
+While REST duality views can be created by manually writing [CREATE REST DUALITY VIEW](sql.html#create-rest-duality-view) MRS DDL statements, it is often much easier to design REST duality views in a visual editor.
 
 [MySQL Shell for VS Code](https://marketplace.visualstudio.com/items?itemName=Oracle.mysql-shell-for-vs-code) includes the MySQL REST Object dialog which features an advanced `JSON/Relational Duality` designer. Using this designer it is possible to create even complex, nested REST duality views within seconds.
 
@@ -132,7 +132,7 @@ Building a REST duality view for a single relational table (or view) is straight
 
 ![JSON Relational Editor](../../images/vsc-mrs-json-relational-editor.svg "JSON Relational Editor")
 
-Adding the database schema table via VS Code is equal to calling the [CREATE REST DUALITY VIEW](ddl.html#create-rest-duality-view) MRS DDL statement without a `graphGlObj` definition, which also adds all columns of the table as a **flat** JSON object.
+Adding the database schema table via VS Code is equal to calling the [CREATE REST DUALITY VIEW](sql.html#create-rest-duality-view) MRS DDL statement without a `graphGlObj` definition, which also adds all columns of the table as a **flat** JSON object.
 
 ```sql
 CREATE OR REPLACE REST DUALITY VIEW /city
