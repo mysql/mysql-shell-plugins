@@ -77,6 +77,7 @@ import outIcon from "../../../assets/images/out.svg";
 import inOutIcon from "../../../assets/images/inOut.svg";
 import closeIcon from "../../../assets/images/close2.svg";
 import { Codicon } from "../../../components/ui/Codicon";
+import { requisitions } from "../../../supplement/Requisitions";
 
 export enum MrsSdkLanguage {
     TypeScript = "TypeScript"
@@ -283,8 +284,8 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             if (!dbObject.enabled) {
                 s += "    DISABLED\n";
             }
-            if (!dbObject.requiresAuth) {
-                s += "    AUTHENTICATION NOT REQUIRED\n";
+            if (dbObject.requiresAuth) {
+                s += "    AUTHENTICATION REQUIRED\n";
             }
             if (dbObject.itemsPerPage && dbObject.itemsPerPage !== 25) {
                 s += `    ITEMS PER PAGE ${dbObject.itemsPerPage}\n`;
@@ -531,15 +532,24 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                 >
                     <>
                         <Button
+                            className="sqlCopyBtn"
+                            key="sqlCopyBtn"
+                            data-tooltip="Copy SQL to Clipboard"
+                            onClick={this.copySqlToClipboard}
+                            imageOnly={true}
+                        >
+                            <Icon src={Codicon.Copy} width={11} height={11} data-tooltip="inherit" />
+                        </Button>
+                        <Button
                             className={this.getEffectiveClassNames(
                                 ["sqlPreviewBtn", sqlPreview ? "buttonActivated" : undefined])}
                             key="sqlPreviewBtn"
-                            data-tooltip="Toggle MRS DDL Preview"
+                            data-tooltip="Toggle MRS SQL Preview"
                             onClick={this.toggleSqlPreview}
                             imageOnly={true}
                         >
                             <Icon src={Codicon.Search} width={11} height={11} data-tooltip="inherit" />
-                            <Label caption="DDL Preview" data-tooltip="inherit" />
+                            <Label caption="SQL Preview" data-tooltip="inherit" />
                         </Button>
                     </>
                     <div className="divider" />
@@ -647,6 +657,19 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
         this.setState({
             sqlPreview: !sqlPreview,
         });
+    };
+
+    private copySqlToClipboard = (): void => {
+        const { values, getCurrentDbObject } = this.props;
+        const data = values as IMrsObjectFieldEditorData;
+
+        MrsObjectFieldEditor.updateMrsObjectFields(data);
+
+        // Update the local DB Object reference if the DB Object has been updated by the main editor
+        data.dbObject = getCurrentDbObject();
+
+        const text = MrsObjectFieldEditor.buildDualityViewSql(data) ?? "";
+        requisitions.writeToClipboard(text);
     };
 
     /**
@@ -1056,21 +1079,25 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                                 const treeItem = this.findTreeItemById(cellData.field.id, data.currentTreeItems);
                                 if (treeItem && treeItem.field.objectReference) {
                                     const selVal = [...sel];
-                                    let reduceToFieldId;
+                                    let reduceToFieldId: string | undefined;
                                     if (selVal.length > 0) {
                                         reduceToFieldId = cellData.children?.find((item) => {
-                                            return item.field.name ===
-                                                selVal[0];
+                                            return item.field.name === selVal[0] && !item.firstItem;
                                         })?.field.id;
 
-                                        // Clear checkboxes of child rows
-                                        cellData.children?.forEach((child) => {
-                                            const childTreeItem = this.findTreeItemById(
-                                                child.field.id, data.currentTreeItems);
-                                            if (childTreeItem) {
-                                                childTreeItem.field.enabled = false;
-                                            }
-                                        });
+                                        // Clear checkboxes of child rows, except the selected one
+                                        if (reduceToFieldId) {
+                                            cellData.children?.forEach((child) => {
+                                                const childTreeItem = this.findTreeItemById(
+                                                    child.field.id, data.currentTreeItems);
+                                                if (childTreeItem && childTreeItem.field.id !== reduceToFieldId) {
+                                                    childTreeItem.field.enabled = false;
+                                                } else if (childTreeItem &&
+                                                    childTreeItem.field.id === reduceToFieldId) {
+                                                    childTreeItem.field.enabled = true;
+                                                }
+                                            });
+                                        }
 
                                         treeItem.expanded = false;
                                     } else {

@@ -142,7 +142,7 @@
                     <div class="icon bookIcon"></div>&nbsp;<a href="index.html#document-top">Developer's Guide</a>
                 </h2>
                 <h2>
-                    <div class="icon bookIcon"></div>&nbsp;<a href="ddl.html#document-top">DDL Reference</a>
+                    <div class="icon bookIcon"></div>&nbsp;<a href="sql.html#document-top">SQL Reference</a>
                 </h2>
                 <h2>
                     <div class="icon bookIcon"></div>&nbsp;<a href="restApi.html#document-top">Core REST APIs</a>
@@ -376,9 +376,9 @@ Developer's Guide
                 <hr />
                 <p>Please also see</p>
                 <ul>
-                <li><strong><a href="ddl.html">MySQL REST Service - DDL
+                <li><strong><a href="sql.html">MySQL REST Service - SQL
                 Reference</a></strong> - This book discusses the MySQL
-                REST Service (MRS) DDL SQL Extension.</li>
+                REST Service SQL Extension.</li>
                 <li><strong><a href="restApi.html">MySQL REST Service -
                 Core REST APIs</a></strong> - This book provides
                 examples of using the MySQL REST Service queries and
@@ -1184,10 +1184,10 @@ router_id=16</code></pre>
                 class="header-section-number">4.2.1</span> Adding a
                 Schema via MRS DDL</h3>
                 <p>On an active MySQL Shell connection execute the <a
-                href="ddl.html#create-rest-schema">CREATE REST
+                href="sql.html#create-rest-schema">CREATE REST
                 SCHEMA</a> DDL statement referencing the corresponding
                 MySQL database schema in the FROM clause. Please see the
-                MRS DDL Reference for more details.</p>
+                MRS SQL Reference for more details.</p>
                 <p><strong><em>Example</em></strong></p>
                 <p>The following example adds a REST schema for the
                 <code>sakila</code> database schema to the REST service
@@ -1291,13 +1291,13 @@ router_id=16</code></pre>
                 class="header-section-number">4.3.1</span> Adding a
                 Schema Object via MRS DDL</h3>
                 <p>On an active MySQL Shell connection execute the <a
-                href="ddl.html#create-rest-duality-view">CREATE REST
+                href="sql.html#create-rest-duality-view">CREATE REST
                 DUALITY VIEW</a> DDL statement to add a database schema
                 table or view as REST object. Please see the <a
-                href="ddl.html#create-rest-duality-view">MRS DDL
+                href="sql.html#create-rest-duality-view">MRS SQL
                 Reference</a> for more details.</p>
                 <p>To add a stored procedure the <a
-                href="ddl.html#create-rest-procedure">CREATE REST
+                href="sql.html#create-rest-procedure">CREATE REST
                 PROCEDURE</a> DDL statement can be used.</p>
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example adds a REST duality view for
@@ -1742,12 +1742,12 @@ router_id=16</code></pre>
                 <p>In the scope of the MySQL REST Service,
                 JSON-Relational duality views are exposed as REST
                 duality views. These can be created using the <a
-                href="ddl.html#create-rest-duality-view">CREATE REST
+                href="sql.html#create-rest-duality-view">CREATE REST
                 DUALITY VIEW</a> MRS DDL statement or <a
                 href="#interactive-duality-view-design">interactively
                 using the MRS Object Dialog</a> of the MySQL Shell for
                 VS Code extension.</p>
-                <p>Once a REST duality views has been created, it is
+                <p>Once a REST duality view has been created, it is
                 extremely simple to access it using REST. The following
                 workflow applies.</p>
                 <ul>
@@ -1857,7 +1857,7 @@ router_id=16</code></pre>
                 Duality View Design</h2>
                 <p>While REST duality views can be created by manually
                 writing <a
-                href="ddl.html#create-rest-duality-view">CREATE REST
+                href="sql.html#create-rest-duality-view">CREATE REST
                 DUALITY VIEW</a> MRS DDL statements, it is often much
                 easier to design REST duality views in a visual
                 editor.</p>
@@ -1892,7 +1892,7 @@ router_id=16</code></pre>
                 </figure>
                 <p>Adding the database schema table via VS Code is equal
                 to calling the <a
-                href="ddl.html#create-rest-duality-view">CREATE REST
+                href="sql.html#create-rest-duality-view">CREATE REST
                 DUALITY VIEW</a> MRS DDL statement without a
                 <code>graphGlObj</code> definition, which also adds all
                 columns of the table as a <strong>flat</strong> JSON

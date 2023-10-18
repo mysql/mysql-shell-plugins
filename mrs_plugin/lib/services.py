@@ -101,10 +101,34 @@ def format_metadata(host_ctx, version):
 def add_service(session, url_host_name, service):
     if "options" in service:
         service["options"] = core.convert_json(service["options"])
+    else:
+        service["options"] = {
+            "headers": {
+                "Access-Control-Allow-Credentials": "true",
+                "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, Origin, X-Auth-Token",
+                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS"
+            },
+            "http": {
+                "allowedOrigin": "auto"
+            },
+            "logging": {
+                "exceptions": True,
+                "request": {
+                    "body": True,
+                    "headers": True
+                },
+                "response": {
+                    "body": True,
+                    "headers": True
+                }
+            },
+            "returnInternalErrorDetails": True
+        }
 
     path = service.get("url_context_root").lower()
     if path == "/mrs":
-        raise Exception(f'The REST service path `{path}` is reserved and cannot be used.')
+        raise Exception(
+            f'The REST service path `{path}` is reserved and cannot be used.')
 
     # Check if another service already uses this request path
     core.check_request_path(session, url_host_name +
@@ -209,8 +233,8 @@ def update_services(session, service_ids, value):
 
         if auth_apps is not None:
             auth_apps_in_db = core.select(table="auth_app",
-                                        where="service_id=?"
-                                        ).exec(session, [service_id]).items
+                                          where="service_id=?"
+                                          ).exec(session, [service_id]).items
 
             for auth_app_in_db in auth_apps_in_db:
                 if auth_app_in_db["id"] not in [app["id"] for app in auth_apps]:
@@ -231,7 +255,8 @@ def update_services(session, service_ids, value):
                                 where="id=?").exec(session, [id])
                 else:
                     auth_app["id"] = core.get_sequence_id(session)
-                    core.insert(table="auth_app", values=auth_app).exec(session)
+                    core.insert(table="auth_app",
+                                values=auth_app).exec(session)
 
 
 def query_services(session, service_id: bytes = None, url_context_root=None, url_host_name=None,

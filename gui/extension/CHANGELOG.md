@@ -2,13 +2,10 @@
 
 ## Changes in 1.13.4+8.1.1
 
-### Additions
-
-- 
-
 ### Fixes
 
-- 
+- Fixed AttributeError in MRS SQL handler
+- Extended MRS documentation
 
 ## Changes in 1.13.3+8.1.1
 

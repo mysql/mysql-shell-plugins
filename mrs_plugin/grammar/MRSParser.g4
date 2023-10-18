@@ -202,7 +202,7 @@ restSchemaOptions: (
 // - CREATE REST VIEW -------------------------------------------------------
 
 createRestViewStatement:
-    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL RELATIONAL_SYMBOL? JSON_SYMBOL?
+    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL JSON_SYMBOL? RELATIONAL_SYMBOL?
         DUALITY_SYMBOL? VIEW_SYMBOL viewRequestPath (
         ON_SYMBOL serviceSchemaSelector
     )? FROM_SYMBOL qualifiedIdentifier restObjectOptions? AS_SYMBOL restObjectName
@@ -342,7 +342,7 @@ alterRestSchemaStatement:
 // - ALTER REST VIEW --------------------------------------------------------
 
 alterRestViewStatement:
-    ALTER_SYMBOL REST_SYMBOL RELATIONAL_SYMBOL? JSON_SYMBOL? DUALITY_SYMBOL? VIEW_SYMBOL
+    ALTER_SYMBOL REST_SYMBOL JSON_SYMBOL? RELATIONAL_SYMBOL? DUALITY_SYMBOL? VIEW_SYMBOL
         viewRequestPath (
         NEW_SYMBOL REQUEST_SYMBOL PATH_SYMBOL newViewRequestPath
     )? (ON_SYMBOL serviceSchemaSelector)? restObjectOptions? (
@@ -373,7 +373,7 @@ dropRestSchemaStatement:
 ;
 
 dropRestDualityViewStatement:
-    DROP_SYMBOL REST_SYMBOL RELATIONAL_SYMBOL? JSON_SYMBOL? DUALITY_SYMBOL? VIEW_SYMBOL
+    DROP_SYMBOL REST_SYMBOL JSON_SYMBOL? RELATIONAL_SYMBOL? DUALITY_SYMBOL? VIEW_SYMBOL
         viewRequestPath (FROM_SYMBOL serviceSchemaSelector)?
 ;
 
@@ -429,7 +429,7 @@ showRestSchemasStatement:
 ;
 
 showRestViewsStatement:
-    SHOW_SYMBOL REST_SYMBOL RELATIONAL_SYMBOL? JSON_SYMBOL? DUALITY_SYMBOL? VIEWS_SYMBOL (
+    SHOW_SYMBOL REST_SYMBOL JSON_SYMBOL? RELATIONAL_SYMBOL? DUALITY_SYMBOL? VIEWS_SYMBOL (
         (IN_SYMBOL | FROM_SYMBOL) serviceSchemaSelector
     )?
 ;
@@ -463,7 +463,7 @@ showCreateRestSchemaStatement:
 ;
 
 showCreateRestViewStatement:
-    SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL RELATIONAL_SYMBOL? JSON_SYMBOL? DUALITY_SYMBOL?
+    SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL JSON_SYMBOL? RELATIONAL_SYMBOL? DUALITY_SYMBOL?
         VIEW_SYMBOL viewRequestPath (
         (ON_SYMBOL | FROM_SYMBOL) serviceSchemaSelector
     )?

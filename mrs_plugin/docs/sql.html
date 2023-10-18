@@ -1,0 +1,2299 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.-->
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MRS SQL Reference</title>
+    <link rel="shortcut icon" href="images/favicon.png" type="image/x-icon">
+        <link rel="stylesheet" href="style/style.css">
+                <!-- cSpell:ignore pagetitle -->
+    <title>MRS SQL Reference</title>
+    <style type="text/css">
+        code {
+            white-space: pre;
+        }
+    </style>
+        <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            window.visibleItems = [];
+            window.lastVisible = null;
+            const observer = new IntersectionObserver((entries) => {
+                console.log("IntersectionObserver - after enter");
+                console.log(window.visibleItems);
+                console.log(window.lastVisible);
+                // Add active css class to first match
+                entries.forEach((entry) => {
+                    const id = entry.target.getAttribute('id');
+                    const querySel = document.querySelector(`nav li a[href="#` + id + `"]`);
+                    if (querySel) {
+                        const el = querySel.parentElement;
+                        if (entry.isIntersecting) {
+                            if (!window.visibleItems.includes(el)) {
+                                if (window.visibleItems.length === 0 && window.lastVisible !== null) {
+                                    window.lastVisible.classList.remove('active');
+                                    window.lastVisible = el;
+                                }
+                                if (window.lastVisible === null) {
+                                    window.lastVisible = el;
+                                }
+                                window.visibleItems.push(el);
+                            }
+                            if (!el.classList.contains('active')) {
+                                el.classList.add('active');
+                            }
+                        } else {
+                            if (window.visibleItems.includes(el)) {
+                                if (window.visibleItems.length === 1) {
+                                    window.lastVisible = el;
+                                } else {
+                                    el.classList.remove('active');
+                                }
+                                const index = window.visibleItems.indexOf(el);
+                                if (index > -1) {
+                                    window.visibleItems.splice(index, 1);
+                                }
+                                if (window.lastVisible === el && window.visibleItems.length > 0) {
+                                    window.lastVisible === window.visibleItems[0];
+                                }
+                            }
+                        }
+                    }
+                });
+                console.log("IntersectionObserver - before exit");
+                console.log(window.visibleItems);
+                console.log(window.lastVisible);
+            }/*, { threshold: 0.1, rootMargin: '0px 0px -100% 0px', root: document.body }*/);
+            // Track all h that have an `id` applied
+            document.querySelectorAll('.content h1[id],h2[id]').forEach((section) => {
+                observer.observe(section);
+            });
+
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+            });
+
+            if (typeof acquireVsCodeApi === "function") {
+                document.vscode = acquireVsCodeApi();
+
+                const addVsCodeDecorations = () => {
+                    const addVsActionBtn = (e, command, caption) => {
+                        const d = document.createElement("button");
+
+                        d.innerHTML = '<i class="arrow right"></i><p>' + caption + '</p>';
+                        d.onclick = () => {
+                            document.vscode.postMessage({ command, path: e.innerHTML });
+                        }
+                        e.parentNode.insertBefore(d, e.nextSibling)
+                    }
+
+                    document.querySelectorAll("code").forEach((e) => {
+                        if (e.innerHTML.endsWith(".sql")) {
+                            addVsActionBtn(e, "openSqlFile", "Open in MySQL Shell");
+                        } else if (e.innerHTML.endsWith(".mrs.json")) {
+                            addVsActionBtn(e, "loadMrsDump", "Load MRS Dump");
+                        } else if (e.innerHTML.startsWith("VSCodeProject:") > 0) {
+                            e.innerHTML = e.innerHTML.slice("VSCodeProject:".length);
+                            addVsActionBtn(e, "saveProject", "Save Project");
+                        }
+                    });
+                }
+
+                addVsCodeDecorations();
+            } else {
+                document.querySelectorAll("code").forEach((e) => {
+                    if (e.innerHTML.startsWith("VSCodeProject:") > 0) {
+                        e.innerHTML = e.innerHTML.slice("VSCodeProject:".length);
+                    }
+                });
+            }
+        });
+
+        // Handle the message inside the webview
+        window.addEventListener('message', event => {
+
+            const message = event.data; // The JSON data our extension sent
+
+            switch (message.command) {
+                case 'goToId':
+                    if (message.id) {
+                        window.location = "#" + message.id;
+                    }
+
+                    break;
+            }
+        });
+    </script>
+</head>
+
+<body>
+    <div class="page">
+        <div class="sidebar">
+            <div class="bookOverview">
+                <h1>MySQL REST Service</h1>
+                <h2>
+                    <div class="icon bookIcon"></div>&nbsp;<a href="index.html#document-top">Developer's Guide</a>
+                </h2>
+                <h2>
+                    <div class="icon bookIcon"></div>&nbsp;<a href="sql.html#document-top">SQL Reference</a>
+                </h2>
+                <h2>
+                    <div class="icon bookIcon"></div>&nbsp;<a href="restApi.html#document-top">Core REST APIs</a>
+                </h2>
+                <h2>
+                    <div class="icon bookIcon"></div>&nbsp;<a href="sdk.html#document-top">SDK Reference</a>
+                </h2>
+            </div>
+            <div class="sidebarContent">
+                <nav class="section-nav">
+                    <div class="bookToc">
+                        <br>
+                        <h3>MRS SQL Reference</h3>
+                                                <ul>
+                                                <li><a
+                                                href="#introduction"
+                                                id="toc-introduction"><span
+                                                class="toc-section-number">1</span>
+                                                Introduction</a></li>
+                                                <li><a
+                                                href="#configure-and-create"
+                                                id="toc-configure-and-create"><span
+                                                class="toc-section-number">2</span>
+                                                CONFIGURE and CREATE</a>
+                                                <ul>
+                                                <li><a
+                                                href="#configure-rest-metadata"
+                                                id="toc-configure-rest-metadata"><span
+                                                class="toc-section-number">2.1</span>
+                                                CONFIGURE REST
+                                                METADATA</a></li>
+                                                <li><a
+                                                href="#create-rest-service"
+                                                id="toc-create-rest-service"><span
+                                                class="toc-section-number">2.2</span>
+                                                CREATE REST
+                                                SERVICE</a></li>
+                                                <li><a
+                                                href="#create-rest-schema"
+                                                id="toc-create-rest-schema"><span
+                                                class="toc-section-number">2.3</span>
+                                                CREATE REST
+                                                SCHEMA</a></li>
+                                                <li><a
+                                                href="#create-rest-duality-view"
+                                                id="toc-create-rest-duality-view"><span
+                                                class="toc-section-number">2.4</span>
+                                                CREATE REST DUALITY
+                                                VIEW</a></li>
+                                                <li><a
+                                                href="#create-rest-procedure"
+                                                id="toc-create-rest-procedure"><span
+                                                class="toc-section-number">2.5</span>
+                                                CREATE REST
+                                                PROCEDURE</a></li>
+                                                <li><a
+                                                href="#create-rest-content-set"
+                                                id="toc-create-rest-content-set"><span
+                                                class="toc-section-number">2.6</span>
+                                                CREATE REST CONTENT
+                                                SET</a></li>
+                                                <li><a
+                                                href="#create-rest-auth-app"
+                                                id="toc-create-rest-auth-app"><span
+                                                class="toc-section-number">2.7</span>
+                                                CREATE REST AUTH
+                                                APP</a></li>
+                                                <li><a
+                                                href="#create-rest-user"
+                                                id="toc-create-rest-user"><span
+                                                class="toc-section-number">2.8</span>
+                                                CREATE REST
+                                                USER</a></li>
+                                                </ul></li>
+                                                <li><a href="#alter"
+                                                id="toc-alter"><span
+                                                class="toc-section-number">3</span>
+                                                ALTER</a>
+                                                <ul>
+                                                <li><a
+                                                href="#alter-rest-service"
+                                                id="toc-alter-rest-service"><span
+                                                class="toc-section-number">3.1</span>
+                                                ALTER REST
+                                                SERVICE</a></li>
+                                                <li><a
+                                                href="#alter-rest-schema"
+                                                id="toc-alter-rest-schema"><span
+                                                class="toc-section-number">3.2</span>
+                                                ALTER REST
+                                                SCHEMA</a></li>
+                                                <li><a
+                                                href="#alter-rest-duality-view"
+                                                id="toc-alter-rest-duality-view"><span
+                                                class="toc-section-number">3.3</span>
+                                                ALTER REST DUALITY
+                                                VIEW</a></li>
+                                                <li><a
+                                                href="#alter-rest-procedure"
+                                                id="toc-alter-rest-procedure"><span
+                                                class="toc-section-number">3.4</span>
+                                                ALTER REST
+                                                PROCEDURE</a></li>
+                                                </ul></li>
+                                                <li><a href="#drop"
+                                                id="toc-drop"><span
+                                                class="toc-section-number">4</span>
+                                                DROP</a>
+                                                <ul>
+                                                <li><a
+                                                href="#drop-rest-service"
+                                                id="toc-drop-rest-service"><span
+                                                class="toc-section-number">4.1</span>
+                                                DROP REST
+                                                SERVICE</a></li>
+                                                <li><a
+                                                href="#drop-rest-schema"
+                                                id="toc-drop-rest-schema"><span
+                                                class="toc-section-number">4.2</span>
+                                                DROP REST
+                                                SCHEMA</a></li>
+                                                <li><a
+                                                href="#drop-rest-duality-view"
+                                                id="toc-drop-rest-duality-view"><span
+                                                class="toc-section-number">4.3</span>
+                                                DROP REST DUALITY
+                                                VIEW</a></li>
+                                                <li><a
+                                                href="#drop-rest-procedure"
+                                                id="toc-drop-rest-procedure"><span
+                                                class="toc-section-number">4.4</span>
+                                                DROP REST
+                                                PROCEDURE</a></li>
+                                                <li><a
+                                                href="#drop-rest-content-set"
+                                                id="toc-drop-rest-content-set"><span
+                                                class="toc-section-number">4.5</span>
+                                                DROP REST CONTENT
+                                                SET</a></li>
+                                                <li><a
+                                                href="#drop-rest-auth-app"
+                                                id="toc-drop-rest-auth-app"><span
+                                                class="toc-section-number">4.6</span>
+                                                DROP REST AUTH
+                                                APP</a></li>
+                                                <li><a
+                                                href="#drop-rest-user"
+                                                id="toc-drop-rest-user"><span
+                                                class="toc-section-number">4.7</span>
+                                                DROP REST USER</a></li>
+                                                </ul></li>
+                                                <li><a
+                                                href="#use-and-show"
+                                                id="toc-use-and-show"><span
+                                                class="toc-section-number">5</span>
+                                                USE and SHOW</a>
+                                                <ul>
+                                                <li><a href="#use"
+                                                id="toc-use"><span
+                                                class="toc-section-number">5.1</span>
+                                                USE</a></li>
+                                                <li><a
+                                                href="#show-rest-status"
+                                                id="toc-show-rest-status"><span
+                                                class="toc-section-number">5.2</span>
+                                                SHOW REST
+                                                STATUS</a></li>
+                                                <li><a
+                                                href="#show-rest-services"
+                                                id="toc-show-rest-services"><span
+                                                class="toc-section-number">5.3</span>
+                                                SHOW REST
+                                                SERVICES</a></li>
+                                                <li><a
+                                                href="#show-rest-schemas"
+                                                id="toc-show-rest-schemas"><span
+                                                class="toc-section-number">5.4</span>
+                                                SHOW REST
+                                                SCHEMAS</a></li>
+                                                <li><a
+                                                href="#show-rest-duality-views"
+                                                id="toc-show-rest-duality-views"><span
+                                                class="toc-section-number">5.5</span>
+                                                SHOW REST DUALITY
+                                                VIEWS</a></li>
+                                                <li><a
+                                                href="#show-rest-procedures"
+                                                id="toc-show-rest-procedures"><span
+                                                class="toc-section-number">5.6</span>
+                                                SHOW REST
+                                                PROCEDURES</a></li>
+                                                <li><a
+                                                href="#show-rest-content-sets"
+                                                id="toc-show-rest-content-sets"><span
+                                                class="toc-section-number">5.7</span>
+                                                SHOW REST CONTENT
+                                                SETS</a></li>
+                                                <li><a
+                                                href="#show-rest-auth-apps"
+                                                id="toc-show-rest-auth-apps"><span
+                                                class="toc-section-number">5.8</span>
+                                                SHOW REST AUTH
+                                                APPS</a></li>
+                                                <li><a
+                                                href="#show-create-rest-service"
+                                                id="toc-show-create-rest-service"><span
+                                                class="toc-section-number">5.9</span>
+                                                SHOW CREATE REST
+                                                SERVICE</a></li>
+                                                <li><a
+                                                href="#show-create-rest-schema"
+                                                id="toc-show-create-rest-schema"><span
+                                                class="toc-section-number">5.10</span>
+                                                SHOW CREATE REST
+                                                SCHEMA</a></li>
+                                                <li><a
+                                                href="#show-create-rest-duality-view"
+                                                id="toc-show-create-rest-duality-view"><span
+                                                class="toc-section-number">5.11</span>
+                                                SHOW CREATE REST DUALITY
+                                                VIEW</a></li>
+                                                <li><a
+                                                href="#show-create-rest-procedure"
+                                                id="toc-show-create-rest-procedure"><span
+                                                class="toc-section-number">5.12</span>
+                                                SHOW CREATE REST
+                                                PROCEDURE</a></li>
+                                                <li><a
+                                                href="#show-create-auth-app"
+                                                id="toc-show-create-auth-app"><span
+                                                class="toc-section-number">5.13</span>
+                                                SHOW CREATE AUTH
+                                                APP</a></li>
+                                                </ul></li>
+                                                </ul>
+                                            </div>
+                </nav>
+            </div>
+        </div>
+        <div class="content">
+            <div class="header" id="document-top">
+                <h1>
+                    <div class="iconBig bookIcon"></div>&nbsp;MRS SQL
+Reference
+                </h1>
+            </div>
+            <div class="main">
+                <p>This document discusses the MySQL REST Service (MRS)
+                DDL - SQL Extension. The MRS DDL - SQL Extension adds a
+                set of MRS specific DDL statements to the MySQL Shell
+                SQL handling in order to provide a familiar management
+                interface to MySQL developers and DBAs.</p>
+                <p><strong>Chapter Overview</strong></p>
+                <ul>
+                <li><a
+                href="#introduction-to-the-mrs-ddl-extension">Introduction
+                to the MRS DDL Extension</a></li>
+                <li><a href="#mrs-ddl-reference">MRS SQL
+                Reference</a></li>
+                </ul>
+                <hr />
+                <p>Please also see</p>
+                <ul>
+                <li><strong><a href="index.html">MySQL REST Service -
+                Developer’s Guide</a></strong> - This book explains how
+                to install and configure the MySQL REST Service (MRS) as
+                well as how to access the data through REST calls.</li>
+                <li><strong><a href="restApi.html">MySQL REST Service -
+                Core REST APIs</a></strong> - This book provides
+                examples of using the MySQL REST Service queries and
+                other operations against tables and views after you have
+                REST-enabled them.</li>
+                <li><strong><a href="sdk.html">MySQL REST Service - SDK
+                Reference</a></strong> - This book explains how to work
+                with the MRS Software Development Kit and discusses the
+                Client APIs.</li>
+                </ul>
+                <hr />
+                <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+
+                This program is free software; you can redistribute it and/or modify
+                it under the terms of the GNU General Public License, version 2.0,
+                as published by the Free Software Foundation.
+
+                This program is also distributed with certain software (including
+                but not limited to OpenSSL) that is licensed under separate terms, as
+                designated in a particular file or component or in included license
+                documentation.  The authors of MySQL hereby grant you an additional
+                permission to link the program and your derivative works with the
+                separately licensed software that they have included with MySQL.
+                This program is distributed in the hope that it will be useful,  but
+                WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+                the GNU General Public License, version 2.0, for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program; if not, write to the Free Software Foundation, Inc.,
+                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+                <h1 data-number="1" id="introduction"><span
+                class="header-section-number">1</span> Introduction</h1>
+                <p>It has been an essential goal of the MySQL REST
+                Service (MRS) to provide a management interface that
+                feels familiar to MySQL developers and DBAs and
+                integrates well into their existing processes.</p>
+                <p>For this purpose the MySQL REST Service plugins
+                directly into the <a
+                href="https://dev.mysql.com/downloads/shell/">MySQL
+                Shell</a> and <a
+                href="https://marketplace.visualstudio.com/items?itemName=Oracle.mysql-shell-for-vs-code">MySQL
+                Shell for VS Code</a>. It extends the available SQL
+                commands to include DDL (Data Definition Language)
+                statements that allow managing the MySQL REST Service in
+                an easy and seamless way.</p>
+                <p>This makes the process of creating a MySQL REST
+                Service for your application as easy as creating a
+                database schema or table.</p>
+                <p><strong><em>Example</em></strong></p>
+                <p>The following script configures the MySQL REST
+                Service, creates a new REST service
+                <code>/myService</code> and adds a REST schema
+                <code>/sakila</code> and a REST DUALITY VIEW
+                <code>/actor</code> that lists all actors and their film
+                titles.</p>
+                <div class="sourceCode" id="cb1"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>CONFIGURE REST METADATA;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST SERVICE <span class="op">/</span>myService;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">USE</span> REST SERVICE <span class="op">/</span>myService;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila <span class="kw">FROM</span> `sakila`;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="kw">USE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST DUALITY <span class="kw">VIEW</span> <span class="op">/</span>actor</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> `sakila`.`actor` <span class="kw">AS</span> MyServiceSakilaActor {</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    actorId: actor_id @SORTABLE,</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    firstName: first_name,</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    lastName: last_name,</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    lastUpdate: last_update,</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    filmActor: sakila.film_actor @REDUCETO(title) {</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>        film: sakila.film @UNNEST {</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>            title: title</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>};</span></code></pre></div>
+                <blockquote>
+                <p>Note: Please ensure to install the <a
+                href="https://downloads.mysql.com/docs/sakila-db.zip">MySQL
+                sakila example database schema</a> before running the
+                MRS DDL script above.</p>
+                </blockquote>
+                <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+
+                This program is free software; you can redistribute it and/or modify
+                it under the terms of the GNU General Public License, version 2.0,
+                as published by the Free Software Foundation.
+
+                This program is also distributed with certain software (including
+                but not limited to OpenSSL) that is licensed under separate terms, as
+                designated in a particular file or component or in included license
+                documentation.  The authors of MySQL hereby grant you an additional
+                permission to link the program and your derivative works with the
+                separately licensed software that they have included with MySQL.
+                This program is distributed in the hope that it will be useful,  but
+                WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+                the GNU General Public License, version 2.0, for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program; if not, write to the Free Software Foundation, Inc.,
+                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+                <h1 data-number="2" id="configure-and-create"><span
+                class="header-section-number">2</span> CONFIGURE and
+                CREATE</h1>
+                <h2 data-number="2.1" id="configure-rest-metadata"><span
+                class="header-section-number">2.1</span> CONFIGURE REST
+                METADATA</h2>
+                <p>The CONFIGURE REST METADATA statement is used to
+                perform the initial configuration of the MySQL REST
+                Service on a MySQL Server instance or InnoDB
+                Cluster/Set.</p>
+                <p>It will create the
+                <code>mysql_rest_service_metadata</code> database
+                schema.</p>
+                <p>Please note that the MySQL account used to execute
+                the statement needs the required privileges to create
+                database schemas.</p>
+                <p><strong><em>Syntax</em></strong></p>
+                <pre class="antlr"><code>configureRestMetadataStatement:
+    CONFIGURE REST METADATA restMetadataOptions?
+;
+
+restMetadataOptions: (
+        enabledDisabled
+        | jsonOptions
+        | updateIfAvailable
+    )+
+;</code></pre>
+                <p>configureRestMetadataStatement ::= <img
+                src="sections/sql/../../images/sql/configureRestMetadataStatement.svg"
+                title="configureRestMetadataStatement"
+                alt="configureRestMetadataStatement" /></p>
+                <p>restMetadataOptions ::= <img
+                src="sections/sql/../../images/sql/restMetadataOptions.svg"
+                title="restMetadataOptions"
+                alt="restMetadataOptions" /></p>
+                <p><strong><em>Example</em></strong></p>
+                <div class="sourceCode" id="cb3"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>CONFIGURE REST METADATA;</span></code></pre></div>
+                <h3 data-number="2.1.1"
+                id="enable-or-disable-the-mysql-rest-service"><span
+                class="header-section-number">2.1.1</span> Enable or
+                Disable the MySQL REST Service</h3>
+                <p>The enabledDisabled option specifies if the MySQL
+                REST Service should be enabled or disabled after the
+                configuration operation. The default is set to enable
+                the MySQL REST Service.</p>
+                <pre class="antlr"><code>enabledDisabled:
+    ENABLED
+    | DISABLED
+;</code></pre>
+                <p>enabledDisabled ::= <img
+                src="sections/sql/../../images/sql/enabledDisabled.svg"
+                title="enabledDisabled" alt="enabledDisabled" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example configures the MySQL REST
+                Service and enables it and updates the metadata schema,
+                if possible.</p>
+                <div class="sourceCode" id="cb5"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>CONFIGURE REST METADATA</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    ENABLED</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">UPDATE</span> <span class="cf">IF</span> AVAILABLE;</span></code></pre></div>
+                <p>The following example configures the MySQL REST
+                Service and enables the GTID cache.</p>
+                <div class="sourceCode" id="cb6"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>CONFIGURE REST METADATA</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    ENABLED</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    OPTIONS {</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>        <span class="ot">&quot;gtid&quot;</span>: {</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>            <span class="ot">&quot;cache&quot;</span>: {</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>                <span class="ot">&quot;enable&quot;</span>: <span class="kw">true</span>,</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>                <span class="ot">&quot;refresh_rate&quot;</span>: <span class="dv">5</span>,</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>                <span class="ot">&quot;refresh_when_increases_by&quot;</span>: <span class="dv">500</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>            }</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    };</span></code></pre></div>
+                <h3 data-number="2.1.2"
+                id="rest-configuration-json-options"><span
+                class="header-section-number">2.1.2</span> REST
+                Configuration Json Options</h3>
+                <p>The jsonOptions allow to set a number of specific
+                options for the service.</p>
+                <pre class="antlr"><code>jsonOptions:
+    OPTIONS jsonValue
+;</code></pre>
+                <p>jsonOptions ::= <img
+                src="sections/sql/../../images/sql/jsonOptions.svg"
+                title="jsonOptions" alt="jsonOptions" /></p>
+                <p>These options can include the following JSON
+                keys.</p>
+                <ul>
+                <li><code>gtid</code>
+                <ul>
+                <li>Defines global settings for the MySQL GTID handling,
+                using the following fields.</li>
+                <li><code>cache</code>
+                <ul>
+                <li>Is used to configure the MySQL Router’s GTID
+                cache.</li>
+                <li><code>enable</code>
+                <ul>
+                <li>If set to <code>true</code> GTIDs will be cached by
+                the MySQL Router.</li>
+                </ul></li>
+                <li><code>refresh_rate</code>
+                <ul>
+                <li>Defines how often the GTID cache will be refreshed.
+                Set seconds, e.g. 5.</li>
+                </ul></li>
+                <li><code>refresh_when_increases_by</code>
+                <ul>
+                <li>In addition to the time based refresh, the GTID
+                cache can also be refreshed based on the number of
+                transactions that happened since the last refresh. Set
+                in number of transactions, e.g. 500.</li>
+                </ul></li>
+                </ul></li>
+                </ul></li>
+                <li><code>defaultStaticContent</code>
+                <ul>
+                <li>Allows the definition of static content for the root
+                path <code>/</code> that will be returned for file paths
+                matching the given JSON keys. A JSON key
+                <code>index.html</code> will be served as
+                <code>/index.html</code> by the MySQL Router. The file
+                content needs to be Base64 encoded. If the same JSON key
+                is used for <code>defaultStaticContent</code> as well as
+                for <code>defaultRedirects</code>, the redirect is
+                prioritized.</li>
+                </ul></li>
+                <li><code>defaultRedirects</code>
+                <ul>
+                <li>Is used to define internal redirects performed by
+                the MySQL Router. This can be used to expose content of
+                a REST service on the root path <code>/</code>. A JSON
+                key <code>index.html</code> holding the value
+                <code>/myService/myContentSet/index.html</code> will
+                exposed the corresponding file from the given path as
+                <code>/index.html</code>.</li>
+                </ul></li>
+                <li><code>directoryIndexDirective</code>
+                <ul>
+                <li>Holds an ordered list of files that should be
+                returned when a directory path has been requested. The
+                first matching file that is available will be returned.
+                The <code>directoryIndexDirective</code> is recursively
+                applies to all directory paths exposed by the MySQL
+                Router. To change the
+                <code>directoryIndexDirective</code> for a given REST
+                service or REST static content set, the corresponding
+                option needs to be set for those objects.</li>
+                </ul></li>
+                </ul>
+                <p>All other keys will be ignored and can be used to
+                store custom metadata about the service. It is a good
+                practice to include a unique prefix when adding custom
+                keys to avoid them be overwritten by future MRS
+                options.</p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following JsonValue will define the static
+                content for <code>/index.html</code>,
+                <code>/favicon.ico</code> and <code>/favicon.svg</code>.
+                It will also direct the MySQL Router to return the
+                contents of <code>/index.html</code> if the root path
+                <code>/</code> is requested,
+                e.g. <code>https://my.domain.com/</code></p>
+                <div class="sourceCode" id="cb8"><pre
+                class="sourceCode json"><code class="sourceCode json"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;defaultStaticContent&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;index.html&quot;</span><span class="fu">:</span> <span class="st">&quot;PCFET0NUW...&quot;</span><span class="fu">,</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;favicon.ico&quot;</span><span class="fu">:</span> <span class="st">&quot;AAABAAMAM...&quot;</span><span class="fu">,</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;favicon.svg&quot;</span><span class="fu">:</span> <span class="st">&quot;PD94bWwmV...&quot;</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;directoryIndexDirective&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;index.html&quot;</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+                <p>In this example an internal redirect of
+                <code>/index.html</code> to
+                <code>/myService/myContentSet/index.html</code> is
+                performed, directly serving the <code>index.html</code>
+                page of <code>/myService/myContentSet</code>. This
+                overwrites the <code>index.html</code> definition in
+                <code>defaultStaticContent</code>.</p>
+                <p>This is useful to directly serve a specific app on
+                the root path <code>/</code>.</p>
+                <div class="sourceCode" id="cb9"><pre
+                class="sourceCode json"><code class="sourceCode json"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;defaultStaticContent&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;index.html&quot;</span><span class="fu">:</span> <span class="st">&quot;PCFET0NUW...&quot;</span><span class="fu">,</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;favicon.ico&quot;</span><span class="fu">:</span> <span class="st">&quot;AAABAAMAM...&quot;</span><span class="fu">,</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;favicon.svg&quot;</span><span class="fu">:</span> <span class="st">&quot;PD94bWwmV...&quot;</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;defaultRedirects&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;index.html&quot;</span><span class="fu">:</span> <span class="st">&quot;/myService/myContentSet/index.html&quot;</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;directoryIndexDirective&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;index.html&quot;</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+                <h3 data-number="2.1.3"
+                id="updating-the-mysql-rest-service-metadata-schema"><span
+                class="header-section-number">2.1.3</span> Updating the
+                MySQL REST Service Metadata Schema</h3>
+                <p>If the updateIfAvailable is defined, the configure
+                operation will include an update of the
+                <code>mysql_rest_service_metadata</code> database
+                schema.</p>
+                <pre class="antlr"><code>updateIfAvailable:
+    UPDATE (IF AVAILABLE)?
+;</code></pre>
+                <p>updateIfAvailable ::= <img
+                src="sections/sql/../../images/sql/updateIfAvailable.svg"
+                title="updateIfAvailable" alt="updateIfAvailable" /></p>
+                <h2 data-number="2.2" id="create-rest-service"><span
+                class="header-section-number">2.2</span> CREATE REST
+                SERVICE</h2>
+                <p>The CREATE REST SERVICE statement is used to create a
+                new or replace an existing REST service.</p>
+                <p>The MySQL REST Service supports the creation of many
+                individual REST services. It is good practice to create
+                a separate REST service for each REST application.</p>
+                <p>Each REST service can have its own options,
+                authentication apps and supports a different set of
+                authentication users.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>createRestServiceStatement:
+    CREATE (OR REPLACE)? REST SERVICE serviceRequestPath
+        restServiceOptions?
+;
+
+restServiceOptions: (
+        enabledDisabled
+        | restAuthentication
+        | jsonOptions
+        | comments
+    )+
+;</code></pre>
+                <p>createRestServiceStatement ::= <img
+                src="sections/sql/../../images/sql/createRestServiceStatement.svg"
+                title="CREATE REST SERVICE Statement"
+                alt="CREATE REST SERVICE Statement" /></p>
+                <p>restServiceOptions ::= <img
+                src="sections/sql/../../images/sql/restServiceOptions.svg"
+                title="restServiceOptions"
+                alt="restServiceOptions" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example creates a REST service
+                <code>/myTestService</code> that can only be accessed
+                from localhost.</p>
+                <div class="sourceCode" id="cb12"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST SERVICE <span class="op">/</span>myService</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    COMMENTS <span class="ot">&quot;A simple REST service&quot;</span>;</span></code></pre></div>
+                <p>The following example creates a REST service
+                <code>/myTestService</code> that can only be accessed on
+                localhost and is disabled after creation.</p>
+                <div class="sourceCode" id="cb13"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST SERVICE localhost<span class="op">/</span>myTestService</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    DISABLED</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    COMMENTS <span class="ot">&quot;A REST service that can only be accessed on localhost&quot;</span>;</span></code></pre></div>
+                <div class="sourceCode" id="cb14"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST SERVICE localhost<span class="op">/</span>myTestService</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    COMMENTS <span class="ot">&quot;A simple REST service&quot;</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    AUTHENTICATION</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>        PATH <span class="ot">&quot;/authentication&quot;</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>        REDIRECTION <span class="kw">DEFAULT</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>        <span class="kw">VALIDATION</span> <span class="kw">DEFAULT</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>        PAGE CONTENT <span class="kw">DEFAULT</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">USER</span> <span class="kw">MANAGEMENT</span> <span class="kw">SCHEMA</span> <span class="kw">DEFAULT</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    OPTIONS {</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>        <span class="ot">&quot;headers&quot;</span>: {</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>            <span class="ot">&quot;Access-Control-Allow-Credentials&quot;</span>: <span class="ot">&quot;true&quot;</span>,</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>            <span class="ot">&quot;Access-Control-Allow-Headers&quot;</span>: <span class="ot">&quot;Content-Type, Authorization, X-Requested-With, Origin, X-Auth-Token&quot;</span>,</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>            <span class="ot">&quot;Access-Control-Allow-Methods&quot;</span>: <span class="ot">&quot;GET, POST, PUT, DELETE, OPTIONS&quot;</span></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>        },</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>        <span class="ot">&quot;http&quot;</span>: {</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>            <span class="ot">&quot;allowedOrigin&quot;</span>: <span class="ot">&quot;auto&quot;</span></span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>        },</span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>        <span class="ot">&quot;logging&quot;</span>: {</span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>            <span class="ot">&quot;exceptions&quot;</span>: <span class="kw">true</span>,</span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>            <span class="ot">&quot;request&quot;</span>: {</span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>                <span class="ot">&quot;body&quot;</span>: <span class="kw">true</span>,</span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>                <span class="ot">&quot;headers&quot;</span>: <span class="kw">true</span></span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>            },</span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>            <span class="ot">&quot;response&quot;</span>: {</span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>                <span class="ot">&quot;body&quot;</span>: <span class="kw">true</span>,</span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>                <span class="ot">&quot;headers&quot;</span>: <span class="kw">true</span></span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>            }</span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>        },</span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>        <span class="ot">&quot;returnInternalErrorDetails&quot;</span>: <span class="kw">true</span>,</span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a>        <span class="ot">&quot;includeLinksInResults&quot;</span>: <span class="kw">false</span></span>
+<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a>    };</span></code></pre></div>
+                <h3 data-number="2.2.1"
+                id="enabling-or-disabling-a-rest-service-at-creation-time"><span
+                class="header-section-number">2.2.1</span> Enabling or
+                Disabling a REST Service at Creation Time</h3>
+                <p>The <code>enabledDisabled</code> option specifies
+                whether the REST schema should be enabled or disabled
+                after it has been created.</p>
+                <pre class="antlr"><code>enabledDisabled:
+    ENABLED
+    | DISABLED
+;</code></pre>
+                <p>enabledDisabled ::= <img
+                src="sections/sql/../../images/sql/enabledDisabled.svg"
+                title="enabledDisabled" alt="enabledDisabled" /></p>
+                <h3 data-number="2.2.2"
+                id="rest-service-authentication-settings"><span
+                class="header-section-number">2.2.2</span> REST Service
+                Authentication Settings</h3>
+                <p>Each REST service requires allows for specific
+                authentication settings.</p>
+                <p>restAuthentication ::= <img
+                src="sections/sql/../../images/sql/restAuthentication.svg"
+                title="restAuthentication"
+                alt="restAuthentication" /></p>
+                <ul>
+                <li>AUTHENTICATION PATH
+                <ul>
+                <li>The html path used for authentication handling for
+                this REST service. Specified as a sub-path to the REST
+                service path. If not explicitly set, the default is path
+                is <code>/authentication</code> is used.</li>
+                <li>The following endpoints will be made available for
+                <code>&lt;service_path&gt;/&lt;auth_path&gt;</code>
+                <ul>
+                <li><code>/login</code></li>
+                <li><code>/status</code></li>
+                <li><code>/logout</code></li>
+                <li><code>/completed</code></li>
+                </ul></li>
+                </ul></li>
+                <li>AUTHENTICATION REDIRECTION
+                <ul>
+                <li>The authentication workflow will redirect to this
+                URL after successful- or failed login. Specified as a
+                sub-path to the REST service path. If this option is not
+                set explicitly, the workflow will redirect to
+                <code>&lt;service_path&gt;/&lt;auth_path&gt;/completed</code>
+                if the
+                <code>&lt;service_path&gt;/&lt;auth_path&gt;/login?onCompletionRedirect</code>
+                parameter has not been set.</li>
+                </ul></li>
+                <li>AUTHENTICATION VALIDATION
+                <ul>
+                <li>A regular expression to validate the
+                <code>&lt;service_path&gt;/&lt;auth_path&gt;/login?onCompletionRedirect</code>
+                parameter. If set, this allows to limit the possible
+                URLs an application can specify for this parameter.</li>
+                </ul></li>
+                <li>AUTHENTICATION PAGE CONTENT
+                <ul>
+                <li>If this option is set its content will replace the
+                page content of the
+                <code>&lt;service_path&gt;/&lt;auth_path&gt;/completed</code>
+                page.</li>
+                </ul></li>
+                </ul>
+                <h3 data-number="2.2.3"
+                id="rest-service-json-options"><span
+                class="header-section-number">2.2.3</span> REST Service
+                Json Options</h3>
+                <p>The jsonOptions allow to set a number of specific
+                options for the service.</p>
+                <pre class="antlr"><code>jsonOptions:
+    OPTIONS jsonValue
+;</code></pre>
+                <p>jsonOptions ::= <img
+                src="sections/sql/../../images/sql/jsonOptions.svg"
+                title="jsonOptions" alt="jsonOptions" /></p>
+                <p>These options can include the following JSON
+                keys.</p>
+                <ul>
+                <li><code>headers</code> - Allows the specification of
+                HTTP headers. Please refer to the HTTP header
+                documentation for details.</li>
+                <li><code>http</code>
+                <ul>
+                <li><code>allowedOrigin</code> - The setting for
+                Access-Control-Allow-Origin HTTP header. Can either be
+                set to <code>*</code>, <code>null</code>,
+                <code>&lt;origin&gt;</code> or <code>auto</code>. When
+                set to <code>auto</code>, the MySQL Routers will return
+                the origin of the specific client making the
+                request.</li>
+                </ul></li>
+                <li><code>logging</code>
+                <ul>
+                <li><code>exceptions</code> - If exceptions should be
+                logged.</li>
+                <li><code>requests</code>
+                <ul>
+                <li><code>body</code> - If the content of request bodies
+                should be logged.</li>
+                <li><code>headers</code> - If the content of request
+                headers should be logged.</li>
+                </ul></li>
+                <li><code>response</code>
+                <ul>
+                <li><code>body</code> - If the content of response
+                bodies should be logged.</li>
+                <li><code>headers</code> - If the content of response
+                headers should be logged.</li>
+                </ul></li>
+                </ul></li>
+                <li><code>returnInternalErrorDetails</code> - If
+                internal errors should be returned. This is useful for
+                application development but should be turned off for
+                production deployments.</li>
+                <li><code>includeLinksInResults</code> - If set to
+                false, the results do not include navigation links.</li>
+                <li><code>defaultStaticContent</code> - Allows the
+                definition of static content for
+                <code>request path</code> of the REST service that will
+                be returned for file paths matching the given JSON keys.
+                A JSON key <code>index.html</code> will be served as
+                <code>/myService/index.html</code> by the MySQL Router
+                if the <code>request path</code> of the REST service has
+                been set to <code>/myService</code>. The file content
+                needs to be Base64 encoded. If the same JSON key is used
+                for <code>defaultStaticContent</code> as well as for
+                <code>defaultRedirects</code>, the redirect is
+                prioritized.</li>
+                <li><code>defaultRedirects</code> - Is used to define
+                internal redirects performed by the MySQL Router. This
+                can be used to expose content on the
+                <code>request path</code> of the of a REST service. A
+                JSON key <code>index.html</code> holding the value
+                <code>/myService/myContentSet/index.html</code> will
+                exposed the corresponding file from the given path as
+                <code>/myService/index.html</code> if the
+                <code>request path</code> of the REST service has been
+                set to <code>/myService</code>.</li>
+                <li><code>directoryIndexDirective</code> - Holds an
+                ordered list of files that should be returned when a
+                directory path has been requested. The first matching
+                file that is available will be returned. The
+                <code>directoryIndexDirective</code> is recursively
+                applies to all directory paths exposed by the MySQL
+                Router. To change the
+                <code>directoryIndexDirective</code> for a given REST
+                object, the corresponding option needs to be set for
+                that object.</li>
+                </ul>
+                <p>All other keys will be ignored and can be used to
+                store custom metadata about the service. It is a good
+                practice to include a unique prefix when adding custom
+                keys to avoid them be overwritten by future MRS
+                options.</p>
+                <p><strong><em>Examples</em></strong></p>
+                <div class="sourceCode" id="cb17"><pre
+                class="sourceCode json"><code class="sourceCode json"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;headers&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;Access-Control-Allow-Credentials&quot;</span><span class="fu">:</span> <span class="st">&quot;true&quot;</span><span class="fu">,</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;Access-Control-Allow-Headers&quot;</span><span class="fu">:</span> <span class="st">&quot;Content-Type, Authorization, X-Requested-With, Origin, X-Auth-Token&quot;</span><span class="fu">,</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;Access-Control-Allow-Methods&quot;</span><span class="fu">:</span> <span class="st">&quot;GET, POST, PUT, DELETE, OPTIONS&quot;</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;http&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;allowedOrigin&quot;</span><span class="fu">:</span> <span class="st">&quot;auto&quot;</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;logging&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;exceptions&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;request&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;body&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;headers&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>        <span class="fu">},</span></span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;response&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;body&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;headers&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;returnInternalErrorDetails&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;includeLinksInResults&quot;</span><span class="fu">:</span> <span class="kw">false</span></span>
+<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+                <h3 data-number="2.2.4" id="rest-service-comments"><span
+                class="header-section-number">2.2.4</span> REST Service
+                Comments</h3>
+                <p>The comments can hold a description of the REST
+                service. The maximal length is of the comments string is
+                512 characters.</p>
+                <pre class="antlr"><code>comments:
+    COMMENTS quotedText
+;</code></pre>
+                <p>comments ::= <img
+                src="sections/sql/../../images/sql/comments.svg"
+                title="comments" alt="comments" /></p>
+                <h2 data-number="2.3" id="create-rest-schema"><span
+                class="header-section-number">2.3</span> CREATE REST
+                SCHEMA</h2>
+                <p>The CREATE REST SCHEMA statement is used to create a
+                new or replace an existing REST schema. Each REST schema
+                directly maps to a database schema and allows the
+                database schema objects (tables, views and stored
+                procedures) to be exposed via REST endpoints.</p>
+                <blockquote>
+                <p>Note: Adding a REST schema to a REST service does not
+                automatically expose any database schema objects via
+                REST. The corresponding <code>CREATE REST TABLE</code>,
+                <code>CREATE REST DUALITY VIEW</code>,
+                <code>CREATE REST PROCEDURE</code> ddl commands need to
+                be called to explicitly expose a database schema
+                object.</p>
+                </blockquote>
+                <p>Each REST schema belongs to a REST service, which has
+                to be created first. One REST service can hold many REST
+                schemas.</p>
+                <p>Each REST schema can have its own options,
+                authentication apps and supports a different set of
+                authentication users.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>createRestSchemaStatement:
+    CREATE (OR REPLACE)? REST DATABASE schemaRequestPath? (
+        ON SERVICE? serviceRequestPath
+    )? FROM schemaName restSchemaOptions?
+;
+
+restSchemaOptions: (
+        enabledDisabled
+        | authenticationRequired
+        | itemsPerPage
+        | jsonOptions
+        | comments
+    )+
+;</code></pre>
+                <p>createRestSchemaStatement ::= <img
+                src="sections/sql/../../images/sql/createRestSchemaStatement.svg"
+                title="createRestSchemaStatement"
+                alt="createRestSchemaStatement" /></p>
+                <p>restSchemaOptions ::= <img
+                src="sections/sql/../../images/sql/restSchemaOptions.svg"
+                title="restSchemaOptions" alt="restSchemaOptions" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example creates a REST schema
+                <code>/sakila</code> on the REST service
+                <code>/myService</code>.</p>
+                <div class="sourceCode" id="cb20"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila <span class="kw">ON</span> SERVICE <span class="op">/</span>myService</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">FROM</span> `sakila`</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>    COMMENTS <span class="ot">&quot;The sakila schema&quot;</span>;</span></code></pre></div>
+                <h3 data-number="2.3.1"
+                id="enabling-or-disabling-a-rest-schema-at-creation-time"><span
+                class="header-section-number">2.3.1</span> Enabling or
+                Disabling a REST Schema at Creation Time</h3>
+                <p>The <code>enabledDisabled</code> option specifies
+                whether the REST schema should be enabled or disabled
+                what it is created.</p>
+                <pre class="antlr"><code>enabledDisabled:
+    ENABLED
+    | DISABLED
+;</code></pre>
+                <p>enabledDisabled ::= <img
+                src="sections/sql/../../images/sql/enabledDisabled.svg"
+                title="enabledDisabled" alt="enabledDisabled" /></p>
+                <h3 data-number="2.3.2"
+                id="requiring-authentication-for-rest-schema-access"><span
+                class="header-section-number">2.3.2</span> Requiring
+                Authentication for REST Schema Access</h3>
+                <p>The <code>authenticationRequired</code> option
+                specifies if a REST schema and its objects require
+                authentication before accessing their REST
+                endpoints.</p>
+                <pre class="antlr"><code>authenticationRequired:
+    AUTHENTICATION NOT? REQUIRED
+;</code></pre>
+                <p>authenticationRequired ::= <img
+                src="sections/sql/../../images/sql/authenticationRequired.svg"
+                title="authenticationRequired"
+                alt="authenticationRequired" /></p>
+                <h3 data-number="2.3.3"
+                id="specifying-the-default-page-count"><span
+                class="header-section-number">2.3.3</span> Specifying
+                the Default Page Count</h3>
+                <p>The <code>itemsPerPage</code> option can be used to
+                specify the default number of items returned for queries
+                run against this REST schema.</p>
+                <pre class="antlr"><code>itemsPerPage:
+    ITEMS PER PAGE itemsPerPageNumber
+;</code></pre>
+                <p>itemsPerPage ::= <img
+                src="sections/sql/../../images/sql/itemsPerPage.svg"
+                title="itemsPerPage" alt="itemsPerPage" /></p>
+                <p>The number of items per page can also be specified
+                for each REST object individually.</p>
+                <h3 data-number="2.3.4"
+                id="rest-schema-json-options"><span
+                class="header-section-number">2.3.4</span> REST Schema
+                Json Options</h3>
+                <p>The jsonOptions allow to set a number of specific
+                options for the service.</p>
+                <pre class="antlr"><code>jsonOptions:
+    OPTIONS jsonValue
+;</code></pre>
+                <p>jsonOptions ::= <img
+                src="sections/sql/../../images/sql/jsonOptions.svg"
+                title="jsonOptions" alt="jsonOptions" /></p>
+                <p>These options can include the following JSON
+                keys.</p>
+                <ul>
+                <li><code>defaultStaticContent</code> - This option
+                serves the same purpose as described in the <a
+                href="#rest-configuration-json-options">REST
+                Configuration Json Options</a>.</li>
+                <li><code>defaultRedirects</code> - This option serves
+                the same purpose as described in the <a
+                href="#rest-configuration-json-options">REST
+                Configuration Json Options</a>.</li>
+                <li><code>directoryIndexDirective</code> - This option
+                serves the same purpose as described in the <a
+                href="#rest-configuration-json-options">REST
+                Configuration Json Options</a>.</li>
+                </ul>
+                <p>All other keys will be ignored and can be used to
+                store custom metadata about the schema. It is a good
+                practice to include a unique prefix when adding custom
+                keys to avoid them be overwritten by future MRS
+                options.</p>
+                <h3 data-number="2.3.5" id="rest-schema-comments"><span
+                class="header-section-number">2.3.5</span> REST Schema
+                Comments</h3>
+                <p>The comments can hold a description of the REST
+                schema. The maximal length is of the comments string is
+                512 characters.</p>
+                <pre class="antlr"><code>comments:
+    COMMENTS quotedText
+;</code></pre>
+                <p>comments ::= <img
+                src="sections/sql/../../images/sql/comments.svg"
+                title="comments" alt="comments" /></p>
+                <h2 data-number="2.4"
+                id="create-rest-duality-view"><span
+                class="header-section-number">2.4</span> CREATE REST
+                DUALITY VIEW</h2>
+                <p>The <code>CREATE REST DUALITY VIEW</code> statement
+                is used to add REST endpoints for database schema tables
+                or views. They will be served as JSON duality views.</p>
+                <p>The structure of the served JSON documents is defined
+                using an <a
+                href="#defining-the-graphql-definition-for-a-rest-duality-view">extended
+                GraphQL syntax</a>. This allows to define even complex
+                REST duality views in a simple and human readable way.
+                Please see the corresponding <a
+                href="#defining-the-graphql-definition-for-a-rest-duality-view">GraphQL
+                section</a> about how to design the GraphQL definition
+                for a REST duality view.</p>
+                <p>Please see the MRS Developer’s Guide to learn more
+                about <a href="index.html#json-duality-views">JSON
+                duality views</a>.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>createRestViewStatement:
+    CREATE (OR REPLACE)? REST JSON? RELATIONAL?
+        DUALITY? VIEW viewRequestPath (
+        ON serviceSchemaSelector
+    )? FROM qualifiedIdentifier restObjectOptions? AS restObjectName
+        graphGlCrudOptions? graphGlObj?
+;
+
+serviceSchemaSelector:
+    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
+;
+
+restObjectOptions: (
+        enabledDisabled
+        | authenticationRequired
+        | itemsPerPage
+        | jsonOptions
+        | comments
+        | restViewMediaType
+        | restViewFormat
+        | restViewAuthenticationProcedure
+    )+
+;</code></pre>
+                <p>createRestViewStatement ::= <img
+                src="sections/sql/../../images/sql/createRestViewStatement.svg"
+                title="createRestViewStatement"
+                alt="createRestViewStatement" /></p>
+                <p>serviceSchemaSelector ::= <img
+                src="sections/sql/../../images/sql/serviceSchemaSelector.svg"
+                title="serviceSchemaSelector"
+                alt="serviceSchemaSelector" /></p>
+                <p>restObjectOptions ::= <img
+                src="sections/sql/../../images/sql/restObjectOptions.svg"
+                title="restObjectOptions" alt="restObjectOptions" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example adds a REST duality view for
+                the <code>sakila.city</code> database schema table.</p>
+                <div class="sourceCode" id="cb27"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST DUALITY <span class="kw">VIEW</span> <span class="op">/</span>city</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> `sakila`.`city` <span class="kw">AS</span> MyServiceSakilaCity {</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>    cityId: city_id @SORTABLE,</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>    city: city,</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>    countryId: country_id,</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>    lastUpdate: last_update</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>};</span></code></pre></div>
+                <p>Querying the REST duality view using the TypeScript
+                SDK returns the following JSON document.</p>
+                <div class="sourceCode" id="cb28"><pre
+                class="sourceCode ts"><code class="sourceCode typescript"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>ts<span class="op">&gt;</span> myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findFirst</span>()<span class="op">;</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;city&quot;</span><span class="op">:</span> <span class="st">&quot;A Corua (La Corua)&quot;</span><span class="op">,</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;links&quot;</span><span class="op">:</span> [</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>      {</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>         <span class="st">&quot;rel&quot;</span><span class="op">:</span> <span class="st">&quot;self&quot;</span><span class="op">,</span></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>         <span class="st">&quot;href&quot;</span><span class="op">:</span> <span class="st">&quot;/myService/sakila/city/1&quot;</span></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>   ]<span class="op">,</span></span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;cityId&quot;</span><span class="op">:</span> 1<span class="op">,</span></span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;countryId&quot;</span><span class="op">:</span> 87<span class="op">,</span></span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;lastUpdate&quot;</span><span class="op">:</span> <span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span><span class="op">,</span></span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;_metadata&quot;</span><span class="op">:</span> {</span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;etag&quot;</span><span class="op">:</span> <span class="st">&quot;EE93452B41984F3F5BBB0395CCB2CED00F5C748FEEA4A36CCD749CC3F85B7CEA&quot;</span></span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a>   }</span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <p>The next example adds the referenced table
+                <code>sakila.country</code> to the REST duality
+                view.</p>
+                <div class="sourceCode" id="cb29"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST DUALITY <span class="kw">VIEW</span> <span class="op">/</span>city</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> `sakila`.`city` <span class="kw">AS</span> MyServiceSakilaCity {</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>    cityId: city_id @SORTABLE,</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>    city: city,</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>    countryId: country_id,</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>    lastUpdate: last_update,</span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>    country: sakila.country {</span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>        countryId: country_id @SORTABLE,</span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>        country: country,</span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>        lastUpdate: last_update</span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>};</span></code></pre></div>
+                <p>This is what the REST duality view looks like in the
+                interactive MySQL REST Object Dialog in the MySQL Shell
+                for VS Code extension.</p>
+                <figure>
+                <img
+                src="sections/sql/../../images/vsc-mrs-json-relational-editor-2-referenced-table.png"
+                title="Adding a Referenced Table"
+                alt="Adding a Referenced Table" />
+                <figcaption aria-hidden="true">Adding a Referenced
+                Table</figcaption>
+                </figure>
+                <p>Running a TypeScript SDK query against this new REST
+                endpoint returns the following JSON Document.</p>
+                <div class="sourceCode" id="cb30"><pre
+                class="sourceCode ts"><code class="sourceCode typescript"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>ts<span class="op">&gt;</span> myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findFirst</span>()<span class="op">;</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;city&quot;</span><span class="op">:</span> <span class="st">&quot;A Corua (La Corua)&quot;</span><span class="op">,</span></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;links&quot;</span><span class="op">:</span> [</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>        {</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;rel&quot;</span><span class="op">:</span> <span class="st">&quot;self&quot;</span><span class="op">,</span></span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;href&quot;</span><span class="op">:</span> <span class="st">&quot;/myService/sakila/city/1&quot;</span></span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>    ]<span class="op">,</span></span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;cityId&quot;</span><span class="op">:</span> 1<span class="op">,</span></span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;country&quot;</span><span class="op">:</span> {</span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;country&quot;</span><span class="op">:</span> <span class="st">&quot;Spain&quot;</span><span class="op">,</span></span>
+<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;countryId&quot;</span><span class="op">:</span> 87<span class="op">,</span></span>
+<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;lastUpdate&quot;</span><span class="op">:</span> <span class="st">&quot;2006-02-15 04:44:00.000000&quot;</span></span>
+<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a>    }<span class="op">,</span></span>
+<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;countryId&quot;</span><span class="op">:</span> 87<span class="op">,</span></span>
+<span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;lastUpdate&quot;</span><span class="op">:</span> <span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span><span class="op">,</span></span>
+<span id="cb30-18"><a href="#cb30-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;_metadata&quot;</span><span class="op">:</span> {</span>
+<span id="cb30-19"><a href="#cb30-19" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;etag&quot;</span><span class="op">:</span> <span class="st">&quot;FFA2187AD4B98DF48EC40B3E807E0561A71D02C2F4F5A3B953AA6CB6E41CAD16&quot;</span></span>
+<span id="cb30-20"><a href="#cb30-20" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb30-21"><a href="#cb30-21" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <h3 data-number="2.4.1" id="preconditions"><span
+                class="header-section-number">2.4.1</span>
+                Preconditions</h3>
+                <p>You define a REST duality view against a set of
+                tables related by primary key (PK), foreign key (FK) or
+                unique key constraints (UK). The following rules
+                apply:</p>
+                <ul>
+                <li>The constraints must be declared in the
+                database.</li>
+                <li>The relationships type can be 1-to-1, 1-to-N and
+                N-to-M (using a mapping table with two FKs). The N-to-M
+                relationship can be thought of as the combination of
+                1-to-N and 1-to-1 relationship</li>
+                <li>Columns of two or more tables with 1-to-1 or N-to-1
+                relationships can be merged into the same JSON object
+                via UNNEST. Otherwise a nested JSON object is
+                created.</li>
+                <li>Tables with a 1-to-N relationship create a nested
+                JSON array.</li>
+                <li>Each item in the duality view is one JSON object,
+                which is typically a hierarchy of nested objects and
+                arrays.</li>
+                <li>Each application object is built from values
+                originating from one or multiple rows from the
+                underlying tables of that view. Typically, each table
+                contributes to one (nested) JSON object.</li>
+                </ul>
+                <h3 data-number="2.4.2"
+                id="enabling-or-disabling-a-rest-duality-view-at-creation-time"><span
+                class="header-section-number">2.4.2</span> Enabling or
+                Disabling a REST Duality View at Creation Time</h3>
+                <p>The <code>enabledDisabled</code> option specifies
+                whether the REST duality view should be enabled or
+                disabled when it is created.</p>
+                <pre class="antlr"><code>enabledDisabled:
+    ENABLED
+    | DISABLED
+;</code></pre>
+                <p>enabledDisabled ::= <img
+                src="sections/sql/../../images/sql/enabledDisabled.svg"
+                title="enabledDisabled" alt="enabledDisabled" /></p>
+                <h3 data-number="2.4.3"
+                id="requiring-authentication-for-rest-duality-views"><span
+                class="header-section-number">2.4.3</span> Requiring
+                Authentication for REST Duality Views</h3>
+                <p>The <code>authenticationRequired</code> option
+                specifies if a REST duality view requires authentication
+                before accessing its REST endpoints.</p>
+                <pre class="antlr"><code>authenticationRequired:
+    AUTHENTICATION NOT? REQUIRED
+;</code></pre>
+                <p>authenticationRequired ::= <img
+                src="sections/sql/../../images/sql/authenticationRequired.svg"
+                title="authenticationRequired"
+                alt="authenticationRequired" /></p>
+                <h3 data-number="2.4.4"
+                id="specifying-the-page-count-for-rest-duality-views"><span
+                class="header-section-number">2.4.4</span> Specifying
+                the Page Count for REST Duality Views</h3>
+                <p>The <code>itemsPerPage</code> option can be used to
+                specify the number of items returned for queries run
+                against the REST duality view.</p>
+                <pre class="antlr"><code>itemsPerPage:
+    ITEMS PER PAGE itemsPerPageNumber
+;</code></pre>
+                <p>itemsPerPage ::= <img
+                src="sections/sql/../../images/sql/itemsPerPage.svg"
+                title="itemsPerPage" alt="itemsPerPage" /></p>
+                <p>The number of items per page can also be specified
+                for each REST object individually.</p>
+                <h3 data-number="2.4.5"
+                id="setting-the-media-type-for-rest-duality-views"><span
+                class="header-section-number">2.4.5</span> Setting the
+                Media Type for REST Duality Views</h3>
+                <p>If this REST duality view returns a specific MIME
+                type it can be set via the
+                <code>restViewMediaType</code> option. If MRS should try
+                to automatically detect the file type based on the
+                content of the file the <code>AUTODETECT</code> option
+                can be used.</p>
+                <pre class="antlr"><code>restViewMediaType:
+    MEDIA TYPE (quotedText | AUTODETECT)
+;</code></pre>
+                <p>restViewMediaType ::= <img
+                src="sections/sql/../../images/sql/restViewMediaType.svg"
+                title="restViewMediaType" alt="restViewMediaType" /></p>
+                <h3 data-number="2.4.6"
+                id="setting-the-result-format-for-rest-duality-views"><span
+                class="header-section-number">2.4.6</span> Setting the
+                Result Format for REST Duality Views</h3>
+                <p>A REST duality view can return one of the following
+                formats which can be set with the
+                <code>restViewFormat</code> option.</p>
+                <ul>
+                <li>FEED: A list of result JSON objects</li>
+                <li>ITEM: A single result item</li>
+                <li>MEDIA: A single blob item. The
+                <code>restViewMediaType</code> option is used to set the
+                corresponding MIME type in this case.</li>
+                </ul>
+                <pre class="antlr"><code>restViewFormat:
+    FORMAT (FEED | ITEM | MEDIA)
+;</code></pre>
+                <p>restViewFormat ::= <img
+                src="sections/sql/../../images/sql/restViewFormat.svg"
+                title="restViewFormat" alt="restViewFormat" /></p>
+                <h3 data-number="2.4.7"
+                id="using-a-custom-authentication-procedure-for-a-rest-duality-view"><span
+                class="header-section-number">2.4.7</span> Using a
+                Custom Authentication Procedure for a REST Duality
+                View</h3>
+                <p>In case the built in authentication handling does not
+                cover the specific use case for a REST duality view, a
+                custom MySQL stored procedure can be used to handle the
+                authentication check for the given user and the
+                requested CRUD operation.</p>
+                <p>The referenced MySQL stored procedure has to be in
+                the same schema as the database schema object and it has
+                to accept the following parameters:
+                <code>(IN user_id BINARY(16), IN schema VARCHAR(255), IN object VARCHAR(255), IN crud_operation VARCHAR(4))</code>.
+                It needs to returns <code>true</code> or
+                <code>false</code>.</p>
+                <p>restViewAuthenticationProcedure ::= <img
+                src="sections/sql/../../images/sql/restViewAuthenticationProcedure.svg"
+                title="restViewAuthenticationProcedure"
+                alt="restViewAuthenticationProcedure" /></p>
+                <h3 data-number="2.4.8"
+                id="defining-the-graphql-definition-for-a-rest-duality-view"><span
+                class="header-section-number">2.4.8</span> Defining the
+                GraphQL definition for a REST Duality View</h3>
+                <pre class="antlr"><code>graphGlObj:
+    OPEN_CURLY graphGlPair (COMMA graphGlPair)* CLOSE_CURLY
+    | OPEN_CURLY CLOSE_CURLY
+;
+
+graphGlCrudOptions: (
+        AT_SELECT
+        | AT_NOSELECT
+        | AT_INSERT
+        | AT_NOINSERT
+        | AT_UPDATE
+        | AT_NOUPDATE
+        | AT_DELETE
+        | AT_NODELETE
+    )+
+;
+
+graphGlPair:
+    graphKeyValue COLON qualifiedIdentifier (
+        AT_IN
+        | AT_OUT
+        | AT_INOUT
+        | AT_NOCHECK
+        | AT_SORTABLE
+        | AT_NOFILTERING
+        | AT_ROWOWNERSHIP
+        | AT_UNNEST
+        | AT_REDUCETO OPEN_PAR graphGlReduceToValue CLOSE_PAR
+        | AT_DATATYPE OPEN_PAR graphGlDatatypeValue CLOSE_PAR
+        | graphGlCrudOptions
+    )? graphGlObj?
+;
+
+graphGlValue:
+    qualifiedIdentifier
+    | graphGlObj
+;</code></pre>
+                <p>graphGlObj ::= <img
+                src="sections/sql/../../images/sql/graphGlObj.svg"
+                title="graphGlObj" alt="graphGlObj" /></p>
+                <p>graphGlCrudOptions ::= <img
+                src="sections/sql/../../images/sql/graphGlCrudOptions.svg"
+                title="graphGlCrudOptions"
+                alt="graphGlCrudOptions" /></p>
+                <p>graphGlPair ::= <img
+                src="sections/sql/../../images/sql/graphGlPair.svg"
+                title="graphGlPair" alt="graphGlPair" /></p>
+                <p>graphGlValue ::= <img
+                src="sections/sql/../../images/sql/graphGlValue.svg"
+                title="graphGlValue" alt="graphGlValue" /></p>
+                <h2 data-number="2.5" id="create-rest-procedure"><span
+                class="header-section-number">2.5</span> CREATE REST
+                PROCEDURE</h2>
+                <p>The <code>CREATE REST PROCEDURE</code> statement is
+                used to add REST endpoints for database schema stored
+                procedures. It uses the same <a
+                href="#defining-the-graphql-definition-for-a-rest-duality-view">extended
+                GraphQL syntax</a> as defined for REST duality views to
+                describe the REST procedure’s parameters and result
+                sets. Please make sure to study the <a
+                href="#defining-the-graphql-definition-for-a-rest-duality-view">corresponding
+                section</a>.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>createRestProcedureStatement:
+    CREATE (OR REPLACE)? REST PROCEDURE procedureRequestPath (
+        ON serviceSchemaSelector
+    )? FROM qualifiedIdentifier restObjectOptions? AS restObjectName PARAMETERS
+        graphGlObj restProcedureResult*
+;
+
+serviceSchemaSelector:
+    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
+;
+
+restObjectOptions: (
+        enabledDisabled
+        | authenticationRequired
+        | itemsPerPage
+        | jsonOptions
+        | comments
+        | restViewMediaType
+        | restViewFormat
+        | restViewAuthenticationProcedure
+    )+
+;
+
+restProcedureResult:
+    RESULT restResultName graphGlObj
+;</code></pre>
+                <p>createRestProcedureStatement ::= <img
+                src="sections/sql/../../images/sql/createRestProcedureStatement.svg"
+                title="createRestProcedureStatement"
+                alt="createRestProcedureStatement" /></p>
+                <p>serviceSchemaSelector ::= <img
+                src="sections/sql/../../images/sql/serviceSchemaSelector.svg"
+                title="serviceSchemaSelector"
+                alt="serviceSchemaSelector" /></p>
+                <p>restObjectOptions ::= <img
+                src="sections/sql/../../images/sql/restObjectOptions.svg"
+                title="restObjectOptions" alt="restObjectOptions" /></p>
+                <p>restProcedureResult ::= <img
+                src="sections/sql/../../images/sql/restProcedureResult.svg"
+                title="restProcedureResult"
+                alt="restProcedureResult" /></p>
+                <h2 data-number="2.6" id="create-rest-content-set"><span
+                class="header-section-number">2.6</span> CREATE REST
+                CONTENT SET</h2>
+                <p>The <code>CREATE REST CONTENT SET</code> statement is
+                used to add REST endpoints for static content.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>createRestContentSetStatement:
+    CREATE (OR REPLACE)? REST CONTENT SET
+        contentSetRequestPath (
+        ON SERVICE? serviceRequestPath
+    )? (FROM directoryFilePath)? restContentSetOptions?
+;
+
+restContentSetOptions: (
+        enabledDisabled
+        | authenticationRequired
+        | jsonOptions
+        | comments
+    )+
+;</code></pre>
+                <p>createRestContentSetStatement ::= <img
+                src="sections/sql/../../images/sql/createRestContentSetStatement.svg"
+                title="createRestContentSetStatement"
+                alt="createRestContentSetStatement" /></p>
+                <p>restContentSetOptions ::= <img
+                src="sections/sql/../../images/sql/restContentSetOptions.svg"
+                title="restContentSetOptions"
+                alt="restContentSetOptions" /></p>
+                <h2 data-number="2.7" id="create-rest-auth-app"><span
+                class="header-section-number">2.7</span> CREATE REST
+                AUTH APP</h2>
+                <p>The <code>CREATE REST AUTH APP</code> statement is
+                used to add REST authentication app to a REST
+                service.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>createRestAuthAppStatement:
+    CREATE (OR REPLACE)? REST (
+        AUTH
+        | AUTHENTICATION
+    ) APP authAppName (
+        ON SERVICE? serviceRequestPath
+    )? VENDOR (MRS | MYSQL | vendorName) restAuthAppOptions?
+;
+
+restAuthAppOptions: (
+        enabledDisabled
+        | comments
+        | allowNewUsersToRegister
+        | defaultRole
+    )+
+;
+
+allowNewUsersToRegister:
+    ALLOW NEW USERS (TO REGISTER)?
+;
+
+defaultRole:
+    DEFAULT ROLE quotedText
+;</code></pre>
+                <p>createRestAuthAppStatement ::= <img
+                src="sections/sql/../../images/sql/createRestAuthAppStatement.svg"
+                title="createRestAuthAppStatement"
+                alt="createRestAuthAppStatement" /></p>
+                <p>restAuthAppOptions ::= <img
+                src="sections/sql/../../images/sql/restAuthAppOptions.svg"
+                title="restAuthAppOptions"
+                alt="restAuthAppOptions" /></p>
+                <p>allowNewUsersToRegister ::= <img
+                src="sections/sql/../../images/sql/allowNewUsersToRegister.svg"
+                title="allowNewUsersToRegister"
+                alt="allowNewUsersToRegister" /></p>
+                <p>defaultRole ::= <img
+                src="sections/sql/../../images/sql/defaultRole.svg"
+                title="defaultRole" alt="defaultRole" /></p>
+                <h2 data-number="2.8" id="create-rest-user"><span
+                class="header-section-number">2.8</span> CREATE REST
+                USER</h2>
+                <p>The <code>CREATE REST USER</code> statement is used
+                to add REST user to a REST authentication app.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>createRestUserStatement:
+    CREATE (OR REPLACE)? REST USER userName AT_SIGN
+        authAppName (
+        ON SERVICE? serviceRequestPath
+    )? IDENTIFIED BY userPassword
+;</code></pre>
+                <p>createRestUserStatement ::= <img
+                src="sections/sql/../../images/sql/createRestUserStatement.svg"
+                title="createRestUserStatement"
+                alt="createRestUserStatement" /></p>
+                <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+
+                This program is free software; you can redistribute it and/or modify
+                it under the terms of the GNU General Public License, version 2.0,
+                as published by the Free Software Foundation.
+
+                This program is also distributed with certain software (including
+                but not limited to OpenSSL) that is licensed under separate terms, as
+                designated in a particular file or component or in included license
+                documentation.  The authors of MySQL hereby grant you an additional
+                permission to link the program and your derivative works with the
+                separately licensed software that they have included with MySQL.
+                This program is distributed in the hope that it will be useful,  but
+                WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+                the GNU General Public License, version 2.0, for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program; if not, write to the Free Software Foundation, Inc.,
+                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+                <h1 data-number="3" id="alter"><span
+                class="header-section-number">3</span> ALTER</h1>
+                <h2 data-number="3.1" id="alter-rest-service"><span
+                class="header-section-number">3.1</span> ALTER REST
+                SERVICE</h2>
+                <p>An existing REST service can be altered by using the
+                <code>ALTER REST SERVICE</code> statement. It uses the
+                same <code>restServiceOptions</code> as used by the <a
+                href="#create-rest-service"><code>CREATE REST SERVICE</code></a>
+                statement. Please see the discussion of the options <a
+                href="#create-rest-service">there</a>.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>alterRestServiceStatement:
+    ALTER REST SERVICE serviceRequestPath (
+        NEW REQUEST PATH newServiceRequestPath
+    )? restServiceOptions?
+;
+
+restServiceOptions: (
+        enabledDisabled
+        | restAuthentication
+        | jsonOptions
+        | comments
+    )+
+;</code></pre>
+                <p>alterRestServiceStatement ::= <img
+                src="sections/sql/../../images/sql/alterRestServiceStatement.svg"
+                title="alterRestServiceStatement"
+                alt="alterRestServiceStatement" /></p>
+                <p>restServiceOptions ::= <img
+                src="sections/sql/../../images/sql/restServiceOptions.svg"
+                title="restServiceOptions"
+                alt="restServiceOptions" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example alters a REST service
+                <code>/myService</code> by setting a new comment.</p>
+                <div class="sourceCode" id="cb42"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="kw">ALTER</span> REST SERVICE <span class="op">/</span>myService</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>    COMMENTS <span class="ot">&quot;A simple, improved REST service&quot;</span>;</span></code></pre></div>
+                <h2 data-number="3.2" id="alter-rest-schema"><span
+                class="header-section-number">3.2</span> ALTER REST
+                SCHEMA</h2>
+                <p>An existing REST schema can be altered by using the
+                <code>ALTER REST SCHEMA</code> statement. It uses the
+                same <code>restSchemaOptions</code> as used by the <a
+                href="#create-rest-schema"><code>CREATE REST SCHEMA</code></a>
+                statement. Please see the discussion of the options
+                there.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>alterRestSchemaStatement:
+    ALTER REST DATABASE schemaRequestPath? (
+        ON SERVICE? serviceRequestPath
+    )? (
+        NEW REQUEST PATH newSchemaRequestPath
+    )? (FROM schemaName)? restSchemaOptions?
+;
+
+restSchemaOptions: (
+        enabledDisabled
+        | authenticationRequired
+        | itemsPerPage
+        | jsonOptions
+        | comments
+    )+
+;</code></pre>
+                <p>alterRestSchemaStatement ::= <img
+                src="sections/sql/../../images/sql/alterRestSchemaStatement.svg"
+                title="alterRestSchemaStatement"
+                alt="alterRestSchemaStatement" /></p>
+                <p>restSchemaOptions ::= <img
+                src="sections/sql/../../images/sql/restSchemaOptions.svg"
+                title="restSchemaOptions" alt="restSchemaOptions" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example alters a REST schema
+                <code>/myService</code> to use a new request path
+                <code>/myPublicService</code>.</p>
+                <div class="sourceCode" id="cb44"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="kw">ALTER</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila <span class="kw">ON</span> SERVICE <span class="op">/</span>myService</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">NEW</span> REQUEST PATH <span class="op">/</span>myPublicService;</span></code></pre></div>
+                <h2 data-number="3.3" id="alter-rest-duality-view"><span
+                class="header-section-number">3.3</span> ALTER REST
+                DUALITY VIEW</h2>
+                <p>The <code>ALTER REST DUALITY VIEW</code> statement is
+                used to alter existing REST duality views.</p>
+                <p>Please see the corresponding <a
+                href="#defining-the-graphql-definition-for-a-rest-duality-view">GraphQL
+                section</a> about how to design the GraphQL definition
+                for a REST duality view.</p>
+                <p>Please see the MRS Developer’s Guide to learn more
+                about <a href="index.html#json-duality-views">JSON
+                duality views</a>.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>alterRestViewStatement:
+    ALTER REST JSON? RELATIONAL? DUALITY? VIEW
+        viewRequestPath (
+        NEW REQUEST PATH newViewRequestPath
+    )? (ON serviceSchemaSelector)? restObjectOptions? (
+        AS restObjectName graphGlCrudOptions? graphGlObj?
+    )?
+;
+
+serviceSchemaSelector:
+    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
+;
+
+restObjectOptions: (
+        enabledDisabled
+        | authenticationRequired
+        | itemsPerPage
+        | jsonOptions
+        | comments
+        | restViewMediaType
+        | restViewFormat
+        | restViewAuthenticationProcedure
+    )+
+;</code></pre>
+                <p>alterRestViewStatement ::= <img
+                src="sections/sql/../../images/sql/alterRestViewStatement.svg"
+                title="alterRestViewStatement"
+                alt="alterRestViewStatement" /></p>
+                <p>serviceSchemaSelector ::= <img
+                src="sections/sql/../../images/sql/serviceSchemaSelector.svg"
+                title="serviceSchemaSelector"
+                alt="serviceSchemaSelector" /></p>
+                <p>restObjectOptions ::= <img
+                src="sections/sql/../../images/sql/restObjectOptions.svg"
+                title="restObjectOptions" alt="restObjectOptions" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example alters a REST duality view for
+                the <code>sakila.city</code> database schema table and
+                sets a new list of fields.</p>
+                <div class="sourceCode" id="cb46"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="kw">ALTER</span> REST DUALITY <span class="kw">VIEW</span> <span class="op">/</span>city</span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a><span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> `sakila`.`city` <span class="kw">AS</span> MyServiceSakilaCity {</span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>    cityId: city_id @SORTABLE,</span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>    city: city</span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a>};</span></code></pre></div>
+                <h2 data-number="3.4" id="alter-rest-procedure"><span
+                class="header-section-number">3.4</span> ALTER REST
+                PROCEDURE</h2>
+                <p>The <code>ALTER REST PROCEDURE</code> statement is
+                used to alter REST endpoints for database schema stored
+                procedures.</p>
+                <p>It uses the same <a
+                href="#defining-the-graphql-definition-for-a-rest-duality-view">extended
+                GraphQL syntax</a> as defined for REST duality views to
+                describe the REST procedure’s parameters and result
+                sets. Please make sure to study the <a
+                href="#defining-the-graphql-definition-for-a-rest-duality-view">corresponding
+                section</a>.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>alterRestProcedureStatement:
+    ALTER REST PROCEDURE procedureRequestPath (
+        NEW REQUEST PATH newProcedureRequestPath
+    )? (ON serviceSchemaSelector)? restObjectOptions? (
+        AS restObjectName (PARAMETERS graphGlObj)?
+    )? restProcedureResult*
+;
+
+serviceSchemaSelector:
+    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
+;
+
+restObjectOptions: (
+        enabledDisabled
+        | authenticationRequired
+        | itemsPerPage
+        | jsonOptions
+        | comments
+        | restViewMediaType
+        | restViewFormat
+        | restViewAuthenticationProcedure
+    )+
+;</code></pre>
+                <p>alterRestProcedureStatement ::= <img
+                src="sections/sql/../../images/sql/alterRestProcedureStatement.svg"
+                title="alterRestProcedureStatement"
+                alt="alterRestProcedureStatement" /></p>
+                <p>serviceSchemaSelector ::= <img
+                src="sections/sql/../../images/sql/serviceSchemaSelector.svg"
+                title="serviceSchemaSelector"
+                alt="serviceSchemaSelector" /></p>
+                <p>restObjectOptions ::= <img
+                src="sections/sql/../../images/sql/restObjectOptions.svg"
+                title="restObjectOptions" alt="restObjectOptions" /></p>
+                <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+
+                This program is free software; you can redistribute it and/or modify
+                it under the terms of the GNU General Public License, version 2.0,
+                as published by the Free Software Foundation.
+
+                This program is also distributed with certain software (including
+                but not limited to OpenSSL) that is licensed under separate terms, as
+                designated in a particular file or component or in included license
+                documentation.  The authors of MySQL hereby grant you an additional
+                permission to link the program and your derivative works with the
+                separately licensed software that they have included with MySQL.
+                This program is distributed in the hope that it will be useful,  but
+                WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+                the GNU General Public License, version 2.0, for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program; if not, write to the Free Software Foundation, Inc.,
+                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+                <h1 data-number="4" id="drop"><span
+                class="header-section-number">4</span> DROP</h1>
+                <h2 data-number="4.1" id="drop-rest-service"><span
+                class="header-section-number">4.1</span> DROP REST
+                SERVICE</h2>
+                <p>An existing REST service can be dropped by using the
+                <code>DROP REST SERVICE</code> statement.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>dropRestServiceStatement:
+    DROP REST SERVICE serviceRequestPath
+;</code></pre>
+                <p>dropRestServiceStatement ::= <img
+                src="sections/sql/../../images/sql/dropRestServiceStatement.svg"
+                title="dropRestServiceStatement"
+                alt="dropRestServiceStatement" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example drops a REST service with the
+                request path <code>/myService</code>.</p>
+                <div class="sourceCode" id="cb49"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="kw">DROP</span> REST SERVICE <span class="op">/</span>myService;</span></code></pre></div>
+                <h2 data-number="4.2" id="drop-rest-schema"><span
+                class="header-section-number">4.2</span> DROP REST
+                SCHEMA</h2>
+                <p>An existing REST schema can be dropped by using the
+                <code>DROP REST SCHEMA</code> statement.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>dropRestSchemaStatement:
+    DROP REST DATABASE schemaRequestPath (
+        FROM SERVICE? serviceRequestPath
+    )?
+;</code></pre>
+                <p>dropRestSchemaStatement ::= <img
+                src="sections/sql/../../images/sql/dropRestSchemaStatement.svg"
+                title="dropRestSchemaStatement"
+                alt="dropRestSchemaStatement" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example drops a REST schema using the
+                request path <code>/myService</code>.</p>
+                <div class="sourceCode" id="cb51"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="kw">DROP</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila <span class="kw">FROM</span> SERVICE <span class="op">/</span>myService;</span></code></pre></div>
+                <h2 data-number="4.3" id="drop-rest-duality-view"><span
+                class="header-section-number">4.3</span> DROP REST
+                DUALITY VIEW</h2>
+                <p>The <code>DROP REST DUALITY VIEW</code> statement is
+                used to drop existing REST duality views.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>dropRestDualityViewStatement:
+    DROP REST JSON? RELATIONAL? DUALITY? VIEW
+        viewRequestPath (FROM serviceSchemaSelector)?
+;</code></pre>
+                <p>dropRestDualityViewStatement ::= <img
+                src="sections/sql/../../images/sql/dropRestDualityViewStatement.svg"
+                title="dropRestDualityViewStatement"
+                alt="dropRestDualityViewStatement" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example drops a REST duality view using
+                the request path <code>/city</code>.</p>
+                <div class="sourceCode" id="cb53"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="kw">DROP</span> REST DUALITY <span class="kw">VIEW</span> <span class="op">/</span>city</span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
+                <h2 data-number="4.4" id="drop-rest-procedure"><span
+                class="header-section-number">4.4</span> DROP REST
+                PROCEDURE</h2>
+                <p>The <code>DROP REST PROCEDURE</code> statement is
+                used to drop an existing REST procedures.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>dropRestProcedureStatement:
+    DROP REST PROCEDURE procedureRequestPath (
+        FROM serviceSchemaSelector
+    )?
+;</code></pre>
+                <p>dropRestProcedureStatement ::= <img
+                src="sections/sql/../../images/sql/dropRestProcedureStatement.svg"
+                title="dropRestProcedureStatement"
+                alt="dropRestProcedureStatement" /></p>
+                <h2 data-number="4.5" id="drop-rest-content-set"><span
+                class="header-section-number">4.5</span> DROP REST
+                CONTENT SET</h2>
+                <p>The <code>DROP REST CONTENT SET</code> statement is
+                used to drop an existing REST static content set.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>dropRestContentSetStatement:
+    DROP REST CONTENT SET contentSetRequestPath (
+        FROM SERVICE? serviceRequestPath
+    )?
+;</code></pre>
+                <p>dropRestContentSetStatement ::= <img
+                src="sections/sql/../../images/sql/dropRestContentSetStatement.svg"
+                title="dropRestContentSetStatement"
+                alt="dropRestContentSetStatement" /></p>
+                <h2 data-number="4.6" id="drop-rest-auth-app"><span
+                class="header-section-number">4.6</span> DROP REST AUTH
+                APP</h2>
+                <p>The <code>DROP REST AUTH APP</code> statement is used
+                to drop an existing REST authentication app from a REST
+                service.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>dropRestAuthAppStatement:
+    DROP REST (AUTH | AUTHENTICATION) APP authAppName (
+        FROM SERVICE? serviceRequestPath
+    )?
+;</code></pre>
+                <p>dropRestAuthAppStatement ::= <img
+                src="sections/sql/../../images/sql/dropRestAuthAppStatement.svg"
+                title="dropRestAuthAppStatement"
+                alt="dropRestAuthAppStatement" /></p>
+                <h2 data-number="4.7" id="drop-rest-user"><span
+                class="header-section-number">4.7</span> DROP REST
+                USER</h2>
+                <p>The <code>DROP REST USER</code> statement is used to
+                drop an existing REST user from a REST authentication
+                app.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>dropRestUserStatement:
+    DROP REST USER userName AT_SIGN authAppName (
+        ON SERVICE? serviceRequestPath
+    )?
+;</code></pre>
+                <p>dropRestUserStatement ::= <img
+                src="sections/sql/../../images/sql/dropRestUserStatement.svg"
+                title="dropRestUserStatement"
+                alt="dropRestUserStatement" /></p>
+                <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+
+                This program is free software; you can redistribute it and/or modify
+                it under the terms of the GNU General Public License, version 2.0,
+                as published by the Free Software Foundation.
+
+                This program is also distributed with certain software (including
+                but not limited to OpenSSL) that is licensed under separate terms, as
+                designated in a particular file or component or in included license
+                documentation.  The authors of MySQL hereby grant you an additional
+                permission to link the program and your derivative works with the
+                separately licensed software that they have included with MySQL.
+                This program is distributed in the hope that it will be useful,  but
+                WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+                the GNU General Public License, version 2.0, for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program; if not, write to the Free Software Foundation, Inc.,
+                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+                <h1 data-number="5" id="use-and-show"><span
+                class="header-section-number">5</span> USE and SHOW</h1>
+                <h2 data-number="5.1" id="use"><span
+                class="header-section-number">5.1</span> USE</h2>
+                <p>An existing REST service can be dropped by using the
+                <code>DROP REST SERVICE</code> statement.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>useStatement:
+    USE REST serviceAndSchemaRequestPaths
+;
+
+serviceAndSchemaRequestPaths:
+    SERVICE serviceRequestPath
+    | serviceSchemaSelector
+;</code></pre>
+                <p>useStatement ::= <img
+                src="sections/sql/../../images/sql/useStatement.svg"
+                title="useStatement" alt="useStatement" /></p>
+                <p>serviceAndSchemaRequestPaths ::= <img
+                src="sections/sql/../../images/sql/serviceAndSchemaRequestPaths.svg"
+                title="serviceAndSchemaRequestPaths"
+                alt="serviceAndSchemaRequestPaths" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example makes the REST service with the
+                request path <code>/myService</code> the new default
+                REST service.</p>
+                <div class="sourceCode" id="cb59"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="kw">USE</span> REST SERVICE <span class="op">/</span>myService;</span></code></pre></div>
+                <p>After the default REST service has been set, the
+                following statement can be used to set the default REST
+                schema.</p>
+                <div class="sourceCode" id="cb60"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="kw">USE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
+                <p>The next example shows how to set the default REST
+                service and REST schema in a single statement.</p>
+                <div class="sourceCode" id="cb61"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a><span class="kw">USE</span> REST SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
+                <h2 data-number="5.2" id="show-rest-status"><span
+                class="header-section-number">5.2</span> SHOW REST
+                STATUS</h2>
+                <p>The <code>SHOW REST STATUS</code> statement is used
+                to get basic information about the current status of the
+                MySQL REST Service.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>showRestMetadataStatusStatement:
+    SHOW REST METADATA? STATUS
+;</code></pre>
+                <p>showRestMetadataStatusStatement ::= <img
+                src="sections/sql/../../images/sql/showRestMetadataStatusStatement.svg"
+                title="showRestMetadataStatusStatement"
+                alt="showRestMetadataStatusStatement" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example drops a REST schema using the
+                request path <code>/myService</code>.</p>
+                <div class="sourceCode" id="cb63"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a>SHOW REST STATUS;</span></code></pre></div>
+                <h2 data-number="5.3" id="show-rest-services"><span
+                class="header-section-number">5.3</span> SHOW REST
+                SERVICES</h2>
+                <p>The <code>SHOW REST SERVICES</code> statement lists
+                all available REST services.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>showRestServicesStatement:
+    SHOW REST SERVICES
+;</code></pre>
+                <p>showRestServicesStatement ::= <img
+                src="sections/sql/../../images/sql/showRestServicesStatement.svg"
+                title="showRestServicesStatement"
+                alt="showRestServicesStatement" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example lists all REST services.</p>
+                <div class="sourceCode" id="cb65"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>SHOW REST SERVICES;</span></code></pre></div>
+                <h2 data-number="5.4" id="show-rest-schemas"><span
+                class="header-section-number">5.4</span> SHOW REST
+                SCHEMAS</h2>
+                <p>The <code>SHOW REST SCHEMAS</code> statement lists
+                all available REST schemas of the given or current REST
+                service.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>showRestSchemasStatement:
+    SHOW REST DATABASES (
+        (IN | FROM) SERVICE? serviceRequestPath
+    )?
+;</code></pre>
+                <p>showRestSchemasStatement ::= <img
+                src="sections/sql/../../images/sql/showRestSchemasStatement.svg"
+                title="showRestSchemasStatement"
+                alt="showRestSchemasStatement" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example lists all REST schemas of the
+                REST service using the request path
+                <code>/myService</code>.</p>
+                <div class="sourceCode" id="cb67"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a>SHOW REST SERVICES <span class="kw">FROM</span> <span class="op">/</span>myService;</span></code></pre></div>
+                <h2 data-number="5.5" id="show-rest-duality-views"><span
+                class="header-section-number">5.5</span> SHOW REST
+                DUALITY VIEWS</h2>
+                <p>The <code>SHOW REST DUALITY VIEWS</code> statement
+                lists all available REST duality views of the given or
+                current REST schema.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>showRestViewsStatement:
+    SHOW REST JSON? RELATIONAL? DUALITY? VIEWS (
+        (IN | FROM) serviceSchemaSelector
+    )?
+;
+
+serviceSchemaSelector:
+    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
+;</code></pre>
+                <p>showRestViewsStatement ::= <img
+                src="sections/sql/../../images/sql/showRestViewsStatement.svg"
+                title="showRestViewsStatement"
+                alt="showRestViewsStatement" /></p>
+                <p>serviceSchemaSelector ::= <img
+                src="sections/sql/../../images/sql/serviceSchemaSelector.svg"
+                title="serviceSchemaSelector"
+                alt="serviceSchemaSelector" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example lists all REST duality views of
+                the given REST schema.</p>
+                <div class="sourceCode" id="cb69"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a>SHOW REST DUALITY VIEWS <span class="kw">FROM</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
+                <h2 data-number="5.6" id="show-rest-procedures"><span
+                class="header-section-number">5.6</span> SHOW REST
+                PROCEDURES</h2>
+                <p>The <code>SHOW REST PROCEDURES</code> statement lists
+                all available REST procedures of the given or current
+                REST schema.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>showRestProceduresStatement:
+    SHOW REST PROCEDURES (
+        (IN | FROM) serviceSchemaSelector
+    )?
+;
+
+serviceSchemaSelector:
+    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
+;</code></pre>
+                <p>showRestProceduresStatement ::= <img
+                src="sections/sql/../../images/sql/showRestProceduresStatement.svg"
+                title="showRestProceduresStatement"
+                alt="showRestProceduresStatement" /></p>
+                <p>serviceSchemaSelector ::= <img
+                src="sections/sql/../../images/sql/serviceSchemaSelector.svg"
+                title="serviceSchemaSelector"
+                alt="serviceSchemaSelector" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example lists all REST procedures of
+                the given REST schema.</p>
+                <div class="sourceCode" id="cb71"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a>SHOW REST PROCEDURES <span class="kw">FROM</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
+                <h2 data-number="5.7" id="show-rest-content-sets"><span
+                class="header-section-number">5.7</span> SHOW REST
+                CONTENT SETS</h2>
+                <p>The <code>SHOW REST CONTENT SETS</code> statement
+                lists all available REST content sets of the given or
+                current REST service.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>showRestContentSetsStatement:
+    SHOW REST CONTENT SETS (
+        (IN | FROM) SERVICE? serviceRequestPath
+    )?
+;</code></pre>
+                <p>showRestContentSetsStatement ::= <img
+                src="sections/sql/../../images/sql/showRestContentSetsStatement.svg"
+                title="showRestContentSetsStatement"
+                alt="showRestContentSetsStatement" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example lists all REST content sets of
+                the given REST service.</p>
+                <div class="sourceCode" id="cb73"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a>SHOW REST CONTENT SETS <span class="kw">FROM</span> SERVICE <span class="op">/</span>myService;</span></code></pre></div>
+                <h2 data-number="5.8" id="show-rest-auth-apps"><span
+                class="header-section-number">5.8</span> SHOW REST AUTH
+                APPS</h2>
+                <p>The <code>SHOW REST AUTH APPS</code> statement lists
+                all available REST auth apps of the given or current
+                REST service.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>showRestAuthAppsStatement:
+    SHOW REST AUTH APPS (
+        (IN | FROM) SERVICE? serviceRequestPath
+    )?
+;</code></pre>
+                <p>showRestAuthAppsStatement ::= <img
+                src="sections/sql/../../images/sql/showRestAuthAppsStatement.svg"
+                title="showRestAuthAppsStatement"
+                alt="showRestAuthAppsStatement" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example lists all REST auth apps of the
+                given REST service.</p>
+                <div class="sourceCode" id="cb75"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a>SHOW REST AUTH APPS <span class="kw">FROM</span> SERVICE <span class="op">/</span>myService;</span></code></pre></div>
+                <h2 data-number="5.9"
+                id="show-create-rest-service"><span
+                class="header-section-number">5.9</span> SHOW CREATE
+                REST SERVICE</h2>
+                <p>The <code>SHOW CREATE REST SERVICE</code> statement
+                shows the corresponding DDL statement for the given REST
+                service.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>showCreateRestServiceStatement:
+    SHOW CREATE REST SERVICE serviceRequestPath?
+;</code></pre>
+                <p>showCreateRestServiceStatement ::= <img
+                src="sections/sql/../../images/sql/showCreateRestServiceStatement.svg"
+                title="showCreateRestServiceStatement"
+                alt="showCreateRestServiceStatement" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example shows the DDL statement for the
+                REST service with request path
+                <code>/myService</code>.</p>
+                <div class="sourceCode" id="cb77"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST SERVICE <span class="op">/</span>myService;</span></code></pre></div>
+                <h2 data-number="5.10"
+                id="show-create-rest-schema"><span
+                class="header-section-number">5.10</span> SHOW CREATE
+                REST SCHEMA</h2>
+                <p>The <code>SHOW CREATE REST SCHEMA</code> statement
+                shows the corresponding DDL statement for the given REST
+                schema.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>showCreateRestSchemaStatement:
+    SHOW CREATE REST DATABASE schemaRequestPath? (
+        (ON | FROM) SERVICE? serviceRequestPath
+    )?
+;</code></pre>
+                <p>showCreateRestSchemaStatement ::= <img
+                src="sections/sql/../../images/sql/showCreateRestSchemaStatement.svg"
+                title="showCreateRestSchemaStatement"
+                alt="showCreateRestSchemaStatement" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example shows the DDL statement for the
+                given REST schema.</p>
+                <div class="sourceCode" id="cb79"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila <span class="kw">FROM</span> <span class="op">/</span>myService;</span></code></pre></div>
+                <h2 data-number="5.11"
+                id="show-create-rest-duality-view"><span
+                class="header-section-number">5.11</span> SHOW CREATE
+                REST DUALITY VIEW</h2>
+                <p>The <code>SHOW CREATE REST DUALITY VIEW</code>
+                statement shows the corresponding DDL statement for the
+                given REST duality view.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>showCreateRestViewStatement:
+    SHOW CREATE REST JSON? RELATIONAL? DUALITY?
+        VIEW viewRequestPath (
+        (ON | FROM) serviceSchemaSelector
+    )?
+;
+
+serviceSchemaSelector:
+    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
+;</code></pre>
+                <p>showCreateRestViewStatement ::= <img
+                src="sections/sql/../../images/sql/showCreateRestViewStatement.svg"
+                title="showCreateRestViewStatement"
+                alt="showCreateRestViewStatement" /></p>
+                <p>serviceSchemaSelector ::= <img
+                src="sections/sql/../../images/sql/serviceSchemaSelector.svg"
+                title="serviceSchemaSelector"
+                alt="serviceSchemaSelector" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example shows the DDL statement for the
+                given REST duality view.</p>
+                <div class="sourceCode" id="cb81"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST DUALITY <span class="kw">VIEW</span> <span class="op">/</span>city <span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
+                <h2 data-number="5.12"
+                id="show-create-rest-procedure"><span
+                class="header-section-number">5.12</span> SHOW CREATE
+                REST PROCEDURE</h2>
+                <p>The <code>SHOW CREATE REST PROCEDURE</code> statement
+                shows the corresponding DDL statement for the given REST
+                procedure.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>showCreateRestProcedureStatement:
+    SHOW CREATE REST PROCEDURE procedureRequestPath (
+        (ON | FROM) serviceSchemaSelector
+    )?
+;
+
+serviceSchemaSelector:
+    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
+;</code></pre>
+                <p>showCreateRestProcedureStatement ::= <img
+                src="sections/sql/../../images/sql/showCreateRestProcedureStatement.svg"
+                title="showCreateRestProcedureStatement"
+                alt="showCreateRestProcedureStatement" /></p>
+                <p>serviceSchemaSelector ::= <img
+                src="sections/sql/../../images/sql/serviceSchemaSelector.svg"
+                title="serviceSchemaSelector"
+                alt="serviceSchemaSelector" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example shows the DDL statement for the
+                given REST procedure.</p>
+                <div class="sourceCode" id="cb83"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb83-1"><a href="#cb83-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST <span class="kw">PROCEDURE</span> <span class="op">/</span>inventory_in_stock <span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
+                <h2 data-number="5.13" id="show-create-auth-app"><span
+                class="header-section-number">5.13</span> SHOW CREATE
+                AUTH APP</h2>
+                <p>The <code>SHOW CREATE AUTH APP</code> statement shows
+                the corresponding DDL statement for the given REST auth
+                app.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>showCreateRestAuthAppStatement:
+    SHOW CREATE REST AUTH APP authAppName (
+        (ON | FROM) SERVICE? serviceRequestPath
+    )?
+;</code></pre>
+                <p>showCreateRestAuthAppStatement ::= <img
+                src="sections/sql/../../images/sql/showCreateRestAuthAppStatement.svg"
+                title="showCreateRestAuthAppStatement"
+                alt="showCreateRestAuthAppStatement" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example shows the DDL statement for the
+                given REST auth app.</p>
+                <div class="sourceCode" id="cb85"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb85-1"><a href="#cb85-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST AUTH APP <span class="ot">&quot;MRS&quot;</span> <span class="kw">FROM</span> SERVICE localhost<span class="op">/</span>myTestService;</span></code></pre></div>
+                <p>Copyright (c) 2023, Oracle and/or its affiliates.</p>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

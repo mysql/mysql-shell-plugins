@@ -88,6 +88,7 @@ body[theme=light] {
 .mrsObjectFieldEditor .settings .button .label {
     padding-left: 5px;
     font-size: 13px;
+    color: var(--button-foreground);
 }
 
 .mrsObjectFieldEditor .settingsRight {

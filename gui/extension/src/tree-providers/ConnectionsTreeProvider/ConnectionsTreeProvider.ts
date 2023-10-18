@@ -75,6 +75,7 @@ import { SchemaTableTriggerTreeItem } from "./SchemaTableTriggerTreeItem";
 import { SchemaViewMySQLTreeItem } from "./SchemaViewMySQLTreeItem";
 import { SchemaViewSqliteTreeItem } from "./SchemaViewSqliteTreeItem";
 import { DBConnectionViewProvider } from "../../web-views/DBConnectionViewProvider";
+import { resolve } from "path";
 
 /** A class to provide the entire tree structure for DB editor connections and the DB objects from them. */
 export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionsTreeDataModelEntry> {
@@ -927,6 +928,9 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
                     `Error: ${error instanceof Error ? error.message : String(error) ?? "<unknown>"}`, 10000);
                 this.#errorAlreadyDisplayed = true;
             }
+
+            entry.services = [];
+            entry.routers = [];
         }
     }
 
@@ -985,6 +989,10 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
                     `Error: ${error instanceof Error ? error.message : String(error) ?? "<unknown>"}`, 10000);
                 this.#errorAlreadyDisplayed = true;
             }
+
+            entry.schemas = [];
+            entry.contentSets = [];
+            entry.authApps = [];
         }
     };
 
@@ -1015,6 +1023,8 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
                     `Error: ${error instanceof Error ? error.message : String(error) ?? "<unknown>"}`, 10000);
                 this.#errorAlreadyDisplayed = true;
             }
+
+            entry.users = [];
         }
     };
 
@@ -1046,6 +1056,8 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
                     `Error: ${error instanceof Error ? error.message : String(error) ?? "<unknown>"}`, 10000);
                 this.#errorAlreadyDisplayed = true;
             }
+
+            entry.files = [];
         }
     };
 
@@ -1078,6 +1090,8 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
                     `Error: ${error instanceof Error ? error.message : String(error) ?? "<unknown>"}`, 10000);
                 this.#errorAlreadyDisplayed = true;
             }
+
+            entry.dbObjects = [];
         }
     }
 

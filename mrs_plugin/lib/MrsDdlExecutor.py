@@ -82,12 +82,12 @@ def walk(fields, parent_id=None, level=1, add_data_type=False, current_object=No
                 "@UNNEST")
 
             if field["object_reference"].get("reduce_to_value_of_field_id"):
-                reduce_to_field = list(filter(lambda f: f["id"] == field["object_reference"].get(
-                    "reduce_to_value_of_field_id"), fields))
+                reduce_to_field = list(filter(lambda f: f["id"] == lib.core.id_to_binary(field["object_reference"].get(
+                    "reduce_to_value_of_field_id"), "reduce_to_value_of_field_id"), fields))
 
                 if reduce_to_field:
                     attributes.append(
-                        f'@REDUCETO({reduce_to_field["db_column"].get("name")})')
+                        f'@REDUCETO({reduce_to_field[0]["db_column"].get("name")})')
 
             children = cutLastComma(walk(fields=fields, parent_id=field["represents_reference_id"],
                                          level=level + 1, add_data_type=add_data_type, current_object=current_object))
@@ -297,8 +297,9 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
         do_replace = mrs_object.pop("do_replace")
+        context_root = mrs_object.get("url_context_root", "")
         url_host_name = mrs_object.pop("url_host_name", "")
-        full_path = f'{url_host_name}{mrs_object.get("url_context_root", "")}'
+        full_path = f'{url_host_name}{context_root}'
 
         with lib.core.MrsDbTransaction(self.session):
             try:
@@ -306,8 +307,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 # with the same path and delete it.
                 if do_replace is True:
                     service = lib.services.get_service(
-                        url_context_root=mrs_object.get(
-                            "url_context_root"),
+                        url_context_root=context_root,
                         url_host_name=url_host_name,
                         get_default=False, session=self.session)
                     if service is not None:
@@ -319,6 +319,16 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     session=self.session,
                     url_host_name=url_host_name,
                     service=mrs_object)
+
+                # If this is the first service, make it the current one
+                services = lib.services.get_services(session=self.session)
+                if len(services) == 1:
+                    self.current_service_id = service_id
+                    self.current_service = context_root
+                    self.current_service_host = url_host_name
+                    # Also set the stored current session
+                    lib.services.set_current_service_id(
+                        session=self.session, service_id=self.current_service_id)
 
                 self.results.append({
                     "statementIndex": len(self.results) + 1,
@@ -373,6 +383,14 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     options=mrs_object.get("options"),
                     session=self.session)
 
+                # If this is the first schema of the REST service, make it the current one
+                schemas = lib.schemas.get_schemas(
+                    session=self.session,
+                    service_id=service_id)
+                if len(schemas) == 1:
+                    self.current_schema_id = schema_id
+                    self.current_schema = schema_request_path
+
                 self.results.append({
                     "statementIndex": len(self.results) + 1,
                     "type": "success",
@@ -418,7 +436,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                         lib.db_objects.delete_db_object(
                             db_object_id=db_object.get("id"), session=self.session)
 
-                lib.db_objects.add_db_object(
+                db_object_id, grants = lib.db_objects.add_db_object(
                     session=self.session,
                     schema_id=lib.core.id_to_binary(schema_id, "schema_id"),
                     db_object_name=mrs_object.get("name"),
@@ -426,7 +444,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     db_object_type=mrs_object.get("db_object_type"),
                     enabled=mrs_object.get("enabled", True),
                     items_per_page=mrs_object.get("items_per_page"),
-                    requires_auth=mrs_object.get("requires_auth", 1),
+                    requires_auth=mrs_object.get("requires_auth", 0),
                     row_user_ownership_enforced=mrs_object.get(
                         "row_user_ownership_enforced"),
                     row_user_ownership_column=mrs_object.get(
@@ -444,12 +462,14 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                         mrs_object.get("id"), "db_object_id"),
                     objects=mrs_object.get("objects"))
 
+                lib.core.MrsDbExec(grants).exec(self.session)
+
                 self.results.append({
                     "statementIndex": len(self.results) + 1,
                     "type": "success",
                     "message": f"REST {type_caption} `{full_path}` created successfully.",
                     "operation": self.current_operation,
-                    "id": mrs_object.get("id"),
+                    "id": db_object_id,
                     "executionTime": timer.elapsed()
                 })
             except Exception as e:
@@ -551,7 +571,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                         caption=mrs_object.get("default_role"),
                         service_id=service_id)
                     if role is None:
-                        raise Exception(f'Given role "{mrs_object.get("default_role")}" not found.')
+                        raise Exception(
+                            f'Given role "{mrs_object.get("default_role")}" not found.')
                     default_role_id = role.get("id")
                 else:
                     default_role_id = lib.core.id_to_binary(
@@ -1508,8 +1529,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             if db_object["enabled"] is False or db_object["enabled"] == 0:
                 stmt += "    DISABLED\n"
 
-            if db_object["requires_auth"] is False or db_object["requires_auth"] == 0:
-                stmt += "    AUTHENTICATION NOT REQUIRED\n"
+            if db_object["requires_auth"] is True or db_object["requires_auth"] == 1:
+                stmt += "    AUTHENTICATION REQUIRED\n"
 
             # 25 is the default value
             if db_object["items_per_page"] is not None and db_object["items_per_page"] != 25:

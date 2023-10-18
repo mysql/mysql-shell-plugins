@@ -155,7 +155,7 @@
         "editorError.foreground": "#E51400",
         "editorGroup.border": "#E7E7E7",
         "editorGroup.dropBackground": "#DAE7F6",
-        "editorGroup.emptyBackground": "#000000",
+        "editorGroup.emptyBackground": "#d1d1d1",
         "editorGroup.focusedEmptyBorder": "#3D3D42",
         "editorGroupHeader.noTabsBackground": "#FFFFFF",
         "editorGroupHeader.tabsBackground": "#F3F3F3",
@@ -205,8 +205,11 @@
         "editorSuggestWidget.background": "#F3F3F3",
         "editorSuggestWidget.border": "#C8C8C8",
         "editorSuggestWidget.foreground": "#000000",
+        "editorSuggestWidget.focusHighlightForeground": "#003e74",
         "editorSuggestWidget.highlightForeground": "#0066BF",
-        "editorSuggestWidget.selectedBackground": "#D6EBFF",
+        "editorSuggestWidget.selectedBackground": "#94caf9",
+        "editorSuggestWidget.selectedForeground": "#000000",
+        "editorSuggestWidget.selectedIconForeground": "#000000",
         "editorUnnecessaryCode.border": "#3D3D42",
         "editorUnnecessaryCode.opacity": "#000000",
         "editorWarning.border": "#3D3D4200",
@@ -486,9 +489,15 @@
         "activityBar.dropBorder": "#3D3D42",
         "editorGroupHeader.border": "#3D3D42",
         "statusBar.debuggingBorder": "#3D3D3D",
-        "editorOverviewRuler.background": "#000000"
+        "editorOverviewRuler.background": "#FFFFFF"
     },
     "tokenColors": [
+        {
+            "scope": "identifier",
+            "settings": {
+                "foreground": "#795E26"
+            }
+        },
         {
             "scope": "header",
             "settings": {
@@ -499,28 +508,28 @@
             "name": "Generic comment + line/block defaults",
             "scope": "comment, comment.line, comment.block",
             "settings": {
-                "foreground": "#0987cb"
+                "foreground": "#009688"
             }
         },
         {
             "name": "Single line comment (//, --, #)",
             "scope": "comment.line.double-slash, comment.line.double-dash, comment.line.number-sign",
             "settings": {
-                "foreground": "#52a0cb"
+                "foreground": "#009688"
             }
         },
         {
             "name": "Single line comment with char",
             "scope": "comment.line.character",
             "settings": {
-                "foreground": "#709dce"
+                "foreground": "#009688"
             }
         },
         {
             "name": "Multi line comment (doc type)",
             "scope": "comment.block.documentation",
             "settings": {
-                "foreground": "#709dce"
+                "foreground": "#009688"
             }
         },
         {
@@ -636,7 +645,7 @@
             "scope": "keyword",
             "settings": {
                 "fontStyle": "bold",
-                "foreground": "#aaaaaa"
+                "foreground": "#3f51b5"
             }
         },
         {

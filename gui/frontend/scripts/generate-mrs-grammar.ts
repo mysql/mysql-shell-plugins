@@ -140,9 +140,11 @@ try {
     }
 
     if (!generate) {
-        const sourceParserStat = statSync(resolve(root, sourceMySQLParserFile));
+        const sourceMySQLParserStat = statSync(resolve(root, sourceMySQLParserFile));
+        const sourceMRSParserStat = statSync(resolve(root, sourceMRSParserFile));
         const targetParserStat = statSync(resolve(root, targetParserFile));
-        if (sourceParserStat.mtimeMs > targetParserStat.mtimeMs) {
+        if (sourceMySQLParserStat.mtimeMs > targetParserStat.mtimeMs
+            || sourceMRSParserStat.mtimeMs > targetParserStat.mtimeMs) {
             generate = true;
         }
 
