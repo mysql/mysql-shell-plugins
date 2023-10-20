@@ -316,8 +316,9 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             if (mrsObject) {
                 view = `CREATE OR REPLACE REST DUALITY VIEW ${data.dbObject.requestPath}\n` +
                     `    ON SERVICE ${data.servicePath} SCHEMA ${data.dbSchemaPath}\n` +
+                    `    FROM ${data.dbSchemaName}.${data.dbObject.name}\n` +
                     addOptions(data.dbObject) +
-                    `    FROM ${data.dbSchemaName}.${data.dbObject.name} AS ${mrsObject.name}`;
+                    `    AS ${mrsObject.name}`;
 
                 for (const op of data.dbObject.crudOperations) {
                     if (op === "CREATE") {

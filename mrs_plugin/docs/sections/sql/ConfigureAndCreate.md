@@ -509,7 +509,7 @@ createRestViewStatement:
         DUALITY? VIEW viewRequestPath (
         ON serviceSchemaSelector
     )? FROM qualifiedIdentifier restObjectOptions? AS restObjectName
-        graphGlCrudOptions? graphGlObj?
+        graphQlCrudOptions? graphQlObj?
 ;
 
 serviceSchemaSelector:
@@ -717,12 +717,12 @@ restViewAuthenticationProcedure ::=
 ### Defining the GraphQL definition for a REST Duality View
 
 ```antlr
-graphGlObj:
-    OPEN_CURLY graphGlPair (COMMA graphGlPair)* CLOSE_CURLY
+graphQlObj:
+    OPEN_CURLY graphQlPair (COMMA graphQlPair)* CLOSE_CURLY
     | OPEN_CURLY CLOSE_CURLY
 ;
 
-graphGlCrudOptions: (
+graphQlCrudOptions: (
         AT_SELECT
         | AT_NOSELECT
         | AT_INSERT
@@ -734,7 +734,7 @@ graphGlCrudOptions: (
     )+
 ;
 
-graphGlPair:
+graphQlPair:
     graphKeyValue COLON qualifiedIdentifier (
         AT_IN
         | AT_OUT
@@ -744,29 +744,29 @@ graphGlPair:
         | AT_NOFILTERING
         | AT_ROWOWNERSHIP
         | AT_UNNEST
-        | AT_REDUCETO OPEN_PAR graphGlReduceToValue CLOSE_PAR
-        | AT_DATATYPE OPEN_PAR graphGlDatatypeValue CLOSE_PAR
-        | graphGlCrudOptions
-    )? graphGlObj?
+        | AT_REDUCETO OPEN_PAR graphQlReduceToValue CLOSE_PAR
+        | AT_DATATYPE OPEN_PAR graphQlDatatypeValue CLOSE_PAR
+        | graphQlCrudOptions
+    )? graphQlObj?
 ;
 
-graphGlValue:
+graphQlValue:
     qualifiedIdentifier
-    | graphGlObj
+    | graphQlObj
 ;
 ```
 
-graphGlObj ::=
-![graphGlObj](../../images/sql/graphGlObj.svg "graphGlObj")
+graphQlObj ::=
+![graphQlObj](../../images/sql/graphQlObj.svg "graphQlObj")
 
-graphGlCrudOptions ::=
-![graphGlCrudOptions](../../images/sql/graphGlCrudOptions.svg "graphGlCrudOptions")
+graphQlCrudOptions ::=
+![graphQlCrudOptions](../../images/sql/graphQlCrudOptions.svg "graphQlCrudOptions")
 
-graphGlPair ::=
-![graphGlPair](../../images/sql/graphGlPair.svg "graphGlPair")
+graphQlPair ::=
+![graphQlPair](../../images/sql/graphQlPair.svg "graphQlPair")
 
-graphGlValue ::=
-![graphGlValue](../../images/sql/graphGlValue.svg "graphGlValue")
+graphQlValue ::=
+![graphQlValue](../../images/sql/graphQlValue.svg "graphQlValue")
 
 ## CREATE REST PROCEDURE
 
@@ -779,7 +779,7 @@ createRestProcedureStatement:
     CREATE (OR REPLACE)? REST PROCEDURE procedureRequestPath (
         ON serviceSchemaSelector
     )? FROM qualifiedIdentifier restObjectOptions? AS restObjectName PARAMETERS
-        graphGlObj restProcedureResult*
+        graphQlObj restProcedureResult*
 ;
 
 serviceSchemaSelector:
@@ -799,7 +799,7 @@ restObjectOptions: (
 ;
 
 restProcedureResult:
-    RESULT restResultName graphGlObj
+    RESULT restResultName graphQlObj
 ;
 ```
 

@@ -791,30 +791,30 @@ class MRSParserListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by MRSParser#graphGlObj.
-    def enterGraphGlObj(self, ctx:MRSParser.GraphGlObjContext):
+    # Enter a parse tree produced by MRSParser#graphQlObj.
+    def enterGraphQlObj(self, ctx:MRSParser.GraphQlObjContext):
         pass
 
-    # Exit a parse tree produced by MRSParser#graphGlObj.
-    def exitGraphGlObj(self, ctx:MRSParser.GraphGlObjContext):
-        pass
-
-
-    # Enter a parse tree produced by MRSParser#graphGlCrudOptions.
-    def enterGraphGlCrudOptions(self, ctx:MRSParser.GraphGlCrudOptionsContext):
-        pass
-
-    # Exit a parse tree produced by MRSParser#graphGlCrudOptions.
-    def exitGraphGlCrudOptions(self, ctx:MRSParser.GraphGlCrudOptionsContext):
+    # Exit a parse tree produced by MRSParser#graphQlObj.
+    def exitGraphQlObj(self, ctx:MRSParser.GraphQlObjContext):
         pass
 
 
-    # Enter a parse tree produced by MRSParser#graphGlPair.
-    def enterGraphGlPair(self, ctx:MRSParser.GraphGlPairContext):
+    # Enter a parse tree produced by MRSParser#graphQlCrudOptions.
+    def enterGraphQlCrudOptions(self, ctx:MRSParser.GraphQlCrudOptionsContext):
         pass
 
-    # Exit a parse tree produced by MRSParser#graphGlPair.
-    def exitGraphGlPair(self, ctx:MRSParser.GraphGlPairContext):
+    # Exit a parse tree produced by MRSParser#graphQlCrudOptions.
+    def exitGraphQlCrudOptions(self, ctx:MRSParser.GraphQlCrudOptionsContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#graphQlPair.
+    def enterGraphQlPair(self, ctx:MRSParser.GraphQlPairContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#graphQlPair.
+    def exitGraphQlPair(self, ctx:MRSParser.GraphQlPairContext):
         pass
 
 
@@ -827,30 +827,30 @@ class MRSParserListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by MRSParser#graphGlReduceToValue.
-    def enterGraphGlReduceToValue(self, ctx:MRSParser.GraphGlReduceToValueContext):
+    # Enter a parse tree produced by MRSParser#graphQlReduceToValue.
+    def enterGraphQlReduceToValue(self, ctx:MRSParser.GraphQlReduceToValueContext):
         pass
 
-    # Exit a parse tree produced by MRSParser#graphGlReduceToValue.
-    def exitGraphGlReduceToValue(self, ctx:MRSParser.GraphGlReduceToValueContext):
-        pass
-
-
-    # Enter a parse tree produced by MRSParser#graphGlDatatypeValue.
-    def enterGraphGlDatatypeValue(self, ctx:MRSParser.GraphGlDatatypeValueContext):
-        pass
-
-    # Exit a parse tree produced by MRSParser#graphGlDatatypeValue.
-    def exitGraphGlDatatypeValue(self, ctx:MRSParser.GraphGlDatatypeValueContext):
+    # Exit a parse tree produced by MRSParser#graphQlReduceToValue.
+    def exitGraphQlReduceToValue(self, ctx:MRSParser.GraphQlReduceToValueContext):
         pass
 
 
-    # Enter a parse tree produced by MRSParser#graphGlValue.
-    def enterGraphGlValue(self, ctx:MRSParser.GraphGlValueContext):
+    # Enter a parse tree produced by MRSParser#graphQlDatatypeValue.
+    def enterGraphQlDatatypeValue(self, ctx:MRSParser.GraphQlDatatypeValueContext):
         pass
 
-    # Exit a parse tree produced by MRSParser#graphGlValue.
-    def exitGraphGlValue(self, ctx:MRSParser.GraphGlValueContext):
+    # Exit a parse tree produced by MRSParser#graphQlDatatypeValue.
+    def exitGraphQlDatatypeValue(self, ctx:MRSParser.GraphQlDatatypeValueContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#graphQlValue.
+    def enterGraphQlValue(self, ctx:MRSParser.GraphQlValueContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#graphQlValue.
+    def exitGraphQlValue(self, ctx:MRSParser.GraphQlValueContext):
         pass
 
 

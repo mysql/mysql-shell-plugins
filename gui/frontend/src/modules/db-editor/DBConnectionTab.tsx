@@ -1126,7 +1126,11 @@ Execute \\help or \\? for help;`;
                 if (options.showAsText) {
                     let content = "";
                     if (setColumns) {
-                        content += `sql> ${options.query.trim()};\n`;
+                        let query = options.query.trim();
+                        if (!query.endsWith(";")) {
+                            query += ";";
+                        }
+                        content += `sql> ${query}\n`;
                     }
 
                     content += this.convertResultSetToText(rows, columns, setColumns, resultSummary);

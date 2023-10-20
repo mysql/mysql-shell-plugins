@@ -1524,7 +1524,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             options = []
 
             stmt = (f'CREATE OR REPLACE REST {rest_object_type} {db_object.get("request_path")}\n' +
-                    f'    ON SERVICE {mrs_object.get("url_context_root")} SCHEMA {db_object.get("schema_request_path")}\n')
+                    f'    ON SERVICE {mrs_object.get("url_context_root")} SCHEMA {db_object.get("schema_request_path")}\n' +
+                    f'    FROM {db_object.get("qualified_name")}\n')
 
             if db_object["enabled"] is False or db_object["enabled"] == 0:
                 stmt += "    DISABLED\n"
@@ -1557,7 +1558,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     js_indented += f'    {ln}\n'
                 stmt += f'    OPTIONS {js_indented[4:-1]}\n'
 
-            stmt += f'    FROM {db_object.get("qualified_name")} AS {objects[0]["name"]}'
+            stmt += f'    AS {objects[0]["name"]}'
 
             if rest_object_type != "PROCEDURE":
                 crud_ops = db_object.get("crud_operations")

@@ -1165,7 +1165,7 @@ restSchemaOptions: (
         DUALITY? VIEW viewRequestPath (
         ON serviceSchemaSelector
     )? FROM qualifiedIdentifier restObjectOptions? AS restObjectName
-        graphGlCrudOptions? graphGlObj?
+        graphQlCrudOptions? graphQlObj?
 ;
 
 serviceSchemaSelector:
@@ -1408,12 +1408,12 @@ restObjectOptions: (
                 id="defining-the-graphql-definition-for-a-rest-duality-view"><span
                 class="header-section-number">2.4.8</span> Defining the
                 GraphQL definition for a REST Duality View</h3>
-                <pre class="antlr"><code>graphGlObj:
-    OPEN_CURLY graphGlPair (COMMA graphGlPair)* CLOSE_CURLY
+                <pre class="antlr"><code>graphQlObj:
+    OPEN_CURLY graphQlPair (COMMA graphQlPair)* CLOSE_CURLY
     | OPEN_CURLY CLOSE_CURLY
 ;
 
-graphGlCrudOptions: (
+graphQlCrudOptions: (
         AT_SELECT
         | AT_NOSELECT
         | AT_INSERT
@@ -1425,7 +1425,7 @@ graphGlCrudOptions: (
     )+
 ;
 
-graphGlPair:
+graphQlPair:
     graphKeyValue COLON qualifiedIdentifier (
         AT_IN
         | AT_OUT
@@ -1435,29 +1435,29 @@ graphGlPair:
         | AT_NOFILTERING
         | AT_ROWOWNERSHIP
         | AT_UNNEST
-        | AT_REDUCETO OPEN_PAR graphGlReduceToValue CLOSE_PAR
-        | AT_DATATYPE OPEN_PAR graphGlDatatypeValue CLOSE_PAR
-        | graphGlCrudOptions
-    )? graphGlObj?
+        | AT_REDUCETO OPEN_PAR graphQlReduceToValue CLOSE_PAR
+        | AT_DATATYPE OPEN_PAR graphQlDatatypeValue CLOSE_PAR
+        | graphQlCrudOptions
+    )? graphQlObj?
 ;
 
-graphGlValue:
+graphQlValue:
     qualifiedIdentifier
-    | graphGlObj
+    | graphQlObj
 ;</code></pre>
-                <p>graphGlObj ::= <img
-                src="sections/sql/../../images/sql/graphGlObj.svg"
-                title="graphGlObj" alt="graphGlObj" /></p>
-                <p>graphGlCrudOptions ::= <img
-                src="sections/sql/../../images/sql/graphGlCrudOptions.svg"
-                title="graphGlCrudOptions"
-                alt="graphGlCrudOptions" /></p>
-                <p>graphGlPair ::= <img
-                src="sections/sql/../../images/sql/graphGlPair.svg"
-                title="graphGlPair" alt="graphGlPair" /></p>
-                <p>graphGlValue ::= <img
-                src="sections/sql/../../images/sql/graphGlValue.svg"
-                title="graphGlValue" alt="graphGlValue" /></p>
+                <p>graphQlObj ::= <img
+                src="sections/sql/../../images/sql/graphQlObj.svg"
+                title="graphQlObj" alt="graphQlObj" /></p>
+                <p>graphQlCrudOptions ::= <img
+                src="sections/sql/../../images/sql/graphQlCrudOptions.svg"
+                title="graphQlCrudOptions"
+                alt="graphQlCrudOptions" /></p>
+                <p>graphQlPair ::= <img
+                src="sections/sql/../../images/sql/graphQlPair.svg"
+                title="graphQlPair" alt="graphQlPair" /></p>
+                <p>graphQlValue ::= <img
+                src="sections/sql/../../images/sql/graphQlValue.svg"
+                title="graphQlValue" alt="graphQlValue" /></p>
                 <h2 data-number="2.5" id="create-rest-procedure"><span
                 class="header-section-number">2.5</span> CREATE REST
                 PROCEDURE</h2>
@@ -1475,7 +1475,7 @@ graphGlValue:
     CREATE (OR REPLACE)? REST PROCEDURE procedureRequestPath (
         ON serviceSchemaSelector
     )? FROM qualifiedIdentifier restObjectOptions? AS restObjectName PARAMETERS
-        graphGlObj restProcedureResult*
+        graphQlObj restProcedureResult*
 ;
 
 serviceSchemaSelector:
@@ -1495,7 +1495,7 @@ restObjectOptions: (
 ;
 
 restProcedureResult:
-    RESULT restResultName graphGlObj
+    RESULT restResultName graphQlObj
 ;</code></pre>
                 <p>createRestProcedureStatement ::= <img
                 src="sections/sql/../../images/sql/createRestProcedureStatement.svg"
@@ -1719,7 +1719,7 @@ restSchemaOptions: (
         viewRequestPath (
         NEW REQUEST PATH newViewRequestPath
     )? (ON serviceSchemaSelector)? restObjectOptions? (
-        AS restObjectName graphGlCrudOptions? graphGlObj?
+        AS restObjectName graphQlCrudOptions? graphQlObj?
     )?
 ;
 
@@ -1778,7 +1778,7 @@ restObjectOptions: (
     ALTER REST PROCEDURE procedureRequestPath (
         NEW REQUEST PATH newProcedureRequestPath
     )? (ON serviceSchemaSelector)? restObjectOptions? (
-        AS restObjectName (PARAMETERS graphGlObj)?
+        AS restObjectName (PARAMETERS graphQlObj)?
     )? restProcedureResult*
 ;
 
