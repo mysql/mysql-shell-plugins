@@ -206,7 +206,7 @@ createRestViewStatement:
         DUALITY_SYMBOL? VIEW_SYMBOL viewRequestPath (
         ON_SYMBOL serviceSchemaSelector
     )? FROM_SYMBOL qualifiedIdentifier restObjectOptions? AS_SYMBOL restObjectName
-        graphGlCrudOptions? graphGlObj?
+        graphQlCrudOptions? graphQlObj?
 ;
 
 restObjectOptions: (
@@ -239,11 +239,11 @@ createRestProcedureStatement:
     CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL PROCEDURE_SYMBOL procedureRequestPath (
         ON_SYMBOL serviceSchemaSelector
     )? FROM_SYMBOL qualifiedIdentifier restObjectOptions? AS_SYMBOL restObjectName PARAMETERS_SYMBOL
-        graphGlObj restProcedureResult*
+        graphQlObj restProcedureResult*
 ;
 
 restProcedureResult:
-    RESULT_SYMBOL restResultName graphGlObj
+    RESULT_SYMBOL restResultName graphQlObj
 ;
 
 // - CREATE REST CONTENT SET ------------------------------------------------
@@ -346,7 +346,7 @@ alterRestViewStatement:
         viewRequestPath (
         NEW_SYMBOL REQUEST_SYMBOL PATH_SYMBOL newViewRequestPath
     )? (ON_SYMBOL serviceSchemaSelector)? restObjectOptions? (
-        AS_SYMBOL restObjectName graphGlCrudOptions? graphGlObj?
+        AS_SYMBOL restObjectName graphQlCrudOptions? graphQlObj?
     )?
 ;
 
@@ -356,7 +356,7 @@ alterRestProcedureStatement:
     ALTER_SYMBOL REST_SYMBOL PROCEDURE_SYMBOL procedureRequestPath (
         NEW_SYMBOL REQUEST_SYMBOL PATH_SYMBOL newProcedureRequestPath
     )? (ON_SYMBOL serviceSchemaSelector)? restObjectOptions? (
-        AS_SYMBOL restObjectName (PARAMETERS_SYMBOL graphGlObj)?
+        AS_SYMBOL restObjectName (PARAMETERS_SYMBOL graphQlObj)?
     )? restProcedureResult*
 ;
 
@@ -574,14 +574,14 @@ jsonValue:
     | NULL_SYMBOL
 ;
 
-//----------------- GraphGL --------------------------------------------------------------------------------------------
+//----------------- GraphQL --------------------------------------------------------------------------------------------
 
-graphGlObj:
-    OPEN_CURLY_SYMBOL graphGlPair (COMMA_SYMBOL graphGlPair)* CLOSE_CURLY_SYMBOL
+graphQlObj:
+    OPEN_CURLY_SYMBOL graphQlPair (COMMA_SYMBOL graphQlPair)* CLOSE_CURLY_SYMBOL
     | OPEN_CURLY_SYMBOL CLOSE_CURLY_SYMBOL
 ;
 
-graphGlCrudOptions: (
+graphQlCrudOptions: (
         AT_SELECT_SYMBOL
         | AT_NOSELECT_SYMBOL
         | AT_INSERT_SYMBOL
@@ -593,7 +593,7 @@ graphGlCrudOptions: (
     )+
 ;
 
-graphGlPair:
+graphQlPair:
     graphKeyValue COLON_SYMBOL qualifiedIdentifier (
         AT_IN_SYMBOL
         | AT_OUT_SYMBOL
@@ -603,10 +603,10 @@ graphGlPair:
         | AT_NOFILTERING_SYMBOL
         | AT_ROWOWNERSHIP_SYMBOL
         | AT_UNNEST_SYMBOL
-        | AT_REDUCETO_SYMBOL OPEN_PAR_SYMBOL graphGlReduceToValue CLOSE_PAR_SYMBOL
-        | AT_DATATYPE_SYMBOL OPEN_PAR_SYMBOL graphGlDatatypeValue CLOSE_PAR_SYMBOL
-        | graphGlCrudOptions
-    )? graphGlObj?
+        | AT_REDUCETO_SYMBOL OPEN_PAR_SYMBOL graphQlReduceToValue CLOSE_PAR_SYMBOL
+        | AT_DATATYPE_SYMBOL OPEN_PAR_SYMBOL graphQlDatatypeValue CLOSE_PAR_SYMBOL
+        | graphQlCrudOptions
+    )? graphQlObj?
 ;
 
 graphKeyValue:
@@ -614,19 +614,19 @@ graphKeyValue:
     | identifier
 ;
 
-graphGlReduceToValue:
+graphQlReduceToValue:
     DOUBLE_QUOTED_TEXT
     | identifier
 ;
 
-graphGlDatatypeValue:
+graphQlDatatypeValue:
     DOUBLE_QUOTED_TEXT
     | identifier
 ;
 
-graphGlValue:
+graphQlValue:
     qualifiedIdentifier
-    | graphGlObj
+    | graphQlObj
 ;
 
 /* END OF MERGE PART */

@@ -132,7 +132,7 @@ Building a REST duality view for a single relational table (or view) is straight
 
 ![JSON Relational Editor](../../images/vsc-mrs-json-relational-editor.svg "JSON Relational Editor")
 
-Adding the database schema table via VS Code is equal to calling the [CREATE REST DUALITY VIEW](sql.html#create-rest-duality-view) MRS DDL statement without a `graphGlObj` definition, which also adds all columns of the table as a **flat** JSON object.
+Adding the database schema table via VS Code is equal to calling the [CREATE REST DUALITY VIEW](sql.html#create-rest-duality-view) MRS DDL statement without a `graphQlObj` definition, which also adds all columns of the table as a **flat** JSON object.
 
 ```sql
 CREATE OR REPLACE REST DUALITY VIEW /city

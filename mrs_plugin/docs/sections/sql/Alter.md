@@ -114,7 +114,7 @@ alterRestViewStatement:
         viewRequestPath (
         NEW REQUEST PATH newViewRequestPath
     )? (ON serviceSchemaSelector)? restObjectOptions? (
-        AS restObjectName graphGlCrudOptions? graphGlObj?
+        AS restObjectName graphQlCrudOptions? graphQlObj?
     )?
 ;
 
@@ -170,7 +170,7 @@ alterRestProcedureStatement:
     ALTER REST PROCEDURE procedureRequestPath (
         NEW REQUEST PATH newProcedureRequestPath
     )? (ON serviceSchemaSelector)? restObjectOptions? (
-        AS restObjectName (PARAMETERS graphGlObj)?
+        AS restObjectName (PARAMETERS graphQlObj)?
     )? restProcedureResult*
 ;
 

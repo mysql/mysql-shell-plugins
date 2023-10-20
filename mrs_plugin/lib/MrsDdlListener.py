@@ -322,7 +322,7 @@ class MrsDdlListener(MRSListener):
             "id": self.get_uuid(),
             "request_path": ctx.viewRequestPath().requestPathIdentifier().getText(),
             "crud_operations": self.build_crud_operations_list(
-                ctx=ctx.graphGlCrudOptions()),
+                ctx=ctx.graphQlCrudOptions()),
             "parent_reference_stack": []
         }
 
@@ -347,7 +347,7 @@ class MrsDdlListener(MRSListener):
                 object_id=object_id,
                 db_schema_name=self.mrs_object["schema_name"],
                 db_object_name=self.mrs_object["name"],
-                auto_enable_fields=(ctx.graphGlObj() is None))
+                auto_enable_fields=(ctx.graphQlObj() is None))
         }]
 
     def enterRestViewMediaType(self, ctx):
@@ -369,7 +369,7 @@ class MrsDdlListener(MRSListener):
         self.mrs_object["auth_stored_procedure"] = ctx.qualifiedIdentifier(
         ).getText()
 
-    def build_crud_operations_list(self, ctx: MRSParser.GraphGlCrudOptionsContext):
+    def build_crud_operations_list(self, ctx: MRSParser.GraphQlCrudOptionsContext):
         crud_list = ["READ"]
 
         if ctx is None:
@@ -409,7 +409,7 @@ class MrsDdlListener(MRSListener):
             "fields": []
         })
 
-    def enterGraphGlPair(self, ctx):
+    def enterGraphQlPair(self, ctx):
         objects = self.mrs_object["objects"]
         current_object = objects[-1]
         fields = current_object["fields"]
@@ -437,15 +437,15 @@ class MrsDdlListener(MRSListener):
                             field["allow_sorting"] = True
                         if ctx.AT_NOFILTERING_SYMBOL() is not None:
                             field["allow_filtering"] = False
-                        if (ctx.graphGlCrudOptions() is not None
-                                and ctx.graphGlCrudOptions().AT_NOUPDATE_SYMBOL() is not None):
+                        if (ctx.graphQlCrudOptions() is not None
+                                and ctx.graphQlCrudOptions().AT_NOUPDATE_SYMBOL() is not None):
                             field["no_update"] = True
                         if ctx.AT_ROWOWNERSHIP_SYMBOL() is not None:
                             self.mrs_object["row_user_ownership_enforced"] = True
                             self.mrs_object["row_user_ownership_column"] = db_column_name
                         if ctx.AT_DATATYPE_SYMBOL() is not None:
                             db_column["datatype"] = lib.core.unquote(
-                                ctx.graphGlDatatypeValue().getText().lower())
+                                ctx.graphQlDatatypeValue().getText().lower())
                         break
                 else:
                     raise Exception(
@@ -461,7 +461,7 @@ class MrsDdlListener(MRSListener):
                     "db_column": {
                         "name": db_column_name,
                         "datatype": lib.core.unquote(
-                            ctx.graphGlDatatypeValue().getText().lower()
+                            ctx.graphQlDatatypeValue().getText().lower()
                         ) if ctx.AT_DATATYPE_SYMBOL() else "varchar(45)"
                     },
                     "enabled": True,
@@ -495,7 +495,7 @@ class MrsDdlListener(MRSListener):
                         "id": obj_reference_id,
                         "reference_mapping": ref_mapping,
                         "crud_operations": ",".join(self.build_crud_operations_list(
-                            ctx.graphGlCrudOptions())),
+                            ctx.graphQlCrudOptions())),
                         "unnest": ctx.AT_UNNEST_SYMBOL() is not None
                     }
 
@@ -522,7 +522,7 @@ class MrsDdlListener(MRSListener):
                     f'The table `{db_schema_name}`.`{db_object_name}` has no reference to '
                     f'`{self.mrs_object.get("schema_name")}`.`{self.mrs_object.get("name")}`.')
 
-    def exitGraphGlPair(self, ctx):
+    def exitGraphQlPair(self, ctx):
         if ctx.qualifiedIdentifier().dotIdentifier() is not None:
             # Remove last reference_id
             ref_stack = self.mrs_object.get("parent_reference_stack")
@@ -533,7 +533,7 @@ class MrsDdlListener(MRSListener):
 
             if parent_ref is not None and ctx.AT_REDUCETO_SYMBOL() is not None:
                 reduce_to = lib.core.unquote(
-                    ctx.graphGlReduceToValue().getText().lower())
+                    ctx.graphQlReduceToValue().getText().lower())
 
                 objects = self.mrs_object["objects"]
                 current_object = objects[-1]
@@ -738,9 +738,9 @@ class MrsDdlListener(MRSListener):
             "parent_reference_stack": []
         }
 
-        if ctx.graphGlCrudOptions() is not None:
+        if ctx.graphQlCrudOptions() is not None:
             self.mrs_object["crud_operations"] = self.build_crud_operations_list(
-                ctx=ctx.graphGlCrudOptions())
+                ctx=ctx.graphQlCrudOptions())
 
         db_object = self.get_db_object(ctx=ctx)
 

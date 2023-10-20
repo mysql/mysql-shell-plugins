@@ -1,5 +1,12 @@
 # MySQL Shell for VS Code Change Log
 
+## Changes in 1.13.5+8.1.1
+
+### Fixes
+
+- Fixed MRS SQL generation of REST duality views
+- Fixed typo in MRS grammar
+
 ## Changes in 1.13.4+8.1.1
 
 ### Fixes

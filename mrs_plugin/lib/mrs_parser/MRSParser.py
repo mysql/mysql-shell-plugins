@@ -622,13 +622,13 @@ class MRSParser ( Parser ):
     RULE_jsonPair = 84
     RULE_jsonArr = 85
     RULE_jsonValue = 86
-    RULE_graphGlObj = 87
-    RULE_graphGlCrudOptions = 88
-    RULE_graphGlPair = 89
+    RULE_graphQlObj = 87
+    RULE_graphQlCrudOptions = 88
+    RULE_graphQlPair = 89
     RULE_graphKeyValue = 90
-    RULE_graphGlReduceToValue = 91
-    RULE_graphGlDatatypeValue = 92
-    RULE_graphGlValue = 93
+    RULE_graphQlReduceToValue = 91
+    RULE_graphQlDatatypeValue = 92
+    RULE_graphQlValue = 93
     RULE_schemaName = 94
     RULE_viewName = 95
     RULE_procedureName = 96
@@ -671,9 +671,9 @@ class MRSParser ( Parser ):
                    "restObjectName", "restResultName", "procedureRequestPath", 
                    "newProcedureRequestPath", "contentSetRequestPath", "dottedIdentifier", 
                    "hostAndPortIdentifier", "requestPathIdentifier", "quotedText", 
-                   "jsonObj", "jsonPair", "jsonArr", "jsonValue", "graphGlObj", 
-                   "graphGlCrudOptions", "graphGlPair", "graphKeyValue", 
-                   "graphGlReduceToValue", "graphGlDatatypeValue", "graphGlValue", 
+                   "jsonObj", "jsonPair", "jsonArr", "jsonValue", "graphQlObj", 
+                   "graphQlCrudOptions", "graphQlPair", "graphKeyValue", 
+                   "graphQlReduceToValue", "graphQlDatatypeValue", "graphQlValue", 
                    "schemaName", "viewName", "procedureName", "pureIdentifier", 
                    "identifier", "identifierList", "identifierListWithParentheses", 
                    "qualifiedIdentifier", "simpleIdentifier", "dotIdentifier" ]
@@ -2856,12 +2856,12 @@ class MRSParser ( Parser ):
             return self.getTypedRuleContext(MRSParser.RestObjectOptionsContext,0)
 
 
-        def graphGlCrudOptions(self):
-            return self.getTypedRuleContext(MRSParser.GraphGlCrudOptionsContext,0)
+        def graphQlCrudOptions(self):
+            return self.getTypedRuleContext(MRSParser.GraphQlCrudOptionsContext,0)
 
 
-        def graphGlObj(self):
-            return self.getTypedRuleContext(MRSParser.GraphGlObjContext,0)
+        def graphQlObj(self):
+            return self.getTypedRuleContext(MRSParser.GraphQlObjContext,0)
 
 
         def getRuleIndex(self):
@@ -2958,7 +2958,7 @@ class MRSParser ( Parser ):
             _la = self._input.LA(1)
             if ((((_la - 85)) & ~0x3f) == 0 and ((1 << (_la - 85)) & 16257) != 0):
                 self.state = 430
-                self.graphGlCrudOptions()
+                self.graphQlCrudOptions()
 
 
             self.state = 434
@@ -2966,7 +2966,7 @@ class MRSParser ( Parser ):
             _la = self._input.LA(1)
             if _la==127:
                 self.state = 433
-                self.graphGlObj()
+                self.graphQlObj()
 
 
         except RecognitionException as re:
@@ -3339,8 +3339,8 @@ class MRSParser ( Parser ):
         def PARAMETERS_SYMBOL(self):
             return self.getToken(MRSParser.PARAMETERS_SYMBOL, 0)
 
-        def graphGlObj(self):
-            return self.getTypedRuleContext(MRSParser.GraphGlObjContext,0)
+        def graphQlObj(self):
+            return self.getTypedRuleContext(MRSParser.GraphQlObjContext,0)
 
 
         def OR_SYMBOL(self):
@@ -3435,7 +3435,7 @@ class MRSParser ( Parser ):
             self.state = 480
             self.match(MRSParser.PARAMETERS_SYMBOL)
             self.state = 481
-            self.graphGlObj()
+            self.graphQlObj()
             self.state = 485
             self._errHandler.sync(self)
             _la = self._input.LA(1)
@@ -3469,8 +3469,8 @@ class MRSParser ( Parser ):
             return self.getTypedRuleContext(MRSParser.RestResultNameContext,0)
 
 
-        def graphGlObj(self):
-            return self.getTypedRuleContext(MRSParser.GraphGlObjContext,0)
+        def graphQlObj(self):
+            return self.getTypedRuleContext(MRSParser.GraphQlObjContext,0)
 
 
         def getRuleIndex(self):
@@ -3498,7 +3498,7 @@ class MRSParser ( Parser ):
             self.state = 489
             self.restResultName()
             self.state = 490
-            self.graphGlObj()
+            self.graphQlObj()
         except RecognitionException as re:
             localctx.exception = re
             self._errHandler.reportError(self, re)
@@ -4762,12 +4762,12 @@ class MRSParser ( Parser ):
             return self.getTypedRuleContext(MRSParser.RestObjectNameContext,0)
 
 
-        def graphGlCrudOptions(self):
-            return self.getTypedRuleContext(MRSParser.GraphGlCrudOptionsContext,0)
+        def graphQlCrudOptions(self):
+            return self.getTypedRuleContext(MRSParser.GraphQlCrudOptionsContext,0)
 
 
-        def graphGlObj(self):
-            return self.getTypedRuleContext(MRSParser.GraphGlObjContext,0)
+        def graphQlObj(self):
+            return self.getTypedRuleContext(MRSParser.GraphQlObjContext,0)
 
 
         def getRuleIndex(self):
@@ -4868,7 +4868,7 @@ class MRSParser ( Parser ):
                 _la = self._input.LA(1)
                 if ((((_la - 85)) & ~0x3f) == 0 and ((1 << (_la - 85)) & 16257) != 0):
                     self.state = 665
-                    self.graphGlCrudOptions()
+                    self.graphQlCrudOptions()
 
 
                 self.state = 669
@@ -4876,7 +4876,7 @@ class MRSParser ( Parser ):
                 _la = self._input.LA(1)
                 if _la==127:
                     self.state = 668
-                    self.graphGlObj()
+                    self.graphQlObj()
 
 
 
@@ -4951,8 +4951,8 @@ class MRSParser ( Parser ):
         def PARAMETERS_SYMBOL(self):
             return self.getToken(MRSParser.PARAMETERS_SYMBOL, 0)
 
-        def graphGlObj(self):
-            return self.getTypedRuleContext(MRSParser.GraphGlObjContext,0)
+        def graphQlObj(self):
+            return self.getTypedRuleContext(MRSParser.GraphQlObjContext,0)
 
 
         def getRuleIndex(self):
@@ -5031,7 +5031,7 @@ class MRSParser ( Parser ):
                     self.state = 692
                     self.match(MRSParser.PARAMETERS_SYMBOL)
                     self.state = 693
-                    self.graphGlObj()
+                    self.graphQlObj()
 
 
 
@@ -7932,7 +7932,7 @@ class MRSParser ( Parser ):
         return localctx
 
 
-    class GraphGlObjContext(ParserRuleContext):
+    class GraphQlObjContext(ParserRuleContext):
         __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -7942,11 +7942,11 @@ class MRSParser ( Parser ):
         def OPEN_CURLY_SYMBOL(self):
             return self.getToken(MRSParser.OPEN_CURLY_SYMBOL, 0)
 
-        def graphGlPair(self, i:int=None):
+        def graphQlPair(self, i:int=None):
             if i is None:
-                return self.getTypedRuleContexts(MRSParser.GraphGlPairContext)
+                return self.getTypedRuleContexts(MRSParser.GraphQlPairContext)
             else:
-                return self.getTypedRuleContext(MRSParser.GraphGlPairContext,i)
+                return self.getTypedRuleContext(MRSParser.GraphQlPairContext,i)
 
 
         def CLOSE_CURLY_SYMBOL(self):
@@ -7959,23 +7959,23 @@ class MRSParser ( Parser ):
                 return self.getToken(MRSParser.COMMA_SYMBOL, i)
 
         def getRuleIndex(self):
-            return MRSParser.RULE_graphGlObj
+            return MRSParser.RULE_graphQlObj
 
         def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterGraphGlObj" ):
-                listener.enterGraphGlObj(self)
+            if hasattr( listener, "enterGraphQlObj" ):
+                listener.enterGraphQlObj(self)
 
         def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitGraphGlObj" ):
-                listener.exitGraphGlObj(self)
+            if hasattr( listener, "exitGraphQlObj" ):
+                listener.exitGraphQlObj(self)
 
 
 
 
-    def graphGlObj(self):
+    def graphQlObj(self):
 
-        localctx = MRSParser.GraphGlObjContext(self, self._ctx, self.state)
-        self.enterRule(localctx, 174, self.RULE_graphGlObj)
+        localctx = MRSParser.GraphQlObjContext(self, self._ctx, self.state)
+        self.enterRule(localctx, 174, self.RULE_graphQlObj)
         self._la = 0 # Token type
         try:
             self.state = 1027
@@ -7986,7 +7986,7 @@ class MRSParser ( Parser ):
                 self.state = 1014
                 self.match(MRSParser.OPEN_CURLY_SYMBOL)
                 self.state = 1015
-                self.graphGlPair()
+                self.graphQlPair()
                 self.state = 1020
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
@@ -7994,7 +7994,7 @@ class MRSParser ( Parser ):
                     self.state = 1016
                     self.match(MRSParser.COMMA_SYMBOL)
                     self.state = 1017
-                    self.graphGlPair()
+                    self.graphQlPair()
                     self.state = 1022
                     self._errHandler.sync(self)
                     _la = self._input.LA(1)
@@ -8021,7 +8021,7 @@ class MRSParser ( Parser ):
         return localctx
 
 
-    class GraphGlCrudOptionsContext(ParserRuleContext):
+    class GraphQlCrudOptionsContext(ParserRuleContext):
         __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -8077,23 +8077,23 @@ class MRSParser ( Parser ):
                 return self.getToken(MRSParser.AT_NODELETE_SYMBOL, i)
 
         def getRuleIndex(self):
-            return MRSParser.RULE_graphGlCrudOptions
+            return MRSParser.RULE_graphQlCrudOptions
 
         def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterGraphGlCrudOptions" ):
-                listener.enterGraphGlCrudOptions(self)
+            if hasattr( listener, "enterGraphQlCrudOptions" ):
+                listener.enterGraphQlCrudOptions(self)
 
         def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitGraphGlCrudOptions" ):
-                listener.exitGraphGlCrudOptions(self)
+            if hasattr( listener, "exitGraphQlCrudOptions" ):
+                listener.exitGraphQlCrudOptions(self)
 
 
 
 
-    def graphGlCrudOptions(self):
+    def graphQlCrudOptions(self):
 
-        localctx = MRSParser.GraphGlCrudOptionsContext(self, self._ctx, self.state)
-        self.enterRule(localctx, 176, self.RULE_graphGlCrudOptions)
+        localctx = MRSParser.GraphQlCrudOptionsContext(self, self._ctx, self.state)
+        self.enterRule(localctx, 176, self.RULE_graphQlCrudOptions)
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
@@ -8123,7 +8123,7 @@ class MRSParser ( Parser ):
         return localctx
 
 
-    class GraphGlPairContext(ParserRuleContext):
+    class GraphQlPairContext(ParserRuleContext):
         __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -8171,8 +8171,8 @@ class MRSParser ( Parser ):
         def OPEN_PAR_SYMBOL(self):
             return self.getToken(MRSParser.OPEN_PAR_SYMBOL, 0)
 
-        def graphGlReduceToValue(self):
-            return self.getTypedRuleContext(MRSParser.GraphGlReduceToValueContext,0)
+        def graphQlReduceToValue(self):
+            return self.getTypedRuleContext(MRSParser.GraphQlReduceToValueContext,0)
 
 
         def CLOSE_PAR_SYMBOL(self):
@@ -8181,36 +8181,36 @@ class MRSParser ( Parser ):
         def AT_DATATYPE_SYMBOL(self):
             return self.getToken(MRSParser.AT_DATATYPE_SYMBOL, 0)
 
-        def graphGlDatatypeValue(self):
-            return self.getTypedRuleContext(MRSParser.GraphGlDatatypeValueContext,0)
+        def graphQlDatatypeValue(self):
+            return self.getTypedRuleContext(MRSParser.GraphQlDatatypeValueContext,0)
 
 
-        def graphGlCrudOptions(self):
-            return self.getTypedRuleContext(MRSParser.GraphGlCrudOptionsContext,0)
+        def graphQlCrudOptions(self):
+            return self.getTypedRuleContext(MRSParser.GraphQlCrudOptionsContext,0)
 
 
-        def graphGlObj(self):
-            return self.getTypedRuleContext(MRSParser.GraphGlObjContext,0)
+        def graphQlObj(self):
+            return self.getTypedRuleContext(MRSParser.GraphQlObjContext,0)
 
 
         def getRuleIndex(self):
-            return MRSParser.RULE_graphGlPair
+            return MRSParser.RULE_graphQlPair
 
         def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterGraphGlPair" ):
-                listener.enterGraphGlPair(self)
+            if hasattr( listener, "enterGraphQlPair" ):
+                listener.enterGraphQlPair(self)
 
         def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitGraphGlPair" ):
-                listener.exitGraphGlPair(self)
+            if hasattr( listener, "exitGraphQlPair" ):
+                listener.exitGraphQlPair(self)
 
 
 
 
-    def graphGlPair(self):
+    def graphQlPair(self):
 
-        localctx = MRSParser.GraphGlPairContext(self, self._ctx, self.state)
-        self.enterRule(localctx, 178, self.RULE_graphGlPair)
+        localctx = MRSParser.GraphQlPairContext(self, self._ctx, self.state)
+        self.enterRule(localctx, 178, self.RULE_graphQlPair)
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
@@ -8261,7 +8261,7 @@ class MRSParser ( Parser ):
                 self.state = 1046
                 self.match(MRSParser.OPEN_PAR_SYMBOL)
                 self.state = 1047
-                self.graphGlReduceToValue()
+                self.graphQlReduceToValue()
                 self.state = 1048
                 self.match(MRSParser.CLOSE_PAR_SYMBOL)
                 pass
@@ -8271,13 +8271,13 @@ class MRSParser ( Parser ):
                 self.state = 1051
                 self.match(MRSParser.OPEN_PAR_SYMBOL)
                 self.state = 1052
-                self.graphGlDatatypeValue()
+                self.graphQlDatatypeValue()
                 self.state = 1053
                 self.match(MRSParser.CLOSE_PAR_SYMBOL)
                 pass
             elif token in [85, 92, 93, 94, 95, 96, 97, 98]:
                 self.state = 1055
-                self.graphGlCrudOptions()
+                self.graphQlCrudOptions()
                 pass
             elif token in [122, 127, 128]:
                 pass
@@ -8288,7 +8288,7 @@ class MRSParser ( Parser ):
             _la = self._input.LA(1)
             if _la==127:
                 self.state = 1058
-                self.graphGlObj()
+                self.graphQlObj()
 
 
         except RecognitionException as re:
@@ -8358,7 +8358,7 @@ class MRSParser ( Parser ):
         return localctx
 
 
-    class GraphGlReduceToValueContext(ParserRuleContext):
+    class GraphQlReduceToValueContext(ParserRuleContext):
         __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -8373,23 +8373,23 @@ class MRSParser ( Parser ):
 
 
         def getRuleIndex(self):
-            return MRSParser.RULE_graphGlReduceToValue
+            return MRSParser.RULE_graphQlReduceToValue
 
         def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterGraphGlReduceToValue" ):
-                listener.enterGraphGlReduceToValue(self)
+            if hasattr( listener, "enterGraphQlReduceToValue" ):
+                listener.enterGraphQlReduceToValue(self)
 
         def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitGraphGlReduceToValue" ):
-                listener.exitGraphGlReduceToValue(self)
+            if hasattr( listener, "exitGraphQlReduceToValue" ):
+                listener.exitGraphQlReduceToValue(self)
 
 
 
 
-    def graphGlReduceToValue(self):
+    def graphQlReduceToValue(self):
 
-        localctx = MRSParser.GraphGlReduceToValueContext(self, self._ctx, self.state)
-        self.enterRule(localctx, 182, self.RULE_graphGlReduceToValue)
+        localctx = MRSParser.GraphQlReduceToValueContext(self, self._ctx, self.state)
+        self.enterRule(localctx, 182, self.RULE_graphQlReduceToValue)
         try:
             self.state = 1067
             self._errHandler.sync(self)
@@ -8416,7 +8416,7 @@ class MRSParser ( Parser ):
         return localctx
 
 
-    class GraphGlDatatypeValueContext(ParserRuleContext):
+    class GraphQlDatatypeValueContext(ParserRuleContext):
         __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -8431,23 +8431,23 @@ class MRSParser ( Parser ):
 
 
         def getRuleIndex(self):
-            return MRSParser.RULE_graphGlDatatypeValue
+            return MRSParser.RULE_graphQlDatatypeValue
 
         def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterGraphGlDatatypeValue" ):
-                listener.enterGraphGlDatatypeValue(self)
+            if hasattr( listener, "enterGraphQlDatatypeValue" ):
+                listener.enterGraphQlDatatypeValue(self)
 
         def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitGraphGlDatatypeValue" ):
-                listener.exitGraphGlDatatypeValue(self)
+            if hasattr( listener, "exitGraphQlDatatypeValue" ):
+                listener.exitGraphQlDatatypeValue(self)
 
 
 
 
-    def graphGlDatatypeValue(self):
+    def graphQlDatatypeValue(self):
 
-        localctx = MRSParser.GraphGlDatatypeValueContext(self, self._ctx, self.state)
-        self.enterRule(localctx, 184, self.RULE_graphGlDatatypeValue)
+        localctx = MRSParser.GraphQlDatatypeValueContext(self, self._ctx, self.state)
+        self.enterRule(localctx, 184, self.RULE_graphQlDatatypeValue)
         try:
             self.state = 1071
             self._errHandler.sync(self)
@@ -8474,7 +8474,7 @@ class MRSParser ( Parser ):
         return localctx
 
 
-    class GraphGlValueContext(ParserRuleContext):
+    class GraphQlValueContext(ParserRuleContext):
         __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -8485,28 +8485,28 @@ class MRSParser ( Parser ):
             return self.getTypedRuleContext(MRSParser.QualifiedIdentifierContext,0)
 
 
-        def graphGlObj(self):
-            return self.getTypedRuleContext(MRSParser.GraphGlObjContext,0)
+        def graphQlObj(self):
+            return self.getTypedRuleContext(MRSParser.GraphQlObjContext,0)
 
 
         def getRuleIndex(self):
-            return MRSParser.RULE_graphGlValue
+            return MRSParser.RULE_graphQlValue
 
         def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterGraphGlValue" ):
-                listener.enterGraphGlValue(self)
+            if hasattr( listener, "enterGraphQlValue" ):
+                listener.enterGraphQlValue(self)
 
         def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitGraphGlValue" ):
-                listener.exitGraphGlValue(self)
+            if hasattr( listener, "exitGraphQlValue" ):
+                listener.exitGraphQlValue(self)
 
 
 
 
-    def graphGlValue(self):
+    def graphQlValue(self):
 
-        localctx = MRSParser.GraphGlValueContext(self, self._ctx, self.state)
-        self.enterRule(localctx, 186, self.RULE_graphGlValue)
+        localctx = MRSParser.GraphQlValueContext(self, self._ctx, self.state)
+        self.enterRule(localctx, 186, self.RULE_graphQlValue)
         try:
             self.state = 1075
             self._errHandler.sync(self)
@@ -8519,7 +8519,7 @@ class MRSParser ( Parser ):
             elif token in [127]:
                 self.enterOuterAlt(localctx, 2)
                 self.state = 1074
-                self.graphGlObj()
+                self.graphQlObj()
                 pass
             else:
                 raise NoViableAltException(self)

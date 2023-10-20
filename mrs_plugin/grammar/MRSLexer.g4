@@ -106,7 +106,7 @@ USERS_SYMBOL:       U S E R S;
 ALLOW_SYMBOL:       A L L O W;
 REGISTER_SYMBOL:    R E G I S T E R;
 
-//----------------- GraphGL --------------------------------------------------------------------------------------------
+//----------------- GraphQL --------------------------------------------------------------------------------------------
 
 AT_INOUT_SYMBOL:        AT_SIGN_SYMBOL I N O U T;
 AT_IN_SYMBOL:           AT_SIGN_SYMBOL I N;
