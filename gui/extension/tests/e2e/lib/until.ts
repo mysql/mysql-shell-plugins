@@ -32,6 +32,8 @@ import fs from "fs/promises";
 import * as constants from "./constants";
 import { Misc, driver } from "./misc";
 import * as locator from "./locators";
+import * as interfaces from "./interfaces";
+import { Database } from "./db";
 export let credentialHelperOk = true;
 
 export const isNotLoading = (section: string): Condition<boolean> => {
@@ -58,24 +60,70 @@ export const isFELoaded = (): Condition<boolean> => {
     });
 };
 
-export const dbConnectionIsOpened = (): Condition<boolean> => {
-    return new Condition("DB loaded", async () => {
-        await Misc.switchBackToTopFrame();
-        await Misc.switchToFrame();
-        const st1 = await driver.findElements(locator.passwordDialog.exists);
-        const st2 = await driver.findElements(locator.notebook.codeEditor.textArea);
-        const st3 = await driver.findElements(locator.shellConsole.title);
-
-        return st1.length > 0 || st2.length > 0 || st3.length > 0;
+const dbConnectionIsSuccessful = (): Condition<boolean> => {
+    return new Condition("DB Connection is successful", async () => {
+        return (await driver.findElements(locator.notebook.codeEditor.textArea)).length > 0;
     });
 };
 
-export const dbConnectionIsSuccessful = (): Condition<boolean> => {
-    return new Condition("DB Connection is successful", async () => {
-        await Misc.switchBackToTopFrame();
-        await Misc.switchToFrame();
+export const dbConnectionIsOpened = (connection: interfaces.IDBConnection): Condition<boolean> => {
+    return new Condition("DB loaded", async () => {
+        if ((await Misc.insideIframe()) === false) {
+            await Misc.switchToFrame();
+        }
+        const existsPasswordDialog = (await driver.findElements(locator.passwordDialog.exists)).length > 0;
+        const existsNotebook = (await driver.findElements(locator.notebook.exists)).length > 0;
+        const existsGenericDialog = (await driver.findElements(locator.genericDialog.exists)).length > 0;
+        if (existsPasswordDialog) {
+            await Database.setDBConnectionCredentials(connection);
+            await driver.wait(dbConnectionIsSuccessful(),
+                constants.wait15seconds, "DB connection was not successful");
+        }
 
-        return (await driver.findElements(locator.notebook.codeEditor.textArea)).length > 0;
+        return existsNotebook || existsGenericDialog;
+    });
+};
+
+export const mdsConnectionIsOpened = (connection: interfaces.IDBConnection): Condition<boolean> => {
+    return new Condition("DB loaded", async () => {
+        if ((await Misc.insideIframe()) === false) {
+            await Misc.switchToFrame();
+        }
+        const existsPasswordDialog = (await driver.findElements(locator.passwordDialog.exists)).length > 0;
+        const existsFingerPrintDialog = (await driver.findElements(locator.confirmDialog.exists)).length > 0;
+        const existsEditor = (await driver.findElements(locator.notebook.codeEditor.textArea)).length > 0;
+        const existsErrorDialog = (await driver.findElements(locator.errorDialog.exists)).length > 0;
+        if (existsFingerPrintDialog) {
+            await driver.findElement(locator.confirmDialog.accept).click();
+        }
+        if (existsPasswordDialog) {
+            await Database.setDBConnectionCredentials(connection);
+        }
+        if (existsErrorDialog) {
+            const errorDialog = await driver.findElement(locator.errorDialog.exists);
+            const errorMsg = await errorDialog.findElement(locator.errorDialog.message);
+            throw new Error(await errorMsg.getText());
+        }
+
+        return existsEditor;
+    });
+};
+
+export const shellSessionIsOpened = (connection: interfaces.IDBConnection): Condition<boolean> => {
+    return new Condition("DB loaded", async () => {
+        if ((await Misc.insideIframe()) === false) {
+            await Misc.switchToFrame();
+        }
+
+        const existsPasswordDialog = (await driver.findElements(locator.passwordDialog.exists)).length > 0;
+
+        if (existsPasswordDialog) {
+            await Database.setDBConnectionCredentials(connection);
+            await driver.wait(dbConnectionIsSuccessful(),
+                constants.wait15seconds, "DB connection was not successful");
+        }
+
+        return (await driver.findElements(locator.shellConsole.editor)).length > 0;
     });
 };
 
@@ -103,6 +151,12 @@ export const existsOnRouterLog = (text: string | RegExp): Condition<boolean> => 
         } else {
             return logFileContent.match(new RegExp(text)) !== null;
         }
+    });
+};
+
+export const isDefaultItem = (section: string, treeItemName: string, itemType: string): Condition<boolean> => {
+    return new Condition("The tree item is marked as default", async () => {
+        return Misc.isDefaultItem(section, treeItemName, itemType);
     });
 };
 

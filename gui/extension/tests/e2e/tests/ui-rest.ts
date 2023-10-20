@@ -89,11 +89,8 @@ describe("MySQL REST Service", () => {
             await Misc.cleanCredentials();
             await Misc.openContextMenuItem(await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption),
                 constants.openNewConnection, constants.checkNewTabAndWebView);
-            await driver.wait(Until.dbConnectionIsOpened(), constants.wait15seconds,
+            await driver.wait(Until.dbConnectionIsOpened(globalConn), constants.wait15seconds,
                 "DB Connection was not loaded");
-            await Database.setDBConnectionCredentials(globalConn);
-            await driver.wait(Until.dbConnectionIsSuccessful(), constants.wait15seconds,
-                "DB Connection was not successful");
             let result = await Misc.execCmd("DROP SCHEMA IF EXISTS `mysql_rest_service_metadata`;",
                 undefined, constants.wait10seconds);
             expect(result[0]).to.match(/OK/);
@@ -579,11 +576,9 @@ describe("MySQL REST Service", () => {
             await driver.wait(Until.isNotLoading(constants.dbTreeSection), constants.wait10seconds,
                 `${constants.dbTreeSection} is still loading`);
             await Misc.getNotification("The MRS service has been set as the new default service.");
-            await driver.wait(async () => {
-                return Misc.isDefaultItem(constants.dbTreeSection,
-                    `${globalService.servicePath} (${globalService.settings.hostNameFilter})`,
-                    "rest");
-            }, constants.wait5seconds, "REST Service tree item did not became default");
+            await driver.wait(Until.isDefaultItem(constants.dbTreeSection
+                , `${globalService.servicePath} (${globalService.settings.hostNameFilter})`,
+                "rest"), constants.wait5seconds, "REST Service tree item did not became default");
         });
 
         it("Add Tables to REST Service", async () => {

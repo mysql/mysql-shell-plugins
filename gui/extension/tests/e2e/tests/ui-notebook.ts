@@ -116,11 +116,8 @@ describe("NOTEBOOKS", () => {
                 await Misc.cleanCredentials();
                 await Misc.openContextMenuItem(await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption),
                     constants.openNewConnection, constants.checkNewTabAndWebView);
-                await driver.wait(Until.dbConnectionIsOpened(), constants.wait15seconds,
+                await driver.wait(Until.dbConnectionIsOpened(globalConn), constants.wait15seconds,
                     "DB Connection was not opened");
-                await Database.setDBConnectionCredentials(globalConn);
-                await driver.wait(Until.dbConnectionIsSuccessful(), constants.wait15seconds,
-                    "DB Connection was not successful");
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -579,9 +576,8 @@ Graph.render(options);
                 await Misc.sectionFocus(constants.dbTreeSection);
                 const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
                 await (await Misc.getActionButton(treeGlobalConn, constants.openNewConnection)).click();
-                await driver.wait(Until.dbConnectionIsOpened(), constants.wait15seconds,
+                await driver.wait(Until.dbConnectionIsOpened(globalConn), constants.wait15seconds,
                     "DB Connection was not opened");
-                await Database.setDBConnectionCredentials(globalConn);
                 await Misc.switchBackToTopFrame();
                 await Misc.sectionFocus(constants.openEditorsTreeSection);
             } catch (e) {
@@ -678,9 +674,8 @@ Graph.render(options);
                 await Misc.sectionFocus(constants.dbTreeSection);
                 const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
                 await (await Misc.getActionButton(treeGlobalConn, constants.openNewConnection)).click();
-                await driver.wait(Until.dbConnectionIsOpened(), constants.wait15seconds,
+                await driver.wait(Until.dbConnectionIsOpened(globalConn), constants.wait15seconds,
                     "DB Connection was not opened");
-                await Database.setDBConnectionCredentials(globalConn);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -758,9 +753,8 @@ Graph.render(options);
             await (await input.findQuickPick(globalConn.caption)).select();
             await new EditorView().openEditor("test.mysql-notebook");
 
-            await driver.wait(Until.dbConnectionIsOpened(), constants.wait15seconds,
+            await driver.wait(Until.dbConnectionIsOpened(globalConn), constants.wait15seconds,
                 "DB Connection was not opened");
-            await Database.setDBConnectionCredentials(globalConn);
             await Database.verifyNotebook("SELECT VERSION();", "1 record retrieved");
 
         });
@@ -781,9 +775,8 @@ Graph.render(options);
             const input = await InputBox.create();
             await (await input.findQuickPick(globalConn.caption)).select();
             await new EditorView().openEditor("test.mysql-notebook");
-            await driver.wait(Until.dbConnectionIsOpened(), constants.wait15seconds,
+            await driver.wait(Until.dbConnectionIsOpened(globalConn), constants.wait15seconds,
                 "DB Connection was not opened");
-            await Database.setDBConnectionCredentials(globalConn);
             await Database.verifyNotebook("SELECT VERSION();", "1 record retrieved");
 
         });
@@ -809,9 +802,8 @@ Graph.render(options);
             }, constants.wait5seconds, "E2E section was not found");
             const file = await section.findItem("test.mysql-notebook", 3);
             await file.click();
-            await driver.wait(Until.dbConnectionIsOpened(), constants.wait15seconds,
+            await driver.wait(Until.dbConnectionIsOpened(globalConn), constants.wait15seconds,
                 "DB Connection was not opened");
-            await Database.setDBConnectionCredentials(globalConn);
             await Misc.switchBackToTopFrame();
             await new EditorView().openEditor("test.mysql-notebook");
             const activityBar = new ActivityBar();

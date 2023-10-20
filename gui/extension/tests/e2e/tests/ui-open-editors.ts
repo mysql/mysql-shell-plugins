@@ -22,7 +22,7 @@
  */
 import {
     BottomBarPanel, EditorView,
-    ActivityBar,
+    ActivityBar, until,
 } from "vscode-extension-tester";
 import { expect } from "chai";
 import { driver, Misc } from "../lib/misc";
@@ -31,6 +31,7 @@ import { Database } from "../lib/db";
 import * as constants from "../lib/constants";
 import * as Until from "../lib/until";
 import * as interfaces from "../lib/interfaces";
+import * as locator from "../lib/locators";
 
 describe("OPEN EDITORS", () => {
 
@@ -132,8 +133,7 @@ describe("OPEN EDITORS", () => {
         await Misc.sectionFocus(constants.dbTreeSection);
         const treeLocalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
         await (await Misc.getActionButton(treeLocalConn, constants.openNewConnection)).click();
-        await driver.wait(Until.dbConnectionIsOpened(), constants.wait5seconds, "Connection was not opened");
-        await Database.setDBConnectionCredentials(globalConn);
+        await driver.wait(Until.dbConnectionIsOpened(globalConn), constants.wait5seconds, "Connection was not opened");
         await Misc.switchBackToTopFrame();
         const treeOEGlobalConn = await Misc.getTreeElement(constants.openEditorsTreeSection,
             globalConn.caption);
@@ -215,7 +215,9 @@ describe("OPEN EDITORS", () => {
     it("Open DB Connection Overview", async () => {
 
         await (await Misc.getTreeElement(constants.openEditorsTreeSection, constants.dbConnectionsLabel)).click();
-        await driver.wait(Until.dbConnectionIsOpened(), constants.wait5seconds, "Connection was not opened");
+        await Misc.switchToFrame();
+        expect(await driver.wait(until.elementLocated(locator.notebook.toolbar.editorSelector.exists),
+            constants.wait10seconds, "DB Connection Overview page was not displayed")).to.exist;
 
     });
 
@@ -225,7 +227,7 @@ describe("OPEN EDITORS", () => {
         await item.expand();
         await (await Misc.getTreeElement(constants.openEditorsTreeSection,
             constants.openEditorsDBNotebook)).click();
-        await driver.wait(Until.dbConnectionIsOpened(), constants.wait5seconds, "Connection was not opened");
+        await driver.wait(Until.dbConnectionIsOpened(globalConn), constants.wait5seconds, "Connection was not opened");
 
     });
 
