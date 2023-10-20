@@ -143,10 +143,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await Misc.openContextMenuItem(treeE2eTests, constants.setDefaultConfigProfile, undefined);
             await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.wait25seconds,
                 `${constants.ociTreeSection} is still loading`);
-            await driver.wait(async () => {
-                return Misc.isDefaultItem(constants.ociTreeSection, "E2ETESTS (us-ashburn-1)", "profile");
-            }, constants.wait5seconds * 2, "E2e tests is not the deault item");
-
+            await driver.wait(Until.isDefaultItem(constants.ociTreeSection, "E2ETESTS (us-ashburn-1)", "profile"),
+                constants.wait5seconds, "E2e tests is not the deault item");
         });
     });
 
@@ -229,8 +227,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 `${constants.ociTreeSection} is still loading`);
             const treeOCISection = await Misc.getSection(constants.ociTreeSection);
             treeQA = await treeOCISection.findItem("QA (Default)", constants.ociMaxLevel);
-            expect(await Misc.isDefaultItem(constants.ociTreeSection,
-                "QA (Default)", "compartment")).to.be.true;
+            await driver.wait(Until.isDefaultItem(constants.ociTreeSection, "QA (Default)", "compartment"),
+                constants.wait5seconds, "QA (Default) should be default");
             await treeQA.expand();
             await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.wait20seconds,
                 `${constants.ociTreeSection} is still loading`);
@@ -492,10 +490,9 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await driver.wait(Until.isNotLoading(constants.ociTreeSection), constants.wait25seconds,
                 `${constants.ociTreeSection} is still loading`);
 
-            await driver.wait(async () => {
-                return Misc.isDefaultItem(constants.ociTreeSection, "Bastion4PrivateSubnetStandardVnc", "bastion");
-            }, constants.wait5seconds * 2, "Bastion is not the deault item");
-
+            await driver.wait(Until.isDefaultItem(constants.ociTreeSection, "Bastion4PrivateSubnetStandardVnc",
+                "bastion"),
+                constants.wait5seconds * 2, "Bastion is not the deault item");
             const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
             await treeOpenEditorsSection.expand();
             const treeDBConnections = await Misc.getTreeElement(constants.openEditorsTreeSection,
@@ -549,18 +546,30 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             if (!await Misc.isDBSystemStopped(treeDbSystem)) {
                 await Misc.openContextMenuItem(treeDbSystem, constants.createConnWithBastion,
                     constants.checkNewTabAndWebView);
-                await driver.wait(Until.dbConnectionIsOpened(), constants.wait5seconds, "Connection was not opened");
-                const newConDialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
-                    10000, "Connection dialog was not loaded");
 
+                const bastionConn: interfaces.IDBConnection = {
+                    dbType: "MySQL",
+                    caption: `MDSforVSCodeExtension`,
+                    description: "DB System used to test the MySQL Shell for VSCode Extension.",
+                    basic: {
+                        username: "dba",
+                        password: "MySQLR0cks!",
+                    },
+                };
+
+                await driver.wait(Until.dbConnectionIsOpened(bastionConn),
+                    constants.wait5seconds, "Connection was not opened");
+                const newConDialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
+                    constants.wait10seconds, "Connection dialog was not loaded");
                 expect(await newConDialog.findElement(locator.dbConnectionDialog.caption).getAttribute("value"))
-                    .to.equal("MDSforVSCodeExtension");
+                    .to.equal(bastionConn.caption);
                 expect(await newConDialog.findElement(locator.dbConnectionDialog.description).getAttribute("value"))
-                    .to.equal("DB System used to test the MySQL Shell for VSCode Extension.");
+                    .to.equal(bastionConn.description);
                 mdsEndPoint = await newConDialog
                     .findElement(locator.dbConnectionDialog.mysql.basic.hostname).getAttribute("value");
                 expect(mdsEndPoint).to.match(/(\d+).(\d+).(\d+).(\d+)/);
-                await newConDialog.findElement(locator.dbConnectionDialog.mysql.basic.username).sendKeys("dba");
+                await newConDialog.findElement(locator.dbConnectionDialog.mysql.basic.username)
+                    .sendKeys((bastionConn.basic as interfaces.IConnBasicMySQL).username);
                 const mdsTab = await newConDialog.findElement(locator.dbConnectionDialog.mdsTab);
                 expect(mdsTab).to.exist;
                 await mdsTab.click();
@@ -578,58 +587,23 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                     .findElement(locator.dbConnectionDialog.mysql.mds.bastionId).getAttribute("value");
                 await newConDialog.findElement(locator.dbConnectionDialog.ok).click();
                 await Misc.switchBackToTopFrame();
-                const mds = await Database.getWebViewConnection("MDSforVSCodeExtension");
+                const mds = await Database.getWebViewConnection(bastionConn.caption);
                 expect(mds).to.exist;
                 await Misc.switchToFrame();
                 await mds.click();
-                await driver.wait(async () => {
-                    const fingerprintDialog = await driver.findElements(locator.confirmDialog.exists);
-                    let passwordDialog = await driver.findElements(locator.passwordDialog.exists);
-                    const errors = await driver.findElements(locator.errorDialog.exists);
-                    if (fingerprintDialog.length > 0) {
-                        await fingerprintDialog[0].findElement(locator.confirmDialog.accept).click();
-                        passwordDialog = await driver.findElements(locator.passwordDialog.exists);
-                    }
-                    if (passwordDialog.length > 0) {
-                        await passwordDialog[0].findElement(locator.passwordDialog.password).sendKeys("MySQLR0cks!");
-                        await passwordDialog[0].findElement(locator.passwordDialog.ok).click();
-
-                        return true;
-                    }
-                    if (errors.length > 0) {
-                        const errorMsg = await errors[0].getAttribute("innerHTML");
-                        if (errorMsg.match(/Tunnel/) !== null) {
-                            console.log("SSH Tunnel error, nothing we can do. Skipping test.");
-                            skip = true;
-
-                            return true;
-                        }
-                    }
-
-                    return false;
-                }, 30000, "Dialogs were not displayed");
-
-                if (skip === true) {
-                    await Misc.switchBackToTopFrame();
-                    await new EditorView().closeEditor(constants.dbDefaultEditor);
-                    this.skip();
-                }
-
                 try {
-                    const confirmDialog = await driver.wait(until.elementLocated(locator.confirmDialog.exists),
-                        constants.wait5seconds, "Confirm dialog was not displayed");
-                    await confirmDialog.findElement(locator.confirmDialog.refuse).click();
+                    await driver.wait(Until.mdsConnectionIsOpened(bastionConn), constants.wait25seconds,
+                        "MDS Connection was not opened");
                 } catch (e) {
-                    // continue
+                    if (String(e).match(/Tunnel/) !== null) {
+                        await Misc.switchBackToTopFrame();
+                        await new EditorView().closeEditor(constants.dbDefaultEditor);
+                        skip = true;
+                        this.skip();
+                    }
                 }
-
-                await driver.wait(Until.dbConnectionIsOpened(), constants.wait5seconds, "Connection was not opened");
-                const result = await Misc.execCmd("select version();", undefined, 10000);
+                const result = await Misc.execCmd("select version();", undefined, constants.wait10seconds);
                 expect(result[0]).to.include("OK");
-                await Misc.switchBackToTopFrame();
-                expect(await Misc.existsTreeElement(constants.ociTreeSection,
-                    "Bastion4PrivateSubnetStandardVnc")).to.be.true;
-
             } else {
                 await Misc.openContextMenuItem(treeDbSystem, constants.startDBSystem, constants.checkNotif);
                 const ntf = await Misc.getNotification("Are you sure you want to start the DB System", false);
@@ -658,7 +632,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 mds: localMDSInfo,
             };
 
-
+            await Misc.switchBackToTopFrame();
             await Misc.sectionFocus(constants.dbTreeSection);
             const treeMDSConn = await Misc.getTreeElement(constants.dbTreeSection, "MDSforVSCodeExtension");
             await Misc.openContextMenuItem(treeMDSConn, constants.editDBConnection, constants.checkNewTabAndWebView);
@@ -709,8 +683,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             const treeLocalConn = await Misc.getTreeElement(constants.dbTreeSection, localConn.caption);
             await new EditorView().closeAllEditors();
             await (await Misc.getActionButton(treeLocalConn, constants.openNewConnection)).click();
-            await driver.wait(Until.dbConnectionIsOpened(), constants.wait5seconds, "Connection was not opened");
-            await Database.setDBConnectionCredentials(localConn, 30000);
+            await driver.wait(Until.mdsConnectionIsOpened(localConn),
+                constants.wait10seconds, "Connection was not opened");
             const result = await Misc.execCmd("select version();", undefined, 10000);
             expect(result[0]).to.include("OK");
 

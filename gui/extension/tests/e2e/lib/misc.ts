@@ -59,6 +59,10 @@ export class Misc {
         return new SideBarView().getContent().getSection(name);
     };
 
+    public static insideIframe = async (): Promise<boolean> => {
+        return driver.executeScript("return (window.location !== window.parent.location);");
+    };
+
     public static setRouterConfig = async (options: { [key: string]: string }): Promise<void> => {
         const keys = Object.keys(options);
         const configFile = Misc.getRouterConfigFile();
@@ -102,6 +106,9 @@ export class Misc {
             }
             case "rest": {
                 return backImage.includes("mrsServiceDefault");
+            }
+            case "schema": {
+                return backImage.includes("schemaMySQLCurrent");
             }
             default: {
                 break;

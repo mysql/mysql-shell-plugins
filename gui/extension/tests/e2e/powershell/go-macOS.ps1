@@ -67,6 +67,16 @@ if ($env:TEST_SUITE -eq "rest"){
     }
 }
 
+# REMOVE SHELL INSTANCE HOME
+$shellInstanceHome = Join-Path $home "mysqlsh-$env:TEST_SUITE" "plugin_data" "gui_plugin" "shell_instance_home"
+write-host "Removing $shellInstanceHome ..." -NoNewLine
+if (Test-Path -Path $shellInstanceHome){
+    Remove-Item -Path $shellInstanceHome -Force -Recurse
+    write-host "DONE"
+} else {
+    write-host "SKIPPED. Not found"
+}
+
 # DEFINE OCI ENV VARS
 if ($env:TEST_SUITE -eq "oci"){
     $env:MYSQLSH_OCI_CONFIG_FILE = Join-Path $env:WORKSPACE "oci" "config"

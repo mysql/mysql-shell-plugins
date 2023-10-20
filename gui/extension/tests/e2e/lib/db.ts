@@ -273,10 +273,6 @@ export class Database {
         await dialog.findElement(locator.passwordDialog.ok).click();
     };
 
-    public static requiresCredentials = async (): Promise<boolean> => {
-        return (await driver.findElements(locator.passwordDialog.exists)).length > 0;
-    };
-
     public static getToolbarButton = async (button: string): Promise<WebElement | undefined> => {
         const toolbar = await driver.wait(until.elementLocated(locator.notebook.toolbar.exists),
             constants.wait5seconds, "Toolbar was not found");
